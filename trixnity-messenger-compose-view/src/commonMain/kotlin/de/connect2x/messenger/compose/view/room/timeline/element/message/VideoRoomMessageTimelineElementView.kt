@@ -25,8 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
@@ -66,10 +66,12 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun createInTimeline(
         holder: BaseTimelineElementHolderViewModel,
         element: Video,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
+            index = index,
             overlay = {
                 VideoMessageElementOverlay(element)
             }
@@ -82,11 +84,13 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: Video,
+        index: Int,
     ) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
+            index = index,
             overlay = {
                 VideoMessageElementOverlay(element)
             },
@@ -120,6 +124,10 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
         holder: BaseTimelineElementHolderViewModel,
         element: Video
     ): ClipEntry? = element.toClipEntry()
+
+    override fun a11yLabel(element: Video, i18n: I18nView): String {
+        return "${i18n.commonVideo()}, ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+    }
 }
 
 @Composable
@@ -195,7 +203,12 @@ private fun Modifier.openVideoOnTouch(
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-internal fun VideoReplyElement(holder: TimelineElementHolderViewModel, element: Video, interactionSource: MutableInteractionSource, modifier: Modifier) {
+internal fun VideoReplyElement(
+    holder: TimelineElementHolderViewModel,
+    element: Video,
+    interactionSource: MutableInteractionSource,
+    modifier: Modifier
+) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
     ReferencedMessagePill(

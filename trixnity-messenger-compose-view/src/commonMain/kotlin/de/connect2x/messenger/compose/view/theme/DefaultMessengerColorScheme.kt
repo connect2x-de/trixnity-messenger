@@ -20,7 +20,7 @@ internal class MessengerColorSchemeImpl(
     private val themeLightContrast: ThemeHighContrastLightColorScheme,
     private val themeDark: ThemeDarkColorScheme,
     private val themeDarkContrast: ThemeHighContrastDarkColorScheme,
-): MessengerColorScheme {
+) : MessengerColorScheme {
     @Stable
     override fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme =
         if (isDarkMode) {

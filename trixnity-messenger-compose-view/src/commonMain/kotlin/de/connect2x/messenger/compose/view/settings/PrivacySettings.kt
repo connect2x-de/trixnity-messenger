@@ -104,7 +104,7 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             headlineContent = { Text(i18n.privacyTypingIsPublic()) },
             supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
             selected = typingIsPublic,
-            onChange = {  privacySettingViewModel.toggleTypingIsPublic() },
+            onChange = { privacySettingViewModel.toggleTypingIsPublic() },
         )
 
         val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value

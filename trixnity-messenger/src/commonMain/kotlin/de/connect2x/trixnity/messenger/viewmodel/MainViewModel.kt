@@ -11,6 +11,7 @@ import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.notification.NotificationHandlers
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
@@ -33,7 +34,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -68,7 +68,6 @@ interface MainViewModelFactory {
 
 interface MainViewModel {
     val selectedRoomId: MutableStateFlow<RoomId?>
-    val isRoomShown: StateFlow<Boolean>
     val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>>
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
     val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>>
@@ -104,7 +103,6 @@ open class MainViewModelImpl(
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
-    override val isRoomShown = MutableStateFlow(false)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext, ::onCloseSelfVerification)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
@@ -152,14 +150,6 @@ open class MainViewModelImpl(
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
-
-    init {
-        coroutineScope.launch {
-            roomRouterStack.subscribe {
-                isRoomShown.value = it.active.instance !is RoomRouter.Wrapper.None
-            }
-        }
-    }
 
     private val verificationRouter: VerificationRouter =
         VerificationRouter(
@@ -252,13 +242,16 @@ open class MainViewModelImpl(
                     }
                 }
         }
+        coroutineScope.launch {
+            get<NotificationHandlers>().continuouslyRequestPermissions()
+        }
         lifecycle.doOnStop {
             coroutineScope.launch {
                 withContext(NonCancellable) { // Even when the scope is destroyed, we want the sync to stop.
-                    log.debug { "app is stopped: cancel sync" }
+                    log.debug { "app is stopped: stop sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
                         log.debug { "stop sync for $userId" }
-                        matrixClient.cancelSync()
+                        matrixClient.stopSync()
                     }
                 }
             }
@@ -559,7 +552,7 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val isRoomShown: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id
     }

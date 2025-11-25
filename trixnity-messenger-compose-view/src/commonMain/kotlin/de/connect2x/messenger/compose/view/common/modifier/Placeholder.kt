@@ -83,7 +83,7 @@ object PlaceholderDefaults {
  * A version of this modifier which uses appropriate values for Material themed apps is available
  * in the 'Placeholder Material' library.
  *
- * You can provide a [de.connect2x.messenger.compose.view.common.modifier.PlaceholderHighlight] which runs an highlight animation on the placeholder.
+ * You can provide a [PlaceholderHighlight] which runs an highlight animation on the placeholder.
  * The [de.connect2x.messenger.compose.view.common.modifier.shimmer] and [de.connect2x.messenger.compose.view.common.modifier.fade] implementations are provided for easy usage.
  *
  * A cross-fade transition will be applied to the content and placeholder UI when the [visible]

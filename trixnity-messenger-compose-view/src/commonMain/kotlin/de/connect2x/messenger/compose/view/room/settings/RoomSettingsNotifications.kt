@@ -10,6 +10,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.focused
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import de.connect2x.messenger.compose.view.DI
@@ -46,7 +51,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
         val roomNotificationLevelDefault = roomNotificationLevels.getValue(NotificationLevels.DEFAULT)
         val roomNotificationLevelAll = roomNotificationLevels.getValue(NotificationLevels.ALL)
         val roomNotificationLevelMentions = roomNotificationLevels.getValue(NotificationLevels.MENTIONS)
-        val roomNotificationLevelSilent = roomNotificationLevels.getValue(NotificationLevels.SILENT)
+        val roomNotificationLevelOFF = roomNotificationLevels.getValue(NotificationLevels.OFF)
 
         Column {
             ThemedListItem(
@@ -58,14 +63,25 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                 },
                 style = MaterialTheme.components.settingsItem,
             )
+            if (isLoading) {
+                ThemedProgressIndicator(
+                    modifier = Modifier.semantics {
+                        focused = false
+                        text = AnnotatedString(i18n.notificationSettings() + ", " + i18n.loading())
+                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                )
+                return
+            }
             RadioSetting(
                 title = {
-                    if (isLoading) {
-                        ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
-                    } else {
-                        Tooltip({ Text(selectedLevelExplanation) }) {
-                            Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
-                        }
+                    Tooltip(
+                        tooltip = { Text(selectedLevelExplanation) },
+                        Modifier.semantics {
+                            text =
+                                AnnotatedString(i18n.notificationSettings() + ", " + selectedLevelName + " " + i18n.selected())
+                        },
+                    ) {
+                        Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
                     }
                 },
                 options = mapOf(
@@ -81,9 +97,9 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                         roomNotificationLevelMentions.name.collectAsState().value,
                         roomNotificationLevelMentions.explanation.collectAsState().value
                     ),
-                    roomNotificationLevelSilent to RadioSettingOption(
-                        roomNotificationLevelSilent.name.collectAsState().value,
-                        roomNotificationLevelSilent.explanation.collectAsState().value
+                    roomNotificationLevelOFF to RadioSettingOption(
+                        roomNotificationLevelOFF.name.collectAsState().value,
+                        roomNotificationLevelOFF.explanation.collectAsState().value
                     )
                 ),
                 value = selectedLevel,
@@ -92,7 +108,7 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                     NotificationLevels.DEFAULT -> Icons.Default.Notifications
                     NotificationLevels.ALL -> Icons.Default.NotificationsActive
                     NotificationLevels.MENTIONS -> Icons.Default.NotificationImportant
-                    NotificationLevels.SILENT -> Icons.Default.NotificationsOff
+                    NotificationLevels.OFF -> Icons.Default.NotificationsOff
                 }
             )
         }

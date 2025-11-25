@@ -206,6 +206,11 @@ open class I18nView(
         DE - "Warnung"
     }
 
+    open fun commonEmote() = translate {
+        EN - "emote"
+        DE - "Emote"
+    }
+
     open fun commonImage() = translate {
         EN - "image"
         DE - "Bild"
@@ -269,6 +274,11 @@ open class I18nView(
     open fun commonGroup() = translate {
         EN - "group"
         DE - "Gruppe"
+    }
+
+    open fun commonAccount() = translate {
+        EN - "Account"
+        DE - "Konto"
     }
 
     open fun commonSettings() = translate {
@@ -409,11 +419,6 @@ open class I18nView(
     open fun contact() = translate {
         EN - "contact"
         DE - "Kontakt"
-    }
-
-    open fun newMessage() = translate {
-        EN - "new message"
-        DE - "neue Nachricht"
     }
 
     open fun addAlias() = translate {
@@ -1030,6 +1035,11 @@ open class I18nView(
         DE - "Ja, Teilnehmer entbannen"
     }
 
+    open fun roomHeaderClose() = translate {
+        EN - "Close room"
+        DE - "Raum schließen"
+    }
+
     open fun roomHeaderUserIsBlocked() = translate {
         EN - "This user was blocked by you."
         DE - "Dieser Nutzer wird von Ihnen geblockt."
@@ -1130,6 +1140,11 @@ open class I18nView(
     open fun roomSettingsMembers() = translate {
         EN - "Members"
         DE - "Mitglieder"
+    }
+
+    open fun filterBy() = translate {
+        EN - "Filter by"
+        DE - "Filter nach"
     }
 
     open fun roomSettingsAliases() = translate {
@@ -1698,8 +1713,8 @@ open class I18nView(
     }
 
     open fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
-        EN - "Please enable notifications via the device settings"
-        DE - "Bitte erlauben Sie das Senden von Benachrichtigungen in den Geräteeinstellungen"
+        EN - "The app does not have permission to send notifications. Please go to your device settings."
+        DE - "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."
     }
 
     open fun notificationsSettingsPlatformPushMode(mode: String) = translate {
@@ -1737,9 +1752,9 @@ open class I18nView(
         DE - "Zeige Popup"
     }
 
-    open fun notificationsSettingsPlatformShowText() = translate {
-        EN - "Show text preview"
-        DE - "Textvorschau zeigen"
+    open fun notificationsSettingsPlatformShowDetails() = translate {
+        EN - "Show message details"
+        DE - "Nachrichtendetails zeigen"
     }
 
 
@@ -2943,6 +2958,36 @@ open class I18nView(
     open fun mentionEventInRoom(roomName: String) = translate {
         EN - "Message in $roomName"
         DE - "Nachricht in $roomName"
+    }
+
+    open fun notificationSettings() = translate {
+        EN - "Notification settings"
+        DE - "Benachrichtigungseinstellungen"
+    }
+
+    open fun chatHistoryVisibilitySettings() = translate {
+        EN - "Chat history visibility settings"
+        DE - "Chatverlaufssichtbarkeitseinstellungen"
+    }
+
+    open fun chatJoinRuleSettings() = translate {
+        EN - "Chat join rule settings"
+        DE - "Gruppenbeitrittseinstellungen"
+    }
+
+    open fun selected() = translate {
+        EN - "selected"
+        DE - "ausgewählt"
+    }
+
+    open fun loading() = translate {
+        EN - "loading"
+        DE - "wird geladen"
+    }
+
+    open fun selectDirectory() = translate {
+        EN - "select folder"
+        DE - "Ordner auswählen"
     }
 
     open fun userProfileRoleCustom() = translate {

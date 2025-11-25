@@ -2,6 +2,8 @@ rootProject.name = "trixnity-messenger-root"
 
 include(
     "trixnity-messenger",
+    "trixnity-messenger:trixnity-messenger-notification-fcm",
+    "trixnity-messenger:trixnity-messenger-notification-apns",
     "integrationtests",
     "emojis",
     "wrappers-zipjs",

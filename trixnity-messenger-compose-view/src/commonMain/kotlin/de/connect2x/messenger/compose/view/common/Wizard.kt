@@ -208,7 +208,7 @@ private fun ColumnScope.WizardContent(
     boxWithConstraints: BoxWithConstraintsScope,
 ) {
     Surface(
-        Modifier.Companion
+        Modifier
             .weight(1.0f, fill = true)
     ) {
         Box(

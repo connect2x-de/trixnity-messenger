@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.mikepenz.aboutlibraries.plugin.AboutLibrariesExtension
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.registerCoverageTask
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -58,6 +56,7 @@ kotlin {
                 }
             }
         }
+        useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()
     }
@@ -83,11 +82,11 @@ kotlin {
                 api(sharedLibs.decompose)
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
+                api(sharedLibs.androidx.lifecycle.runtime.compose)
                 implementation(sharedLibs.kotlinx.datetime)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
                 implementation(compose.uiUtil)
-                implementation(libs.sysnotify)
                 implementation(libs.highlights)
 
                 // FileKit
@@ -98,8 +97,12 @@ kotlin {
         val desktopAndAndroidMain by creating {
             dependsOn(commonMain)
         }
+        val skiaMain by creating {
+            dependsOn(commonMain)
+        }
         val desktopMain by getting {
             dependsOn(desktopAndAndroidMain)
+            dependsOn(skiaMain)
             dependencies {
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
@@ -111,7 +114,6 @@ kotlin {
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(compose.preview)
@@ -123,12 +125,17 @@ kotlin {
             }
         }
         val webMain by getting {
+            dependsOn(skiaMain)
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(project(":wrappers-pdfjs"))
             }
+        }
+
+        val iosMain by getting {
+            dependsOn(skiaMain)
         }
 
         commonTest {
@@ -156,7 +163,7 @@ dependencies {
 }
 
 android {
-    namespace = "de.connect2x.trixnity.messenger.compose.view"
+    namespace = "de.connect2x.messenger.compose.view"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true

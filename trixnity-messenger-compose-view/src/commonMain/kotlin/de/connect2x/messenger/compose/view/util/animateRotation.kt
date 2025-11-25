@@ -7,7 +7,7 @@ import androidx.compose.ui.draw.drawWithContent
 
 @Stable
 fun Modifier.animateRotation(rotation: State<Float>) = drawWithContent {
-    with (drawContext) {
+    with(drawContext) {
         canvas.save()
         try {
             transform.rotate(rotation.value)

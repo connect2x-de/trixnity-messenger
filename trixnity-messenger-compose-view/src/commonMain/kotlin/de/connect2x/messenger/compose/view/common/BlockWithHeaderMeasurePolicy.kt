@@ -7,7 +7,7 @@ import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
 
-object BlockWithHeaderMeasurePolicy: MeasurePolicy {
+object BlockWithHeaderMeasurePolicy : MeasurePolicy {
     object HeaderLayoutId
 
     override fun MeasureScope.measure(
@@ -17,7 +17,8 @@ object BlockWithHeaderMeasurePolicy: MeasurePolicy {
         val header = measurables.firstOrNull { it.layoutId == HeaderLayoutId }
         val content = measurables.first { it.layoutId != HeaderLayoutId }
         val contentResult = content.measure(constraints)
-        val headerResult = header?.measure(constraints.copy(minWidth = contentResult.width, maxWidth = contentResult.width))
+        val headerResult =
+            header?.measure(constraints.copy(minWidth = contentResult.width, maxWidth = contentResult.width))
         return if (headerResult == null) {
             layout(contentResult.width, contentResult.height) {
                 contentResult.place(0, 0)

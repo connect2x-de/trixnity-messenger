@@ -78,7 +78,10 @@ internal fun TableContent(
                             }
                         }
                     }
-                    HorizontalScrollbar(Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId), scrollState)
+                    HorizontalScrollbar(
+                        Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId),
+                        scrollState
+                    )
                 },
                 measurePolicy = HorizontalScrollableMeasurePolicy
             )

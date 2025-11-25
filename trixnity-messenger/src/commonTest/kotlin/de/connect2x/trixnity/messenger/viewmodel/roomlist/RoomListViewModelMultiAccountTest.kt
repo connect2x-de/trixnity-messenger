@@ -9,13 +9,10 @@ import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
@@ -28,7 +25,6 @@ import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +37,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -54,6 +51,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
@@ -107,6 +105,7 @@ class RoomListViewModelMultiAccountTest {
     val roomServiceMock2 = mock<RoomService>()
 
     val roomServiceMock3 = mock<RoomService>()
+    val notificationService = mock<NotificationService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
@@ -147,6 +146,7 @@ class RoomListViewModelMultiAccountTest {
             roomNameMock,
             profileManagerMock,
             onRoomSelectedMock,
+            notificationService,
         )
 
         // MatrixClient1: room1, room2, space1
@@ -157,6 +157,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock1 }
                     single { userServiceMock1 }
+                    single { notificationService }
                 })
         }.koin
         every { matrixClientMock2.di } returns koinApplication {
@@ -164,6 +165,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
+                    single { notificationService }
                 })
         }.koin
         every { matrixClientMock3.di } returns koinApplication {
@@ -171,6 +173,7 @@ class RoomListViewModelMultiAccountTest {
                 module {
                     single { roomServiceMock3 }
                     single { userServiceMock3 }
+                    single { notificationService }
                 })
         }.koin
         syncStateMocker1 = every { matrixClientMock1.syncState }
@@ -275,6 +278,27 @@ class RoomListViewModelMultiAccountTest {
                 stateKey = ""
             )
         )
+        every {
+            roomServiceMock1.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
+        every {
+            roomServiceMock2.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
+        every {
+            roomServiceMock3.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
 
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -409,6 +433,7 @@ class RoomListViewModelMultiAccountTest {
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
         everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { notificationService.getCount(any()) } returns flowOf(0)
     }
 
     @Test
@@ -565,7 +590,7 @@ class RoomListViewModelMultiAccountTest {
     }
 
     @Test
-    fun `display info message when trying to join a room while the client is not connected to the server`() = runTest {
+    fun `do nothing when selecting invited room`() = runTest {
         val room = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.INVITE)
         every { roomServiceMock1.getById(roomId1) } returns flowOf(room)
         every { roomServiceMock1.getAll() } returns MutableStateFlow(
@@ -575,15 +600,6 @@ class RoomListViewModelMultiAccountTest {
         )
         every { roomServiceMock2.getAll() } returns MutableStateFlow(emptyMap())
         every { roomServiceMock3.getAll() } returns MutableStateFlow(emptyMap())
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(roomId1)
         val syncState = MutableStateFlow(SyncState.ERROR)
         syncStateMocker1 returns syncState
 
@@ -593,8 +609,8 @@ class RoomListViewModelMultiAccountTest {
         cut.selectRoom(roomId1)
         delay(10)
 
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.JUST_DISMISS
+        cut.error.value shouldBe null
+        cut.selectedRoomId.value shouldBe RoomId("!roomId") // default when initialized in test case
     }
 
     @Test
@@ -833,7 +849,7 @@ class RoomListViewModelMultiAccountTest {
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = di,
                 userId = UserId("test1", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,

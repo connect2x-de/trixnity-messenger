@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.PasswordField
 import de.connect2x.messenger.compose.view.common.RunningText
@@ -56,12 +57,10 @@ import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
 
@@ -185,7 +184,10 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         Text(text = i18n.selfVerificationHelpOtherDevice())
                         Text(text = i18n.selfVerificationHelpVerifyThis())
                         Spacer(Modifier.size(20.dp))
-                        ExpandableSection(heading = i18n.selfVerificationHelpReasonTitle(), icon = Icons.Default.Info,) {
+                        ExpandableSection(
+                            heading = i18n.selfVerificationHelpReasonTitle(),
+                            icon = Icons.Default.Info,
+                        ) {
                             RunningText(text = i18n.selfVerificationHelpReason1())
                             RunningText(text = i18n.selfVerificationHelpReason2())
                             RunningText(text = i18n.selfVerificationHelpReason3())
@@ -257,8 +259,15 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                                 )
                                             },
                                             description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
-                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                            onClick = {
+                                                selectedMethod.value =
+                                                    SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                        method
+                                                    )
+                                            },
+                                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                method
+                                            )
                                         )
                                     }
 
@@ -271,8 +280,15 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                                 )
                                             },
                                             description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
-                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                            onClick = {
+                                                selectedMethod.value =
+                                                    SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                        method
+                                                    )
+                                            },
+                                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                method
+                                            )
                                         )
                                     }
 
@@ -285,8 +301,15 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                                 )
                                             },
                                             description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
-                                            onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                            selected = selectedMethod.value == SelectSelfVerificationMethod(method)
+                                            onClick = {
+                                                selectedMethod.value =
+                                                    SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                        method
+                                                    )
+                                            },
+                                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectSelfVerificationMethod(
+                                                method
+                                            )
                                         )
                                     }
                                 }
@@ -341,7 +364,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                     )
                                 },
                                 onClick = {
-                                selectedMethod.value =
+                                    selectedMethod.value =
                                         SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
                                 },
                                 selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
@@ -385,9 +408,9 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                         selfVerificationViewModel.close()
                                     }
 
-                                    is SelectSelfVerificationMethod -> {
-                                        selfVerificationViewModel.launchVerification((selectedMethod.value as SelectSelfVerificationMethod).method)
-                                        when ((selectedMethod.value as SelectSelfVerificationMethod).method) {
+                                    is SelfVerificationMethodsListEntries.SelectSelfVerificationMethod -> {
+                                        selfVerificationViewModel.launchVerification((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method)
+                                        when ((selectedMethod.value as SelfVerificationMethodsListEntries.SelectSelfVerificationMethod).method) {
                                             is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
                                                 currentStepId.value =
                                                     SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey.stepId

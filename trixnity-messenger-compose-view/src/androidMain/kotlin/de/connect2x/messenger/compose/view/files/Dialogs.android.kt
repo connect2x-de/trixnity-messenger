@@ -31,8 +31,6 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.IMAGE_FILE
 import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelection
-import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.PHOTO
-import de.connect2x.messenger.compose.view.files.CameraDialogCapturingMode.VIDEO
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -179,9 +177,9 @@ actual fun LoadFileDialog(
             IMAGE_AND_VIDEO_FILE -> mediaLauncher
                 .launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
 
-            PHOTO_CAPTURE -> showCameraDialog = PHOTO
+            PHOTO_CAPTURE -> showCameraDialog = CameraDialogCapturingMode.PHOTO
 
-            VIDEO_CAPTURE -> showCameraDialog = VIDEO
+            VIDEO_CAPTURE -> showCameraDialog = CameraDialogCapturingMode.VIDEO
         }
     }
     if (showCameraDialog != null) {
@@ -229,8 +227,8 @@ fun CameraDialog(
     var showPermissionAlert by remember { mutableStateOf(false) }
     var isPermissionGranted by remember { mutableStateOf(false) }
     val tempFileName = "camera_capture" + when (mode) {
-        PHOTO -> ".jpg"
-        VIDEO -> ".mp4"
+        CameraDialogCapturingMode.PHOTO -> ".jpg"
+        CameraDialogCapturingMode.VIDEO -> ".mp4"
     }
     val tempFile = File(context.cacheDir, tempFileName)
     val tempUri = FileProvider.getUriForFile(
@@ -238,7 +236,7 @@ fun CameraDialog(
     )
 
     val cameraLauncher = when (mode) {
-        PHOTO -> rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
+        CameraDialogCapturingMode.PHOTO -> rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
             if (isImageSaved) {
                 onCapture(tempUri)
                 // TODO consider removing the temp file
@@ -247,7 +245,7 @@ fun CameraDialog(
             }
         }
 
-        VIDEO -> rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { isImageSaved ->
+        CameraDialogCapturingMode.VIDEO -> rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { isImageSaved ->
             if (isImageSaved) {
                 onCapture(tempUri)
                 // TODO consider removing the temp file

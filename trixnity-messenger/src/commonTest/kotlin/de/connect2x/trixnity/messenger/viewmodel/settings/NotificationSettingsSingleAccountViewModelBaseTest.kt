@@ -41,17 +41,17 @@ import kotlin.time.Duration.Companion.seconds
 class NotificationSettingsSingleAccountViewModelBaseTest {
     private val userId = UserId("alice", "dino.unicorn")
 
-    private val sampleSettings = NotificationSettings(
-        defaultLevel = NotificationSettings.DefaultLevel.MENTION, sound = NotificationSettings.Sound(
+    private val sampleSettings = AccountNotificationSettings(
+        defaultLevel = AccountNotificationSettings.DefaultLevel.MENTION, sound = AccountNotificationSettings.Sound(
             room = false,
             dm = false,
             mention = false,
             call = false,
-        ), activity = NotificationSettings.Activity(
+        ), activity = AccountNotificationSettings.Activity(
             invite = false,
             status = false,
             notice = false,
-        ), mention = NotificationSettings.Mention(
+        ), mention = AccountNotificationSettings.Mention(
             user = false, room = false, keyword = false
         ), keywords = setOf("alice1")
     )
@@ -171,7 +171,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
                 asUserId = null
             )
         }
-        cut.accountSettingsUpdateError.value shouldBe null
+        cut.updateAccountSettingsError.value shouldBe null
     }
 
     @Test
@@ -195,10 +195,10 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
         pushRulesEventContentState.value = PushRuleSet()
         delay(11.seconds)
         cut.accountSettingsIsUpdating.value shouldBe false
-        cut.accountSettingsUpdateError.value shouldContain "timeout"
+        cut.updateAccountSettingsError.value shouldContain "timeout"
     }
 
-    private fun TestScope.createCut(): NotificationSettingsSingleAccountViewModelBase {
+    private fun TestScope.createCut(): NotificationSettingsSingleAccountViewModel {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
@@ -206,7 +206,7 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
                 )
             )
         }.koin
-        return NotificationSettingsSingleAccountViewModelBaseImpl(
+        return NotificationSettingsSingleAccountViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
                 di = di,
                 userId = userId,

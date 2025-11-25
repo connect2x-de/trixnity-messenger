@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.trixnity.messenger.util.toByteArray
 import kotlinx.cinterop.useContents
-import de.connect2x.trixnity.messenger.util.toNSData
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -14,9 +13,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
-import okio.FileSystem
-import okio.Path
-import okio.use
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import platform.CoreGraphics.CGContextFillRect
 import platform.CoreGraphics.CGContextRestoreGState

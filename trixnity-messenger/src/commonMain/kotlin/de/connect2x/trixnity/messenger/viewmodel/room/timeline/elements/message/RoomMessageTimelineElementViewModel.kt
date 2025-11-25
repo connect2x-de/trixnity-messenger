@@ -46,7 +46,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
+    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> // TODO typing should be consistent to mentionsInFormattedBody
 
     /**
      * Users, Events and Room mentioned in the event's formatted body

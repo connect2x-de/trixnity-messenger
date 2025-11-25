@@ -38,6 +38,7 @@ internal fun TableCell(node: RichText.Block, context: RichTextContext) {
                 }
             }
         }
+
         "td" -> {
             Column {
                 for (index in node.children.indices) {

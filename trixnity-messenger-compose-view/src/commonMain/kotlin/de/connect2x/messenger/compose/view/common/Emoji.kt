@@ -55,7 +55,7 @@ fun EmojiSelector(
     Box(modifier) {
         Row(modifier = Modifier.verticalScroll(scrollState), horizontalArrangement = Arrangement.Center) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
-                val calculatedEmojiSize = with (LocalDensity.current) { 48.dp.roundToPx() }
+                val calculatedEmojiSize = with(LocalDensity.current) { 48.dp.roundToPx() }
                 val columns = constraints.maxWidth / calculatedEmojiSize
 
                 RovingFocusContainer {
@@ -69,6 +69,7 @@ fun EmojiSelector(
                                         }
                                         true
                                     }
+
                                     else -> false
                                 }
                             }

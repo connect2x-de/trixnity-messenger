@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import dev.mokkery.MockMode.autoUnit
@@ -138,7 +137,7 @@ class AddMatrixAccountViewModelTest {
             viewModelContext = ViewModelContextImpl(
                 di = di,
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             onAddMatrixAccountMethod = onAddMatrixAccountMethodMock,
             onCancel = onCancelMock,

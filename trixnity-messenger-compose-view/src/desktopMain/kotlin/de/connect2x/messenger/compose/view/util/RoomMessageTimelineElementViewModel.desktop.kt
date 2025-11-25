@@ -2,6 +2,7 @@ package de.connect2x.messenger.compose.view.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ClipEntry
+import de.connect2x.messenger.compose.view.util.coordinates
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
@@ -12,8 +13,8 @@ import java.awt.datatransfer.StringSelection
 @Composable
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val transferable = when (this) {
-        is FileBased -> null // FIXME should deliver caption
-        is Location -> StringSelection(this.coordinates) // FIXME should deliver proper location description (placename, coordinates)
+        is FileBased -> null // TODO should deliver caption
+        is Location -> StringSelection(this.coordinates) // TODO should deliver proper location description (placename, coordinates)
         is TextBased -> StringSelection(this.body)
         is RoomMessageTimelineElementViewModel.Unknown, is RoomMessageTimelineElementViewModel.VerificationRequest -> null
     }

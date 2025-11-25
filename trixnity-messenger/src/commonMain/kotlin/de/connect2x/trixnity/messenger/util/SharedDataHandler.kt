@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,3 +30,9 @@ open class SharedDataHandlerImpl(
         flow.tryEmit(files)
     }
 }
+
+val MatrixMessenger.defaultSharedDataHandler: SharedDataHandler
+    get() = di.get<SharedDataHandler>()
+
+val MatrixMultiMessenger.defaultSharedDataHandler: SharedDataHandler
+    get() = di.get<SharedDataHandler>()

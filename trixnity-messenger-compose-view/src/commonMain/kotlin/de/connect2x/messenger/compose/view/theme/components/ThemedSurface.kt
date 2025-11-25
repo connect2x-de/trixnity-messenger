@@ -3,6 +3,7 @@ package de.connect2x.messenger.compose.view.theme.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -90,11 +92,39 @@ fun ThemedSurface(
 }
 
 @Composable
+fun ThemedSurface(
+    onClick: () -> Unit,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    modifier: Modifier = Modifier,
+    style: SurfaceStyle,
+    focused: Boolean = false,
+    content: @Composable BoxScope.() -> Unit
+) = Surface(
+    onClick = onClick,
+    interactionSource = interactionSource,
+    modifier = modifier.padding(style.padding),
+    shape = style.shape,
+    color = style.color,
+    contentColor = style.contentColor,
+    tonalElevation = style.tonalElevation,
+    shadowElevation = style.shadowElevation,
+    border = if (focused) style.focusedBorder else style.border,
+) {
+    Box(Modifier.padding(style.contentPadding)) {
+        style.textStyle?.let {
+            CompositionLocalProvider(LocalTextStyle provides it) {
+                content()
+            }
+        } ?: content()
+    }
+}
+
+@Composable
 fun Modifier.themedSurface(
     style: SurfaceStyle,
     focused: Boolean = false,
 ): Modifier {
-    val shadowElevation = with (LocalDensity.current) { style.shadowElevation.toPx() }
+    val shadowElevation = with(LocalDensity.current) { style.shadowElevation.toPx() }
     val backgroundColor = if (style.color != MaterialTheme.colorScheme.surface) style.color
     else MaterialTheme.colorScheme.surfaceColorAtElevation(style.tonalElevation)
     val shadowModifier = Modifier.graphicsLayer(

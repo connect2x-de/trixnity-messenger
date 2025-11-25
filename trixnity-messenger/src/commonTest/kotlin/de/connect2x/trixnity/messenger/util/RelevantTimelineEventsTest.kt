@@ -4,6 +4,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import net.folivo.trixnity.core.MegolmMessageValue
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.events.UnknownEventContent
 import net.folivo.trixnity.core.model.events.m.RelatesTo
@@ -25,7 +26,10 @@ class RelevantTimelineEventsTest {
     fun `consider encrypted event as relevant`() = runTest {
         cut.isRelevantTimelineEvent(
             MegolmEncryptedMessageEventContent(
-                ciphertext = "cipherCipher", senderKey = KeyValue.Curve25519KeyValue(""), deviceId = "", sessionId = ""
+                ciphertext = MegolmMessageValue("cipherCipher"),
+                senderKey = KeyValue.Curve25519KeyValue(""),
+                deviceId = "",
+                sessionId = ""
             )
         ) shouldBe true
     }

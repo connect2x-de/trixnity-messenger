@@ -1,6 +1,7 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
@@ -65,7 +68,10 @@ import de.connect2x.messenger.compose.view.util.LocalRovingFocus
 import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
@@ -178,16 +184,10 @@ fun AccountWithDevicesList(
                 modifier = Modifier.verticalRovingFocus(
                     default = defaultItem,
                     up = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.minus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
+                        getPreviousItem(references.value, defaultItem) { it }
                     },
                     down = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = references.value.indexOf(currentItem)
-                        val nextIndex = currentIndex.plus(1).coerceIn(references.value.indices)
-                        references.value[nextIndex]
+                        getNextItem(references.value, defaultItem) { it }
                     },
                 )
             ) {
@@ -260,80 +260,90 @@ fun DeviceItem(
     val showOptions = remember { mutableStateOf(false) }
     val showRename = remember { mutableStateOf(false) }
 
-    ThemedListItem(
-        style = MaterialTheme.components.settingsItem,
-        modifier = modifier
-            .then(focusedBorder),
-        leadingContent = {
-            if (isVerified.value) {
-                VerifiedIcon(VerificationLevel.DEVICE)
-            } else {
-                NotVerifiedIcon(VerificationLevel.DEVICE)
+    Box(
+        Modifier
+            .rovingFocusItem()
+            .focusable(true, interactionSource)
+            .semantics {
+                contentDescription = "${displayName.value}, ${device.lastSeenAt}"
             }
-        },
-        headlineContent = {
-            Text(displayName.value)
-            if (device.isDehydrated) {
-                Tooltip({ Text(i18n.dehydratedDevice()) }) {
-                    Icon(
-                        Icons.Default.RestoreFromTrash,
-                        i18n.dehydratedDevice(),
-                    )
+    ) {
+        ThemedListItem(
+            style = MaterialTheme.components.settingsItem,
+            modifier = modifier
+                .then(focusedBorder),
+            leadingContent = {
+                if (isVerified.value) {
+                    VerifiedIcon(VerificationLevel.DEVICE)
+                } else {
+                    NotVerifiedIcon(VerificationLevel.DEVICE)
                 }
-            }
-        },
-        supportingContent = { Text(device.lastSeenAt) },
-        trailingContent = {
-            Box {
-                Tooltip({ Text(i18n.commonMore()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        modifier = Modifier.rovingFocusItem(),
-                        interactionSource = interactionSource,
-                        onClick = {
-                            showOptions.value = true
-                            focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
-                        },
-                    ) {
-                        EditIcon(Icons.Default.MoreVert, i18n.commonMore())
+            },
+            headlineContent = {
+                Text(displayName.value)
+                if (device.isDehydrated) {
+                    Tooltip({ Text(i18n.dehydratedDevice()) }) {
+                        Icon(
+                            Icons.Default.RestoreFromTrash,
+                            i18n.dehydratedDevice(),
+                        )
                     }
                 }
-                ThemedDropdownMenu(
-                    expanded = showOptions.value,
-                    onDismissRequest = { showOptions.value = false },
-                ) {
-                    ThemedDropdownMenuItem(
-                        text = { Text(i18n.commonRename().capitalize(Locale.current)) },
-                        leadingIcon = { Icon(Icons.Default.Edit, null) },
-                        onClick = {
-                            showRename.value = true
-                            showOptions.value = false
-                        },
-                    )
-                    if (!isVerified.value) {
-                        ThemedDropdownMenuItem(
-                            text = { Text(i18n.commonVerify().capitalize(Locale.current)) },
-                            leadingIcon = { Icon(Icons.Default.GppGood, null) },
+            },
+            supportingContent = { Text(device.lastSeenAt) },
+            trailingContent = {
+                Box {
+                    Tooltip({ Text(i18n.commonMore()) }) {
+                        val interactionSource = remember { MutableInteractionSource() }
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            modifier = Modifier.rovingFocusChild(),
+                            interactionSource = interactionSource,
                             onClick = {
-                                onVerify(device)
+                                showOptions.value = true
+                                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
+                            },
+                        ) {
+                            EditIcon(Icons.Default.MoreVert, i18n.commonMore())
+                        }
+                    }
+                    ThemedDropdownMenu(
+                        expanded = showOptions.value,
+                        onDismissRequest = { showOptions.value = false },
+                    ) {
+                        ThemedDropdownMenuItem(
+                            text = { Text(i18n.commonRename().capitalize(Locale.current)) },
+                            leadingIcon = { Icon(Icons.Default.Edit, null) },
+                            onClick = {
+                                showRename.value = true
+                                showOptions.value = false
+                            },
+                        )
+                        if (!isVerified.value) {
+                            ThemedDropdownMenuItem(
+                                text = { Text(i18n.commonVerify().capitalize(Locale.current)) },
+                                leadingIcon = { Icon(Icons.Default.GppGood, null) },
+                                onClick = {
+                                    onVerify(device)
+                                    showOptions.value = false
+                                },
+                            )
+                        }
+                        ThemedDropdownMenuItem(
+                            text = { Text(i18n.commonRemove().capitalize(Locale.current)) },
+                            leadingIcon = {
+                                Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error)
+                            },
+                            onClick = {
+                                onDelete(device)
                                 showOptions.value = false
                             },
                         )
                     }
-                    ThemedDropdownMenuItem(
-                        text = { Text(i18n.commonRemove().capitalize(Locale.current)) },
-                        leadingIcon = {
-                            Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error)
-                        },
-                        onClick = {
-                            onDelete(device)
-                            showOptions.value = false
-                        },
-                    )
                 }
-            }
-        },
-    )
+            },
+        )
+    }
 
     if (showRename.value) {
         RenameDeviceDialog(

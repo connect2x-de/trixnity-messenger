@@ -9,15 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a settings panel for configuring power levels
-- Add timeline events for all power level changes
-- Added a message bubble to the timeline when a user's power level changes
-
 ### Changed
-
-- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
-- Use SQLitenity as Room implementation
-- Improve keyboard accessibility of profile selection and blocked user settings
 
 ### Deprecated
 
@@ -25,12 +17,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Using latest emojifont version on web 
+
+### Security
+
+## 3.8.10
+
+### Fixed
+
+- Upgrade sqlitenity to fix iOS issues
+
+## 3.8.9
+
+### Added
+
+- Add a settings panel for configuring power levels
+- Add timeline events for all power level changes
+- Added a message bubble to the timeline when a user's power level changes
+- UI: timeline does not show sticky date header if not necessary
+- Readme entry on using the web app inside an `iframe`
+- Completely new notification handling
+
+### Changed
+
+- Added Space in the bottom of the RoomList to account for new chat button overlapping UI elements
+- Use SQLitenity as Room implementation
+- Improve keyboard accessibility of profile selection and blocked user settings
+- room settings: improve handling of name and topic display
+- Upgrade Trixnity to 4.22.7
+
+### Fixed
+
 - The sticky header now correctly displays the date of the topmost message
 - Fix focus handling in chat/group creation user list and add members view
 - Show dropdown icon in group creation history visibility menu
 - No more Linux segfaults
-
-### Security
+- Fix SQLitenity on windows
+- Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
+- Correctly align appearance color preview in appearance settings
+- a11y behavior all over the app (TAB behavior, roles, a11y labels, etc)
 
 ## 3.8.8
 
@@ -92,7 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
--
 
 ### Changed
 

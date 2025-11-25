@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -298,7 +297,7 @@ class RoomListViewModelImpl(
                 allRoomsFlow.map { it.keys },
                 searchTerm.debounce { if (it.text.isBlank()) 0.milliseconds else 300.milliseconds },
             ) { allRoomIds, currentSearchTerm ->
-                allRoomIds to currentSearchTerm.text
+                allRoomIds to currentSearchTerm.text.trim()
             }.flatMapLatest { (allRoomIds, currentSearchTerm) ->
                 if (currentSearchTerm.isNotBlank()) {
                     allRoomNamesFlow.map { allRoomNames ->
@@ -444,12 +443,13 @@ class RoomListViewModelImpl(
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, Eagerly, false) // Has to be `Eagerly` as it is used as a helper.
 
-        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme.
+        // andle room navigation requests through the app://localhost/matrix:roomid/<ID> scheme.
+        // TODO Should be removed when better deeplink support is added
         coroutineScope.launch {
             get<UrlHandler>().collect {
                 val segments = it.rawSegments
-                if (segments.size < 3 || segments[1] != "room") return@collect
-                selectRoom(RoomId(segments[2]))
+                if (segments.size < 3 || segments[1] != "matrix:roomid") return@collect
+                selectRoom(RoomId("!" + segments[2]))
             }
         }
     }
@@ -480,36 +480,14 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val (isInvite, isKnock) =
-                matrixClient.room.getById(roomId).filterNotNull().map {
-                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
-                }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
-            when {
-                isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
-                    log.debug { "try to join room while not connected" }
-                    _errorType.value = ErrorType.JUST_DISMISS
-                    _error.value = i18n.roomListInvitationOffline()
+            val membership = matrixClient.room.getById(roomId).first()?.membership
+            log.debug { "switch to room $roomId" }
+            when (membership) {
+                Membership.JOIN -> {
+                    onRoomSelected(matrixClient.userId, roomId)
                 }
 
-                isInvite -> {
-                    log.debug { "try to join room $roomId" }
-                    matrixClient.api.room.joinRoom(roomId).fold(
-                        onSuccess = {
-                            onRoomSelected(matrixClient.userId, roomId)
-                        },
-                        onFailure = {
-                            log.error(it) { "Cannot join room." }
-                            errorSelectedRoom.value = roomId
-                            _errorType.value = ErrorType.WITH_ACTION
-                            _error.value = i18n.roomListInvitationError()
-                        }
-                    )
-                }
-
-                isKnock -> {}
-
-                else -> onRoomSelected(matrixClient.userId, roomId)
+                else -> {}
             }
         }
     }

@@ -226,7 +226,7 @@ private fun initViewState(
             lastVisibleElement = vms.last().key,
             firstLoadedElement = vms.first().key,
             lastLoadedElement = vms.last().key,
-            windowIsFocused = true,
+            timelineIsFocused = true,
         )
     }
 }

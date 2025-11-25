@@ -25,7 +25,7 @@ internal class TransitionPainter(
     private val image: Painter?,
     private val fallback: Painter?,
     private val opacity: State<Float>
-): Painter() {
+) : Painter() {
     override val intrinsicSize: Size = image?.intrinsicSize ?: fallback?.intrinsicSize ?: Size.Zero
 
     override fun DrawScope.onDraw() {

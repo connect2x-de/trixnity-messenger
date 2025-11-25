@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -25,7 +23,6 @@ import net.folivo.trixnity.client.media.MediaService
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArray
 import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -49,7 +46,7 @@ class DownloadManagerTest {
 
     @Test
     fun `return 'success' when download is finished successfully`() = runTest {
-        val cut = DownloadManagerImpl(backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher))
+        val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         everySuspend {
             mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
         } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
@@ -67,7 +64,7 @@ class DownloadManagerTest {
 
     @Test
     fun `download encrypted file`() = runTest {
-        val cut = DownloadManagerImpl(backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher))
+        val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val encryptedFile = EncryptedFile(
             url = "mxc://localhost/ABCDEFGH",
             key = EncryptedFile.JWK(key = "key"),
@@ -88,7 +85,7 @@ class DownloadManagerTest {
 
     @Test
     fun `track progress of download`() = runTest {
-        val cut = DownloadManagerImpl(backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher))
+        val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getMedia(

@@ -11,9 +11,7 @@ import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
@@ -133,6 +131,9 @@ class TimelineViewModelTest {
             roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
         } returns Result.success(Unit)
         everySuspend {
+            roomsApiClientMock.setAccountData(any(), any(), any(), any(), eqNull())
+        } returns Result.success(Unit)
+        everySuspend {
             roomsApiClientMock.setReceipt(any(), any(), any(), any(), eqNull())
         } returns Result.success(Unit)
 
@@ -229,7 +230,7 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-1",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true
+                timelineIsFocused = true
             )
             delay(200) // give the viewmodel time to compute derived values
 
@@ -403,7 +404,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "notRelevant",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         cut.elements waitForSize 20
     }
@@ -426,7 +427,7 @@ class TimelineViewModelTest {
 
         cut.viewState.value = TimelineViewModel.ViewState(
             firstVisibleElement = "notRelevant", lastVisibleElement = "$roomId-8",// [9..19], see above
-            firstLoadedElement = "notRelevant", lastLoadedElement = "notRelevant", windowIsFocused = true
+            firstLoadedElement = "notRelevant", lastLoadedElement = "notRelevant", timelineIsFocused = true
         )
         continually(1.seconds) {
             cut.elements.value.size shouldBe 11
@@ -456,7 +457,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-9",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         cut.elements waitForSize 20
     }
@@ -487,7 +488,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-transactionId-1",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
 
         timelineMock.addEvents {
@@ -522,7 +523,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-0",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         continually(1.seconds) {
             cut.elements.value.size shouldBe 11
@@ -667,7 +668,7 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-0",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true,
+                timelineIsFocused = true,
             )
             delay(200) // give the viewmodel time to compute derived values
 
@@ -704,7 +705,7 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-0",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true
+                timelineIsFocused = true
             )
             delay(500.milliseconds) // give scrollTo time to be cleared
 
@@ -945,7 +946,7 @@ class TimelineViewModelTest {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
             ),
             roomId = roomId,
             onOpenSettings = mock(),

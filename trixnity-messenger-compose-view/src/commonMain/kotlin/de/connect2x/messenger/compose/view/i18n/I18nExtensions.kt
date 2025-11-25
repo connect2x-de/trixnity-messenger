@@ -4,7 +4,7 @@ import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventConten
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
 
 fun HistoryVisibilityEventContent.HistoryVisibility.getExplanation(i18n: I18nView): String {
-    return when(this) {
+    return when (this) {
         HistoryVisibilityEventContent.HistoryVisibility.INVITED -> i18n.historyVisibilityInvitedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilitySharedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoinedExplanation()
@@ -12,15 +12,15 @@ fun HistoryVisibilityEventContent.HistoryVisibility.getExplanation(i18n: I18nVie
     }
 }
 
-fun HistoryVisibilityEventContent.HistoryVisibility.getExplanationWhenEncrypted(i18n: I18nView) : String {
-    return when(this) {
+fun HistoryVisibilityEventContent.HistoryVisibility.getExplanationWhenEncrypted(i18n: I18nView): String {
+    return when (this) {
         HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadableEncryptedExplanation()
         else -> this.getExplanation(i18n)
     }
 }
 
 fun HistoryVisibilityEventContent.HistoryVisibility.getStateName(i18n: I18nView): String {
-    return when(this) {
+    return when (this) {
         HistoryVisibilityEventContent.HistoryVisibility.INVITED -> i18n.historyVisibilityInvited()
         HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilityShared()
         HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoined()
@@ -28,7 +28,7 @@ fun HistoryVisibilityEventContent.HistoryVisibility.getStateName(i18n: I18nView)
     }
 }
 
-fun JoinRulesEventContent.JoinRule.getExplanation(i18n: I18nView) : String {
+fun JoinRulesEventContent.JoinRule.getExplanation(i18n: I18nView): String {
     return when (this) {
         JoinRulesEventContent.JoinRule.Public -> i18n.joinRulePublicExplanation()
         JoinRulesEventContent.JoinRule.Invite -> i18n.joinRuleInvitedExplanation()
@@ -39,8 +39,9 @@ fun JoinRulesEventContent.JoinRule.getExplanation(i18n: I18nView) : String {
         is JoinRulesEventContent.JoinRule.Unknown -> ""
     }
 }
-fun JoinRulesEventContent.JoinRule.getStateName(i18n: I18nView) : String {
-    return when(this) {
+
+fun JoinRulesEventContent.JoinRule.getStateName(i18n: I18nView): String {
+    return when (this) {
         JoinRulesEventContent.JoinRule.Invite -> i18n.joinRuleInvited()
         JoinRulesEventContent.JoinRule.Knock -> i18n.joinRuleKnock()
         JoinRulesEventContent.JoinRule.KnockRestricted -> i18n.joinRuleKnockRestricted()

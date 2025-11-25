@@ -32,12 +32,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.CollectionInfo
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.get
@@ -53,7 +60,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
+import de.connect2x.messenger.compose.view.util.getNextItem
+import de.connect2x.messenger.compose.view.util.getPreviousItem
+import de.connect2x.messenger.compose.view.util.scroll
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
@@ -81,6 +90,7 @@ fun ColumnScope.Timeline(timelineViewModel: TimelineViewModel) {
 }
 
 private const val additionalEndPadding = 8
+
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
@@ -118,19 +128,26 @@ class TimelineViewImpl : TimelineView {
                 }.asReversed()
             }
         }
-        val navigatableTimelineElements = remember {
-            derivedStateOf {
-                timelineElementHolderViewModels.value.filter {
-                    val element = it.element.value
-                    element != null && timelineElementViewSelector.isFocusable(element)
-                }.map { it.key }
-            }
-        }
         val uiTimelineElements = remember {
             derivedStateOf {
                 buildList {
                     for ((date, viewModel) in timelineElementViewModelGrouped.value) {
                         add(viewModel.key)
+                        if (date != null) {
+                            add("date-$date-${viewModel.key}")
+                        }
+                    }
+                }
+            }
+        }
+        val navigatableTimelineElements = remember {
+            derivedStateOf {
+                buildList {
+                    for ((date, viewModel) in timelineElementViewModelGrouped.value) {
+                        val element = viewModel.element.value
+                        if (element != null && timelineElementViewSelector.isFocusable(element)) {
+                            add(viewModel.key)
+                        }
                         if (date != null) {
                             add("date-$date-${viewModel.key}")
                         }
@@ -187,7 +204,8 @@ class TimelineViewImpl : TimelineView {
                         } ?: 0
                 }
 
-                val initialFirstVisibleItemIndex = if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
+                val initialFirstVisibleItemIndex =
+                    if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
                 val lastItem = remember {
@@ -251,32 +269,29 @@ class TimelineViewImpl : TimelineView {
                         Box {
                             RovingFocusContainer {
                                 LazyColumn(
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxSize()
                                         .verticalRovingFocus(
                                             default = lastItem.value,
-                                            scroll = { item ->
-                                                val index = uiTimelineElements.value.indexOf(item)
-                                                if (index != -1) {
-                                                    listState.scrollIntoView(index)
-                                                }
+                                            scroll = scroll(listState, uiTimelineElements.value) { it },
+                                            up = { // inverse
+                                                getNextItem(
+                                                    navigatableTimelineElements.value,
+                                                    lastItem.value,
+                                                ) { it }
                                             },
-                                            up = {
-                                                val currentItem = activeRef.value ?: lastItem.value
-                                                val currentIndex =
-                                                    navigatableTimelineElements.value.indexOf(currentItem)
-                                                val nextIndex = currentIndex.plus(1)
-                                                    .coerceIn(navigatableTimelineElements.value.indices)
-                                                navigatableTimelineElements.value[nextIndex]
+                                            down = { // inverse
+                                                getPreviousItem(
+                                                    navigatableTimelineElements.value,
+                                                    lastItem.value,
+                                                ) { it }
                                             },
-                                            down = {
-                                                val currentItem = activeRef.value ?: lastItem.value
-                                                val currentIndex =
-                                                    navigatableTimelineElements.value.indexOf(currentItem)
-                                                val nextIndex = currentIndex.minus(1)
-                                                    .coerceIn(navigatableTimelineElements.value.indices)
-                                                navigatableTimelineElements.value[nextIndex]
-                                            },
-                                        ),
+                                        )
+                                        .semantics {
+                                            collectionInfo =
+                                                CollectionInfo(1, timelineElementViewModelGrouped.value.size)
+                                            liveRegion = LiveRegionMode.Polite
+                                        },
                                     contentPadding = PaddingValues(
                                         top = 10.dp,
                                         bottom = 10.dp,
@@ -290,20 +305,26 @@ class TimelineViewImpl : TimelineView {
                                     verticalArrangement = Arrangement.Bottom,
                                 ) {
                                     log.trace { "rendering timeline elements" }
-                                    timelineElementViewModelGrouped.value.forEach { (date, viewModel) ->
+                                    timelineElementViewModelGrouped.value.forEachIndexed { index, (date, viewModel) ->
                                         item(viewModel.key) {
                                             RovingFocusItem(viewModel.key) {
-                                                TimelineElementHolder(viewModel)
+                                                TimelineElementHolder(viewModel, index)
                                             }
                                         }
                                         if (date != null)
                                             item("date-$date-${viewModel.key}") {
-                                                DateStickyHeader(date)
+                                                RovingFocusItem("date-$date-${viewModel.key}") {
+                                                    DateStickyHeader(date, focusable = true)
+                                                }
                                             }
                                     }
                                 }
                             }
-                            ListDateHeader(visibleItems, timelineElementHolderViewModels)
+                            ListDateHeader(
+                                visibleItems,
+                                timelineElementHolderViewModels,
+                                show = listState.canScrollForward,
+                            )
                             ScrollToEndButton(timelineViewModel, canScrollToEnd)
                             draggedFile.value?.let { draggedFile ->
                                 Box(
@@ -395,7 +416,7 @@ fun updateVisibleItems(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
 ) {
-    val isFocused = IsFocused.current
+    val lifecycleState = LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val viewState = remember {
         derivedStateOf {
             visible.value?.let {
@@ -404,7 +425,7 @@ fun updateVisibleItems(
                     lastVisibleElement = it.second,
                     firstLoadedElement = timelineElementHolderViewModels.value.last().key,
                     lastLoadedElement = timelineElementHolderViewModels.value.first().key,
-                    windowIsFocused = isFocused,
+                    timelineIsFocused = lifecycleState.value.isAtLeast(Lifecycle.State.RESUMED),
                 )
             }
         }
@@ -419,17 +440,20 @@ fun updateVisibleItems(
 fun ListDateHeader(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
+    show: Boolean,
 ) {
-    val timestamp = remember {
-        derivedStateOf {
-            visible.value?.first?.let { lastEventId ->
-                timelineElementHolderViewModels.value
-                    .find { it.key == lastEventId }
-                    ?.formattedDate
+    if (show) {
+        val timestamp = remember {
+            derivedStateOf {
+                visible.value?.first?.let { lastEventId ->
+                    timelineElementHolderViewModels.value
+                        .find { it.key == lastEventId }
+                        ?.formattedDate
+                }
             }
         }
-    }
-    Box(Modifier.padding(end = additionalEndPadding.dp)) {
-        timestamp.value?.let { DateStickyHeader(it) }
+        Box(Modifier.padding(end = additionalEndPadding.dp)) {
+            timestamp.value?.let { DateStickyHeader(it, focusable = false) }
+        }
     }
 }

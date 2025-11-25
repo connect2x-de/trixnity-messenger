@@ -10,6 +10,7 @@ import net.folivo.trixnity.utils.nextString
 import net.folivo.trixnity.utils.toByteArrayFlow
 import okio.FileSystem
 import okio.Path.Companion.toPath
+import java.awt.Image
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.DataFlavor
@@ -76,7 +77,7 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
 
             val clipboardType = when {
                 isPreviewableImage(contentType) -> ClipboardType.Image
-                flavor.representationClass == java.awt.Image::class.java -> ClipboardType.AwtImage
+                flavor.representationClass == Image::class.java -> ClipboardType.AwtImage
                 contentType.match(uriListContentType) -> ClipboardType.UriList
                 flavor.isFlavorJavaFileListType -> ClipboardType.FileList
                 flavor.isFlavorTextType -> ClipboardType.Text
@@ -118,7 +119,7 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
 
                 ClipboardType.AwtImage -> {
                     log.info { "Sending AWT image via clipboard" }
-                    clipboard.getDataOrNull<java.awt.Image>(flavor)?.let { img ->
+                    clipboard.getDataOrNull<Image>(flavor)?.let { img ->
                         // TODO: revisit this when we have ImageMagick
                         // this might not be the most efficient way, but works for images in memory on MacOS...
                         val image = BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB)

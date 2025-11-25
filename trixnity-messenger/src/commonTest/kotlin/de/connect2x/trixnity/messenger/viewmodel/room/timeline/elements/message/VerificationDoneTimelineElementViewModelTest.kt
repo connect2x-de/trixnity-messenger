@@ -4,8 +4,6 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -27,6 +25,7 @@ import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.RoomUser
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user.UserService
+import net.folivo.trixnity.core.MegolmMessageValue
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
@@ -106,7 +105,7 @@ class VerificationDoneTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -124,7 +123,7 @@ class VerificationDoneTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),
@@ -163,7 +162,7 @@ class VerificationDoneTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -181,7 +180,7 @@ class VerificationDoneTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),
@@ -225,7 +224,7 @@ class VerificationDoneTimelineElementViewModelTest {
                     }.koin,
                     componentContext = DefaultComponentContext(LifecycleRegistry()),
                     userId = userId,
-                    coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                    coroutineContext = backgroundScope.coroutineContext,
                 ),
                 content = verificationDoneEventContent,
                 roomId = roomId,

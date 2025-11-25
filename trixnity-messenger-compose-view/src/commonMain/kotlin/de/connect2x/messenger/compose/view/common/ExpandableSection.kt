@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
@@ -49,7 +53,7 @@ fun ExpandableSection(
 
 @Composable
 fun ExpandableSection(
-    heading: @Composable () -> Unit,
+    heading: @Composable BoxScope.() -> Unit,
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
@@ -71,7 +75,7 @@ fun ExpandableSection(
                 modifier = Modifier
                     .clickable(interactionSource, LocalIndication.current) {
                         expanded.value = !expanded.value
-                    }
+                    }.semantics { role = Role.Button }
                     .buttonPointerModifier(true).padding(16.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,

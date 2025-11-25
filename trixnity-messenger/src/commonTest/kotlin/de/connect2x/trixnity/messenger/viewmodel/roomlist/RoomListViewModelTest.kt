@@ -11,14 +11,11 @@ import de.connect2x.trixnity.messenger.isNot
 import de.connect2x.trixnity.messenger.isRoomOf
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
@@ -29,12 +26,10 @@ import dev.mokkery.matcher.any
 import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
-import dev.mokkery.verifySuspend
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +43,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
+import net.folivo.trixnity.client.notification.NotificationService
 import net.folivo.trixnity.client.room.RoomService
 import net.folivo.trixnity.client.store.Room
 import net.folivo.trixnity.client.store.RoomUser
@@ -60,6 +56,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
 import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
@@ -115,6 +112,7 @@ class RoomListViewModelTest {
     val keyServiceMock = mock<KeyService>()
 
     val keyServiceMock2 = mock<KeyService>()
+    val notificationService = mock<NotificationService>()
 
     private val onRoomSelectedMock = mock<Function2<UserId, RoomId, Unit>>()
     private val onAccountSelected = mock<Function0<Unit>>()
@@ -143,6 +141,7 @@ class RoomListViewModelTest {
             keyServiceMock2,
             onRoomSelectedMock,
             onAccountSelected,
+            notificationService,
         )
 
         every { matrixClientMock.di } returns koinApplication {
@@ -151,6 +150,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -232,6 +232,14 @@ class RoomListViewModelTest {
             )
         )
         every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
+        every { roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any()) } returns flowOf(null)
+        every {
+            roomServiceMock2.getAccountData(
+                any(),
+                eq(MarkedUnreadEventContent::class),
+                any()
+            )
+        } returns flowOf(null)
 
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
@@ -290,6 +298,7 @@ class RoomListViewModelTest {
 
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
         everySuspend { profileManagerMock.closeProfile() } returns Unit
+        every { notificationService.getCount(any()) } returns flowOf(0)
     }
 
     @Test
@@ -433,7 +442,7 @@ class RoomListViewModelTest {
     }
 
     @Test
-    fun `join the room first and then open the room when the selected room is an invitation`() = runTest {
+    fun `do nothing when selecting invited room`() = runTest {
         val room = Room(roomId1, membership = Membership.INVITE)
         every { roomServiceMock.getById(roomId1) } returns flowOf(room)
         every { roomServiceMock.getAll() } returns MutableStateFlow(
@@ -441,75 +450,6 @@ class RoomListViewModelTest {
                 roomId1 to MutableStateFlow(Room(roomId1))
             )
         )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns Result.success(roomId1)
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-
-        cut.selectRoom(roomId1)
-        delay(10)
-
-        verifySuspend {
-            roomsApiClientMock.joinRoom(eq(roomId1), any(), any(), any(), any())
-            onRoomSelectedMock.invoke(any(), eq(roomId1))
-        }
-    }
-
-    @Test
-    fun `display an error message when the selected room is an invitation and the join fails`() = runTest {
-        val room = Room(roomId1, membership = Membership.INVITE)
-        every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(Room(roomId1))
-            )
-        )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any()
-            )
-        } returns Result.failure(RuntimeException("Oh no!"))
-
-        val cut = roomListViewModel()
-        subscribe(cut)
-
-        cut.selectRoom(roomId1)
-        delay(10)
-
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.WITH_ACTION
-    }
-
-    @Test
-    fun `display info message when trying to join a room while the client is not connected to the server`() = runTest {
-        val room = Room(roomId1, membership = Membership.INVITE)
-        every { roomServiceMock.getById(roomId1) } returns flowOf(room)
-        every { roomServiceMock.getAll() } returns MutableStateFlow(
-            mapOf(
-                roomId1 to MutableStateFlow(Room(roomId1))
-            )
-        )
-        everySuspend {
-            roomsApiClientMock.joinRoom(
-                eq(roomId1),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(roomId1)
         val syncState = MutableStateFlow(SyncState.ERROR)
         syncStateMocker returns syncState
 
@@ -519,8 +459,8 @@ class RoomListViewModelTest {
         cut.selectRoom(roomId1)
         delay(10)
 
-        cut.error.value shouldNotBe null
-        cut.errorType.value shouldBe ErrorType.JUST_DISMISS
+        cut.error.value shouldBe null
+        cut.selectedRoomId.value shouldBe RoomId("!roomId") // default when initialized in test case
     }
 
     @Test
@@ -744,6 +684,33 @@ class RoomListViewModelTest {
     }
 
     @Test
+    fun `show rooms without whitespace when adding a whitespace to the end of search term`() = runTest {
+        val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
+        val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
+        val room3 = Room(roomId3, createEventContent = roomCreateEventContent)
+        every { roomServiceMock.getAll() } returns MutableStateFlow(
+            mapOf(
+                roomId1 to MutableStateFlow(room1),
+                roomId2 to MutableStateFlow(room2),
+                roomId3 to MutableStateFlow(room3)
+            )
+        )
+        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+        every { roomServiceMock.getById(roomId3) } returns MutableStateFlow(room3)
+
+        val cut = roomListViewModel()
+        subscribe(cut)
+
+        cut.searchTerm.update("2")
+        delay(301) // 300 ms debounce
+        cut.searchTerm.update("2 ")
+        delay(301) // 300 ms debounce
+
+        cut.elements.value.should(containRoomListElementViewModelsFor(listOf(roomId2)))
+    }
+
+    @Test
     fun `not show spaces in room list`() = runTest {
         val room1 = Room(roomId1, createEventContent = roomCreateEventContent)
         val room2 = Room(roomId2, createEventContent = roomCreateEventContent)
@@ -780,6 +747,7 @@ class RoomListViewModelTest {
                 module {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1017,6 +985,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock2 }
                     single { userServiceMock2 }
                     single { keyServiceMock2 }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1052,6 +1021,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1076,6 +1046,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1101,6 +1072,7 @@ class RoomListViewModelTest {
                     single { roomServiceMock }
                     single { userServiceMock }
                     single { keyServiceMock }
+                    single { notificationService }
                 }
             )
         }.koin
@@ -1175,7 +1147,7 @@ class RoomListViewModelTest {
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koin,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext
             ),
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,

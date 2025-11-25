@@ -22,6 +22,7 @@ internal fun ColumnScope.TableCaption(node: RichText.Block, context: RichTextCon
                 TableCaption(child, context)
             }
         }
+
         "caption" -> {
             BlockContent(node, context)
         }

@@ -25,7 +25,6 @@ import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewIm
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
-import de.connect2x.messenger.compose.view.notifications.noopNotificationsModule
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileSelectionView
@@ -313,6 +312,7 @@ import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardVi
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
+import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -345,7 +345,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         settingsViewModule(),
         verificationViewModule(),
         uiaViewModule(),
-        noopNotificationsModule()
+        getPlatformNotificationIconModule(),
     )
 }
 

@@ -17,6 +17,7 @@ import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.isMobile
+import de.connect2x.messenger.compose.view.common.TypingIndicator
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
 interface TypingIndicatorView {
@@ -44,7 +45,7 @@ class TypingIndicatorViewImpl : TypingIndicatorView {
                     val typingText = if (isDirect) "${roomHeaderInfo.roomName} $typing" else typing
                     Tooltip({ Text(typingText) }) {
                         Box(Modifier.heightIn(min = 20.dp, max = 20.dp).widthIn(min = 80.dp, max = 80.dp)) {
-                            de.connect2x.messenger.compose.view.common.TypingIndicator(
+                            TypingIndicator(
                                 "",
                                 style = MaterialTheme.typography.titleLarge,
                                 cycleDuration = 1_500
