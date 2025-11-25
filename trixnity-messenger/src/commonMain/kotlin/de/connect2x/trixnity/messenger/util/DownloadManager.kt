@@ -61,12 +61,11 @@ class DownloadManagerImpl(
                 trixnityProgress.collect { trixnityProgress ->
                     if (trixnityProgress != null) {
                         log.trace { "download progress for $fileName: ${trixnityProgress.transferred} / ${trixnityProgress.total}" }
-                        val total = trixnityProgress.total
-                        if (total != null)
-                            progress.value = FileTransferProgressElement(
-                                trixnityProgress.transferred.toFloat() / total.toFloat(),
-                                formatProgress(trixnityProgress)
-                            )
+                        val total = trixnityProgress.total ?: content.info?.size
+                        progress.value = FileTransferProgressElement(
+                            if (total != null) trixnityProgress.transferred.toFloat() / total.toFloat() else null,
+                            formatProgress(trixnityProgress.copy(total = total))
+                        )
                     }
                 }
             }
@@ -84,6 +83,7 @@ class DownloadManagerImpl(
                 }
             progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now
+            progress.value = null
             result
         }
     }

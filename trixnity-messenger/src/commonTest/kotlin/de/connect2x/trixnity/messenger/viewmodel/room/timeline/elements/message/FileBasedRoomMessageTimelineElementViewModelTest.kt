@@ -57,9 +57,9 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
         val cut = fileBasedMessageViewModel()
         var downloadResult: ByteArray? = null
-        cut.downloadMedia { download ->
+        cut.downloadMedia({ download ->
             downloadResult = download.toByteArray()
-        }
+        }, {})
 
         eventually(1.seconds) {
             downloadResult shouldBe file
@@ -76,9 +76,9 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
         val cut = fileBasedMessageViewModel()
         var downloadResult: ByteArray? = null
-        cut.downloadMedia { download ->
+        cut.downloadMedia({ download ->
             downloadResult = download.toByteArray()
-        }
+        }, {})
 
         eventually(1.seconds) {
             downloadResult shouldBe null
@@ -98,9 +98,9 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
         val cut = fileBasedMessageViewModel()
         var downloadResult: ByteArray? = null
-        cut.downloadMedia { download ->
+        cut.downloadMedia({ download ->
             downloadResult = download.toByteArray()
-        }
+        }, {})
 
         delay(100.milliseconds)
         cut.cancelDownloadMedia()

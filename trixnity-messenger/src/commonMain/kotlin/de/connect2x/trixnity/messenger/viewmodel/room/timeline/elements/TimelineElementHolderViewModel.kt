@@ -402,13 +402,13 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, senderUserId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    private val isOneToOneRoom: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, roomId)
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    private val isOneToOneRoom = get<IsOneToOneRoom>()(matrixClient, roomId)
+        .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
-    private val previousEventIsStateOrNotBySender: StateFlow<Boolean> =
+    private val previousEventIsStateOrNotBySender =
         previousSupportedTimelineEvent.map { event ->
             event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val showSender: StateFlow<Boolean?> = combine(isOneToOneRoom, previousEventIsStateOrNotBySender)
     { is1on1Room, previousEventIsStateOrNotBySender ->

@@ -11,7 +11,7 @@ expect fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit, () -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 )
 

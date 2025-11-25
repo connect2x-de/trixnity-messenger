@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -134,7 +135,6 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         )
                     }
                     val listState = rememberLazyListState()
-                    val expandHistoryOptions = remember { mutableStateOf(false) }
                     RovingFocusContainer {
                         val focusContainer = LocalRovingFocus.current
                         val currentRef = focusContainer?.activeRef?.value
@@ -152,13 +152,17 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 
                         LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
                             item(key = "MoreOptions") {
+                                val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
+                                val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
+
                                 Column {
                                     ExpandableSection(
                                         roomOptionsString,
+                                        expanded,
                                         modifier = Modifier.padding(horizontal = 10.dp),
                                         icon = Icons.Default.Settings,
                                     ) {
-                                        CreateGroupOptions(createNewGroupViewModel, expandHistoryOptions)
+                                        CreateGroupOptions(createNewGroupViewModel, historyExpanded)
                                     }
                                     Spacer(Modifier.height(15.dp))
                                 }
