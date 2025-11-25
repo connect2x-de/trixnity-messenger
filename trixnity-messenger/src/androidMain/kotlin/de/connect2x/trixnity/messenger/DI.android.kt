@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
 import de.connect2x.trixnity.messenger.util.ActivityGetter
+import de.connect2x.trixnity.messenger.viewmodel.media.AndroidAudioPlayerViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -15,5 +17,8 @@ actual fun platformModule(): Module = module {
             to.single<ContextGetter> { from.get() }
             to.single<ActivityGetter> { from.get() }
         }
+    }
+    single<AudioPlayerViewModelFactory> {
+        AndroidAudioPlayerViewModelFactory()
     }
 }

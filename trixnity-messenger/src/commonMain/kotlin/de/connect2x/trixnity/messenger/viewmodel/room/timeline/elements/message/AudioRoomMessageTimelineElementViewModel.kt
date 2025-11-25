@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
@@ -36,13 +39,14 @@ class AudioRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId,
     onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.FileBased.Audio,
-    FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(
-        viewModelContext,
-        content,
-        roomId,
-        eventIdOrTransactionId,
-        onOpenMention,
-    ) {
+) : RoomMessageTimelineElementViewModel.FileBased.Audio, FileBasedRoomMessageTimelineElementViewModel<FileBased.Audio>(
+    viewModelContext,
+    content,
+    roomId,
+    eventIdOrTransactionId,
+    onOpenMention
+) {
     override val duration: Long? = content.info?.duration
+    override val audioPlayer: AudioPlayerViewModel? = getOrNull<AudioPlayerViewModelFactory>()
+        ?.create(viewModelContext, this)
 }

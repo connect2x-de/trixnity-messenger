@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
@@ -116,7 +118,18 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
 }
 
 @Composable
-internal fun MessageAudio(
+internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
+    when (element.audioPlayer?.state?.collectAsState() ?: AudioPlayerViewModel.State.Failed()) {
+        is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
+        is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
+        is AudioPlayerViewModel.State.Ready, is AudioPlayerViewModel.State.Playing -> {
+            Text("Ready") // TODO: Show audio player composable to user
+        }
+    }
+}
+
+@Composable
+internal fun NonPlayableAudioMessage(
     element: Audio,
     showActionMenu: () -> Unit,
     onSave: () -> Unit,
