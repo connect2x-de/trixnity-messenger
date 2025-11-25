@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow restart of download after cancellation
 - A11Y: add proper label and role to LegalFooter
 - UI: headers now have a consistent minimum size
+- UI: fix little timeline flickering while loading timeline element sender
 
 ### Security
 
