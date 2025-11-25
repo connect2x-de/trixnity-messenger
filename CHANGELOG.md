@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a page selector to PDF reader
+- A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
 
 ### Changed
 
 - Change zoom behaviour in PDF reader
 - Make buttons in FileHeader move into extra row(s) when necessary
 - Close room list search with back button
+- DEPENDENCIES: Bump c2x Conventions to 20251114.122133
+- Add button to cancel download in file details view
 
 ### Deprecated
 
@@ -25,9 +27,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Using latest emojifont version on web 
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
-- No longer crash when opening a large pdf page on older Android versions
+- API: When calling `ProfileManager.updateProfile`, the closure allows to mutate the configuration
+- A11Y: add proper label and role to LegalFooter
+- IOS: reporting a message could result in app crash
+- UI: Create new group keeps information on expanded elements
+- Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
+- A11Y: add proper label and role to LegalFooter
+- UI: headers now have a consistent minimum size
+- UI: fix little timeline flickering while loading timeline element sender
 
 ### Security
+
+## 3.8.11
+
+### Added
+
+- Add a page selector to PDF reader
+
+### Changed
+
+- Change zoom behaviour in PDF reader
+- Make buttons in FileHeader move into extra row(s) when necessary
+
+### Fixed
+
+- Using latest emojifont version on web
+- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- No longer crash when opening a large pdf page on older Android versions
+- Only push notifications for enabled accounts
 
 ## 3.8.10
 
