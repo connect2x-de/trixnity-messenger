@@ -1,18 +1,15 @@
 package de.connect2x.messenger.compose.view.room.timeline.element.message.bubble
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -90,6 +87,7 @@ fun MessageBubbleContainer(
             }
     ) {
         val interactionSource = remember { MutableInteractionSource() }
+        val hoverInteractionSource = remember { MutableInteractionSource() }
         val hasFocus = interactionSource.collectIsFocusedAsState().value
         ThemedSurface(
             style = messageBubbleStyle,
@@ -105,7 +103,7 @@ fun MessageBubbleContainer(
                 }
                 .rovingFocusItem(focusOnFirstRender = true)
                 .focusable(true, interactionSource)
-                .hoverable(interactionSource)
+                .hoverable(hoverInteractionSource)
                 .semantics {
                     collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
                     contentDescription = "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
@@ -120,7 +118,7 @@ fun MessageBubbleContainer(
                         if (holder is TimelineElementHolderViewModel) holder.openTimelineElementMetadata()
                     },
                     onReactToMessage = { reactionsOpen.value = true },
-                    interactionSource = interactionSource,
+                    hoverInteractionSource = hoverInteractionSource,
                     additionalContextActions = additionalContextActions,
                 )
             }
