@@ -300,7 +300,10 @@ class CanvasSemanticsOwnerListener(
             }
 
             Role.Button -> {
-                doIf(SemanticsProperties.Text) { el.innerText = it.joinToString() }
+                doIf(SemanticsProperties.Text) {
+                    val text = it.joinToString()
+                    if (el.innerText != text) el.innerText = text
+                }
                 setIf("aria-expanded", SemanticsActions.Expand) { "false" }
                 setIf("aria-expanded", SemanticsActions.Collapse) { "true" }
             }
