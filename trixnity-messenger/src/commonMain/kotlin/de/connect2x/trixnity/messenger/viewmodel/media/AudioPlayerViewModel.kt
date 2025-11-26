@@ -24,8 +24,8 @@ interface AudioPlayerViewModel {
      */
     sealed interface State {
         data class Failed(val cause: Throwable? = null) : State
-        object Ready : State
-        object Playing : State
+        data class Ready(val amplitudes: List<Float>) : State
+        data class Playing(val progress: Float, val amplitudes: List<Float>) : State
         object Loading : State
     }
 }

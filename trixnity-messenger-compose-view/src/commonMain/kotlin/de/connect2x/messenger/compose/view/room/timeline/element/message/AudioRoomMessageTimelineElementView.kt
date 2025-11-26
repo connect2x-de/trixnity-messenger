@@ -119,7 +119,7 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
 
 @Composable
 internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
-    when (element.audioPlayer?.state?.collectAsState() ?: AudioPlayerViewModel.State.Failed()) {
+    when (element.audioPlayer?.state?.collectAsState()?.value ?: AudioPlayerViewModel.State.Failed()) {
         is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
         is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
         is AudioPlayerViewModel.State.Ready, is AudioPlayerViewModel.State.Playing -> {

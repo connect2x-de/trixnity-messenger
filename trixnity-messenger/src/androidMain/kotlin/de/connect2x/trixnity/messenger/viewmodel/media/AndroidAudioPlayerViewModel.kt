@@ -4,10 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.media.MediaCodec
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.net.Uri
 import android.os.IBinder
 import androidx.core.content.ContextCompat
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import com.fleeksoft.io.ByteBuffer
 import de.connect2x.trixnity.messenger.services.AudioPlayerService
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -23,6 +27,7 @@ import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import okio.Path
 import org.koin.core.component.get
+import java.nio.ByteOrder
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -83,8 +88,9 @@ class AndroidAudioPlayerViewModel(
                     },
                     onSuccess = { file ->
                         log.debug { "Successfully downloaded audio media" }
+                        val amplitudes = getNormalizedSamplesOfFile(file)
                         tempFile.value = file
-                        state.value = State.Ready
+                        state.value = State.Ready(amplitudes)
                     }
                 )
             }
@@ -95,7 +101,7 @@ class AndroidAudioPlayerViewModel(
     override fun start() {
         coroutineScope.launch {
             stateChangeMutex.withLock {
-                check(state.value is State.Ready || tempFile.value == null) { "Audio player is currently not ready" }
+                check(state.value is State.Ready && tempFile.value != null) { "Audio player is currently not ready" }
                 val context = getActivity()
 
                 // TODO: User should be able to skip to a position before playing
@@ -105,13 +111,13 @@ class AndroidAudioPlayerViewModel(
                 intent.putExtra(AudioPlayerService.START_AUDIO_URI, audioMediaUri)
                 intent.putExtra(AudioPlayerService.MIME_TYPE, audio.mimeType)
                 intent.putExtra(AudioPlayerService.POSITION, 0)
-                ContextCompat.startForegroundService(requireNotNull(context), intent)
+                ContextCompat.startForegroundService(context, intent)
                 if (audioPlayerService == null) {
                     log.debug { "No bound audio player service found, attempting to bind to..." }
                     val intent = Intent(context, AudioPlayerService::class.java)
                     context.bindService(intent, serviceConnection, Context.BIND_IMPORTANT)
                 }
-                state.value = State.Playing
+                state.value = State.Playing(0F, (state.value as State.Ready).amplitudes)
             }
         }
     }
@@ -134,8 +140,73 @@ class AndroidAudioPlayerViewModel(
                 audioPlayerService = null
             }
 
-            state.value = State.Ready
+            state.value = State.Ready((state.value as State.Playing).amplitudes)
         }
+    }
+
+    private fun getNormalizedSamplesOfFile(file: OkioPlatformMedia.TemporaryFile): MutableList<Float> {
+        val allSamples: MutableList<Float> = mutableListOf()
+        val mediaExtractor = MediaExtractor()
+        mediaExtractor.setDataSource(file.path.toString())
+
+        var trackIndex = -1
+        var trackFormat: MediaFormat? = null
+        for (i in 0 until mediaExtractor.trackCount) {
+            val format = mediaExtractor.getTrackFormat(i)
+            val mimeType = format.getString(MediaFormat.KEY_MIME)
+            if (mimeType?.startsWith("audio/") == true) {
+                trackIndex = i
+                trackFormat = format
+                break
+            }
+        }
+
+        if (trackIndex == -1 || trackFormat == null) {
+            throw RuntimeException("") // TODO
+        }
+
+        mediaExtractor.selectTrack(trackIndex)
+        val mimeType = requireNotNull(trackFormat.getString(MediaFormat.KEY_MIME))
+        val mediaCodec = MediaCodec.createDecoderByType(mimeType)
+        mediaCodec.configure(trackFormat, null, null, 0)
+        mediaCodec.start()
+
+        val bufferInfo = MediaCodec.BufferInfo()
+        while (true) {
+            val inputIndex = mediaCodec.dequeueInputBuffer(10_000)
+            if (inputIndex >= 0) {
+                val inputBuffer = requireNotNull(mediaCodec.getInputBuffer(inputIndex))
+                val sampleSize = mediaExtractor.readSampleData(inputBuffer, 0)
+                if (sampleSize == 0) {
+                    mediaCodec.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                } else {
+                    mediaCodec.queueInputBuffer(inputIndex, 0, sampleSize, mediaExtractor.sampleTime, 0)
+                    mediaExtractor.advance()
+                }
+            }
+
+            val outputIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 10_000)
+            if (outputIndex >= 0) {
+                val outputBuffer = requireNotNull(mediaCodec.getOutputBuffer(outputIndex))
+                val chunkData = ByteArray(bufferInfo.size)
+                outputBuffer.get(chunkData)
+                outputBuffer.clear()
+
+                val samples = ShortArray(bufferInfo.size / 2)
+                ByteBuffer.wrap(chunkData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(samples)
+                allSamples.addAll(samples.map { it.toFloat() / Short.MAX_VALUE })
+                mediaCodec.releaseOutputBuffer(outputIndex, false)
+            }
+
+            if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
+                break
+            }
+        }
+
+        mediaCodec.stop()
+        mediaCodec.release()
+        mediaExtractor.release()
+        return allSamples
     }
 
     private fun startPlayerServiceSynchronizationJob() {
@@ -144,7 +215,7 @@ class AndroidAudioPlayerViewModel(
             audioPlayerService?.let { service ->
                 launch {
                     service.elapsedTime.collect { currentPosition ->
-                        elapsedTime.value = currentPosition.milliseconds // TODO
+                        elapsedTime.value = currentPosition.milliseconds // TODO: Update state of audio player
                     }
                 }
             }
