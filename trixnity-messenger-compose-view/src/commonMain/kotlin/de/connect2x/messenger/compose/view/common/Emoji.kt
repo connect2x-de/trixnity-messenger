@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -55,12 +56,14 @@ fun EmojiSelector(
     Box(modifier) {
         Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center)) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
-                val calculatedEmojiSize = with (LocalDensity.current) { 48.dp.roundToPx() }
+                val calculatedEmojiSize = with(LocalDensity.current) { 48.dp.roundToPx() }
                 val columns = constraints.maxWidth / calculatedEmojiSize
+                //Needed, otherwise the last emoji line would have too much spacing between them when using a bigger screen
+                val cutoffWidth = 290
 
                 RovingFocusContainer {
                     FlowRow(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.run { if (constraints.maxWidth < cutoffWidth) fillMaxWidth() else wrapContentWidth() }
                             .onKeyEvent { event ->
                                 when (event.key) {
                                     Key.Escape -> {
@@ -104,7 +107,7 @@ fun EmojiSelector(
                                     emojis[nextIndex]
                                 },
                             ),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = if (constraints.maxWidth < cutoffWidth) Arrangement.SpaceBetween else Arrangement.Start
                     ) {
                         for (emoji in emojis) {
                             RovingFocusItem(emoji, defaultItem) {
