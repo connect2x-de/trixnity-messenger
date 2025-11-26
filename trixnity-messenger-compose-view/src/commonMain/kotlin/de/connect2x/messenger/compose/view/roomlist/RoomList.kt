@@ -25,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
@@ -52,6 +53,7 @@ import de.connect2x.messenger.compose.view.util.scrollIntoView
 import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.launch
 
 private val log = KotlinLogging.logger { }
 
@@ -69,6 +71,10 @@ class RoomListViewImpl : RoomListView {
     @Composable
     override fun create(roomListViewModel: RoomListViewModel) {
         val state = rememberLazyListState()
+        val scope = rememberCoroutineScope()
+        LaunchedEffect(Unit) {
+            roomListViewModel.onBackPress.value = { scope.launch { state.animateScrollToItem(0) } }
+        }
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
         val allRoomState = roomListViewModel.elements.collectAsState()
         val allRooms = allRoomState.value

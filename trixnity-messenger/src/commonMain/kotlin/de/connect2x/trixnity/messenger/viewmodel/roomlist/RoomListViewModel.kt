@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
@@ -128,6 +129,8 @@ interface RoomListViewModel {
     val closeProfileNeeded: Boolean
 
     val unverifiedAccounts: StateFlow<List<UserId>>
+
+    val onBackPress: MutableStateFlow<() -> Unit>
 
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
@@ -265,6 +268,8 @@ class RoomListViewModelImpl(
                 combinedRooms.toList().flatten().associateBy { it.room.roomId }
             }
         }.shareIn(coroutineScope, WhileSubscribed(), 1)
+
+    override val onBackPress: MutableStateFlow<() -> Unit> = MutableStateFlow { }
 
     init {
         val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
@@ -454,6 +459,7 @@ class RoomListViewModelImpl(
             }
         }
         val backCallback = BackCallback(isEnabled = showSearch.value) {
+            onBackPress.value()
             showSearch.value = false
         }
         backHandler.register(backCallback)
@@ -580,6 +586,7 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())
     override val closeProfileNeeded: Boolean = true
+    override val onBackPress: MutableStateFlow<() -> Unit> = MutableStateFlow({})
 
     override fun createNewRoom() {}
     override fun createNewRoomFor(userId: UserId) {}
