@@ -13,9 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Change zoom behaviour in PDF reader
-- Make buttons in FileHeader move into extra row(s) when necessary
-- Close room list search with back button
+- UI / ANDROID: Close room list search and scroll up with back button
 - DEPENDENCIES: Bump c2x Conventions to 20251114.122133
 - Add button to cancel download in file details view
 
