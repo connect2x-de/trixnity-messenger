@@ -33,17 +33,15 @@ private val log = KotlinLogging.logger {}
 internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
 internal const val HOMESERVER_DISPLAY_NAME = "Homeserver"
 
-class HomeserverSearchUserProvider(
+open class HomeserverSearchUserProvider(
     private val initials: Initials,
     private val i18n: I18n,
     private val matrixClients: MatrixClients,
     private val matrixMessengerConfiguration: MatrixMessengerConfiguration,
 ) : SearchUserProvider {
     override val providerId: String = HOMESERVER_PROVIDER_ID
-    override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME // FIXME override in TIM?
+    override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
     override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    override val hasSettings: Boolean = false
-    override val settingsDisplay: StateFlow<String?> = MutableStateFlow(null)
 
     override fun applySettings() {
         // has no settings

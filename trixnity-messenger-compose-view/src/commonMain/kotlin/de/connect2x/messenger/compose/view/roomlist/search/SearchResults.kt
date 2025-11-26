@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.components.ThemedFilterChip
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
@@ -75,16 +74,12 @@ private fun LazyListScope.searchOptions(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     searchUserProviders.forEachIndexed { index, searchUserProvider ->
-                        ThemedFilterChip(
-                            selected = providerSearchActive[index],
-                            onClick = { providerSearchSetActive(index, providerSearchActive[index].not()) },
-                            label = {
-                                Text(searchUserProvider.providerDisplayName)
-                            }
-                        )
+                        SearchUserProviderToggleSelector(searchUserProvider, providerSearchActive[index]) {
+                            providerSearchSetActive(index, providerSearchActive[index].not())
+                        }
                     }
                 }
-                if (searchUserProviders.any { searchUserProvider -> searchUserProvider.hasSettings }) {
+                if (searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }) {
                     ThemedIconButton(onClick = { searchUserProviderSettings.value = true }) {
                         Icon(Icons.Default.Settings, "Settings")
                     }

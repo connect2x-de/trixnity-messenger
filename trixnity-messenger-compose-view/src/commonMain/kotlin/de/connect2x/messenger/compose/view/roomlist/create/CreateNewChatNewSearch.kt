@@ -7,10 +7,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -118,11 +122,18 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                                 onValueChange = { searchTerm = it },
                                                 modifier = Modifier.fillMaxWidth(),
                                             )
+                                            SmallSpacer()
                                             providerSettings?.let { settings ->
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text("Settings", style = MaterialTheme.typography.bodyLarge)
-                                                    SmallSpacer()
-                                                    Text(settings, style = MaterialTheme.typography.bodyMedium)
+                                                if (settings.isNotBlank()) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            Icons.Default.Settings,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(16.dp),
+                                                        )
+                                                        SmallSpacer()
+                                                        Text(settings, style = MaterialTheme.typography.bodyMedium)
+                                                    }
                                                 }
                                             }
                                         }

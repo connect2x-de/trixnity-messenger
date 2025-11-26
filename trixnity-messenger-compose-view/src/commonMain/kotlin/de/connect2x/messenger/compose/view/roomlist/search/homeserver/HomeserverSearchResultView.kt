@@ -54,7 +54,7 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
                         userSearchResult.image,
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(top = 10.dp, end = 10.dp),
+                            .padding(top = 10.dp, bottom = 10.dp, end = 10.dp),
                     ) {
                         AvatarPresenceBadge(presence)
                     }

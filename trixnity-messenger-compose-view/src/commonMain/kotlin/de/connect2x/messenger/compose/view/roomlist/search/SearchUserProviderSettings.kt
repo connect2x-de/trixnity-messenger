@@ -38,7 +38,7 @@ fun SearchUserProviderSettings(
         }
         ModalDialogContent {
             val searchUserProvidersWithFilters =
-                searchUserProviders.filter { searchUserProvider -> searchUserProvider.hasSettings } // FIXME viewmodel?
+                searchUserProviders.filter { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
             if (searchUserProvidersWithFilters.size > 1) {
                 TabRow(tabIndex.value) {
                     searchUserProvidersWithFilters.mapIndexed { index, searchUserProvider ->

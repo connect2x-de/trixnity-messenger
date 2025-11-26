@@ -218,8 +218,12 @@ import de.connect2x.messenger.compose.view.roomlist.search.SearchResultViewSelec
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelector
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelectorImpl
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderToggleView
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelector
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelectorImpl
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersViewImpl
+import de.connect2x.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchProviderToggleView
 import de.connect2x.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchResultView
 import de.connect2x.messenger.compose.view.root.MainView
 import de.connect2x.messenger.compose.view.root.MainViewImpl
@@ -429,11 +433,15 @@ fun roomListHeaderViewModule() = module {
 
 inline fun <reified F : SearchResultView<*>> Module.searchResultView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<F>(named<F>(), definition = definition).bind<SearchResultView<*>>()
+) = single<SearchResultView<*>>(named<F>(), definition = definition)
 
 inline fun <reified F : SearchUserProviderSettingsView<*>> Module.searchUserProviderSettingsView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<F>(named<F>(), definition = definition).bind<SearchUserProviderSettingsView<*>>()
+) = single<SearchUserProviderSettingsView<*>>(named<F>(), definition = definition)
+
+inline fun <reified F : SearchUserProviderToggleView<*>> Module.searchUserProviderToggleView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchUserProviderToggleView<*>>(named<F>(), definition = definition)
 
 fun createRoomsViewModule() = module {
     single<CreateNewChatView> { CreateNewChatViewImpl() }
@@ -442,10 +450,12 @@ fun createRoomsViewModule() = module {
     single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
 
     //new search
+    searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
     searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
     single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
     single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
     single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
+    single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
 }
 
 fun searchViewModule() = module {

@@ -20,7 +20,7 @@ data class SearchSetting(
  */
 interface SearchUserProvider {
     /**
-     * Whether the Provider is enabled.
+     * Whether the Provider is enabled. If disabled, it will not be used in the search.
      */
     val enabled: MutableStateFlow<Boolean>
 
@@ -35,29 +35,19 @@ interface SearchUserProvider {
     val providerDisplayName: String
 
     /**
-     * Whether the Provider can be configured to filter or alter the search results.
-     */
-    val hasSettings: Boolean
-
-    /**
-     * When settings are active, those should be displayed in the search UI to not lose the context that is not visible
-     * anymore.
+     * The [SettingsId] allows the usage of settings/filters in multiple providers. E.g., a setting could be a filter
+     * for "city" in multiple providers.
      *
-     * Examples: "city: Berlin", "title: Duke"
-     */
-    val settingsDisplay: StateFlow<String?>
-
-    /**
-     * Although [settingsDisplay] is a Flow, it could be updated lazily, e.g., by pressing "apply" in a popup.
-     */
-    fun applySettings()
-
-    /// ------
-
-    /**
-     * If empty, no settings
+     * When a setting has a value that is not blank, all providers that do not have the setting are automatically
+     * disabled (as searching and filtering for the setting does not make sense in this provider).
      */
     val settings: Map<SettingsId, StateFlow<SearchSetting>>
+
+    /**
+     * Although [SearchSetting] in [settings] are Flows, it could be updated lazily, e.g., by pressing "apply" in a
+     * popup.
+     */
+    fun applySettings()
 
     suspend fun search(
         searchTerm: String,
