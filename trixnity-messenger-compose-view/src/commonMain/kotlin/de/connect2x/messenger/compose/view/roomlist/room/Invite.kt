@@ -59,9 +59,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                 }
             }
         ) {
-            Tooltip(
-                tooltip = { Text(i18n.invitationAccept()) }
-            ) {
+            Tooltip(tooltip = i18n.invitationAccept()) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { roomListElementViewModel.acceptInvitation() },
@@ -70,9 +68,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     Icon(Icons.Default.Check, i18n.invitationAccept())
                 }
             }
-            Tooltip(
-                tooltip = { Text(i18n.invitationReject()) }
-            ) {
+            Tooltip(tooltip = i18n.invitationReject()) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { showReject = true },
