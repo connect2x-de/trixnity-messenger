@@ -3,17 +3,11 @@ package de.connect2x.messenger.compose.view.common
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -33,8 +27,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.MeasurePolicy
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
@@ -67,60 +59,59 @@ fun EmojiSelector(
             BoxWithConstraints(Modifier.padding(12.dp)) {
                 val calculatedEmojiSize = with(LocalDensity.current) { 48.dp.roundToPx() }
                 val columns = constraints.maxWidth / calculatedEmojiSize
-                //Needed, otherwise the last emoji line would have too much spacing between them when using a bigger screen
-                val cutoffWidth = 290
+                RovingFocusContainer {
+                    EmojiPicker(
+                        Modifier.onKeyEvent { event ->
+                            when (event.key) {
+                                Key.Escape -> {
+                                    if (event.type == KeyEventType.KeyDown) {
+                                        onDismiss()
+                                    }
+                                    true
+                                }
 
-                EmojiPicker(
-                    Modifier.onKeyEvent { event ->
-                    when (event.key) {
-                        Key.Escape -> {
-                            if (event.type == KeyEventType.KeyDown) {
-                                onDismiss()
+                                else -> false
                             }
-                            true
-                        }
-
-                        else -> false
-                    }
-                }.rovingFocus2D(
-                        default = defaultItem,
-                        scroll = {},
-                        up = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = emojis.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(columns)
-                            val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
-                            if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
-                            else emojis[currentIndex]
-                        },
-                        down = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = emojis.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(columns)
-                            val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
-                            if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
-                            else emojis[currentIndex]
-                        },
-                        left = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = emojis.indexOf(currentItem)
-                            val nextIndex = currentIndex.minus(1).coerceIn(emojis.indices)
-                            emojis[nextIndex]
-                        },
-                        right = {
-                            val currentItem = activeRef.value ?: defaultItem
-                            val currentIndex = emojis.indexOf(currentItem)
-                            val nextIndex = currentIndex.plus(1).coerceIn(emojis.indices)
-                            emojis[nextIndex]
-                        },
-                    )
-                ) {
-                    for (emoji in emojis) {
-                        RovingFocusItem(emoji, defaultItem) {
-                            EmojiButton(
-                                label = emoji,
-                                onClick = { onTextAdded(emoji) },
-                            )
+                        }.rovingFocus2D(
+                            default = defaultItem,
+                            scroll = {},
+                            up = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = emojis.indexOf(currentItem)
+                                val nextIndex = currentIndex.minus(columns)
+                                val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
+                                if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
+                                else emojis[currentIndex]
+                            },
+                            down = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = emojis.indexOf(currentItem)
+                                val nextIndex = currentIndex.plus(columns)
+                                val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
+                                if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
+                                else emojis[currentIndex]
+                            },
+                            left = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = emojis.indexOf(currentItem)
+                                val nextIndex = currentIndex.minus(1).coerceIn(emojis.indices)
+                                emojis[nextIndex]
+                            },
+                            right = {
+                                val currentItem = activeRef.value ?: defaultItem
+                                val currentIndex = emojis.indexOf(currentItem)
+                                val nextIndex = currentIndex.plus(1).coerceIn(emojis.indices)
+                                emojis[nextIndex]
+                            },
+                        )
+                    ) {
+                        for (emoji in emojis) {
+                            RovingFocusItem(emoji, defaultItem) {
+                                EmojiButton(
+                                    label = emoji,
+                                    onClick = { onTextAdded(emoji) },
+                                )
+                            }
                         }
                     }
                 }
@@ -177,7 +168,7 @@ fun EmojiButton(
 
 @Composable
 private fun EmojiPicker(modifier: Modifier, content: @Composable () -> Unit) {
-    Layout(modifier = modifier.background(Color.Red), content = content) { measurables, constraints ->
+    Layout(modifier = modifier, content = content) { measurables, constraints ->
         if (measurables.isNotEmpty()) {
             val placeables = measurables.map {
                 it.measure(constraints)
