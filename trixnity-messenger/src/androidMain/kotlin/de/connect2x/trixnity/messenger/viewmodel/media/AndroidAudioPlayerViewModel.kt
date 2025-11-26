@@ -73,7 +73,7 @@ class AndroidAudioPlayerViewModel(
         lifecycle.doOnDestroy {
             get<CoroutineScope>().launch {
                 log.debug { "Stopping playback and disposing resources" }
-                stopSuspending()
+                // TODO: stopSuspending()
                 tempFile.value?.delete()
             }
         }
@@ -88,9 +88,16 @@ class AndroidAudioPlayerViewModel(
                     },
                     onSuccess = { file ->
                         log.debug { "Successfully downloaded audio media" }
-                        val amplitudes = getNormalizedSamplesOfFile(file)
                         tempFile.value = file
-                        state.value = State.Ready(amplitudes)
+                        getNormalizedSamplesOfFile(file).fold(
+                            onFailure = { // TODO: Should we do a fallback if this is not possible
+                                log.error(it) { "Unexpected error when trying to acquire PCM samples of file" }
+                            },
+                            onSuccess = { amplitudes ->
+                                log.trace { "Successfully extracted ${amplitudes.size} PCM samples out of file" }
+                                state.value = State.Ready(amplitudes.toTypedArray())
+                            }
+                        )
                     }
                 )
             }
@@ -144,14 +151,14 @@ class AndroidAudioPlayerViewModel(
         }
     }
 
-    private fun getNormalizedSamplesOfFile(file: OkioPlatformMedia.TemporaryFile): MutableList<Float> {
+    private fun getNormalizedSamplesOfFile(file: OkioPlatformMedia.TemporaryFile): Result<MutableList<Float>> {
         val allSamples: MutableList<Float> = mutableListOf()
         val mediaExtractor = MediaExtractor()
         mediaExtractor.setDataSource(file.path.toString())
 
         var trackIndex = -1
         var trackFormat: MediaFormat? = null
-        for (i in 0 until mediaExtractor.trackCount) {
+        for (i in 0 until mediaExtractor.trackCount) { // TODO: Is this really a good idea
             val format = mediaExtractor.getTrackFormat(i)
             val mimeType = format.getString(MediaFormat.KEY_MIME)
             if (mimeType?.startsWith("audio/") == true) {
@@ -162,7 +169,7 @@ class AndroidAudioPlayerViewModel(
         }
 
         if (trackIndex == -1 || trackFormat == null) {
-            throw RuntimeException("") // TODO
+            return Result.failure(IllegalStateException("Unable to acquire audio track from audio file"))
         }
 
         mediaExtractor.selectTrack(trackIndex)
@@ -177,7 +184,7 @@ class AndroidAudioPlayerViewModel(
             if (inputIndex >= 0) {
                 val inputBuffer = requireNotNull(mediaCodec.getInputBuffer(inputIndex))
                 val sampleSize = mediaExtractor.readSampleData(inputBuffer, 0)
-                if (sampleSize == 0) {
+                if (sampleSize < 0) {
                     mediaCodec.queueInputBuffer(inputIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                 } else {
                     mediaCodec.queueInputBuffer(inputIndex, 0, sampleSize, mediaExtractor.sampleTime, 0)
@@ -188,14 +195,20 @@ class AndroidAudioPlayerViewModel(
             val outputIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 10_000)
             if (outputIndex >= 0) {
                 val outputBuffer = requireNotNull(mediaCodec.getOutputBuffer(outputIndex))
-                val chunkData = ByteArray(bufferInfo.size)
-                outputBuffer.get(chunkData)
-                outputBuffer.clear()
+                val chunk = ByteArray(bufferInfo.size)
+                outputBuffer.position(bufferInfo.offset)
+                outputBuffer.limit(bufferInfo.offset + bufferInfo.size)
+                outputBuffer.get(chunk)
 
-                val samples = ShortArray(bufferInfo.size / 2)
-                ByteBuffer.wrap(chunkData).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(samples)
-                allSamples.addAll(samples.map { it.toFloat() / Short.MAX_VALUE })
+                val shorts = ShortArray(chunk.size / 2)
+                ByteBuffer.wrap(chunk)
+                    .order(ByteOrder.LITTLE_ENDIAN)
+                    .asShortBuffer()
+                    .get(shorts)
+
+                allSamples.addAll(shorts.map { it.toFloat() })
                 mediaCodec.releaseOutputBuffer(outputIndex, false)
+
             }
 
             if (bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) {
@@ -206,7 +219,8 @@ class AndroidAudioPlayerViewModel(
         mediaCodec.stop()
         mediaCodec.release()
         mediaExtractor.release()
-        return allSamples
+        val maximum = allSamples.maxOfOrNull { kotlin.math.abs(it) } ?: 1f
+        return Result.success(allSamples.map { it / maximum }.toMutableList())
     }
 
     private fun startPlayerServiceSynchronizationJob() {

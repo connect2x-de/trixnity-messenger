@@ -24,8 +24,43 @@ interface AudioPlayerViewModel {
      */
     sealed interface State {
         data class Failed(val cause: Throwable? = null) : State
-        data class Ready(val amplitudes: List<Float>) : State
-        data class Playing(val progress: Float, val amplitudes: List<Float>) : State
+        data class Ready(val amplitudes: Array<Float>) : State {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other == null || this::class != other::class) return false
+
+                other as Ready
+
+                if (!amplitudes.contentEquals(other.amplitudes)) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                return amplitudes.contentHashCode()
+            }
+        }
+
+        data class Playing(val progress: Float, val amplitudes: Array<Float>) : State {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other == null || this::class != other::class) return false
+
+                other as Playing
+
+                if (progress != other.progress) return false
+                if (!amplitudes.contentEquals(other.amplitudes)) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = progress.hashCode()
+                result = 31 * result + amplitudes.contentHashCode()
+                return result
+            }
+        }
+
         object Loading : State
     }
 }

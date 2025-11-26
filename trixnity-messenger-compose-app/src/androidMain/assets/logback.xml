@@ -26,7 +26,7 @@
 
   <logger name="net.folivo.trixnity.client.notification" level="TRACE"/>
 
-  <root level="DEBUG">
+  <root level="INFO">
     <appender-ref ref="logcat"/>
     <appender-ref ref="file"/>
   </root>

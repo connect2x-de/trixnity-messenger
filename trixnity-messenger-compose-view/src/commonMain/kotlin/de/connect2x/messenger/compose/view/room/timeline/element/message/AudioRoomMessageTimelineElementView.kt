@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
+import de.connect2x.messenger.compose.view.util.AudioWaveform
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileInfo
@@ -119,12 +120,11 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
 
 @Composable
 internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
-    when (element.audioPlayer?.state?.collectAsState()?.value ?: AudioPlayerViewModel.State.Failed()) {
+    when (val state = element.audioPlayer?.state?.collectAsState()?.value ?: AudioPlayerViewModel.State.Failed()) {
         is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
         is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
-        is AudioPlayerViewModel.State.Ready, is AudioPlayerViewModel.State.Playing -> {
-            Text("Ready") // TODO: Show audio player composable to user
-        }
+        is AudioPlayerViewModel.State.Playing -> Text("Playing...")
+        is AudioPlayerViewModel.State.Ready -> AudioWaveform(0.0F, state.amplitudes, 500.dp, 100.dp)
     }
 }
 
