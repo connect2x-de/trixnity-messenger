@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -166,6 +164,12 @@ fun EmojiButton(
     }
 }
 
+/**
+ * Custom emoji picker which arranges items similar to [androidx.compose.foundation.layout.Arrangement.SpaceBetween] with the exception of the last line, which is left-aligned
+ * and positioned with the same spacing as previous lines
+ * @param modifier The modifier to use on the layout
+ * @param content The emojis to arrange within the picker. For correct arrangement they are required to all have the same size
+ */
 @Composable
 private fun EmojiPicker(modifier: Modifier, content: @Composable () -> Unit) {
     Layout(modifier = modifier, content = content) { measurables, constraints ->
