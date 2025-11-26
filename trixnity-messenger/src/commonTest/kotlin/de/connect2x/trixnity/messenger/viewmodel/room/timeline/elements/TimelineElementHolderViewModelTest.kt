@@ -275,6 +275,9 @@ class TimelineElementHolderViewModelTest {
             )
         )
         timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = aliceId) {
+                text("Hello!")
+            }
             +timelineEvent
         }
         val cut = cut()
@@ -318,6 +321,9 @@ class TimelineElementHolderViewModelTest {
             )
         )
         val timeline = timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = aliceId) {
+                text("Hello!")
+            }
             +timelineEvent
             +messageEvent(sender = usId) {
                 text("Hello!")

@@ -125,6 +125,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                                 historyVisibility?.getStateName(i18n)
                                     ?: HistoryVisibilityEventContent.HistoryVisibility.SHARED.getStateName(i18n)
                             }",
+                            expanded = historyExpanded,
                             icon = Icons.Default.Settings,
                         ) {
                             for (visibility in createNewGroupViewModel.availableRoomHistoryVisibilities) {
