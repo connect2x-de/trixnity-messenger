@@ -113,7 +113,7 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     ): ClipEntry? = element.toClipEntry()
 
     override fun a11yLabel(element: Audio, i18n: I18nView): String {
-        return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+        return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it) }}"
     }
 }
 

@@ -41,8 +41,8 @@ class AudioPlayerService : Service() {
         )
     }
 
-    private val _position: MutableStateFlow<Long> = MutableStateFlow(0L)
-    val position: StateFlow<Long> = _position
+    private val _elapsedTime: MutableStateFlow<Long> = MutableStateFlow(0L)
+    val elapsedTime: StateFlow<Long> = _elapsedTime
 
     private val _duration: MutableStateFlow<Long> = MutableStateFlow(0L)
     val duration: StateFlow<Long> = _duration
@@ -53,15 +53,15 @@ class AudioPlayerService : Service() {
         log.debug { "Creating notification channel for audio player service" }
         audioPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (duration.value == 0L && position.value != 0L) {
+                if (duration.value == 0L && elapsedTime.value != 0L) {
                     if (audioPlayer.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM)) {
-                        audioPlayer.seekTo(position.value)
+                        audioPlayer.seekTo(elapsedTime.value)
                         updateNotification() // TODO: Is this really required
                     }
                 }
 
                 if (audioPlayer.playbackState == Player.STATE_READY) {
-                    _position.value = audioPlayer.currentPosition.coerceAtLeast(0)
+                    _elapsedTime.value = audioPlayer.currentPosition.coerceAtLeast(0)
                     _duration.value = audioPlayer.duration.coerceAtLeast(0)
                     // TODO: Update progress bar
                     updateNotification()
@@ -69,7 +69,7 @@ class AudioPlayerService : Service() {
 
                 if (!isPlaying) {
                     if (audioPlayer.currentPosition >= audioPlayer.duration) {
-                        _position.value = 0
+                        _elapsedTime.value = 0
                     }
 
                     stopSelf()
@@ -126,7 +126,7 @@ class AudioPlayerService : Service() {
             .setUri(uri)
             .build()
 
-        _position.value = position
+        _elapsedTime.value = position
         audioPlayer.setMediaItem(mediaItem)
         audioPlayer.prepare()
         audioPlayer.play()
@@ -145,7 +145,7 @@ class AudioPlayerService : Service() {
         val stopIntentFlags = PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, stopIntentFlags)
 
-        val currentPosition = position.value
+        val currentPosition = elapsedTime.value
         val duration = duration.value.coerceAtLeast(1)
         val progressText = "${TIME_FORMAT.format(currentPosition)} / ${TIME_FORMAT.format(duration)}"
 

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.media
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.time.Duration
 
 interface AudioPlayerViewModelFactory {
     fun create(
@@ -12,7 +13,7 @@ interface AudioPlayerViewModelFactory {
 }
 
 interface AudioPlayerViewModel {
-    val position: StateFlow<Long>
+    val elapsedTime: StateFlow<Duration>
     val state: StateFlow<State>
 
     fun start()

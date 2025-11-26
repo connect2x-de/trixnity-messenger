@@ -10,6 +10,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Audio> {
     override fun create(
@@ -46,7 +48,7 @@ class AudioRoomMessageTimelineElementViewModelImpl(
     eventIdOrTransactionId,
     onOpenMention
 ) {
-    override val duration: Long? = content.info?.duration
+    override val duration: Duration? = content.info?.duration?.milliseconds
     override val audioPlayer: AudioPlayerViewModel? = getOrNull<AudioPlayerViewModelFactory>()
         ?.create(viewModelContext, this)
 }

@@ -27,6 +27,7 @@ import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
 import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import org.koin.core.component.get
+import kotlin.time.Duration
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     /**
@@ -108,7 +109,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
-            val duration: Long?
+            val duration: Duration?
             val audioPlayer: AudioPlayerViewModel?
         }
 

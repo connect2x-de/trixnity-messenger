@@ -21,6 +21,8 @@ import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import okio.Path
 import org.koin.core.component.get
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
@@ -57,7 +59,7 @@ class AndroidAudioPlayerViewModel(
         }
     }
 
-    override val position: MutableStateFlow<Long> = MutableStateFlow(0L)
+    override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     override val state: MutableStateFlow<State> = MutableStateFlow(State.Loading)
 
     init {
@@ -127,8 +129,8 @@ class AndroidAudioPlayerViewModel(
         playerServiceSynchronizationJob = coroutineScope.launch {
             audioPlayerService?.let { service ->
                 launch {
-                    service.position.collect { currentPosition ->
-                        position.value = currentPosition
+                    service.elapsedTime.collect { currentPosition ->
+                        elapsedTime.value = currentPosition.milliseconds // TODO
                     }
                 }
             }
