@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix getting stuck on error screen after deleting local database
 - UI: Emoji picker is correctly aligned to the center and scales as required when using different screen sizes
 - WEB: fix incremental compilation
+- A11Y,WEB: CanvasSemanticsOwnerListener: fix a bug with nodes not regaining the tabindex property
 
 ### Security
 
