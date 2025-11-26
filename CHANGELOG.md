@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A11Y: add proper label and role to LegalFooter
+- UI / A11Y: Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
 - Using latest emojifont version on web 
 - Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
 - API: When calling `ProfileManager.updateProfile`, the closure allows to mutate the configuration
