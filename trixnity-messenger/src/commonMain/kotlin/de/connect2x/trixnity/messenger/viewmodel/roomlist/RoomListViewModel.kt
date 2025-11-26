@@ -130,7 +130,7 @@ interface RoomListViewModel {
 
     val unverifiedAccounts: StateFlow<List<UserId>>
 
-    val onBackPress: MutableStateFlow<() -> Unit>
+    val roomListBackHandler: BackHandler
 
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
@@ -269,7 +269,7 @@ class RoomListViewModelImpl(
             }
         }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
-    override val onBackPress: MutableStateFlow<() -> Unit> = MutableStateFlow { }
+    override val roomListBackHandler: BackHandler = backHandler
 
     init {
         val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
@@ -458,17 +458,6 @@ class RoomListViewModelImpl(
                 selectRoom(RoomId(segments[2]))
             }
         }
-        val backCallback = BackCallback(isEnabled = showSearch.value) {
-            onBackPress.value()
-            showSearch.value = false
-        }
-        backHandler.register(backCallback)
-
-        coroutineScope.launch {
-            showSearch.collect {
-                backCallback.isEnabled = it
-            }
-        }
     }
 
     private fun resetSearchWhenNotShown() {
@@ -586,7 +575,11 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())
     override val closeProfileNeeded: Boolean = true
-    override val onBackPress: MutableStateFlow<() -> Unit> = MutableStateFlow({})
+    override val roomListBackHandler: BackHandler = object : BackHandler {
+        override fun isRegistered(callback: BackCallback): Boolean { return true }
+        override fun register(callback: BackCallback) {}
+        override fun unregister(callback: BackCallback) {}
+    }
 
     override fun createNewRoom() {}
     override fun createNewRoomFor(userId: UserId) {}

@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -32,6 +33,7 @@ import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.get
@@ -72,8 +74,22 @@ class RoomListViewImpl : RoomListView {
     override fun create(roomListViewModel: RoomListViewModel) {
         val state = rememberLazyListState()
         val scope = rememberCoroutineScope()
-        LaunchedEffect(Unit) {
-            roomListViewModel.onBackPress.value = { scope.launch { state.animateScrollToItem(0) } }
+        DisposableEffect(Unit) {
+            val callback = BackCallback {
+                scope.launch {
+                    roomListViewModel.showSearch.value = false
+                    state.animateScrollToItem(0)
+                }
+            }
+            scope.launch {
+                roomListViewModel.showSearch.collect {
+                    callback.isEnabled = it
+                }
+            }
+            roomListViewModel.roomListBackHandler.register(callback)
+            onDispose {
+                roomListViewModel.roomListBackHandler.unregister(callback)
+            }
         }
         val initialSyncFinished = roomListViewModel.initialSyncFinished.collectAsState().value
         val allRoomState = roomListViewModel.elements.collectAsState()
