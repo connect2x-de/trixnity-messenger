@@ -36,7 +36,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElement
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
@@ -101,7 +100,6 @@ fun MessageBubbleContainer(
                         }
                     }
                 }
-                .rovingFocusItem(focusOnFirstRender = true)
                 .focusable(true, interactionSource)
                 .hoverable(hoverInteractionSource)
                 .semantics {

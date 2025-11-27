@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -31,10 +30,9 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
             timelineElementViewSelector.createReplyInTimeline(
                 holder = repliedElementHolder,
                 element = element,
-                modifier = Modifier.rovingFocusChild()
-                    .clickable(interactionSource, LocalIndication.current) {
-                        repliedElementHolder.jumpTo()
-                    },
+                modifier = Modifier.clickable(interactionSource, LocalIndication.current) {
+                    repliedElementHolder.jumpTo()
+                },
                 interactionSource = interactionSource,
             )
         }

@@ -28,7 +28,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
 
 @Composable
 fun UnreadMessagesIndicator() {
@@ -89,7 +88,6 @@ fun Indicator(
                     interactionSource = interactionSource,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .rovingFocusItem()
                         .focusHighlighting(interactionSource)
                 ) {
                     content()
