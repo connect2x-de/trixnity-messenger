@@ -62,9 +62,9 @@ class CanvasSemanticsOwnerListener(
     val coroutineScope: CoroutineScope = MainScope(),
 ) : PlatformContext.SemanticsOwnerListener {
 
-    val owners = mutableSetOf<SemanticsOwner>()
+    private val owners = mutableSetOf<SemanticsOwner>()
 
-    val syncFlow =
+    private val syncFlow =
         MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
@@ -96,27 +96,29 @@ class CanvasSemanticsOwnerListener(
         }
     }
 
+    internal val SemanticsOwner.semanticId: String get() = "cmp-semantic-${rootSemanticsNode.id}"
+    internal val SemanticsNode.semanticId: String get() = "cmp-semantic-$id"
+
     override fun onSemanticsOwnerAppended(semanticsOwner: SemanticsOwner) {
-        if (findElement(semanticsOwner.id) != null) return
+        if (findElement(semanticsOwner) != null) return
 
         val ownerElement = document.createElement("div") as HTMLDivElement
 
-        ownerElement.setAttribute("owner", "")
-        ownerElement.setAttribute("semantics-id", semanticsOwner.rootSemanticsNode.id.toString())
+        ownerElement.setAttribute("id", semanticsOwner.semanticId)
 
         a11yContainer.appendChild(ownerElement)
         owners.add(semanticsOwner)
     }
 
     override fun onSemanticsOwnerRemoved(semanticsOwner: SemanticsOwner) {
-        val element = checkNotNull(findElement(semanticsOwner.id)) { "owner does not exist" }
+        val element = checkNotNull(findElement(semanticsOwner)) { "owner does not exist" }
 
         element.remove()
         owners.remove(semanticsOwner)
     }
 
-    val listeners = mutableMapOf<Int, EventListener>()
-    val clickListeners = mutableMapOf<Int, EventListener>()
+    private val listeners = mutableMapOf<String, EventListener>()
+    private val clickListeners = mutableMapOf<Int, EventListener>()
 
     override fun onSemanticsChange(semanticsOwner: SemanticsOwner) {
         syncFlow.tryEmit(Unit)
@@ -125,26 +127,26 @@ class CanvasSemanticsOwnerListener(
     fun onSemanticsChangeInner(semanticsOwner: SemanticsOwner) {
         val queue = ArrayDeque(listOf(semanticsOwner.rootSemanticsNode))
 
-        val parent = findElement(semanticsOwner.id) ?: return
+        val parent = findElement(semanticsOwner) ?: return
         val currentIds = collectIds(parent)
 
-        val seen = mutableSetOf<Int>()
+        val seen = mutableSetOf<String>()
 
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
 
-            seen.add(node.id)
+            seen.add(node.semanticId)
 
-            when (val found = findElement(node.id)) {
+            when (val found = findElement(node)) {
                 null -> {
                     // the node does not exist we need to create a new one
                     val el = basicHTMLElement(node)
                     setAttrs(el, node)
 
-                    val parentElement = node.parent?.id?.let(::findElement) ?: a11yContainer
+                    val parentElement = node.parent?.let(::findElement) ?: a11yContainer
                     val nextElement = node.parent?.let {
                         val index = it.replacedChildren.indexOf(node).takeIf { it >= 0 } ?: return@let null
-                        it.replacedChildren.getOrNull(index + 1)?.id?.let(::findElement)
+                        it.replacedChildren.getOrNull(index + 1)?.let(::findElement)
                     }
 
                     if (nextElement != null) {
@@ -178,30 +180,25 @@ class CanvasSemanticsOwnerListener(
         }
     }
 
-    override fun onLayoutChange(semanticsOwner: SemanticsOwner, semanticsNodeId: Int) {
-        return
-    }
+    override fun onLayoutChange(semanticsOwner: SemanticsOwner, semanticsNodeId: Int) {}
 
-    private fun findNode(semanticsId: Int, parent: SemanticsNode): SemanticsNode? {
-        if (parent.id == semanticsId) return parent
-        for (child in parent.replacedChildren) return findNode(semanticsId, child) ?: continue
-        return null
-    }
+    private fun findElement(owner: SemanticsOwner, parent: HTMLElement = a11yContainer): HTMLElement? =
+        findElement(owner.semanticId, parent)
 
-    private fun findElement(semanticsId: Int, parent: HTMLElement = a11yContainer): HTMLElement? {
-        return parent.querySelector("[semantics-id='$semanticsId']") as HTMLElement?
-    }
+    private fun findElement(node: SemanticsNode, parent: HTMLElement = a11yContainer): HTMLElement? =
+        findElement(node.semanticId, parent)
 
-    private fun collectIds(parent: HTMLElement = a11yContainer): Set<Int> {
-        return parent.querySelectorAll("[semantics-id]")
+    private fun findElement(semanticsId: String, parent: HTMLElement = a11yContainer): HTMLElement? =
+        parent.querySelector("[id='$semanticsId']") as HTMLElement?
+
+    private fun collectIds(parent: HTMLElement = a11yContainer): Set<String> {
+        return parent.querySelectorAll("[id]")
             .asSequence()
             .map { it as HTMLElement }
-            .map { it.getAttribute("semantics-id")!!.toInt() }
+            .map { it.getAttribute("id") }
+            .filterNotNull()
             .toSet()
     }
-
-    private val SemanticsOwner.id: Int
-        get() = rootSemanticsNode.id
 
     private fun basicHTMLElement(node: SemanticsNode): HTMLElement {
         return document.createElement(
@@ -249,7 +246,7 @@ class CanvasSemanticsOwnerListener(
         fun <T> doIf(prop: SemanticsPropertyKey<T>, value: (T) -> Unit) =
             node.config.getOrNull(prop)?.let { value(it) }
 
-        el.setAttribute("semantics-id", node.id.toString())
+        el.setAttribute("id", node.semanticId)
 
         el.style.position = "fixed"
         el.style.whiteSpace = "pre"
@@ -324,9 +321,32 @@ class CanvasSemanticsOwnerListener(
             }
 
             else -> {
+                // ThemedAdaptiveDialog sets this paneTitle
+                val isDialog = node.config.getOrNull(SemanticsProperties.IsDialog) != null ||
+                        node.config.getOrNull(SemanticsProperties.PaneTitle) == "Dialog"
+                if (isDialog) {
+                    el.setAttribute("role", "dialog")
+                    // find a header node and mark it as the label and mark its sibling (if it exists) as the description
+                    var hasHeadingAsChild: SemanticsNode? = node
+                    while (hasHeadingAsChild != null) {
+                        if (hasHeadingAsChild.children.getOrNull(0)?.config?.getOrNull(SemanticsProperties.Heading) != null)
+                            break
+                        hasHeadingAsChild = hasHeadingAsChild.children.getOrNull(0)
+                    }
+                    if (hasHeadingAsChild != null) {
+                        hasHeadingAsChild.children.getOrNull(0)?.let {
+                            el.setAttribute("aria-labelledby", it.semanticId)
+                        }
+                        hasHeadingAsChild.children.getOrNull(1)?.let {
+                            el.setAttribute("aria-describedby", it.semanticId)
+                        }
+                    }
+                }
+
                 setIf("aria-label", SemanticsProperties.Text, { it.joinToString() })
                 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/textbox_role
                 // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/text
+
                 if (node.config.getOrNull(SemanticsProperties.IsEditable) != null && el is HTMLInputElement) {
                     el.setAttribute("type", "text")
                     setIf("aria-description", SemanticsProperties.InputText) { it.toString() }
@@ -366,8 +386,6 @@ class CanvasSemanticsOwnerListener(
             if (areAllChildrenRadioButtons(node)) "radiogroup" else null
         }
 
-        setIf("role", SemanticsProperties.IsDialog) { "dialog" }
-
         when (val onClick = node.config.getOrNull(SemanticsActions.OnClick)?.action) {
             null -> {
                 if (clickListeners[node.id] != null) {
@@ -397,15 +415,15 @@ class CanvasSemanticsOwnerListener(
         // event and click events back to the canvas or to the explicit handlers, if they are given.
         when (val requestFocus = node.config.getOrNull(SemanticsActions.RequestFocus)?.action) {
             null -> {
-                if (listeners[node.id] != null) {
+                if (listeners[node.semanticId] != null) {
                     el.removeAttribute("tabindex")
-                    el.removeEventListener("focus", listeners[node.id])
-                    listeners.remove(node.id)
+                    el.removeEventListener("focus", listeners[node.semanticId])
+                    listeners.remove(node.semanticId)
                 }
             }
 
             else -> {
-                if (listeners[node.id] == null) {
+                if (listeners[node.semanticId] == null) {
                     val focusListener = EventListener {
                         // console.log("Focus")
                         requestFocus()
@@ -414,7 +432,7 @@ class CanvasSemanticsOwnerListener(
                     if (el is HTMLDivElement)
                         el.setAttribute("tabindex", "-1")
                     el.addEventListener("focus", focusListener)
-                    listeners[node.id] = focusListener
+                    listeners[node.semanticId] = focusListener
                 }
             }
         }
