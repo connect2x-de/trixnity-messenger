@@ -151,6 +151,8 @@ class AndroidAudioPlayerViewModel(
         }
     }
 
+    // TODO: Reduce memory footprint by chunking the decoded PCM samples of the audio file and downsample them
+    //       in-operation.
     private fun getNormalizedSamplesOfFile(file: OkioPlatformMedia.TemporaryFile): Result<MutableList<Float>> {
         val allSamples: MutableList<Float> = mutableListOf()
         val mediaExtractor = MediaExtractor()

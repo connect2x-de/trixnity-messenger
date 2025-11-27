@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -23,7 +24,7 @@ private fun downsampleAmplitudes(array: List<Float>, targetSize: Int): List<Floa
         val start = (t * chunkSize).toInt()
         val end = ((t + 1) * chunkSize).coerceAtMost(array.size.toFloat())
         val slice = array.subList(start, end.toInt())
-        output[t] = slice.maxOf { kotlin.math.abs(it) }
+        output[t] = slice.maxOf { abs(it) }
     }
     return output
 }
@@ -53,7 +54,8 @@ private fun upsampleAmplitudes(array: List<Float>, targetSize: Int): List<Float>
 
 data class WaveformStyle(
     val normalBarColor: Color,
-    val playedBarColor: Color
+    val playedBarColor: Color,
+    val borderRadius: Float
 )
 
 @Composable
@@ -62,11 +64,12 @@ fun AudioWaveform(
     amplitudes: List<Float>,
     width: Dp,
     height: Dp,
-    amplitudeCount: Int = 100,
+    amplitudeCount: Int = 50,
     modifier: Modifier = Modifier,
     colors: WaveformStyle = WaveformStyle(
         normalBarColor = Color.Black,
         playedBarColor = Color.White,
+        borderRadius = 50f
     ),
 ) {
     val sampledAmplitudes = remember(amplitudes, amplitudeCount) {
@@ -78,7 +81,7 @@ fun AudioWaveform(
     }
 
     val progressInIndex = progress.coerceIn(0.0f, 1.0f) * (sampledAmplitudes.size - 1)
-    Canvas(modifier = modifier.padding(5.dp).width(width).height(height)) {
+    Canvas(modifier = modifier.width(width).height(height)) {
         val barWidth = size.width / sampledAmplitudes.size
 
         sampledAmplitudes.forEachIndexed { index, amplitude ->
@@ -103,12 +106,13 @@ fun AudioWaveform(
 
             drawRoundRect(
                 color = color,
+                cornerRadius = CornerRadius(colors.borderRadius),
                 topLeft = Offset(
                     x = index * barWidth,
                     y = size.height / 2 - barHeight / 2
                 ),
                 size = Size(
-                    width = barWidth,
+                    width = (barWidth * 0.75F),
                     height = barHeight
                 )
             )

@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +36,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
@@ -42,7 +47,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
 
@@ -123,8 +127,47 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
     when (val state = element.audioPlayer?.state?.collectAsState()?.value ?: AudioPlayerViewModel.State.Failed()) {
         is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
         is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
-        is AudioPlayerViewModel.State.Playing -> Text("Playing...")
-        is AudioPlayerViewModel.State.Ready -> AudioWaveform(0.0F, state.amplitudes, 500.dp, 100.dp)
+        is AudioPlayerViewModel.State.Playing ->
+            PlayableAudioMessage(requireNotNull(element.audioPlayer), state.amplitudes, state.progress)
+        is AudioPlayerViewModel.State.Ready ->
+            PlayableAudioMessage(requireNotNull(element.audioPlayer), state.amplitudes)
+    }
+}
+
+@Composable
+internal fun PlayableAudioMessage(
+    audioPlayerViewModel: AudioPlayerViewModel,
+    amplitudes: List<Float>,
+    progress: Float = 0.0f
+) {
+    val isPlaying = audioPlayerViewModel.state.collectAsState().value is AudioPlayerViewModel.State.Playing
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(5.dp)
+    ) {
+        ThemedIconButton(
+            onClick = {
+                if (isPlaying) {
+                    audioPlayerViewModel.stop()
+                } else {
+                    audioPlayerViewModel.start()
+                }
+            }
+        ) {
+            Icon(
+                modifier = Modifier.size(50.dp),
+                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = null, // TODO: Accessibility
+            )
+        }
+
+        Spacer(Modifier.width(5.dp)) // TODO
+        AudioWaveform(
+            progress = progress,
+            amplitudes = amplitudes,
+            width = 400.dp,
+            height = 75.dp
+        )
     }
 }
 
