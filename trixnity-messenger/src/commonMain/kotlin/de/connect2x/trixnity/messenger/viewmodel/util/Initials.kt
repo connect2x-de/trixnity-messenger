@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
 import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
-import de.connect2x.trixnity.messenger.util.isEmoji
 import de.connect2x.trixnity.messenger.viewmodel.util.RegexUtil.matchBlankSpace
 
 interface Initials {
@@ -24,8 +23,6 @@ class InitialsImpl(
             .map { it.uppercase() }
 
         if (graphs.isEmpty()) return ""
-        val isFirstEmoji = graphs.first().isEmoji()
-        val isSecondEmoji = graphs.getOrNull(1)?.isEmoji() == true
-        return graphs.take(if (isFirstEmoji && isSecondEmoji) 1 else 2).joinToString(separator = "")
+        return graphs.take(2).joinToString(separator = "")
     }
 }

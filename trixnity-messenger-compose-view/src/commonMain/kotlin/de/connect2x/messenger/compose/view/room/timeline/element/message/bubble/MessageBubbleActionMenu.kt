@@ -68,7 +68,7 @@ fun BoxScope.MessageBubbleActionMenu(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
+    hoverInteractionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     when {
@@ -82,7 +82,7 @@ fun BoxScope.MessageBubbleActionMenu(
 
         else -> MessageBubbleActionMenuDefault(
             holder,
-            interactionSource,
+            hoverInteractionSource,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
@@ -94,14 +94,15 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
-    interactionSource: MutableInteractionSource,
+    hoverInteractionSource: MutableInteractionSource,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
-    val hover = interactionSource.collectIsHoveredAsState()
+    val hover = hoverInteractionSource.collectIsHoveredAsState()
     val isVisible = remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value || focus.value || hover.value
@@ -132,6 +133,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             border = if (IsFocusHighlighting.current && focus.value) {
                 BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
             } else null,
+            interactionSource = interactionSource,
             onClick = {
                 showActionMenu.value = showActionMenu.value.not()
                 focusContainer?.selectItem(focusItem?.key, shouldFocus = true)

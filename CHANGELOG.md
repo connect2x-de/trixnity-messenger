@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - DEPENDENCIES: Bump c2x Conventions to 20251114.122133
 - Add button to cancel download in file details view
+- A11Y,WEB: CanvasSemanticsOwnerListener: dialog now has labelledby and describedby attributes
 
 ### Deprecated
 
@@ -23,18 +24,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Using latest emojifont version on web
-- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- WEB: Using latest emojifont version
+- A11Y: add proper label and role to LegalFooter
+- UI,A11Y: Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
 - API: When calling `ProfileManager.updateProfile`, the closure allows to mutate the configuration
 - A11Y: add proper label and role to LegalFooter
 - IOS: reporting a message could result in app crash
 - UI: Create new group keeps information on expanded elements
-- Show download progress indicator when no total file size is received during download
+- UI: Show download progress indicator when no total file size is received during download
 - Allow restart of download after cancellation
 - A11Y: add proper label and role to LegalFooter
 - UI: headers now have a consistent minimum size
 - UI: fix little timeline flickering while loading timeline element sender
 - fix getting stuck on error screen after deleting local database
+- UI: Emoji picker is correctly aligned to the center and scales as required when using different screen sizes
+- WEB: fix incremental compilation
 
 ### Security
 
