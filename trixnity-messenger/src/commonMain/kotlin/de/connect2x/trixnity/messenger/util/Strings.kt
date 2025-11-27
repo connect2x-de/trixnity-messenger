@@ -3,25 +3,6 @@ package de.connect2x.trixnity.messenger.util
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-/*
- * See https://unicode.org/reports/tr51/tr51-28.html,
- * https://unicode.org/emoji/charts/full-emoji-list.html and
- * https://unicode.org/emoji/charts/full-emoji-modifiers.html
- * for the ranges.
- *
- * The weird string interpolation logic is to stop Kotlin/JS from converting the characters
- * prior to the emitting the JS code, which are not valid on their own and then expand to `?`.
- */
-private const val SURROGATE_PAIR: String = "[${'\uD83C'}-${'\uDBFF'}${'\uDC00'}-${'\uDFFF'}]+"
-private const val SYMBOLICS: String = "[${'\u203C'}-${'\u3299'}]|[${'\u00A9'}${'\u00AE'}${'\u2122'}${'\u3030'}]"
-private const val KEYCAPS: String = "[${'\u0023'}-${'\u0039'}]${'\uFE0F'}?${'\u20E3'}"
-private const val VAR_SELECTOR: String = "${'\uFE0F'}"
-private const val FLAGS: String = "(?:${'\uD83C'}[${'\uDDE6'}-${'\uDDFF'}]){2}"
-private const val DIACRITICS: String = "[${'\u0300'}-${'\u036F'}]"
-
-private val emojiPattern: Regex =
-    Regex("^($SURROGATE_PAIR|$SYMBOLICS|$KEYCAPS|$FLAGS|$DIACRITICS|$VAR_SELECTOR)+$")
-
 interface GraphemeIterableProvider {
     operator fun invoke(string: String): GraphemeIterable
 }
@@ -97,4 +78,9 @@ fun String.firstGraph(): String {
     return buffer
 }
 
-fun String.isEmoji(): Boolean = emojiPattern.matches(this)
+@Suppress("DEPRECATION")
+@Deprecated(
+    message = "The previous emoji detection logic, use GraphemeIterable.graphemeCount == 1 instead",
+    level = DeprecationLevel.WARNING,
+)
+fun String.isEmoji(): Boolean = graphCount == 1
