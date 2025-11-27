@@ -95,7 +95,7 @@ class AndroidAudioPlayerViewModel(
                             },
                             onSuccess = { amplitudes ->
                                 log.trace { "Successfully extracted ${amplitudes.size} PCM samples out of file" }
-                                state.value = State.Ready(amplitudes.toTypedArray())
+                                state.value = State.Ready(amplitudes)
                             }
                         )
                     }

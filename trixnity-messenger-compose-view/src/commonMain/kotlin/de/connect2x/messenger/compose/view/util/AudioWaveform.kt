@@ -10,13 +10,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
 import kotlin.math.ceil
 
-private fun downsampleAmplitudes(array: List<Float>, targetSize: Int): Array<Float> {
+private fun downsampleAmplitudes(array: List<Float>, targetSize: Int): List<Float> {
     val chunkSize = array.size.toFloat() / targetSize
-    val output = Array(targetSize) { 0f }
+    val output = MutableList(targetSize) { 0f }
     for (t in 0 until targetSize) {
         val start = (t * chunkSize).toInt()
         val end = ((t + 1) * chunkSize).coerceAtMost(array.size.toFloat())
@@ -29,9 +31,9 @@ private fun downsampleAmplitudes(array: List<Float>, targetSize: Int): Array<Flo
 
 private fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
 
-private fun upsampleAmplitudes(array: Array<Float>, targetSize: Int): Array<Float> {
+private fun upsampleAmplitudes(array: List<Float>, targetSize: Int): List<Float> {
     val chunkSize = targetSize.toFloat() / array.size
-    val output = Array(targetSize) { 0f }
+    val output = MutableList(targetSize) { 0f }
 
     for (i in array.indices) {
         val start = array[i]
@@ -49,14 +51,23 @@ private fun upsampleAmplitudes(array: Array<Float>, targetSize: Int): Array<Floa
     return output
 }
 
+data class WaveformStyle(
+    val normalBarColor: Color,
+    val playedBarColor: Color
+)
+
 @Composable
 fun AudioWaveform(
     progress: Float,
-    amplitudes: Array<Float>,
+    amplitudes: List<Float>,
     width: Dp,
     height: Dp,
     amplitudeCount: Int = 100,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colors: WaveformStyle = WaveformStyle(
+        normalBarColor = Color.Black,
+        playedBarColor = Color.White,
+    ),
 ) {
     val sampledAmplitudes = remember(amplitudes, amplitudeCount) {
         when {
@@ -66,19 +77,40 @@ fun AudioWaveform(
         }
     }
 
-    val colorScheme = MaterialTheme.colorScheme
+    val progressInIndex = progress.coerceIn(0.0f, 1.0f) * (sampledAmplitudes.size - 1)
     Canvas(modifier = modifier.padding(5.dp).width(width).height(height)) {
         val barWidth = size.width / sampledAmplitudes.size
 
         sampledAmplitudes.forEachIndexed { index, amplitude ->
             val barHeight = amplitude * size.height
-            val x = index * barWidth
-            val y = size.height / 2 - barHeight / 2
+            val distanceToNext = abs(index - progressInIndex)
+            val color = when {
+                distanceToNext >= 1f -> {
+                    if (index < progressInIndex)
+                        colors.playedBarColor
+                    else
+                        colors.normalBarColor
+                }
+                else -> {
+                    val t = 1f - distanceToNext
+                    androidx.compose.ui.graphics.lerp(
+                        colors.normalBarColor,
+                        colors.playedBarColor,
+                        t
+                    )
+                }
+            }
 
             drawRoundRect(
-                color = colorScheme.onBackground,
-                topLeft = Offset(x, y),
-                size = Size(barWidth, barHeight)
+                color = color,
+                topLeft = Offset(
+                    x = index * barWidth,
+                    y = size.height / 2 - barHeight / 2
+                ),
+                size = Size(
+                    width = barWidth,
+                    height = barHeight
+                )
             )
         }
     }
