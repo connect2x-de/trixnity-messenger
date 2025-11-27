@@ -791,9 +791,9 @@ open class I18nView(
         DE - "$appName ist bereits geöffnet. Dieses Fenster wird nun geschlossen."
     }
 
-    open fun storeFailureLocalDbNotLoaded() = translate {
-        EN - "The local database could not be loaded."
-        DE - "Die lokale Datenbank konnte nicht geladen werden."
+    open fun storeFailureLocalDbNotLoaded(user: String) = translate {
+        EN - "The local database of $user could not be loaded."
+        DE - "Die lokale Datenbank von $user konnte nicht geladen werden."
     }
 
     open fun storeFailureLocalDbSelect() = translate {

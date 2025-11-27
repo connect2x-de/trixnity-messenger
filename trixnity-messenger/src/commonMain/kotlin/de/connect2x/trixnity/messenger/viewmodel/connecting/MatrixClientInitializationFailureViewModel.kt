@@ -23,6 +23,7 @@ interface MatrixClientInitializationFailureViewModelFactory {
 }
 
 interface MatrixClientInitializationFailureViewModel {
+    val userId: UserId
     val deleteEnabled: Boolean
     fun closeApplication()
     fun delete()
@@ -30,7 +31,7 @@ interface MatrixClientInitializationFailureViewModel {
 
 open class MatrixClientInitializationFailureViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val userId: UserId,
+    override val userId: UserId,
     exception: MatrixClientInitializationException,
     private val onDeletionFinished: () -> Unit,
 ) : ViewModelContext by viewModelContext, MatrixClientInitializationFailureViewModel {

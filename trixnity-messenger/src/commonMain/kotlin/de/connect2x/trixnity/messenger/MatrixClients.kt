@@ -290,6 +290,7 @@ class MatrixClientsImpl(
             matrixClients.update { it - userId }
             secretByteArrays.deleteDatabaseKey(userId)
             deleteAccountData(userId)
+            _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
         }
     }.onFailure {
         log.warn(it) { "failed to remove user data fro $userId" }
@@ -299,3 +300,8 @@ class MatrixClientsImpl(
         value.values.forEach { it.close() }
     }
 }
+
+private fun InitFromStoreResult.remove(id: UserId) = copy(
+    success = success.minus(id),
+    failures = failures.minus(id)
+)
