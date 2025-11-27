@@ -85,7 +85,7 @@ fun AudioWaveform(
         val barWidth = size.width / sampledAmplitudes.size
 
         sampledAmplitudes.forEachIndexed { index, amplitude ->
-            val barHeight = amplitude * size.height
+            val barHeight = amplitude.coerceIn(0.1f, 1.0f) * size.height
             val distanceToNext = abs(index - progressInIndex)
             val color = when {
                 distanceToNext >= 1f -> {

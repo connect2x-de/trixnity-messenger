@@ -21,6 +21,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -118,12 +119,15 @@ class AndroidAudioPlayerViewModel(
                 intent.putExtra(AudioPlayerService.START_AUDIO_URI, audioMediaUri)
                 intent.putExtra(AudioPlayerService.MIME_TYPE, audio.mimeType)
                 intent.putExtra(AudioPlayerService.POSITION, 0)
+
+                log.info { "Start playing audio file" }
                 ContextCompat.startForegroundService(context, intent)
                 if (audioPlayerService == null) {
                     log.debug { "No bound audio player service found, attempting to bind to..." }
                     val intent = Intent(context, AudioPlayerService::class.java)
                     context.bindService(intent, serviceConnection, Context.BIND_IMPORTANT)
                 }
+
                 state.value = State.Playing(0F, (state.value as State.Ready).amplitudes)
             }
         }
@@ -230,9 +234,19 @@ class AndroidAudioPlayerViewModel(
         playerServiceSynchronizationJob = coroutineScope.launch {
             audioPlayerService?.let { service ->
                 launch {
-                    service.elapsedTime.collect { currentPosition ->
-                        elapsedTime.value = currentPosition.milliseconds // TODO: Update state of audio player
+                    combine(service.elapsedTime, service.duration) { elapsedTime, duration ->
+                        elapsedTime.toFloat() / duration
+                    }.collect { percentagePlayed ->
+                        stateChangeMutex.withLock {
+                            if (state.value is State.Playing) {
+                                state.value = State.Playing(percentagePlayed, (state.value as State.Playing).amplitudes)
+                            }
+                        }
                     }
+
+                    // service.elapsedTime.collect { currentPosition ->
+                    //     elapsedTime.value = currentPosition.milliseconds
+                    // }
                 }
             }
         }

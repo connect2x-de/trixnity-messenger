@@ -25,6 +25,8 @@ interface AudioPlayerViewModel {
     sealed interface State {
         data class Failed(val cause: Throwable? = null) : State
         data class Ready(val amplitudes: List<Float>) : State
+
+        // TODO: Should we calculate the percentage of the audio played in the composable to reduce state flow emissions
         data class Playing(val progress: Float, val amplitudes: List<Float>) : State
         object Loading : State
     }

@@ -21,6 +21,8 @@ import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandle
 import de.connect2x.sysnotify.notification
 import de.connect2x.sysnotify.update
+import de.connect2x.sysnotify.withActivationFactory
+import de.connect2x.sysnotify.withContext
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +32,7 @@ import java.text.SimpleDateFormat
 private val log = KotlinLogging.logger { }
 
 class AudioPlayerService : Service() {
-    private val audioPlayer: ExoPlayer = ExoPlayer.Builder(this).build()
+    private lateinit var audioPlayer: ExoPlayer
     private val binder = ServiceBinder()
     private val notificationHandler: NotificationHandler by lazy {
         NotificationHandler(
@@ -51,6 +53,10 @@ class AudioPlayerService : Service() {
 
     override fun onCreate() {
         log.debug { "Creating notification channel for audio player service" }
+        notificationHandler.withContext { applicationContext }
+        notificationHandler.withActivationFactory { _, _ -> null }
+
+        audioPlayer = ExoPlayer.Builder(this).build()
         audioPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 if (duration.value == 0L && elapsedTime.value != 0L) {
@@ -83,9 +89,9 @@ class AudioPlayerService : Service() {
         })
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         log.debug { "Received command" } // TODO
-        when (intent.action) {
+        when (intent?.action) {
             START_ACTION -> {
                 // TODO: Replace with getParcelableExtra(<name>, <class>) when min API level is >= 33
                 val uri = @Suppress("DEPRECATION") intent.getParcelableExtra<Uri>(START_AUDIO_URI) ?: run {
@@ -96,8 +102,7 @@ class AudioPlayerService : Service() {
                 log.debug { "Received command for playing audio '$uri'. Starting..." }
                 val mimeType = intent.getStringExtra(MIME_TYPE)
                 val position = intent.getLongExtra(POSITION, 0)
-                println("LOL")
-                // TODO: Play audio
+                startAudioPlayback(uri, mimeType, position)
             }
             STOP_ACTION -> {
                 log.debug { "Received command for stopping audio playback. Stopping..." }
@@ -133,10 +138,8 @@ class AudioPlayerService : Service() {
     }
 
     private fun updateNotification() {
-        getSystemService(NotificationManager::class.java).notify(
-            NOTIFICATION_ID,
-            updateOrCreateNotification().notification
-        )
+        val notification = updateOrCreateNotification()
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification.notification)
     }
 
     private fun updateOrCreateNotification(): NotificationHandle {
@@ -157,11 +160,7 @@ class AudioPlayerService : Service() {
             setOnlyAlertOnce(true)
         }
 
-        notificationHandle?.let { handle ->
-            notificationHandle = notificationHandler.update(handle, notification, notificationCallback)
-        } ?: run {
-            notificationHandle = notificationHandler.create(notification, "Test", notificationCallback) // TODO
-        }
+        notificationHandle = notificationHandler.create(notification, "Test", notificationCallback) // TODO
         return requireNotNull(notificationHandle)
     }
 
