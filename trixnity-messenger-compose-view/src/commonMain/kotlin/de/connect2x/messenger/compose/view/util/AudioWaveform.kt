@@ -1,6 +1,8 @@
 package de.connect2x.messenger.compose.view.util
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -12,6 +14,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
@@ -52,6 +55,12 @@ private fun upsampleAmplitudes(array: List<Float>, targetSize: Int): List<Float>
     return output
 }
 
+/**
+ * @param normalBarColor the color of the bar when not played
+ * @param playedBarColor the color of the bar when played
+ * @param borderRadius the round radius of the bar
+ * @param barPaddingFactor the factor of a segment which is only padding between two bars (from 0.0 to 1.0)
+ */
 data class WaveformStyle(
     val normalBarColor: Color,
     val playedBarColor: Color,
@@ -67,6 +76,7 @@ fun AudioWaveform(
     height: Dp,
     amplitudeCount: Int = 50,
     modifier: Modifier = Modifier,
+    onPeek: (Float) -> Unit = {},
     colors: WaveformStyle = WaveformStyle(
         normalBarColor = Color.Black,
         playedBarColor = Color.White,
@@ -84,7 +94,23 @@ fun AudioWaveform(
 
     val progressNormalized = progress.coerceIn(0.0f, 1.0f)
     val progressInIndex = progressNormalized * (sampledAmplitudes.size - 1).toFloat()
-    Canvas(modifier = modifier.width(width).height(height)) {
+    Canvas(
+        modifier = modifier
+            .width(width)
+            .height(height)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                    onPeek(newProgress)
+                }
+            }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures { change, _ ->
+                    val newProgress = (change.position.x / size.width).coerceIn(0f, 1f)
+                    onPeek(newProgress)
+                }
+            }
+    ) {
         val barWidth = size.width / sampledAmplitudes.size
 
         sampledAmplitudes.forEachIndexed { index, amplitude ->

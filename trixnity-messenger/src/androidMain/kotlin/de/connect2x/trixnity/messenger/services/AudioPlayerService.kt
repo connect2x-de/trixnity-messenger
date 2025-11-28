@@ -71,13 +71,6 @@ class AudioPlayerService : Service() {
         audioPlayer = ExoPlayer.Builder(this).build()
         audioPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (duration.value == 0L && elapsedTime.value != 0L) {
-                    if (audioPlayer.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM)) {
-                        audioPlayer.seekTo(elapsedTime.value)
-                        updateNotification() // TODO: Is this really required
-                    }
-                }
-
                 if (audioPlayer.playbackState == Player.STATE_READY) {
                     _elapsedTime.value = audioPlayer.currentPosition.coerceAtLeast(0)
                     _duration.value = audioPlayer.duration.coerceAtLeast(0)
@@ -141,6 +134,13 @@ class AudioPlayerService : Service() {
         return super.onUnbind(intent)
     }
 
+    fun seekTo(position: Long) {
+        if (audioPlayer.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM)) {
+            audioPlayer.seekTo(position)
+            updateNotification() // TODO: Is this really required
+        }
+    }
+
     private fun startAudioPlayback(uri: Uri, mimeType: String?, position: Long) {
         startForeground(NOTIFICATION_ID, updateOrCreateNotification().notification)
         audioPlayer.stop()
@@ -155,6 +155,10 @@ class AudioPlayerService : Service() {
         audioPlayer.setMediaItem(mediaItem)
         audioPlayer.prepare()
         audioPlayer.play()
+        if (position != 0L && audioPlayer.isCommandAvailable(Player.COMMAND_SEEK_TO_MEDIA_ITEM)) {
+            audioPlayer.seekTo(position)
+            updateNotification() // TODO: Is this really required
+        }
     }
 
     fun stopAudioPlayback() {

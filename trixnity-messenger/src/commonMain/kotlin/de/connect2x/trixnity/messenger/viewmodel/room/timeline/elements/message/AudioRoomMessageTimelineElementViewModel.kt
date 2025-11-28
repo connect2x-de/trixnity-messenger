@@ -50,5 +50,5 @@ class AudioRoomMessageTimelineElementViewModelImpl(
 ) {
     override val duration: Duration? = content.info?.duration?.milliseconds
     override val audioPlayer: AudioPlayerViewModel? = getOrNull<AudioPlayerViewModelFactory>()
-        ?.create(viewModelContext, this)
+        ?.create(viewModelContext, this, duration)
 }

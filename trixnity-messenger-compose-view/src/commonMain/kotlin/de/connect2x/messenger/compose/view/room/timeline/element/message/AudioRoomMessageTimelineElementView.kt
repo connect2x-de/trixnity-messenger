@@ -40,6 +40,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
+import de.connect2x.messenger.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -129,57 +130,10 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
         return
     }
 
-    val audioPlayer = requireNotNull(element.audioPlayer)
-    when (val state = audioPlayer.state.collectAsState().value) {
-        is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
-        is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
-        is AudioPlayerViewModel.State.Playing -> PlayableAudioMessage(audioPlayer, state.amplitudes)
-        is AudioPlayerViewModel.State.Ready -> PlayableAudioMessage(audioPlayer, state.amplitudes)
-    }
-}
-
-@Composable
-internal fun PlayableAudioMessage(
-    audioPlayerViewModel: AudioPlayerViewModel,
-    amplitudes: List<Float>,
-) {
-    val isPlaying = audioPlayerViewModel.state.collectAsState().value is AudioPlayerViewModel.State.Playing
-    val duration = audioPlayerViewModel.duration.collectAsState().value.inWholeMilliseconds
-    val elapsedTime = audioPlayerViewModel.elapsedTime.collectAsState().value.inWholeMilliseconds
-    val progress = if (isPlaying) {
-        (elapsedTime.toDouble() / duration.toDouble()).toFloat().let {
-            if (it.isInfinite() || it.isNaN()) 0F else it
-        }
-    } else 0F
-
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(5.dp)
-    ) {
-        ThemedIconButton(
-            onClick = {
-                if (isPlaying) {
-                    audioPlayerViewModel.stop()
-                } else {
-                    audioPlayerViewModel.start()
-                }
-            }
-        ) {
-            Icon(
-                modifier = Modifier.size(50.dp),
-                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                contentDescription = null, // TODO: Accessibility
-            )
-        }
-
-        Spacer(Modifier.width(5.dp)) // TODO
-        AudioWaveform(
-            progress = progress,
-            amplitudes = amplitudes,
-            width = 400.dp,
-            height = 75.dp
-        )
-    }
+    DI.current.get<AudioPlayerView>().Create(
+        audioPlayerViewModel = requireNotNull(element.audioPlayer),
+        fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) }
+    )
 }
 
 @Composable

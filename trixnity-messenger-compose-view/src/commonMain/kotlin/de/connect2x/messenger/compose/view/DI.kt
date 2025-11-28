@@ -310,6 +310,8 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
+import de.connect2x.messenger.media.AudioPlayerView
+import de.connect2x.messenger.media.AudioPlayerViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
@@ -331,6 +333,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         themeViewModule(),
         commonViewModule(),
         rootViewModule(),
+        mediaViewModule(),
         connectingViewModule(),
         filesViewModule(),
         profileViewModule(),
@@ -372,6 +375,10 @@ fun rootViewModule() = module {
     single<ClientView> { ClientViewImpl() }
     single<MainView> { MainViewImpl() }
     single<MessengerView> { MessengerViewImpl() }
+}
+
+fun mediaViewModule() = module {
+    single<AudioPlayerView> { AudioPlayerViewImpl() }
 }
 
 fun connectingViewModule() = module {

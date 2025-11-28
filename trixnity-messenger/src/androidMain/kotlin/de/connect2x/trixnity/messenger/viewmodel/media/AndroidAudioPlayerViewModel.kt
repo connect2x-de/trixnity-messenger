@@ -35,17 +35,20 @@ private val log = KotlinLogging.logger { }
 class AndroidAudioPlayerViewModelFactory : AudioPlayerViewModelFactory {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
-        audio: RoomMessageTimelineElementViewModel.FileBased.Audio
+        audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        initialDuration: Duration?
     ): AudioPlayerViewModel =
         AndroidAudioPlayerViewModel(
             viewModelContext = viewModelContext,
-            audio = audio
+            audio = audio,
+            initialDuration = initialDuration
         )
 }
 
 class AndroidAudioPlayerViewModel(
     viewModelContext: MatrixClientViewModelContext,
-    private val audio: RoomMessageTimelineElementViewModel.FileBased.Audio
+    private val audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    initialDuration: Duration?
 ) : AudioPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
     private val getActivity: ActivityGetter = get()
     private val tempFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
@@ -66,7 +69,7 @@ class AndroidAudioPlayerViewModel(
     }
 
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
-    override val duration: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
+    override val duration: MutableStateFlow<Duration> = MutableStateFlow(initialDuration ?: Duration.ZERO)
     override val state: MutableStateFlow<State> = MutableStateFlow(State.Loading)
 
     init {
@@ -117,7 +120,7 @@ class AndroidAudioPlayerViewModel(
                 intent.action = AudioPlayerService.START_ACTION
                 intent.putExtra(AudioPlayerService.START_AUDIO_URI, audioMediaUri)
                 intent.putExtra(AudioPlayerService.MIME_TYPE, audio.mimeType)
-                intent.putExtra(AudioPlayerService.POSITION, 0)
+                intent.putExtra(AudioPlayerService.POSITION, elapsedTime.value.inWholeMilliseconds)
 
                 log.info { "Start playing audio file" }
                 ContextCompat.startForegroundService(context, intent)
@@ -137,6 +140,15 @@ class AndroidAudioPlayerViewModel(
         coroutineScope.launch {
             stopSuspending()
         }
+    }
+
+    override fun seekTo(duration: Duration) {
+        if (audioPlayerService != null) { // TODO: seekTo while playing doesn't work
+            requireNotNull(audioPlayerService).seekTo(duration.inWholeMilliseconds)
+            return
+        }
+
+        elapsedTime.value = duration
     }
 
     private suspend fun stopSuspending() {

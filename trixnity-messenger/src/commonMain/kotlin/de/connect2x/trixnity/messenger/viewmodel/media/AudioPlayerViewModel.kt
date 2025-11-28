@@ -8,7 +8,8 @@ import kotlin.time.Duration
 interface AudioPlayerViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        audio: RoomMessageTimelineElementViewModel.FileBased.Audio
+        audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        initialDuration: Duration?
     ) : AudioPlayerViewModel
 }
 
@@ -19,14 +20,23 @@ interface AudioPlayerViewModel {
 
     fun start()
     fun stop()
+    fun seekTo(duration: Duration)
 
     /**
      * Loading -> Failed / Ready -> Playing <-> Ready
      */
     sealed interface State {
         data class Failed(val cause: Throwable? = null) : State
-        data class Ready(val amplitudes: List<Float>) : State
-        data class Playing(val amplitudes: List<Float>) : State
         object Loading : State
+
+        /**
+         * @param amplitudes the normalized amplitudes (0.0 to 1.0) of the audio file
+         */
+        data class Ready(val amplitudes: List<Float>) : State
+
+        /**
+         * @param amplitudes the normalized amplitudes (0.0 to 1.0) of the audio file
+         */
+        data class Playing(val amplitudes: List<Float>) : State
     }
 }
