@@ -175,6 +175,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.state.NameState
 import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.state.RoomUpgradedStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.RoomUpgradedStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
@@ -494,12 +496,14 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<EncryptionStateTimelineElementView> { EncryptionStateTimelineElementViewImpl() }
     timelineElementView<HistoryVisibilityStateTimelineElementView> { HistoryVisibilityStateTimelineElementViewImpl() }
     timelineElementView<PowerLevelTimelineElementView> { PowerLevelTimelineElementViewImpl() }
+    timelineElementView<RoomUpgradedStateTimelineElementView> { RoomUpgradedStateTimelineElementViewImpl() }
     timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementViewImpl() }
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementViewImpl() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementViewImpl() }
     includes(timelineElementDetailsViewsModule(messengerConfiguration))
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
+
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
