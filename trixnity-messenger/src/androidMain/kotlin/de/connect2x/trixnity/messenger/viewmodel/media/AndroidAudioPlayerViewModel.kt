@@ -21,12 +21,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
-import okio.Path
 import org.koin.core.component.get
 import java.nio.ByteOrder
 import kotlin.time.Duration
@@ -57,8 +55,8 @@ class AndroidAudioPlayerViewModel(
     private var playerServiceSynchronizationJob: Job? = null
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
-            startPlayerServiceSynchronizationJob()
             audioPlayerService = (service as AudioPlayerService.ServiceBinder).getService()
+            startPlayerServiceSynchronizationJob()
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -68,6 +66,7 @@ class AndroidAudioPlayerViewModel(
     }
 
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
+    override val duration: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     override val state: MutableStateFlow<State> = MutableStateFlow(State.Loading)
 
     init {
@@ -128,7 +127,7 @@ class AndroidAudioPlayerViewModel(
                     context.bindService(intent, serviceConnection, Context.BIND_IMPORTANT)
                 }
 
-                state.value = State.Playing(0F, (state.value as State.Ready).amplitudes)
+                state.value = State.Playing((state.value as State.Ready).amplitudes)
             }
         }
     }
@@ -146,6 +145,7 @@ class AndroidAudioPlayerViewModel(
 
             val context = getActivity()
             if (audioPlayerService != null) {
+                requireNotNull(audioPlayerService).stopAudioPlayback()
                 playerServiceSynchronizationJob?.cancel()
                 context.unbindService(serviceConnection)
                 audioPlayerService = null
@@ -233,20 +233,17 @@ class AndroidAudioPlayerViewModel(
         playerServiceSynchronizationJob?.cancel()
         playerServiceSynchronizationJob = coroutineScope.launch {
             audioPlayerService?.let { service ->
+                println("EEEE: Launch sub coroutines")
                 launch {
-                    combine(service.elapsedTime, service.duration) { elapsedTime, duration ->
-                        elapsedTime.toFloat() / duration
-                    }.collect { percentagePlayed ->
-                        stateChangeMutex.withLock {
-                            if (state.value is State.Playing) {
-                                state.value = State.Playing(percentagePlayed, (state.value as State.Playing).amplitudes)
-                            }
-                        }
+                    service.elapsedTime.collect { elapsedTime ->
+                        println("EEEE: $elapsedTime")
+                        this@AndroidAudioPlayerViewModel.elapsedTime.value = elapsedTime.milliseconds
                     }
-
-                    // service.elapsedTime.collect { currentPosition ->
-                    //     elapsedTime.value = currentPosition.milliseconds
-                    // }
+                }
+                launch {
+                    service.duration.collect { duration ->
+                        this@AndroidAudioPlayerViewModel.duration.value = duration.milliseconds
+                    }
                 }
             }
         }

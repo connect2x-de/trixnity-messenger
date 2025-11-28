@@ -24,10 +24,20 @@ import de.connect2x.sysnotify.update
 import de.connect2x.sysnotify.withActivationFactory
 import de.connect2x.sysnotify.withContext
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
@@ -43,11 +53,13 @@ class AudioPlayerService : Service() {
         )
     }
 
-    private val _elapsedTime: MutableStateFlow<Long> = MutableStateFlow(0L)
-    val elapsedTime: StateFlow<Long> = _elapsedTime
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var progressUpdateJob: Job? = null
 
+    private val _elapsedTime: MutableStateFlow<Long> = MutableStateFlow(0L)
+    val elapsedTime: StateFlow<Long> = _elapsedTime.asStateFlow()
     private val _duration: MutableStateFlow<Long> = MutableStateFlow(0L)
-    val duration: StateFlow<Long> = _duration
+    val duration: StateFlow<Long> = _duration.asStateFlow()
 
     private var notificationHandle: NotificationHandle? = null
 
@@ -69,7 +81,10 @@ class AudioPlayerService : Service() {
                 if (audioPlayer.playbackState == Player.STATE_READY) {
                     _elapsedTime.value = audioPlayer.currentPosition.coerceAtLeast(0)
                     _duration.value = audioPlayer.duration.coerceAtLeast(0)
-                    // TODO: Update progress bar
+                    if (isPlaying)
+                        startProgressUpdates()
+                    else
+                        stopProgressUpdates()
                     updateNotification()
                 }
 
@@ -106,8 +121,7 @@ class AudioPlayerService : Service() {
             }
             STOP_ACTION -> {
                 log.debug { "Received command for stopping audio playback. Stopping..." }
-                // TODO: Stop audio
-                println("LOL")
+                stopAudioPlayback()
                 stopSelf()
             }
         }
@@ -137,6 +151,19 @@ class AudioPlayerService : Service() {
         audioPlayer.play()
     }
 
+    fun stopAudioPlayback() {
+        log.debug { "Stopping audio..." }
+        if (this::audioPlayer.isInitialized) {
+            audioPlayer.stop()
+        }
+
+        updateNotification()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+
+        audioPlayer.stop()
+        audioPlayer.clearMediaItems()
+    }
+
     private fun updateNotification() {
         val notification = updateOrCreateNotification()
         getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification.notification)
@@ -162,6 +189,22 @@ class AudioPlayerService : Service() {
 
         notificationHandle = notificationHandler.create(notification, "Test", notificationCallback) // TODO
         return requireNotNull(notificationHandle)
+    }
+
+    private fun startProgressUpdates() {
+        stopProgressUpdates()
+        progressUpdateJob = coroutineScope.launch(CoroutineName("AudioPlayerService Progress Loop")) {
+            while (isActive && this@AudioPlayerService::audioPlayer.isInitialized && audioPlayer.isPlaying) {
+                _elapsedTime.value = audioPlayer.currentPosition.coerceAtLeast(0)
+                _duration.value = audioPlayer.duration.coerceAtLeast(0)
+                delay(100.milliseconds) // The moment of cooperative multitasking
+            }
+        }
+    }
+
+    private fun stopProgressUpdates() {
+        progressUpdateJob?.cancel()
+        progressUpdateJob = null
     }
 
     inner class ServiceBinder : Binder() {

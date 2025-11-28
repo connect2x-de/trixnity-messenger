@@ -124,13 +124,17 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
 
 @Composable
 internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
-    when (val state = element.audioPlayer?.state?.collectAsState()?.value ?: AudioPlayerViewModel.State.Failed()) {
+    if (element.audioPlayer == null) {
+        NonPlayableAudioMessage(element, showActionMenu, onSave)
+        return
+    }
+
+    val audioPlayer = requireNotNull(element.audioPlayer)
+    when (val state = audioPlayer.state.collectAsState().value) {
         is AudioPlayerViewModel.State.Loading -> Text("Loading...") // TODO: Show loading composable or default audio message?
         is AudioPlayerViewModel.State.Failed -> NonPlayableAudioMessage(element, showActionMenu, onSave)
-        is AudioPlayerViewModel.State.Playing ->
-            PlayableAudioMessage(requireNotNull(element.audioPlayer), state.amplitudes, state.progress)
-        is AudioPlayerViewModel.State.Ready ->
-            PlayableAudioMessage(requireNotNull(element.audioPlayer), state.amplitudes)
+        is AudioPlayerViewModel.State.Playing -> PlayableAudioMessage(audioPlayer, state.amplitudes)
+        is AudioPlayerViewModel.State.Ready -> PlayableAudioMessage(audioPlayer, state.amplitudes)
     }
 }
 
@@ -138,9 +142,16 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
 internal fun PlayableAudioMessage(
     audioPlayerViewModel: AudioPlayerViewModel,
     amplitudes: List<Float>,
-    progress: Float = 0.0f
 ) {
     val isPlaying = audioPlayerViewModel.state.collectAsState().value is AudioPlayerViewModel.State.Playing
+    val duration = audioPlayerViewModel.duration.collectAsState().value.inWholeMilliseconds
+    val elapsedTime = audioPlayerViewModel.elapsedTime.collectAsState().value.inWholeMilliseconds
+    val progress = if (isPlaying) {
+        (elapsedTime.toDouble() / duration.toDouble()).toFloat().let {
+            if (it.isInfinite() || it.isNaN()) 0F else it
+        }
+    } else 0F
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(5.dp)

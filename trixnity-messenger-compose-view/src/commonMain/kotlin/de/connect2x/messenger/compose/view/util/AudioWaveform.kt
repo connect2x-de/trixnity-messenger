@@ -55,7 +55,8 @@ private fun upsampleAmplitudes(array: List<Float>, targetSize: Int): List<Float>
 data class WaveformStyle(
     val normalBarColor: Color,
     val playedBarColor: Color,
-    val borderRadius: Float
+    val borderRadius: Float,
+    val barPaddingFactor: Float
 )
 
 @Composable
@@ -69,7 +70,8 @@ fun AudioWaveform(
     colors: WaveformStyle = WaveformStyle(
         normalBarColor = Color.Black,
         playedBarColor = Color.White,
-        borderRadius = 50f
+        borderRadius = 50f,
+        barPaddingFactor = 0.15f
     ),
 ) {
     val sampledAmplitudes = remember(amplitudes, amplitudeCount) {
@@ -80,28 +82,27 @@ fun AudioWaveform(
         }
     }
 
-    val progressInIndex = progress.coerceIn(0.0f, 1.0f) * (sampledAmplitudes.size - 1)
+    val progressNormalized = progress.coerceIn(0.0f, 1.0f)
+    val progressInIndex = progressNormalized * (sampledAmplitudes.size - 1).toFloat()
     Canvas(modifier = modifier.width(width).height(height)) {
         val barWidth = size.width / sampledAmplitudes.size
 
         sampledAmplitudes.forEachIndexed { index, amplitude ->
-            val barHeight = amplitude.coerceIn(0.1f, 1.0f) * size.height
-            val distanceToNext = abs(index - progressInIndex)
+            val barHeight = amplitude.coerceIn(0.025f, 1.0f) * size.height
+            val indexAsFloat = index.toFloat()
             val color = when {
-                distanceToNext >= 1f -> {
-                    if (index < progressInIndex)
+                indexAsFloat < progressInIndex -> {
+                    if (indexAsFloat + 1 > progressInIndex) {
+                        androidx.compose.ui.graphics.lerp(
+                            colors.normalBarColor,
+                            colors.playedBarColor,
+                            (progressInIndex - indexAsFloat).coerceIn(0f, 1f)
+                        )
+                    } else {
                         colors.playedBarColor
-                    else
-                        colors.normalBarColor
+                    }
                 }
-                else -> {
-                    val t = 1f - distanceToNext
-                    androidx.compose.ui.graphics.lerp(
-                        colors.normalBarColor,
-                        colors.playedBarColor,
-                        t
-                    )
-                }
+                else -> colors.normalBarColor
             }
 
             drawRoundRect(
@@ -112,7 +113,7 @@ fun AudioWaveform(
                     y = size.height / 2 - barHeight / 2
                 ),
                 size = Size(
-                    width = (barWidth * 0.75F),
+                    width = (barWidth * (1f - colors.barPaddingFactor)),
                     height = barHeight
                 )
             )
