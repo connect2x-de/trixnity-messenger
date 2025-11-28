@@ -3260,6 +3260,16 @@ open class I18nView(
         DE - "Untergeordnete Spaces verknüpfen"
     }
 
+    open fun editRoomName() = translate {
+        EN - "edit room name"
+        DE - "Raumnamen ändern"
+    }
+
+    open fun editRoomTopic() = translate {
+        EN - "edit room topic"
+        DE - "Raumbeschreibung ändern"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

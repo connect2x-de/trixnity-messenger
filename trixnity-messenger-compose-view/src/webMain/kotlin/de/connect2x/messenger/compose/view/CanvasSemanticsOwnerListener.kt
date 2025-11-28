@@ -117,9 +117,6 @@ class CanvasSemanticsOwnerListener(
         owners.remove(semanticsOwner)
     }
 
-    private val listeners = mutableMapOf<String, EventListener>()
-    private val clickListeners = mutableMapOf<Int, EventListener>()
-
     override fun onSemanticsChange(semanticsOwner: SemanticsOwner) {
         syncFlow.tryEmit(Unit)
     }
@@ -135,11 +132,12 @@ class CanvasSemanticsOwnerListener(
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
 
-            seen.add(node.semanticId)
-
             when (val found = findElement(node)) {
                 null -> {
                     // the node does not exist we need to create a new one
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
+                        continue
+
                     val el = basicHTMLElement(node)
                     setAttrs(el, node)
 
@@ -157,6 +155,9 @@ class CanvasSemanticsOwnerListener(
                 }
 
                 else -> {
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
+                        continue
+
                     // the node does exist, however on the first render the node typically does not have a role
                     // so on the first render we put in a div and later on need to replace it with the correct element.
                     val el = basicHTMLElement(node)
@@ -169,6 +170,7 @@ class CanvasSemanticsOwnerListener(
                 }
             }
 
+            seen.add(node.semanticId)
             queue.addAll(node.replacedChildren)
         }
 
@@ -176,7 +178,6 @@ class CanvasSemanticsOwnerListener(
 
         for (id in unseen) {
             findElement(id)?.remove()
-            listeners.remove(id)
         }
     }
 
@@ -280,27 +281,22 @@ class CanvasSemanticsOwnerListener(
             Role.RadioButton -> {
                 el.setAttribute("type", "radio")
                 setIf("aria-label", SemanticsProperties.Text) { it.joinToString() }
-                node.config.getOrNull(SemanticsProperties.Selected)?.let {
-                    el.asDynamic().checked = it
-                }
+                doIf(SemanticsProperties.Selected) { el.checked = it }
             }
 
             Role.Checkbox -> {
                 require(el is HTMLInputElement) { "Role.Checkbox is not HTMLInputElement" }
                 el.setAttribute("type", "checkbox")
                 setIf("aria-label", SemanticsProperties.Text) { it.joinToString() }
-                doIf(SemanticsProperties.Selected) { el.asDynamic().checked = it }
-                doIf(SemanticsProperties.ToggleableState) {
-                    when (it) {
-                        ToggleableState.On -> el.asDynamic().checked = true
-                        ToggleableState.Off -> el.asDynamic().checked = false
-                        ToggleableState.Indeterminate -> el.asDynamic().checked = false // I guess
-                    }
-                }
+                doIf(SemanticsProperties.Selected) { el.checked = it }
+                doIf(SemanticsProperties.ToggleableState) { el.checked = it == ToggleableState.On }
             }
 
             Role.Button -> {
-                doIf(SemanticsProperties.Text) { el.innerText = it.joinToString() }
+                doIf(SemanticsProperties.Text) {
+                    val text = it.joinToString()
+                    if (el.innerText != text) el.innerText = text
+                }
                 setIf("aria-expanded", SemanticsActions.Expand) { "false" }
                 setIf("aria-expanded", SemanticsActions.Collapse) { "true" }
             }
@@ -386,55 +382,38 @@ class CanvasSemanticsOwnerListener(
             if (areAllChildrenRadioButtons(node)) "radiogroup" else null
         }
 
-        when (val onClick = node.config.getOrNull(SemanticsActions.OnClick)?.action) {
-            null -> {
-                if (clickListeners[node.id] != null) {
-                    el.removeEventListener("click", clickListeners[node.id])
-                    clickListeners.remove(node.id)
+        val clickable = node.config.getOrNull(SemanticsActions.OnClick) != null
+        if (clickable) {
+            if (el.clickListener == null) {
+                el.clickListener = EventListener {
+                    doIf(SemanticsActions.OnClick) { it.action?.invoke() }
                 }
             }
-
-            else -> {
-                if (clickListeners[node.id] == null) {
-                    val clickListener = EventListener {
-                        // console.log("Click")
-                        onClick()
-                    }
-
-                    el.addEventListener("click", clickListener)
-                    clickListeners[node.id] = clickListener
-                }
-            }
+        } else {
+            el.clickListener = null
         }
-
 
         // TODO: Logic
         // When either RequestFocus or Focused is set, the shadow dom element has to be focusable (e.g. via tabindex or similar)
         // On focus, we have to actually focus the shadow dom element for the screen reader to actually read the text
         // For this to properly work with the handlers from compose, we have to propagate keyboard events, the actual focus
         // event and click events back to the canvas or to the explicit handlers, if they are given.
-        when (val requestFocus = node.config.getOrNull(SemanticsActions.RequestFocus)?.action) {
-            null -> {
-                if (listeners[node.semanticId] != null) {
-                    el.removeAttribute("tabindex")
-                    el.removeEventListener("focus", listeners[node.semanticId])
-                    listeners.remove(node.semanticId)
+        val focusable = node.config.getOrNull(SemanticsProperties.Focused) != null
+                || node.config.getOrNull(SemanticsActions.RequestFocus) != null
+        if (focusable) {
+            if (el.focusListener == null) {
+                val focusListener = EventListener {
+                    doIf(SemanticsActions.RequestFocus) { it.action?.invoke() }
                 }
-            }
 
-            else -> {
-                if (listeners[node.semanticId] == null) {
-                    val focusListener = EventListener {
-                        // console.log("Focus")
-                        requestFocus()
-                    }
+                if (el is HTMLDivElement)
+                    el.setAttribute("tabindex", "-1")
 
-                    if (el is HTMLDivElement)
-                        el.setAttribute("tabindex", "-1")
-                    el.addEventListener("focus", focusListener)
-                    listeners[node.semanticId] = focusListener
-                }
+                el.focusListener = focusListener
             }
+        } else {
+            el.removeAttribute("tabindex")
+            el.focusListener = null
         }
 
         doIf(SemanticsProperties.Focused) { if (it) el.focus() }
@@ -483,3 +462,53 @@ fun onDomReady(block: () -> Unit) {
         block()
     }
 }
+
+private external interface FocusListenerElement {
+    var focusListener: EventListener?
+}
+
+private var HTMLElement.focusListener: EventListener?
+    get() = unsafeCast<FocusListenerElement>().focusListener.takeIf { it != undefined }
+    set(value) {
+        val self = unsafeCast<FocusListenerElement>()
+
+        self.focusListener?.also {
+            self.focusListener = undefined
+            removeEventListener("focus", it)
+        }
+
+        value?.also {
+            self.focusListener = it
+            addEventListener("focus", it)
+        }
+    }
+
+private external interface ClickListenerElement {
+    var clickListener: EventListener?
+}
+
+private var HTMLElement.clickListener: EventListener?
+    get() = unsafeCast<ClickListenerElement>().clickListener.takeIf { it != undefined }
+    set(value) {
+        val self = unsafeCast<ClickListenerElement>()
+
+        self.clickListener?.also {
+            self.clickListener = undefined
+            removeEventListener("click", it)
+        }
+
+        value?.also {
+            self.clickListener = it
+            addEventListener("click", it)
+        }
+    }
+
+private external interface Checked {
+    var checked: Boolean
+}
+
+private var HTMLElement.checked: Boolean
+    get() = unsafeCast<Checked>().checked
+    set(value) {
+        unsafeCast<Checked>().checked = value
+    }
