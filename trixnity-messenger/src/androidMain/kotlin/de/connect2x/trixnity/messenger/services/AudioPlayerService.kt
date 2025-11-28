@@ -130,10 +130,16 @@ class AudioPlayerService : Service() {
 
     override fun onDestroy() {
         log.debug { "Cancelling notifications and destroy audio player service's channel" }
+        stopAudioPlayback()
         notificationHandler.close()
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        stopSelf()
+        return super.onUnbind(intent)
+    }
 
     private fun startAudioPlayback(uri: Uri, mimeType: String?, position: Long) {
         startForeground(NOTIFICATION_ID, updateOrCreateNotification().notification)

@@ -145,7 +145,6 @@ class AndroidAudioPlayerViewModel(
 
             val context = getActivity()
             if (audioPlayerService != null) {
-                requireNotNull(audioPlayerService).stopAudioPlayback()
                 playerServiceSynchronizationJob?.cancel()
                 context.unbindService(serviceConnection)
                 audioPlayerService = null
