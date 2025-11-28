@@ -5,6 +5,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
+import de.connect2x.messenger.compose.view.common.invertedHue
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger { }
@@ -16,6 +17,8 @@ interface ThemeDarkColorScheme {
 class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
     override fun create(accentColor: Color): ColorScheme {
         val accentHue = accentColor.hue
+        val invertedAccentHue = accentColor.invertedHue
+
         return darkColorScheme(
             primary = accentColor,
             onPrimary = md_theme_dark_onPrimary,
@@ -41,8 +44,8 @@ class ThemeDarkColorSchemeImpl : ThemeDarkColorScheme {
             onSurfaceVariant = md_theme_dark_onSurfaceVariant,
             outline = md_theme_dark_outline.deriveFromHue(accentHue),
             inverseOnSurface = md_theme_dark_inverseOnSurface,
-            inverseSurface = md_theme_dark_inverseSurface.deriveFromHue(accentHue),
-            inversePrimary = md_theme_dark_inversePrimary.deriveFromHue(accentHue),
+            inverseSurface = md_theme_dark_inverseSurface,
+            inversePrimary = md_theme_dark_inversePrimary.deriveFromHue(invertedAccentHue),
             surfaceTint = md_theme_dark_surfaceTint.deriveFromHue(accentHue),
             outlineVariant = md_theme_dark_outlineVariant,
             scrim = md_theme_dark_scrim,
