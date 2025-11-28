@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.9.0
+
+### Added
+
 - UI: StoreFailure: show the name of the account with the corrupted database
 - A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
 
@@ -17,10 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DEPENDENCIES: Bump c2x Conventions to 20251114.122133
 - Add button to cancel download in file details view
 - A11Y,WEB: CanvasSemanticsOwnerListener: dialog now has labelledby and describedby attributes
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -40,8 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Emoji picker is correctly aligned to the center and scales as required when using different screen sizes
 - WEB: fix incremental compilation
 - A11Y,WEB: CanvasSemanticsOwnerListener: fix a bug with nodes not regaining the tabindex property
-
-### Security
 
 ## 3.8.11
 
