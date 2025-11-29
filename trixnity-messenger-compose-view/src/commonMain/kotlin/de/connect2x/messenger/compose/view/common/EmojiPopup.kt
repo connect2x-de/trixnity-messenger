@@ -12,6 +12,6 @@ fun EmojiPopup(
     isByMe: Boolean,
 ) {
     TimelinePopup(isOpen, onDismiss, modifier, isByMe) {
-        EmojiSelector(Modifier, onSelect, onDismiss)
+        EmojiSelector(onTextAdded = onSelect, onDismiss = onDismiss)
     }
 }
