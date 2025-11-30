@@ -4,9 +4,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Connect2xComposeUiApi
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.CanvasBasedWindow
-import androidx.compose.ui.window.ComposeViewport
+import androidx.compose.ui.InternalComposeUiApi
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -31,7 +31,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
-import org.jetbrains.skiko.wasm.onWasmReady
 import web.dom.DocumentVisibilityState
 import web.dom.document
 import web.dom.visible
@@ -56,7 +55,7 @@ private fun getLogLevel(): Level {
     } ?: Level.INFO
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, Connect2xComposeUiApi::class, InternalComposeUiApi::class)
 suspend fun startMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
@@ -122,59 +121,57 @@ suspend fun startMessenger(
 
     coroutineScope {
         try {
-            onWasmReady {
-                ComposeViewport {
-                    // As this is hopefully only temporary until FontFallback works automatically on Web with
-                    // Browser installed fonts, this is just put here instead of complicating the Theme definition
-                    // commonMain/kotlin/de/connect2x/messenger/compose/view/theme/Theme.kt with platform specific
-                    // implementations.
-                    // When this is removed we can also stop shipping the 6MB of NotoColoEmoji.ttf on Web.
-                    PreloadEmojis()
+            AccessibleComposeViewport {
+                // As this is hopefully only temporary until FontFallback works automatically on Web with
+                // Browser installed fonts, this is just put here instead of complicating the Theme definition
+                // commonMain/kotlin/de/connect2x/messenger/compose/view/theme/Theme.kt with platform specific
+                // implementations.
+                // When this is removed we can also stop shipping the 6MB of NotoColoEmoji.ttf on Web.
+                PreloadEmojis()
 
-                    WithProfileSelection(
-                        matrixMultiMessenger = matrixMultiMessenger,
-                        componentContext = DefaultComponentContext(lifecycleRegistry),
-                        activeMessengerOnce = { _, _ -> },
-                        activeMessenger = { matrixMessenger, rootViewModel ->
-                            val isFocused =  windowIsFocused.collectAsState(false).value
-                            val isFocusHighlighting =
-                                matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                                    .collectAsState().value.base.isFocusHighlighting
+                WithProfileSelection(
+                    matrixMultiMessenger = matrixMultiMessenger,
+                    componentContext = DefaultComponentContext(lifecycleRegistry),
+                    activeMessengerOnce = { _, _ -> },
+                    activeMessenger = { matrixMessenger, rootViewModel ->
+                        val isFocused = windowIsFocused.collectAsState(false).value
+                        val isFocusHighlighting =
+                            matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                                .collectAsState().value.base.isFocusHighlighting
 
-                            CompositionLocalProvider(
-                                Platform provides PlatformType.WEB,
-                                IsFocused provides isFocused,
-                                DI provides matrixMessenger.di,
-                                IsFocusHighlighting provides isFocusHighlighting,
-                                EscapeKeyPressed provides escapeKeyPressed,
-                            ) {
-                                MessengerTheme {
-                                    Client(rootViewModel)
-                                }
-                                Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
-                                    // TODO: make URI call to open chat
-                                }
+                        CompositionLocalProvider(
+                            Platform provides PlatformType.WEB,
+                            IsFocused provides isFocused,
+                            DI provides matrixMessenger.di,
+                            IsFocusHighlighting provides isFocusHighlighting,
+                            EscapeKeyPressed provides escapeKeyPressed,
+                        ) {
+                            MessengerTheme {
+                                Client(rootViewModel)
                             }
-                        },
-                        nonActiveMessenger = { existingProfiles ->
-                            val isFocused =  windowIsFocused.collectAsState(false).value
-                            val showProfileCreation = remember { mutableStateOf(false) }
-
-                            CompositionLocalProvider(
-                                Platform provides PlatformType.WEB,
-                                IsFocused provides isFocused,
-                                DI provides matrixMultiMessenger.di,
-                                ShowProfileCreation provides showProfileCreation,
-                                IsFocusHighlighting provides false,
-                                EscapeKeyPressed provides escapeKeyPressed,
-                            ) {
-                                MessengerTheme {
-                                    Profiles(matrixMultiMessenger, existingProfiles)
-                                }
+                            Notifications(matrixMessenger, matrixMultiMessenger.activeProfile.value ?: "default") {
+                                // TODO: make URI call to open chat
                             }
                         }
-                    )
-                }
+                    },
+                    nonActiveMessenger = { existingProfiles ->
+                        val isFocused = windowIsFocused.collectAsState(false).value
+                        val showProfileCreation = remember { mutableStateOf(false) }
+
+                        CompositionLocalProvider(
+                            Platform provides PlatformType.WEB,
+                            IsFocused provides isFocused,
+                            DI provides matrixMultiMessenger.di,
+                            ShowProfileCreation provides showProfileCreation,
+                            IsFocusHighlighting provides false,
+                            EscapeKeyPressed provides escapeKeyPressed,
+                        ) {
+                            MessengerTheme {
+                                Profiles(matrixMultiMessenger, existingProfiles)
+                            }
+                        }
+                    }
+                )
             }
         } catch (e: Throwable) {
             // in JS sometimes the original stacktrace gets scrambled by coroutines

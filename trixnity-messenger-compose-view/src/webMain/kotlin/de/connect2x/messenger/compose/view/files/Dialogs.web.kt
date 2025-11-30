@@ -100,7 +100,7 @@ actual fun SaveFileDialog(
     fileName: String,
     mimeType: String?,
     error: String?,
-    downloadFile: (suspend (PlatformMedia) -> Unit) -> Unit,
+    downloadFile: (suspend (PlatformMedia) -> Unit, () -> Unit) -> Unit,
     onCloseSaveFileDialog: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -124,7 +124,7 @@ actual fun SaveFileDialog(
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile {
+        if (!hasError) downloadFile({
             log.debug { "save file as fallback $fileName" }
             val file = when (it) {
                 is OpfsPlatformMedia -> it.getTemporaryFile().getOrNull()?.file
@@ -146,6 +146,6 @@ actual fun SaveFileDialog(
                 log.debug { "file uri revoked for: $fileName" }
             }
             onCloseSaveFileDialog()
-        }
+        }, onCloseSaveFileDialog)
     }
 }
