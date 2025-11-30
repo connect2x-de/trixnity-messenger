@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -124,11 +125,10 @@ open class SelfVerificationViewModelImpl(
         )
 
     override fun waitForAvailableVerificationMethods() {
+        showVerificationHelp.value = false
         coroutineScope.launch {
             log.debug { "launch self verification method listener for account $userId" }
             verificationMethods.collectLatest { foundSelfVerificationMethods ->
-                showVerificationHelp.value = false
-
                 when (foundSelfVerificationMethods) {
                     is PreconditionsNotMet -> {
                         log.debug { "$userId: cannot determine yet if cross-signing is needed" }
