@@ -276,8 +276,6 @@ open class SelfVerificationViewModelImpl(
         }
 
     init {
-        val backHandler = get<BackHandler>()
-        backHandler.registerBackCallback(backCallback, lifecycle)
-        println(backHandler.stack.value)
+        registerBackCallback(backCallback)
     }
 }

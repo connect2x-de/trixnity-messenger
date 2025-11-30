@@ -18,7 +18,8 @@ interface BackHandler {
 
     fun unregisterCallback(callback: BackCallback)
 
-    val stack: StateFlow<ArrayDeque<BackCallback>>
+    val stack: StateFlow<List<BackCallback>>
+
     companion object {
         val PRIORITY_DEFAULT = 0
         val PRIORITY_WIZARD = 1
@@ -29,17 +30,16 @@ interface BackHandler {
 data class BackCallback(val priority: Int = BackHandler.PRIORITY_DEFAULT, val onBack: () -> Unit)
 
 class BackHandlerImpl: BackHandler {
-    private val _backCallbackStack: MutableStateFlow<ArrayDeque<BackCallback>> = MutableStateFlow(ArrayDeque())
-    override val stack: StateFlow<ArrayDeque<BackCallback>> = _backCallbackStack.asStateFlow()
+    private val _backCallbackStack: MutableStateFlow<MutableList<BackCallback>> = MutableStateFlow(mutableListOf())
+    override val stack: StateFlow<List<BackCallback>> = _backCallbackStack.asStateFlow()
 
     /**
      * Registers a callback to the backCallBackStack
      *
      * @param callback The callback to be added with higher priority values taking precedence over lower ones in the stack evaluation.
-     * @param lifecycle An optional lifecycle of the callback used to remove the callback from the stack once it is destroyed.
      */
     override fun registerBackCallback(callback: BackCallback) {
-        val indexToAdd = _backCallbackStack.value.indexOfFirst { it.priority < callback.priority }.coerceAtLeast(0)
+        val indexToAdd = _backCallbackStack.value.indexOfFirst { listElement -> callback.priority >= listElement.priority }.coerceAtLeast(0)
         _backCallbackStack.value.add(indexToAdd, callback)
     }
 
@@ -62,6 +62,4 @@ class BackHandlerImpl: BackHandler {
     override fun goBack() {
         _backCallbackStack.value.firstOrNull()?.onBack() ?: log.warn { "No elements on the stack" }
     }
-
-
 }
