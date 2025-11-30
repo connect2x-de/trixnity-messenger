@@ -12,18 +12,21 @@ private val log = KotlinLogging.logger {  }
 interface BackHandler {
     fun goBack()
 
-    fun registerBackCallback(callback: BackCallback, lifecycle: Lifecycle? = null)
+    fun registerBackCallback(callback: BackCallback)
+
+    fun Lifecycle.registerBackCallbackWithLifecycle(callback: BackCallback)
 
     fun unregisterCallback(callback: BackCallback)
 
     val stack: StateFlow<ArrayDeque<BackCallback>>
     companion object {
+        val PRIORITY_DEFAULT = 0
         val PRIORITY_WIZARD = 1
         val PRIORITY_SELF_VERIFICATION = 2
     }
 }
 
-data class BackCallback(val priority: Int, val onBack: () -> Unit)
+data class BackCallback(val priority: Int = BackHandler.PRIORITY_DEFAULT, val onBack: () -> Unit)
 
 class BackHandlerImpl: BackHandler {
     private val _backCallbackStack: MutableStateFlow<ArrayDeque<BackCallback>> = MutableStateFlow(ArrayDeque())
@@ -35,11 +38,15 @@ class BackHandlerImpl: BackHandler {
      * @param callback The callback to be added with higher priority values taking precedence over lower ones in the stack evaluation.
      * @param lifecycle An optional lifecycle of the callback used to remove the callback from the stack once it is destroyed.
      */
-    override fun registerBackCallback(callback: BackCallback, lifecycle: Lifecycle?) {
+    override fun registerBackCallback(callback: BackCallback) {
         val indexToAdd = _backCallbackStack.value.indexOfFirst { it.priority < callback.priority }.coerceAtLeast(0)
         _backCallbackStack.value.add(indexToAdd, callback)
+    }
 
-        lifecycle?.let {
+    override fun Lifecycle.registerBackCallbackWithLifecycle(callback: BackCallback) {
+        registerBackCallback(callback)
+
+        this.let {
             it.doOnDestroy {
                 unregisterCallback(callback)
             }
