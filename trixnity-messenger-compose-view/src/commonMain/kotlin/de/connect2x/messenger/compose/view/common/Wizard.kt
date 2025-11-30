@@ -35,6 +35,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -101,8 +103,8 @@ fun Wizard(wizardSteps: List<WizardStep>, useBackHandler: Boolean = false) {
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
+    val backHandler = DI.get<BackHandler>()
     if (useBackHandler) {
-        val backHandler = DI.get<BackHandler>()
         val onBack = rememberUpdatedState {
             previousStep?.let { currentStepId.value = it }
         }
@@ -119,27 +121,37 @@ fun Wizard(wizardSteps: List<WizardStep>, useBackHandler: Boolean = false) {
         }
     }
 
-    key(wizardStep) {
-        if (wizardStep != null) {
-            // this is necessary to have a scroll position saved on every step,
-            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-            savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
-                val scrollState = rememberScrollState()
-                Surface(
-                    Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
+    Dialog(
+        onDismissRequest = {
+            backHandler.goBack()
+        },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false
+        ),
+    ) {
+        key(wizardStep) {
+            if (wizardStep != null) {
+                // this is necessary to have a scroll position saved on every step,
+                // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+                savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                    val scrollState = rememberScrollState()
+                    Surface(
+                        Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background,
                     ) {
-                        BoxWithConstraints(
-                            Modifier.fillMaxWidth().weight(1f),
-                            contentAlignment = Alignment.Center,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
                         ) {
-                            WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                            BoxWithConstraints(
+                                Modifier.fillMaxWidth().weight(1f),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                            }
+                            LegalFooter()
                         }
-                        LegalFooter()
                     }
                 }
             }

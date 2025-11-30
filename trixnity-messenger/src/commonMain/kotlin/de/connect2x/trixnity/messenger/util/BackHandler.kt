@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-private val log = KotlinLogging.logger {  }
+private val log = KotlinLogging.logger { }
 
 interface BackHandler {
     fun goBack()
@@ -18,20 +18,24 @@ interface BackHandler {
 
     fun unregisterCallback(callback: BackCallback)
 
-    val stack: StateFlow<List<BackCallback>>
+    val stack: List<BackCallback>
 
     companion object {
-        val PRIORITY_DEFAULT = 0
-        val PRIORITY_WIZARD = 1
-        val PRIORITY_SELF_VERIFICATION = 2
+        const val PRIORITY_DEFAULT = 0
+        const val PRIORITY_WIZARD = 1
+        const val PRIORITY_SELF_VERIFICATION = 2
     }
 }
 
-data class BackCallback(val priority: Int = BackHandler.PRIORITY_DEFAULT, val onBack: () -> Unit)
+data class BackCallback(
+    val priority: Int = BackHandler.PRIORITY_DEFAULT,
+    val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true),
+    val onBack: () -> Unit
+)
 
-class BackHandlerImpl: BackHandler {
-    private val _backCallbackStack: MutableStateFlow<MutableList<BackCallback>> = MutableStateFlow(mutableListOf())
-    override val stack: StateFlow<List<BackCallback>> = _backCallbackStack.asStateFlow()
+class BackHandlerImpl : BackHandler {
+    private val _backCallbackStack: MutableList<BackCallback> = mutableListOf()
+    override val stack: List<BackCallback> = _backCallbackStack
 
     /**
      * Registers a callback to the backCallbackStack
@@ -39,8 +43,9 @@ class BackHandlerImpl: BackHandler {
      * @param callback The callback to be added with higher priority values taking precedence over lower ones in the stack evaluation.
      */
     override fun registerBackCallback(callback: BackCallback) {
-        val indexToAdd = _backCallbackStack.value.indexOfFirst { listElement -> callback.priority >= listElement.priority }.coerceAtLeast(0)
-        _backCallbackStack.value.add(indexToAdd, callback)
+        val indexToAdd = _backCallbackStack.indexOfFirst { listElement -> callback.priority >= listElement.priority }
+            .coerceAtLeast(0)
+        _backCallbackStack.add(indexToAdd, callback)
     }
 
     override fun Lifecycle.registerBackCallbackWithLifecycle(callback: BackCallback) {
@@ -54,12 +59,12 @@ class BackHandlerImpl: BackHandler {
     }
 
     override fun unregisterCallback(callback: BackCallback) {
-        if (!_backCallbackStack.value.remove(callback)) {
+        if (!_backCallbackStack.remove(callback)) {
             log.warn { "Can't remove callback since its not on the stack" }
         }
     }
 
     override fun goBack() {
-        _backCallbackStack.value.firstOrNull()?.onBack() ?: log.warn { "No elements on the stack" }
+        _backCallbackStack.firstOrNull { it.enabled.value }?.onBack() ?: log.warn { "No elements on the stack" }
     }
 }
