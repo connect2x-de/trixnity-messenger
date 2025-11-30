@@ -277,8 +277,7 @@ open class SelfVerificationViewModelImpl(
 
     init {
         val backHandler = get<BackHandler>()
-        backHandler.registerBackCallback(backCallback)
+        backHandler.registerBackCallback(backCallback, lifecycle)
         println(backHandler.stack.value)
-        doOnDestroy { backHandler.unregisterCallback(backCallback) }
     }
 }

@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
+import com.arkivanov.essenty.lifecycle.Lifecycle
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +12,7 @@ private val log = KotlinLogging.logger {  }
 interface BackHandler {
     fun goBack()
 
-    fun registerBackCallback(callback: BackCallback)
+    fun registerBackCallback(callback: BackCallback, lifecycle: Lifecycle? = null)
 
     fun unregisterCallback(callback: BackCallback)
 
@@ -27,9 +29,21 @@ class BackHandlerImpl: BackHandler {
     private val _backCallbackStack: MutableStateFlow<ArrayDeque<BackCallback>> = MutableStateFlow(ArrayDeque())
     override val stack: StateFlow<ArrayDeque<BackCallback>> = _backCallbackStack.asStateFlow()
 
-    override fun registerBackCallback(callback: BackCallback) {
+    /**
+     * Registers a callback to the backCallBackStack
+     *
+     * @param callback The callback to be added with higher priority values taking precedence over lower ones in the stack evaluation.
+     * @param lifecycle An optional lifecycle of the callback used to remove the callback from the stack once it is destroyed.
+     */
+    override fun registerBackCallback(callback: BackCallback, lifecycle: Lifecycle?) {
         val indexToAdd = _backCallbackStack.value.indexOfFirst { it.priority < callback.priority }.coerceAtLeast(0)
         _backCallbackStack.value.add(indexToAdd, callback)
+
+        lifecycle?.let {
+            it.doOnDestroy {
+                unregisterCallback(callback)
+            }
+        }
     }
 
     override fun unregisterCallback(callback: BackCallback) {
