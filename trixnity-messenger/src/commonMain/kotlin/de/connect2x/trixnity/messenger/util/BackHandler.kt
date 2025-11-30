@@ -34,7 +34,7 @@ class BackHandlerImpl: BackHandler {
     override val stack: StateFlow<List<BackCallback>> = _backCallbackStack.asStateFlow()
 
     /**
-     * Registers a callback to the backCallBackStack
+     * Registers a callback to the backCallbackStack
      *
      * @param callback The callback to be added with higher priority values taking precedence over lower ones in the stack evaluation.
      */

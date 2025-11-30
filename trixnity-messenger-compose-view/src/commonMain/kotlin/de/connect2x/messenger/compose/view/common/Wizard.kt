@@ -95,17 +95,16 @@ data class WizardStep(
 )
 
 @Composable
-fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
+fun Wizard(wizardSteps: List<WizardStep>, useBackHandler: Boolean = false) {
     val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
     val savableStateHolder = rememberSaveableStateHolder()
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
-    if (backHandler != null) {
+    if (useBackHandler) {
+        val backHandler = DI.get<BackHandler>()
         val onBack = rememberUpdatedState {
             previousStep?.let { currentStepId.value = it }
-            println(backHandler.stack.value)
-
         }
         val callback = remember(onBack) {
             BackCallback(priority = BackHandler.PRIORITY_WIZARD) {
