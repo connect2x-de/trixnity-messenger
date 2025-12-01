@@ -44,8 +44,8 @@ interface SearchUserProvider {
     val settings: Map<SettingsId, StateFlow<SearchSetting>>
 
     /**
-     * Although [SearchSetting] in [settings] are Flows, it could be updated lazily, e.g., by pressing "apply" in a
-     * popup.
+     * Although [SearchSetting] in [settings] are Flows, it should be updated lazily, e.g., by pressing "apply" in a
+     * popup or similar.
      */
     fun applySettings()
 

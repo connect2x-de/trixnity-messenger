@@ -8,4 +8,5 @@ interface UserSearchResult {
     val displayName: String?
     val initials: String
     val image: ByteArray?
+    val sortingFields: List<Pair<String, String>>
 }

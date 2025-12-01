@@ -54,6 +54,7 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 1"
             override val initials: String = "U1"
             override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -66,6 +67,7 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 2"
             override val initials: String = "U2"
             override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -76,10 +78,60 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 3"
             override val initials: String = "U3"
             override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
         }
+
+        // displayname match
+        val martin = object : UserSearchResult {
+            override val id: String = "martin"
+            override val userId: UserId = UserId("supertester", "server")
+            override val displayName: String = "Martin ST"
+            override val initials: String = "MS"
+            override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
+        }
+
+        // displayname match
+        val alex = object : UserSearchResult {
+            override val id: String = "alex"
+            override val userId: UserId = UserId("native", "server")
+            override val displayName: String = "Alex ST"
+            override val initials: String = "AS"
+            override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
+        }
+
+        // userId match
+        val merlin = object : UserSearchResult {
+            override val id: String = "merlin"
+            override val userId: UserId = UserId("star merlin", "server")
+            override val displayName: String = "Merlin"
+            override val initials: String = "M"
+            override val image: ByteArray? = null
+            override val sortingFields: List<Pair<String, String>> = emptyList()
+            override fun toString(): String {
+                return "(id='$id', userId=$userId, displayName='$displayName')"
+            }
+        }
+
+        // with custom field
+        val martinCustom = CustomUserSearchResult(
+            id = "martin",
+            userId = UserId("martin", "server"),
+            displayName = "Martin",
+            initials = "M",
+            image = null,
+            myCustomField = "SuperTester",
+        )
     }
 
     @BeforeTest
@@ -160,6 +212,15 @@ class SearchUserViewModelTest {
     }
 
     @Test
+    fun `should search for term in displayname and userId`() = runTest {
+        val cut = searchUserViewModel(SearchUserProvider3(SearchUserProvider1()))
+        cut.searchTerm.update("st")
+        delay(10.milliseconds)
+
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(martin, alex, merlin)
+    }
+
+    @Test
     fun `should react to setting changes in search providers`() = runTest {
         val cut = searchUserViewModel()
         cut.searchTerm.update("u")
@@ -216,7 +277,19 @@ class SearchUserViewModelTest {
         }
     }
 
-    private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl {
+    @Test
+    fun `should consider custom UserSearchResult's sorting fields`() = runTest {
+        val additionalSearchUserProvider = SearchUserProvider4(SearchUserProvider1())
+        val cut = searchUserViewModel(additionalSearchUserProvider)
+        cut.searchTerm.update("super")
+        delay(10.milliseconds)
+
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(martinCustom, martin)
+    }
+
+    private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
+
+    private inline fun <reified T : SearchUserProvider> TestScope.searchUserViewModel(additionalSearchUserProvider: T?): SearchUserViewModelImpl {
         val searchUserViewModelImpl = SearchUserViewModelImpl(
             MatrixClientViewModelContextImpl(
                 di = koinApplication {
@@ -232,12 +305,9 @@ class SearchUserViewModelTest {
                                     override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                     override val providerId: String = "homeserver"
                                     override val providerDisplayName: String = "Homeserver"
-                                    override val hasSettings: Boolean = false
-                                    override val settingsDisplay: StateFlow<String?> = MutableStateFlow(null)
-
-                                    override fun applySettings() {}
 
                                     override val settings: Map<SettingsId, StateFlow<SearchSetting>> = emptyMap()
+                                    override fun applySettings() {}
 
                                     override suspend fun search(
                                         searchTerm: String,
@@ -248,6 +318,9 @@ class SearchUserViewModelTest {
                                         return ProviderSearchResult.Success(listOf())
                                     }
                                 }
+                            }
+                            if (additionalSearchUserProvider != null) {
+                                searchUserProvider<T> { additionalSearchUserProvider }
                             }
                         }
                     )
@@ -268,10 +341,6 @@ class SearchUserViewModelTest {
         override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
         override val providerId: String = "test-1"
         override val providerDisplayName: String = "Test 1"
-        override val hasSettings: Boolean = false
-        override val settingsDisplay: StateFlow<String?> = MutableStateFlow(null)
-
-        override fun applySettings() {}
 
         val cityFlow = MutableStateFlow(SearchSetting("city", null))
         val addressFlow = MutableStateFlow(SearchSetting("address", null))
@@ -281,14 +350,20 @@ class SearchUserViewModelTest {
             "address" to addressFlow,
         )
 
+        override fun applySettings() {}
+
         override suspend fun search(
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope
         ): ProviderSearchResult {
             log.debug { "test-1 search" }
-            return if (cityFlow.value.value == null || cityFlow.value.value == "Berlin") {
-                ProviderSearchResult.Success(listOf(user1))
+            return if (searchTerm == "u") {
+                if (cityFlow.value.value == null || cityFlow.value.value == "Berlin") {
+                    ProviderSearchResult.Success(listOf(user1))
+                } else {
+                    ProviderSearchResult.Success(listOf())
+                }
             } else {
                 ProviderSearchResult.Success(listOf())
             }
@@ -299,14 +374,10 @@ class SearchUserViewModelTest {
         override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
         override val providerId: String = "test-2"
         override val providerDisplayName: String = "Test 2"
-        override val hasSettings: Boolean = false
-        override val settingsDisplay: StateFlow<String?> = MutableStateFlow(null)
 
         val cityFlow = MutableStateFlow(SearchSetting("city", null))
         val optionsFlow = MutableStateFlow(SearchSetting("address", null))
         val colorFlow = MutableStateFlow(SearchSetting("color", null))
-
-        override fun applySettings() {}
 
         override val settings: Map<SettingsId, StateFlow<SearchSetting>> = mapOf(
             "city" to cityFlow,
@@ -314,13 +385,52 @@ class SearchUserViewModelTest {
             "color" to colorFlow,
         )
 
+        override fun applySettings() {}
+
         override suspend fun search(
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope
         ): ProviderSearchResult {
             log.debug { "test-2 search" }
-            return ProviderSearchResult.Success(listOf(user2, user3))
+            return if (searchTerm == "u") {
+                ProviderSearchResult.Success(listOf(user2, user3))
+            } else {
+                ProviderSearchResult.Success(listOf())
+            }
+        }
+    }
+
+    class SearchUserProvider3(searchUserProvider: SearchUserProvider) : SearchUserProvider by searchUserProvider {
+        override suspend fun search(
+            searchTerm: String,
+            activeAccount: UserId,
+            coroutineScope: CoroutineScope
+        ): ProviderSearchResult {
+            log.debug { "test-2' search" }
+            return ProviderSearchResult.Success(listOf(martin, alex, merlin))
+        }
+    }
+
+    data class CustomUserSearchResult(
+        override val id: String,
+        override val userId: UserId,
+        override val displayName: String?,
+        override val initials: String,
+        override val image: ByteArray?,
+        val myCustomField: String,
+    ) : UserSearchResult {
+        override val sortingFields: List<Pair<String, String>> = listOf(::myCustomField.name to myCustomField)
+    }
+
+    class SearchUserProvider4(searchUserProvider: SearchUserProvider) : SearchUserProvider by searchUserProvider {
+        override suspend fun search(
+            searchTerm: String,
+            activeAccount: UserId,
+            coroutineScope: CoroutineScope
+        ): ProviderSearchResult {
+            log.debug { "test-2' search" }
+            return ProviderSearchResult.Success(listOf(martinCustom, martin))
         }
     }
 }

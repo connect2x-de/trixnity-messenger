@@ -1,9 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
+import de.connect2x.trixnity.messenger.search.Analyzer
 import de.connect2x.trixnity.messenger.search.BoolQuery
 import de.connect2x.trixnity.messenger.search.Document
 import de.connect2x.trixnity.messenger.search.DocumentIndex
 import de.connect2x.trixnity.messenger.search.MatchQuery
+import de.connect2x.trixnity.messenger.search.NgramTokenFilter
+import de.connect2x.trixnity.messenger.search.RankingAlgorithm
 import de.connect2x.trixnity.messenger.search.TextFieldIndex
 import de.connect2x.trixnity.messenger.search.search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
+import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -91,59 +95,8 @@ class SearchUserViewModelImpl(
     override val searchResultList: StateFlow<List<UserSearchResult>?> =
         searchResult.map { results ->
             if (results != null) {
-                // without query
-//                val sizes = results.map { searchResult ->
-//                    when (val providerSearchResult = searchResult.providerSearchResult) {
-//                        is ProviderSearchResult.Success -> providerSearchResult.result.size
-//                        else -> 0
-//                    }
-//                }
-//                val maxSize = sizes.max()
-//                (0..<maxSize).flatMap { i ->
-//                    (0..<results.size).mapNotNull { j ->
-//                        if (results[j].active) {
-//                            when (val providerSearchResult = results[j].providerSearchResult) {
-//                                is ProviderSearchResult.Success -> providerSearchResult.result.getOrNull(i)
-//                                else -> null
-//                            }
-//                        } else null
-//                    }
-
-                // with query
-                val documentIndex = DocumentIndex(
-                    mutableMapOf(
-                        "displayname" to TextFieldIndex(),
-                        "userId" to TextFieldIndex(),
-                    )
-                )
-                val userSearchResults = results.flatMap { searchResult ->
-                    if (searchResult.active) {
-                        when (val providerSearchResult = searchResult.providerSearchResult) {
-                            is ProviderSearchResult.Success -> providerSearchResult.result
-                            else -> emptyList()
-                        }
-                    } else emptyList()
-                }
-                userSearchResults.map { searchResult ->
-                    Document(
-                        searchResult.userId.full,
-                        mapOf(
-                            "displayname" to listOf(searchResult.displayName ?: ""),
-                            "userId" to listOf(searchResult.userId.full),
-                        )
-                    )
-                }.forEach(documentIndex::index)
-                val result = documentIndex.search {
-                    query = BoolQuery(
-                        should = listOf(
-                            MatchQuery("displayname", searchTerm.textValue, prefixMatch = true, boost = 1.5),
-                            MatchQuery("userId", searchTerm.textValue, prefixMatch = true),
-                        )
-                    )
-                }.mapNotNull { hit ->
-                    userSearchResults.find { it.userId.full == hit.first }
-                }
-                result.ifEmpty { userSearchResults } // can be empty if every document matches
+                randomSequence(results)
+//                sequenceWithBM25(results)
             } else null
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -228,6 +181,120 @@ class SearchUserViewModelImpl(
                 providerSearchLoading.map { it.value = false }
             }
         }
+    }
+
+    private fun randomSequence(results: List<SearchResult>): List<UserSearchResult> {
+        // without query
+        val random = Random(results.hashCode())
+
+        /**
+         * Returns a list of values built from elements of all lists with same indexes using provided [transform].
+         * Output has length of longest input list.
+         */
+        fun <T, V> zip(vararg lists: List<T>, transform: (List<T?>) -> V): List<V> {
+            val maxSize = lists.maxOfOrNull(List<T>::size) ?: return emptyList()
+            val list = ArrayList<V>(maxSize)
+
+            val iterators = lists.map { it.iterator() }
+            var i = 0
+            while (i < maxSize) {
+                list.add(transform(iterators.map { if (it.hasNext()) it.next() else null }))
+                i++
+            }
+
+            return list
+        }
+
+        /**
+         * Returns a list of lists, each built from elements of all lists with the same indexes.
+         * Output has length of longest input list.
+         */
+        fun <T> zip(vararg lists: List<T>): List<List<T>> {
+            return zip(*lists, transform = { a -> a.mapNotNull { it } })
+        }
+
+        fun <T> List<T>.splitIntoRandomChunks() = sequence {
+            var index = 0
+            while (index < size) {
+                val chunkSize = random.nextInt(4)
+                val endIndex = minOf(index + chunkSize, size)
+
+                if (chunkSize > 0) {
+                    yield(subList(index, endIndex))
+                }
+
+                index = endIndex
+            }
+        }.toList()
+
+        val userSearchResults = results.map { searchResult ->
+            if (searchResult.active) {
+                when (val providerSearchResult = searchResult.providerSearchResult) {
+                    is ProviderSearchResult.Success -> providerSearchResult.result.splitIntoRandomChunks()
+                    else -> emptyList()
+                }
+            } else emptyList()
+        }
+
+        return zip(*userSearchResults.toTypedArray()).flatten().flatten()
+    }
+
+    private fun sequenceWithBM25(results: List<SearchResult>): List<UserSearchResult> {
+        val userSearchResults = results.flatMap { searchResult ->
+            if (searchResult.active) {
+                when (val providerSearchResult = searchResult.providerSearchResult) {
+                    is ProviderSearchResult.Success -> providerSearchResult.result
+                    else -> emptyList()
+                }
+            } else emptyList()
+        }
+        val sortingFields = userSearchResults.flatMap { it.sortingFields.map { it.first } }.distinct()
+        val documentIndex = DocumentIndex(
+            mutableMapOf(
+                "displayname" to TextFieldIndex(
+                    rankingAlgorithm = RankingAlgorithm.BM25,
+                    analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
+                ),
+                "userId" to TextFieldIndex(
+                    rankingAlgorithm = RankingAlgorithm.BM25,
+                    analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
+                ),
+                *sortingFields.map {
+                    it to TextFieldIndex(
+                        rankingAlgorithm = RankingAlgorithm.BM25,
+                        analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
+                    )
+                }
+                    .toTypedArray(),
+            )
+        )
+        log.debug { "documentIndex: ${documentIndex.mapping}" }
+        userSearchResults.map { searchResult ->
+            Document(
+                searchResult.userId.full,
+                mapOf(
+                    "displayname" to listOf(searchResult.displayName ?: ""),
+                    "userId" to listOf(searchResult.userId.full),
+                    *searchResult.sortingFields.map { it.first to listOf(it.second) }.toTypedArray(),
+                )
+            )
+        }.forEach(documentIndex::index)
+        val result = documentIndex.search {
+            query = BoolQuery(
+                should = listOf(
+                    MatchQuery("displayname", searchTerm.textValue, prefixMatch = true, boost = 1.5),
+                    MatchQuery("userId", searchTerm.textValue, prefixMatch = true),
+                ) + sortingFields.map { sortingField ->
+                    MatchQuery(sortingField, searchTerm.textValue, prefixMatch = true)
+                })
+        }
+            .sortedByDescending { hit -> hit.second }
+            .onEach { hit -> println("hit: ${hit.first} (${hit.second}") }
+            .mapNotNull { hit ->
+                userSearchResults.find { it.userId.full == hit.first }
+            }
+
+        return result.ifEmpty { userSearchResults } // can be empty if every document matches
     }
 }
 
