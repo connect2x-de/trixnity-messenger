@@ -83,6 +83,13 @@ open class ViewModelContextImpl(
 
     override val trixnityMessengerBackHandler: BackHandler = di.get<BackHandler>()
 
+    @Deprecated(
+        "Don't use this, use trixnityMessengerBackHandler or registerBackCallback for lifecycle based callback registration",
+        replaceWith = ReplaceWith("trixnityMessengerBackHandler")
+    )
+    override val backHandler: com.arkivanov.essenty.backhandler.BackHandler = componentContext.backHandler
+
+
     override fun registerBackCallback(backCallback: BackCallback) {
         with(trixnityMessengerBackHandler) { lifecycle.registerBackCallbackWithLifecycle(backCallback) }
     }
