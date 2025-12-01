@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Calculation of inverse hues
+- UI: Text selections have better visibility now
 
 ### Deprecated
 
