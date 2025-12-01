@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
 
 // FIXME make extensible?
 
@@ -27,7 +28,7 @@ fun LazyListScope.searchResults(
     searchUserProviders: List<SearchUserProvider>,
     createNewChatViewModel: CreateNewChatViewModel,
     providerSearchActive: List<Boolean>,
-    providerSearchSetActive: (Int, Boolean) -> Unit,
+    providerSearchSetActive: (SearchUserProviderId, Boolean) -> Unit,
     searchResultList: List<UserSearchResult>?,
 ) {
     if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
@@ -57,7 +58,7 @@ fun LazyListScope.searchResults(
 private fun LazyListScope.searchOptions(
     searchUserProviders: List<SearchUserProvider>,
     providerSearchActive: List<Boolean>,
-    providerSearchSetActive: (Int, Boolean) -> Unit,
+    providerSearchSetActive: (SearchUserProviderId, Boolean) -> Unit,
 ) {
     if (searchUserProviders.size > 1) {
         item("searchOptions") {
@@ -75,7 +76,7 @@ private fun LazyListScope.searchOptions(
                 ) {
                     searchUserProviders.forEachIndexed { index, searchUserProvider ->
                         SearchUserProviderToggleSelector(searchUserProvider, providerSearchActive[index]) {
-                            providerSearchSetActive(index, providerSearchActive[index].not())
+                            providerSearchSetActive(searchUserProvider.providerId, providerSearchActive[index].not())
                         }
                     }
                 }

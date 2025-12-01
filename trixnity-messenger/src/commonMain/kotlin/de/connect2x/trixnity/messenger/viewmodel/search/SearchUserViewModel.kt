@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,6 +22,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -55,7 +57,7 @@ interface SearchUserViewModel {
     val searchResultList: StateFlow<List<UserSearchResult>?>
     val providerSearchActive: StateFlow<List<Boolean>>
     val providerSettings: StateFlow<String?>
-    fun setProvider(provider: Int, active: Boolean)
+    fun setProvider(providerId: SearchUserProviderId, active: Boolean)
 }
 
 // FIXME limit search to users not already selected in a group
@@ -69,8 +71,40 @@ class SearchUserViewModelImpl(
     private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
-    override val providerSearchActive = MutableStateFlow(searchUserProviders.map { true })
+    private val providerSearchCanBeActive = MutableStateFlow(searchUserProviders.map { true })
+    private val _providerSearchActive = MutableStateFlow(searchUserProviders.map { true })
+    override val providerSearchActive =
+        combine(_providerSearchActive, providerSearchCanBeActive) { activeList, canBeActiveList ->
+            activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchActive.value)
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
+
+    init {
+        coroutineScope.launch {
+            val settings2SearchUserProviders = buildMap {
+                searchUserProviders.forEachIndexed { index, searchUserProvider ->
+                    searchUserProvider.settings.keys.forEach { setting ->
+                        getOrPut(setting) { mutableListOf() }.add(index)
+                    }
+                }
+            }
+            combine(searchUserProviders.flatMap { searchUserProvider ->
+                searchUserProvider.settings.values
+            }) { it }.collectLatest { // anything changed in the settings
+                searchUserProviders.forEach { searchUserProvider ->
+                    searchUserProvider.settings.forEach { (settingsId, setting) ->
+                        if (setting.value.value != null && setting.value.value?.isNotBlank() == true) {
+                            settings2SearchUserProviders[settingsId]?.let { hasSetting ->
+                                providerSearchCanBeActive.value = searchUserProviders.mapIndexed { index, _ ->
+                                    hasSetting.contains(index)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val searchResult: StateFlow<List<SearchResult>?> = combine(
@@ -131,15 +165,12 @@ class SearchUserViewModelImpl(
         coroutineScope.launch { search() }
     }
 
-    override fun setProvider(provider: Int, active: Boolean) {
-        if (provider < 0 || provider > providerSearchActive.value.size - 1) {
-            log.warn { "provider index wrong: $provider" }
-        } else {
-            val rest =
-                if (provider == providerSearchActive.value.size - 1) emptyList()
-                else providerSearchActive.value.subList(provider + 1, providerSearchActive.value.size)
-            providerSearchActive.value = providerSearchActive.value.subList(0, provider) + active + rest
-        }
+    override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {
+        val index = searchUserProviders.indexOfFirst { it.providerId == providerId }
+        val rest =
+            if (index == providerSearchActive.value.size - 1) emptyList()
+            else providerSearchActive.value.subList(index + 1, providerSearchActive.value.size)
+        _providerSearchActive.value = _providerSearchActive.value.subList(0, index) + active + rest
     }
 
     @OptIn(FlowPreview::class)
@@ -216,7 +247,7 @@ class SearchUserViewModelImpl(
         fun <T> List<T>.splitIntoRandomChunks() = sequence {
             var index = 0
             while (index < size) {
-                val chunkSize = random.nextInt(4)
+                val chunkSize = random.nextInt(3, 10)
                 val endIndex = minOf(index + chunkSize, size)
 
                 if (chunkSize > 0) {

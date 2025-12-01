@@ -167,17 +167,6 @@ class SearchUserViewModelTest {
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
     }
 
-    @Test
-    fun `should allow to filter by search providers`() = runTest {
-        val cut = searchUserViewModel()
-        cut.searchTerm.update("u")
-        delay(10.milliseconds)
-        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
-        val index = cut.searchUserProviders.indexOf(searchUserProvider1)
-        cut.providerSearchActive.value = List(3, { i -> i != index })
-        delay(10.milliseconds)
-        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user2, user3)
-    }
 
     @Test
     fun `should search in the search providers`() = runTest {
@@ -287,6 +276,48 @@ class SearchUserViewModelTest {
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(martinCustom, martin)
     }
 
+    @Test
+    fun `should allow to filter by search providers`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
+        cut.setProvider(searchUserProvider1.providerId, false)
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user2, user3)
+    }
+
+    @Test
+    fun `should disable search provider which does not have the selected filter`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        // both custom providers have a city filter
+        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
+        delay(10.milliseconds)
+        cut.providerSearchActive.value shouldBe cut.searchUserProviders.map { searchUserProvider ->
+            searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
+        }
+        // only provider 1 has an address
+        searchUserProvider1.addressFlow.value = SearchSetting("address", "somewhere")
+        delay(10.milliseconds)
+        cut.providerSearchActive.value shouldBe cut.searchUserProviders.map { searchUserProvider ->
+            searchUserProvider is SearchUserProvider1
+        }
+        // reset address
+        searchUserProvider1.addressFlow.value = SearchSetting("address", null)
+        delay(10.milliseconds)
+        cut.providerSearchActive.value shouldBe cut.searchUserProviders.map { searchUserProvider ->
+            searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
+        }
+        // reset address to empty String -> same as null
+        searchUserProvider1.addressFlow.value = SearchSetting("address", "")
+        delay(10.milliseconds)
+        cut.providerSearchActive.value shouldBe cut.searchUserProviders.map { searchUserProvider ->
+            searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
+        }
+
+    }
+
     private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
 
     private inline fun <reified T : SearchUserProvider> TestScope.searchUserViewModel(additionalSearchUserProvider: T?): SearchUserViewModelImpl {
@@ -302,7 +333,6 @@ class SearchUserViewModelTest {
                             // dummy implementation to avoid mocking the standard impl
                             single<SearchUserProvider>(named<HomeserverSearchUserProvider>()) {
                                 object : SearchUserProvider {
-                                    override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
                                     override val providerId: String = "homeserver"
                                     override val providerDisplayName: String = "Homeserver"
 
@@ -338,7 +368,6 @@ class SearchUserViewModelTest {
     }
 
     class SearchUserProvider1 : SearchUserProvider {
-        override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
         override val providerId: String = "test-1"
         override val providerDisplayName: String = "Test 1"
 
@@ -371,7 +400,6 @@ class SearchUserViewModelTest {
     }
 
     class SearchUserProvider2 : SearchUserProvider {
-        override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
         override val providerId: String = "test-2"
         override val providerDisplayName: String = "Test 2"
 

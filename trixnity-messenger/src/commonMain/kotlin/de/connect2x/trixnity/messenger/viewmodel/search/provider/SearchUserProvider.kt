@@ -1,15 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.search.provider
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.UserId
 
+typealias SearchUserProviderId = String
 typealias SettingsId = String
 
+/**
+ * Holds information on a special search setting, e.g., "city" -> "Berlin".
+ */
 data class SearchSetting(
-    val name: String, // language for i18n can change
-    val value: String? = null, // value can change
+    /**
+     * The name of the setting for the UI. Should be i18nized.
+     */
+    val name: String,
+    /**
+     * The setting's value. Can be `null` or blank to be interpreted as 'not set'.
+     */
+    val value: String? = null,
 )
 
 /**
@@ -20,14 +29,9 @@ data class SearchSetting(
  */
 interface SearchUserProvider {
     /**
-     * Whether the Provider is enabled. If disabled, it will not be used in the search.
-     */
-    val enabled: MutableStateFlow<Boolean>
-
-    /**
      * A unique identifier for the provider.
      */
-    val providerId: String
+    val providerId: SearchUserProviderId
 
     /**
      * A display name. Can contain line breaks (\n).
@@ -49,6 +53,10 @@ interface SearchUserProvider {
      */
     fun applySettings()
 
+    /**
+     * Do the actual search in the search provider. The provider is responsible to include any [settings] it might have
+     * defined (e.g., "city" -> "Berlin" and thus results only from Berlin should be returned).
+     */
     suspend fun search(
         searchTerm: String,
         activeAccount: UserId,

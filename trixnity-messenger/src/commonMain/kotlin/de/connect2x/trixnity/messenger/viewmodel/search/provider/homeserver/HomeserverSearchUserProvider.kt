@@ -16,7 +16,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -41,7 +40,6 @@ open class HomeserverSearchUserProvider(
 ) : SearchUserProvider {
     override val providerId: String = HOMESERVER_PROVIDER_ID
     override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
-    override val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun applySettings() {
         // has no settings
