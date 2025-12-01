@@ -11,11 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI: Text selections have better visibility now
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
 
 ### Security
 

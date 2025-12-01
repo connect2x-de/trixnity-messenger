@@ -5,6 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
+import de.connect2x.messenger.compose.view.common.invertedHue
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val log = KotlinLogging.logger {}
@@ -16,6 +17,8 @@ interface ThemeLightColorScheme {
 class ThemeLightColorSchemeImpl : ThemeLightColorScheme {
     override fun create(accentColor: Color): ColorScheme {
         val accentHue = accentColor.hue
+        val invertedAccentHue = accentColor.invertedHue
+
         return lightColorScheme(
             primary = accentColor,
             onPrimary = md_theme_light_onPrimary,
@@ -40,9 +43,9 @@ class ThemeLightColorSchemeImpl : ThemeLightColorScheme {
             surfaceVariant = md_theme_light_surfaceVariant.deriveFromHue(accentHue),
             onSurfaceVariant = md_theme_light_onSurfaceVariant,
             outline = md_theme_light_outline.deriveFromHue(accentHue),
-            inverseOnSurface = md_theme_light_inverseOnSurface.deriveFromHue(accentHue),
-            inverseSurface = md_theme_light_inverseSurface.deriveFromHue(accentHue),
-            inversePrimary = md_theme_light_inversePrimary.deriveFromHue(accentHue),
+            inverseOnSurface = md_theme_light_inverseOnSurface,
+            inverseSurface = md_theme_light_inverseSurface,
+            inversePrimary = md_theme_light_inversePrimary.deriveFromHue(invertedAccentHue),
             surfaceTint = md_theme_light_surfaceTint,
             outlineVariant = md_theme_light_outlineVariant,
             scrim = md_theme_light_scrim,

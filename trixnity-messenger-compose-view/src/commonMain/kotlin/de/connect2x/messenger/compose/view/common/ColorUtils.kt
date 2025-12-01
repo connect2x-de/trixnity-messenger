@@ -31,6 +31,9 @@ inline val Color.minChannel: Float
 inline val Color.maxChannel: Float
     get() = maxOf(red, green, blue)
 
+/**
+ * The colours hue in degrees [0, 360)
+ */
 inline val Color.hue: Float
     get() {
         val max = maxChannel
@@ -43,6 +46,12 @@ inline val Color.hue: Float
             else -> 0F
         } / 6F) * 360F).coerceIn(0F..360F)
     }
+
+/**
+ * The colours inverted hue in degrees [0, 360)
+ */
+inline val Color.invertedHue: Float
+    get() = (this.hue + 180F) % 360F
 
 /**
  * Calculates the hsv based value of the color. Not to be confused with color luminance!
