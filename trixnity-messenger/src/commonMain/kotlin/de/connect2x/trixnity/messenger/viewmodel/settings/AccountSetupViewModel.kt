@@ -80,5 +80,5 @@ class AccountSetupViewModelImpl(
         verificationInProgress.value = false
     }
 
-    override val setupBackHandler = get<BackHandler>()
+    override val setupBackHandler = trixnityMessengerBackHandler
 }

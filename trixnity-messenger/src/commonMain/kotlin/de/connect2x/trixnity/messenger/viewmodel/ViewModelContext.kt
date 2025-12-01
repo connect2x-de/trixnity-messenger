@@ -35,6 +35,12 @@ interface ViewModelContext : KoinComponent, ComponentContext {
     val coroutineScope: CoroutineScope
 
     val trixnityMessengerBackHandler: BackHandler
+
+    @Deprecated(
+        "Don't use this, use trixnityMessengerBackHandler or registerBackCallback for lifecycle based callback registration",
+        replaceWith = ReplaceWith("trixnityMessengerBackHandler")
+    )
+    override val backHandler: com.arkivanov.essenty.backhandler.BackHandler
     fun childContext(key: String): ViewModelContext
     fun childContext(componentContext: ComponentContext): ViewModelContext
     fun childContext(key: String, userId: UserId): MatrixClientViewModelContext
@@ -82,13 +88,6 @@ open class ViewModelContextImpl(
     override fun getKoin(): Koin = di
 
     override val trixnityMessengerBackHandler: BackHandler = di.get<BackHandler>()
-
-    @Deprecated(
-        "Don't use this, use trixnityMessengerBackHandler or registerBackCallback for lifecycle based callback registration",
-        replaceWith = ReplaceWith("trixnityMessengerBackHandler")
-    )
-    override val backHandler: com.arkivanov.essenty.backhandler.BackHandler = componentContext.backHandler
-
 
     override fun registerBackCallback(backCallback: BackCallback) {
         with(trixnityMessengerBackHandler) { lifecycle.registerBackCallbackWithLifecycle(backCallback) }

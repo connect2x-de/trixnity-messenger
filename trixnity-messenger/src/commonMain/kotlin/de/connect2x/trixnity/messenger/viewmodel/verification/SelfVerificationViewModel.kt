@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -13,7 +12,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
