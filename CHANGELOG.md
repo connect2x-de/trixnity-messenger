@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
+
 ### Security
 
 ## 3.9.0
