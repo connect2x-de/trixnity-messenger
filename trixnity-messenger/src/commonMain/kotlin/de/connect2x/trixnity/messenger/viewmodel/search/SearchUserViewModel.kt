@@ -141,19 +141,26 @@ class SearchUserViewModelImpl(
         }) { it }
     ) { active, settings ->
         log.trace { "provider settings: $active, ${settings.joinToString { it.value ?: "<none>" }}" }
-        searchUserProviders.mapIndexed { index, searchUserProvider -> active[index] to searchUserProvider.settings.values }
-            .filter { (active, settings) ->
-                active && settings.any { setting ->
+        searchUserProviders.mapIndexed { index, searchUserProvider -> active[index] to searchUserProvider }
+            .filter { (active, searchUserProvider) ->
+                searchUserProvider.settings.any { setting ->
+                    // look for other active search providers which might have the same setting
+                    val consider =
+                        active || searchUserProviders.any { otherSearchUserProvider ->
+                            otherSearchUserProvider.providerId != searchUserProvider.providerId &&
+                                    otherSearchUserProvider.settings.any { otherSetting -> otherSetting.key == setting.key }
+                        }
                     val value = setting.value.value
-                    value != null && value.isNotBlank()
+                    consider && value.value != null && value.value.isNotBlank()
                 }
             }
-            .joinToString { (_, settings) ->
-                settings
+            .joinToString { (active, searchUserProvider) ->
+                searchUserProvider.settings
                     .filter { setting ->
-                        val value = setting.value.value
+                        val value = setting.value.value.value
                         value != null && value.isNotBlank()
                     }
+                    .values
                     .joinToString { setting ->
                         "${setting.value.name}: ${setting.value.value}"
                     }

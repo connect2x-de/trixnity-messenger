@@ -142,24 +142,6 @@ class SearchUserViewModelTest {
     }
 
     @Test
-    fun `should display the correct search options from the providers`() = runTest {
-        val cut = searchUserViewModel()
-        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
-        searchUserProvider2.optionsFlow.value = SearchSetting("options", "loud")
-        searchUserProvider2.colorFlow.value = SearchSetting("color", "grey")
-        delay(10.milliseconds)
-
-        cut.providerSettings.value shouldBe "options: loud, color: grey, city: Berlin"
-    }
-
-    @Test
-    fun `should display the same options from different providers as one`() = runTest {
-        val cut = searchUserViewModel()
-        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
-        // FIXME
-    }
-
-    @Test
     fun `should select all user results`() = runTest {
         val cut = searchUserViewModel()
         cut.searchTerm.update("u")
@@ -267,6 +249,17 @@ class SearchUserViewModelTest {
     }
 
     @Test
+    fun `should display the correct search options from the providers`() = runTest {
+        val cut = searchUserViewModel()
+        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
+        searchUserProvider2.optionsFlow.value = SearchSetting("options", "loud")
+        searchUserProvider2.colorFlow.value = SearchSetting("color", "grey")
+        delay(10.milliseconds)
+
+        cut.providerSettings.value shouldBe "options: loud, color: grey, city: Berlin"
+    }
+
+    @Test
     fun `should consider custom UserSearchResult's sorting fields`() = runTest {
         val additionalSearchUserProvider = SearchUserProvider4(SearchUserProvider1())
         val cut = searchUserViewModel(additionalSearchUserProvider)
@@ -315,7 +308,16 @@ class SearchUserViewModelTest {
         cut.providerSearchActive.value shouldBe cut.searchUserProviders.map { searchUserProvider ->
             searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
         }
+    }
 
+    @Test
+    fun `should display the provider's setting if the setting is set in another deactivated provider`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
+        cut.setProvider(searchUserProvider1.providerId, false) // provider2 still has city
+        delay(10.milliseconds)
+        cut.providerSettings.value shouldBe "city: Berlin"
     }
 
     private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
