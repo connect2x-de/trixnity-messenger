@@ -18,6 +18,7 @@ import net.folivo.trixnity.client.media
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
 import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import net.folivo.trixnity.utils.KeyedMutex
 import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
@@ -38,10 +39,11 @@ class DownloadManagerImpl(
     private val scope =
         CoroutineScope(
             coroutineContext
-                + SupervisorJob(coroutineContext[Job])
-                + CoroutineExceptionHandler { _, throwable -> log.error(throwable) { "DownloadManager failed." }}
+                    + SupervisorJob(coroutineContext[Job])
+                    + CoroutineExceptionHandler { _, throwable -> log.error(throwable) { "DownloadManager failed." }}
         )
     private val _downloads = MutableStateFlow(listOf<Download>())
+    private val downloadMutex: KeyedMutex<String> = KeyedMutex()
     // override val downloads: StateFlow<List<Download>> = _downloads.asStateFlow() // TODO for possible DownloadManagerViewModel
 
     override fun startDownloadAsync(
@@ -72,16 +74,20 @@ class DownloadManagerImpl(
             }
             val encryptedFile = content.file
             val url = content.url
-            val result =
-                when {
-                    encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
-                    url != null -> matrixClient.media.getMedia(url, trixnityProgress)
-                    else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
-                }.onSuccess {
-                    log.debug { "successfully downloaded $fileName" }
-                }.onFailure {
-                    log.warn(it) { "download for $fileName was not successful" }
+            val result = (encryptedFile?.url ?: url)?.let { key ->
+                downloadMutex.withLock(key) {
+                    when {
+                        encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
+                        url != null -> matrixClient.media.getMedia(url, trixnityProgress)
+                        else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
+                    }.onSuccess {
+                        log.debug { "successfully downloaded $fileName" }
+                    }.onFailure {
+                        log.warn(it) { "download for $fileName was not successful" }
+                    }
                 }
+            } ?: Result.failure(IllegalArgumentException("there was no url or file in content"))
+
             progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now
             result
