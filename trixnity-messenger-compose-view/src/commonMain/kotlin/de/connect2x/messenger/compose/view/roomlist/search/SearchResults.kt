@@ -3,19 +3,11 @@ package de.connect2x.messenger.compose.view.roomlist.search
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
@@ -40,7 +32,7 @@ fun LazyListScope.searchResults(
             searchOptions(searchUserProviders, providerSearchActive, providerSearchSetActive)
             searchResultList.forEachIndexed { index, searchResult ->
                 item("${searchResult.id}-${index}") {
-                    Box(Modifier.padding(horizontal = 20.dp)) {
+                    Box(Modifier.padding(horizontal = 10.dp)) {
                         SearchResultSelector(
                             userSearchResult = searchResult,
                             showOrigin = searchUserProviders.size > 1,
@@ -62,17 +54,11 @@ private fun LazyListScope.searchOptions(
 ) {
     if (searchUserProviders.size > 1) {
         item("searchOptions") {
-            val searchUserProviderSettings = remember { mutableStateOf(false) }
-
-            Row(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Box(
+                modifier = Modifier.padding(horizontal = 10.dp),
             ) {
                 FlowRow(
-                    modifier = Modifier.weight(1f, fill = true),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     searchUserProviders.forEachIndexed { index, searchUserProvider ->
                         SearchUserProviderToggleSelector(searchUserProvider, providerSearchActive[index]) {
@@ -80,15 +66,6 @@ private fun LazyListScope.searchOptions(
                         }
                     }
                 }
-                if (searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }) {
-                    ThemedIconButton(onClick = { searchUserProviderSettings.value = true }) {
-                        Icon(Icons.Default.Settings, "Settings")
-                    }
-                }
-            }
-
-            if (searchUserProviderSettings.value) {
-                SearchUserProviderSettings(searchUserProviders) { searchUserProviderSettings.value = false }
             }
         }
     }

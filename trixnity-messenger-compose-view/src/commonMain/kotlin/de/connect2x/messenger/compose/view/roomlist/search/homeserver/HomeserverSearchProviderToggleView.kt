@@ -1,5 +1,7 @@
 package de.connect2x.messenger.compose.view.roomlist.search.homeserver
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +27,13 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
             label = {
                 Text(searchUserProvider.providerDisplayName)
             },
-            leadingIcon = {
+            trailingIcon = {
                 Icon(HomeHealth, contentDescription = null)
+            },
+            leadingIcon = {
+                if (active) {
+                    Icon(Icons.Default.Check, contentDescription = null)
+                }
             }
         )
     }

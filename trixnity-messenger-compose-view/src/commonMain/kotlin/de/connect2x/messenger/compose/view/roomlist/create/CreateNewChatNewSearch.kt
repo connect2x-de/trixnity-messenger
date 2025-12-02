@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.roomlist.create
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +37,14 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderSettings
 import de.connect2x.messenger.compose.view.roomlist.search.searchResults
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
@@ -62,6 +67,8 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                 createNewChatViewModel.searchUserViewModel.providerSearchActive.collectAsState().value
             val providerSettings = createNewChatViewModel.searchUserViewModel.providerSettings.collectAsState().value
             val listState = rememberLazyListState()
+
+            val searchUserProviderSettings = remember { mutableStateOf(false) }
 
             Box(Modifier.fillMaxSize()) {
                 Box {
@@ -115,13 +122,25 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(20.dp)
+                                                .padding(10.dp)
                                         ) {
-                                            OutlinedTextField(
-                                                value = searchTerm,
-                                                onValueChange = { searchTerm = it },
-                                                modifier = Modifier.fillMaxWidth(),
-                                            )
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                OutlinedTextField(
+                                                    value = searchTerm,
+                                                    onValueChange = { searchTerm = it },
+                                                    modifier = Modifier.weight(1.0f, fill = true),
+                                                )
+                                                if (createNewChatViewModel.searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }) {
+                                                    ThemedIconButton(onClick = {
+                                                        searchUserProviderSettings.value = true
+                                                    }) {
+                                                        Icon(Icons.Default.Settings, "Settings")
+                                                    }
+                                                }
+                                            }
                                             SmallSpacer()
                                             providerSettings?.let { settings ->
                                                 if (settings.isNotBlank()) {
@@ -156,6 +175,11 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                             )
                         }
                     }
+                }
+            }
+            if (searchUserProviderSettings.value) {
+                SearchUserProviderSettings(createNewChatViewModel.searchUserViewModel.searchUserProviders) {
+                    searchUserProviderSettings.value = false
                 }
             }
         } else {
