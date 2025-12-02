@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI: Text selections have better visibility now
+- SDK: Change back handling to use custom handler instead of Decomposes
 
 ### Deprecated
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
 - UI: Add vertical divider after room list (for 2- or 3-sided layout)
+- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 
 ### Security
 

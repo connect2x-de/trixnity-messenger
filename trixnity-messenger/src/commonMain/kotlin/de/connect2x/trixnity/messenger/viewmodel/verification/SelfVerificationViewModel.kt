@@ -264,7 +264,7 @@ open class SelfVerificationViewModelImpl(
     }
 
     private val backCallback =
-        BackCallback(priority = BackHandler.PRIORITY_SELF_VERIFICATION) {
+        BackCallback(priority = BackHandler.PRIORITY_VERIFICATION) {
             when {
                 showVerificationHelp.value -> close()
                 (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()

@@ -40,7 +40,7 @@ interface BackHandler {
     companion object {
         const val PRIORITY_DEFAULT = 0
         const val PRIORITY_WIZARD = 1
-        const val PRIORITY_SELF_VERIFICATION = 2
+        const val PRIORITY_VERIFICATION = 2
     }
 }
 
