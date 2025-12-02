@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
+- UI: Add vertical divider after room list (for 2- or 3-sided layout)
 
 ### Security
 
