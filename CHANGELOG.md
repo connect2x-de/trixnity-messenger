@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI: Text selections have better visibility now
+- UI: Replace roving focus with a focusGroup based implementation
 
 ### Deprecated
 

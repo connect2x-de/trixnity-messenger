@@ -48,14 +48,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scroll
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
@@ -156,7 +151,7 @@ fun SearchGroupResults(
     searchGroupViewModel: SearchGroupViewModel,
     knockGroupModalShownFor: MutableState<SearchGroup?>
 ) {
-    val foundGroups = searchGroupViewModel.foundGroups.collectAsState().value
+    val foundGroups by searchGroupViewModel.foundGroups.collectAsState()
     val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
     val error by searchGroupViewModel.error.collectAsState()
     val listState = rememberLazyListState()
@@ -176,27 +171,20 @@ fun SearchGroupResults(
                 if (foundGroups.isEmpty()) {
                     Text(i18n.searchGroupNotFound())
                 } else {
-                    val references = remember(foundGroups) {
-                        foundGroups.map { it.roomId.full }
+                    var focusedItem by remember(foundGroups) {
+                        mutableStateOf(foundGroups.map { it.roomId.full }.firstOrNull())
                     }
-                    val defaultItem = references.firstOrNull()
-
-                    RovingFocusContainer {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize()
-                                .verticalRovingFocus(
-                                    default = defaultItem,
-                                    scroll = scroll(listState, references) { it },
-                                    up = { getPreviousItem(references, defaultItem) { it } },
-                                    down = { getNextItem(references, defaultItem) { it } },
+                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) {
+                        items(foundGroups, { group -> group.roomId.full }) { group ->
+                            SearchGroupResult(
+                                group = group,
+                                modifier = Modifier.rovingFocusItem(
+                                    isFocused = focusedItem == group.roomId.full,
+                                    onFocus = { focusedItem = group.roomId.full },
                                 ),
-                            state = listState,
-                        ) {
-                            items(foundGroups, { group -> group.roomId.full }) { group ->
-                                RovingFocusItem(group.roomId.full, defaultItem) {
-                                    SearchGroupResult(group, searchGroupViewModel, knockGroupModalShownFor)
-                                }
-                            }
+                                searchGroupViewModel = searchGroupViewModel,
+                                knockGroupModalShownFor = knockGroupModalShownFor,
+                            )
                         }
                     }
                     if (listState.canScrollForward || listState.canScrollBackward) {
@@ -211,6 +199,7 @@ fun SearchGroupResults(
 @Composable
 private fun SearchGroupResult(
     group: SearchGroup,
+    modifier: Modifier,
     searchGroupViewModel: SearchGroupViewModel,
     knockGroupModalShownFor: MutableState<SearchGroup?>
 ) {
@@ -218,7 +207,7 @@ private fun SearchGroupResult(
 
     Tooltip({ Text(group.groupName) }) {
         ThemedListItemButton(
-            modifier = Modifier.rovingFocusItem(),
+            modifier = modifier,
             leadingContent = { ThemedUserAvatar(group.initials, image) },
             headlineContent = {
                 Text(
