@@ -1592,9 +1592,9 @@ open class I18n(
         DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
 
-    open fun roomUpgraded(version: String? = null) = translate {
-        EN - "This room has been upgraded ${version?.let { "to version $it" } }"
-        DE - "Dieser Raum wurde ${version?.let { "auf Version $it " } }aktualisiert"
+    open fun roomUpgraded(message: String) = translate {
+        EN - "This room has been upgraded. Message from the Admins: \"$message\""
+        DE - "Dieser Raum wurde aktualisiert. Nachricht von den Admins: \"$message\""
     }
 
     open fun newEventAlreadyExistsErr() = translate {

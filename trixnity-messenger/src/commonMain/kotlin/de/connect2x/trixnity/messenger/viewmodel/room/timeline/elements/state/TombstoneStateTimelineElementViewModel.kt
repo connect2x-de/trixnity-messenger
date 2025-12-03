@@ -6,27 +6,23 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.version
 import net.folivo.trixnity.core.model.EventId
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.events.m.room.TombstoneEventContent
 import kotlin.reflect.KClass
 
-interface RoomUpgradedStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<TombstoneEventContent> {
+interface TombstoneStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<TombstoneEventContent> {
     override fun create(
         viewModelContext: MatrixClientViewModelContext,
         content: TombstoneEventContent,
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
-    ): RoomUpgradedStateTimelineElementViewModel? =
+    ): TombstoneStateTimelineElementViewModel? =
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
-            RoomUpgradedStateTimelineElementViewModelImpl(
+            TombstoneStateTimelineElementViewModelImpl(
                 viewModelContext,
                 content,
                 roomId,
@@ -37,21 +33,19 @@ interface RoomUpgradedStateTimelineElementViewModelFactory : TimelineElementView
     override val supports: KClass<TombstoneEventContent>
         get() = TombstoneEventContent::class
 
-    companion object : RoomUpgradedStateTimelineElementViewModelFactory
+    companion object : TombstoneStateTimelineElementViewModelFactory
 }
 
-interface RoomUpgradedStateTimelineElementViewModel : State<TombstoneEventContent> {
+interface TombstoneStateTimelineElementViewModel : State<TombstoneEventContent> {
     val changeMessage: StateFlow<String>
 }
 
-class RoomUpgradedStateTimelineElementViewModelImpl(
+class TombstoneStateTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: TombstoneEventContent,
     roomId: RoomId,
     eventId: EventId,
-) : RoomUpgradedStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
-    override val changeMessage: StateFlow<String> = matrixClient.room.getById(content.replacementRoom).map {
-        i18n.roomUpgraded(it?.version)
-    }.stateIn(coroutineScope, WhileSubscribed(), i18n.roomUpgraded())
+) : TombstoneStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val changeMessage: StateFlow<String> = MutableStateFlow(i18n.roomUpgraded(content.body))
 
 }
