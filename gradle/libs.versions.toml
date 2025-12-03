@@ -60,6 +60,8 @@ highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
 sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 
 [bundles]
 

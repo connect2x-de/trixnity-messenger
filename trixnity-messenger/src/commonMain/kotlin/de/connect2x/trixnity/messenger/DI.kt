@@ -50,6 +50,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -184,7 +185,6 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
 
-
 fun interface ConfigureMatrixClientConfiguration {
     operator fun MatrixClientConfiguration.invoke()
 }
@@ -288,6 +288,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::verificationViewModels,
     ::roomViewModels,
     ::roomSettingsViewModels,
+    ::mediaViewModels,
     ::exportModule,
     ::notificationModule,
 
@@ -432,6 +433,10 @@ private fun roomSettingsViewModels() = module {
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
+}
+
+private fun mediaViewModels() = module {
+    single<AudioPlayerViewModelFactory> { AudioPlayerViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

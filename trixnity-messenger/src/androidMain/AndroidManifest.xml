@@ -21,9 +21,13 @@
         android:enabled="false"
     />
     <service
-        android:name=".services.AudioPlayerService"
+        android:name=".media.AudioPlayerService"
         android:exported="false"
         android:foregroundServiceType="mediaPlayback"
-    />
+    >
+      <intent-filter>
+        <action android:name="androidx.media3.session.MediaSessionService" />
+      </intent-filter>
+    </service>
 </application>
 </manifest>

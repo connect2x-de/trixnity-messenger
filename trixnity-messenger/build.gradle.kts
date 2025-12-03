@@ -134,9 +134,11 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.ktx)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.androidx.browser)
-                implementation(libs.media3.exoplayer)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
+                implementation(libs.media3.exoplayer)
+                implementation(libs.media3.session)
+                implementation(libs.media3.ui)
             }
         }
         nativeMain {

@@ -33,8 +33,8 @@ class AudioPlayerViewImpl : AudioPlayerView {
         when (val playerState = audioPlayerViewModel.state.collectAsState().value) {
             is AudioPlayerViewModel.State.Ready -> PlayableAudioMessage(audioPlayerViewModel, playerState.amplitudes)
             is AudioPlayerViewModel.State.Playing -> PlayableAudioMessage(audioPlayerViewModel, playerState.amplitudes)
+            is AudioPlayerViewModel.State.Failed, is AudioPlayerViewModel.State.NotAvailable -> fallbackView()
             is AudioPlayerViewModel.State.Loading -> fallbackView() // TODO
-            is AudioPlayerViewModel.State.Failed -> fallbackView()
         }
     }
 }
