@@ -13,12 +13,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.PlatformMedia
-import okio.Path.Companion.toPath
 import org.koin.core.component.get
 
 import kotlin.time.Duration
@@ -117,7 +115,12 @@ class AudioPlayerViewModelImpl(
                 check(state.value is State.Ready) { "The player is not ready or already playing" }
 
                 log.info { "Start playing media '${audio.name}' with media player" }
-                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value)
+                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value) { event ->
+                    when (event) {
+                        is MediaPlayer.Event.Stopped -> stop()
+                    }
+                }
+
                 state.value = State.Playing((state.value as State.Ready).amplitudes)
 
                 updateJob?.cancel()
