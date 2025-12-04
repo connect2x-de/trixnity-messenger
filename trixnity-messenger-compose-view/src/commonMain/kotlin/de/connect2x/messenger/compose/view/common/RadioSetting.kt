@@ -15,13 +15,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 
 internal data class RadioSettingOption(
     val text: String,
@@ -77,10 +79,15 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                     leadingContent = if (optionExplanation != null) {
                         @Composable { HelpIcon(optionExplanation) }
                     } else null,
-                    modifier = Modifier.rovingFocusItem(
-                        isFocused = focusedItem == key,
-                        onFocus = { focusedItem = key },
-                    ),
+                    modifier = Modifier
+                        .rovingFocusItem(
+                            isFocused = focusedItem == key,
+                            onFocus = { focusedItem = key },
+                        )
+                        .semantics(mergeDescendants = true) {
+                            if (optionExplanation != null)
+                                this.contentDescription = optionExplanation
+                        },
                     enabled = enabled && optionEnabled,
                     selected = value == key,
                     onChange = { set(key) },
