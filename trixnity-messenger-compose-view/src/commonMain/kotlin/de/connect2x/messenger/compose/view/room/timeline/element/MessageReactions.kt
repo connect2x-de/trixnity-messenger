@@ -30,7 +30,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
@@ -161,7 +160,7 @@ internal fun MessageReactionButton(
             ThemedButton(
                 onClick = { onRemoveReaction() },
                 style = MaterialTheme.components.selectedReactionButton,
-                modifier = buttonModifier.rovingFocusChild(),
+                modifier = buttonModifier,
             ) {
                 MessageReactionDisplay(reaction)
                 Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
@@ -171,7 +170,7 @@ internal fun MessageReactionButton(
             ThemedButton(
                 onClick = { onAddReaction(reaction) },
                 style = MaterialTheme.components.reactionButton,
-                modifier = buttonModifier.rovingFocusChild(),
+                modifier = buttonModifier,
             ) {
                 MessageReactionDisplay(reaction)
                 Spacer(Modifier.width(MaterialTheme.components.reactionButton.iconSpacing))
@@ -186,7 +185,7 @@ internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
     ThemedButton(
         onClick = onClick,
         style = MaterialTheme.components.reactionButton,
-        modifier = buttonModifier.rovingFocusChild(),
+        modifier = buttonModifier,
     ) {
         Icon(
             Icons.Outlined.AddReaction,

@@ -87,12 +87,12 @@ class RoomSettingsTopicViewImpl : RoomSettingsTopicView {
                     }
                 }
                 if (canChangeRoomTopic.value) {
-                    Tooltip({ Text(i18n.commonEdit()) }) {
+                    Tooltip(i18n.editRoomTopic()) {
                         ThemedIconButton(
                             onClick = { roomSettingsTopicViewModel.roomTopic.startEdit() },
                             enabled = canChangeRoomTopic.value,
                         ) {
-                            Icon(Icons.Filled.Edit, contentDescription = i18n.commonEdit())
+                            Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomTopic())
                         }
                     }
                 }

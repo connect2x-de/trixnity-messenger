@@ -26,15 +26,8 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scroll
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
@@ -64,44 +57,37 @@ internal fun Licenses(onClose: () -> Unit) {
     if (licences != null) {
         val lazyListState = rememberLazyListState()
         val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
-        val references = remember(libraries) { libraries.libraries.map { it.uniqueId } }
-        val defaultItem = references.firstOrNull()
         var openLibrary by remember { mutableStateOf<Library?>(null) }
+
+        var focusedItem by remember(libraries) { mutableStateOf(libraries.libraries.map { it.uniqueId }.firstOrNull()) }
 
         ThemedAdaptiveDialog(onClose) {
             AdaptiveDialogHeader(onClose = onClose) {
                 Text(i18n.appInfoLicenses())
             }
-            RovingFocusContainer {
-                val focusContainer = LocalRovingFocus.current
-                AdaptiveDialogScrollContent(scrollState = lazyListState) {
-                    LazyColumn(
-                        modifier = Modifier.verticalRovingFocus(
-                            default = defaultItem,
-                            scroll = scroll(lazyListState, references) { it },
-                            up = { getPreviousItem(references, defaultItem) { it } },
-                            down = { getNextItem(references, defaultItem) { it } },
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
-                        state = lazyListState,
-                    ) {
-                        items(libraries.libraries) { library ->
-                            RovingFocusItem(library.uniqueId, defaultItem) {
-                                val interactionSource = remember { MutableInteractionSource() }
-                                val focusItem = LocalRovingFocusItem.current
-                                LibraryItem(
-                                    library = library,
-                                    modifier = Modifier
-                                        .focusHighlighting(interactionSource)
-                                        .rovingFocusItem()
-                                        .clickable(interactionSource, LocalIndication.current) {
-                                            openLibrary = library
-                                            focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
-                                        }.buttonPointerModifier(),
-                                    style = style,
+
+            AdaptiveDialogScrollContent(scrollState = lazyListState) {
+                LazyColumn(
+                    modifier = Modifier.rovingFocusContainer(),
+                    verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
+                    state = lazyListState,
+                ) {
+                    items(libraries.libraries) { library ->
+                        val interactionSource = remember { MutableInteractionSource() }
+                        LibraryItem(
+                            library = library,
+                            modifier = Modifier
+                                .focusHighlighting(interactionSource)
+                                .rovingFocusItem(
+                                    isFocused = focusedItem == library.uniqueId,
+                                    onFocus = { focusedItem = library.uniqueId },
                                 )
-                            }
-                        }
+                                .clickable(interactionSource, LocalIndication.current) {
+                                    openLibrary = library
+                                }
+                                .buttonPointerModifier(),
+                            style = style,
+                        )
                     }
                 }
             }

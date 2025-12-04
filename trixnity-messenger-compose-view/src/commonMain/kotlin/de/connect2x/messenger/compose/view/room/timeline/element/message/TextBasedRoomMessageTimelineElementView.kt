@@ -34,7 +34,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -67,7 +66,6 @@ fun TextRoomMessageTimelineElementView(
     // on Android and iOS, this will consume long tap events, which we use for the context menu
     when (Platform.current) {
         PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(
-            modifier = Modifier.rovingFocusChild(),
             style = if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
         ) {
             MessageTextContent(holder, element, showActionMenu)

@@ -28,15 +28,12 @@ fun SettingsAccountCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     ElevatedCard(modifier.padding(bottom = 10.dp)) {
         Column(Modifier.padding(10.dp)) {
             Text(
                 userId.full,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .focusable(true, interactionSource)
-                    .focusHighlighting(interactionSource),
+                modifier = Modifier.focusHighlighting(),
             )
             HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
             content()

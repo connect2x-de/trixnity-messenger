@@ -29,8 +29,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.text
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.icons.PublicIcon
@@ -112,8 +111,7 @@ class RoomListElementViewImpl : RoomListElementView {
                         shape = RoundedCornerShape(8.dp),
                         highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
                     )
-                    .clearAndSetSemantics {
-                        text = AnnotatedString(roomName ?: "")
+                    .semantics {
                         role = Role.Button
                         collectionItemInfo = CollectionItemInfo(
                             rowIndex = index,
@@ -124,7 +122,9 @@ class RoomListElementViewImpl : RoomListElementView {
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RoomImage(roomListElementViewModel)
+                Box(Modifier.clearAndSetSemantics {}) {
+                    RoomImage(roomListElementViewModel)
+                }
                 Spacer(Modifier.size(10.dp))
 
                 when {
