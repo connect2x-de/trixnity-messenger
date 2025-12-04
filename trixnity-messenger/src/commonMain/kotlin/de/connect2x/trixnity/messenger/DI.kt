@@ -99,6 +99,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.Hi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.PowerLevelsTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TombstoneStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
@@ -386,6 +387,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<TombstoneStateTimelineElementViewModelFactory> { TombstoneStateTimelineElementViewModelFactory }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
