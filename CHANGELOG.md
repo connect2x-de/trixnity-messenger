@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Text selections have better visibility now
 - UI: Replace roving focus with a focusGroup based implementation
+- UI: Remove download indicator from TimelineEvents
 
 ### Deprecated
 
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
 - UI: Add vertical divider after room list (for 2- or 3-sided layout)
 - UI: Remove unnecessary padding around state events
+- WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 
 ### Security
 
