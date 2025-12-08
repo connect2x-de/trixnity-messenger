@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
 - UI: Add vertical divider after room list (for 2- or 3-sided layout)
+- WEB: copy/paste/cut shortcuts work now
 - UI: Remove unnecessary padding around state events
 - WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 
