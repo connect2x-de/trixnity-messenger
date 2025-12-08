@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Rendering room upgrades (tombstone event)
+
 ### Changed
+
+- UI: Text selections have better visibility now
+- UI: Replace roving focus with a focusGroup based implementation
+- UI: Remove download indicator from TimelineEvents
 
 ### Deprecated
 
@@ -17,9 +23,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Using latest emojifont version on web 
+- ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
+- UI: Add vertical divider after room list (for 2- or 3-sided layout)
+- WEB: copy/paste/cut shortcuts work now
+- UI: Remove unnecessary padding around state events
+- WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 
 ### Security
+
+## 3.9.0
+
+### Added
+
+- UI: StoreFailure: show the name of the account with the corrupted database
+- A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
+
+### Changed
+
+- DEPENDENCIES: Bump c2x Conventions to 20251114.122133
+- Add button to cancel download in file details view
+- A11Y,WEB: CanvasSemanticsOwnerListener: dialog now has labelledby and describedby attributes
+
+### Fixed
+
+- WEB: Using latest emojifont version
+- A11Y: add proper label and role to LegalFooter
+- UI,A11Y: Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- API: When calling `ProfileManager.updateProfile`, the closure allows to mutate the configuration
+- A11Y: add proper label and role to LegalFooter
+- IOS: reporting a message could result in app crash
+- UI: Create new group keeps information on expanded elements
+- UI: Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
+- A11Y: add proper label and role to LegalFooter
+- UI: headers now have a consistent minimum size
+- UI: fix little timeline flickering while loading timeline element sender
+- fix getting stuck on error screen after deleting local database
+- UI: Emoji picker is correctly aligned to the center and scales as required when using different screen sizes
+- WEB: fix incremental compilation
+- A11Y,WEB: CanvasSemanticsOwnerListener: fix a bug with nodes not regaining the tabindex property
+
+## 3.8.11
+
+### Added
+
+- Add a page selector to PDF reader
+
+### Changed
+
+- Change zoom behaviour in PDF reader
+- Make buttons in FileHeader move into extra row(s) when necessary
+
+### Fixed
+
+- Using latest emojifont version on web
+- Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- No longer crash when opening a large pdf page on older Android versions
+- Only push notifications for enabled accounts
 
 ## 3.8.10
 
@@ -56,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix whitespaces in room list search input leading to unwanted removal of rooms from search results
 - Correctly align appearance color preview in appearance settings
 - a11y behavior all over the app (TAB behavior, roles, a11y labels, etc)
+- mark buttons that create popups as aria-expandable
 
 ## 3.8.8
 

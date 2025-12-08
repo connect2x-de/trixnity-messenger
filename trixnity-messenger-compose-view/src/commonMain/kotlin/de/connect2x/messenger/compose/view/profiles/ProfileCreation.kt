@@ -56,6 +56,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
                         { profileName = it },
                         modifier = Modifier.fillMaxWidth(),
                         isError = error != null,
+                        maxLines = 1,
                     )
                     Spacer(Modifier.size(5.dp))
                     error?.let {

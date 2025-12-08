@@ -9,6 +9,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -23,6 +24,8 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.EscapeKeyPressed
@@ -38,6 +41,35 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Tooltip(
+    tooltip: String,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
+    longPressDelay: Duration = MaterialTheme.components.tooltip.longPressDelay,
+    hoverShowDelay: Duration = MaterialTheme.components.tooltip.hoverShowDelay,
+    hoverHideDelay: Duration = MaterialTheme.components.tooltip.hoverHideDelay,
+    content: @Composable () -> Unit,
+) {
+    Tooltip(
+        tooltip = { Text(tooltip) },
+        modifier = modifier,
+        onClick = onClick,
+        enabled = enabled,
+        longPressDelay = longPressDelay,
+        hoverShowDelay = hoverShowDelay,
+        hoverHideDelay = hoverHideDelay,
+    ) {
+        Box(Modifier.semantics(true) { text = AnnotatedString(tooltip) }) {
+            content()
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

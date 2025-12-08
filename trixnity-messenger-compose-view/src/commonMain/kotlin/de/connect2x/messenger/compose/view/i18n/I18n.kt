@@ -786,9 +786,9 @@ open class I18nView(
         DE - "$appName ist bereits geöffnet. Dieses Fenster wird nun geschlossen."
     }
 
-    open fun storeFailureLocalDbNotLoaded() = translate {
-        EN - "The local database could not be loaded."
-        DE - "Die lokale Datenbank konnte nicht geladen werden."
+    open fun storeFailureLocalDbNotLoaded(user: String) = translate {
+        EN - "The local database of $user could not be loaded."
+        DE - "Die lokale Datenbank von $user konnte nicht geladen werden."
     }
 
     open fun storeFailureLocalDbSelect() = translate {
@@ -3253,6 +3253,16 @@ open class I18nView(
     open fun mSpaceChildHeading() = translate {
         EN - "Link child spaces"
         DE - "Untergeordnete Spaces verknüpfen"
+    }
+
+    open fun editRoomName() = translate {
+        EN - "edit room name"
+        DE - "Raumnamen ändern"
+    }
+
+    open fun editRoomTopic() = translate {
+        EN - "edit room topic"
+        DE - "Raumbeschreibung ändern"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

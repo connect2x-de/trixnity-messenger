@@ -47,7 +47,6 @@ import de.connect2x.messenger.compose.view.richtext.html.ListScope
 import de.connect2x.messenger.compose.view.richtext.html.TableContent
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import kotlinx.coroutines.flow.StateFlow
 
@@ -271,7 +270,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                                             onClick = {
                                                 context.onCopy(highlightedCode.content.text)
                                             },
-                                            modifier = Modifier.rovingFocusChild().pointerHoverIcon(PointerIcon.Hand)
+                                            modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                         ) {
                                             Icon(
                                                 Icons.Default.ContentCopy,

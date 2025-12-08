@@ -52,9 +52,9 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
                 temporaryFile.value = newTemporaryFile
                 val createdReader = newTemporaryFile?.let { PdfReaderWeb(it) }
                 reader.value = createdReader
-                numOfPages.value = createdReader?.pageSize?.first { it != null }
-                documentWidth.value = createdReader?.documentWidth?.first { it != null }
-            } catch (exception: Exception) {
+                numOfPages.value = createdReader?.pageSize
+                documentWidth.value = createdReader?.documentWidth
+            } catch (exception: Throwable) {
                 onError(exception.message)
             }
         } else {
@@ -67,9 +67,7 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         dpi: Float
     ): ImageBitmap? {
         val reader = reader.filterNotNull().first()
-        val renderFlow: MutableStateFlow<ImageBitmap?> = MutableStateFlow(null)
-        reader.renderPage(pageId + 1, renderFlow, dpi)
-        return renderFlow.first { it != null }
+        return reader.renderPage(pageId + 1, dpi)
     }
 
     @OptIn(DelicateCoroutinesApi::class)

@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -203,7 +204,7 @@ fun AdaptiveDialogHeader(
                 }
                 Spacer(Modifier.width(12.dp))
             }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).semantics(true) { heading() }) {
                 CompositionLocalProvider(
                     LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
                 ) {
@@ -350,7 +351,7 @@ fun ModalDialogHeader(
             verticalAlignment = Alignment.Companion.CenterVertically,
         ) {
             Spacer(Modifier.width(24.dp))
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.Companion.weight(1f)) {
                 CompositionLocalProvider(
                     LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
                 ) {
