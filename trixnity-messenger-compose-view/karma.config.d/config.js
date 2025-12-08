@@ -76,6 +76,7 @@ config.files.push(
     {pattern: path.resolve(basePath, "kotlin", "skiko.mjs"), included: true, served: true, watched: false, type: 'module'},
     {pattern: path.resolve(basePath, "kotlin", "js-reexport-symbols.mjs"), included: false, served: true, watched: false, type: 'module'},
     {pattern: path.resolve(basePath, "kotlin", "composeResources", "**"), included: false, served: true, watched: false },
+    {pattern: path.resolve(basePath, "..", "..", "node_modules", "pdfjs-dist", "build", "pdf.worker.mjs"), included: false, served: true, watched: false },
 );
 
 config.proxies = {
@@ -83,4 +84,5 @@ config.proxies = {
     "/skiko.wasm": path.resolve(basePath, "kotlin", "skiko.wasm"),
     "/js-reexport-symbols.mjs": path.resolve(basePath, "kotlin", "js-reexport-symbols.mjs"),
     "/composeResources": path.resolve(basePath, "kotlin", "composeResources"),
+    "/pdf.worker.mjs": path.resolve(basePath, "..", "..", "node_modules", "pdfjs-dist", "build", "pdf.worker.mjs"),
 }
