@@ -3280,6 +3280,16 @@ open class I18nView(
         DE - "Wenn Sie einem weiteren Eigentümer erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab."
     }
 
+    open fun  profileSelectionMultipleAccountHeader() = translate {
+        EN - "Multi Profile Setup"
+        DE - "Multi-Profil Einrichtung"
+    }
+
+    open fun  profileSelectionMultipleAccountSwitch() = translate {
+        EN - "Enable multi profile mode"
+        DE - "Multi-Profil-Modus aktivieren"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

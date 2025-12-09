@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove download indicator from TimelineEvents
 - SDK: Change back handling to use custom handler instead of Decomposes
 - UI: AccountsOverview: show a warning when adding a new account
+- UI: On startup: show an introduction instead of profiles if required
 
 ### Deprecated
 

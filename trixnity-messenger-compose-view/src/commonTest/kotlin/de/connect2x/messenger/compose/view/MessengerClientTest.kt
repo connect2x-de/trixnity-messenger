@@ -8,7 +8,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -42,7 +42,7 @@ class MessengerClientTest {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                Profiles()
+                                IntroductionOrProfile()
                             }
                         }
                     },
