@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WEB: copy/paste/cut shortcuts work now
 - UI: Remove unnecessary padding around state events
 - WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
+- UI: emojis in the picker are no longer cut off at larger font sizes
 
 ### Security
 
