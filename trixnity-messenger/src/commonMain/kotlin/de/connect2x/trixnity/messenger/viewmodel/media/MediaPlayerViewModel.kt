@@ -130,7 +130,10 @@ class MediaPlayerViewModelImpl(
         checkNotNull(player) { "The player should not be null when stopping playing" }
         coroutineScope.launch {
             stateChangeMutex.withLock {
-                check(state.value is State.Playing) { "The player is not ready or not playing" }
+                if (state.value !is State.Playing) {
+                    log.warn { "Unable to stop audio player because nothing is being played" }
+                    return@withLock
+                }
 
                 log.info { "Stop playing media '${audio.name}' with media player" }
                 state.value = State.Ready((state.value as State.Playing).amplitudes)
@@ -141,7 +144,6 @@ class MediaPlayerViewModelImpl(
 
     override fun seekTo(duration: Duration) {
         checkNotNull(player) { "The player should not be null when stopping playing" }
-        check(state.value.wasLoaded()) { "The player is not ready" }
         coroutineScope.launch {
             log.debug { "Seeking media player to position '$duration' for media '${audio.name}'" }
             when (state.value) {

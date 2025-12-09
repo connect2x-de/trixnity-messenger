@@ -48,7 +48,7 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
             controller?.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     val controller = requireNotNull(controller)
-                    val metadata = mediaDataStore.remove(controller.currentMediaItem?.mediaId)
+                    val metadata = mediaDataStore[controller.currentMediaItem?.mediaId]
                     if (controller.playbackState == Player.STATE_READY) {
                         elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
                         duration.value = controller.duration.coerceAtLeast(0).milliseconds
@@ -56,7 +56,10 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
                     }
 
                     if (!isPlaying) {
-                        metadata?.close()
+                        metadata?.let {
+                            it.close()
+                            mediaDataStore.remove(controller.currentMediaItem?.mediaId)
+                        }
                         duration.value = Duration.ZERO
                         this@AndroidMediaPlayer.isPlaying.value = false
                     }
@@ -80,8 +83,7 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
             duration.value = Duration.ZERO
 
             log.trace { "The media requested is not dame media as played last time, queueing new media" }
-            if (isPlaying.value)
-                stop0(pause = false)
+            stop0(pause = false)
 
             media.getTemporaryFile().fold(
                 onFailure = {
@@ -93,7 +95,7 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
                     isPlaying.value = true
                     mediaDataStore[tempFile.path.toString()] = Playback(
                         callback = eventCallback,
-                        updateJob = coroutineScope.launch(CoroutineName("Media Update Job")) {
+                        updateJob = coroutineScope.launch {
                             while (isActive && isPlaying.value) {
                                 val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
                                 val duration = controller.duration.coerceAtLeast(0).milliseconds
@@ -132,18 +134,14 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
     }
 
     suspend fun stop0(pause: Boolean) {
-        if (!isPlaying.value) {
-            log.warn { "Playback is not being stopped because no playback is currently running" }
-            return
-        }
-
         withContext(Dispatchers.Main) {
+            val mediaId = controller?.currentMediaItem?.mediaId
             if (pause) {
+                mediaId?.let { mediaDataStore.remove(mediaId)?.pause() }
                 controller?.pause()
-                mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.callback(MediaPlayer.Event.Stopped)
             } else {
+                mediaId?.let { mediaDataStore.remove(mediaId)?.close() }
                 controller?.stop()
-                mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.close()
             }
 
             isPlaying.value = false
@@ -152,13 +150,18 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
 
     data class Playback(
         val callback: (MediaPlayer.Event) -> Unit,
-        val updateJob: Job
+        val updateJob: Job,
+        var isClosed: Boolean = false
     ) : AutoCloseable {
+        fun pause() {
+            callback(MediaPlayer.Event.Stopped)
+            updateJob.cancel()
+        }
+
         override fun close() {
             log.debug { "Closing playback resource by sending stop event and cancel update job" }
             callback(MediaPlayer.Event.Progress(Duration.ZERO, Duration.ZERO))
-            callback(MediaPlayer.Event.Stopped)
-            updateJob.cancel()
+            pause()
         }
     }
 }
