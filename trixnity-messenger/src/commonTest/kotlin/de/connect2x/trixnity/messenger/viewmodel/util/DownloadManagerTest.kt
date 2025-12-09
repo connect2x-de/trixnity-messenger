@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
