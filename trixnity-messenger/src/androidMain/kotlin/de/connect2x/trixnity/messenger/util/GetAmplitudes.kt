@@ -100,23 +100,7 @@ object GetAmplitudesImpl : GetAmplitudes {
                     .asShortBuffer()
                     .get(shorts)
 
-                // When we have multiple channels, we run into the problem we can have duplicates of the same sample. To
-                // prevent too much samples, we reduce by averaging the channels' amplitudes.
-                when (channelCount) {
-                    1 -> tempSampleBuffer.addAll(shorts.toTypedArray())
-                    else -> for (index in shorts.indices step channelCount) {
-                        val sample = (0 until channelCount).map { shorts.getOrNull(index + it) ?: 0 }.average()
-                        tempSampleBuffer.add(sample.toInt().toShort())
-                    }
-                }
-
-                while (tempSampleBuffer.size >= chunkSize) {
-                    val chunk = tempSampleBuffer.subList(0, chunkSize)
-                    tempSampleBuffer = tempSampleBuffer.drop(chunkSize).toMutableList()
-                    outputList.addAll(chunk)
-
-                    // TODO: Upsample and downsample
-                }
+                // TODO
 
                 mediaCodec.releaseOutputBuffer(outputIndex, false)
             }

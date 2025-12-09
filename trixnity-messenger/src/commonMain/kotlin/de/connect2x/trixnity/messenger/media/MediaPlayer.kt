@@ -13,13 +13,14 @@ interface MediaPlayer : AutoCloseable {
         media: PlatformMedia,
         mimeType: String? = null,
         position: Duration = Duration.ZERO,
-        callback: (Event) -> Unit = {}
+        eventCallback: (Event) -> Unit = {}
     )
 
     suspend fun stop()
     suspend fun seekTo(position: Duration)
 
     sealed interface Event {
+        data class Progress(val elapsedTime: Duration, val duration: Duration) : Event
         object Stopped : Event
     }
 }

@@ -50,7 +50,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -436,7 +436,7 @@ private fun roomSettingsViewModels() = module {
 }
 
 private fun mediaViewModels() = module {
-    single<AudioPlayerViewModelFactory> { AudioPlayerViewModelFactory }
+    single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

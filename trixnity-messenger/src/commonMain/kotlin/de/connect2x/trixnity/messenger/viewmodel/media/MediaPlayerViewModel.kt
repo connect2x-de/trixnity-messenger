@@ -4,13 +4,11 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel.State
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.GetAmplitudes
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,21 +21,21 @@ import kotlin.time.Duration
 
 private val log = KotlinLogging.logger { }
 
-interface AudioPlayerViewModelFactory {
+interface MediaPlayerViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
         initialDuration: Duration?
-    ) : AudioPlayerViewModel = AudioPlayerViewModelImpl(
+    ) : MediaPlayerViewModel = MediaPlayerViewModelImpl(
         viewModelContext = viewModelContext,
         audio = audio,
         initialDuration = initialDuration
     )
 
-    companion object : AudioPlayerViewModelFactory
+    companion object : MediaPlayerViewModelFactory
 }
 
-interface AudioPlayerViewModel {
+interface MediaPlayerViewModel {
     val elapsedTime: StateFlow<Duration>
     val duration: StateFlow<Duration>
     val state: StateFlow<State>
@@ -69,17 +67,15 @@ interface AudioPlayerViewModel {
     }
 }
 
-class AudioPlayerViewModelImpl(
+class MediaPlayerViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
     initialDuration: Duration?
-) : AudioPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
+) : MediaPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
     private val player: MediaPlayer? = getOrNull()
     private val stateChangeMutex: Mutex = Mutex()
-    private var updateJob: Job? = null
 
     private val platformMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
-
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     override val duration: MutableStateFlow<Duration> = MutableStateFlow(initialDuration ?: Duration.ZERO)
     override val state: MutableStateFlow<State> = MutableStateFlow(player?.let { State.Loading } ?: State.NotAvailable)
@@ -118,28 +114,14 @@ class AudioPlayerViewModelImpl(
                 player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value) { event ->
                     when (event) {
                         is MediaPlayer.Event.Stopped -> stop()
+                        is MediaPlayer.Event.Progress -> {
+                            elapsedTime.value = event.elapsedTime
+                            duration.value = event.duration
+                        }
                     }
                 }
 
                 state.value = State.Playing((state.value as State.Ready).amplitudes)
-
-                updateJob?.cancel()
-                updateJob = coroutineScope.launch(CoroutineName("Media Player Update Job")) {
-                    launch {
-                        player.elapsedTime.collect {
-                            if (state.value !is State.Playing)
-                                return@collect
-                            elapsedTime.value = it
-                        }
-                    }
-                    launch {
-                        player.duration.collect {
-                            if (state.value !is State.Playing)
-                                return@collect
-                            duration.value = it
-                        }
-                    }
-                }
             }
         }
     }

@@ -19,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
@@ -34,8 +33,7 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val lastPlayedMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
-    private val mediaDataStore: MutableMap<String, CallbackInfo> = ConcurrentHashMap()
-    private var updateJob: Job? = null
+    private val mediaDataStore: MutableMap<String, Playback> = ConcurrentHashMap()
 
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     override val duration: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
@@ -50,22 +48,17 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
             controller?.addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     val controller = requireNotNull(controller)
+                    val metadata = mediaDataStore.remove(controller.currentMediaItem?.mediaId)
                     if (controller.playbackState == Player.STATE_READY) {
                         elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
                         duration.value = controller.duration.coerceAtLeast(0).milliseconds
+                        metadata?.callback(MediaPlayer.Event.Progress(elapsedTime.value, duration.value))
                     }
 
                     if (!isPlaying) {
-                        updateJob?.cancel()
+                        metadata?.close()
                         duration.value = Duration.ZERO
                         this@AndroidMediaPlayer.isPlaying.value = false
-                        mediaDataStore.remove(controller.currentMediaItem?.mediaId)?.let { callbackInfo ->
-                            log.debug { "Found media callback, informing user with event and delete temp file" }
-                            callbackInfo.callback(MediaPlayer.Event.Stopped)
-                            runBlocking {
-                                callbackInfo.tempFile.delete()
-                            }
-                        }
                     }
                 }
             })
@@ -78,67 +71,53 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
         media: PlatformMedia,
         mimeType: String?,
         position: Duration,
-        callback: (MediaPlayer.Event) -> Unit
+        eventCallback: (MediaPlayer.Event) -> Unit
     ) {
         require(media is OkioPlatformMedia) { "Media is expected to be a OkioPlatformMedia" }
         val controller = checkNotNull(controller) { "Unable to play media when media player is not available yet!" }
         withContext(Dispatchers.Main) {
-            when (lastPlayedMedia.value == media) {
-                true -> {
-                    log.trace { "The media requested is the same media as played last time, unpausing playback" }
-                    if (!isPlaying.value) {
-                        controller.play()
-                    }
-                }
-                false -> {
-                    log.trace { "The media requested is not dame media as played last time, queueing new media" }
-                    if (isPlaying.value) {
-                        controller.stop()
-                        updateJob?.cancel()
-                    }
+            elapsedTime.value = Duration.ZERO
+            duration.value = Duration.ZERO
 
-                    media.getTemporaryFile().fold(
-                        onFailure = {
-                            log.error(it) { "Unexpected error when acquiring file for playback" }
-                            return@withContext
-                        },
-                        onSuccess = { tempFile ->
-                            mediaDataStore[tempFile.path.toString()] = CallbackInfo(tempFile, callback)
-                            controller.setMediaItem(MediaItem.Builder()
-                                .setMediaId(tempFile.path.toString())
-                                .setMimeType(mimeType ?: MimeTypes.AUDIO_RAW).build())
-                            controller.prepare()
-                            controller.seekTo(position.inWholeMilliseconds)
-                            controller.play()
+            log.trace { "The media requested is not dame media as played last time, queueing new media" }
+            if (isPlaying.value)
+                stop0(pause = false)
+
+            media.getTemporaryFile().fold(
+                onFailure = {
+                    log.error(it) { "Unexpected error when acquiring file for playback" }
+                    return@withContext
+                },
+                onSuccess = { tempFile ->
+                    log.info { "Successfully acquired file, starting playback" }
+                    isPlaying.value = true
+                    mediaDataStore[tempFile.path.toString()] = Playback(
+                        callback = eventCallback,
+                        updateJob = coroutineScope.launch(CoroutineName("Media Update Job")) {
+                            while (isActive && isPlaying.value) {
+                                val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
+                                val duration = controller.duration.coerceAtLeast(0).milliseconds
+                                eventCallback(MediaPlayer.Event.Progress(elapsedTime, duration))
+                                this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
+                                this@AndroidMediaPlayer.duration.value = duration
+                                delay(150.milliseconds)
+                            }
                         }
                     )
-                }
-            }
 
-            lastPlayedMedia.value = media
-            isPlaying.value = true
-            updateJob = coroutineScope.launch(CoroutineName("Media Update Job")) {
-                while (isActive && isPlaying.value) {
-                    elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
-                    duration.value = controller.duration.coerceAtLeast(0).milliseconds
-                    delay(100.milliseconds)
+                    controller.setMediaItem(MediaItem.Builder()
+                        .setMediaId(tempFile.path.toString())
+                        .setMimeType(mimeType ?: MimeTypes.AUDIO_RAW).build())
+                    controller.prepare()
+                    controller.seekTo(position.inWholeMilliseconds)
+                    controller.play()
+                    lastPlayedMedia.value = media
                 }
-            }
+            )
         }
     }
 
-    override suspend fun stop() {
-        if (!isPlaying.value) {
-            log.warn { "Playback is not being stopped because no playback is currently running" }
-            return
-        }
-
-        withContext(Dispatchers.Main) {
-            controller?.pause()
-            updateJob?.cancel()
-            isPlaying.value = false
-        }
-    }
+    override suspend fun stop() = stop0(pause = true)
 
     override suspend fun seekTo(position: Duration) {
         check(isPlaying.value) { "Unable to seek playback position without anything being played" }
@@ -148,12 +127,38 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
     }
 
     override fun close() {
-        updateJob?.cancel()
+        mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.close()
         coroutineScope.cancel()
     }
 
-    data class CallbackInfo(
-        val tempFile: OkioPlatformMedia.TemporaryFile,
-        val callback: (MediaPlayer.Event) -> Unit
-    )
+    suspend fun stop0(pause: Boolean) {
+        if (!isPlaying.value) {
+            log.warn { "Playback is not being stopped because no playback is currently running" }
+            return
+        }
+
+        withContext(Dispatchers.Main) {
+            if (pause) {
+                controller?.pause()
+                mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.callback(MediaPlayer.Event.Stopped)
+            } else {
+                controller?.stop()
+                mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.close()
+            }
+
+            isPlaying.value = false
+        }
+    }
+
+    data class Playback(
+        val callback: (MediaPlayer.Event) -> Unit,
+        val updateJob: Job
+    ) : AutoCloseable {
+        override fun close() {
+            log.debug { "Closing playback resource by sending stop event and cancel update job" }
+            callback(MediaPlayer.Event.Progress(Duration.ZERO, Duration.ZERO))
+            callback(MediaPlayer.Event.Stopped)
+            updateJob.cancel()
+        }
+    }
 }

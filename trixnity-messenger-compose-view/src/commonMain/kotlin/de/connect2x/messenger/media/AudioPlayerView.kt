@@ -15,35 +15,34 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.common.modifier.customClickable
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.util.AudioWaveform
-import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import kotlin.time.Duration.Companion.milliseconds
 
 @Stable
 interface AudioPlayerView {
     @Composable
-    fun Create(audioPlayerViewModel: AudioPlayerViewModel, fallbackView: @Composable () -> Unit)
+    fun Create(mediaPlayerViewModel: MediaPlayerViewModel, fallbackView: @Composable () -> Unit)
 }
 
 class AudioPlayerViewImpl : AudioPlayerView {
     @Composable
-    override fun Create(audioPlayerViewModel: AudioPlayerViewModel, fallbackView: @Composable () -> Unit) {
-        when (val playerState = audioPlayerViewModel.state.collectAsState().value) {
-            is AudioPlayerViewModel.State.Ready -> PlayableAudioMessage(audioPlayerViewModel, playerState.amplitudes)
-            is AudioPlayerViewModel.State.Playing -> PlayableAudioMessage(audioPlayerViewModel, playerState.amplitudes)
-            is AudioPlayerViewModel.State.Failed, is AudioPlayerViewModel.State.NotAvailable -> fallbackView()
-            is AudioPlayerViewModel.State.Loading -> fallbackView() // TODO
+    override fun Create(mediaPlayerViewModel: MediaPlayerViewModel, fallbackView: @Composable () -> Unit) {
+        when (val playerState = mediaPlayerViewModel.state.collectAsState().value) {
+            is MediaPlayerViewModel.State.Ready -> PlayableAudioMessage(mediaPlayerViewModel, playerState.amplitudes)
+            is MediaPlayerViewModel.State.Playing -> PlayableAudioMessage(mediaPlayerViewModel, playerState.amplitudes)
+            is MediaPlayerViewModel.State.Failed, is MediaPlayerViewModel.State.NotAvailable -> fallbackView()
+            is MediaPlayerViewModel.State.Loading -> fallbackView() // TODO
         }
     }
 }
 
 @Composable
-private fun PlayableAudioMessage(audioPlayerViewModel: AudioPlayerViewModel, amplitudes: List<Float>) {
-    val isPlaying = audioPlayerViewModel.state.collectAsState().value is AudioPlayerViewModel.State.Playing
-    val duration = audioPlayerViewModel.duration.collectAsState().value.inWholeMilliseconds
-    val elapsedTime = audioPlayerViewModel.elapsedTime.collectAsState().value.inWholeMilliseconds
+private fun PlayableAudioMessage(mediaPlayerViewModel: MediaPlayerViewModel, amplitudes: List<Float>) {
+    val isPlaying = mediaPlayerViewModel.state.collectAsState().value is MediaPlayerViewModel.State.Playing
+    val duration = mediaPlayerViewModel.duration.collectAsState().value.inWholeMilliseconds
+    val elapsedTime = mediaPlayerViewModel.elapsedTime.collectAsState().value.inWholeMilliseconds
     val progress = (elapsedTime.toDouble() / duration.toDouble()).toFloat().let {
         if (it.isInfinite() || it.isNaN()) 0F else it
     }
@@ -55,9 +54,9 @@ private fun PlayableAudioMessage(audioPlayerViewModel: AudioPlayerViewModel, amp
         ThemedIconButton(
             onClick = {
                 if (isPlaying) {
-                    audioPlayerViewModel.stop()
+                    mediaPlayerViewModel.stop()
                 } else {
-                    audioPlayerViewModel.start()
+                    mediaPlayerViewModel.start()
                 }
             }
         ) {
@@ -71,7 +70,7 @@ private fun PlayableAudioMessage(audioPlayerViewModel: AudioPlayerViewModel, amp
         Spacer(Modifier.width(5.dp)) // TODO
         AudioWaveform(
             onPeek = { percentage ->
-                audioPlayerViewModel.seekTo((duration * percentage).toLong().milliseconds)
+                mediaPlayerViewModel.seekTo((duration * percentage).toLong().milliseconds)
             },
             progress = progress,
             amplitudes = amplitudes,

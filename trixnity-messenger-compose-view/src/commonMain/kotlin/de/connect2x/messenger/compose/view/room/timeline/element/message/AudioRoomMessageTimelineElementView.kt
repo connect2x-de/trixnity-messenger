@@ -11,13 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -27,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.util.AudioWaveform
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.FileInfo
@@ -36,12 +30,10 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.messenger.media.AudioPlayerView
-import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
@@ -131,7 +123,7 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
     }
 
     DI.current.get<AudioPlayerView>().Create(
-        audioPlayerViewModel = requireNotNull(element.audioPlayer),
+        mediaPlayerViewModel = requireNotNull(element.audioPlayer),
         fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) }
     )
 }

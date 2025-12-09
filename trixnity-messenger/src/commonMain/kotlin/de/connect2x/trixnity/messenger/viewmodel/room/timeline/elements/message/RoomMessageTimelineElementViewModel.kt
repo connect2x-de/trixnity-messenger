@@ -9,7 +9,7 @@ import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.media.AudioPlayerViewModel
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -110,7 +110,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
             val duration: Duration?
-            val audioPlayer: AudioPlayerViewModel?
+            val audioPlayer: MediaPlayerViewModel?
         }
 
         interface Video : FileBased<RoomMessageEventContent.FileBased.Video> {
