@@ -50,7 +50,12 @@ data class MatrixMultiMessengerConfiguration(
     /**
      * Simultaneously use multiple profiles
      */
+    @Deprecated("use defaultIsMultiProfileEnabled instead", replaceWith = ReplaceWith("defaultIsMultiProfileEnabled"))
     var multiProfile: Boolean = true,
+
+    /** This allows multiple profiles to be used simultaneously.
+     * Null means undefined, so the user should be asked if they want to enable this. */
+    var defaultIsMultiProfileEnabled: Boolean? = true,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {
