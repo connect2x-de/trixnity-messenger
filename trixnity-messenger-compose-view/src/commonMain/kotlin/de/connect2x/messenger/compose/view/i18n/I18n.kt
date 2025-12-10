@@ -3270,6 +3270,16 @@ open class I18nView(
         DE - "Raumbeschreibung ändern"
     }
 
+    open fun accountOverviewWarning() = translate {
+        EN - "This function is not intended for adding accounts belonging to different owners. Instead, it enables one owner to manage multiple accounts."
+        DE - "Mit dieser Funktion können keine Konten von unterschiedlichen Eigentümern hinzugefügt werden. Sie erlaubt jedoch, dass ein Eigentümer mehrere Konten nutzen kann."
+    }
+
+    open fun accountOverviewWarningMultipleAccounts() = translate {
+        EN - "If you want to give another owner permission to add accounts, please log out of your profile here."
+        DE - "Wenn Sie einem weiteren Eigentümer erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab."
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)
