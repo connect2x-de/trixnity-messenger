@@ -5,12 +5,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Web
+import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,14 +19,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 
 
 interface ServerDiscoveryStateView {
@@ -41,10 +45,7 @@ fun ServerDiscoveryState(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
 class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
     @Composable
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
-        val i18n = DI.get<I18nView>()
-        val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value
-
-        when (serverDiscoveryState) {
+        when (val serverDiscoveryState = addMatrixAccountViewModel.serverDiscoveryState.collectAsState().value) {
             is ServerDiscoveryState.None -> {}
             is ServerDiscoveryState.Loading -> ThemedProgressIndicator(
                 Modifier.fillMaxWidth(),
@@ -52,78 +53,152 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
             )
 
             is ServerDiscoveryState.Success -> {
-                val addMatrixAccountMethods = remember {
+                val i18n = DI.get<I18nView>()
+                val addMatrixAccountMethods = remember(serverDiscoveryState.addMatrixAccountMethods) {
                     serverDiscoveryState.addMatrixAccountMethods.sortedBy {
                         when (it) {
-                            is AddMatrixAccountMethod.Password -> 0
-                            is AddMatrixAccountMethod.SSO -> 1
+                            is AddMatrixAccountMethod.OAuth2 -> 0
+                            is AddMatrixAccountMethod.Password -> 1
+                            is AddMatrixAccountMethod.SSO -> 2
                             is AddMatrixAccountMethod.Register -> 99
                         }
                     }
                 }
-                for (type in addMatrixAccountMethods) {
-                    when (type) {
-                        is AddMatrixAccountMethod.Password -> {
-                            ListItem(
-                                headlineContent = { Text(i18n.loginWithPassword()) },
-                                leadingContent = {
-                                    Icon(
-                                        Icons.Default.Password,
-                                        i18n.loginWithPassword(),
-                                        Modifier.fillMaxHeight(),
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                                })
-                        }
-
-                        is AddMatrixAccountMethod.SSO -> {
-                            val providerName = type.identityProvider?.name ?: "SSO"
-                            ListItem(
-                                headlineContent = { Text(i18n.loginWithSSO(providerName)) },
-                                leadingContent = {
-                                    val icon = type.icon?.toImageBitmap()
-                                    if (icon != null)
-                                        Image(
-                                            icon,
-                                            i18n.loginWithSSO(providerName),
-                                            Modifier.fillMaxHeight(),
-                                        )
-                                    else
-                                        Icon(
-                                            Icons.Default.Web,
-                                            i18n.loginWithSSO(providerName),
-                                            Modifier.fillMaxHeight(),
-                                        )
-                                },
-                                modifier = Modifier.clickable {
-                                    addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                                })
-                        }
-
-                        is AddMatrixAccountMethod.Register -> {
-                            HorizontalDivider()
-                            ListItem(
-                                headlineContent = { Text(i18n.register()) },
-                                leadingContent = {
-                                    Icon(
-                                        Icons.Default.PersonAdd,
-                                        i18n.register(),
-                                        Modifier.fillMaxHeight(),
-                                    )
-                                },
-                                modifier = Modifier.clickable {
-                                    addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                                })
-                        }
+                OAuth2LoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
+                val hasOAuth2Login = addMatrixAccountMethods.any { it is AddMatrixAccountMethod.OAuth2 }
+                if (hasOAuth2Login) {
+                    ExpandableSection(
+                        heading = i18n.loginWithMoreClassic(),
+                        icon = Icons.Outlined.AlternateEmail,
+                    ) {
+                        ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
                     }
-                }
+                } else ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
+
             }
 
             is ServerDiscoveryState.Failure -> {
                 Text(serverDiscoveryState.message, color = MaterialTheme.colorScheme.error)
             }
+        }
+    }
+}
+
+@Composable
+private fun OAuth2LoginItems(
+    addMatrixAccountMethods: List<AddMatrixAccountMethod>,
+    i18n: I18nView,
+    addMatrixAccountViewModel: AddMatrixAccountViewModel
+) {
+    for (type in addMatrixAccountMethods) {
+        when (type) {
+            is AddMatrixAccountMethod.OAuth2 -> {
+                when (type.type) {
+                    OAuth2LoginViewModel.Type.LOGIN -> {
+                        ThemedListItem(
+                            headlineContent = { Text(i18n.loginWithOAuth2()) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Login,
+                                    i18n.loginWithOAuth2(),
+                                    Modifier.fillMaxHeight(),
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
+                            })
+                    }
+
+                    OAuth2LoginViewModel.Type.REGISTER -> {
+                        ThemedListItem(
+                            headlineContent = { Text(i18n.registerWithOAuth2()) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Default.PersonAdd,
+                                    i18n.registerWithOAuth2(),
+                                    Modifier.fillMaxHeight(),
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
+                            })
+                    }
+                }
+            }
+
+            is AddMatrixAccountMethod.Password,
+            is AddMatrixAccountMethod.Register,
+            is AddMatrixAccountMethod.SSO -> {
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun ClassicLoginItems(
+    addMatrixAccountMethods: List<AddMatrixAccountMethod>,
+    i18n: I18nView,
+    addMatrixAccountViewModel: AddMatrixAccountViewModel
+) {
+    for (type in addMatrixAccountMethods) {
+        when (type) {
+            is AddMatrixAccountMethod.Password -> {
+                ThemedListItem(
+                    headlineContent = { Text(i18n.loginWithPassword()) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.Password,
+                            i18n.loginWithPassword(),
+                            Modifier.fillMaxHeight(),
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
+                    })
+            }
+
+            is AddMatrixAccountMethod.SSO -> {
+                val providerName = type.identityProvider?.name ?: "SSO"
+                ThemedListItem(
+                    headlineContent = { Text(i18n.loginWithSSO(providerName)) },
+                    leadingContent = {
+                        val icon = type.icon?.toImageBitmap()
+                        if (icon != null)
+                            Image(
+                                icon,
+                                i18n.loginWithSSO(providerName),
+                                Modifier.fillMaxHeight(),
+                            )
+                        else
+                            Icon(
+                                Icons.Default.Web,
+                                i18n.loginWithSSO(providerName),
+                                Modifier.fillMaxHeight(),
+                            )
+                    },
+                    modifier = Modifier.clickable {
+                        addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
+                    })
+            }
+
+            is AddMatrixAccountMethod.Register -> {
+                HorizontalDivider()
+                ThemedListItem(
+                    headlineContent = { Text(i18n.registerNewAccount()) },
+                    leadingContent = {
+                        Icon(
+                            Icons.Default.PersonAdd,
+                            i18n.registerNewAccount(),
+                            Modifier.fillMaxHeight(),
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
+                    })
+            }
+
+            is AddMatrixAccountMethod.OAuth2 -> {}
         }
     }
 }

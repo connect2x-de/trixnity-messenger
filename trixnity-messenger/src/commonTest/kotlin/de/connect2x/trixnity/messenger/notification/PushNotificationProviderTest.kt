@@ -34,9 +34,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import net.folivo.trixnity.clientserverapi.client.PushApiClient
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
 import net.folivo.trixnity.clientserverapi.model.push.PusherData
 import net.folivo.trixnity.clientserverapi.model.push.SetPushers
 import net.folivo.trixnity.core.ErrorResponse
@@ -73,29 +73,11 @@ class PushNotificationProviderTest {
                     userId2 to matrixClient2,
                 )
             ) {
-            override suspend fun login(
-                baseUrl: Url, identifier: IdentifierType, password: String, initialDeviceDisplayName: String?
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun login(
-                baseUrl: Url, token: String, initialDeviceDisplayName: String?
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun loginWith(
-                baseUrl: Url, loginInfo: MatrixClient.LoginInfo
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
 
             override val initFromStoreResult: StateFlow<MatrixClients.InitFromStoreResult?>
                 get() = TODO("Not yet implemented")
             override val isInitialized: StateFlow<Boolean> = MutableStateFlow(true)
-
-            override suspend fun initFromStore(): MatrixClients.InitFromStoreResult {
+            override suspend fun create(authProviderData: MatrixClientAuthProviderData): MatrixClients.CreateResult {
                 TODO("Not yet implemented")
             }
 
@@ -147,7 +129,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exhaustive) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Set(
-                    appId = "de.connect2x.messenger",
+                    appId = "de.connect2x.trixnity.messenger",
                     appDisplayName = "Trixnity Messenger",
                     data = PusherData(
                         url = "https://push.connect2x.de",
@@ -185,7 +167,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exhaustive) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.messenger",
+                    appId = "de.connect2x.trixnity.messenger",
                     pushkey = "old_push_key",
                 )
             )
@@ -245,7 +227,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exactly(1)) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.messenger",
+                    appId = "de.connect2x.trixnity.messenger",
                     pushkey = "old_push_key",
                 )
             )
@@ -274,7 +256,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exactly(2)) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.messenger",
+                    appId = "de.connect2x.trixnity.messenger",
                     pushkey = "old_push_key",
                 )
             )

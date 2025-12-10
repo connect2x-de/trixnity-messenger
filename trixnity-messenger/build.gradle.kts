@@ -81,7 +81,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(libs.trixnity.client)
-                implementation(libs.trixnity.crypto.driver.libolm)
+                implementation(libs.trixnity.client.cryptodriver.libolm)
+                implementation(libs.trixnity.client.cryptodriver.vodozemac)
                 implementation(libs.trixnity.crypto.core)
                 api(sharedLibs.ktor.client.logging)
                 api(sharedLibs.decompose)
@@ -210,6 +211,9 @@ android {
             isMinifyEnabled = false
         }
     }
+}
+dependencies {
+    implementation("io.ktor:ktor-client-logging:3.3.0")
 }
 
 skie {

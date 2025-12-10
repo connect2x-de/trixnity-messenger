@@ -7,7 +7,7 @@ import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
-import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
+import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.ModuleFactory
 import org.koin.core.qualifier.named
@@ -32,7 +32,7 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
     ::platformPathsModule,
     ::platformMatrixMultiMessengerSettingsHolderModule,
     ::matrixMessengerFactoryModule,
-    ::platformUrlHandlerModule,
+    ::platformUriHandlerModule,
     ::platformCloseAppModule,
     ::platformMinimizeAppModule,
     ::platformSendLogToDevsModule,

@@ -48,7 +48,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     ProfileInfo(userSettingsViewModel)
                     AppearanceSettings(userSettingsViewModel)
                     PrivacySettings(userSettingsViewModel)
-                    DevicesSettings(userSettingsViewModel)
+                    DeviceSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
                     AccountSetupSettings(userSettingsViewModel)
                 }
@@ -91,7 +91,7 @@ fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun DevicesSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Devices, null) },

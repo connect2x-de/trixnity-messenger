@@ -646,6 +646,11 @@ open class I18nView(
         DE - "Anmelden"
     }
 
+    open fun register() = translate {
+        EN - "Register"
+        DE - "Registrieren"
+    }
+
     open fun authenticate() = translate {
         EN - "authenticate"
         DE - "Autorisieren"
@@ -666,12 +671,37 @@ open class I18nView(
         DE - "Anmelden mit Passwort"
     }
 
+    open fun loginWithOAuth2() = translate {
+        EN - "Login on Matrix server"
+        DE - "Anmelden am Matrix Server"
+    }
+
+    open fun loginWithOAuth2Description(serverUrl: String) = translate {
+        EN - "You will be redirected in the next step to log in on $serverUrl."
+        DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl anzumelden."
+    }
+
+    open fun registerWithOAuth2() = translate {
+        EN - "Register on Matrix server"
+        DE - "Registrieren am Matrix Server"
+    }
+
+    open fun registerWithOAuth2Description(serverUrl: String) = translate {
+        EN - "You will be redirected in the next step to register on $serverUrl."
+        DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl zu registrieren."
+    }
+
+    open fun loginWithMoreClassic() = translate {
+        EN - "More deprecated login methods"
+        DE - "Weitere veraltete Anmelde-Methoden"
+    }
+
     open fun loginWithSSO(name: String) = translate {
         EN - "Login with $name"
         DE - "Anmelden mit $name"
     }
 
-    open fun register() = translate {
+    open fun registerNewAccount() = translate {
         EN - "Create new account"
         DE - "Neues Konto anlegen"
     }

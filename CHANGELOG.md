@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Rendering room upgrades (tombstone event)
+- Support OAuth2 based authentication
+- Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
+  MatrixMessengerConfiguration)
 
 ### Changed
 

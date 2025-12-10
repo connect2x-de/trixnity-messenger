@@ -26,7 +26,7 @@ import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
-import de.connect2x.trixnity.messenger.util.defaultUrlHandler
+import de.connect2x.trixnity.messenger.util.defaultUriHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -136,7 +136,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
             val multiMessenger = matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             when (intent.action) {
                 Intent.ACTION_VIEW -> intent.data?.also {
-                    multiMessenger.defaultUrlHandler.onUri(it)
+                    multiMessenger.defaultUriHandler.onUri(it)
                 }
 
                 Intent.ACTION_SEND if intent.type == "text/plain" -> {

@@ -21,8 +21,8 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsView
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
@@ -168,10 +168,10 @@ class RoomListRouter(
             )
 
             is Config.DevicesSettings -> Wrapper.DevicesSettings(
-                viewModelContext.get<DevicesSettingsViewModelFactory>()
+                viewModelContext.get<DeviceSettingsAllAccountsViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        onCloseDevicesSettings = ::onCloseDevicesSettings,
+                        onCloseDeviceSettings = ::onCloseDeviceSettings,
                     )
             )
 
@@ -307,7 +307,7 @@ class RoomListRouter(
         navigation.launchPush(viewModelContext.coroutineScope, Config.DevicesSettings)
     }
 
-    private fun onCloseDevicesSettings() {
+    private fun onCloseDeviceSettings() {
         log.debug { "close device settings" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
@@ -446,7 +446,7 @@ class RoomListRouter(
         class CreateNewGroup(val viewModel: CreateNewGroupViewModel) : Wrapper()
         class SearchGroup(val viewModel: SearchGroupViewModel) : Wrapper()
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
-        class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
+        class DevicesSettings(val viewModel: DeviceSettingsAllAccountsViewModel) : Wrapper()
         class Profile(val viewModel: ProfileViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()

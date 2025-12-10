@@ -679,10 +679,6 @@ class MainViewModelTest {
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
                                         override val elements: StateFlow<List<RoomListElementViewModel>> =
                                             MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)

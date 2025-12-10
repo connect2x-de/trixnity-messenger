@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
-import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -12,12 +12,10 @@ actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {
         val activityGetter = get<ActivityGetter>()
         UriCaller { uri, _ ->
-            val safeUri = Uri.parse(uri)
+            val safeUri = uri.toUri()
             log.info { "call uri: $safeUri" }
-            val customTabsIntent = CustomTabsIntent.Builder().apply {
-                setShowTitle(true)
-            }.build()
-            activityGetter()?.let { customTabsIntent.launchUrl(it, safeUri) }
+            val customTabsIntent = CustomTabsIntent.Builder().build()
+            activityGetter().let { customTabsIntent.launchUrl(it, safeUri) }
         }
     }
 }

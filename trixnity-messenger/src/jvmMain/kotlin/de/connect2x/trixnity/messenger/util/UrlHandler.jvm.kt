@@ -24,13 +24,13 @@ import kotlin.concurrent.thread
 
 private val log = KotlinLogging.logger { }
 
-class UrlHandlerImpl(
+class UriHandlerImpl(
     config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
     rootPath: RootPath,
     private val closeApp: CloseApp?
 ) :
-    UrlHandlerBase(config) {
+    UriHandlerBase(config) {
 
     private val started = MutableStateFlow(false)
     private val rootPath = rootPath.path
@@ -45,8 +45,7 @@ class UrlHandlerImpl(
             Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
                 args.firstOrNull()?.also { emitUrl(it) }
                 Desktop.getDesktop().setOpenURIHandler { event ->
-                    val url = Url(event.uri)
-                    urlHandlerFlow.tryEmit(url)
+                    urlHandlerFlow.tryEmit(event.uri.toString())
                 }
             }
 
@@ -69,7 +68,7 @@ class UrlHandlerImpl(
     private suspend fun emitUrl(urlArg: String) {
         if (urlArg.isNotBlank())
             try {
-                urlHandlerFlow.emit(Url(urlArg))
+                urlHandlerFlow.emit(urlArg)
             } catch (exception: URLParserException) {
                 log.error(exception) { "could not parse url from arg $urlArg" }
             }
@@ -186,18 +185,18 @@ class UrlHandlerImpl(
     }
 }
 
-actual fun platformUrlHandlerModule(): Module = module {
-    single<UrlHandler> {
-        UrlHandlerImpl(get(), get(), get(), getOrNull())
+actual fun platformUriHandlerModule(): Module = module {
+    single<UriHandler> {
+        UriHandlerImpl(get(), get(), get(), getOrNull())
     }
 }
 
-val MatrixMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
+val MatrixMessenger.defaultUriHandler: UriHandlerImpl
+    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }
 
-val MatrixMultiMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
+val MatrixMultiMessenger.defaultUriHandler: UriHandlerImpl
+    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }

@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,6 +47,8 @@ import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -61,103 +62,67 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
-import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModel
 import net.folivo.trixnity.core.MSC3814
 
-interface DevicesSettingsView {
+interface DeviceSettingsView {
     @Composable
-    fun create(devicesSettingsViewModel: DevicesSettingsViewModel)
+    fun create(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel)
 }
 
 @Composable
-fun DevicesSettings(devicesSettingsViewModel: DevicesSettingsViewModel) {
-    DI.get<DevicesSettingsView>().create(devicesSettingsViewModel)
+fun DeviceSettings(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
+    DI.get<DeviceSettingsView>().create(devicesSettingsViewModel)
 }
 
-class DevicesSettingsViewImpl : DevicesSettingsView {
+class DeviceSettingsViewImpl : DeviceSettingsView {
     @Composable
-    override fun create(devicesSettingsViewModel: DevicesSettingsViewModel) {
+    override fun create(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
         val i18n = DI.get<I18nView>()
-        val error = devicesSettingsViewModel.error.collectAsState()
+        val notificationSettings = devicesSettingsViewModel.deviceSettings
         val scroll = rememberScrollState()
-        Box(Modifier.fillMaxSize()) {
-            Column {
-                Header(devicesSettingsViewModel::back, i18n.devicesTitle())
-                error.value?.let { ErrorView(it) }
-                Box(Modifier.fillMaxSize()) {
-                    Column(
-                        modifier = Modifier.verticalScroll(scroll).padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        AccountDevices(devicesSettingsViewModel)
+
+        Column(Modifier.fillMaxSize()) {
+            Header(devicesSettingsViewModel::back, i18n.devicesTitle().capitalize(Locale.current))
+
+            Box {
+                Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
+                    notificationSettings.map { deviceSettingsSingleAccount ->
+                        DeviceSettingsSingleAccount(deviceSettingsSingleAccount)
                     }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll
-                    )
                 }
+                VerticalScrollbar(
+                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                    scroll,
+                )
             }
         }
     }
 }
 
 @Composable
-fun AccountDevices(devicesSettingsViewModel: DevicesSettingsViewModel) {
-    val devices = devicesSettingsViewModel.accountsWithDevices.collectAsState().value
-    devices.map { accountWithDevices ->
-        AccountWithDevicesList(accountWithDevices, devicesSettingsViewModel)
-    }
-}
+fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel) {
+    val isLoading by viewModel.isLoading.collectAsState()
+    val devices = viewModel.devices.collectAsState().value
+    val error by viewModel.error.collectAsState()
 
-@Composable
-fun AccountWithDevicesList(
-    accountWithDevices: AccountWithDevices,
-    devicesSettingsViewModel: DevicesSettingsViewModel,
-) {
-    val i18n = DI.get<I18nView>()
-    val isLoading by accountWithDevices.isLoading.collectAsState()
-    val error by accountWithDevices.loadingError.collectAsState()
-    val devicesInAccount = accountWithDevices.devicesInAccount.collectAsState().value
-
-    val onRename: (DeviceInfo, String) -> Unit = remember(devicesSettingsViewModel, accountWithDevices) {
-        { device, displayName ->
-            devicesSettingsViewModel.setDisplayName(
-                accountWithDevices.userId,
-                device.deviceId,
-                device.displayName.value,
-                displayName,
-            )
-        }
-    }
-
-    val onVerify: (DeviceInfo) -> Unit = remember(devicesSettingsViewModel, accountWithDevices) {
-        { device ->
-            devicesSettingsViewModel.verify(accountWithDevices.userId, device.deviceId)
-        }
-    }
-
-    val onDelete: (DeviceInfo) -> Unit = remember(devicesSettingsViewModel, accountWithDevices) {
-        { device ->
-            devicesSettingsViewModel.remove(accountWithDevices.userId, device.deviceId)
-        }
-    }
-
-    if (devicesInAccount == null) {
-        SettingsAccountCard(accountWithDevices.userId) {
+    if (isLoading || devices == null) {
+        SettingsAccountCard(viewModel.account) {
             error?.let { ErrorView(it) }
             if (isLoading) {
                 LoadingSpinner()
             }
         }
     } else {
-        var focusedItem by remember { mutableStateOf<String?>(devicesInAccount.thisDevice.deviceId) }
+        val thisDevice = devices.find { it.isThisDevice }
+        val otherDevices = devices.filter { it.isThisDevice.not() }
+        var focusedItem by remember { mutableStateOf(thisDevice?.deviceId) }
 
-        SettingsAccountCard(accountWithDevices.userId, modifier = Modifier.rovingFocusContainer()) {
+        SettingsAccountCard(viewModel.account, modifier = Modifier.rovingFocusContainer()) {
+            val i18n = DI.get<I18nView>()
             error?.let { ErrorView(it) }
-            if (isLoading) {
+            if (isLoading || thisDevice == null) {
                 LoadingSpinner()
             } else {
                 ThemedListItem(
@@ -168,29 +133,25 @@ fun AccountWithDevicesList(
                 )
 
                 DeviceItem(
-                    devicesInAccount.thisDevice,
-                    isFocused = focusedItem == devicesInAccount.thisDevice.deviceId,
-                    onFocus = { focusedItem = devicesInAccount.thisDevice.deviceId },
-                    onRename = onRename,
-                    onVerify = onVerify,
-                    onDelete = onDelete,
+                    viewModel = viewModel,
+                    device = thisDevice,
+                    isFocused = focusedItem == thisDevice.deviceId,
+                    onFocus = { focusedItem = thisDevice.deviceId },
                 )
 
-                if (devicesInAccount.otherDevices.isNotEmpty()) {
+                if (otherDevices.isNotEmpty()) {
                     ThemedListItem(
                         style = MaterialTheme.components.settingsItem,
                         headlineContent = {
                             Text(i18n.devicesOtherDevices(), style = MaterialTheme.typography.titleMedium)
                         }
                     )
-                    for (device in devicesInAccount.otherDevices) {
+                    for (device in otherDevices) {
                         DeviceItem(
-                            device,
+                            viewModel = viewModel,
+                            device = device,
                             isFocused = focusedItem == device.deviceId,
                             onFocus = { focusedItem = device.deviceId },
-                            onRename = onRename,
-                            onVerify = onVerify,
-                            onDelete = onDelete,
                         )
                     }
                 }
@@ -202,33 +163,31 @@ fun AccountWithDevicesList(
 @OptIn(MSC3814::class)
 @Composable
 fun DeviceItem(
-    device: DeviceInfo,
+    viewModel: DeviceSettingsSingleAccountViewModel,
+    device: DeviceSettingsSingleAccountViewModel.DeviceInfo,
     isFocused: Boolean,
     onFocus: () -> Unit,
-    onRename: (DeviceInfo, String) -> Unit,
-    onVerify: (DeviceInfo) -> Unit,
-    onDelete: (DeviceInfo) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val displayName = device.displayName.collectAsState()
-    val isVerified = device.isVerified.collectAsState()
+    val displayName = device.displayName
+    val isVerified = device.isVerified
 
     val showOptions = remember { mutableStateOf(false) }
     val showRename = remember { mutableStateOf(false) }
 
-    Box(Modifier.semantics { contentDescription = "${displayName.value}, ${device.lastSeenAt}" }) {
+    Box(Modifier.semantics { contentDescription = "${displayName}, ${device.lastSeenAt}" }) {
         ThemedListItem(
             style = MaterialTheme.components.settingsItem,
             modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
             leadingContent = {
-                if (isVerified.value) {
+                if (isVerified) {
                     VerifiedIcon(VerificationLevel.DEVICE)
                 } else {
                     NotVerifiedIcon(VerificationLevel.DEVICE)
                 }
             },
             headlineContent = {
-                Text(displayName.value)
+                Text(displayName)
                 if (device.isDehydrated) {
                     Tooltip({ Text(i18n.dehydratedDevice()) }) {
                         Icon(
@@ -238,7 +197,7 @@ fun DeviceItem(
                     }
                 }
             },
-            supportingContent = { Text(device.lastSeenAt) },
+            supportingContent = { Text(device.deviceId + " - " + device.lastSeenAt) },
             trailingContent = {
                 Box {
                     Tooltip({ Text(i18n.commonMore()) }) {
@@ -263,12 +222,12 @@ fun DeviceItem(
                                 showOptions.value = false
                             },
                         )
-                        if (!isVerified.value) {
+                        if (!isVerified) {
                             ThemedDropdownMenuItem(
                                 text = { Text(i18n.commonVerify().capitalize(Locale.current)) },
                                 leadingIcon = { Icon(Icons.Default.GppGood, null) },
                                 onClick = {
-                                    onVerify(device)
+                                    viewModel.verify(device.deviceId)
                                     showOptions.value = false
                                 },
                             )
@@ -279,7 +238,7 @@ fun DeviceItem(
                                 Icon(Icons.Default.DeleteForever, null, tint = MaterialTheme.colorScheme.error)
                             },
                             onClick = {
-                                onDelete(device)
+                                viewModel.remove(device.deviceId)
                                 showOptions.value = false
                             },
                         )
@@ -293,7 +252,7 @@ fun DeviceItem(
         RenameDeviceDialog(
             device,
             {
-                onRename(device, it)
+                viewModel.setDisplayName(device.deviceId, it)
                 showRename.value = false
             },
             onDismiss = {
@@ -305,13 +264,13 @@ fun DeviceItem(
 
 @Composable
 private fun RenameDeviceDialog(
-    device: DeviceInfo,
+    device: DeviceSettingsSingleAccountViewModel.DeviceInfo,
     onRename: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val focusRequester = remember { FocusRequester() }
-    val content = remember { mutableStateOf(TextFieldValue(device.displayName.value)) }
+    val content = remember { mutableStateOf(TextFieldValue(device.displayName)) }
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()

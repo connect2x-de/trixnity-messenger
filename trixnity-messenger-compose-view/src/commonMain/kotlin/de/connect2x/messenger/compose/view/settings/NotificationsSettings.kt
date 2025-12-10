@@ -55,7 +55,7 @@ class NotificationsSettingsViewImpl : NotificationsSettingsView {
     @Composable
     override fun create(notificationsSettingsViewModel: NotificationSettingsAllAccountsViewModel) {
         val i18n = DI.get<I18nView>()
-        val notificationSettings = notificationsSettingsViewModel.notificationSettings.collectAsState().value
+        val notificationSettings = notificationsSettingsViewModel.notificationSettings
         val scroll = rememberScrollState()
 
         Column(Modifier.fillMaxSize()) {

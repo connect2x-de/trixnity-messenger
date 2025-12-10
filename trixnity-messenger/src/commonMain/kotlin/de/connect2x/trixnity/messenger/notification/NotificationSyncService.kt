@@ -231,10 +231,11 @@ class NotificationSyncService(
                 }
             }?.let { getNotificationIcon?.invoke(it, avatarSize(), avatarSize()) }
         val callbackData =
-            if (roomId != null) buildString {
-                append("${config.urlProtocol}://localhost/matrix:roomid/")
-                append(roomId.full.trimStart(RoomId.sigilCharacter))
-            }
+            if (roomId != null)
+                buildString {
+                    append("${config.appUri}/matrix:roomid/") // TODO does this need to be changed in JS?
+                    append(roomId.full.trimStart(RoomId.sigilCharacter))
+                }
             else null
         return NotificationData(
             title = title,

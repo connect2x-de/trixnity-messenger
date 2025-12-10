@@ -12,6 +12,8 @@ import de.connect2x.messenger.compose.view.connecting.MatrixClientInitialization
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationFailureViewImpl
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationView
 import de.connect2x.messenger.compose.view.connecting.MatrixClientInitializationViewImpl
+import de.connect2x.messenger.compose.view.connecting.OAuth2LoginView
+import de.connect2x.messenger.compose.view.connecting.OAuth2LoginViewImpl
 import de.connect2x.messenger.compose.view.connecting.PasswordLoginView
 import de.connect2x.messenger.compose.view.connecting.PasswordLoginViewImpl
 import de.connect2x.messenger.compose.view.connecting.RegisterNewAccountView
@@ -252,8 +254,8 @@ import de.connect2x.messenger.compose.view.settings.AvatarCutterView
 import de.connect2x.messenger.compose.view.settings.AvatarCutterViewImpl
 import de.connect2x.messenger.compose.view.settings.BlockedContactsSettingsView
 import de.connect2x.messenger.compose.view.settings.BlockedContactsSettingsViewImpl
-import de.connect2x.messenger.compose.view.settings.DevicesSettingsView
-import de.connect2x.messenger.compose.view.settings.DevicesSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.DeviceSettingsView
+import de.connect2x.messenger.compose.view.settings.DeviceSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.LegalFooterView
 import de.connect2x.messenger.compose.view.settings.LegalFooterViewImpl
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
@@ -313,7 +315,6 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
@@ -384,6 +385,7 @@ fun connectingViewModule() = module {
     single<RemoveMatrixAccountView> { RemoveMatrixAccountViewImpl() }
     single<PasswordLoginView> { PasswordLoginViewImpl() }
     single<RegisterNewAccountView> { RegisterNewAccountViewImpl() }
+    single<OAuth2LoginView> { OAuth2LoginViewImpl() }
     single<SSOLoginView> { SSOLoginViewImpl() }
     single<MatrixClientInitializationFailureView> { MatrixClientInitializationFailureViewImpl() }
     single<AdditionalConnectingWizardStep> { AdditionalConnectingWizardStepImpl() }
@@ -438,7 +440,7 @@ fun roomViewModule() = module {
     single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
-fun roomSettingsViewModule(features: MatrixMessengerFeatures? = null) = module {
+fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
@@ -555,7 +557,7 @@ fun settingsViewModule() = module {
     single<AppInfoLicensesView> { AppInfoLicensesViewImpl() }
     single<AvatarCutterView> { AvatarCutterViewImpl() }
     single<BlockedContactsSettingsView> { BlockedContactsSettingsViewImpl() }
-    single<DevicesSettingsView> { DevicesSettingsViewImpl() }
+    single<DeviceSettingsView> { DeviceSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<ProfileSettingsView> { ProfileSettingsViewImpl() }

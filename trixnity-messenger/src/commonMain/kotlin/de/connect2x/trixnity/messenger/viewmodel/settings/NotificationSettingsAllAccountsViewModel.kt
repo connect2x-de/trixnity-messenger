@@ -3,10 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
 
@@ -23,7 +19,7 @@ interface NotificationSettingsAllAccountsViewModelFactory {
 }
 
 interface NotificationSettingsAllAccountsViewModel {
-    val notificationSettings: StateFlow<List<NotificationSettingsSingleAccountViewModel>>
+    val notificationSettings: List<NotificationSettingsSingleAccountViewModel>
     fun back()
 }
 
@@ -40,15 +36,13 @@ class NotificationSettingsAllAccountsViewModelImpl(
         backHandler.register(backCallback)
     }
 
-    override val notificationSettings: StateFlow<List<NotificationSettingsSingleAccountViewModel>> =
-        matrixClients.scopedMapLatest { namedMatrixClients ->
-            namedMatrixClients.map { (userId, _) ->
-                get<NotificationSettingsSingleAccountViewModelFactory>()
-                    .create(
-                        viewModelContext = childContext("notificationSettings-${userId}", userId = userId),
-                    )
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+    override val notificationSettings: List<NotificationSettingsSingleAccountViewModel> =
+        matrixClients.value.map { (userId, _) ->
+            get<NotificationSettingsSingleAccountViewModelFactory>()
+                .create(
+                    viewModelContext = childContext("notificationSettings-${userId}", userId = userId),
+                )
+        }
 
     override fun back() {
         onBack()

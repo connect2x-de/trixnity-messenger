@@ -1,23 +1,21 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import io.ktor.http.*
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-class UrlHandlerImpl(config: MatrixMessengerBaseConfiguration) : UrlHandlerBase(config) {
+class UriHandlerImpl(config: MatrixMessengerBaseConfiguration) : UriHandlerBase(config) {
 
     /**
      * This need to be called by application url handler.
      */
     fun onUri(uri: String) {
-        val url = Url(uri)
-        urlHandlerFlow.tryEmit(url)
+        urlHandlerFlow.tryEmit(uri)
     }
 }
 
-actual fun platformUrlHandlerModule(): Module = module {
-    single<UrlHandler> {
-        UrlHandlerImpl(get())
+actual fun platformUriHandlerModule(): Module = module {
+    single<UriHandler> {
+        UriHandlerImpl(get())
     }
 }

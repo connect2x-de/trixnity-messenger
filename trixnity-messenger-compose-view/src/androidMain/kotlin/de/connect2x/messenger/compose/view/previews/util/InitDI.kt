@@ -13,7 +13,6 @@ import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
@@ -99,7 +98,7 @@ fun createKoinApplication(): KoinApplication {
                 single<DownloadManager> { DownloadManagerImpl() }
                 single<Thumbnails> { ThumbnailsImpl() }
             },
-            composeViewModule(MatrixMessengerConfiguration(features = MatrixMessengerFeatures(enablePdfReader = true))),
+            composeViewModule(MatrixMessengerConfiguration()),
         )
         logger(PrintLogger(level = Level.DEBUG))
     }

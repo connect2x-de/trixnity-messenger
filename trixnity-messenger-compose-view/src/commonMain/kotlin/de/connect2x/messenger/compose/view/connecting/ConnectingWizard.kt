@@ -17,6 +17,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
@@ -88,6 +89,44 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     }
                 )
 
+                is OAuth2LoginViewModel -> WizardStep(
+                    id = SSO_LOGIN,
+                    title = {
+                        when (viewModel.type) {
+                            OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
+                            OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
+                        }
+                    },
+                    content = {
+                        OAuth2Login(viewModel)
+                    },
+                    additionalButton = {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = viewModel::back,
+                        ) {
+                            Text(i18n.commonBack().capitalize(Locale.current))
+                        }
+                    },
+                    nextButton = {
+                        WizardNavigationButton.Custom {
+                            val state = viewModel.state.collectAsState().value
+                            val canLogin = state is OAuth2LoginViewModel.State.None
+                            ThemedButton(
+                                style = MaterialTheme.components.primaryButton,
+                                enabled = canLogin,
+                                onClick = { viewModel.startLogin() },
+                            ) {
+                                val text = when (viewModel.type) {
+                                    OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
+                                    OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
+                                }
+                                Text(text)
+                            }
+                        }
+                    },
+                )
+
                 is SSOLoginViewModel -> WizardStep(
                     id = SSO_LOGIN,
                     title = { i18n.loginAt(viewModel.serverUrl) },
@@ -140,7 +179,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                                 enabled = canRegisterNewUser,
                                 onClick = { viewModel.register() },
                             ) {
-                                Text(i18n.register())
+                                Text(i18n.registerNewAccount())
                             }
                         }
                     },
