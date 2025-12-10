@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rendering room upgrades (tombstone event)
 - API: add multi-profile option to `MultiMessengerConfiguration`
+- UI: Settings: add a button to enable multi-profile mode
 
 ### Changed
 
