@@ -9,7 +9,10 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
@@ -17,10 +20,8 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.common.icons.HelpIcon
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 
 internal data class RadioSettingOption(
     val text: String,
@@ -65,50 +66,31 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     enabled: Boolean = true,
     icon: ImageVector = Icons.Default.Settings,
 ) {
-    val keys = remember(options) { options.filter { enabled && it.value.enabled }.keys.toList() }
-    val defaultItem = options.keys.firstOrNull()
+    var focusedItem by remember(value) { mutableStateOf(value) }
     ExpandableSection(heading = { title() }, icon = icon) {
-        RovingFocusContainer {
-            Column(
-                modifier = Modifier.verticalRovingFocus(
-                    default = defaultItem,
-                    scroll = {},
-                    up = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = keys.indexOf(currentItem)
-                        val nextIndex = currentIndex.minus(1).coerceIn(keys.indices)
-                        keys[nextIndex]
-                    },
-                    down = {
-                        val currentItem = activeRef.value ?: defaultItem
-                        val currentIndex = keys.indexOf(currentItem)
-                        val nextIndex = currentIndex.plus(1).coerceIn(keys.indices)
-                        keys[nextIndex]
-                    },
+        Column(modifier = Modifier.rovingFocusContainer()) {
+            for ((key, option) in options) {
+                val (optionText, optionExplanation, optionEnabled, optionStyle) = option
+                ThemedListItemRadioButton(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = { Text(optionText, style = optionStyle ?: LocalTextStyle.current) },
+                    leadingContent = if (optionExplanation != null) {
+                        @Composable { HelpIcon(optionExplanation) }
+                    } else null,
+                    modifier = Modifier.rovingFocusItem(
+                        isFocused = focusedItem == key,
+                        onFocus = { focusedItem = key },
+                    ),
+                    enabled = enabled && optionEnabled,
+                    selected = value == key,
+                    onChange = { set(key) },
                 )
-            ) {
-                for ((key, option) in options) {
-                    RovingFocusItem(key, options.keys.first()) {
-                        val (optionText, optionExplanation, optionEnabled, optionStyle) = option
-                        ThemedListItemRadioButton(
-                            style = MaterialTheme.components.settingsItem,
-                            headlineContent = { Text(optionText, style = optionStyle ?: LocalTextStyle.current) },
-                            leadingContent = if (optionExplanation != null) {
-                                @Composable { HelpIcon(optionExplanation) }
-                            } else null,
-                            modifier = if (enabled && optionEnabled) Modifier.rovingFocusItem() else Modifier,
-                            enabled = enabled && optionEnabled,
-                            selected = value == key,
-                            onChange = { set(key) },
-                        )
-                    }
-                }
             }
         }
-        if (additionalContent != null) {
-            Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
-                additionalContent()
-            }
+    }
+    if (additionalContent != null) {
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
+            additionalContent()
         }
     }
 }

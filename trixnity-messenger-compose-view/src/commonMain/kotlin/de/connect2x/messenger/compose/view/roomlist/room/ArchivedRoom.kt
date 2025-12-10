@@ -28,7 +28,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedLabel
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface ArchivedRoomListElement {
@@ -60,7 +59,6 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { showWarning = true },
-                    modifier = Modifier.rovingFocusChild(),
                 ) {
                     Icon(Icons.Default.Delete, i18n.commonDelete())
                 }

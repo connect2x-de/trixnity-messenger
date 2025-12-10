@@ -12,11 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Attachment
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +32,6 @@ import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.File
-import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 
 interface FileRoomMessageTimelineElementView : TimelineElementView<File>
@@ -116,7 +112,6 @@ internal fun MessageFile(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
     Row(
         Modifier.pointerInput(Unit) {
             detectTapGestures(
@@ -139,15 +134,6 @@ internal fun MessageFile(
             element,
             Modifier.align(Alignment.CenterVertically)
         )
-        if (downloadSuccessful.value) {
-            Spacer(Modifier.size(10.dp))
-            Icon(
-                Icons.Default.CheckCircle,
-                i18n.messageContentDownloadCompleted(),
-                Modifier.align(Alignment.CenterVertically),
-                Color.DarkGray
-            )
-        }
     }
 }
 

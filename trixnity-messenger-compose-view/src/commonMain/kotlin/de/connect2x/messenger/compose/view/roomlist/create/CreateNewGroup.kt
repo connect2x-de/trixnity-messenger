@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -40,7 +41,6 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.roomlist.search.SearchUsersView
@@ -55,13 +55,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
-import de.connect2x.messenger.compose.view.util.moveDown
-import de.connect2x.messenger.compose.view.util.moveUp
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
-import kotlinx.coroutines.CoroutineScope
 
 interface CreateNewGroupView {
     @Composable
@@ -135,64 +131,43 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         )
                     }
                     val listState = rememberLazyListState()
-                    RovingFocusContainer {
-                        val focusContainer = LocalRovingFocus.current
-                        val currentRef = focusContainer?.activeRef?.value
-                        LaunchedEffect(references) {
-                            if (currentRef != null && !references.contains(currentRef)) {
-                                focusContainer.activeRef.value = defaultItem
-                            }
-                        }
-                        val scroll: suspend CoroutineScope.(Any?) -> Unit = { item ->
-                            val index = references.indexOf(item)
-                            if (index != -1) {
-                                listState.scrollToItem(index)
-                            }
-                        }
 
-                        LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
-                            item(key = "MoreOptions") {
-                                val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
-                                val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
+                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) {
+                        item(key = "MoreOptions") {
+                            val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
+                            val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
 
-                                Column {
-                                    ExpandableSection(
-                                        roomOptionsString,
-                                        expanded,
-                                        modifier = Modifier.padding(horizontal = 10.dp),
-                                        icon = Icons.Default.Settings,
-                                    ) {
-                                        CreateGroupOptions(createNewGroupViewModel, historyExpanded)
-                                    }
-                                    Spacer(Modifier.height(15.dp))
+                            Column {
+                                ExpandableSection(
+                                    roomOptionsString,
+                                    expanded,
+                                    modifier = Modifier.padding(horizontal = 10.dp),
+                                    icon = Icons.Default.Settings,
+                                ) {
+                                    CreateGroupOptions(createNewGroupViewModel, historyExpanded)
                                 }
-                            }
-                            item(key = "RoomNameInput") {
-                                OptionalRoomNameInput(optionalRoomName)
                                 Spacer(Modifier.height(15.dp))
                             }
-                            item(key = "RoomTopic") {
-                                OptionalRoomTopicInput(optionalRoomTopic)
-                            }
-                            item(key = "UsersInGroup") {
-                                UsersInGroup(createNewGroupViewModel)
-                            }
-                            userSearchView.create(
-                                createNewGroupViewModel.createNewRoomViewModel,
-                                { user ->
-                                    createNewGroupViewModel.onUserClick(user)
-                                    if (references.indexOf(user.userId.full) < references.lastIndex) {
-                                        focusContainer?.moveDown(defaultItem, references, key = { it }, onMove = scroll)
-                                    } else {
-                                        focusContainer?.moveUp(defaultItem, references, key = { it }, onMove = scroll)
-                                    }
-                                },
-                                userSearchResults,
-                                userSearchResultView,
-                                this
-                            )
                         }
+                        item(key = "RoomNameInput") {
+                            OptionalRoomNameInput(optionalRoomName)
+                            Spacer(Modifier.height(15.dp))
+                        }
+                        item(key = "RoomTopic") {
+                            OptionalRoomTopicInput(optionalRoomTopic)
+                        }
+                        item(key = "UsersInGroup") {
+                            UsersInGroup(createNewGroupViewModel)
+                        }
+                        userSearchView.create(
+                            createNewGroupViewModel.createNewRoomViewModel,
+                            { user -> createNewGroupViewModel.onUserClick(user) },
+                            userSearchResults,
+                            userSearchResultView,
+                            this
+                        )
                     }
+
                     VerticalScrollbar(
                         Modifier.fillMaxHeight().align(Alignment.CenterEnd),
                         listState,

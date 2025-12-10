@@ -1,7 +1,5 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -18,9 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -55,13 +51,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingAction
 import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModel
 
@@ -79,83 +70,64 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
     @Composable
     override fun create(accountsOverviewViewModel: AccountsOverviewViewModel) {
         val i18n = DI.get<I18nView>()
-        val accounts = remember { accountsOverviewViewModel.accounts }.collectAsState()
+        val accounts by remember { accountsOverviewViewModel.accounts }.collectAsState()
         val scrollState = rememberScrollState()
         var showLogoutWarning by remember { mutableStateOf<AccountInfo?>(null) }
 
-        val references = remember {
-            derivedStateOf {
-                accounts.value.map { it.userId }
-            }
-        }
-
-        val defaultItem = references.value.firstOrNull()
+        var focusedItem by remember(accounts) { mutableStateOf(accounts.map { it.userId }.firstOrNull()) }
 
         Column {
             Header(accountsOverviewViewModel::close, i18n.accountYourAccounts().capitalize(Locale.current))
             Box(Modifier.fillMaxSize()) {
-                RovingFocusContainer {
-                    Column(
-                        Modifier
-                            .verticalRovingFocus(
-                                default = defaultItem,
-                                up = { getPreviousItem(references.value, defaultItem) { it } },
-                                down = { getNextItem(references.value, defaultItem) { it } },
-                            )
-                            .verticalScroll(scrollState)
-                            .semantics {
-                                collectionInfo = CollectionInfo(rowCount = accounts.value.size, columnCount = 1)
-                            }
-                    ) {
-                        accounts.value.mapIndexed { index, accountInfo ->
-                            key(accountInfo.userId) {
-                                val displayColor = accountInfo.displayColor?.let { Color(it) }
-                                val interactionSource = remember { MutableInteractionSource() }
-
-                                RovingFocusItem(accountInfo.userId, defaultItem) {
-                                    ListItem(
-                                        headlineContent = {
-                                            Tooltip({ Text(accountInfo.displayName) }) {
-                                                Text(
-                                                    accountInfo.displayName,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                            }
-                                        },
-                                        supportingContent = { Text(accountInfo.userId.full) },
-                                        trailingContent = {
-                                            Tooltip({ Text(i18n.actionDelete()) }) {
-                                                val interactionSourceLogout = remember { MutableInteractionSource() }
-                                                ThemedIconButton(
-                                                    style = MaterialTheme.components.destructiveIconButton,
-                                                    interactionSource = interactionSourceLogout,
-                                                    modifier = Modifier
-                                                        .rovingFocusChild(),
-                                                    onClick = { showLogoutWarning = accountInfo },
-                                                ) {
-                                                    Icon(Icons.AutoMirrored.Default.Logout, i18n.actionDelete())
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .drawWithContent {
-                                                drawContent()
-                                                displayColor?.let {
-                                                    drawRect(displayColor, Offset.Zero, Size(5.dp.toPx(), size.height))
-                                                }
-                                            }
-                                            .rovingFocusItem()
-                                            .focusable(true, interactionSource)
-                                            .focusHighlighting(interactionSource)
-                                            .semantics {
-                                                collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
-                                            }
-                                    )
-                                    ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
-                                }
-                            }
+                Column(
+                    Modifier
+                        .rovingFocusContainer()
+                        .verticalScroll(scrollState)
+                        .semantics {
+                            collectionInfo = CollectionInfo(rowCount = accounts.size, columnCount = 1)
                         }
+                ) {
+                    accounts.mapIndexed { index, accountInfo ->
+                        val displayColor = accountInfo.displayColor?.let { Color(it) }
+
+                        ListItem(
+                            headlineContent = {
+                                Tooltip({ Text(accountInfo.displayName) }) {
+                                    Text(
+                                        accountInfo.displayName,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            },
+                            supportingContent = { Text(accountInfo.userId.full) },
+                            trailingContent = {
+                                Tooltip({ Text(i18n.actionDelete()) }) {
+                                    ThemedIconButton(
+                                        style = MaterialTheme.components.destructiveIconButton,
+                                        onClick = { showLogoutWarning = accountInfo },
+                                    ) {
+                                        Icon(Icons.AutoMirrored.Default.Logout, i18n.actionDelete())
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .drawWithContent {
+                                    drawContent()
+                                    displayColor?.let {
+                                        drawRect(displayColor, Offset.Zero, Size(5.dp.toPx(), size.height))
+                                    }
+                                }
+                                .rovingFocusItem(
+                                    isFocused = focusedItem == accountInfo.userId,
+                                    onFocus = { focusedItem = accountInfo.userId }
+                                )
+                                .focusHighlighting()
+                                .semantics {
+                                    collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
+                                }
+                        )
+                        ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
                     }
                 }
                 VerticalScrollbar(

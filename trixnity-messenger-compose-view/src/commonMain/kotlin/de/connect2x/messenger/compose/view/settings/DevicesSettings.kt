@@ -1,9 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,10 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -50,9 +47,9 @@ import de.connect2x.messenger.compose.view.common.icons.EditIcon
 import de.connect2x.messenger.compose.view.common.icons.NotVerifiedIcon
 import de.connect2x.messenger.compose.view.common.icons.VerificationLevel
 import de.connect2x.messenger.compose.view.common.icons.VerifiedIcon
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
 import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
@@ -63,17 +60,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenuIt
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountWithDevices
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceInfo
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
@@ -157,75 +146,52 @@ fun AccountWithDevicesList(
     }
 
     if (devicesInAccount == null) {
-        SettingsAccountCard(
-            accountWithDevices.userId,
-        ) {
+        SettingsAccountCard(accountWithDevices.userId) {
             error?.let { ErrorView(it) }
             if (isLoading) {
                 LoadingSpinner()
             }
         }
     } else {
-        val defaultItem = devicesInAccount.thisDevice.deviceId
-        val references = remember {
-            derivedStateOf {
-                buildList {
-                    add(devicesInAccount.thisDevice.deviceId)
-                    for (device in devicesInAccount.otherDevices) {
-                        add(device.deviceId)
-                    }
-                }
-            }
-        }
+        var focusedItem by remember { mutableStateOf<String?>(devicesInAccount.thisDevice.deviceId) }
 
-        RovingFocusContainer {
-            SettingsAccountCard(
-                accountWithDevices.userId,
-                modifier = Modifier.verticalRovingFocus(
-                    default = defaultItem,
-                    up = {
-                        getPreviousItem(references.value, defaultItem) { it }
-                    },
-                    down = {
-                        getNextItem(references.value, defaultItem) { it }
-                    },
+        SettingsAccountCard(accountWithDevices.userId, modifier = Modifier.rovingFocusContainer()) {
+            error?.let { ErrorView(it) }
+            if (isLoading) {
+                LoadingSpinner()
+            } else {
+                ThemedListItem(
+                    style = MaterialTheme.components.settingsItem,
+                    headlineContent = {
+                        Text(i18n.devicesThisDevice(), style = MaterialTheme.typography.titleMedium)
+                    }
                 )
-            ) {
-                error?.let { ErrorView(it) }
-                if (isLoading) {
-                    LoadingSpinner()
-                } else {
+
+                DeviceItem(
+                    devicesInAccount.thisDevice,
+                    isFocused = focusedItem == devicesInAccount.thisDevice.deviceId,
+                    onFocus = { focusedItem = devicesInAccount.thisDevice.deviceId },
+                    onRename = onRename,
+                    onVerify = onVerify,
+                    onDelete = onDelete,
+                )
+
+                if (devicesInAccount.otherDevices.isNotEmpty()) {
                     ThemedListItem(
                         style = MaterialTheme.components.settingsItem,
                         headlineContent = {
-                            Text(i18n.devicesThisDevice(), style = MaterialTheme.typography.titleMedium)
+                            Text(i18n.devicesOtherDevices(), style = MaterialTheme.typography.titleMedium)
                         }
                     )
-                    RovingFocusItem(devicesInAccount.thisDevice.deviceId, defaultItem) {
+                    for (device in devicesInAccount.otherDevices) {
                         DeviceItem(
-                            devicesInAccount.thisDevice,
+                            device,
+                            isFocused = focusedItem == device.deviceId,
+                            onFocus = { focusedItem = device.deviceId },
                             onRename = onRename,
                             onVerify = onVerify,
                             onDelete = onDelete,
                         )
-                    }
-                    if (devicesInAccount.otherDevices.isNotEmpty()) {
-                        ThemedListItem(
-                            style = MaterialTheme.components.settingsItem,
-                            headlineContent = {
-                                Text(i18n.devicesOtherDevices(), style = MaterialTheme.typography.titleMedium)
-                            }
-                        )
-                        for (device in devicesInAccount.otherDevices) {
-                            RovingFocusItem(device.deviceId, defaultItem) {
-                                DeviceItem(
-                                    device,
-                                    onRename = onRename,
-                                    onVerify = onVerify,
-                                    onDelete = onDelete,
-                                )
-                            }
-                        }
                     }
                 }
             }
@@ -237,7 +203,8 @@ fun AccountWithDevicesList(
 @Composable
 fun DeviceItem(
     device: DeviceInfo,
-    modifier: Modifier = Modifier,
+    isFocused: Boolean,
+    onFocus: () -> Unit,
     onRename: (DeviceInfo, String) -> Unit,
     onVerify: (DeviceInfo) -> Unit,
     onDelete: (DeviceInfo) -> Unit,
@@ -245,33 +212,14 @@ fun DeviceItem(
     val i18n = DI.get<I18nView>()
     val displayName = device.displayName.collectAsState()
     val isVerified = device.isVerified.collectAsState()
-    val interactionSource = remember { MutableInteractionSource() }
-    val focusContainer = LocalRovingFocus.current
-    val focusItem = LocalRovingFocusItem.current
-    val focused = interactionSource.collectIsFocusedAsState()
-    val focusedBorder =
-        if (IsFocusHighlighting.current && focused.value) {
-            Modifier.border(
-                width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        } else Modifier
 
     val showOptions = remember { mutableStateOf(false) }
     val showRename = remember { mutableStateOf(false) }
 
-    Box(
-        Modifier
-            .rovingFocusItem()
-            .focusable(true, interactionSource)
-            .semantics {
-                contentDescription = "${displayName.value}, ${device.lastSeenAt}"
-            }
-    ) {
+    Box(Modifier.semantics { contentDescription = "${displayName.value}, ${device.lastSeenAt}" }) {
         ThemedListItem(
             style = MaterialTheme.components.settingsItem,
-            modifier = modifier
-                .then(focusedBorder),
+            modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
             leadingContent = {
                 if (isVerified.value) {
                     VerifiedIcon(VerificationLevel.DEVICE)
@@ -297,12 +245,8 @@ fun DeviceItem(
                         val interactionSource = remember { MutableInteractionSource() }
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
-                            modifier = Modifier.rovingFocusChild(),
                             interactionSource = interactionSource,
-                            onClick = {
-                                showOptions.value = true
-                                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
-                            },
+                            onClick = { showOptions.value = true },
                         ) {
                             EditIcon(Icons.Default.MoreVert, i18n.commonMore())
                         }
