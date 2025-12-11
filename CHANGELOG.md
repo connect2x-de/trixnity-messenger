@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Text selections have better visibility now
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
+- SDK: Change back handling to use custom handler instead of Decomposes
 
 ### Deprecated
 
@@ -29,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove unnecessary padding around state events
 - WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 - WEB,A11Y: CanvasSemanticsOwnerListener: render `SemanticsProperties.ContentDescription` as `aria-description`
+- UI: emojis in the picker are no longer cut off at larger font sizes
+- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 
 ### Security
 

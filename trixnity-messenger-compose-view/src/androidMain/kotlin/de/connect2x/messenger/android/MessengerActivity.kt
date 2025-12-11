@@ -3,10 +3,10 @@ package de.connect2x.messenger.android
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +19,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.arkivanov.decompose.defaultComponentContext
@@ -39,6 +40,7 @@ import de.connect2x.sysnotify.withActivity
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.platformNotifications
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.currentImmediateDispatcher
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultUrlHandler
@@ -55,7 +57,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.core.net.toUri
 
 class MessengerActivity : AppCompatActivity() {
     private val log = KotlinLogging.logger { }
@@ -84,6 +85,11 @@ class MessengerActivity : AppCompatActivity() {
             matrixMultiMessenger.defaultActivityGetter { this@MessengerActivity }
             launch {
                 matrixMultiMessenger.activeMatrixMessenger.filterNotNull().collectLatest { matrixMessenger ->
+                    val backHandler = matrixMessenger.di.get<BackHandler>()
+                    onBackPressedDispatcher.addCallback {
+                        backHandler.goBack()
+                    }
+
                     matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
                         .map { it.base.accounts }
                         .distinctUntilChanged()
