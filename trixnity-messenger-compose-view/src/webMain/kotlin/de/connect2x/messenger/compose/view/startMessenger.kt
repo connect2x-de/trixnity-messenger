@@ -167,7 +167,7 @@ suspend fun startMessenger(
                             EscapeKeyPressed provides escapeKeyPressed,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                                Profiles()
                             }
                         }
                     }

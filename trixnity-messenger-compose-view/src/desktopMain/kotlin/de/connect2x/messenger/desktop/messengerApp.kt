@@ -172,7 +172,7 @@ fun CoroutineScope.messengerApp(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            Profiles(matrixMultiMessenger, existingProfiles)
+                            Profiles()
                         }
                     }
                 }

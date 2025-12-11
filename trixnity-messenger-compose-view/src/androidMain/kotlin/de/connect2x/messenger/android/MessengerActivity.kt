@@ -167,7 +167,7 @@ class MessengerActivity : AppCompatActivity() {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                                Profiles()
                             }
                         }
                     }

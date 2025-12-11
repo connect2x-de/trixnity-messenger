@@ -42,7 +42,7 @@ class MessengerClientTest {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                                Profiles()
                             }
                         }
                     },

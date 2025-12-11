@@ -157,7 +157,7 @@ fun startMessenger(
                     IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
-                        Profiles(matrixMultiMessenger, existingProfiles)
+                        Profiles()
                     }
                 }
             }
