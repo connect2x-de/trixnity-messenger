@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
@@ -35,7 +36,6 @@ import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.LazyRovingFocusColumn
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -52,8 +52,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedAvatar
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
@@ -92,29 +91,26 @@ class CreateNewChatViewImpl : CreateNewChatView {
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
             Box(Modifier.fillMaxSize()) {
-                RovingFocusContainer {
-                    val focusContainer = LocalRovingFocus.current
-                    LazyRovingFocusColumn(defaultItem, references, listState, focusContainer) {
-                        item(key = "CreatingIndicator") {
-                            if (isCreating) {
-                                ThemedProgressIndicator(
-                                    Modifier.fillMaxWidth(),
-                                    MaterialTheme.components.linearProgressIndicator
-                                )
-                            }
+                LazyColumn(Modifier.rovingFocusContainer(), listState) {
+                    item(key = "CreatingIndicator") {
+                        if (isCreating) {
+                            ThemedProgressIndicator(
+                                Modifier.fillMaxWidth(),
+                                MaterialTheme.components.linearProgressIndicator
+                            )
                         }
-                        item(key = "AddOrSearchGroup") {
-                            AddOrSearchGroup(createNewChatViewModel)
-                            HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
-                        }
-                        searchUsersView.create(
-                            createNewChatViewModel.createNewRoomViewModel,
-                            createNewChatViewModel::onUserClick,
-                            searchUsersResults,
-                            userSearchResultView,
-                            this,
-                        )
                     }
+                    item(key = "AddOrSearchGroup") {
+                        AddOrSearchGroup(createNewChatViewModel)
+                        HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
+                    }
+                    searchUsersView.create(
+                        createNewChatViewModel.createNewRoomViewModel,
+                        createNewChatViewModel::onUserClick,
+                        searchUsersResults,
+                        userSearchResultView,
+                        this,
+                    )
                 }
 
                 if (listState.canScrollForward || listState.canScrollBackward) {

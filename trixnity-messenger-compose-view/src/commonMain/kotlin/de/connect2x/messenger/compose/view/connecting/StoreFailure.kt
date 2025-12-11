@@ -76,7 +76,7 @@ class MatrixClientInitializationFailureViewImpl : MatrixClientInitializationFail
                         Text(text = i18n.storeFailureAlreadyOpen(appName))
                     }
                 } else {
-                    Text(text = i18n.storeFailureLocalDbNotLoaded())
+                    Text(text = i18n.storeFailureLocalDbNotLoaded(matrixClientInitializationFailureViewModel.userId.toString()))
                     Text(text = i18n.storeFailureLocalDbSelect())
                     Spacer(Modifier.size(20.dp))
                     Text(text = i18n.closeApp(appName), fontWeight = FontWeight.Bold)

@@ -40,7 +40,6 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.util.animateRotation
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 
 @Composable
 fun DetailsSummaryLayout(
@@ -60,7 +59,6 @@ fun DetailsSummaryLayout(
                 shadowElevation = 2.dp,
                 modifier = Modifier
                     .layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY)
-                    .rovingFocusChild()
                     .clickable(interactionSource, LocalIndication.current) {
                         expanded.targetState = !expanded.targetState
                     }

@@ -57,12 +57,12 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineSmall,
                 )
-                if (canChangeRoomName) Tooltip({ Text(i18n.commonEdit()) }) {
+                if (canChangeRoomName) Tooltip(i18n.editRoomName()) {
                     ThemedIconButton(
                         onClick = { roomSettingsNameViewModel.roomName.startEdit() },
                         Modifier.weight(1f),
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = i18n.commonEdit())
+                        Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomName())
                     }
                 }
             }

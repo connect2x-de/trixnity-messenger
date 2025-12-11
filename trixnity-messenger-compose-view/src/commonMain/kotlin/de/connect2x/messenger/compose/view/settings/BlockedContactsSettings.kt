@@ -1,8 +1,5 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -32,19 +31,15 @@ import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
@@ -65,7 +60,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
         val references = remember(userList) { userList.map { it.userId } }
-        val defaultItem = references.firstOrNull()
+        var focusedItem by remember(userList) { mutableStateOf(references.firstOrNull()) }
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
             if (userList.isEmpty()) {
@@ -99,58 +94,29 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                     }
                 }
             } else {
-            Box(Modifier.fillMaxSize()) {
-                    RovingFocusContainer {
-                        LazyColumn(
-                            Modifier.fillMaxSize().verticalRovingFocus(
-                                default = defaultItem,
-                                scroll = { item ->
-                                    val index = references.indexOf(item)
-                                    if (index != -1) {
-                                        state.scrollToItem(index)
-                                    }
-                                },
-                                up = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.indexOf(currentItem)
-                                    val nextIndex = currentIndex.minus(1).coerceIn(references.indices)
-                                    references[nextIndex]
-                                },
-                                down = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = references.indexOf(currentItem)
-                                    val nextIndex = currentIndex.plus(1).coerceIn(references.indices)
-                                    references[nextIndex]
-                                },
-                            ),
-                            state
-                        ) {
-                            item("header") {
-                                ThemedListItem(
-                                    style = MaterialTheme.components.settingsItem,
-                                    headlineContent = {
-                                        Text(
-                                            i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
-                                            style = MaterialTheme.typography.titleMedium,
-                                        )
-                                    }
-                                )
-                            }
-                            itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
-                                RovingFocusItem(user.userId, defaultItem) {
-                                    val focusContainer = LocalRovingFocus.current
-
-                                    IgnoredUserListElement(user, i18n) {
-                                         val referencesWithoutThisOne = references - user.userId
-                                         blockedContactsSettingsViewModel.unblockContact(user.userId)
-
-                                         if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
-
-                                         focusContainer?.selectItem(
-                                             referencesWithoutThisOne[index.coerceIn(referencesWithoutThisOne.indices)]
-                                         )
-                                    }
+                Box(Modifier.fillMaxSize()) {
+                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), state) {
+                        item("header") {
+                            ThemedListItem(
+                                style = MaterialTheme.components.settingsItem,
+                                headlineContent = {
+                                    Text(
+                                        i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
+                                        style = MaterialTheme.typography.titleMedium,
+                                    )
                                 }
+                            )
+                        }
+                        itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
+                            IgnoredUserListElement(
+                                user = user, i18n = i18n,
+                                isFocused = focusedItem == user.userId,
+                                onFocus = { focusedItem = user.userId },
+                            ) {
+                                val referencesWithoutThisOne = references - user.userId
+                                blockedContactsSettingsViewModel.unblockContact(user.userId)
+                                if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
+                                focusedItem = referencesWithoutThisOne[0]
                             }
                         }
                     }
@@ -167,21 +133,13 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
 fun IgnoredUserListElement(
     user: BlockedContact,
     i18n: I18nView,
+    isFocused: Boolean,
+    onFocus: () -> Unit,
     onRemove: () -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused = interactionSource.collectIsFocusedAsState()
-    val focusedBorder =
-        if (IsFocusHighlighting.current && focused.value) {
-            Modifier.border(
-                width = MaterialTheme.messengerFocusIndicator.borderWidth,
-                color = MaterialTheme.colorScheme.onBackground,
-            )
-        } else Modifier
-
     ThemedListItem(
         style = MaterialTheme.components.settingsItem,
-        modifier = Modifier.then(focusedBorder),
+        modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
         leadingContent = { Icon(Icons.Default.PersonOff, null) },
         headlineContent = { Text(user.userId.full) },
         trailingContent = {
@@ -191,8 +149,6 @@ fun IgnoredUserListElement(
                 Tooltip({ Text(i18n.unblockContactDescription()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
-                        modifier = Modifier.rovingFocusItem(),
-                        interactionSource = interactionSource,
                         onClick = onRemove,
                     ) {
                         Icon(Icons.Default.RemoveCircle, i18n.unblockContactDescription())

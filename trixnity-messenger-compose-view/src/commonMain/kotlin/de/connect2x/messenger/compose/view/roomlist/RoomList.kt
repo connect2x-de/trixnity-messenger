@@ -23,10 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
@@ -45,14 +46,8 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.scroll
-import de.connect2x.messenger.compose.view.util.scrollIntoView
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
@@ -129,61 +124,41 @@ class RoomListViewImpl : RoomListView {
             } else {
                 val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState()
 
-                RovingFocusContainer {
-                    val rovingFocusState = LocalRovingFocus.current
-                    val defaultItem = derivedStateOf {
-                        selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId?.full
-                    }
-
-                    LaunchedEffect(rovingFocusState, defaultItem.value) {
-                        rovingFocusState?.selectItem(defaultItem.value) {
-                            val index = allRooms.indexOfFirst { it.roomId.full == defaultItem.value }
-                            if (index != -1) {
-                                state.scrollIntoView(index)
-                            }
-                        }
-                    }
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().verticalRovingFocus(
-                            default = defaultItem.value,
-                            scroll = scroll(state, allRooms) { it.roomId.full },
-                            up = { getPreviousItem(allRooms, defaultItem.value) { it.roomId.full } },
-                            down = { getNextItem(allRooms, defaultItem.value) { it.roomId.full } },
-                        ).semantics {
-                            collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0)
-                        },
-                        state,
-                    ) {
-                        itemsIndexed(
-                            allRooms,
-                            { _, element -> element.roomId.full }
-                        ) { index, roomListElement ->
-                            RovingFocusItem(roomListElement.roomId.full, selectedRoomId.value?.full) {
-                                RoomListElementContainer(
-                                    roomListElement.roomId,
-                                    roomListViewModel,
-                                    roomListElement,
-                                    index,
-                                )
-                            }
-                        }
-
-                        item {
-                            Spacer(
-                                Modifier.fillMaxWidth().height(
-                                    MaterialTheme.components.floatingActionButton.size * 2
-                                )
+                var selectedId by remember {
+                    mutableStateOf(selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId)
+                }
+                LazyColumn(
+                    Modifier
+                        .fillMaxSize()
+                        .rovingFocusContainer()
+                        .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
+                    state,
+                ) {
+                    itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
+                        Box(
+                            Modifier.rovingFocusItem(
+                                isFocused = roomListElement.roomId == selectedId,
+                                onFocus = { selectedId = roomListElement.roomId })
+                        ) {
+                            RoomListElementContainer(
+                                roomListElement.roomId,
+                                roomListViewModel,
+                                roomListElement,
+                                index,
                             )
                         }
+
+                    }
+                    item {
+                        Spacer(Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2))
                     }
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    state,
-                    false,
-                )
             }
+            VerticalScrollbar(
+                Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                state,
+                false,
+            )
             CreateRoomFloatingButton(roomListViewModel)
         }
 

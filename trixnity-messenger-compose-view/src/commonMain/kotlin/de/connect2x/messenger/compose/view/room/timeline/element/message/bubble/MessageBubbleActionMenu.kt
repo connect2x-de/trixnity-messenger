@@ -55,9 +55,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.context
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -111,8 +108,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     val transition = rememberTransition(isVisible)
     val opacity = transition.animateFloat { if (it) 0.1f else 0f }
 
-    val focusContainer = LocalRovingFocus.current
-    val focusItem = LocalRovingFocusItem.current
+
 
     val i18n = DI.get<I18nView>()
     val onClose = {
@@ -136,11 +132,9 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
             interactionSource = interactionSource,
             onClick = {
                 showActionMenu.value = showActionMenu.value.not()
-                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
             },
             modifier = Modifier
                 .size(28.dp)
-                .rovingFocusChild()
                 .expandable(showActionMenu)
                 .semantics {
                     role = Role.Button

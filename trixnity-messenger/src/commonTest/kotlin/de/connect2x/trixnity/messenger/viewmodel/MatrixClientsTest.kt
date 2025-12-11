@@ -267,6 +267,48 @@ class MatrixClientsTest {
     }
 
     @Test
+    fun `initFromStore » remove account from success on delete`() = runTest {
+        val cut = createCut()
+        val id = UserId("test1", "server")
+
+        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+
+        val result = cut.initFromStore()
+
+        result shouldBe MatrixClients.InitFromStoreResult(setOf(id), mapOf())
+        cut.value shouldBe mapOf(id to matrixClientMock1)
+        initFromStoreCalled shouldBe true
+
+        cut.remove(id)
+        cut.initFromStoreResult.value shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf())
+    }
+
+    @Test
+    fun `initFromStore » remove account from failures on delete`() = runTest {
+        val cut = createCut()
+        val id = UserId("test1", "server")
+
+        settings.create(id, MatrixMessengerAccountSettingsBase())
+
+        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
+            initFromStoreCalled = true
+            Result.success(null)
+        }
+
+        val result = cut.initFromStore()
+
+        result shouldBe MatrixClients.InitFromStoreResult(
+            setOf(),
+            mapOf(id to MatrixClientInitializationException.NoDatabaseException)
+        )
+        cut.value shouldBe mapOf()
+        initFromStoreCalled shouldBe true
+
+        cut.remove(id)
+        cut.initFromStoreResult.value shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf())
+    }
+
+    @Test
     fun `logout » logout matrix client`() = runTest {
         val cut = createCut()
         settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())

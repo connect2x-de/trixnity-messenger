@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.window.ComposeViewport
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -37,6 +38,7 @@ import org.w3c.dom.HTMLProgressElement
 import org.w3c.dom.ItemArrayLike
 import org.w3c.dom.LOADING
 import org.w3c.dom.events.EventListener
+import org.w3c.dom.events.KeyboardEvent
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -59,24 +61,36 @@ fun AccessibleComposeViewport(content: @Composable () -> Unit = {}) {
 
 class CanvasSemanticsOwnerListener(
     val a11yContainer: HTMLDivElement,
-    val coroutineScope: CoroutineScope = MainScope(),
+    coroutineScope: CoroutineScope = MainScope(),
 ) : PlatformContext.SemanticsOwnerListener {
+    private val owners = mutableSetOf<SemanticsOwner>()
 
-    val owners = mutableSetOf<SemanticsOwner>()
+    private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
 
-    val syncFlow =
+    private val syncFlow =
         MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
+        // every browser other than Chrome needs this attribute in order for copy/paste events to be sendable to the
+        // canvas. In Chrome however setting this results in copy/paste no longer working.
+        if (window.asDynamic().chrome != "undefined")
+            canvas?.setAttribute("contenteditable", "true")
+
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
-        for (event in listOf("keydown", "keyup")) a11yContainer.addEventListener(event, EventListener {
-            it.stopImmediatePropagation()
-            it.stopPropagation()
-            it.preventDefault()
-            val x = js("new it.constructor(it.type, it);")
-            canvas?.dispatchEvent(x)
-        }, true)
+        for (event in listOf("keydown", "keyup", "copy", "paste", "cut"))
+            a11yContainer.addEventListener(event, EventListener {
+                it.stopImmediatePropagation()
+                it.stopPropagation()
+                // we need to allow default behaviour so that they these key events turned into copy/cut/paste events
+                if (event != "keydown" || it !is KeyboardEvent || !it.ctrlKey
+                    || !listOf("c", "x", "v").contains(it.key)
+                )
+                    it.preventDefault()
+
+                val x = js("new it.constructor(it.type, it);")
+                canvas?.dispatchEvent(x)
+            }, true)
 
         coroutineScope.launch {
             syncFlow
@@ -96,27 +110,26 @@ class CanvasSemanticsOwnerListener(
         }
     }
 
+    internal val SemanticsOwner.semanticId: String get() = "cmp-semantic-${rootSemanticsNode.id}"
+    internal val SemanticsNode.semanticId: String get() = "cmp-semantic-$id"
+
     override fun onSemanticsOwnerAppended(semanticsOwner: SemanticsOwner) {
-        if (findElement(semanticsOwner.id) != null) return
+        if (findElement(semanticsOwner) != null) return
 
         val ownerElement = document.createElement("div") as HTMLDivElement
 
-        ownerElement.setAttribute("owner", "")
-        ownerElement.setAttribute("semantics-id", semanticsOwner.rootSemanticsNode.id.toString())
+        ownerElement.setAttribute("id", semanticsOwner.semanticId)
 
         a11yContainer.appendChild(ownerElement)
         owners.add(semanticsOwner)
     }
 
     override fun onSemanticsOwnerRemoved(semanticsOwner: SemanticsOwner) {
-        val element = checkNotNull(findElement(semanticsOwner.id)) { "owner does not exist" }
+        val element = checkNotNull(findElement(semanticsOwner)) { "owner does not exist" }
 
         element.remove()
         owners.remove(semanticsOwner)
     }
-
-    val listeners = mutableMapOf<Int, EventListener>()
-    val clickListeners = mutableMapOf<Int, EventListener>()
 
     override fun onSemanticsChange(semanticsOwner: SemanticsOwner) {
         syncFlow.tryEmit(Unit)
@@ -125,26 +138,27 @@ class CanvasSemanticsOwnerListener(
     fun onSemanticsChangeInner(semanticsOwner: SemanticsOwner) {
         val queue = ArrayDeque(listOf(semanticsOwner.rootSemanticsNode))
 
-        val parent = findElement(semanticsOwner.id) ?: return
+        val parent = findElement(semanticsOwner) ?: return
         val currentIds = collectIds(parent)
 
-        val seen = mutableSetOf<Int>()
+        val seen = mutableSetOf<String>()
 
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
 
-            seen.add(node.id)
-
-            when (val found = findElement(node.id)) {
+            when (val found = findElement(node)) {
                 null -> {
                     // the node does not exist we need to create a new one
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
+                        continue
+
                     val el = basicHTMLElement(node)
                     setAttrs(el, node)
 
-                    val parentElement = node.parent?.id?.let(::findElement) ?: a11yContainer
+                    val parentElement = node.parent?.let(::findElement) ?: a11yContainer
                     val nextElement = node.parent?.let {
                         val index = it.replacedChildren.indexOf(node).takeIf { it >= 0 } ?: return@let null
-                        it.replacedChildren.getOrNull(index + 1)?.id?.let(::findElement)
+                        it.replacedChildren.getOrNull(index + 1)?.let(::findElement)
                     }
 
                     if (nextElement != null) {
@@ -155,6 +169,9 @@ class CanvasSemanticsOwnerListener(
                 }
 
                 else -> {
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
+                        continue
+
                     // the node does exist, however on the first render the node typically does not have a role
                     // so on the first render we put in a div and later on need to replace it with the correct element.
                     val el = basicHTMLElement(node)
@@ -167,6 +184,7 @@ class CanvasSemanticsOwnerListener(
                 }
             }
 
+            seen.add(node.semanticId)
             queue.addAll(node.replacedChildren)
         }
 
@@ -174,34 +192,28 @@ class CanvasSemanticsOwnerListener(
 
         for (id in unseen) {
             findElement(id)?.remove()
-            listeners.remove(id)
         }
     }
 
-    override fun onLayoutChange(semanticsOwner: SemanticsOwner, semanticsNodeId: Int) {
-        return
-    }
+    override fun onLayoutChange(semanticsOwner: SemanticsOwner, semanticsNodeId: Int) {}
 
-    private fun findNode(semanticsId: Int, parent: SemanticsNode): SemanticsNode? {
-        if (parent.id == semanticsId) return parent
-        for (child in parent.replacedChildren) return findNode(semanticsId, child) ?: continue
-        return null
-    }
+    private fun findElement(owner: SemanticsOwner, parent: HTMLElement = a11yContainer): HTMLElement? =
+        findElement(owner.semanticId, parent)
 
-    private fun findElement(semanticsId: Int, parent: HTMLElement = a11yContainer): HTMLElement? {
-        return parent.querySelector("[semantics-id='$semanticsId']") as HTMLElement?
-    }
+    private fun findElement(node: SemanticsNode, parent: HTMLElement = a11yContainer): HTMLElement? =
+        findElement(node.semanticId, parent)
 
-    private fun collectIds(parent: HTMLElement = a11yContainer): Set<Int> {
-        return parent.querySelectorAll("[semantics-id]")
+    private fun findElement(semanticsId: String, parent: HTMLElement = a11yContainer): HTMLElement? =
+        parent.querySelector("[id='$semanticsId']") as HTMLElement?
+
+    private fun collectIds(parent: HTMLElement = a11yContainer): Set<String> {
+        return parent.querySelectorAll("[id]")
             .asSequence()
             .map { it as HTMLElement }
-            .map { it.getAttribute("semantics-id")!!.toInt() }
+            .map { it.getAttribute("id") }
+            .filterNotNull()
             .toSet()
     }
-
-    private val SemanticsOwner.id: Int
-        get() = rootSemanticsNode.id
 
     private fun basicHTMLElement(node: SemanticsNode): HTMLElement {
         return document.createElement(
@@ -234,9 +246,6 @@ class CanvasSemanticsOwnerListener(
         ) as HTMLElement
     }
 
-    // TODO this location could be different
-    private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
-
     private fun setAttrs(el: HTMLElement, node: SemanticsNode) {
         fun <T> setIf(attr: String, prop: SemanticsPropertyKey<T>, value: (T) -> String?) =
             node.config.getOrNull(prop)?.let {
@@ -249,7 +258,7 @@ class CanvasSemanticsOwnerListener(
         fun <T> doIf(prop: SemanticsPropertyKey<T>, value: (T) -> Unit) =
             node.config.getOrNull(prop)?.let { value(it) }
 
-        el.setAttribute("semantics-id", node.id.toString())
+        el.setAttribute("id", node.semanticId)
 
         el.style.position = "fixed"
         el.style.whiteSpace = "pre"
@@ -283,27 +292,22 @@ class CanvasSemanticsOwnerListener(
             Role.RadioButton -> {
                 el.setAttribute("type", "radio")
                 setIf("aria-label", SemanticsProperties.Text) { it.joinToString() }
-                node.config.getOrNull(SemanticsProperties.Selected)?.let {
-                    el.asDynamic().checked = it
-                }
+                doIf(SemanticsProperties.Selected) { el.checked = it }
             }
 
             Role.Checkbox -> {
                 require(el is HTMLInputElement) { "Role.Checkbox is not HTMLInputElement" }
                 el.setAttribute("type", "checkbox")
                 setIf("aria-label", SemanticsProperties.Text) { it.joinToString() }
-                doIf(SemanticsProperties.Selected) { el.asDynamic().checked = it }
-                doIf(SemanticsProperties.ToggleableState) {
-                    when (it) {
-                        ToggleableState.On -> el.asDynamic().checked = true
-                        ToggleableState.Off -> el.asDynamic().checked = false
-                        ToggleableState.Indeterminate -> el.asDynamic().checked = false // I guess
-                    }
-                }
+                doIf(SemanticsProperties.Selected) { el.checked = it }
+                doIf(SemanticsProperties.ToggleableState) { el.checked = it == ToggleableState.On }
             }
 
             Role.Button -> {
-                doIf(SemanticsProperties.Text) { el.innerText = it.joinToString() }
+                doIf(SemanticsProperties.Text) {
+                    val text = it.joinToString()
+                    if (el.innerText != text) el.innerText = text
+                }
                 setIf("aria-expanded", SemanticsActions.Expand) { "false" }
                 setIf("aria-expanded", SemanticsActions.Collapse) { "true" }
             }
@@ -324,9 +328,32 @@ class CanvasSemanticsOwnerListener(
             }
 
             else -> {
+                // ThemedAdaptiveDialog sets this paneTitle
+                val isDialog = node.config.getOrNull(SemanticsProperties.IsDialog) != null ||
+                        node.config.getOrNull(SemanticsProperties.PaneTitle) == "Dialog"
+                if (isDialog) {
+                    el.setAttribute("role", "dialog")
+                    // find a header node and mark it as the label and mark its sibling (if it exists) as the description
+                    var hasHeadingAsChild: SemanticsNode? = node
+                    while (hasHeadingAsChild != null) {
+                        if (hasHeadingAsChild.children.getOrNull(0)?.config?.getOrNull(SemanticsProperties.Heading) != null)
+                            break
+                        hasHeadingAsChild = hasHeadingAsChild.children.getOrNull(0)
+                    }
+                    if (hasHeadingAsChild != null) {
+                        hasHeadingAsChild.children.getOrNull(0)?.let {
+                            el.setAttribute("aria-labelledby", it.semanticId)
+                        }
+                        hasHeadingAsChild.children.getOrNull(1)?.let {
+                            el.setAttribute("aria-describedby", it.semanticId)
+                        }
+                    }
+                }
+
                 setIf("aria-label", SemanticsProperties.Text, { it.joinToString() })
                 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/textbox_role
                 // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/text
+
                 if (node.config.getOrNull(SemanticsProperties.IsEditable) != null && el is HTMLInputElement) {
                     el.setAttribute("type", "text")
                     setIf("aria-description", SemanticsProperties.InputText) { it.toString() }
@@ -366,60 +393,48 @@ class CanvasSemanticsOwnerListener(
             if (areAllChildrenRadioButtons(node)) "radiogroup" else null
         }
 
-        setIf("role", SemanticsProperties.IsDialog) { "dialog" }
-
-        when (val onClick = node.config.getOrNull(SemanticsActions.OnClick)?.action) {
-            null -> {
-                if (clickListeners[node.id] != null) {
-                    el.removeEventListener("click", clickListeners[node.id])
-                    clickListeners.remove(node.id)
+        val clickable = node.config.getOrNull(SemanticsActions.OnClick) != null
+        if (clickable) {
+            if (el.clickListener == null) {
+                el.clickListener = EventListener {
+                    doIf(SemanticsActions.OnClick) { it.action?.invoke() }
                 }
             }
-
-            else -> {
-                if (clickListeners[node.id] == null) {
-                    val clickListener = EventListener {
-                        // console.log("Click")
-                        onClick()
-                    }
-
-                    el.addEventListener("click", clickListener)
-                    clickListeners[node.id] = clickListener
-                }
-            }
+        } else {
+            el.clickListener = null
         }
-
 
         // TODO: Logic
         // When either RequestFocus or Focused is set, the shadow dom element has to be focusable (e.g. via tabindex or similar)
         // On focus, we have to actually focus the shadow dom element for the screen reader to actually read the text
         // For this to properly work with the handlers from compose, we have to propagate keyboard events, the actual focus
         // event and click events back to the canvas or to the explicit handlers, if they are given.
-        when (val requestFocus = node.config.getOrNull(SemanticsActions.RequestFocus)?.action) {
-            null -> {
-                if (listeners[node.id] != null) {
-                    el.removeAttribute("tabindex")
-                    el.removeEventListener("focus", listeners[node.id])
-                    listeners.remove(node.id)
+        val focusable = node.config.getOrNull(SemanticsProperties.Focused) != null
+                || node.config.getOrNull(SemanticsActions.RequestFocus) != null
+        if (focusable) {
+            if (el.focusListener == null) {
+                val focusListener = EventListener {
+                    doIf(SemanticsActions.RequestFocus) { it.action?.invoke() }
                 }
-            }
 
-            else -> {
-                if (listeners[node.id] == null) {
-                    val focusListener = EventListener {
-                        // console.log("Focus")
-                        requestFocus()
-                    }
+                if (el is HTMLDivElement)
+                    el.setAttribute("tabindex", "-1")
 
-                    if (el is HTMLDivElement)
-                        el.setAttribute("tabindex", "-1")
-                    el.addEventListener("focus", focusListener)
-                    listeners[node.id] = focusListener
-                }
+                el.focusListener = focusListener
             }
+        } else {
+            el.removeAttribute("tabindex")
+            el.focusListener = null
         }
 
-        doIf(SemanticsProperties.Focused) { if (it) el.focus() }
+        doIf(SemanticsProperties.Focused) {
+            if (it) {
+                // It is not enough for textboxes to just have focus they also need to be clicked.
+                // This is the same workaround as upstream.
+                doIf(SemanticsProperties.EditableText) { el.click() }
+                el.focus()
+            }
+        }
 
         el.removeAttribute("aria-live")
         setIf("aria-live", SemanticsProperties.LiveRegion) {
@@ -465,3 +480,53 @@ fun onDomReady(block: () -> Unit) {
         block()
     }
 }
+
+private external interface FocusListenerElement {
+    var focusListener: EventListener?
+}
+
+private var HTMLElement.focusListener: EventListener?
+    get() = unsafeCast<FocusListenerElement>().focusListener.takeIf { it != undefined }
+    set(value) {
+        val self = unsafeCast<FocusListenerElement>()
+
+        self.focusListener?.also {
+            self.focusListener = undefined
+            removeEventListener("focus", it)
+        }
+
+        value?.also {
+            self.focusListener = it
+            addEventListener("focus", it)
+        }
+    }
+
+private external interface ClickListenerElement {
+    var clickListener: EventListener?
+}
+
+private var HTMLElement.clickListener: EventListener?
+    get() = unsafeCast<ClickListenerElement>().clickListener.takeIf { it != undefined }
+    set(value) {
+        val self = unsafeCast<ClickListenerElement>()
+
+        self.clickListener?.also {
+            self.clickListener = undefined
+            removeEventListener("click", it)
+        }
+
+        value?.also {
+            self.clickListener = it
+            addEventListener("click", it)
+        }
+    }
+
+private external interface Checked {
+    var checked: Boolean
+}
+
+private var HTMLElement.checked: Boolean
+    get() = unsafeCast<Checked>().checked
+    set(value) {
+        unsafeCast<Checked>().checked = value
+    }

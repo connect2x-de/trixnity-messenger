@@ -31,12 +31,12 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -47,6 +47,8 @@ import de.connect2x.messenger.compose.view.settings.LegalFooter
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 
 typealias StepId = String
 
@@ -95,33 +97,37 @@ data class WizardStep(
 )
 
 @Composable
-fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
+fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false) {
     val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
     val savableStateHolder = rememberSaveableStateHolder()
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
-    if (backHandler != null) {
+    val backHandler = DI.get<BackHandler>()
+    if (useDefaultBackHandler) {
         val onBack = rememberUpdatedState {
             previousStep?.let { currentStepId.value = it }
         }
         val callback = remember(onBack) {
-            BackCallback(priority = 1) {
+            BackCallback(priority = BackHandler.PRIORITY_WIZARD) {
                 onBack.value()
             }
         }
         DisposableEffect(backHandler, callback) {
-            backHandler.register(callback)
+            backHandler.registerBackCallback(callback)
             onDispose {
-                backHandler.unregister(callback)
+                backHandler.unregisterCallback(callback)
             }
         }
     }
 
     Dialog(
-        onDismissRequest = {},
+        onDismissRequest = {
+            backHandler.goBack()
+        },
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
+            dismissOnClickOutside = false
         ),
     ) {
         key(wizardStep) {
@@ -197,6 +203,7 @@ private fun WizardHeading(wizardStep: WizardStep) {
     Text(
         wizardStep.title(),
         style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.semantics { heading() }
     )
     MiddleSpacer()
 }

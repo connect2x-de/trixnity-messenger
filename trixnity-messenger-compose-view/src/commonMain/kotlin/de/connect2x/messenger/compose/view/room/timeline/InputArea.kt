@@ -69,6 +69,7 @@ import de.connect2x.messenger.compose.view.common.FilePickerType.PHOTO_CAPTURE
 import de.connect2x.messenger.compose.view.common.FilePickerType.VIDEO_CAPTURE
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.files.EmptyFileListException
 import de.connect2x.messenger.compose.view.files.LoadFileDialog
 import de.connect2x.messenger.compose.view.files.NotPasteableException
@@ -392,10 +393,10 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
     val i18n = DI.get<I18nView>()
 
     Tooltip({ Text(i18n.inputAreaEmojis()) }) {
-        ThemedIconToggleButton(
+        ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
-            checked = emojisOpen.value,
-            onCheckedChange = { emojisOpen.value = emojisOpen.value.not() },
+            onClick = { emojisOpen.value = emojisOpen.value.not() },
+            modifier = Modifier.expandable(emojisOpen),
         ) {
             Icon(
                 Icons.Default.Mood,
@@ -422,11 +423,11 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
     )
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
         Tooltip({ Text(i18n.inputAreaSelectAttachment()) }) {
-            ThemedIconToggleButton(
+            ThemedIconButton(
+                modifier = Modifier.expandable(showAttachmentDialog),
                 style = MaterialTheme.components.commonIconButton,
-                checked = showAttachmentDialog,
-                onCheckedChange = {
-                    if (it) {
+                onClick = {
+                    if (!showAttachmentDialog) {
                         val hasShown = inputAreaViewModel.hasShownAttachmentSelectDialog.replayCache.getOrNull(0)
                         if (hasShown != null && hasShown) {
                             inputAreaViewModel.closeAttachmentDialog()

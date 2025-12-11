@@ -5,17 +5,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +32,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
-import kotlinx.coroutines.flow.map
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -122,8 +116,6 @@ internal fun MessageAudio(
     onSave: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    val downloadSuccessful = remember { element.downloadMediaResult.map { it != null } }.collectAsState(false)
-
     Column(
         modifier = Modifier.padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -146,15 +138,6 @@ internal fun MessageAudio(
                         .buttonPointerModifier()
                 )
                 FileInfo(element)
-            }
-            if (downloadSuccessful.value == true) {
-                Spacer(Modifier.size(10.dp))
-                Icon(
-                    Icons.Default.CheckCircle,
-                    i18n.messageContentDownloadCompleted(),
-                    Modifier.align(Alignment.CenterVertically),
-                    Color.DarkGray
-                )
             }
         }
     }

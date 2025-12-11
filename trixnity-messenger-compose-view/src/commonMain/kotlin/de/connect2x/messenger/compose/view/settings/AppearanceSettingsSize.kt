@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.settings
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -20,7 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -87,7 +91,12 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
 
         // Preview
         val systemDensity = SystemDensity.current
-        Column(Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)) {
+        Column(
+            Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)
+            // remove this from the focus chain and hide it from accessibility
+            .clearAndSetSemantics { hideFromAccessibility() }
+            .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
+        ) {
             CompositionLocalProvider(
                 LocalDensity provides Density(
                     systemDensity.density * finalNewDisplaySize,
