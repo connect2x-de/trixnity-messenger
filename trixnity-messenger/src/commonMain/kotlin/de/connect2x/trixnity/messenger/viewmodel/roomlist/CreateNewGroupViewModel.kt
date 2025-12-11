@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -100,7 +100,7 @@ open class CreateNewGroupViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun back() {

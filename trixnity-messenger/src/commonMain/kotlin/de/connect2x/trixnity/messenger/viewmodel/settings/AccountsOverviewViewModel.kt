@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -52,7 +52,7 @@ class AccountsOverviewViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     private val initials = get<Initials>()
