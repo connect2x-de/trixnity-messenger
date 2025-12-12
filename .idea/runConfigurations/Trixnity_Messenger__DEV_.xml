@@ -3,7 +3,7 @@
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="MESSENGER_BUILD_FLAVOR" value="DEV" />
+          <entry key="TM_BUILD_FLAVOR" value="DEV" />
         </map>
       </option>
       <option name="executionName" />
