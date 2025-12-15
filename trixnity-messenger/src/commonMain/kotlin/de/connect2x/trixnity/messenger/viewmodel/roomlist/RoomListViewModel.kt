@@ -76,7 +76,6 @@ interface RoomListViewModelFactory {
         onUserProfileSelected: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
-        onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
         onStartVerification: (UserId) -> Unit,
         onCloseRoom: () -> Unit
@@ -90,7 +89,6 @@ interface RoomListViewModelFactory {
             onUserProfileSelected,
             onOpenAppInfo,
             onSendLogs,
-            onOpenAccountsOverview,
             onAccountSelected,
             onStartVerification,
             onCloseRoom
@@ -133,7 +131,6 @@ interface RoomListViewModel {
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
-    fun openAccountsOverview()
     fun verifyAccount(userId: UserId)
 
     /**
@@ -161,7 +158,6 @@ class RoomListViewModelImpl(
     onUserProfileSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
-    private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
     private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit
@@ -515,10 +511,6 @@ class RoomListViewModelImpl(
         onSendLogs()
     }
 
-    override fun openAccountsOverview() {
-        onOpenAccountsOverview()
-    }
-
     override fun verifyAccount(userId: UserId) {
         onStartVerification(userId)
     }
@@ -558,7 +550,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun selectRoom(roomId: RoomId) {}
     override fun errorDismiss() {}
     override fun sendLogs() {}
-    override fun openAccountsOverview() {}
     override fun closeProfile() {}
     override fun verifyAccount(userId: UserId) {}
 }

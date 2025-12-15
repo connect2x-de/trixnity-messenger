@@ -230,8 +230,6 @@ import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepListImpl
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
@@ -549,7 +547,6 @@ fun userSearchViewModule() = module {
 }
 
 fun settingsViewModule() = module {
-    single<AccountsOverviewView> { AccountsOverviewViewImpl() }
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }

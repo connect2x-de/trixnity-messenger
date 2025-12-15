@@ -110,7 +110,6 @@ class RootViewModelTest {
                                 onUserProfileSelected: () -> Unit,
                                 onOpenAppInfo: () -> Unit,
                                 onSendLogs: () -> Unit,
-                                onOpenAccountsOverview: () -> Unit,
                                 onAccountSelected: () -> Unit,
                                 onStartVerification: (UserId) -> Unit,
                                 onCloseRoom: () -> Unit,

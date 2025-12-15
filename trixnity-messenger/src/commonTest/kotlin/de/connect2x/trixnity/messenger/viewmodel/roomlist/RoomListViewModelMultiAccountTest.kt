@@ -857,7 +857,6 @@ class RoomListViewModelMultiAccountTest {
             onUserSettingsSelected = mock(),
             onUserProfileSelected = mock(),
             onOpenAppInfo = mock(),
-            onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
             onAccountSelected = mock(),
             onStartVerification = mock(),

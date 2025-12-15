@@ -65,13 +65,6 @@ class RoomListRouter(
         childFactory = ::createChild,
     )
 
-    fun closeAccountsOverview() {
-        if (stack.active.configuration is Config.AccountsOverview) {
-            log.debug { "close accounts overview" }
-            navigation.launchPop(viewModelContext.coroutineScope)
-        }
-    }
-
     fun openRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
         log.debug { "go to room $roomId" }
         selectedRoomId.value = roomId
@@ -95,7 +88,6 @@ class RoomListRouter(
                     onUserProfileSelected = ::onShowProfile,
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
-                    onOpenAccountsOverview = ::onOpenAccountsOverview,
                     onAccountSelected = onAccountSelected,
                     onStartVerification = onStartVerification,
                     onCloseRoom = onCloseRoom
@@ -223,15 +215,6 @@ class RoomListRouter(
                 viewModelContext.get<AppInfoViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseAppInfo = ::onCloseAppInfo,
-                )
-            )
-
-            is Config.AccountsOverview -> Wrapper.AccountsOverview(
-                viewModelContext.get<AccountsOverviewViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
-                    onCreateNewAccount = onCreateNewAccount,
-                    onRemoveAccount = onRemoveAccount,
-                    onClose = ::onCloseAccountsOverview,
                 )
             )
         }
@@ -365,16 +348,6 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onOpenAccountsOverview() {
-        log.debug { "open accounts overview" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.AccountsOverview)
-    }
-
-    private fun onCloseAccountsOverview() {
-        log.debug { "close accounts overview" }
-        navigation.launchPop(viewModelContext.coroutineScope)
-    }
-
     private fun onShowAccountSetup(userId: UserId) {
         val messengerSettings = viewModelContext.get<MatrixMessengerSettingsHolder>()
         viewModelContext.coroutineScope.launch {
@@ -437,9 +410,6 @@ class RoomListRouter(
         data object AppInfo : Config()
 
         @Serializable
-        data object AccountsOverview : Config()
-
-        @Serializable
         data object None : Config()
     }
 
@@ -456,7 +426,6 @@ class RoomListRouter(
         class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()
-        class AccountsOverview(val viewModel: AccountsOverviewViewModel) : Wrapper()
         data object None : Wrapper()
     }
 }

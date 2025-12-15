@@ -88,7 +88,6 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
     fun openSelfVerification(userId: UserId)
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
-    fun closeAccountsOverview()
 }
 
 open class MainViewModelImpl(
@@ -185,7 +184,6 @@ open class MainViewModelImpl(
     }
 
     private fun onRemoveAccountInternal(userId: UserId) {
-        roomListRouter.closeAccountsOverview()
         this.onRemoveAccount(userId)
         coroutineScope.launch {
             if (messengerSettings.value.base.accounts.isEmpty()) {
@@ -413,10 +411,6 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun closeAccountsOverview() {
-        roomListRouter.closeAccountsOverview()
-    }
-
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
@@ -563,5 +557,4 @@ class PreviewMainViewModel : MainViewModel {
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
     override fun openSelfVerification(userId: UserId) {}
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
-    override fun closeAccountsOverview() {}
 }

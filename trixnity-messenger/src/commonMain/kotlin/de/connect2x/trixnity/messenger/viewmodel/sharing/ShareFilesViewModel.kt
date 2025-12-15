@@ -75,7 +75,6 @@ class SharedDataViewModelImpl(
         onUserProfileSelected = { },
         onOpenAppInfo = { },
         onSendLogs = { },
-        onOpenAccountsOverview = { },
         onAccountSelected = { },
         onStartVerification = { },
         onCloseRoom = { }

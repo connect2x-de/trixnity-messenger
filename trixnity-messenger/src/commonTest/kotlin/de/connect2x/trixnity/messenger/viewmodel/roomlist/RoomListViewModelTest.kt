@@ -1155,7 +1155,6 @@ class RoomListViewModelTest {
             onUserSettingsSelected = mock(),
             onUserProfileSelected = mock(),
             onOpenAppInfo = mock(),
-            onOpenAccountsOverview = mock(),
             onSendLogs = mock(),
             onAccountSelected = onAccountSelected,
             onStartVerification = onVerificationStarted ?: mock(),
