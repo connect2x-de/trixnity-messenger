@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
 - SDK: Change back handling to use custom handler instead of Decomposes
-- UI / ANDROID: Close room list search and scroll up with back button
+- UI / ANDROID: Close room list search with back button
 
 ### Deprecated
 
