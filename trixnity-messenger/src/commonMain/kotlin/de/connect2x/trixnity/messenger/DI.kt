@@ -11,6 +11,8 @@ import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
 import de.connect2x.trixnity.messenger.secrets.secretsModule
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -101,6 +103,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.Hi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.PowerLevelsTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TombstoneStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
@@ -277,6 +280,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
+
+            single<BackHandler> { BackHandlerImpl() }
         }
     },
     ::connectingViewModels,
@@ -389,6 +394,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<TombstoneStateTimelineElementViewModelFactory> { TombstoneStateTimelineElementViewModelFactory }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }

@@ -14,6 +14,8 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
@@ -99,8 +101,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
-    private val backPressedHandler = BackDispatcher()
-
+    private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
@@ -275,7 +276,7 @@ class MainViewModelTest {
         cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
-        backPressedHandler.back()
+        backHandler.goBack()
         delay(100)
 
         assertSoftly {
@@ -623,7 +624,7 @@ class MainViewModelTest {
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                componentContext = DefaultComponentContext(lifecycle),
                 di = koinApplication {
                     allowOverride(true)
                     modules(
@@ -716,6 +717,7 @@ class MainViewModelTest {
                                     }
                                 }
                             }
+                            single<BackHandler> { backHandler }
                         })
                 }.koin,
                 coroutineContext = backgroundScope.coroutineContext,

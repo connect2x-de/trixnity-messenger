@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.window.ComposeViewport
 import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -37,6 +38,7 @@ import org.w3c.dom.HTMLProgressElement
 import org.w3c.dom.ItemArrayLike
 import org.w3c.dom.LOADING
 import org.w3c.dom.events.EventListener
+import org.w3c.dom.events.KeyboardEvent
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -59,24 +61,36 @@ fun AccessibleComposeViewport(content: @Composable () -> Unit = {}) {
 
 class CanvasSemanticsOwnerListener(
     val a11yContainer: HTMLDivElement,
-    val coroutineScope: CoroutineScope = MainScope(),
+    coroutineScope: CoroutineScope = MainScope(),
 ) : PlatformContext.SemanticsOwnerListener {
-
     private val owners = mutableSetOf<SemanticsOwner>()
+
+    private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
 
     private val syncFlow =
         MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     init {
+        // every browser other than Chrome needs this attribute in order for copy/paste events to be sendable to the
+        // canvas. In Chrome however setting this results in copy/paste no longer working.
+        if (window.asDynamic().chrome != "undefined")
+            canvas?.setAttribute("contenteditable", "true")
+
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
-        for (event in listOf("keydown", "keyup")) a11yContainer.addEventListener(event, EventListener {
-            it.stopImmediatePropagation()
-            it.stopPropagation()
-            it.preventDefault()
-            val x = js("new it.constructor(it.type, it);")
-            canvas?.dispatchEvent(x)
-        }, true)
+        for (event in listOf("keydown", "keyup", "copy", "paste", "cut"))
+            a11yContainer.addEventListener(event, EventListener {
+                it.stopImmediatePropagation()
+                it.stopPropagation()
+                // we need to allow default behaviour so that they these key events turned into copy/cut/paste events
+                if (event != "keydown" || it !is KeyboardEvent || !it.ctrlKey
+                    || !listOf("c", "x", "v").contains(it.key)
+                )
+                    it.preventDefault()
+
+                val x = js("new it.constructor(it.type, it);")
+                canvas?.dispatchEvent(x)
+            }, true)
 
         coroutineScope.launch {
             syncFlow
@@ -231,9 +245,6 @@ class CanvasSemanticsOwnerListener(
             }
         ) as HTMLElement
     }
-
-    // TODO this location could be different
-    private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
 
     private fun setAttrs(el: HTMLElement, node: SemanticsNode) {
         fun <T> setIf(attr: String, prop: SemanticsPropertyKey<T>, value: (T) -> String?) =
@@ -416,7 +427,14 @@ class CanvasSemanticsOwnerListener(
             el.focusListener = null
         }
 
-        doIf(SemanticsProperties.Focused) { if (it) el.focus() }
+        doIf(SemanticsProperties.Focused) {
+            if (it) {
+                // It is not enough for textboxes to just have focus they also need to be clicked.
+                // This is the same workaround as upstream.
+                doIf(SemanticsProperties.EditableText) { el.click() }
+                el.focus()
+            }
+        }
 
         el.removeAttribute("aria-live")
         setIf("aria-live", SemanticsProperties.LiveRegion) {
@@ -427,18 +445,13 @@ class CanvasSemanticsOwnerListener(
             }
         }
 
+        setIf("aria-description", SemanticsProperties.ContentDescription) { it.joinToString() }
+
         val title = node.config.getOrNull(SemanticsProperties.PaneTitle)
-        val description = node.config.getOrNull(SemanticsProperties.ContentDescription)?.joinToString()
         if (title != null) {
             el.setAttribute("title", title)
             if (title == "tooltip")
                 el.setAttribute("role", "tooltip")
-
-            if (description != null)
-                el.setAttribute("aria-description", description)
-
-        } else if (description != null) {
-            el.setAttribute("aria-label", description)
         }
     }
 }
