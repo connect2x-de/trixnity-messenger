@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -164,6 +165,14 @@ class RegisterMatrixAccountViewModelImpl(
 
     override fun back() {
         onBack()
+    }
+
+    val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        registerBackCallback(backCallback)
     }
 }
 

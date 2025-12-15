@@ -1,12 +1,17 @@
 package de.connect2x.messenger.compose.view.verification
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -17,13 +22,18 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.CollectionItemInfo
@@ -40,6 +50,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ErrorView
 import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -49,12 +60,13 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
+import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.messenger.compose.view.theme.messengerColors
+import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import net.folivo.trixnity.client.verification.SelfVerificationMethod
@@ -179,7 +191,10 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         Text(text = i18n.selfVerificationHelpOtherDevice())
                         Text(text = i18n.selfVerificationHelpVerifyThis())
                         Spacer(Modifier.size(20.dp))
-                        ExpandableSection(heading = i18n.selfVerificationHelpReasonTitle(), icon = Icons.Default.Info) {
+                        ExpandableSection(
+                            heading = i18n.selfVerificationHelpReasonTitle(),
+                            icon = Icons.Default.Info,
+                        ) {
                             RunningText(text = i18n.selfVerificationHelpReason1())
                             RunningText(text = i18n.selfVerificationHelpReason2())
                             RunningText(text = i18n.selfVerificationHelpReason3())
@@ -252,67 +267,86 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                         },
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        selfVerificationMethods.forEachIndexed { i, method ->
+                        selfVerificationMethods.forEachIndexed { index, method ->
                             when (method) {
                                 is SelfVerificationMethod.CrossSignedDeviceVerification -> {
-                                    ThemedListItemRadioButton(
-                                        headlineContent = { Text(i18n.selfVerificationMethodsOtherDevice()) },
-                                        supportingContent = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
-                                        onChange = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method),
-                                        modifier = Modifier.semantics {
-                                            collectionItemInfo = CollectionItemInfo(
-                                                rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1
+                                    EntryContainer(
+                                        index = index,
+                                        header = {
+                                            Text(
+                                                text = i18n.selfVerificationMethodsOtherDevice(),
+                                                style = MaterialTheme.typography.titleSmall,
                                             )
                                         },
+                                        description = { Text(i18n.selfVerificationMethodsOtherDeviceInfo()) },
+                                        onClick = {
+                                            selectedMethod.value =
+                                                SelectSelfVerificationMethod(
+                                                    method
+                                                )
+                                        },
+                                        selected = selectedMethod.value == SelectSelfVerificationMethod(
+                                            method
+                                        )
                                     )
                                 }
 
                                 is SelfVerificationMethod.AesHmacSha2RecoveryKey -> {
-                                    ThemedListItemRadioButton(
-                                        headlineContent = { Text(i18n.selfVerificationMethodsRecoveryKey()) },
-                                        supportingContent = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
-                                        onChange = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method),
-                                        modifier = Modifier.semantics {
-                                            collectionItemInfo = CollectionItemInfo(
-                                                rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1
+                                    EntryContainer(
+                                        index = index,
+                                        header = {
+                                            Text(
+                                                i18n.selfVerificationMethodsRecoveryKey(),
+                                                style = MaterialTheme.typography.titleSmall,
                                             )
                                         },
+                                        description = { Text(i18n.selfVerificationMethodsRecoveryKeyInfo()) },
+                                        onClick = { selectedMethod.value = SelectSelfVerificationMethod(method) },
+                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method)
                                     )
                                 }
 
                                 is SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase -> {
-                                    ThemedListItemRadioButton(
-                                        headlineContent = { Text(i18n.selfVerificationMethodsRecoveryPassphrase()) },
-                                        supportingContent = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
-                                        onChange = { selectedMethod.value = SelectSelfVerificationMethod(method) },
-                                        selected = selectedMethod.value == SelectSelfVerificationMethod(method),
-                                        modifier = Modifier.semantics {
-                                            collectionItemInfo = CollectionItemInfo(
-                                                rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1
+                                    EntryContainer(
+                                        index = index,
+                                        header = {
+                                            Text(
+                                                i18n.selfVerificationMethodsRecoveryPassphrase(),
+                                                style = MaterialTheme.typography.titleSmall,
                                             )
                                         },
+                                        description = { Text(i18n.selfVerificationMethodsRecoveryPassphraseInfo()) },
+                                        onClick = {
+                                            selectedMethod.value =
+                                                SelectSelfVerificationMethod(
+                                                    method
+                                                )
+                                        },
+                                        selected = selectedMethod.value == SelectSelfVerificationMethod(
+                                            method
+                                        )
                                     )
                                 }
                             }
                         }
 
-                        ThemedListItemRadioButton(
-                            leadingContent = {
-                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                            },
-                            headlineContent = {
+                        EntryContainer(
+                            index = selfVerificationMethods.size,
+                            header = {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    i18n.commonWarning(),
+                                    Modifier.size(16.dp),
+                                    MaterialTheme.colorScheme.error
+                                )
+                                SmallSpacer()
                                 Text(
                                     i18n.selfVerificationResetRecoveryWarningTitle(selfVerificationViewModel.userId),
+                                    style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.error,
                                 )
                             },
-                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey,
-                            onChange = {
-                                selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
-                            },
-                            supportingContent = {
+                            description = {
                                 Text(buildAnnotatedString {
                                     append("${i18n.selfVerificationResetRecoveryKey()}. ")
                                     pushStyle(SpanStyle(fontWeight = Bold))
@@ -321,36 +355,36 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                                     pop()
                                 })
                             },
-                            modifier = Modifier.semantics {
-                                collectionItemInfo = CollectionItemInfo(
-                                    rowIndex = selfVerificationMethods.size, rowSpan = 1,
-                                    columnIndex = 0, columnSpan = 1
-                                )
+                            onClick = {
+                                selectedMethod.value = SelfVerificationMethodsListEntries.SelectResetRecoveryKey
                             },
+                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectResetRecoveryKey
                         )
-
-                        ThemedListItemRadioButton(
-                            leadingContent = {
-                                Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                            },
-                            headlineContent = {
+                        EntryContainer(
+                            index = selfVerificationMethods.size + 1,
+                            header = {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    i18n.commonWarning(),
+                                    Modifier.size(16.dp),
+                                    MaterialTheme.colorScheme.error
+                                )
+                                SmallSpacer()
                                 Text(
                                     i18n.redoSelfVerificationContinueWithoutVerification(),
                                     color = MaterialTheme.colorScheme.error,
                                 )
                             },
-                            supportingContent = { Text(i18n.redoSelfVerificationDoItLater()) },
-                            onChange = {
+                            description = {
+                                Text(
+                                    text = i18n.redoSelfVerificationDoItLater(),
+                                )
+                            },
+                            onClick = {
                                 selectedMethod.value =
                                     SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
                             },
-                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification,
-                            modifier = Modifier.semantics {
-                                collectionItemInfo = CollectionItemInfo(
-                                    rowIndex = selfVerificationMethods.size + 1, rowSpan = 1,
-                                    columnIndex = 0, columnSpan = 1
-                                )
-                            },
+                            selected = selectedMethod.value == SelfVerificationMethodsListEntries.SelectProceedWithoutVerification
                         )
                     }
                 }
@@ -480,11 +514,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showStep = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                    if (!showStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
-                            currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
                         },
                     ) {
                         Text(i18n.commonBack())
@@ -546,11 +583,14 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
+                    val showStep = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                    if (!showStep) {
+                        currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
+                    }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = {
                             selfVerificationViewModel.backToChoose()
-                            currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
                         },
                     ) {
                         Text(i18n.commonBack())
@@ -662,4 +702,65 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             }
         )
     }
+
+    @Composable
+    private fun EntryContainer(
+        index: Int,
+        header: @Composable RowScope.() -> Unit,
+        description: @Composable () -> Unit,
+        onClick: () -> Unit,
+        selected: Boolean,
+    ) {
+        val interactionSource = remember { MutableInteractionSource() }
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shape = MaterialTheme.shapes.medium,
+            onClick = onClick,
+            interactionSource = interactionSource,
+            modifier = Modifier
+                .buttonPointerModifier()
+                .focusHighlighting(interactionSource, shape = MaterialTheme.shapes.medium)
+                .focusProperties {
+                    canFocus = false
+                }
+                .semantics {
+                    collectionItemInfo = CollectionItemInfo(
+                        rowIndex = index, rowSpan = 1,
+                        columnIndex = 0, columnSpan = 1
+                    )
+                },
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(MaterialTheme.messengerDpConstants.small)
+            ) {
+                RadioButton(
+                    onClick = onClick,
+                    selected = selected,
+                    interactionSource = interactionSource,
+                )
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.height(IntrinsicSize.Min)
+                    ) {
+                        ProvideTextStyle(
+                            MaterialTheme.typography.titleSmall
+                        ) {
+                            header()
+                        }
+                    }
+                    SmallSpacer()
+                    ProvideTextStyle(
+                        MaterialTheme.typography.bodySmall
+                    ) {
+                        description()
+                    }
+                }
+            }
+        }
+    }
+
+
 }

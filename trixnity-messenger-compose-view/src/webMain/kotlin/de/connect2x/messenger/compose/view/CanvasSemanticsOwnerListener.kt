@@ -445,18 +445,13 @@ class CanvasSemanticsOwnerListener(
             }
         }
 
+        setIf("aria-description", SemanticsProperties.ContentDescription) { it.joinToString() }
+
         val title = node.config.getOrNull(SemanticsProperties.PaneTitle)
-        val description = node.config.getOrNull(SemanticsProperties.ContentDescription)?.joinToString()
         if (title != null) {
             el.setAttribute("title", title)
             if (title == "tooltip")
                 el.setAttribute("role", "tooltip")
-
-            if (description != null)
-                el.setAttribute("aria-description", description)
-
-        } else if (description != null) {
-            el.setAttribute("aria-label", description)
         }
     }
 }

@@ -132,7 +132,7 @@ kotlin {
         androidMain {
             dependsOn(jvmAndNativeMain)
             dependencies {
-                implementation(sharedLibs.androidx.activity.ktx)
+                api(sharedLibs.androidx.activity.ktx)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.androidx.browser)
                 implementation(sharedLibs.androidx.work.runtime.ktx)

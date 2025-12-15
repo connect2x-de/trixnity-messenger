@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +25,7 @@ import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
 import de.connect2x.trixnity.messenger.util.defaultUriHandler
@@ -61,6 +63,10 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
             val matrixMultiMessenger =
                 matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             matrixMultiMessenger.defaultActivityGetter { this@MatrixMultiMessengerActivity }
+            val backHandler = matrixMultiMessenger.di.get<BackHandler>()
+            onBackPressedDispatcher.addCallback {
+                backHandler.goBack()
+            }
             withContext(Dispatchers.Main) {
                 setContent {
                     WithProfileSelection(

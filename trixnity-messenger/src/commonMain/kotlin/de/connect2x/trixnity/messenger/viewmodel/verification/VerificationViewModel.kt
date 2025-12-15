@@ -5,8 +5,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -252,10 +252,14 @@ open class VerificationViewModelImpl(
         }
 
     init {
-        val setupRunning =
-            get<MatrixMessengerSettingsHolder>().value.base.accounts.values.any { !it.base.accountSetupFinished }
         //Necessary to handle back button presses while in the setup, whose back callback has a higher priority because of the underlying viewModel backHandlers
-        backHandler.register(BackCallback(priority = if (setupRunning) 1 else 0) { cancel() })
+        registerBackCallback(BackCallback(priority = BackHandler.PRIORITY_VERIFICATION) {
+            if (stack.value.active.configuration != Cancelled) {
+                cancel()
+            } else {
+                onVerificationNotOk()
+            }
+        })
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification

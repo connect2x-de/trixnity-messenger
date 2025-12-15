@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import org.koin.core.component.get
@@ -33,7 +33,7 @@ class NotificationSettingsAllAccountsViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override val notificationSettings: List<NotificationSettingsSingleAccountViewModel> =
