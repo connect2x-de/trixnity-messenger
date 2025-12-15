@@ -138,6 +138,7 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepEmailIdentityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepOAuth2ViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
@@ -285,6 +286,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
             single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
             single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+            single<UiaStepOAuth2ViewModelFactory> { UiaStepOAuth2ViewModelFactory }
             single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
             single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
             single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
