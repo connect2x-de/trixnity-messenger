@@ -218,10 +218,11 @@ open class DeviceSettingsSingleAccountViewModelImpl(
                     is AuthorizeUiaResult.UnexpectedError ->
                         _error.value = result.message
 
-                    is AuthorizeUiaResult.Success ->
+                    is AuthorizeUiaResult.Success -> {
                         log.debug { "successfully removed device $deviceId for user $userId" }
+                        update()
+                    }
                 }
-                update()
             }
         }
     }
