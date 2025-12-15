@@ -32,9 +32,11 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountV
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -266,6 +268,9 @@ class RootRouter(
         log.debug { "requested resume sso login" }
         val state = settings.value.base.ssoLoginState
         if (state != null) {
+            log.debug { "wait for MatrixClientInitialization before resuming sso login" }
+            stack.toFlow()
+                .first { it.active.configuration != Config.None && it.active.configuration != Config.MatrixClientInitialization }
             log.info { "resume sso login" }
             navigation.replaceAllSuspending(
                 Config.AddMatrixAccount,
@@ -284,6 +289,9 @@ class RootRouter(
         log.debug { "requested resume oAuth2 login" }
         val state = settings.value.base.oAuth2LoginState
         if (state != null) {
+            log.debug { "wait for MatrixClientInitialization before resuming oAuth2 login" }
+            stack.toFlow()
+                .first { it.active.configuration != Config.None && it.active.configuration != Config.MatrixClientInitialization }
             log.info { "resume oAuth2 login" }
             val instance = stack.value.active.instance
             if (instance is Wrapper.OAuth2Login) {

@@ -681,6 +681,11 @@ open class I18nView(
         DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl anzumelden."
     }
 
+    open fun loginWithOAuth2Waiting(serverUrl: String) = translate {
+        EN - "You have been redirected to log in on $serverUrl. Please follow the instructions there."
+        DE - "Sie wurden weitergeleitet, um sich auf $serverUrl anzumelden. Bitte folgen Sie dort den Anweisungen."
+    }
+
     open fun registerWithOAuth2() = translate {
         EN - "Register on Matrix server"
         DE - "Registrieren am Matrix Server"

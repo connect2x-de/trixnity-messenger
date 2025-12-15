@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -120,12 +119,7 @@ open class OAuth2LoginViewModelImpl(
         promptValue = if (type == OAuth2LoginViewModel.Type.REGISTER) PromptValue.Create else null,
         initialState = initialState,
         httpClientEngine = config.httpClientEngine,
-        httpClientConfig = {
-            install(Logging) { // FIXME remove
-                logger = Logger.DEFAULT
-                level = LogLevel.ALL
-            }
-        },
+        httpClientConfig = config.httpClientConfig,
     )
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()

@@ -1,6 +1,6 @@
 package de.connect2x.messenger.compose.view.connecting
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +34,7 @@ class OAuth2LoginViewImpl : OAuth2LoginView {
         val type = oAuth2LoginViewModel.type
         val i18n = DI.get<I18nView>()
 
-        Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
+        Column(Modifier.defaultMinSize(minHeight = 20.dp)) {
             when (state) {
                 OAuth2LoginViewModel.State.None -> {
                     val text = when (type) {
@@ -47,12 +47,12 @@ class OAuth2LoginViewImpl : OAuth2LoginView {
                 OAuth2LoginViewModel.State.StartLogin,
                 OAuth2LoginViewModel.State.WaitingForRedirect,
                 OAuth2LoginViewModel.State.ResumeLogin -> {
-                    Text(i18n.externalLogin("OAuth2"))
-                    SmallSpacer()
                     ThemedProgressIndicator(
                         Modifier.fillMaxWidth(),
                         MaterialTheme.components.linearProgressIndicator
                     )
+                    SmallSpacer()
+                    Text(i18n.loginWithOAuth2Waiting(oAuth2LoginViewModel.serverUrl))
                 }
 
                 is OAuth2LoginViewModel.State.Failure ->
