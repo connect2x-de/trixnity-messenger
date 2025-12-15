@@ -462,7 +462,6 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int?, focusRe
             density = density
         ).size.width.dp / density.density
     }
-    println("Page count is $pageCount")
     //Update the page numbers when new pages are scrolled into view
     LaunchedEffect(Unit) {
         snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.map { it.index } }.distinctUntilChanged { old, new -> old.firstOrNull() == new.firstOrNull() }
