@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
@@ -9,6 +7,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -129,8 +128,6 @@ interface RoomListViewModel {
     val closeProfileNeeded: Boolean
 
     val unverifiedAccounts: StateFlow<List<UserId>>
-
-    val roomListBackHandler: BackHandler
 
     fun createNewRoom()
     fun createNewRoomFor(userId: UserId)
@@ -268,8 +265,6 @@ class RoomListViewModelImpl(
                 combinedRooms.toList().flatten().associateBy { it.room.roomId }
             }
         }.shareIn(coroutineScope, WhileSubscribed(), 1)
-
-    override val roomListBackHandler: BackHandler = backHandler
 
     init {
         val directRoomsFlow = selectedMatrixClients.flatMapLatest { selectedMatrixClients ->
@@ -458,6 +453,10 @@ class RoomListViewModelImpl(
                 selectRoom(RoomId(segments[2]))
             }
         }
+        val backCallback = BackCallback(enabled = showSearch) {
+            showSearch.value = false
+        }
+        registerBackCallback(backCallback)
     }
 
     private fun resetSearchWhenNotShown() {
@@ -575,11 +574,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override val canCreateNewRoomWithAccount: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val unverifiedAccounts: StateFlow<List<UserId>> = MutableStateFlow(listOf())
     override val closeProfileNeeded: Boolean = true
-    override val roomListBackHandler: BackHandler = object : BackHandler {
-        override fun isRegistered(callback: BackCallback): Boolean { return true }
-        override fun register(callback: BackCallback) {}
-        override fun unregister(callback: BackCallback) {}
-    }
 
     override fun createNewRoom() {}
     override fun createNewRoomFor(userId: UserId) {}

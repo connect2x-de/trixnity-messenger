@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
-import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
@@ -686,7 +684,6 @@ class MainViewModelTest {
                                             MutableStateFlow(true)
                                         override val unverifiedAccounts: StateFlow<List<UserId>> =
                                             MutableStateFlow(listOf())
-                                        override val roomListBackHandler: BackHandler = viewModelContext.backHandler
                                         override val closeProfileNeeded: Boolean = false
                                         override val accountViewModel: AccountViewModel = object : AccountViewModel {
                                             override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
