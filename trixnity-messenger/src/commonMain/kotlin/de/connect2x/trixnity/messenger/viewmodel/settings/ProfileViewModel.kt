@@ -38,8 +38,18 @@ interface ProfileViewModelFactory {
         viewModelContext: ViewModelContext,
         onCloseProfile: () -> Unit,
         onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
+        onShowAccountSetup: (UserId) -> Unit,
+        onRemoveAccount: (UserId) -> Unit,
+        onCreateNewAccount: () -> Unit,
     ): ProfileViewModel {
-        return ProfileViewModelImpl(viewModelContext, onCloseProfile, onOpenAvatarCutter)
+        return ProfileViewModelImpl(
+            viewModelContext,
+            onCloseProfile,
+            onOpenAvatarCutter,
+            onShowAccountSetup,
+            onRemoveAccount,
+            onCreateNewAccount,
+        )
     }
 
     companion object : ProfileViewModelFactory
@@ -59,6 +69,7 @@ interface ProfileViewModel {
     fun saveDisplayName(userId: UserId)
     fun openAvatarCutter(userId: UserId, file: FileDescriptor)
     fun closeAvatarCutter()
+    fun createNewAccount()
     fun setMultiProfileEnabled(enabled: Boolean)
 }
 
@@ -67,6 +78,9 @@ class ProfileViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseProfile: () -> Unit,
     private val onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
+    private val onShowAccountSetup: (UserId) -> Unit,
+    private val onRemoveAccount: (userId: UserId) -> Unit,
+    private val onCreateNewAccount: () -> Unit,
 ) : ViewModelContext by viewModelContext, ProfileViewModel {
     private val profileManager = getOrNull<ProfileManager>() // If we are in single-profile mode
 
@@ -99,6 +113,8 @@ class ProfileViewModelImpl(
                     viewModelContext.childContext(this@ProfileViewModelImpl),
                     userId,
                     error,
+                    showAccountSetup = { onShowAccountSetup(userId) },
+                    removeAccount = { onRemoveAccount(userId) }
                 )
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -161,6 +177,8 @@ class ProfileViewModelImpl(
             profileOfAccount.openAvatarCutter.value = false
         }
     }
+
+    override fun createNewAccount() = onCreateNewAccount()
 
     private fun getDisplayNameFlow(userId: UserId) =
         profileSingleViewModels.value.find { it.userId == userId }?.displayName

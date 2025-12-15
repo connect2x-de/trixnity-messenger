@@ -62,7 +62,7 @@ fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Person, null) },
-        headlineContent = { Text(i18n.profileTitle()) },
+        headlineContent = { Text(i18n.accountYourAccounts()) },
         onClick = { userSettingsViewModel.showProfile() },
         modifier = Modifier.heightIn(min = 72.dp),
     )

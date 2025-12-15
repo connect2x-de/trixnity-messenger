@@ -3,21 +3,26 @@ package de.connect2x.messenger.compose.view.settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,9 +44,12 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
@@ -55,6 +63,8 @@ import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvaila
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
@@ -103,7 +113,7 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
 
     Box(Modifier.fillMaxSize()) {
         Column {
-            Header(profileViewModel::close, i18n.profileTitle())
+            Header(profileViewModel::close, i18n.accountYourAccounts())
             error?.let { ErrorView(it) }
 
             Box {
@@ -118,11 +128,21 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
                         profileSingleViewModels.map { profileSingleViewModel ->
                             ProfileOfAccountCard(profileSingleViewModel, profileViewModel)
                         }
+                        // leave space so that the floating action button does not cover up other elements
+                        Spacer(Modifier.height(MaterialTheme.components.floatingActionButton.size + 2 * 20.dp))
                     }
                     VerticalScrollbar(
                         Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         scroll,
                     )
+                    Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
+                        ThemedFloatingActionButton(
+                            expanded = true,
+                            onClick = { profileViewModel.createNewAccount() },
+                            text = { Text(i18n.accountsOverviewCreateNewAccount()) },
+                            icon = { Icon(Icons.Default.AddCircle, null) },
+                        )
+                    }
                 }
             }
         }
@@ -134,12 +154,34 @@ fun ProfileOfAccountCard(
     profileSingleViewModel: ProfileSingleViewModel,
     profileViewModel: ProfileViewModel
 ) {
+    val i18n = DI.get<I18nView>()
     SettingsAccountCard(profileSingleViewModel.userId) {
         ProfileAvatar(profileSingleViewModel)
         Spacer(Modifier.size(10.dp))
         ProfileDisplayName(profileSingleViewModel, profileViewModel)
         Spacer(Modifier.size(10.dp))
         ProfileUserId(profileSingleViewModel)
+        Spacer(Modifier.size(10.dp))
+        FlowRow {
+            ThemedButton(
+                onClick = { profileSingleViewModel.resetSetup() },
+                content = {
+                    Icon(Icons.Default.SettingsSuggest, null)
+                    Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
+                    Text(i18n.accountSetupWizardReset().capitalize(Locale.current))
+                },
+            )
+            Spacer(Modifier.size(10.dp))
+            ThemedButton(
+                onClick = { profileSingleViewModel.logout() },
+                style = MaterialTheme.components.destructiveButton,
+                content = {
+                    Icon(Icons.AutoMirrored.Filled.Logout, null)
+                    Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
+                    Text(i18n.accountsOverviewLogout())
+                },
+            )
+        }
     }
 }
 

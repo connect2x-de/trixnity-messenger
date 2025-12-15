@@ -26,8 +26,10 @@ interface ProfileSingleViewModelFactory {
         viewModelContext: ViewModelContext,
         userId: UserId,
         error: MutableStateFlow<String?>,
+        showAccountSetup: () -> Unit,
+        removeAccount: () -> Unit,
     ): ProfileSingleViewModel {
-        return ProfileSingleViewModelImpl(viewModelContext, userId, error)
+        return ProfileSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
     }
 
     companion object : ProfileSingleViewModelFactory
@@ -42,12 +44,17 @@ interface ProfileSingleViewModel {
     val initials: StateFlow<String>
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
+
+    fun logout()
+    fun resetSetup()
 }
 
 class ProfileSingleViewModelImpl(
     viewModelContext: ViewModelContext,
     override val userId: UserId,
     private val error: MutableStateFlow<String?>,
+    private val showAccountSetup: () -> Unit,
+    private val removeAccount: () -> Unit,
 ) : ProfileSingleViewModel, ViewModelContext by viewModelContext {
     private val matrixClient = getMatrixClient(userId)
     private val initialsComputation = get<Initials>()
@@ -87,4 +94,8 @@ class ProfileSingleViewModelImpl(
     override val editDisplayName = TextFieldViewModelImpl(maxLength = 1_000, matrixClient.displayName.value ?: "")
 
     override val openAvatarCutter = MutableStateFlow(false)
+
+    override fun logout() = removeAccount()
+
+    override fun resetSetup() = showAccountSetup()
 }

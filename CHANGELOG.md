@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: AccountsOverview: show a warning when adding a new account
 - UI: On startup: show an introduction instead of profiles if required
 - UI / ANDROID: Close room list search with back button
+- UI: Merge the 'Your Accounts' panel into profile settings
 
 ### Deprecated
 

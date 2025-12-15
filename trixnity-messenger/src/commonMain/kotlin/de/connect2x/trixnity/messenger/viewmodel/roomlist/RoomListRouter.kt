@@ -180,6 +180,9 @@ class RoomListRouter(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseProfile = ::onCloseProfile,
                     onOpenAvatarCutter = onOpenAvatarCutter,
+                    onShowAccountSetup = ::onShowAccountSetup,
+                    onRemoveAccount = onRemoveAccount,
+                    onCreateNewAccount = onCreateNewAccount,
                 )
             )
 

@@ -331,6 +331,9 @@ class ProfileViewModelTest {
             ),
             onCloseProfile = mock(),
             onOpenAvatarCutter = mock(),
+            onShowAccountSetup = mock(),
+            onRemoveAccount = mock(),
+            onCreateNewAccount = mock(),
         )
     }
 }
