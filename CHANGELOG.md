@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Remove AccountsOverview
 - UI: Remove AccountsOverviewViewModel
+- UI: Remove reset account setup button from settings
 
 ### Fixed
 
