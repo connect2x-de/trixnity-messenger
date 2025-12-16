@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: On startup: show an introduction instead of profiles if required
 - UI / ANDROID: Close room list search with back button
 - UI: Merge the 'Your Accounts' panel into profile settings
+- SDK: Rename references to profile in the settings to accounts
 
 ### Deprecated
 

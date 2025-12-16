@@ -8,7 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMeth
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
@@ -27,8 +27,8 @@ suspend fun MatrixMessengerWithRoot.createNewAccount(
     password: String,
     recoveryKey: String? = null,
 ): String? = with(root) {
-    val profileView = viewProfile()
-    profileView.createNewAccount()
+    val accountsView = viewAccounts()
+    accountsView.createNewAccount()
     val thisRecoveryKey = login(serverUrl, username, password, recoveryKey)
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
@@ -37,10 +37,10 @@ suspend fun MatrixMessengerWithRoot.createNewAccount(
 }
 
 suspend fun MatrixMessengerWithRoot.deleteAccount(username: String) = with(root) {
-    val profileView = viewProfile()
+    val accountsView = viewAccounts()
     val userId = di.get<MatrixClients>().value.keys.find { it.localpart == username }
     checkNotNull(userId)
-    profileView.removeAccount(userId)
+    accountsView.removeAccount(userId)
     stack.waitFor(RootRouter.Wrapper.RemoveMatrixAccount::class)
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
@@ -49,14 +49,14 @@ suspend fun MatrixMessengerWithRoot.deleteAccount(username: String) = with(root)
 }
 
 suspend fun MatrixMessengerWithRoot.verifyAccountsArePresent(vararg usernames: String) = with(root) {
-    val profileView = viewProfile()
+    val accountsView = viewAccounts()
     withTimeout(5.seconds) {
         eventually(4.seconds) {
-            profileView.profileSingleViewModels.value
+            accountsView.accountSingleViewModels.value
                 .map { it.userId.localpart }
                 .containsAll(usernames.toList())
         }
-        profileView.close()
+        accountsView.close()
         stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
             .roomListRouterStack.waitFor(RoomListRouter.Wrapper.UserSettings::class).viewModel
             .closeUserSettings()
@@ -92,8 +92,8 @@ suspend fun MatrixMessengerWithRoot.registerAccountWithToken(serverUrl: String, 
 
 suspend fun MatrixMessengerWithRoot.logout(userId: UserId) = with(root) {
     withTimeout(20.seconds) {
-        val profileView = viewProfile()
-        profileView.removeAccount(userId)
+        val accountsView = viewAccounts()
+        accountsView.removeAccount(userId)
         stack.waitFor(RootRouter.Wrapper.RemoveMatrixAccount::class)
         // since we do not have multiple accounts here, we have to wait for this view and not the MainView
         // (the last account was deleted, so we expect the user to log in with a new account)
@@ -127,16 +127,16 @@ suspend fun MatrixMessengerWithRoot.authorizeUia() = with(root) {
     uiaStack.waitFor(UiaRouter.Wrapper.None::class)
 }
 
-private suspend fun RootViewModel.viewProfile(): ProfileViewModel {
+private suspend fun RootViewModel.viewAccounts(): AccountsViewModel {
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         .accountViewModel.openUserSettings()
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.UserSettings::class).viewModel
         .showProfile()
-    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.Profile::class).viewModel
+    return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.Accounts::class).viewModel
 }
 
-private suspend fun ProfileViewModel.removeAccount(userId: UserId) {
-    delay(1.seconds) // otherwise `profileSingleViewModels.value` may be null
-    profileSingleViewModels.value.find { it.userId == userId }!!.logout()
+private suspend fun AccountsViewModel.removeAccount(userId: UserId) {
+    delay(1.seconds) // otherwise `accountSingleViewModels.value` may be null
+    accountSingleViewModels.value.find { it.userId == userId }!!.logout()
 }

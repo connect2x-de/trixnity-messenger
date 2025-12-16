@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import net.folivo.trixnity.core.model.UserId
 
 
 interface UserSettingsViewModelFactory {
@@ -10,7 +9,7 @@ interface UserSettingsViewModelFactory {
         viewModelContext: ViewModelContext,
         onCloseUserSettings: () -> Unit,
         onShowDevicesSettings: () -> Unit,
-        onShowProfile: () -> Unit,
+        onShowAccounts: () -> Unit,
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
@@ -19,7 +18,7 @@ interface UserSettingsViewModelFactory {
             viewModelContext,
             onCloseUserSettings,
             onShowDevicesSettings,
-            onShowProfile,
+            onShowAccounts,
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,

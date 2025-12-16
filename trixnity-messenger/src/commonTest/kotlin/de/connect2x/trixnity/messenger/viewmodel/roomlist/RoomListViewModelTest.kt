@@ -1152,7 +1152,7 @@ class RoomListViewModelTest {
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
-            onUserSettingsSelected = mock(),
+            onShowAccounts = mock(),
             onUserProfileSelected = mock(),
             onOpenAppInfo = mock(),
             onSendLogs = mock(),

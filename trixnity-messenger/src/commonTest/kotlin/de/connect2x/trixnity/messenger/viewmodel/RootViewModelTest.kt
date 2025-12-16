@@ -107,7 +107,7 @@ class RootViewModelTest {
                                 onRoomSelected: (UserId, RoomId) -> Unit,
                                 onStartCreateNewRoom: (UserId) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
+                                onShowAccounts: () -> Unit,
                                 onOpenAppInfo: () -> Unit,
                                 onSendLogs: () -> Unit,
                                 onAccountSelected: () -> Unit,

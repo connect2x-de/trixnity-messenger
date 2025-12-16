@@ -28,14 +28,14 @@ interface ProfileSingleViewModelFactory {
         error: MutableStateFlow<String?>,
         showAccountSetup: () -> Unit,
         removeAccount: () -> Unit,
-    ): ProfileSingleViewModel {
-        return ProfileSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
+    ): AccountSingleViewModel {
+        return AccountSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
     }
 
     companion object : ProfileSingleViewModelFactory
 }
 
-interface ProfileSingleViewModel {
+interface AccountSingleViewModel {
     val userId: UserId
     val displayName: StateFlow<String>
     val canChangeDisplayName: StateFlow<Boolean>
@@ -49,13 +49,13 @@ interface ProfileSingleViewModel {
     fun resetSetup()
 }
 
-class ProfileSingleViewModelImpl(
+class AccountSingleViewModelImpl(
     viewModelContext: ViewModelContext,
     override val userId: UserId,
     private val error: MutableStateFlow<String?>,
     private val showAccountSetup: () -> Unit,
     private val removeAccount: () -> Unit,
-) : ProfileSingleViewModel, ViewModelContext by viewModelContext {
+) : AccountSingleViewModel, ViewModelContext by viewModelContext {
     private val matrixClient = getMatrixClient(userId)
     private val initialsComputation = get<Initials>()
 

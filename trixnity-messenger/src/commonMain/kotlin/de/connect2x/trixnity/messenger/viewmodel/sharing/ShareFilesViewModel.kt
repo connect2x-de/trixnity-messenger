@@ -72,7 +72,7 @@ class SharedDataViewModelImpl(
         onRoomSelected = { _, roomId -> _selectedRoomId.update { if (it == roomId) null else roomId } },
         onStartCreateNewRoom = { },
         onUserSettingsSelected = { },
-        onUserProfileSelected = { },
+        onShowAccounts = { },
         onOpenAppInfo = { },
         onSendLogs = { },
         onAccountSelected = { },

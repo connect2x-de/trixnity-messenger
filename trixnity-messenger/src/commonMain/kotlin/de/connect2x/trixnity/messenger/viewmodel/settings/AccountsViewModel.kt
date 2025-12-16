@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.server.setAvatarUrl
 import net.folivo.trixnity.clientserverapi.model.server.setDisplayName
@@ -28,7 +27,6 @@ import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-import kotlin.compareTo
 
 
 private val log = KotlinLogging.logger {}
@@ -36,15 +34,15 @@ private val log = KotlinLogging.logger {}
 interface ProfileViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        onCloseProfile: () -> Unit,
+        onCloseAccounts: () -> Unit,
         onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
         onShowAccountSetup: (UserId) -> Unit,
         onRemoveAccount: (UserId) -> Unit,
         onCreateNewAccount: () -> Unit,
-    ): ProfileViewModel {
-        return ProfileViewModelImpl(
+    ): AccountsViewModel {
+        return AccountsViewModelImpl(
             viewModelContext,
-            onCloseProfile,
+            onCloseAccounts,
             onOpenAvatarCutter,
             onShowAccountSetup,
             onRemoveAccount,
@@ -56,8 +54,8 @@ interface ProfileViewModelFactory {
 }
 
 // TODO !!! This is totally cursed. The parent should not manipulate the child !!!
-interface ProfileViewModel {
-    val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
+interface AccountsViewModel {
+    val accountSingleViewModels: StateFlow<List<AccountSingleViewModel>>
     val error: MutableStateFlow<String?>
     val openAvatarCutter: StateFlow<UserId?>
     val isMultiProfile: StateFlow<Boolean>
@@ -74,17 +72,17 @@ interface ProfileViewModel {
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ProfileViewModelImpl(
+class AccountsViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val onCloseProfile: () -> Unit,
+    private val onCloseAccounts: () -> Unit,
     private val onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
     private val onShowAccountSetup: (UserId) -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onCreateNewAccount: () -> Unit,
-) : ViewModelContext by viewModelContext, ProfileViewModel {
+) : ViewModelContext by viewModelContext, AccountsViewModel {
     private val profileManager = getOrNull<ProfileManager>() // If we are in single-profile mode
 
-    override val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
+    override val accountSingleViewModels: StateFlow<List<AccountSingleViewModel>>
     override val error = MutableStateFlow<String?>(null)
     override val openAvatarCutter: StateFlow<UserId?>
     override val isMultiProfile: StateFlow<Boolean> =
@@ -107,10 +105,10 @@ class ProfileViewModelImpl(
 
     init {
         registerBackCallback(backCallback)
-        profileSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
+        accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
                 get<ProfileSingleViewModelFactory>().create(
-                    viewModelContext.childContext(this@ProfileViewModelImpl),
+                    viewModelContext.childContext(this@AccountsViewModelImpl),
                     userId,
                     error,
                     showAccountSetup = { onShowAccountSetup(userId) },
@@ -119,7 +117,7 @@ class ProfileViewModelImpl(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-        openAvatarCutter = profileSingleViewModels.flatMapLatest { profilesOfAccounts ->
+        openAvatarCutter = accountSingleViewModels.flatMapLatest { profilesOfAccounts ->
             combine(profilesOfAccounts.map { profileOfAccount -> profileOfAccount.openAvatarCutter.map { profileOfAccount.userId to it } }) { list ->
                 list.find { (_, openAvatarChooser) -> openAvatarChooser }?.first
             }
@@ -127,7 +125,7 @@ class ProfileViewModelImpl(
     }
 
     override fun close() {
-        onCloseProfile()
+        onCloseAccounts()
     }
 
     override fun errorDismiss() {
@@ -173,18 +171,16 @@ class ProfileViewModelImpl(
     }
 
     override fun closeAvatarCutter() {
-        profileSingleViewModels.value.forEach { profileOfAccount ->
-            profileOfAccount.openAvatarCutter.value = false
-        }
+        accountSingleViewModels.value.forEach { it.openAvatarCutter.value = false }
     }
 
     override fun createNewAccount() = onCreateNewAccount()
 
     private fun getDisplayNameFlow(userId: UserId) =
-        profileSingleViewModels.value.find { it.userId == userId }?.displayName
+        accountSingleViewModels.value.find { it.userId == userId }?.displayName
 
     private fun getEditDisplayNameFlow(userId: UserId) =
-        profileSingleViewModels.value.find { it.userId == userId }?.editDisplayName
+        accountSingleViewModels.value.find { it.userId == userId }?.editDisplayName
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
         coroutineScope.launch { profileManager?.setMultiProfileEnabled(enabled) }

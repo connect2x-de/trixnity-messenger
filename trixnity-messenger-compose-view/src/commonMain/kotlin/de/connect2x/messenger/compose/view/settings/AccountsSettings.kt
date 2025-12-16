@@ -71,49 +71,49 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-interface ProfileSettingsView {
+interface AccountsSettingsView {
     @Composable
-    fun create(profileViewModel: ProfileViewModel)
+    fun create(accountsViewModel: AccountsViewModel)
 }
 
 @Composable
-fun ProfileSettings(profileViewModel: ProfileViewModel) {
-    DI.get<ProfileSettingsView>().create(profileViewModel)
+fun AccountsSettings(accountsViewModel: AccountsViewModel) {
+    DI.get<AccountsSettingsView>().create(accountsViewModel)
 }
 
-class ProfileSettingsViewImpl : ProfileSettingsView {
+class AccountsSettingsViewImpl : AccountsSettingsView {
     @Composable
-    override fun create(profileViewModel: ProfileViewModel) {
-        val openAvatarCutter = profileViewModel.openAvatarCutter.collectAsState().value
+    override fun create(accountsViewModel: AccountsViewModel) {
+        val openAvatarCutter = accountsViewModel.openAvatarCutter.collectAsState().value
         if (openAvatarCutter != null) LoadFileDialog(
             filterFilePickerOptionsByAvailability(
                 FilePickerType.IMAGE_FILE,
                 FilePickerType.PHOTO_CAPTURE,
             ),
-            { profileViewModel.openAvatarCutter(openAvatarCutter, it) },
-            { profileViewModel.closeAvatarCutter() },
+            { accountsViewModel.openAvatarCutter(openAvatarCutter, it) },
+            { accountsViewModel.closeAvatarCutter() },
         )
-        ProfileOverview(profileViewModel)
+        AccountsOverview(accountsViewModel)
     }
 }
 
 @Composable
-fun ProfileOverview(profileViewModel: ProfileViewModel) {
+private fun AccountsOverview(accountsViewModel: AccountsViewModel) {
     val i18n = DI.get<I18nView>()
-    val error = profileViewModel.error.collectAsState().value
-    val profileSingleViewModels = profileViewModel.profileSingleViewModels.collectAsState().value
-    val multiProfileEnabled = profileViewModel.isMultiProfile.collectAsState().value
-    val canChangeMultiProfileMode = profileViewModel.canChangeMultiProfileMode.collectAsState().value
+    val error = accountsViewModel.error.collectAsState().value
+    val accountSingleViewModels = accountsViewModel.accountSingleViewModels.collectAsState().value
+    val multiProfileEnabled = accountsViewModel.isMultiProfile.collectAsState().value
+    val canChangeMultiProfileMode = accountsViewModel.canChangeMultiProfileMode.collectAsState().value
     val scroll = rememberScrollState()
 
     Box(Modifier.fillMaxSize()) {
         Column {
-            Header(profileViewModel::close, i18n.accountYourAccounts())
+            Header(accountsViewModel::close, i18n.accountYourAccounts())
             error?.let { ErrorView(it) }
 
             Box {
@@ -123,10 +123,10 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
                             headlineContent = { Text(i18n.profileSelectionMultipleAccountSwitch()) },
                             enabled = canChangeMultiProfileMode,
                             selected = multiProfileEnabled,
-                            onChange = { profileViewModel.setMultiProfileEnabled(it) },
+                            onChange = { accountsViewModel.setMultiProfileEnabled(it) },
                         )
-                        profileSingleViewModels.map { profileSingleViewModel ->
-                            ProfileOfAccountCard(profileSingleViewModel, profileViewModel)
+                        accountSingleViewModels.map { accountSingleViewModel ->
+                            AccountCard(accountSingleViewModel, accountsViewModel)
                         }
                         // leave space so that the floating action button does not cover up other elements
                         Spacer(Modifier.height(MaterialTheme.components.floatingActionButton.size + 2 * 20.dp))
@@ -138,7 +138,7 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
                     Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
                         ThemedFloatingActionButton(
                             expanded = true,
-                            onClick = { profileViewModel.createNewAccount() },
+                            onClick = { accountsViewModel.createNewAccount() },
                             text = { Text(i18n.accountsOverviewCreateNewAccount()) },
                             icon = { Icon(Icons.Default.AddCircle, null) },
                         )
@@ -150,21 +150,21 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
 }
 
 @Composable
-fun ProfileOfAccountCard(
-    profileSingleViewModel: ProfileSingleViewModel,
-    profileViewModel: ProfileViewModel
+fun AccountCard(
+    accountSingleViewModel: AccountSingleViewModel,
+    accountsViewModel: AccountsViewModel
 ) {
     val i18n = DI.get<I18nView>()
-    SettingsAccountCard(profileSingleViewModel.userId) {
-        ProfileAvatar(profileSingleViewModel)
+    SettingsAccountCard(accountSingleViewModel.userId) {
+        AccountAvatar(accountSingleViewModel)
         Spacer(Modifier.size(10.dp))
-        ProfileDisplayName(profileSingleViewModel, profileViewModel)
+        AccountDisplayName(accountSingleViewModel, accountsViewModel)
         Spacer(Modifier.size(10.dp))
-        ProfileUserId(profileSingleViewModel)
+        AccountUserId(accountSingleViewModel)
         Spacer(Modifier.size(10.dp))
         FlowRow {
             ThemedButton(
-                onClick = { profileSingleViewModel.resetSetup() },
+                onClick = { accountSingleViewModel.resetSetup() },
                 content = {
                     Icon(Icons.Default.SettingsSuggest, null)
                     Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
@@ -173,7 +173,7 @@ fun ProfileOfAccountCard(
             )
             Spacer(Modifier.size(10.dp))
             ThemedButton(
-                onClick = { profileSingleViewModel.logout() },
+                onClick = { accountSingleViewModel.logout() },
                 style = MaterialTheme.components.destructiveButton,
                 content = {
                     Icon(Icons.AutoMirrored.Filled.Logout, null)
@@ -186,11 +186,11 @@ fun ProfileOfAccountCard(
 }
 
 @Composable
-fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
+fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
     val i18n = DI.get<I18nView>()
-    val avatar = profileSingleViewModel.avatar.collectAsState().value
-    val canChangeAvatar = profileSingleViewModel.canChangeAvatar.collectAsState().value
-    val initials = profileSingleViewModel.initials.collectAsState().value
+    val avatar = accountSingleViewModel.avatar.collectAsState().value
+    val canChangeAvatar = accountSingleViewModel.canChangeAvatar.collectAsState().value
+    val initials = accountSingleViewModel.initials.collectAsState().value
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         Box(Modifier.align(Alignment.Center)) {
@@ -204,7 +204,7 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
                         ThemedIconButton(
                             enabled = canChangeAvatar,
                             style = MaterialTheme.components.secondaryIconButton,
-                            onClick = { profileSingleViewModel.openAvatarCutter.value = true },
+                            onClick = { accountSingleViewModel.openAvatarCutter.value = true },
                         ) {
                             Icon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
                         }
@@ -216,11 +216,11 @@ fun ProfileAvatar(profileSingleViewModel: ProfileSingleViewModel) {
 }
 
 @Composable
-fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileViewModel: ProfileViewModel) {
+fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsViewModel: AccountsViewModel) {
     val i18n = DI.get<I18nView>()
-    val displayName = profileSingleViewModel.displayName.collectAsState().value
-    var editDisplayName by (profileSingleViewModel.editDisplayName as TextFieldViewModel).collectAsTextFieldValueState()
-    val canChangeDisplayName = profileSingleViewModel.canChangeDisplayName.collectAsState().value
+    val displayName = accountSingleViewModel.displayName.collectAsState().value
+    var editDisplayName by (accountSingleViewModel.editDisplayName as TextFieldViewModel).collectAsTextFieldValueState()
+    val canChangeDisplayName = accountSingleViewModel.canChangeDisplayName.collectAsState().value
 
     val focusRequester = remember { FocusRequester() }
     val editMode = remember { mutableStateOf(false) }
@@ -231,7 +231,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {
-                        profileViewModel.cancelEditDisplayName(profileSingleViewModel.userId)
+                        accountsViewModel.cancelEditDisplayName(accountSingleViewModel.userId)
                         editMode.value = false
                     },
                 ) {
@@ -247,7 +247,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                         if (it.type == KeyEventType.KeyDown) {
                             when (it.key) {
                                 Key.Enter -> {
-                                    done(editMode, profileSingleViewModel, profileViewModel)
+                                    done(editMode, accountSingleViewModel, accountsViewModel)
                                     true
                                 }
 
@@ -262,7 +262,13 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
                 label = { Text(i18n.profileYourName(), fontWeight = FontWeight.Bold) },
                 singleLine = true,
                 maxLines = 1,
-                keyboardActions = KeyboardActions(onDone = { done(editMode, profileSingleViewModel, profileViewModel) })
+                keyboardActions = KeyboardActions(onDone = {
+                    done(
+                        editMode,
+                        accountSingleViewModel,
+                        accountsViewModel
+                    )
+                })
             )
             Spacer(Modifier.size(10.dp))
         } else {
@@ -279,7 +285,7 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
             Tooltip({ Text(i18n.commonAcceptEdit()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
-                    onClick = { done(editMode, profileSingleViewModel, profileViewModel) },
+                    onClick = { done(editMode, accountSingleViewModel, accountsViewModel) },
                 ) {
                     EditIcon(Icons.Default.Check, i18n.commonAcceptEdit())
                 }
@@ -309,15 +315,15 @@ fun ProfileDisplayName(profileSingleViewModel: ProfileSingleViewModel, profileVi
 
 private fun done(
     editMode: MutableState<Boolean>,
-    profileSingleViewModel: ProfileSingleViewModel,
-    profileViewModel: ProfileViewModel,
+    accountSingleViewModel: AccountSingleViewModel,
+    accountsViewModel: AccountsViewModel,
 ) {
     editMode.value = false
-    profileViewModel.saveDisplayName(profileSingleViewModel.userId)
+    accountsViewModel.saveDisplayName(accountSingleViewModel.userId)
 }
 
 @Composable
-fun ProfileUserId(profileSingleViewModel: ProfileSingleViewModel) {
+fun AccountUserId(accountSingleViewModel: AccountSingleViewModel) {
     val i18n = DI.get<I18nView>()
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -325,6 +331,6 @@ fun ProfileUserId(profileSingleViewModel: ProfileSingleViewModel) {
             HelpIcon(i18n.profileUserNameInfo())
         }
         Spacer(Modifier.size(5.dp))
-        ThemedSelectableText(profileSingleViewModel.userId.full, MaterialTheme.components.selectionOnSurface)
+        ThemedSelectableText(accountSingleViewModel.userId.full, MaterialTheme.components.selectionOnSurface)
     }
 }

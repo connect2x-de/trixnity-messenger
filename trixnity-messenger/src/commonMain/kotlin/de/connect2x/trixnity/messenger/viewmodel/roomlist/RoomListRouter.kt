@@ -24,7 +24,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAl
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
@@ -82,7 +82,7 @@ class RoomListRouter(
                     onRoomSelected = onRoomSelected,
                     onStartCreateNewRoom = ::onStartCreateNewRoom,
                     onUserSettingsSelected = ::onOpenUserSettings,
-                    onUserProfileSelected = ::onShowProfile,
+                    onShowAccounts = ::onShowAccounts,
                     onOpenAppInfo = ::onOpenAppInfo,
                     onSendLogs = onSendLogs,
                     onAccountSelected = onAccountSelected,
@@ -148,7 +148,7 @@ class RoomListRouter(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseUserSettings = ::onCloseUserSettings,
                     onShowDevicesSettings = ::onShowDevicesSettings,
-                    onShowProfile = ::onShowProfile,
+                    onShowAccounts = ::onShowAccounts,
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
@@ -163,10 +163,10 @@ class RoomListRouter(
                     )
             )
 
-            is Config.Profile -> Wrapper.Profile(
+            is Config.Accounts -> Wrapper.Accounts(
                 viewModelContext.get<ProfileViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
-                    onCloseProfile = ::onCloseProfile,
+                    onCloseAccounts = ::onCloseAccounts,
                     onOpenAvatarCutter = onOpenAvatarCutter,
                     onShowAccountSetup = ::onShowAccountSetup,
                     onRemoveAccount = onRemoveAccount,
@@ -294,12 +294,12 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowProfile() {
+    private fun onShowAccounts() {
         log.debug { "show profile" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.Profile)
+        navigation.launchPush(viewModelContext.coroutineScope, Config.Accounts)
     }
 
-    private fun onCloseProfile() {
+    private fun onCloseAccounts() {
         log.debug { "close profile" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
@@ -388,7 +388,7 @@ class RoomListRouter(
         data object DevicesSettings : Config()
 
         @Serializable
-        data object Profile : Config()
+        data object Accounts : Config()
 
         @Serializable
         data object NotificationsSettings : Config()
@@ -416,7 +416,7 @@ class RoomListRouter(
         class SearchGroup(val viewModel: SearchGroupViewModel) : Wrapper()
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
         class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
-        class Profile(val viewModel: ProfileViewModel) : Wrapper()
+        class Accounts(val viewModel: AccountsViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
         class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()

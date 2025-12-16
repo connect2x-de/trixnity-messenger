@@ -262,8 +262,8 @@ import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsViewImpl
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsView
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.messenger.compose.view.sharing.ShareDataView
@@ -561,7 +561,7 @@ fun settingsViewModule() = module {
     single<DevicesSettingsView> { DevicesSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
-    single<ProfileSettingsView> { ProfileSettingsViewImpl() }
+    single<AccountsSettingsView> { AccountsSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
