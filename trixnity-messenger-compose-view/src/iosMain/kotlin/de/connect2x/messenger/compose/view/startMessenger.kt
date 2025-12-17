@@ -12,7 +12,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.start
 import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.messenger.compose.view.notifications.NotificationHandlerProvider
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -157,7 +157,7 @@ fun startMessenger(
                     IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
-                        Profiles(matrixMultiMessenger, existingProfiles)
+                        IntroductionOrProfile()
                     }
                 }
             }
