@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Fix broken os_log logging on iOS
 - SDK: Fix mis-compilation in JavaScript resulting in the 'create profile' button not working
 - UI: Fix timeline not scrolling to / scrolling away from the unread marker
+- WEB,A11Y: Fix message bubbles not being read out in some browser/screeenreader combinations
 
 ### Security
 
