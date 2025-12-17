@@ -267,7 +267,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                         state.zoomBy(it)
                         canZoom.value = prevCanZoom
                     }
-                }, scope)
+                }, reader.value?.numOfPages?.value != null)
             }) {
             BoxWithConstraints(
                 Modifier
