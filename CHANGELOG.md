@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WEB,A11Y: CanvasSemanticsOwnerListener: render `SemanticsProperties.ContentDescription` as `aria-description`
 - UI: emojis in the picker are no longer cut off at larger font sizes
 - IDE: Set correct environment variables for prod/dev version
+- UI: Don't crash when interacting with the page selector in the PDF viewer
 
 
 ### Security
