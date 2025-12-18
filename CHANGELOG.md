@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - IDE: Set correct environment variables for prod/dev version
 - SDK: Fix BackHandler missing in MatrixMultiMessenger
+- UI: Don't crash when interacting with the page selector in the PDF viewer
 
 
 ### Security
