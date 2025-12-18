@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -101,7 +101,7 @@ class SendAttachmentViewModelImpl(
 
     init {
         val maxSize = matrixClient.serverData.value?.mediaConfig?.maxUploadSize ?: Long.MAX_VALUE
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
         coroutineScope.launch {
             if (checkFileSizeExceedsLimit(fileSize = file.fileSize, maxSizeBytes = maxSize)) {
                 _error.value = i18n.attachmentSizeMaxSizeError(maxSize)

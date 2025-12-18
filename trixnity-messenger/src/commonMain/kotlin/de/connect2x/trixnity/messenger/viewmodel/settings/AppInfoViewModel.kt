@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +45,7 @@ open class AppInfoViewModelImpl(
     }
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
     }
 
     override fun close() {

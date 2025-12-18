@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.ThemeMode
@@ -78,7 +78,7 @@ class AppearanceSettingsViewModelImpl(
     }
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
     }
 
     override fun setThemeMode(themeMode: ThemeMode) {

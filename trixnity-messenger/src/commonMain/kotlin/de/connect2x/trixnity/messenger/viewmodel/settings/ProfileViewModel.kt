@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.multi.ProfileManager
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -92,7 +91,7 @@ class ProfileViewModelImpl(
     }
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
         profileSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
                 get<ProfileSingleViewModelFactory>().create(

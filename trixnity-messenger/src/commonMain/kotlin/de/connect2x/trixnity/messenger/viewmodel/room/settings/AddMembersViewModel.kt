@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -64,7 +64,7 @@ class AddMembersViewModelImpl(
     }
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
     }
 
     override fun back() {

@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
@@ -91,7 +91,7 @@ class TimelineElementMetadataViewModelImpl(
     }
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
     }
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()

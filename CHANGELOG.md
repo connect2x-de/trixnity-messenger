@@ -18,7 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Text selections have better visibility now
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
-- SDK: Change back handling to use custom handler instead of Decomposes
 - UI: AccountsOverview: show a warning when adding a new account
 - UI: On startup: show an introduction instead of profiles if required
 
@@ -35,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 - WEB,A11Y: CanvasSemanticsOwnerListener: render `SemanticsProperties.ContentDescription` as `aria-description`
 - UI: emojis in the picker are no longer cut off at larger font sizes
-- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - IDE: Set correct environment variables for prod/dev version
 
 
