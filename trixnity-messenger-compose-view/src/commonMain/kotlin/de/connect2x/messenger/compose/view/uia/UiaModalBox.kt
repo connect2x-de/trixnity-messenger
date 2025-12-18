@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.window.Dialog
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 
 
 interface UiaModalBoxView {
@@ -24,7 +24,7 @@ fun UiaModalBox(content: @Composable BoxScope.() -> Unit) {
 class UiaModalBoxViewImpl : UiaModalBoxView {
     @Composable
     override fun create(content: @Composable BoxScope.() -> Unit) {
-        Dialog(onDismissRequest = {}) {
+        ThemedModalDialog(onDismissRequest = {}) {
             Box(
                 modifier = Modifier.background(MaterialTheme.colorScheme.background),
                 content = content

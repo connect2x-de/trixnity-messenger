@@ -37,8 +37,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.messenger.compose.view.DI
@@ -126,6 +124,7 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
     }
 
     val density = LocalDensity.current
+    //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
     Popup(
         onDismissRequest = {
             backHandler.goBack()

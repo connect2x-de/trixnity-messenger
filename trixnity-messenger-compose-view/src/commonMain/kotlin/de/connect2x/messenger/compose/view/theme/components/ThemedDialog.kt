@@ -36,6 +36,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.paneTitle
@@ -308,31 +309,34 @@ fun ThemedModalDialog(
     style: DialogStyle = MaterialTheme.components.modalDialog,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val density = LocalDensity.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
         ),
     ) {
-        val layoutDirection = LocalLayoutDirection.current
-        val horizontalPadding = style.container.padding.calculateStartPadding(layoutDirection) +
-                style.container.padding.calculateEndPadding(layoutDirection)
-        BoxWithConstraints(Modifier.fillMaxSize()) {
-            Surface(
-                modifier = modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .padding(style.container.padding)
-                    .requiredSizeIn(maxWidth = minOf(maxWidth - horizontalPadding, style.maxWidth))
-                    .semantics { paneTitle = "Dialog" },
-                shape = style.container.shape,
-                color = style.container.color,
-                contentColor = style.container.contentColor,
-                tonalElevation = style.container.tonalElevation,
-                shadowElevation = style.container.shadowElevation,
-                border = style.container.border,
-            ) {
-                Column(content = content)
+        CompositionLocalProvider(LocalDensity provides density) {
+            val layoutDirection = LocalLayoutDirection.current
+            val horizontalPadding = style.container.padding.calculateStartPadding(layoutDirection) +
+                    style.container.padding.calculateEndPadding(layoutDirection)
+            BoxWithConstraints(Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = modifier
+                        .align(Alignment.Center)
+                        .fillMaxWidth()
+                        .padding(style.container.padding)
+                        .requiredSizeIn(maxWidth = minOf(maxWidth - horizontalPadding, style.maxWidth))
+                        .semantics { paneTitle = "Dialog" },
+                    shape = style.container.shape,
+                    color = style.container.color,
+                    contentColor = style.container.contentColor,
+                    tonalElevation = style.container.tonalElevation,
+                    shadowElevation = style.container.shadowElevation,
+                    border = style.container.border,
+                ) {
+                    Column(content = content)
+                }
             }
         }
     }
