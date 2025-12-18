@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -452,6 +453,10 @@ class RoomListViewModelImpl(
                 selectRoom(RoomId("!" + segments[2]))
             }
         }
+        val backCallback = BackCallback(enabled = showSearch) {
+            showSearch.value = false
+        }
+        registerBackCallback(backCallback)
     }
 
     private fun resetSearchWhenNotShown() {
