@@ -19,6 +19,7 @@ data class MatrixMultiMessengerSettingsBase(
     val profiles: Map<String, MatrixMultiMessengerProfileSettings> = mapOf(),
     val activeProfile: String? = null,
     val forgetActiveProfileOnStart: Boolean = false,
+    val isMultiProfileEnabled: Boolean? = null,
 ) : SettingsView<MatrixMultiMessengerSettings>
 
 @Serializable

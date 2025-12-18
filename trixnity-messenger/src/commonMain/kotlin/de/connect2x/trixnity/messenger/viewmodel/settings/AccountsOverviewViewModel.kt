@@ -4,14 +4,19 @@ import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.toAccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.core.model.UserId
@@ -33,10 +38,13 @@ interface AccountsOverviewViewModelFactory {
 interface AccountsOverviewViewModel {
     val accounts: StateFlow<List<AccountInfo>>
 
+    val isMultiProfile: StateFlow<Boolean>
+
     fun createNewAccount()
     fun changeLocalDisplayName(userId: UserId, newLocalDisplayName: String?)
     fun removeAccount(userId: UserId)
     fun close()
+    fun logout()
 }
 
 class AccountsOverviewViewModelImpl(
@@ -58,10 +66,15 @@ class AccountsOverviewViewModelImpl(
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val profileManager = getOrNull<ProfileManager>()
 
     override val accounts: StateFlow<List<AccountInfo>> =
         matrixClients.toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
             .stateIn(coroutineScope, WhileSubscribed(), listOf())
+
+    override val isMultiProfile: StateFlow<Boolean> =
+        (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false))
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override fun createNewAccount() {
         onCreateNewAccount()
@@ -83,4 +96,7 @@ class AccountsOverviewViewModelImpl(
         onClose()
     }
 
+    override fun logout() {
+        coroutineScope.launch { profileManager?.closeProfile() }
+    }
 }

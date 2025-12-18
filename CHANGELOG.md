@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Rendering room upgrades (tombstone event)
+- API: add multi-profile option to `MultiMessengerConfiguration`
+- UI: Settings: add a button to enable multi-profile mode
 
 ### Changed
 
@@ -17,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
 - SDK: Change back handling to use custom handler instead of Decomposes
+- UI: AccountsOverview: show a warning when adding a new account
+- UI: On startup: show an introduction instead of profiles if required
 - UI / ANDROID: Close room list search with back button
 
 ### Deprecated

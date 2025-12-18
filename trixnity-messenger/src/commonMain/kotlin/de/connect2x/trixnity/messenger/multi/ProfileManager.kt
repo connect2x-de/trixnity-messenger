@@ -28,6 +28,10 @@ interface ProfileManager {
     val activeProfile: StateFlow<String?>
     val activeMatrixMessenger: StateFlow<MatrixMessenger?>
 
+    /** This allows multiple profiles to be used simultaneously.
+     * Null means undefined, so the user should be asked if they want to enable this. */
+    val isMultiProfileEnabled: StateFlow<Boolean?>
+
     suspend fun closeProfile()
     suspend fun selectProfile(profile: String)
     suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase = MatrixMultiMessengerProfileSettingsBase()): String
@@ -36,6 +40,7 @@ interface ProfileManager {
         updater: MutableSettings<MatrixMultiMessengerProfileSettings>.(MatrixMultiMessengerProfileSettings) -> Unit
     )
 
+    suspend fun setMultiProfileEnabled(enabled: Boolean)
     suspend fun deleteProfile(profile: String)
 }
 
@@ -57,6 +62,9 @@ class ProfileManagerImpl(
             if (profile == null) null
             else matrixMessengerFactory(profile)
         }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    override val isMultiProfileEnabled: StateFlow<Boolean?> = settingsHolder.map { it.base.isMultiProfileEnabled }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.isMultiProfileEnabled)
 
     override suspend fun closeProfile() {
         coroutineScope.launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
@@ -123,6 +131,10 @@ class ProfileManagerImpl(
                 deleteProfileData(profile)
             }
         }.join()
+    }
+
+    override suspend fun setMultiProfileEnabled(enabled: Boolean) {
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(isMultiProfileEnabled = enabled) }
     }
 }
 
