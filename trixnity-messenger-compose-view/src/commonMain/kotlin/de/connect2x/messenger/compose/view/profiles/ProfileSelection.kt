@@ -51,6 +51,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
         val i18n = DI.get<I18nView>()
         val coroutineScope = rememberCoroutineScope()
         val profiles = profileManager.profiles.collectAsState()
+        val multiAccount = profileManager.isMultiProfileEnabled.collectAsState().value.let { it != null && it }
         val showProfileCreation = ShowProfileCreation.current
 
         var focusedItem by remember { mutableStateOf(profiles.value.keys.firstOrNull()) }
@@ -83,7 +84,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
                     ThemedHorizontalDivider()
                 }
             }
-            AdaptiveDialogFooter {
+            if (multiAccount) AdaptiveDialogFooter {
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     onClick = {

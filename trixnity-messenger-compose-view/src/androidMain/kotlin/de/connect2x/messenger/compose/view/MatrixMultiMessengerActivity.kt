@@ -17,7 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import com.arkivanov.decompose.defaultComponentContext
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -96,7 +96,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                                IntroductionOrProfile()
                             }
                         }
                     }
