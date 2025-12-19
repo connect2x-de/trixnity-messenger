@@ -9,7 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Rendering room upgrades (tombstone event)
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.10.0
+
+### Added
+
+- SDK: Rendering room upgrades (tombstone event)
 - API: add multi-profile option to `MultiMessengerConfiguration`
 - UI: Settings: add a button to enable multi-profile mode
 
@@ -20,10 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove download indicator from TimelineEvents
 - UI: AccountsOverview: show a warning when adding a new account
 - UI: On startup: show an introduction instead of profiles if required
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -37,8 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IDE: Set correct environment variables for prod/dev version
 - UI: Don't crash when interacting with the page selector in the PDF viewer
 - UI: Don't display close profile button when multi-profile mode is turned off
-
-### Security
 
 ## 3.9.0
 
