@@ -68,23 +68,23 @@ import net.folivo.trixnity.core.MSC3814
 
 interface DeviceSettingsView {
     @Composable
-    fun create(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel)
+    fun create(deviceSettingsViewModel: DeviceSettingsAllAccountsViewModel)
 }
 
 @Composable
-fun DeviceSettings(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
-    DI.get<DeviceSettingsView>().create(devicesSettingsViewModel)
+fun DeviceSettings(deviceSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
+    DI.get<DeviceSettingsView>().create(deviceSettingsViewModel)
 }
 
 class DeviceSettingsViewImpl : DeviceSettingsView {
     @Composable
-    override fun create(devicesSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
+    override fun create(deviceSettingsViewModel: DeviceSettingsAllAccountsViewModel) {
         val i18n = DI.get<I18nView>()
-        val notificationSettings = devicesSettingsViewModel.deviceSettings
+        val notificationSettings = deviceSettingsViewModel.deviceSettings
         val scroll = rememberScrollState()
 
         Column(Modifier.fillMaxSize()) {
-            Header(devicesSettingsViewModel::back, i18n.devicesTitle().capitalize(Locale.current))
+            Header(deviceSettingsViewModel::back, i18n.devicesTitle().capitalize(Locale.current))
 
             Box {
                 Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
