@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
@@ -13,6 +14,7 @@ import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.ModuleFactory
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
 
@@ -29,6 +31,8 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
             }
             single<BackHandler> { BackHandlerImpl() }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
+            single<MultiProfileMigrator> { MultiProfileMigratorImpl(get()) }
+                .apply { bind<Worker>() }
         }
     },
     ::platformModule,

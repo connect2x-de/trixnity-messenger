@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume

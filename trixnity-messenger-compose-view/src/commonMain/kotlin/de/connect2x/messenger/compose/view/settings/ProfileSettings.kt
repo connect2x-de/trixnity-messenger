@@ -56,6 +56,7 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.common.FilePickerType
@@ -96,6 +97,8 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
     val i18n = DI.get<I18nView>()
     val error = profileViewModel.error.collectAsState().value
     val profileSingleViewModels = profileViewModel.profileSingleViewModels.collectAsState().value
+    val multiProfileEnabled = profileViewModel.isMultiProfile.collectAsState().value
+    val canChangeMultiProfileMode = profileViewModel.canChangeMultiProfileMode.collectAsState().value
     val scroll = rememberScrollState()
 
     Box(Modifier.fillMaxSize()) {
@@ -106,6 +109,12 @@ fun ProfileOverview(profileViewModel: ProfileViewModel) {
             Box {
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
+                        ThemedListItemSwitch(
+                            headlineContent = { Text(i18n.profileSelectionMultipleAccountSwitch()) },
+                            enabled = canChangeMultiProfileMode,
+                            selected = multiProfileEnabled,
+                            onChange = { profileViewModel.setMultiProfileEnabled(it) },
+                        )
                         profileSingleViewModels.map { profileSingleViewModel ->
                             ProfileOfAccountCard(profileSingleViewModel, profileViewModel)
                         }

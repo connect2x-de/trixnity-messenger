@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -11,11 +13,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import net.folivo.trixnity.clientserverapi.model.server.setAvatarUrl
 import net.folivo.trixnity.clientserverapi.model.server.setDisplayName
@@ -23,6 +28,7 @@ import net.folivo.trixnity.core.ErrorResponse
 import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
+import kotlin.compareTo
 
 
 private val log = KotlinLogging.logger {}
@@ -44,6 +50,8 @@ interface ProfileViewModel {
     val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
     val error: MutableStateFlow<String?>
     val openAvatarCutter: StateFlow<UserId?>
+    val isMultiProfile: StateFlow<Boolean>
+    val canChangeMultiProfileMode: StateFlow<Boolean>
 
     fun close()
     fun errorDismiss()
@@ -51,6 +59,7 @@ interface ProfileViewModel {
     fun saveDisplayName(userId: UserId)
     fun openAvatarCutter(userId: UserId, file: FileDescriptor)
     fun closeAvatarCutter()
+    fun setMultiProfileEnabled(enabled: Boolean)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -59,10 +68,24 @@ class ProfileViewModelImpl(
     private val onCloseProfile: () -> Unit,
     private val onOpenAvatarCutter: (UserId, FileDescriptor) -> Unit,
 ) : ViewModelContext by viewModelContext, ProfileViewModel {
+    private val profileManager = getOrNull<ProfileManager>() // If we are in single-profile mode
 
     override val profileSingleViewModels: StateFlow<List<ProfileSingleViewModel>>
     override val error = MutableStateFlow<String?>(null)
     override val openAvatarCutter: StateFlow<UserId?>
+    override val isMultiProfile: StateFlow<Boolean> =
+        (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false))
+            .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    // If there is more than one profile the user cannot disable multi-profile mode
+    override val canChangeMultiProfileMode: StateFlow<Boolean> =
+        combine(isMultiProfile, profileManager?.profiles?.map { it.size > 1 } ?: flowOf(false)) {
+            val isMultiProfile = it[0]
+            val moreThanOneProfile = it[1]
+            // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more than
+            // one profiles. In this case, we should still allow the user to enable it.
+            !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
+        }.stateIn(coroutineScope, WhileSubscribed(), true)
 
     private val backCallback = BackCallback {
         close()
@@ -144,4 +167,8 @@ class ProfileViewModelImpl(
 
     private fun getEditDisplayNameFlow(userId: UserId) =
         profileSingleViewModels.value.find { it.userId == userId }?.editDisplayName
+
+    override fun setMultiProfileEnabled(enabled: Boolean) {
+        coroutineScope.launch { profileManager?.setMultiProfileEnabled(enabled) }
+    }
 }

@@ -12,9 +12,11 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -157,7 +159,7 @@ suspend fun startMultiMessenger(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            Profiles(matrixMultiMessenger, existingProfiles)
+                            IntroductionOrProfile()
                         }
                     }
                 }

@@ -4,6 +4,7 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 private val log = KotlinLogging.logger { }
 
@@ -46,7 +47,7 @@ interface BackHandler {
 
 data class BackCallback(
     val priority: Int = BackHandler.PRIORITY_DEFAULT,
-    val enabled: MutableStateFlow<Boolean> = MutableStateFlow(true),
+    val enabled: StateFlow<Boolean> = MutableStateFlow(true),
     val onBack: () -> Unit
 )
 

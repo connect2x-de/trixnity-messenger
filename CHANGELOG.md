@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Rendering room upgrades (tombstone event)
-- Support OAuth2 based authentication
-- Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
+- SDK: Rendering room upgrades (tombstone event)
+- SDK: Support OAuth2 based authentication
+- SDK: Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
   MatrixMessengerConfiguration)
+- API: add multi-profile option to `MultiMessengerConfiguration`
+- UI: Settings: add a button to enable multi-profile mode
 
 ### Changed
 
@@ -20,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
 - SDK: Change back handling to use custom handler instead of Decomposes
+- UI: AccountsOverview: show a warning when adding a new account
+- UI: On startup: show an introduction instead of profiles if required
+- UI / ANDROID: Close room list search with back button
 
 ### Deprecated
 
@@ -37,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - IDE: Set correct environment variables for prod/dev version
 - SDK: Fix BackHandler missing in MatrixMultiMessenger
+- UI: Don't crash when interacting with the page selector in the PDF viewer
 
 
 ### Security
