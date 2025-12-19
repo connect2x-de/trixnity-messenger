@@ -73,10 +73,9 @@ interface RoomListViewModelFactory {
         onRoomSelected: (UserId, RoomId) -> Unit,
         onStartCreateNewRoom: (UserId) -> Unit,
         onUserSettingsSelected: () -> Unit,
-        onUserProfileSelected: () -> Unit,
+        onShowAccounts: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
-        onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
         onStartVerification: (UserId) -> Unit,
         onCloseRoom: () -> Unit
@@ -87,10 +86,9 @@ interface RoomListViewModelFactory {
             onRoomSelected,
             onStartCreateNewRoom,
             onUserSettingsSelected,
-            onUserProfileSelected,
+            onShowAccounts,
             onOpenAppInfo,
             onSendLogs,
-            onOpenAccountsOverview,
             onAccountSelected,
             onStartVerification,
             onCloseRoom
@@ -133,7 +131,6 @@ interface RoomListViewModel {
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
-    fun openAccountsOverview()
     fun verifyAccount(userId: UserId)
 
     /**
@@ -157,11 +154,10 @@ class RoomListViewModelImpl(
     override val selectedRoomId: StateFlow<RoomId?>,
     private val onRoomSelected: (UserId, RoomId) -> Unit,
     private val onCreateNewRoom: (UserId) -> Unit,
-    onUserSettingsSelected: () -> Unit,
+    onShowAccounts: () -> Unit,
     onUserProfileSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
-    private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
     private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit
@@ -224,7 +220,7 @@ class RoomListViewModelImpl(
         viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
             onAccountSelected = { onAccountSelected() },
-            onUserSettingsSelected = onUserSettingsSelected,
+            onUserSettingsSelected = onShowAccounts,
             onShowAppInfo = onOpenAppInfo,
             onShowProfile = onUserProfileSelected,
         )
@@ -515,10 +511,6 @@ class RoomListViewModelImpl(
         onSendLogs()
     }
 
-    override fun openAccountsOverview() {
-        onOpenAccountsOverview()
-    }
-
     override fun verifyAccount(userId: UserId) {
         onStartVerification(userId)
     }
@@ -558,7 +550,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun selectRoom(roomId: RoomId) {}
     override fun errorDismiss() {}
     override fun sendLogs() {}
-    override fun openAccountsOverview() {}
     override fun closeProfile() {}
     override fun verifyAccount(userId: UserId) {}
 }
