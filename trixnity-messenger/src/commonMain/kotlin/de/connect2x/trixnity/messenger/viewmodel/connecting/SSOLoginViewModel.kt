@@ -4,7 +4,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -193,14 +192,6 @@ open class SSOLoginViewModelImpl(
     override fun back() {
         abortLogin()
         onBack()
-    }
-
-    val backCallback = BackCallback {
-        back()
-    }
-
-    init {
-        registerBackCallback(backCallback)
     }
 }
 

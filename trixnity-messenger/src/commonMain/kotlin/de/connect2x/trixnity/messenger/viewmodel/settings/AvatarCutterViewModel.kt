@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import com.arkivanov.essenty.backhandler.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -114,7 +114,7 @@ open class AvatarCutterViewModelImpl(
 
 
     init {
-        registerBackCallback(backCallback)
+        backHandler.register(backCallback)
     }
 
     override fun setImageData(data: ByteArrayFlow?, mimeType: ContentType) {

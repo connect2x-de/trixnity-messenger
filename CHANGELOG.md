@@ -9,18 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Rendering room upgrades (tombstone event)
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 3.10.0
+
+### Added
+
+- SDK: Rendering room upgrades (tombstone event)
+- API: add multi-profile option to `MultiMessengerConfiguration`
+- UI: Settings: add a button to enable multi-profile mode
 
 ### Changed
 
 - UI: Text selections have better visibility now
 - UI: Replace roving focus with a focusGroup based implementation
 - UI: Remove download indicator from TimelineEvents
-- SDK: Change back handling to use custom handler instead of Decomposes
-
-### Deprecated
-
-### Removed
+- UI: AccountsOverview: show a warning when adding a new account
+- UI: On startup: show an introduction instead of profiles if required
 
 ### Fixed
 
@@ -31,12 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
 - WEB,A11Y: CanvasSemanticsOwnerListener: render `SemanticsProperties.ContentDescription` as `aria-description`
 - UI: emojis in the picker are no longer cut off at larger font sizes
-- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - IDE: Set correct environment variables for prod/dev version
-- SDK: Fix BackHandler missing in MatrixMultiMessenger
-
-
-### Security
+- UI: Don't crash when interacting with the page selector in the PDF viewer
+- UI: Don't display close profile button when multi-profile mode is turned off
 
 ## 3.9.0
 

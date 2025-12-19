@@ -65,14 +65,12 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     content = {
                         PasswordLogin(viewModel)
                     },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
+                    additionalButton = {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = viewModel::back,
+                        ) {
+                            Text(i18n.commonBack().capitalize(Locale.current))
                         }
                     },
                     nextButton = {
@@ -96,14 +94,12 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     content = {
                         SSOLogin(viewModel)
                     },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
+                    additionalButton = {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = viewModel::back,
+                        ) {
+                            Text(i18n.commonBack().capitalize(Locale.current))
                         }
                     },
                     nextButton = {
@@ -128,14 +124,12 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     content = {
                         RegisterNewAccount(viewModel)
                     },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
+                    additionalButton = {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = viewModel::back,
+                        ) {
+                            Text(i18n.commonBack().capitalize(Locale.current))
                         }
                     },
                     nextButton = {

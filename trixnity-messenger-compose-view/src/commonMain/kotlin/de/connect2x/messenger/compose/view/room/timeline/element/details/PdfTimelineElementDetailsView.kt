@@ -259,7 +259,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             onSave,
             onClose,
             additions = {
-                PageIndicator(lazyListState, reader.value?.numOfPages?.value ?: 0, focusRequester)
+                PageIndicator(lazyListState, reader.value?.numOfPages?.value, focusRequester)
                 ZoomButtons({
                     scope.launch {
                         val prevCanZoom = canZoom.value
@@ -267,7 +267,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                         state.zoomBy(it)
                         canZoom.value = prevCanZoom
                     }
-                }, scope)
+                }, reader.value?.numOfPages?.value != null)
             }) {
             BoxWithConstraints(
                 Modifier
@@ -448,7 +448,7 @@ expect suspend fun getPlatformPDFReader(
 private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 
 @Composable
-private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusRequester: FocusRequester) {
+private fun PageIndicator(lazyListState: LazyListState, pageCount: Int?, focusRequester: FocusRequester) {
     val measurer = rememberTextMeasurer()
     val textStyle = MaterialTheme.typography.headlineSmall.copy(color = Color.LightGray, textAlign = TextAlign.Right)
     val pageText = rememberTextFieldState()
@@ -456,13 +456,11 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusReq
     val density = LocalDensity.current
     //Set the width to the digit count of the maximum page number + 1
     val inputFieldWidth = remember(pageCount) {
-        if (pageCount != 0) {
-            measurer.measure(
-                text = "0".repeat(log10(pageCount.toFloat()).toInt() + 2),
-                style = textStyle,
-                density = density
-            ).size.width.dp / density.density
-        } else measurer.measure(text = "00", style = textStyle, density = density).size.width.dp / density.density
+        measurer.measure(
+            text = "0".repeat(log10((pageCount ?: 1).toFloat()).toInt() + 2),
+            style = textStyle,
+            density = density
+        ).size.width.dp / density.density
     }
     //Update the page numbers when new pages are scrolled into view
     LaunchedEffect(Unit) {
@@ -480,12 +478,12 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusReq
             }
     }
 
-    LaunchedEffect(currentIndex.value.pageIndex) {
+    LaunchedEffect(currentIndex.value.pageIndex, pageCount) {
         if (currentIndex.value.scroll) {
             lazyListState.scrollToItem(currentIndex.value.pageIndex)
         }
         pageText.edit {
-            replace(0, length, currentIndex.value.pageIndex.inc().toString())
+            replace(0, length, if (pageCount != null) currentIndex.value.pageIndex.inc().toString() else 0.toString())
         }
     }
 
@@ -543,14 +541,15 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int, focusReq
                         ) {
                             inputField()
                         }
-                        Text(" / $pageCount", style = textStyle)
+                        Text(" / ${pageCount ?: 0}", style = textStyle)
                     }
-                }
+                },
+                enabled = pageCount != null
             )
             IconButton(
-                enabled = currentIndex.value.pageIndex < pageCount - 1,
+                enabled = pageCount != null && currentIndex.value.pageIndex < pageCount - 1,
                 onClick = {
-                    if (currentIndex.value.pageIndex < pageCount - 1) {
+                    if (pageCount != null && currentIndex.value.pageIndex < pageCount - 1) {
                         currentIndex.value = PageNumber(
                             currentIndex.value.pageIndex.inc(),
                             scroll = true,
