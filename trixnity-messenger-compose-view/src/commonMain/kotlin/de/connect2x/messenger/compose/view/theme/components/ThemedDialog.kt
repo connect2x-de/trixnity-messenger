@@ -135,13 +135,16 @@ fun ThemedAdaptiveDialog(
     style: DialogStyle = MaterialTheme.components.adaptiveDialog,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val density = LocalDensity.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
         ),
     ) {
-        AdaptiveDialogWrapper(modifier, style, content)
+        CompositionLocalProvider(LocalDensity provides density) {
+            AdaptiveDialogWrapper(modifier, style, content)
+        }
     }
 }
 

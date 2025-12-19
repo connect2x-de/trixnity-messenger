@@ -37,12 +37,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.arkivanov.essenty.backhandler.BackCallback
-import com.arkivanov.essenty.backhandler.BackHandler
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.arkivanov.essenty.backhandler.BackCallback
+import com.arkivanov.essenty.backhandler.BackHandler
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -127,9 +125,7 @@ fun Wizard(wizardSteps: List<WizardStep>, backHandler: BackHandler? = null) {
     val density = LocalDensity.current
     //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
     Popup(
-        onDismissRequest = {
-            backHandler.goBack()
-        },
+        onDismissRequest = { },
         properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         CompositionLocalProvider(LocalDensity provides density) {
