@@ -1,8 +1,13 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
@@ -10,6 +15,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
@@ -54,7 +60,21 @@ suspend fun TestScope.createTestMatrixMultiMessenger(
         messengerConfiguration {
             modulesFactories += createTestDefaultTrixnityMessengerModules().map { { it } }
         }
-        modulesFactories += {
+        modulesFactories = listOf {
+            module {
+                // TODO there should be a more clean way for I18n
+                single<I18n> {
+                    object : I18n(
+                        DefaultLanguages,
+                        createTestMatrixMessengerSettingsHolder(),
+                        GetSystemLang { "en" },
+                        TimeZone.of("CET"),
+                    ) {}
+                }
+                // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
+                single<MatrixMessengerSettingsHolder> { createTestMatrixMessengerSettingsHolder() }
+            }
+        } + createTrixnityMultiMessengerDefaultModuleFactories() + {
             module {
                 single<MatrixMultiMessengerSettingsHolder> { createTestMatrixMultiMessengerSettingsHolder() }
             }
