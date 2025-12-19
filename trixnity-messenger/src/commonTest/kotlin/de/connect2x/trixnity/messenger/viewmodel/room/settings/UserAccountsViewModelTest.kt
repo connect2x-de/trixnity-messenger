@@ -69,7 +69,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("NonAsciiCharacters")
-class UserProfileViewModelTest {
+class UserAccountsViewModelTest {
     private val me = UserId("user1", "localhost")
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")

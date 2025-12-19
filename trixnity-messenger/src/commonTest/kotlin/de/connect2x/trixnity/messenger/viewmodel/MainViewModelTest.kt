@@ -665,10 +665,9 @@ class MainViewModelTest {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
-                                        onUserProfileSelected: () -> Unit,
+                                        onShowAccounts: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
                                         onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
@@ -706,7 +705,6 @@ class MainViewModelTest {
                                         override fun selectRoom(roomId: RoomId) {}
                                         override fun errorDismiss() {}
                                         override fun sendLogs() {}
-                                        override fun openAccountsOverview() {}
                                         override fun closeProfile() {}
                                         override fun verifyAccount(userId: UserId) {}
                                     }

@@ -232,8 +232,6 @@ import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepListImpl
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
@@ -266,8 +264,8 @@ import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsViewImpl
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsView
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.messenger.compose.view.sharing.ShareDataView
@@ -551,7 +549,6 @@ fun userSearchViewModule() = module {
 }
 
 fun settingsViewModule() = module {
-    single<AccountsOverviewView> { AccountsOverviewViewImpl() }
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }
@@ -566,7 +563,7 @@ fun settingsViewModule() = module {
     single<DeviceSettingsView> { DeviceSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
-    single<ProfileSettingsView> { ProfileSettingsViewImpl() }
+    single<AccountsSettingsView> { AccountsSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
