@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -10,7 +9,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
@@ -118,20 +116,20 @@ class RoomSettingsViewModelTest {
         } returns MutableStateFlow(createEvent)
 
         every {
-            userServiceMock.getAll(eq(roomId))
+            userServiceMock.getAll(roomId)
         } returns MutableStateFlow(
             mapOf(
                 roomUserMe.userId to flowOf(roomUserMe),
             )
         )
 
-        every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
 
         every { userServiceMock.canInvite(any()) } returns MutableStateFlow(true)
 
         every {
             userServiceMock.canSetPowerLevelToMax(
-                eq(roomId),
+                roomId,
                 any()
             )
         } returns MutableStateFlow(PowerLevel.User(100))
@@ -140,11 +138,11 @@ class RoomSettingsViewModelTest {
     @Test
     fun `go back to the room list view when leaving the room successfully`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                eq(roomId), any(), eqNull()
+                roomId, any(), null
             )
         } returns Result.success(Unit)
 
@@ -154,14 +152,14 @@ class RoomSettingsViewModelTest {
         yield()
 
         verifySuspend {
-            roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
+            roomsApiClientMock.leaveRoom(roomId, any(), null)
         }
     }
 
     @Test
     fun `show an error message when trying to leave a room and we are not connected`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
@@ -175,11 +173,11 @@ class RoomSettingsViewModelTest {
     @Test
     fun `show an error message when leaving the room fails`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                eq(roomId), any(), eqNull()
+                roomId, any(), null
             )
         } returns Result.failure(RuntimeException("Oh no!"))
 
@@ -193,7 +191,7 @@ class RoomSettingsViewModelTest {
     @Test
     fun `not allow to invite users`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
 
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
@@ -207,7 +205,7 @@ class RoomSettingsViewModelTest {
     @Test
     fun `allow to invite users`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
 
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(true)

@@ -42,7 +42,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
@@ -153,7 +152,7 @@ class MainViewModelTest {
 
         every { roomServiceMock.getAll() } returns roomsFlow
         every {
-            roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            roomServiceMock.getState(any(), CreateEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
@@ -163,10 +162,10 @@ class MainViewModelTest {
         } returns NoOpTimeline()
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
         every {
-            roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
+            roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any())
         } returns flowOf(null)
         every {
-            roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any())
+            roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any())
         } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns flowOf(listOf())
         every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
@@ -180,7 +179,7 @@ class MainViewModelTest {
 
         every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.Valid(true))
 
-        everySuspend { userServiceMock.loadMembers(RoomId(any()), any()) } returns Unit
+        everySuspend { userServiceMock.loadMembers(any(), any()) } returns Unit
         every { userServiceMock.getAccountData(DirectEventContent::class) } returns MutableStateFlow(
             DirectEventContent(
                 emptyMap()
@@ -236,7 +235,7 @@ class MainViewModelTest {
     @Test
     fun `show room when room is selected`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -251,7 +250,7 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is closed`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -269,7 +268,7 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is left with the back button`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)

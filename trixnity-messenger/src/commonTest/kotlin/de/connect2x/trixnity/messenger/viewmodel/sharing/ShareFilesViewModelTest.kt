@@ -24,7 +24,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -130,7 +129,7 @@ class ShareFilesViewModelTest {
                 ourRoomId to flowOf(ourRoom)
             )
         )
-        every { roomServiceMock.getById(eq(ourRoomId)) } returns MutableStateFlow(ourRoom)
+        every { roomServiceMock.getById(ourRoomId) } returns MutableStateFlow(ourRoom)
         everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
             val roomId = it.arg<RoomId>(0)
             val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)

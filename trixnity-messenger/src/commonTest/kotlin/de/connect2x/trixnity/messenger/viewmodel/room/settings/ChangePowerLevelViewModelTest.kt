@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
+
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -117,8 +117,8 @@ class ChangePowerLevelViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiMock
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-        every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
-        every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
+        every { userServiceMock.getById(roomId, alice) } returns roomUserAliceFlow
+        every { userServiceMock.getById(roomId, bob) } returns roomUserBobFlow
 
         every {
             roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
@@ -147,15 +147,15 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             canSetAlicePowerLevelToMax.value = 100
             every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                userServiceMock.canSetPowerLevelToMax(roomId, testUser)
             } returns MutableStateFlow(PowerLevel.User(100))
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
+                    null
                 )
             } returns Result.success(EventId(""))
 
@@ -166,10 +166,10 @@ class ChangePowerLevelViewModelTest {
             cut.error.value shouldBe null
             verifySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
-                    eq(PowerLevelsEventContent(users = mapOf(alice to 100L))),
+                    roomId,
+                    PowerLevelsEventContent(users = mapOf(alice to 100L)),
                     any(),
-                    eqNull()
+                    null
                 )
             }
         }
@@ -179,7 +179,7 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             canSetAlicePowerLevelToMax.value = 100
             every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                userServiceMock.canSetPowerLevelToMax(roomId, testUser)
             } returns MutableStateFlow(PowerLevel.User(100L))
 
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
@@ -201,10 +201,10 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
+                    null
                 )
             } returns Result.failure(Throwable())
 
@@ -222,10 +222,10 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
+                    null
                 )
             } returns Result.success(EventId(""))
 
@@ -236,10 +236,10 @@ class ChangePowerLevelViewModelTest {
             cut.error.value shouldBe null
             verifySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
-                    eq(PowerLevelsEventContent(users = mapOf(alice to 99L))),
+                    roomId,
+                    PowerLevelsEventContent(users = mapOf(alice to 99L)),
                     any(),
-                    eqNull()
+                    null
                 )
             }
         }
@@ -265,10 +265,10 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
+                    null
                 )
             } returns Result.failure(Throwable())
 

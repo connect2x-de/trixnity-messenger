@@ -64,7 +64,7 @@ class AvatarCutterViewModelTest {
             )
         } returns "cache://localhost/123456"
         everySuspend {
-            mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
+            mediaServiceMock.uploadMedia("cache://localhost/123456", any(), any())
         } returns Result.success("mxc://localhost/123456")
         everySuspend {
             matrixClientMock.setAvatarUrl("mxc://localhost/123456")
@@ -91,7 +91,7 @@ class AvatarCutterViewModelTest {
             )
         } returns "cache://localhost/123456"
         everySuspend {
-            mediaServiceMock.uploadMedia(eq("cache://localhost/123456"), any(), any())
+            mediaServiceMock.uploadMedia("cache://localhost/123456", any(), any())
         } returns Result.failure(RuntimeException("Oh no!"))
         every { onCloseMock.invoke() } calls {
             onCloseWasCalled = true

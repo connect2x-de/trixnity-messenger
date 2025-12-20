@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testDispatcher
@@ -12,7 +11,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.should
@@ -89,9 +87,9 @@ class VerificationViewModelTest {
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
 
         everySuspend {
-            devicesApiClientMock.getDevice(any(), eqNull())
+            devicesApiClientMock.getDevice(any(), null)
         } returns Result.success(Device(ownDeviceId))
-        everySuspend { usersApiClientMock.getDisplayName(eq(otherUserId)) } returns Result.success("otherUser")
+        everySuspend { usersApiClientMock.getDisplayName(otherUserId) } returns Result.success("otherUser")
 
         every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
         every { activeVerification.theirDeviceId } returns otherDeviceId
@@ -137,7 +135,7 @@ class VerificationViewModelTest {
     fun `redo self verification if the trust level of the device is not 'verified' after verification`() = runTest {
         every { onRedoSelfVerificationMock.invoke() } returns Unit
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(
             ActiveVerificationState.Cancel(
@@ -168,7 +166,7 @@ class VerificationViewModelTest {
             onRedoWasCalled = true
         }
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
 
@@ -189,7 +187,7 @@ class VerificationViewModelTest {
     @Test
     fun `show request screen again when verification is re-initiated`() = runTest {
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
         every { activeVerification2.state } returns MutableStateFlow(theirRequest())

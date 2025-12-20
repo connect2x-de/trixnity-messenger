@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -117,18 +116,18 @@ class MemberListElementViewModelTest {
 
         every { matrixClientMock.userId } returns me
 
-        every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
             Room(isDirect = true, roomId = roomId)
         )
 
-        every { userServiceMock.getById(eq(roomId), eq(roomUserAlice.userId)) } returns flowOf(roomUserAlice)
-        every { userServiceMock.getById(eq(roomId), eq(roomUserBob.userId)) } returns flowOf(roomUserBob)
-        every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.getPowerLevel(eq(roomId), eq(alice)) } returns MutableStateFlow(PowerLevel.User(50))
+        every { userServiceMock.getById(roomId, roomUserAlice.userId) } returns flowOf(roomUserAlice)
+        every { userServiceMock.getById(roomId, roomUserBob.userId) } returns flowOf(roomUserBob)
+        every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.getPowerLevel(roomId, alice) } returns MutableStateFlow(PowerLevel.User(50))
         every {
-            userServiceMock.canSetPowerLevelToMax(eq(roomId), any())
+            userServiceMock.canSetPowerLevelToMax(roomId, any())
         } returns MutableStateFlow(PowerLevel.User(100))
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
             IgnoredUserListEventContent(emptyMap())
@@ -145,7 +144,7 @@ class MemberListElementViewModelTest {
     @Test
     fun `initially do not create MemberElement before subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = memberListElementViewModel(roomUserAlice)
 
@@ -157,7 +156,7 @@ class MemberListElementViewModelTest {
     @Test
     fun `Create MemberElement after subscription`() = runTest {
 
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(50))
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns MutableStateFlow(PowerLevel.User(50))
 
         val cut = memberListElementViewModel(roomUserAlice)
 
@@ -170,11 +169,11 @@ class MemberListElementViewModelTest {
 
     fun setupRoleComputationForTheMemberList() {
         every {
-            userServiceMock.getPowerLevel(eq(roomId), eq(alice))
+            userServiceMock.getPowerLevel(roomId, alice)
         } returns MutableStateFlow(PowerLevel.User(50))
 
         every {
-            userServiceMock.getPowerLevel(eq(roomId), eq(me))
+            userServiceMock.getPowerLevel(roomId, me)
         } returns MutableStateFlow(PowerLevel.User(50))
     }
 

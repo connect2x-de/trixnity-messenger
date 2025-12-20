@@ -10,7 +10,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,9 +47,9 @@ class BlockedContactsSettingsViewModelTest {
             contact1,
         )
         resetMocks(matrixClientMock1, matrixClientMock2, userBlockingMock)
-        every { userBlockingMock.getBlockedUsers(eq(matrixClientMock1)) } returns blockedContactsForUser1
+        every { userBlockingMock.getBlockedUsers(matrixClientMock1) } returns blockedContactsForUser1
 
-        every { userBlockingMock.getBlockedUsers(eq(matrixClientMock2)) } returns flowOf(listOf(contact1, contact2))
+        every { userBlockingMock.getBlockedUsers(matrixClientMock2) } returns flowOf(listOf(contact1, contact2))
     }
 
     @Test
@@ -83,8 +82,8 @@ class BlockedContactsSettingsViewModelTest {
         val isRequestCompleted = MutableStateFlow(false)
         everySuspend {
             userBlockingMock.unblockUser(
-                eq(matrixClientMock1),
-                eq(contact3),
+                matrixClientMock1,
+                contact3,
                 any(),
                 any(),
             )

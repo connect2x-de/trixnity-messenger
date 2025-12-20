@@ -2,27 +2,27 @@
 
 trixnityMessenger = "4.0.0"
 
-seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
+seskar = "4.30.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "5.0.0-DEV-61920332" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.3.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.3.1-DEV-62137441" # https://gitlab.com/connect2x/sysnotify/-/packages
 
-okio = "3.16.0" # https://square.github.io/okio/changelog
+okio = "3.16.4" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js
 kim = "0.26.2" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.6" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
-icu4j = "77.1" # https://github.com/unicode-org/icu/releases
-testContainers = "2.0.1" # https://github.com/testcontainers/testcontainers-java/releases
+icu4j = "78.1" # https://github.com/unicode-org/icu/releases
+testContainers = "2.0.3" # https://github.com/testcontainers/testcontainers-java/releases
 ksoup = "0.2.5" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-filekit = "0.11.0" # https://github.com/vinceglb/FileKit/releases
+filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases
 kotlinLogging = "7.0.13" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
-logback = "1.5.20" # https://github.com/qos-ch/logback/tags
+logback = "1.5.22" # https://github.com/qos-ch/logback/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
 sqlitenity = "0.0.4"
 

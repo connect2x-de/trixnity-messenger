@@ -23,7 +23,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
@@ -78,10 +77,10 @@ class MatrixClientsTest {
     private val repositoriesModule2 = mock<RepositoriesModule>()
     private val createRepositoriesModule = mock<CreateRepositoriesModule>() {
         everySuspend { generateDatabaseKey() } returns null
-        everySuspend { create(eq(userId1), any()) } returns repositoriesModule1
-        everySuspend { create(eq(userId2), any()) } returns repositoriesModule2
-        everySuspend { load(eq(userId1), any()) } returns repositoriesModule1
-        everySuspend { load(eq(userId2), any()) } returns repositoriesModule2
+        everySuspend { create(userId1, any()) } returns repositoriesModule1
+        everySuspend { create(userId2, any()) } returns repositoriesModule2
+        everySuspend { load(userId1, any()) } returns repositoriesModule1
+        everySuspend { load(userId2, any()) } returns repositoriesModule2
     }
     private val createMediaStoreModule = mock<CreateMediaStoreModule>()
     private val createCryptoDriverModule = mock<CreateCryptoDriverModule>()

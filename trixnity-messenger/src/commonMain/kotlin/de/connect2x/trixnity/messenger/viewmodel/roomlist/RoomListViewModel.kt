@@ -421,7 +421,7 @@ class RoomListViewModelImpl(
         // andle room navigation requests through the appUriScheme://matrix:roomid/<ID> scheme.
         // TODO Should be removed when better deeplink support is added
         coroutineScope.launch {
-            get<UriHandler>().collect { uri ->
+            this@RoomListViewModelImpl.get<UriHandler>().collect { uri ->
                 val segments = Url(uri).rawSegments
                 if (segments.size < 3 || segments[1] != "matrix:roomid") return@collect
                 selectRoom(RoomId("!" + segments[2]))

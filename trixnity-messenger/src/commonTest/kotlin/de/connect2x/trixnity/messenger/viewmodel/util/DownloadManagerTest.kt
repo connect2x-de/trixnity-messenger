@@ -9,7 +9,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.cancelAndJoin
@@ -49,7 +48,7 @@ class DownloadManagerTest {
     fun `return 'success' when download is finished successfully`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         everySuspend {
-            mediaServiceMock.getMedia(eq("mxc://localhost/ABCDEFGH"), any(), any())
+            mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any())
         } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -73,7 +72,7 @@ class DownloadManagerTest {
             hashes = mapOf()
         )
         everySuspend {
-            mediaServiceMock.getEncryptedMedia(eq(encryptedFile), any(), any())
+            mediaServiceMock.getEncryptedMedia(encryptedFile, any(), any())
         } returns Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -90,7 +89,7 @@ class DownloadManagerTest {
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getMedia(
-                eq("mxc://localhost/ABCDEFGH"), any(), any()
+                "mxc://localhost/ABCDEFGH", any(), any()
             )
         } calls {
             @Suppress("UNCHECKED_CAST")
@@ -128,7 +127,7 @@ class DownloadManagerTest {
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getMedia(
-                eq("mxc://localhost/ABCDEFGH"), any(), any()
+                "mxc://localhost/ABCDEFGH", any(), any()
             )
         } calls {
             @Suppress("UNCHECKED_CAST")
@@ -164,7 +163,7 @@ class DownloadManagerTest {
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getMedia(
-                eq("mxc://localhost/ABCDEFGH"), any(), any()
+                "mxc://localhost/ABCDEFGH", any(), any()
             )
         } calls {
             @Suppress("UNCHECKED_CAST")

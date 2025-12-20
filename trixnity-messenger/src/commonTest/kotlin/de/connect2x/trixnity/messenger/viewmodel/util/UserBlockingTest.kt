@@ -7,7 +7,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
@@ -63,7 +62,7 @@ class UserBlockingTest {
         everySuspend {
             usersApiClientMock.setAccountData(
                 content = any(),
-                userId = eq(userId),
+                userId = userId,
                 asUserId = any(),
                 key = any(),
             )

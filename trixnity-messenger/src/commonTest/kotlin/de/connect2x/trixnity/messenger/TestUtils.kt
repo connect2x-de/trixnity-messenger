@@ -6,8 +6,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.matching
+import dev.mokkery.matcher.MokkeryMatcherScope
+import dev.mokkery.matcher.matches
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
 import io.kotest.assertions.withClue
@@ -93,17 +93,15 @@ fun resetMocks(vararg mocks: Any) {
     resetAnswers(*mocks)
 }
 
-inline fun <reified T : Any> ArgMatchersScope.eqNull(): T? = matching({ "eqNull" }) { it == null }
-
-fun ArgMatchersScope.isRoomOf(roomId: RoomId): Room = matching({
+fun MokkeryMatcherScope.isRoomOf(roomId: RoomId): Room = matches({
     "isRoomOf($roomId)"
 }) {
     it.roomId == roomId
 }
 
-inline fun <reified T> ArgMatchersScope.isNot(
+inline fun <reified T> MokkeryMatcherScope.isNot(
     others: List<T>,
-): T = matching({
+): T = matches({
     "isNot($others)"
 }) {
     others.contains(it).not()

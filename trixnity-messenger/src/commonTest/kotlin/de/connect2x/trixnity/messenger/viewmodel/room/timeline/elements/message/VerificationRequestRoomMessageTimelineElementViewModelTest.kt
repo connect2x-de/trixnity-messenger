@@ -13,7 +13,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,7 +66,7 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns me
         every {
-            roomServiceMock.getTimelineEvent(eq(thisRoom), eq(timelineEventId), any())
+            roomServiceMock.getTimelineEvent(thisRoom, timelineEventId, any())
         } returns MutableStateFlow(
             timelineEvent(timelineEventId)
         )
@@ -77,7 +76,7 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     fun `show as active when the verification has not timed out and is not done or cancelled`() = runTest {
         every { activeVerification.state } returns MutableStateFlow(ready)
         everySuspend {
-            activeVerifications.getActiveVerification(any(), eq(thisRoom), eq(timelineEventId))
+            activeVerifications.getActiveVerification(any(), thisRoom, timelineEventId)
         } returns activeVerification
         val cut = userVerificationViewModel()
 
@@ -88,14 +87,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     fun `show as inactive when verification has timed out`() = runTest {
         everySuspend {
             activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
+                matrixClientMock, thisRoom, timelineEventId
             )
         } returns null
         every {
             roomServiceMock.getTimelineEvents(
-                roomId = eq(thisRoom),
-                startFrom = eq(timelineEventId),
-                direction = eq(GetEvents.Direction.FORWARDS),
+                roomId = thisRoom,
+                startFrom = timelineEventId,
+                direction = GetEvents.Direction.FORWARDS,
                 config = any()
             )
         } returns flowOf()
@@ -110,14 +109,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
         everySuspend {
             activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
+                matrixClientMock, thisRoom, timelineEventId
             )
         } returns activeVerification
         every {
             roomServiceMock.getTimelineEvents(
-                roomId = eq(thisRoom),
-                startFrom = eq(timelineEventId),
-                direction = eq(GetEvents.Direction.FORWARDS),
+                roomId = thisRoom,
+                startFrom = timelineEventId,
+                direction = GetEvents.Direction.FORWARDS,
                 config = any()
             )
         } returns flowOf()
