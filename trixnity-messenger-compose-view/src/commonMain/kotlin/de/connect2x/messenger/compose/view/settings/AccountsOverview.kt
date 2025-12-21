@@ -71,10 +71,8 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
     override fun create(accountsOverviewViewModel: AccountsOverviewViewModel) {
         val i18n = DI.get<I18nView>()
         val accounts by remember { accountsOverviewViewModel.accounts }.collectAsState()
-        val isMultiProfile by accountsOverviewViewModel.isMultiProfile.collectAsState()
         val scrollState = rememberScrollState()
         var showLogoutWarning by remember { mutableStateOf<AccountInfo?>(null) }
-        var showNewAccountWarning by remember { mutableStateOf(false) }
 
         var focusedItem by remember(accounts) { mutableStateOf(accounts.map { it.userId }.firstOrNull()) }
 
@@ -139,35 +137,11 @@ class AccountsOverviewViewImpl : AccountsOverviewView {
                 Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
                     ThemedFloatingActionButton(
                         expanded = true,
-                        onClick = { showNewAccountWarning = true },
+                        onClick = accountsOverviewViewModel::createNewAccount,
                         text = { Text(i18n.accountsOverviewCreateNewAccount()) },
                         icon = { Icon(Icons.Default.AddCircle, i18n.accountsOverviewCreateNewAccount()) },
                     )
                 }
-            }
-        }
-        if (showNewAccountWarning) ThemedModalDialog(onDismissRequest = { showNewAccountWarning = false }) {
-            ModalDialogHeader { Text(i18n.accountsOverviewCreateNewAccount()) }
-            ModalDialogContent {
-                Text(i18n.accountOverviewWarning())
-                if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
-            }
-            ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = { showNewAccountWarning = false },
-                    content = { Text(i18n.actionCancel()) },
-                )
-                if (isMultiProfile) ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = { accountsOverviewViewModel.logout() },
-                    content = { Text(i18n.accountsOverviewLogout()) },
-                )
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = accountsOverviewViewModel::createNewAccount,
-                    content = { Text(i18n.accountsOverviewCreateNewAccount()) },
-                )
             }
         }
 
