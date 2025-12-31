@@ -48,12 +48,10 @@ interface MediaPlayerViewModel {
      * Loading -> Failed / Ready -> Playing <-> Ready
      */
     sealed interface State {
-        fun wasLoaded(): Boolean = this is Ready || this is Playing
-
         object Loading : State
         object NotAvailable : State
 
-        data class Failed(val cause: Throwable? = null) : State
+        data class Failed(val cause: String? = null) : State
 
         /**
          * @param amplitudes the normalized amplitudes (0.0 to 1.0) of the audio file
