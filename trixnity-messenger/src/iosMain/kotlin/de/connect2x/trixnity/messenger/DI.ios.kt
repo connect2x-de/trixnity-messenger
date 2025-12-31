@@ -1,13 +1,17 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.media.AppleMediaPlayer
+import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegate
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProxy
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegate
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegateProxy
+import de.connect2x.trixnity.messenger.util.GetAmplitudesImpl
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.UrlHandlerImpl
+import de.connect2x.trixnity.messenger.viewmodel.util.GetAmplitudes
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -17,6 +21,12 @@ actual fun platformModule(): Module = module {
         UrlHandlingUIWindowSceneDelegate(checkNotNull(get<UrlHandler>() as? UrlHandlerImpl) {
             "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
         })
+    }
+    single<MediaPlayer> {
+        AppleMediaPlayer()
+    }
+    single<GetAmplitudes> {
+        GetAmplitudesImpl()
     }
 }
 
