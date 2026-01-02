@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -187,7 +188,7 @@ private fun BoxWithConstraintsScope.WizardContainer(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Column {
+                Column(Modifier.semantics { dialog() }) {
                     WizardHeading(wizardStep)
                     WizardContent(wizardStep, scrollState, boxWithConstraints)
                     WizardButtons(wizardSteps, wizardStep, currentStep)
