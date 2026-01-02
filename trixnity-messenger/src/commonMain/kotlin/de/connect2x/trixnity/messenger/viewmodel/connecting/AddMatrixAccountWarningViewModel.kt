@@ -24,10 +24,9 @@ interface AddMatrixAccountWarningViewModelFactory {
 
 interface AddMatrixAccountWarningViewModel {
     val isMultiProfile: StateFlow<Boolean>
+
     fun cancelWarning()
-
     fun createAccount()
-
     fun logoutFromProfile()
 }
 
