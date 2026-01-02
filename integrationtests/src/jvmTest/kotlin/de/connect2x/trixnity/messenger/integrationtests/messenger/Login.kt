@@ -70,6 +70,10 @@ private suspend fun RootViewModel.addMatrixAccountViaPassword(
     username: String,
     password: String,
 ) {
+    withTimeoutOrNull(1.seconds) {
+        val addAccountWarning = stack.waitFor(RootRouter.Wrapper.AddMatrixAccountWarning::class)
+        addAccountWarning.viewModel.createAccount()
+    }
     val addMatrixAccount = stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)
     val addMatrixAccountViewModel = addMatrixAccount.viewModel
     addMatrixAccountViewModel.serverUrl.update(serverUrl)
