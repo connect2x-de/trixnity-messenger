@@ -29,9 +29,10 @@ suspend fun MatrixMessengerWithRoot.login(
     password: String,
     recoveryKey: String? = null,
     otherMessenger: MatrixMessengerWithRoot? = null,
+    waitForWarning: Boolean = false,
 ): String? = with(root) {
     log.debug { " +- ADD ACCOUNT" }
-    addMatrixAccountViaPassword(serverUrl, username, password)
+    addMatrixAccountViaPassword(serverUrl, username, password, waitForWarning)
     log.debug { " +- try login" }
     val main = stack.waitFor(RootRouter.Wrapper.Main::class)
     log.info { " +- main view" }
@@ -69,8 +70,9 @@ private suspend fun RootViewModel.addMatrixAccountViaPassword(
     serverUrl: String,
     username: String,
     password: String,
+    waitForWarning: Boolean
 ) {
-    withTimeoutOrNull(1.seconds) {
+    if (waitForWarning) {
         val addAccountWarning = stack.waitFor(RootRouter.Wrapper.AddMatrixAccountWarning::class)
         addAccountWarning.viewModel.createAccount()
     }

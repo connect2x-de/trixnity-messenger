@@ -29,7 +29,7 @@ suspend fun MatrixMessengerWithRoot.createNewAccount(
 ): String? = with(root) {
     val accountsOverviewViewModel = openAccountsOverview()
     accountsOverviewViewModel.createNewAccount()
-    val thisRecoveryKey = login(serverUrl, username, password, recoveryKey)
+    val thisRecoveryKey = login(serverUrl, username, password, recoveryKey, waitForWarning = true)
     val mainViewModel = stack.waitFor(RootRouter.Wrapper.Main::class).viewModel
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class)
     mainViewModel.initialSyncStack.waitFor(InitialSyncRouter.Wrapper.None::class)
