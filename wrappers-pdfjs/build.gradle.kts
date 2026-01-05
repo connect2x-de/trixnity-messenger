@@ -8,8 +8,6 @@ plugins {
     `maven-publish`
 }
 
-registerCoverageTask()
-
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
