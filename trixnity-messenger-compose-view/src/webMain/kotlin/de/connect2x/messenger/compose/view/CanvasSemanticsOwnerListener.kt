@@ -82,11 +82,10 @@ class CanvasSemanticsOwnerListener(
             a11yContainer.addEventListener(event, EventListener {
                 it.stopImmediatePropagation()
                 it.stopPropagation()
-                // we need to allow default behaviour so that they these key events turned into copy/cut/paste events
-                if (event != "keydown" || it !is KeyboardEvent || !it.ctrlKey
-                    || !listOf("c", "x", "v").contains(it.key)
-                )
-                    it.preventDefault()
+                // we need to prevent the default (moving focus) on these keys because we handle it ourselves
+                if (it is KeyboardEvent && event == "keydown"
+                    && listOf("ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Tab").contains(it.key)
+                ) it.preventDefault()
 
                 val x = js("new it.constructor(it.type, it);")
                 canvas?.dispatchEvent(x)
@@ -250,7 +249,8 @@ class CanvasSemanticsOwnerListener(
         fun <T> setIf(attr: String, prop: SemanticsPropertyKey<T>, value: (T) -> String?) =
             node.config.getOrNull(prop)?.let {
                 val v = value(it) ?: return@let null
-                el.setAttribute(attr, v)
+                if (el.getAttribute(attr) != v)
+                    el.setAttribute(attr, v)
             }
 
         fun setIf(attr: String, prop: SemanticsPropertyKey<String>) = setIf(attr, prop) { it }
