@@ -42,7 +42,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-class ProfileViewModelTest {
+class AccountsViewModelTest {
     private val ownUserId = UserId("bob", "localhost")
     private val ownUserId2 = UserId("alice", "localhost")
     private val displayNameFlow2 = MutableStateFlow("Alice")
@@ -134,23 +134,23 @@ class ProfileViewModelTest {
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
-        profilesOfAccounts.first {
+        val accounts = cut.accountSingleViewModels
+        accounts.first {
             it.size == 2 && it[0].userId == ownUserId && it[1].userId == ownUserId2
         }
 
         eventually(1.seconds) {
             cut.error.value shouldBe null
-            val profileOfAccount = profilesOfAccounts.value[0]
-            profileOfAccount.userId shouldBe ownUserId
-            profileOfAccount.displayName.value shouldBe "Bob"
-            profileOfAccount.initials.value shouldBe "B"
-            profileOfAccount.avatar.value shouldBe "avatar".encodeToByteArray()
-            val profileOfAccount2 = profilesOfAccounts.value[1]
-            profileOfAccount2.userId shouldBe ownUserId2
-            profileOfAccount2.displayName.value shouldBe "Alice"
-            profileOfAccount2.initials.value shouldBe "A"
-            profileOfAccount2.avatar.value shouldBe "avatar2".encodeToByteArray()
+            val account1 = accounts.value[0]
+            account1.userId shouldBe ownUserId
+            account1.displayName.value shouldBe "Bob"
+            account1.initials.value shouldBe "B"
+            account1.avatar.value shouldBe "avatar".encodeToByteArray()
+            val account2 = accounts.value[1]
+            account2.userId shouldBe ownUserId2
+            account2.displayName.value shouldBe "Alice"
+            account2.initials.value shouldBe "A"
+            account2.avatar.value shouldBe "avatar2".encodeToByteArray()
         }
     }
 
@@ -176,12 +176,12 @@ class ProfileViewModelTest {
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
-        profilesOfAccounts.first { it.size == 2 }
+        val accounts = cut.accountSingleViewModels
+        accounts.first { it.size == 2 }
 
         eventually(1.seconds) {
-            profilesOfAccounts.value[0].editDisplayName.textValue shouldBe "Bob"
-            profilesOfAccounts.value[0].editDisplayName.update("Bobby")
+            accounts.value[0].editDisplayName.textValue shouldBe "Bob"
+            accounts.value[0].editDisplayName.update("Bobby")
         }
 
         cut.saveDisplayName(ownUserId)
@@ -212,15 +212,15 @@ class ProfileViewModelTest {
         setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
 
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
-        profilesOfAccounts.first { it.size == 2 }
+        val accounts = cut.accountSingleViewModels
+        accounts.first { it.size == 2 }
 
-        profilesOfAccounts.value[0].editDisplayName.update("Nobby")
+        accounts.value[0].editDisplayName.update("Nobby")
         cut.saveDisplayName(ownUserId)
 
         eventually(1.seconds) {
             cut.error.value shouldNotBe null
-            profilesOfAccounts.value[0].displayName.value shouldBe "Bob"
+            accounts.value[0].displayName.value shouldBe "Bob"
         }
     }
 
@@ -251,16 +251,16 @@ class ProfileViewModelTest {
         )
 
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
-        profilesOfAccounts.first { it.size == 2 }
+        val accounts = cut.accountSingleViewModels
+        accounts.first { it.size == 2 }
 
-        profilesOfAccounts.value[0].editDisplayName.update("Nobby")
+        accounts.value[0].editDisplayName.update("Nobby")
         cut.saveDisplayName(ownUserId)
 
 
         eventually(1.seconds) {
             cut.error.value shouldContain "not allowed"
-            profilesOfAccounts.value[0].displayName.value shouldBe "Bob"
+            accounts.value[0].displayName.value shouldBe "Bob"
         }
     }
 
@@ -279,19 +279,19 @@ class ProfileViewModelTest {
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
+        val accounts = cut.accountSingleViewModels
         val openAvatarCutter = cut.openAvatarCutter
-        profilesOfAccounts.first { it.size == 2 }
+        accounts.first { it.size == 2 }
 
         openAvatarCutter.value shouldBe null
-        profilesOfAccounts.value[1].openAvatarCutter.value = true
+        accounts.value[1].openAvatarCutter.value = true
 
         eventually(1.seconds) {
             openAvatarCutter.value shouldBe ownUserId2
         }
         cut.closeAvatarCutter()
         eventually(1.seconds) {
-            profilesOfAccounts.value[1].openAvatarCutter.value shouldBe false
+            accounts.value[1].openAvatarCutter.value shouldBe false
             openAvatarCutter.value shouldBe null
         }
     }
@@ -310,12 +310,12 @@ class ProfileViewModelTest {
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
         val cut = profileViewModel()
-        val profilesOfAccounts = cut.profileSingleViewModels
-        profilesOfAccounts.first { it.size == 2 }
-        cut.profileSingleViewModels.value[0].displayName.value shouldBe ""
+        val accounts = cut.accountSingleViewModels
+        accounts.first { it.size == 2 }
+        cut.accountSingleViewModels.value[0].displayName.value shouldBe ""
     }
 
-    private fun TestScope.profileViewModel(): ProfileViewModelImpl {
+    private fun TestScope.profileViewModel(): AccountsViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
@@ -325,12 +325,15 @@ class ProfileViewModelTest {
                 )
             )
         }.koin
-        return ProfileViewModelImpl(
+        return AccountsViewModelImpl(
             viewModelContext = testViewModelContext(
                 di = di,
             ),
-            onCloseProfile = mock(),
+            onCloseAccounts = mock(),
             onOpenAvatarCutter = mock(),
+            onShowAccountSetup = mock(),
+            onRemoveAccount = mock(),
+            onCreateNewAccount = mock(),
         )
     }
 }

@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.collapse
 import androidx.compose.ui.semantics.collectionInfo
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.expand
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
@@ -596,6 +597,60 @@ class CanvasSemanticsOwnerListenerTest {
             elem = lbl.parentElement,
             tag = "div",
             attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id, "aria-describedby" to inner.id),
+        )
+    }
+
+    @Test
+    fun `button with content description`() = a11yTest({
+        Button(
+            onClick = {},
+            modifier = Modifier.semantics {
+                testTag = "t-btn"
+                contentDescription = "some content"
+            },
+            content = { Text("aaa") },
+        )
+    }) { a11yRoot ->
+        assertElem(
+            elem = a11yRoot.byTestTag("t-btn"),
+            attrs = mapOf("aria-description" to "some content"),
+            tag = "button",
+            innerHTML = "aaa",
+        )
+    }
+
+    @Test
+    fun `box with content description and label`() = a11yTest({
+        Box(modifier = Modifier.semantics {
+            testTag = "t-box"
+            text = AnnotatedString("some text")
+            contentDescription = "some content"
+        })
+    }) { a11yRoot ->
+        assertElem(
+            elem = a11yRoot.byTestTag("t-box"),
+            attrs = mapOf(
+                "aria-label" to "some text",
+                "aria-description" to "some content"
+            ),
+            tag = "div",
+        )
+    }
+
+    @Test
+    fun `text with content description`() = a11yTest({
+        Text("some text", modifier = Modifier.semantics {
+            testTag = "tt"
+            contentDescription = "some content"
+        })
+    }) { a11yRoot ->
+        assertElem(
+            elem = a11yRoot.byTestTag("tt"),
+            attrs = mapOf(
+                "aria-label" to "some text",
+                "aria-description" to "some content"
+            ),
+            tag = "div",
         )
     }
 }

@@ -25,6 +25,10 @@ import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewIm
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileView
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileViewImpl
+import de.connect2x.messenger.compose.view.profiles.IntroductionView
+import de.connect2x.messenger.compose.view.profiles.IntroductionViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileSelectionView
@@ -174,6 +178,8 @@ import de.connect2x.messenger.compose.view.room.timeline.element.state.NameState
 import de.connect2x.messenger.compose.view.room.timeline.element.state.NameStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.PowerLevelTimelineElementViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.element.state.TombstoneStateTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.state.TombstoneStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementViewImpl
 import de.connect2x.messenger.compose.view.roomlist.RoomListContainerView
@@ -224,8 +230,6 @@ import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepListImpl
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
@@ -258,8 +262,8 @@ import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsViewImpl
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsView
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.messenger.compose.view.sharing.ShareDataView
@@ -395,6 +399,8 @@ fun filesViewModule() = module {
 }
 
 fun profileViewModule() = module {
+    single<IntroductionOrProfileView> { IntroductionOrProfileViewImpl() }
+    single<IntroductionView> { IntroductionViewImpl() }
     single<ProfilesView> { ProfilesViewImpl() }
     single<ProfileCreationView> { ProfileCreationViewImpl() }
     single<ProfileSelectionView> { ProfileSelectionViewImpl() }
@@ -494,12 +500,14 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<EncryptionStateTimelineElementView> { EncryptionStateTimelineElementViewImpl() }
     timelineElementView<HistoryVisibilityStateTimelineElementView> { HistoryVisibilityStateTimelineElementViewImpl() }
     timelineElementView<PowerLevelTimelineElementView> { PowerLevelTimelineElementViewImpl() }
+    timelineElementView<TombstoneStateTimelineElementView> { TombstoneStateTimelineElementViewImpl() }
     timelineElementView<MemberStateTimelineElementView> { MemberStateTimelineElementViewImpl() }
     timelineElementView<NameStateTimelineElementView> { NameStateTimelineElementViewImpl() }
     timelineElementView<TopicStateTimelineElementView> { TopicStateTimelineElementViewImpl() }
     includes(timelineElementDetailsViewsModule(messengerConfiguration))
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
+
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
@@ -539,7 +547,6 @@ fun userSearchViewModule() = module {
 }
 
 fun settingsViewModule() = module {
-    single<AccountsOverviewView> { AccountsOverviewViewImpl() }
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }
@@ -554,7 +561,7 @@ fun settingsViewModule() = module {
     single<DevicesSettingsView> { DevicesSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
-    single<ProfileSettingsView> { ProfileSettingsViewImpl() }
+    single<AccountsSettingsView> { AccountsSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }

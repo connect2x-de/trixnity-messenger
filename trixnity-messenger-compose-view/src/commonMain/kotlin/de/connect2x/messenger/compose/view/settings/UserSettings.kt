@@ -50,7 +50,6 @@ class UserSettingsViewImpl : UserSettingsView {
                     PrivacySettings(userSettingsViewModel)
                     DevicesSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
-                    AccountSetupSettings(userSettingsViewModel)
                 }
             }
         }
@@ -62,7 +61,7 @@ fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Person, null) },
-        headlineContent = { Text(i18n.profileTitle()) },
+        headlineContent = { Text(i18n.accountYourAccounts()) },
         onClick = { userSettingsViewModel.showProfile() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
@@ -110,18 +109,4 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
         onClick = { userSettingsViewModel.showNotificationsSettings() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
-}
-
-@Composable
-fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
-    val i18n = DI.get<I18nView>()
-    val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
-    if (account != null) {
-        ThemedListItemButton(
-            leadingContent = { Icon(Icons.Default.SettingsSuggest, null) },
-            headlineContent = { Text(i18n.accountSetupWizardReset().capitalize(Locale.current)) },
-            onClick = { userSettingsViewModel.showAccountSetup(account) },
-            modifier = Modifier.heightIn(min = 72.dp),
-        )
-    }
 }

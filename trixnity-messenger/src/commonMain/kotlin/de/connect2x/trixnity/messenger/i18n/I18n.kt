@@ -1602,6 +1602,11 @@ open class I18n(
         DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
 
+    open fun roomUpgraded(message: String) = translate {
+        EN - "This room has been upgraded. Message from the Admins: \"$message\""
+        DE - "Dieser Raum wurde aktualisiert. Nachricht von den Admins: \"$message\""
+    }
+
     open fun newEventAlreadyExistsErr() = translate {
         EN - "This event id exists already"
         DE - "Diese Event Id existiert bereits"

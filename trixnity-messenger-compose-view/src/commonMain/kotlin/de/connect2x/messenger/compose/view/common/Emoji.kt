@@ -94,7 +94,6 @@ fun EmojiButton(
 ) {
     Box(
         modifier = modifier
-            .requiredSize(48.dp)
             .customClickable(
                 indication = ripple(bounded = false, radius = 24.dp),
                 onClick = onClick,

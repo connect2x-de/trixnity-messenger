@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.SendLogToDevs
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -20,6 +21,7 @@ val DefaultCopyMultiMessengerSingletons = CopyMultiMessengerSingletons { from: S
     to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
     to.single<ProfileManager> { from.get() }
     to.single<SendLogToDevs> { from.get() }
+    to.single<BackHandler> { from.get() }
     val urlHandler = from.getOrNull<UrlHandler>()
     if (urlHandler != null) to.single<UrlHandler> { urlHandler }
     val sharedDataHandler = from.getOrNull<SharedDataHandler>()

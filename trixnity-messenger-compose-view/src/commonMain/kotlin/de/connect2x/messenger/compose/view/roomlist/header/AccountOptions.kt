@@ -62,10 +62,6 @@ class AccountOptionsViewImpl : AccountOptionsView {
                         modifier = Modifier.focusOnFirstRender(),
                     )
                     ThemedDropdownMenuItem(
-                        text = { Text(i18n.accountYourAccounts()) },
-                        roomListViewModel::openAccountsOverview,
-                    )
-                    ThemedDropdownMenuItem(
                         text = { Text(i18n.accountAboutTheApp(config.appName)) },
                         accountViewModel::openAppInfo,
                     )

@@ -174,10 +174,6 @@ class RootRouter(
     private fun showMainOnLogin() = viewModelContext.coroutineScope.launch {
         log.debug { "showMainOnLogin" }
         navigation.replaceAllSuspending(Config.Main)
-        val instance = stack.value.active.instance
-        if (instance is Wrapper.Main) {
-            instance.viewModel.closeAccountsOverview()
-        }
     }
 
     private fun showAddMatrixAccount() {

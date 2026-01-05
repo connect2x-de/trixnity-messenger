@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,19 +80,23 @@ fun Indicator(
                 )
         ) {
             if (focusable) {
-                ThemedSurface(
-                    style = SurfaceStyle.default(
-                        shape = RoundedCornerShape(8.dp),
-                        color = containerColor,
-                        contentPadding = PaddingValues(5.dp)
-                    ),
-                    onClick = {},
-                    interactionSource = interactionSource,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .focusHighlighting(interactionSource)
-                ) {
-                    content()
+                // When Surface gets an onClick handler it sets the minimum size via LocalMinimumInteractiveComponentSize.
+                // In this case it's too large, however.
+                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                    ThemedSurface(
+                        style = SurfaceStyle.default(
+                            shape = RoundedCornerShape(8.dp),
+                            color = containerColor,
+                            contentPadding = PaddingValues(5.dp)
+                        ),
+                        onClick = {},
+                        interactionSource = interactionSource,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .focusHighlighting(interactionSource)
+                    ) {
+                        content()
+                    }
                 }
             } else {
                 ThemedSurface(

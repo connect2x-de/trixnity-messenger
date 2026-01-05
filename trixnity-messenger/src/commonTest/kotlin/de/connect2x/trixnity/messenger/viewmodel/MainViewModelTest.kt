@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
@@ -14,6 +13,8 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
@@ -99,8 +100,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
-    private val backPressedHandler = BackDispatcher()
-
+    private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
@@ -275,7 +275,7 @@ class MainViewModelTest {
         cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
-        backPressedHandler.back()
+        backHandler.goBack()
         delay(100)
 
         assertSoftly {
@@ -623,7 +623,7 @@ class MainViewModelTest {
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                componentContext = DefaultComponentContext(lifecycle),
                 di = koinApplication {
                     allowOverride(true)
                     modules(
@@ -665,10 +665,9 @@ class MainViewModelTest {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
-                                        onUserProfileSelected: () -> Unit,
+                                        onShowAccounts: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
                                         onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
@@ -710,12 +709,12 @@ class MainViewModelTest {
                                         override fun selectRoom(roomId: RoomId) {}
                                         override fun errorDismiss() {}
                                         override fun sendLogs() {}
-                                        override fun openAccountsOverview() {}
                                         override fun closeProfile() {}
                                         override fun verifyAccount(userId: UserId) {}
                                     }
                                 }
                             }
+                            single<BackHandler> { backHandler }
                         })
                 }.koin,
                 coroutineContext = backgroundScope.coroutineContext,

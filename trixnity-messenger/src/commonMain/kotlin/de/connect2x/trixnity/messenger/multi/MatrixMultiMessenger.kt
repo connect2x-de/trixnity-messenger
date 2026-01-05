@@ -108,7 +108,7 @@ class MatrixMultiMessengerImpl private constructor(
     }
 }
 
-suspend fun MatrixMultiMessenger.singleModeMatrixMessenger(): Flow<MatrixMessenger> {
+suspend fun ProfileManager.singleModeMatrixMessenger(): Flow<MatrixMessenger> {
     if (activeProfile.value == null) {
         val profile = profiles.value.keys.firstOrNull() ?: createProfile()
         selectProfile(profile)
