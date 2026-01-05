@@ -50,7 +50,7 @@ interface AccountsViewModelFactory {
         )
     }
 
-    companion object AccountsViewModelFactory
+    companion object : AccountsViewModelFactory
 }
 
 // TODO !!! This is totally cursed. The parent should not manipulate the child !!!
