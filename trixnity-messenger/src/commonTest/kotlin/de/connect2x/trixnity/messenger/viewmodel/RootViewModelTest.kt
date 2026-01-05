@@ -95,7 +95,7 @@ class RootViewModelTest {
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit,
-                                onShowProfile: () -> Unit
+                                onShowAccounts: () -> Unit
                             ): AccountViewModel = accountViewModelMock
                         }
                     }

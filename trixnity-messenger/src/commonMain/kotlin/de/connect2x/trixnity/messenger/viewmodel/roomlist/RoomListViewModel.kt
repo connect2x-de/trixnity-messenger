@@ -5,7 +5,6 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.UrlHandler
@@ -81,17 +80,17 @@ interface RoomListViewModelFactory {
         onCloseRoom: () -> Unit
     ): RoomListViewModel {
         return RoomListViewModelImpl(
-            viewModelContext,
-            selectedRoomId,
-            onRoomSelected,
-            onStartCreateNewRoom,
-            onUserSettingsSelected,
-            onShowAccounts,
-            onOpenAppInfo,
-            onSendLogs,
-            onAccountSelected,
-            onStartVerification,
-            onCloseRoom
+            viewModelContext = viewModelContext,
+            selectedRoomId = selectedRoomId,
+            onRoomSelected = onRoomSelected,
+            onCreateNewRoom = onStartCreateNewRoom,
+            onUserSettingsSelected = onUserSettingsSelected,
+            onShowAccounts = onShowAccounts,
+            onOpenAppInfo = onOpenAppInfo,
+            onSendLogs = onSendLogs,
+            onAccountSelected = onAccountSelected,
+            onStartVerification = onStartVerification,
+            onCloseRoom = onCloseRoom
         )
     }
 
@@ -154,8 +153,8 @@ class RoomListViewModelImpl(
     override val selectedRoomId: StateFlow<RoomId?>,
     private val onRoomSelected: (UserId, RoomId) -> Unit,
     private val onCreateNewRoom: (UserId) -> Unit,
+    onUserSettingsSelected: () -> Unit,
     onShowAccounts: () -> Unit,
-    onUserProfileSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
@@ -220,9 +219,9 @@ class RoomListViewModelImpl(
         viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
             onAccountSelected = { onAccountSelected() },
-            onUserSettingsSelected = onShowAccounts,
+            onUserSettingsSelected = onUserSettingsSelected,
             onShowAppInfo = onOpenAppInfo,
-            onShowProfile = onUserProfileSelected,
+            onShowAccounts = onShowAccounts,
         )
 
     private data class RoomListElementViewModelWrapper(

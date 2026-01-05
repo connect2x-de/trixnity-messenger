@@ -700,7 +700,7 @@ class MainViewModelTest {
 
                                             override fun selectActiveAccount(userId: UserId?) {}
                                             override fun openUserSettings() {}
-                                            override fun openUserProfile() {}
+                                            override fun openUserAccount() {}
                                             override fun openAppInfo() {}
                                         }
 

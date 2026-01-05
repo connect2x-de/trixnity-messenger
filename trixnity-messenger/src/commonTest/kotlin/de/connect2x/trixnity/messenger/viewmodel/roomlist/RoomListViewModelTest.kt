@@ -1116,7 +1116,7 @@ class RoomListViewModelTest {
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit,
-                                onShowProfile: () -> Unit
+                                onShowAccounts: () -> Unit
                             ): AccountViewModel {
                                 return object : AccountViewModel {
                                     override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
@@ -1134,7 +1134,7 @@ class RoomListViewModelTest {
                                     }
 
                                     override fun openUserSettings() {}
-                                    override fun openUserProfile() {}
+                                    override fun openUserAccount() {}
                                     override fun openAppInfo() {}
                                 }
                             }
@@ -1153,7 +1153,7 @@ class RoomListViewModelTest {
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onShowAccounts = mock(),
-            onUserProfileSelected = mock(),
+            onUserSettingsSelected = mock(),
             onOpenAppInfo = mock(),
             onSendLogs = mock(),
             onAccountSelected = onAccountSelected,
