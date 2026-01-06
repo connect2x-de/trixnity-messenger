@@ -4,6 +4,7 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.settle
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
 import dev.mokkery.answering.calls
@@ -18,9 +19,12 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeyService
@@ -203,7 +207,9 @@ class VerificationViewModelTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.deviceVerificationViewModel(): VerificationViewModel {
+        Dispatchers.setMain(testDispatcher)
         return VerificationViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {

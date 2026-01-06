@@ -5,7 +5,6 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import io.ktor.http.*
@@ -56,7 +55,6 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
     single<CoroutineScope> {
         CoroutineScope(
             backgroundScope.coroutineContext
-                    + ImmediateDispatcherElement(testDispatcher)
                     + SupervisorJob(backgroundScope.coroutineContext[Job])
         )
     }

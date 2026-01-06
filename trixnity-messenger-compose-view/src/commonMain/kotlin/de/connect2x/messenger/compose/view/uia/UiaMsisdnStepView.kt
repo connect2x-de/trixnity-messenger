@@ -32,7 +32,7 @@ fun UiaMsisdnStep(uiaStepMsisdnViewModel: UiaStepMsisdnViewModel) {
     DI.get<UiaMsisdnStepView>().create(uiaStepMsisdnViewModel)
 }
 
-class UiaMsisdnStepViewImpl: UiaMsisdnStepView {
+class UiaMsisdnStepViewImpl : UiaMsisdnStepView {
     @Composable
     override fun create(uiaStepMsisdnViewModel: UiaStepMsisdnViewModel) {
         val i18n = DI.get<I18nView>()

@@ -18,7 +18,6 @@ data class MatrixMultiMessengerConfiguration(
     override var privacyInfo: String? = null,
     override var imprint: String? = null,
     override var licenses: String? = null,
-    override var pushUrl: String? = null,
 
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.

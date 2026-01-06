@@ -36,7 +36,6 @@ class MessengerClientTest {
                         val showProfileCreation = remember { mutableStateOf(false) }
                         CompositionLocalProvider(
                             Platform provides platformType(),
-                            IsFocused provides true,
                             DI provides matrixMultiMessenger.di,
                             ShowProfileCreation provides showProfileCreation,
                             IsFocusHighlighting provides false,
@@ -49,7 +48,6 @@ class MessengerClientTest {
                     activeMessenger = { matrixMessenger, rootViewModel ->
                         CompositionLocalProvider(
                             Platform provides platformType(),
-                            IsFocused provides false,
                             DI provides matrixMessenger.di,
                             IsFocusHighlighting provides false,
                         ) {

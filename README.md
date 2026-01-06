@@ -155,28 +155,25 @@ val matrixMessenger = MatrixMessenger.create {
 }
 ```
 
-### Enable notifications
+### Notifications
 
-In order to receive system notifications from a Trixnity Messenger instance, the default `noopNotificationsModule`
-must be overriden in the DI of the multi-messenger and messenger respectively.
-If no `NotificationHandlerProvider` is present in the view DIs, a warning will be logged upon the first time
-of it being accessed through the DI.
+Trixnity Messenger can show system notifications using [Sysnotify](https://gitlab.com/connect2x/sysnotify).
 
-A `NotificationHandlerProvider` may be registered in your `MatrixMultiMessengerConfiguration` or
-`MatrixMessengerConfiguration`
-using the `notificationModule` function provided by the view module.
+#### NotificationProvider
 
-Example:
+A `NotificationProvider` decides when notifications should be retrieved. Usually this would be a push service, but long
+polling would be also a szenario. There are a few default implementations:
+
+- `NoOpNotificationProvider` does nothing and can be used when no other provider is needed (usually on Desktop).
+- `PushNotificationProvider` can be inherited to implement a push based notification provider.
+    - `FcmPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-fcm`)
+    - `ApnPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-apn`)
+
+To set a notification provider, a DSL in `MatrixMessengerConfiguration` can be used. For example:
 
 ```kotlin
-val matrixMessenger = MatrixMessenger.create configScope@{
-    val notificationsDebugEnabled = // ...
-        moduleFactories += { notificationsModule(this@configScope, notificationsDebugEnabled) }
-}
+addFcmPushNotificationProvider()
 ```
-
-For more information about the `notificationsDebugEnabled` flag,
-see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
 
 ### Adjusting the log level
 
@@ -223,7 +220,7 @@ tries to login the user to a Matrix server. To do this, you have to do the follo
     addMatrixAccountViewModel: AddMatrixAccountViewModelImpl,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel by addMatrixAccountViewModel {
 
-    private val isDemoVersion: Boolean = ... // this is computed from the config or a runtime parameter
+    private val isDemoVersion: Boolean = false // TODO: compute from config or runtime parameter
     val canChangeServerUrl: Boolean = !isDemoVersion
     override val serverUrl: MutableStateFlow<String> =
         MutableStateFlow(if (isDemoVersion) "https://myUrl" else addMatrixAccountViewModel.serverUrl.value)

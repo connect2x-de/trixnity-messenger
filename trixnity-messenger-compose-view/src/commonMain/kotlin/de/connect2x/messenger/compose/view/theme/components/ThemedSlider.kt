@@ -68,12 +68,14 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     Key.MoveEnd -> {
                         if (event.type == KeyEventType.KeyDown) {
                             onValueChange(valueRange.endInclusive)
                         }
                         true
                     }
+
                     Key.DirectionLeft, Key.DirectionDown -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
@@ -82,6 +84,7 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     Key.DirectionRight, Key.DirectionUp -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
@@ -90,6 +93,7 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     else -> false
                 }
             }
@@ -144,12 +148,14 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     Key.MoveEnd -> {
                         if (event.type == KeyEventType.KeyDown) {
                             onValueChange(valueRange.endInclusive)
                         }
                         true
                     }
+
                     Key.DirectionLeft, Key.DirectionDown -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
@@ -158,6 +164,7 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     Key.DirectionRight, Key.DirectionUp -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
@@ -166,6 +173,7 @@ fun ThemedSlider(
                         }
                         true
                     }
+
                     else -> false
                 }
             }

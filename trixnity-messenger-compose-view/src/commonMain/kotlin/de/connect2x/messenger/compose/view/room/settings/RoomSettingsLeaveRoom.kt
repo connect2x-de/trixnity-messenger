@@ -42,7 +42,11 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
                 style = MaterialTheme.components.destructiveButton,
                 onClick = { roomSettingsViewModel.openLeaveRoomWarningDialog() },
             ) {
-                Icon(Icons.AutoMirrored.Filled.Logout, leaveRoomSettingEntryText, modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize))
+                Icon(
+                    Icons.AutoMirrored.Filled.Logout,
+                    leaveRoomSettingEntryText,
+                    modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize)
+                )
                 Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
                 Text(
                     text = leaveRoomSettingEntryText,

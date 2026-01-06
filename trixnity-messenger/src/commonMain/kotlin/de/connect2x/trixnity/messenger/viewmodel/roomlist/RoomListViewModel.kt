@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -32,7 +33,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -73,10 +73,9 @@ interface RoomListViewModelFactory {
         onRoomSelected: (UserId, RoomId) -> Unit,
         onStartCreateNewRoom: (UserId) -> Unit,
         onUserSettingsSelected: () -> Unit,
-        onUserProfileSelected: () -> Unit,
+        onShowAccounts: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
-        onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
         onStartVerification: (UserId) -> Unit,
         onCloseRoom: () -> Unit
@@ -87,10 +86,9 @@ interface RoomListViewModelFactory {
             onRoomSelected,
             onStartCreateNewRoom,
             onUserSettingsSelected,
-            onUserProfileSelected,
+            onShowAccounts,
             onOpenAppInfo,
             onSendLogs,
-            onOpenAccountsOverview,
             onAccountSelected,
             onStartVerification,
             onCloseRoom
@@ -133,7 +131,6 @@ interface RoomListViewModel {
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
-    fun openAccountsOverview()
     fun verifyAccount(userId: UserId)
 
     /**
@@ -157,11 +154,10 @@ class RoomListViewModelImpl(
     override val selectedRoomId: StateFlow<RoomId?>,
     private val onRoomSelected: (UserId, RoomId) -> Unit,
     private val onCreateNewRoom: (UserId) -> Unit,
-    onUserSettingsSelected: () -> Unit,
+    onShowAccounts: () -> Unit,
     onUserProfileSelected: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
-    private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
     private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit
@@ -224,7 +220,7 @@ class RoomListViewModelImpl(
         viewModelContext.get<AccountViewModelFactory>().create(
             viewModelContext = childContext("accountViewModel"),
             onAccountSelected = { onAccountSelected() },
-            onUserSettingsSelected = onUserSettingsSelected,
+            onUserSettingsSelected = onShowAccounts,
             onShowAppInfo = onOpenAppInfo,
             onShowProfile = onUserProfileSelected,
         )
@@ -444,14 +440,19 @@ class RoomListViewModelImpl(
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, Eagerly, false) // Has to be `Eagerly` as it is used as a helper.
 
-        // Handle room navigation requests through the timmy://localhost/room/<ID> scheme.
+        // andle room navigation requests through the app://localhost/matrix:roomid/<ID> scheme.
+        // TODO Should be removed when better deeplink support is added
         coroutineScope.launch {
             get<UrlHandler>().collect {
                 val segments = it.rawSegments
-                if (segments.size < 3 || segments[1] != "room") return@collect
-                selectRoom(RoomId(segments[2]))
+                if (segments.size < 3 || segments[1] != "matrix:roomid") return@collect
+                selectRoom(RoomId("!" + segments[2]))
             }
         }
+        val backCallback = BackCallback(enabled = showSearch) {
+            showSearch.value = false
+        }
+        registerBackCallback(backCallback)
     }
 
     private fun resetSearchWhenNotShown() {
@@ -480,36 +481,14 @@ class RoomListViewModelImpl(
         coroutineScope.launch {
             val matrixClient = allRoomsFlow.first()[roomId]?.matrixClient
                 ?: return@launch log.error { "cannot find NamedMatrixClient for room $roomId" }
-            val (isInvite, isKnock) =
-                matrixClient.room.getById(roomId).filterNotNull().map {
-                    Pair(it.membership == Membership.INVITE, it.membership == Membership.KNOCK)
-                }.first()
-            log.debug { "switch to room $roomId (isInvite: $isInvite isKnock: $isKnock)" }
-            when {
-                isInvite && _syncState.value[matrixClient.userId] == SyncState.ERROR -> {
-                    log.debug { "try to join room while not connected" }
-                    _errorType.value = ErrorType.JUST_DISMISS
-                    _error.value = i18n.roomListInvitationOffline()
+            val membership = matrixClient.room.getById(roomId).first()?.membership
+            log.debug { "switch to room $roomId" }
+            when (membership) {
+                Membership.JOIN -> {
+                    onRoomSelected(matrixClient.userId, roomId)
                 }
 
-                isInvite -> {
-                    log.debug { "try to join room $roomId" }
-                    matrixClient.api.room.joinRoom(roomId).fold(
-                        onSuccess = {
-                            onRoomSelected(matrixClient.userId, roomId)
-                        },
-                        onFailure = {
-                            log.error(it) { "Cannot join room." }
-                            errorSelectedRoom.value = roomId
-                            _errorType.value = ErrorType.WITH_ACTION
-                            _error.value = i18n.roomListInvitationError()
-                        }
-                    )
-                }
-
-                isKnock -> {}
-
-                else -> onRoomSelected(matrixClient.userId, roomId)
+                else -> {}
             }
         }
     }
@@ -530,10 +509,6 @@ class RoomListViewModelImpl(
 
     override fun sendLogs() {
         onSendLogs()
-    }
-
-    override fun openAccountsOverview() {
-        onOpenAccountsOverview()
     }
 
     override fun verifyAccount(userId: UserId) {
@@ -575,7 +550,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun selectRoom(roomId: RoomId) {}
     override fun errorDismiss() {}
     override fun sendLogs() {}
-    override fun openAccountsOverview() {}
     override fun closeProfile() {}
     override fun verifyAccount(userId: UserId) {}
 }

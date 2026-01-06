@@ -139,7 +139,7 @@ internal class MentionMeasurePolicy(
     private val text: AnnotatedString,
     private val placeholders: List<Pair<String, AnnotatedString.Range<Placeholder>>>,
     private val context: CompoundTextContext,
-): MeasurePolicy {
+) : MeasurePolicy {
     override fun MeasureScope.measure(
         measurables: List<Measurable>,
         constraints: Constraints
@@ -150,12 +150,14 @@ internal class MentionMeasurePolicy(
                 val placeholder = textLayout.placeholderRects[index]
                 val measurable = measurables[index]
                 if (placeholder != null) {
-                    measurable.measure(Constraints(
-                        minWidth = placeholder.width.roundToInt(),
-                        maxWidth = placeholder.width.roundToInt(),
-                        minHeight = placeholder.height.roundToInt(),
-                        maxHeight = placeholder.height.roundToInt(),
-                    )).place(placeholder.left.roundToInt(), placeholder.top.roundToInt())
+                    measurable.measure(
+                        Constraints(
+                            minWidth = placeholder.width.roundToInt(),
+                            maxWidth = placeholder.width.roundToInt(),
+                            minHeight = placeholder.height.roundToInt(),
+                            maxHeight = placeholder.height.roundToInt(),
+                        )
+                    ).place(placeholder.left.roundToInt(), placeholder.top.roundToInt())
                 }
             }
         }
@@ -168,10 +170,12 @@ internal fun AnnotatedString.resolveInlineContent(
     getStringAnnotations(INLINE_CONTENT_TAG, 0, text.length)
         .mapNotNull { annotation ->
             inlineContent[annotation.item]?.let { inlineTextContent ->
-                Pair(annotation.item, AnnotatedString.Range(
-                    inlineTextContent.placeholder,
-                    annotation.start,
-                    annotation.end
-                ))
+                Pair(
+                    annotation.item, AnnotatedString.Range(
+                        inlineTextContent.placeholder,
+                        annotation.start,
+                        annotation.end
+                    )
+                )
             }
         }

@@ -9,15 +9,17 @@ internal class RichTextVisitor {
         data class Block(
             val node: HtmlNode.HtmlElement,
             val acc: MutableList<RichText>,
-        ): Task
+        ) : Task
+
         data class Inline(
             val node: HtmlNode,
             val acc: MutableList<RichText.Inline>,
-        ): Task
+        ) : Task
+
         data class InlineSpan(
             val node: List<RichText.Inline>,
             val acc: MutableList<RichText>,
-        ): Task
+        ) : Task
     }
 
     fun process(document: HtmlNode.HtmlElement): RichText.Block {
@@ -56,20 +58,24 @@ internal class RichTextVisitor {
     }
 
     private fun visitInline(node: HtmlNode.TextContent, acc: MutableList<RichText.Inline>) {
-        acc.add(RichText.Inline.Text(
-            content = node.content,
-            rawContent = node.rawContent,
-        ))
+        acc.add(
+            RichText.Inline.Text(
+                content = node.content,
+                rawContent = node.rawContent,
+            )
+        )
     }
 
     private fun visitInline(node: HtmlNode.HtmlElement, acc: MutableList<RichText.Inline>) {
         val children = mutableListOf<RichText.Inline>()
-        acc.add(RichText.Inline.Block(
-            tag = node.tag.lowercase(),
-            attributes = node.attributes,
-            rawContent = node.rawContent,
-            children = children,
-        ))
+        acc.add(
+            RichText.Inline.Block(
+                tag = node.tag.lowercase(),
+                attributes = node.attributes,
+                rawContent = node.rawContent,
+                children = children,
+            )
+        )
         for (child in node.children) {
             taskQueue.add(Task.Inline(child, children))
         }
@@ -97,13 +103,17 @@ internal class RichTextVisitor {
         for (child in nodes) {
             when (child) {
                 is HtmlNode.TextContent -> {
-                    if (inlineAcc == null) { inlineAcc = mutableListOf() }
+                    if (inlineAcc == null) {
+                        inlineAcc = mutableListOf()
+                    }
                     taskQueue.add(Task.Inline(child, inlineAcc))
                 }
 
                 is HtmlNode.HtmlElement -> {
                     if (child.tag in RichText.inline) {
-                        if (inlineAcc == null) { inlineAcc = mutableListOf() }
+                        if (inlineAcc == null) {
+                            inlineAcc = mutableListOf()
+                        }
                         taskQueue.add(Task.Inline(child, inlineAcc))
                     } else {
                         if (inlineAcc != null) {

@@ -20,12 +20,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.flattenValues
-import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.notification
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
@@ -39,7 +39,7 @@ interface MatrixMessenger : AutoCloseable {
 
     val di: Koin
 
-    val notificationCount: StateFlow<Long>
+    val notificationCount: StateFlow<Int>
 
     /**
      * This will wait for the cancel() operations of child CoroutineScopes. Use this, when the app goes into the
@@ -90,18 +90,16 @@ class MatrixMessengerImpl private constructor(
         }
     }
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notificationCount by lazy {
         di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
-            combine(
-                matrixClients.map { matrixClient ->
-                    matrixClient.room.getAll().flattenValues().map { rooms -> rooms.sumOf { it.unreadMessageCount } }
-                }
+            if (matrixClients.isEmpty()) flowOf(0)
+            else combine(
+                matrixClients.map { it.notification.getCount() }
             ) {
                 it.sum()
             }
-        }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0L)
+        }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0)
     }
 
     override fun close() {

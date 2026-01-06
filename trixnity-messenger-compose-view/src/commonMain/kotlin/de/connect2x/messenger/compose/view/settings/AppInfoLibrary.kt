@@ -17,7 +17,7 @@ import de.connect2x.messenger.compose.view.theme.components.LibraryStyle
 @Composable
 internal fun LibraryItem(
     library: Library,
-    modifier: Modifier = Modifier.Companion,
+    modifier: Modifier = Modifier,
     style: LibraryStyle = MaterialTheme.components.library,
 ) {
     LibraryScaffoldLayout(

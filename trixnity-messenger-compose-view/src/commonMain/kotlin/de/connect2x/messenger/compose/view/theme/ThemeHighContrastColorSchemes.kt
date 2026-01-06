@@ -25,7 +25,8 @@ interface ThemeHighContrastDarkColorScheme {
 class ThemeHighContrastDarkColorSchemeImpl(
     private val wrapped: ThemeDarkColorScheme,
 ) : ThemeHighContrastDarkColorScheme {
-    override fun create(accentColor: Color): ColorScheme = makeHighContrastColorScheme(wrapped.create(accentColor), true)
+    override fun create(accentColor: Color): ColorScheme =
+        makeHighContrastColorScheme(wrapped.create(accentColor), true)
             .also { log.debug { "create default high contrast color scheme from dark" } }
 }
 

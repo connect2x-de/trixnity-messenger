@@ -1,11 +1,11 @@
 [versions]
 
-trixnityMessenger = "3.10.1"
+trixnityMessenger = "4.0.0"
 
 seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-trixnity = "4.22.7" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.1.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+trixnity = "5.0.0-DEV-59933270" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.3.0" # https://gitlab.com/connect2x/sysnotify/-/packages
 
 okio = "3.16.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
@@ -36,6 +36,7 @@ trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-re
 trixnity-client-media-okio = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
 trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
 trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
+trixnity-crypto-driver-libolm = { module = "net.folivo:trixnity-crypto-driver-libolm", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
 

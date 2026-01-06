@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalUriHandler
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -13,7 +14,6 @@ import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.messenger.compose.view.theme.messengerColors
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel

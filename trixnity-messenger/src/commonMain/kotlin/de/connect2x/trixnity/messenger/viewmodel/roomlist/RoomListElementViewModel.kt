@@ -32,14 +32,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import net.folivo.trixnity.client.media
+import net.folivo.trixnity.client.notification
 import net.folivo.trixnity.client.room
+import net.folivo.trixnity.client.room.getAccountData
 import net.folivo.trixnity.client.room.getState
 import net.folivo.trixnity.client.store.TimelineEvent
 import net.folivo.trixnity.client.user
 import net.folivo.trixnity.clientserverapi.client.SyncState
 import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
+import net.folivo.trixnity.core.model.events.m.ReceiptType
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -88,7 +92,8 @@ interface RoomListElementViewModel {
     val lastMessage: StateFlow<String?>
     val usersTyping: StateFlow<String?>
     val time: StateFlow<String?>
-    val unreadMessages: StateFlow<String?>
+    val isUnread: StateFlow<Boolean?>
+    val notificationCount: StateFlow<String?>
     val presence: StateFlow<Presence?>
     val accountColor: StateFlow<Long?>
     val rejectInvitationInProgress: StateFlow<Boolean>
@@ -258,13 +263,26 @@ open class RoomListElementViewModelImpl(
             ?: ""
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val unreadMessages: StateFlow<String?> =
-        combine(roomFlow, isInvite.filterNotNull()) { room, isInvite ->
+    override val isUnread: StateFlow<Boolean?> =
+        matrixClient.room.getAccountData<MarkedUnreadEventContent>(roomId).flatMapLatest {
+            if (it?.unread == true) flowOf(true)
+            else combine(
+                matrixClient.user.getReceiptsById(roomId, userId).map {
+                    val receipts = it?.receipts?.takeIf { it.isNotEmpty() } ?: return@map emptySet()
+                    setOfNotNull(receipts[ReceiptType.PrivateRead]?.eventId, receipts[ReceiptType.Read]?.eventId)
+                },
+                roomFlow.map { it.lastEventId }
+            ) { receipts, lastEventId ->
+                receipts.contains(lastEventId).not()
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val notificationCount: StateFlow<String?> =
+        matrixClient.notification.getCount(roomId).map { count ->
             when {
-                isInvite -> "1"
-                room.unreadMessageCount == 0L -> null
-                room.unreadMessageCount > 99 -> "99+"
-                else -> room.unreadMessageCount.toString()
+                count == 0 -> null
+                count > 99 -> "99+"
+                else -> count.toString()
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
@@ -434,7 +452,8 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val lastMessage: MutableStateFlow<String?> = MutableStateFlow("Gute Entscheidung!")
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("20:46")
-    override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("99+")
+    override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val notificationCount: MutableStateFlow<String?> = MutableStateFlow("99+")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
@@ -468,7 +487,8 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("Martin schreibt...")
     override val time: MutableStateFlow<String?> = MutableStateFlow("24.12.19")
-    override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow("2")
+    override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val notificationCount: MutableStateFlow<String?> = MutableStateFlow("2")
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
@@ -502,7 +522,8 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
-    override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val notificationCount: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.ONLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
@@ -536,7 +557,8 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
         MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
-    override val unreadMessages: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val notificationCount: MutableStateFlow<String?> = MutableStateFlow(null)
     override val presence: MutableStateFlow<Presence?> = MutableStateFlow(Presence.OFFLINE)
     override val accountColor: StateFlow<Long?> = MutableStateFlow(null)
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)

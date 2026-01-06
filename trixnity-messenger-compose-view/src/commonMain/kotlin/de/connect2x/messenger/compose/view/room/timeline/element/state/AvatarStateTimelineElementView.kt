@@ -26,7 +26,7 @@ class AvatarStateTimelineElementViewImpl : AvatarStateTimelineElementView {
         element.changeMessage.filterNotNull().first()
     }
 
-    override fun isFocusable(): Boolean = true
+    override fun isFocusable(): Boolean = false
 
     @Composable
     override fun createInTimeline(

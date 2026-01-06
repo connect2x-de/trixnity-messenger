@@ -21,6 +21,7 @@ class FileKitFileDescriptor(private val file: PlatformFile) : FileDescriptor {
     override val fileName: String = file.path.toPath().name
     override val fileSize: Long? = file.size()
     override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
+
     @OptIn(InternalIoApi::class)
     override val content: ByteArrayFlow = flow {
         file.source().buffered().use { source ->

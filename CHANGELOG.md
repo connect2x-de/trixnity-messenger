@@ -11,13 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Completely new notification handling
+- SDK: Change back handling to use custom handler instead of Decomposes
+- UI / ANDROID: Close room list search with back button
+- UI: Merge the 'Your Accounts' panel into profile settings
+- SDK: Rename references to profile in the settings to accounts
 - UI / SDK: Move account creation warning from separate modal to connection wizard
 
 ### Deprecated
 
 ### Removed
 
+- UI: Remove AccountsOverview
+- UI: Remove AccountsOverviewViewModel
+- UI: Remove reset account setup button from settings
+
 ### Fixed
+
+- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
+- SDK: Fix BackHandler missing in MatrixMultiMessenger
 
 ### Security
 
@@ -196,7 +208,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
--
 
 ### Changed
 

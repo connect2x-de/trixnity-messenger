@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
@@ -14,9 +13,10 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -55,6 +55,8 @@ import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,6 +64,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import net.folivo.trixnity.client.MatrixClient
 import net.folivo.trixnity.client.key.KeySecretService
 import net.folivo.trixnity.client.key.KeyService
@@ -81,6 +84,7 @@ import net.folivo.trixnity.core.model.RoomId
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.DirectEventContent
 import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
+import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
 import net.folivo.trixnity.core.model.events.m.Presence
 import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
 import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
@@ -96,8 +100,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
-    private val backPressedHandler = BackDispatcher()
-
+    private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
@@ -161,6 +164,9 @@ class MainViewModelTest {
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
         every {
             roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
+        } returns flowOf(null)
+        every {
+            roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any())
         } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns flowOf(listOf())
         every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
@@ -269,7 +275,7 @@ class MainViewModelTest {
         cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
-        backPressedHandler.back()
+        backHandler.goBack()
         delay(100)
 
         assertSoftly {
@@ -542,7 +548,7 @@ class MainViewModelTest {
         lifecycle.stop()
         eventually(300.milliseconds) {
             verifySuspend {
-                matrixClientMock.cancelSync()
+                matrixClientMock.stopSync()
             }
         }
 
@@ -608,14 +614,16 @@ class MainViewModelTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun TestScope.mainViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(testUserId to matrixClientMock),
     ): MainViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = true))
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                componentContext = DefaultComponentContext(lifecycle),
                 di = koinApplication {
                     allowOverride(true)
                     modules(
@@ -657,10 +665,9 @@ class MainViewModelTest {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
-                                        onUserProfileSelected: () -> Unit,
+                                        onShowAccounts: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
                                         onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
@@ -702,15 +709,15 @@ class MainViewModelTest {
                                         override fun selectRoom(roomId: RoomId) {}
                                         override fun errorDismiss() {}
                                         override fun sendLogs() {}
-                                        override fun openAccountsOverview() {}
                                         override fun closeProfile() {}
                                         override fun verifyAccount(userId: UserId) {}
                                     }
                                 }
                             }
+                            single<BackHandler> { backHandler }
                         })
                 }.koin,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},

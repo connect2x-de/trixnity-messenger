@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -24,7 +23,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
@@ -114,9 +112,9 @@ inline fun <reified T> ArgMatchersScope.isNot(
 fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by ViewModelContextImpl(
     di = di,
     componentContext = DefaultComponentContext(LifecycleRegistry()),
-    coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+    coroutineContext = backgroundScope.coroutineContext
 ) {
-    override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
+    override val coroutineScope = backgroundScope
 }
 
 
@@ -125,9 +123,9 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) =
         di = di,
         componentContext = DefaultComponentContext(LifecycleRegistry()),
         userId = userId,
-        coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+        coroutineContext = backgroundScope.coroutineContext
     ) {
-        override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
+        override val coroutineScope = backgroundScope
     }
 
 suspend fun <T> continually(

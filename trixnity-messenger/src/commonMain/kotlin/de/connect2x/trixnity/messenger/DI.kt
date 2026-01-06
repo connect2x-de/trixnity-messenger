@@ -8,7 +8,11 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
+import de.connect2x.trixnity.messenger.notification.notificationModule
+import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
 import de.connect2x.trixnity.messenger.secrets.secretsModule
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -112,19 +116,18 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
@@ -206,6 +209,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                 ConfigureMatrixClientConfiguration {
                     name = getOrNull<DebugName>()?.invoke()
                     markOwnMessageAsRead = true
+                    enableExternalNotifications = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
                     lastRelevantEventFilter =
@@ -276,6 +280,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
+
+            single<BackHandler> { BackHandlerImpl() }
         }
     },
     ::connectingViewModels,
@@ -288,13 +294,12 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::roomViewModels,
     ::roomSettingsViewModels,
     ::exportModule,
-
-    // Platform-specific view models:
-    ::platformNotificationSettingsSingleAccountViewModelFactoryModule,
+    ::notificationModule,
 
     // Platform-specific implementations:
     ::platformModule,
     ::platformPathsModule,
+    ::platformNotificationHandlersModule,
     ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
     ::platformCreateMediaStoreModuleModule,
@@ -347,7 +352,6 @@ private fun roomListViewModels() = module {
 }
 
 private fun settingsViewModels() = module {
-    single<AccountsOverviewViewModelFactory> { AccountsOverviewViewModelFactory }
     single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
     single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
     single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
@@ -359,6 +363,7 @@ private fun settingsViewModels() = module {
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
     single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
+    single<NotificationSettingsSingleAccountViewModelFactory> { NotificationSettingsSingleAccountViewModelFactory }
 }
 
 inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(

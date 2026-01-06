@@ -68,6 +68,7 @@ import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
 import net.folivo.trixnity.core.model.keys.DeviceKeys
 import net.folivo.trixnity.core.model.keys.Keys
+import net.folivo.trixnity.crypto.driver.libolm.LibOlmCryptoDriver
 import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import net.folivo.trixnity.crypto.olm.OlmDecrypter
 import net.folivo.trixnity.crypto.olm.OlmEncryptionService
@@ -545,6 +546,7 @@ class DevicesSettingsViewModelTest {
             clock = Clock.System,
         ),
         clock = clock,
+        driver = LibOlmCryptoDriver
     )
 
     private fun TestScope.devicesSettingsViewModel(): DevicesSettingsViewModelImpl {

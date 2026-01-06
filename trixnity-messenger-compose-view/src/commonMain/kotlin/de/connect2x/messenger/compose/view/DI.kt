@@ -25,7 +25,6 @@ import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewIm
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
-import de.connect2x.messenger.compose.view.notifications.noopNotificationsModule
 import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileView
 import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileViewImpl
 import de.connect2x.messenger.compose.view.profiles.IntroductionView
@@ -231,8 +230,6 @@ import de.connect2x.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.messenger.compose.view.settings.AccountSetupWizardStepListImpl
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewView
-import de.connect2x.messenger.compose.view.settings.AccountsOverviewViewImpl
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
 import de.connect2x.messenger.compose.view.settings.AdditionalAccountSetupWizardStepImpl
 import de.connect2x.messenger.compose.view.settings.AppInfoImprintView
@@ -265,8 +262,8 @@ import de.connect2x.messenger.compose.view.settings.NotificationsSettingsView
 import de.connect2x.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.messenger.compose.view.settings.PrivacySettingsViewImpl
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsView
-import de.connect2x.messenger.compose.view.settings.ProfileSettingsViewImpl
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsView
+import de.connect2x.messenger.compose.view.settings.AccountsSettingsViewImpl
 import de.connect2x.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.messenger.compose.view.sharing.ShareDataView
@@ -319,6 +316,7 @@ import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardVi
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerFeatures
+import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
 import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
@@ -351,7 +349,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         settingsViewModule(),
         verificationViewModule(),
         uiaViewModule(),
-        noopNotificationsModule()
+        getPlatformNotificationIconModule(),
     )
 }
 
@@ -549,7 +547,6 @@ fun userSearchViewModule() = module {
 }
 
 fun settingsViewModule() = module {
-    single<AccountsOverviewView> { AccountsOverviewViewImpl() }
     single<AppearanceSettingsView> { AppearanceSettingsViewImpl() }
     single<AppearanceSettingsThemeView> { AppearanceSettingsThemeViewImpl() }
     single<AppearanceSettingsColorView> { AppearanceSettingsColorViewImpl() }
@@ -564,7 +561,7 @@ fun settingsViewModule() = module {
     single<DevicesSettingsView> { DevicesSettingsViewImpl() }
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
-    single<ProfileSettingsView> { ProfileSettingsViewImpl() }
+    single<AccountsSettingsView> { AccountsSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }

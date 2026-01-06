@@ -27,6 +27,7 @@ suspend fun LazyListState.scrollIntoView(index: Int) {
         index <= firstVisibleItem -> {
             scrollToItem(index, -layoutInfo.viewportStartOffset)
         }
+
         index >= lastVisibleItem -> {
             val item = layoutInfo.visibleItemsInfo.find { it.index == index }
             if (item == null) {
@@ -39,6 +40,7 @@ suspend fun LazyListState.scrollIntoView(index: Int) {
                 scrollToItem(index, -(layoutInfo.viewportEndOffset - item.size))
             }
         }
+
         else -> Unit
     }
 }

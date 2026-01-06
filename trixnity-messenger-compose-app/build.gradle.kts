@@ -12,15 +12,14 @@ plugins {
     alias(sharedLibs.plugins.compose.multiplatform)
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.aboutLibraries.plugin)
-    // TODO active when you want to use google-services for notifications (needs google-services.json)
-    // alias(sharedLibs.plugins.google.services)
+    alias(sharedLibs.plugins.google.services)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
 
 val version = "1.0.0"
 val appName = "Trixnity Messenger"
-val appId = "de.connect2x.messenger"
+val appId = "de.connect2x.trixnity.messenger.compose.app"
 
 enum class BuildFlavor { PROD, DEV }
 
@@ -93,6 +92,7 @@ kotlin {
             }
         }
         binaries.executable()
+        useEsModules()
     }
     listOf(
         iosX64(),
@@ -138,14 +138,18 @@ kotlin {
         }
         androidMain {
             dependencies {
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationFcm)
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
                 implementation(libs.logback.android)
                 implementation(libs.slf4j.api)
-                implementation(sharedLibs.firebase.messaging)
+            }
+        }
+        iosMain {
+            dependencies {
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns)
             }
         }
         val webMain by getting {
@@ -164,7 +168,7 @@ val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.lau
 compose {
     desktop {
         application {
-            mainClass = "$appId.desktop.MainKt"
+            mainClass = "$appId.MainKt"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
             javaHome = distributionJavaHome
             buildTypes.release.proguard {

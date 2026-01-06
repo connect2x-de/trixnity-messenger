@@ -2,7 +2,8 @@
 
 This project is the base implementation of a Matrix messenger UI
 with [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/). For a quick start and a running
-example, have a look at [compose-app](../compose-app) in this project. If you are looking for a completely white labelled client, check out [Tammy](https://gitlab.com/connect2x/trixnity-messenger/tammy).
+example, have a look at [compose-app](../compose-app) in this project. If you are looking for a completely white
+labelled client, check out [Tammy](https://gitlab.com/connect2x/trixnity-messenger/tammy).
 
 ## Platforms
 
@@ -154,10 +155,6 @@ fun myViewModule() = module {
 
 For more information on how to use the DI to configure your client, please refer to
 the [Trixnity Messenger README](../README.md).
-
-## Android: MessengerActivity startup hook
-When using the `MessengerActivity`, one can use a startup hook called `MatrixMessengerStartup` that can be used to act
-on the main activity.
 
 ## Troubleshooting
 

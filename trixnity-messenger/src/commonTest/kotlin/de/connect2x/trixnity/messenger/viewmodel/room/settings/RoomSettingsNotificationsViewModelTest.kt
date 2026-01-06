@@ -118,7 +118,7 @@ class RoomSettingsNotificationsViewModelTest {
     }
 
     @Test
-    fun `set room's push rule to SILENT'`() = runTest {
+    fun `set room's push rule to OFF'`() = runTest {
         every {
             userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
         } returns MutableStateFlow(
@@ -140,7 +140,7 @@ class RoomSettingsNotificationsViewModelTest {
         backgroundScope.launch { cut.selectedRoomNotificationsLevel.collect {} }
 
         eventually(100.milliseconds) {
-            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.SILENT
+            cut.selectedRoomNotificationsLevel.value.key shouldBe NotificationLevels.OFF
         }
     }
 

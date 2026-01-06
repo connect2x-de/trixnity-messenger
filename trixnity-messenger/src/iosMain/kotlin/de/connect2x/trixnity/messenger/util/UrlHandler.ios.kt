@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.ktor.http.*
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -23,13 +21,3 @@ actual fun platformUrlHandlerModule(): Module = module {
         UrlHandlerImpl(get())
     }
 }
-
-val MatrixMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }
-
-val MatrixMultiMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }

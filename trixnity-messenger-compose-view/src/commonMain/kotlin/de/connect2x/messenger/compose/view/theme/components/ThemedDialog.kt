@@ -351,7 +351,7 @@ fun ModalDialogHeader(
             verticalAlignment = Alignment.Companion.CenterVertically,
         ) {
             Spacer(Modifier.width(24.dp))
-            Column(Modifier.Companion.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 CompositionLocalProvider(
                     LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
                 ) {

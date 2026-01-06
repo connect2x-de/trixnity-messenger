@@ -5,7 +5,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.ClipboardItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.*
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Location
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.TextBased
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.Unknown
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.VerificationRequest
 import kotlinx.browser.window
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -32,10 +36,10 @@ actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? =
                 ClipEntry.withFormattedText(it, this.body)
             } ?: ClipEntry.withPlainText(this.body)
 
-        // FIXME should deliver caption
+        // TODO should deliver caption
         is FileBased<*> -> ClipEntry(emptyArray())
 
-        // FIXME should deliver proper location description (placename, coordinates)
+        // TODO should deliver proper location description (placename, coordinates)
         is Location -> ClipEntry.withPlainText(this.coordinates)
 
         is VerificationRequest,

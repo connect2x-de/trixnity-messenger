@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.CircularProgressIndicatorStyle
-import de.connect2x.messenger.compose.view.theme.components.ProgressIndicatorStyle.LinearProgressIndicatorStyle
 
 
 sealed interface ProgressIndicatorStyle {
@@ -80,7 +78,7 @@ fun ThemedProgressIndicator(
     style: ProgressIndicatorStyle,
 ) {
     when (style) {
-        is LinearProgressIndicatorStyle ->
+        is ProgressIndicatorStyle.LinearProgressIndicatorStyle ->
             LinearProgressIndicator(
                 modifier.padding(style.padding),
                 style.color,
@@ -89,7 +87,7 @@ fun ThemedProgressIndicator(
                 style.gapSize,
             )
 
-        is CircularProgressIndicatorStyle ->
+        is ProgressIndicatorStyle.CircularProgressIndicatorStyle ->
             CircularProgressIndicator(
                 modifier = modifier.size(style.size - style.strokeWidth * 2).padding(style.padding),
                 color = style.color,
@@ -107,7 +105,7 @@ fun ThemedProgressIndicator(
     style: ProgressIndicatorStyle,
 ) {
     when (style) {
-        is LinearProgressIndicatorStyle ->
+        is ProgressIndicatorStyle.LinearProgressIndicatorStyle ->
             LinearProgressIndicator(
                 progress = progress,
                 modifier = modifier.padding(style.padding),
@@ -117,7 +115,7 @@ fun ThemedProgressIndicator(
                 gapSize = style.gapSize,
             )
 
-        is CircularProgressIndicatorStyle ->
+        is ProgressIndicatorStyle.CircularProgressIndicatorStyle ->
             CircularProgressIndicator(
                 progress = progress,
                 modifier = modifier.size(style.size - style.strokeWidth * 2).padding(style.padding),

@@ -169,7 +169,8 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                             ThemedSelectableText(
                                 alias,
                                 MaterialTheme.components.selectionOnSurface,
-                                selectionModifier = Modifier.weight(1f, false))
+                                selectionModifier = Modifier.weight(1f, false)
+                            )
                             Row {
                                 if (canChangeRoomAlias) {
                                     Tooltip({ Text(i18n.makeMainAlias()) }) {

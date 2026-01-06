@@ -37,7 +37,8 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
     @Composable
     override fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
         val i18n = DI.get<I18nView>()
-        val message = uiaActionConfirmationViewModel.confirmationMessage ?: return // a ActionConfirmation without message shouldn't be shown
+        val message = uiaActionConfirmationViewModel.confirmationMessage
+            ?: return // a ActionConfirmation without message shouldn't be shown
         val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
 
         UiaModalBox {

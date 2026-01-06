@@ -8,6 +8,12 @@ config.resolve.fallback = {
     url: false,
 };
 
+config.module.rules =
+        [
+            ...(config.module?.rules || []),
+            {test: /\.wasm$/, type: "asset/resource"},
+        ]
+
 // Minification
 if (config.mode === "production") {
     const TerserPlugin = require("terser-webpack-plugin");

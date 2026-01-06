@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.messenger.compose.view.files.PdfReaderWeb
-import pdfjs.GlobalWorkerOptions
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
+import pdfjs.GlobalWorkerOptions
 import web.blob.Blob
 
 actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {

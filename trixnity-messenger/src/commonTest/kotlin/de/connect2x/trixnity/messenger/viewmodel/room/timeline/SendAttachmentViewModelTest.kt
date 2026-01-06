@@ -6,10 +6,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.mb
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -151,7 +149,7 @@ class SendAttachmentViewModelTest {
     ): SendAttachmentViewModelImpl = SendAttachmentViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
-            coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+            coroutineContext = backgroundScope.coroutineContext,
             userId = me,
             di = koinApplication {
                 modules(

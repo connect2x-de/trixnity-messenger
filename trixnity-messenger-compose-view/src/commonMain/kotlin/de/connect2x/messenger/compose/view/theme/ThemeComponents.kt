@@ -58,7 +58,7 @@ fun MaterialThemeComponents(
     // We need this double nesting to set a specific LocalContent color
     val contentColor = LocalContentColor.current
     CompositionLocalProvider(
-        LocalContentColor provides Color.LocalContent
+        LocalContentColor provides Color.Companion.LocalContent
     ) {
         val components = componentStyles.create()
         ApplySystemUiTheme(components.systemUi)
@@ -92,12 +92,12 @@ class ThemeComponentsImpl : ThemeComponents {
     // Even in places where our old design has low contrast or uneven spacing.
     override fun create(): ComponentStyles = ComponentStyles(
         // system
-        systemUi = SystemUiStyle.default(
+        systemUi = SystemUiStyle.Companion.default(
             header = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
             footer = MaterialTheme.colorScheme.background,
         ),
         // buttons
-        primaryButton = ButtonStyle.filled(
+        primaryButton = ButtonStyle.Companion.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
@@ -105,7 +105,7 @@ class ThemeComponentsImpl : ThemeComponents {
             textStyle = MaterialTheme.typography.labelLarge,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        secondaryButton = ButtonStyle.filled(
+        secondaryButton = ButtonStyle.Companion.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -113,11 +113,11 @@ class ThemeComponentsImpl : ThemeComponents {
             textStyle = MaterialTheme.typography.labelLarge,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondaryContainer),
         ),
-        commonButton = ButtonStyle.outlined(
+        commonButton = ButtonStyle.Companion.outlined(
             textStyle = MaterialTheme.typography.labelLarge,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        destructiveButton = ButtonStyle.filled(
+        destructiveButton = ButtonStyle.Companion.filled(
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.error,
                 contentColor = MaterialTheme.colorScheme.onError,
@@ -125,46 +125,46 @@ class ThemeComponentsImpl : ThemeComponents {
             textStyle = MaterialTheme.typography.labelLarge,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onError),
         ),
-        primaryIconButton = IconButtonStyle.filled(
+        primaryIconButton = IconButtonStyle.Companion.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        secondaryIconButton = IconButtonStyle.filled(
+        secondaryIconButton = IconButtonStyle.Companion.filled(
             colors = IconButtonDefaults.filledIconToggleButtonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary,
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondaryContainer),
         ),
-        commonIconButton = IconButtonStyle.default(
+        commonIconButton = IconButtonStyle.Companion.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = Color.LocalContent,
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
-        destructiveIconButton = IconButtonStyle.default(
+        destructiveIconButton = IconButtonStyle.Companion.default(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 contentColor = MaterialTheme.colorScheme.error,
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onErrorContainer),
         ),
-        floatingActionButton = FloatingActionButtonStyle.default(
+        floatingActionButton = FloatingActionButtonStyle.Companion.default(
             size = 40.dp,
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        floatingActionButtonDisabled = FloatingActionButtonStyle.default(
+        floatingActionButtonDisabled = FloatingActionButtonStyle.Companion.default(
             size = 40.dp,
             containerColor = Color.LightGray,
             elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
             focusedBorder = null, // needs no focus
         ),
-        reactionButton = ButtonStyle.outlined(
+        reactionButton = ButtonStyle.Companion.outlined(
             iconSize = 18.dp,
             iconSpacing = 4.dp,
             contentPadding = PaddingValues(12.dp, 4.dp),
@@ -173,7 +173,7 @@ class ThemeComponentsImpl : ThemeComponents {
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurfaceVariant),
         ),
-        selectedReactionButton = ButtonStyle.filledTonal(
+        selectedReactionButton = ButtonStyle.Companion.filledTonal(
             iconSize = 18.dp,
             iconSpacing = 4.dp,
             contentPadding = PaddingValues(12.dp, 4.dp),
@@ -186,31 +186,31 @@ class ThemeComponentsImpl : ThemeComponents {
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         // other inputs
-        listItem = ListItemStyle.default(),
-        checkbox = CheckboxStyle.default(),
-        radioButton = RadioButtonStyle.default(),
-        switch = SwitchStyle.default(),
+        listItem = ListItemStyle.Companion.default(),
+        checkbox = CheckboxStyle.Companion.default(),
+        radioButton = RadioButtonStyle.Companion.default(),
+        switch = SwitchStyle.Companion.default(),
         // surfaces
-        background = SurfaceStyle.default(),
-        popup = SurfaceStyle.default(
+        background = SurfaceStyle.Companion.default(),
+        popup = SurfaceStyle.Companion.default(
             shadowElevation = 4.dp,
             tonalElevation = 4.dp,
             shape = MaterialTheme.shapes.medium
         ),
-        sidebar = SurfaceStyle.default(
+        sidebar = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 4.dp,
         ),
-        details = SurfaceStyle.default(
+        details = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             tonalElevation = 4.dp,
         ),
-        header = SurfaceStyle.default(
+        header = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
         ),
-        timeline = SurfaceStyle.default(),
-        label = SurfaceStyle.default(
+        timeline = SurfaceStyle.Companion.default(),
+        label = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.25f)
                 .compositeOver(MaterialTheme.colorScheme.surface),
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -219,39 +219,39 @@ class ThemeComponentsImpl : ThemeComponents {
             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 3.dp),
             textStyle = MaterialTheme.typography.bodySmall,
         ),
-        errorBanner = SurfaceStyle.default(
+        errorBanner = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
         ),
-        warningBanner = SurfaceStyle.default(
+        warningBanner = SurfaceStyle.Companion.default(
             color = MaterialTheme.messengerColors.warning,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
-        commonBanner = SurfaceStyle.default(
+        commonBanner = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ),
         // dialogs
-        dialog = SurfaceStyle.default(),
-        adaptiveDialog = DialogStyle.adaptiveDialog(),
-        modalDialog = DialogStyle.modalDialog(),
+        dialog = SurfaceStyle.Companion.default(),
+        adaptiveDialog = DialogStyle.Companion.adaptiveDialog(),
+        modalDialog = DialogStyle.Companion.modalDialog(),
         // dividers
-        horizontalDivider = DividerStyle.default(),
-        verticalDivider = DividerStyle.default(),
+        horizontalDivider = DividerStyle.Companion.default(),
+        verticalDivider = DividerStyle.Companion.default(),
         // room list
-        roomListElement = SurfaceStyle.default(
+        roomListElement = SurfaceStyle.Companion.default(
             color = Color.Unspecified,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        roomListSelection = SurfaceStyle.default(
+        roomListSelection = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onBackground,
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        roomListDivider = DividerStyle.default(
+        roomListDivider = DividerStyle.Companion.default(
             padding = PaddingValues(horizontal = 10.dp),
         ),
-        accountSelector = ButtonStyle.filled(
+        accountSelector = ButtonStyle.Companion.filled(
             contentPadding = PaddingValues(0.dp),
             colors = ButtonDefaults.buttonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface,
@@ -263,11 +263,11 @@ class ThemeComponentsImpl : ThemeComponents {
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // input area
-        inputAreaSurface = SurfaceStyle.default(
+        inputAreaSurface = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp,
         ),
-        inputArea = InputAreaStyle.default(
+        inputArea = InputAreaStyle.Companion.default(
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodyMedium,
             colors = TextFieldDefaults.colors(
@@ -304,42 +304,42 @@ class ThemeComponentsImpl : ThemeComponents {
             contentPadding = PaddingValues(7.dp),
         ),
         // file viewer
-        fileViewerSurface = SurfaceStyle.default(
+        fileViewerSurface = SurfaceStyle.Companion.default(
             color = Color.Black,
             contentColor = Color.LightGray,
         ),
-        fileViewerIconButton = IconButtonStyle.filled(
+        fileViewerIconButton = IconButtonStyle.Companion.filled(
             colors = IconButtonDefaults.iconToggleButtonColors(
                 containerColor = Color.DarkGray,
                 contentColor = Color.LightGray,
             ),
         ),
         // message bubbles
-        messageBubbleOwn = SurfaceStyle.default(
+        messageBubbleOwn = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(8.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
-        messageBubbleOther = SurfaceStyle.default(
+        messageBubbleOther = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary,
             shape = RoundedCornerShape(8.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
-        messageBubbleError = SurfaceStyle.default(
+        messageBubbleError = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.errorContainer,
             contentColor = MaterialTheme.colorScheme.onErrorContainer,
             shape = RoundedCornerShape(8.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
         ),
-        messageReference = SurfaceStyle.default(
+        messageReference = SurfaceStyle.Companion.default(
             shape = RoundedCornerShape(8.dp),
             color = Color(0x55FFFFFF),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // tooltip
-        tooltip = TooltipStyle.default(
+        tooltip = TooltipStyle.Companion.default(
             contentPadding = PaddingValues(5.dp),
             colors = TooltipDefaults.richTooltipColors(
                 contentColor = MaterialTheme.colorScheme.onTertiary,
@@ -361,12 +361,12 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         linearProgressIndicator = LinearProgressIndicatorStyle.default(),
         // slider
-        slider = SliderStyle.default(
+        slider = SliderStyle.Companion.default(
             colors = SliderDefaults.colors(),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurfaceVariant)
         ),
         // avatar
-        avatar = AvatarStyle.default(
+        avatar = AvatarStyle.Companion.default(
             color = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             outerBorder = BorderStroke(1.dp, MaterialTheme.colorScheme.secondaryContainer),
@@ -374,7 +374,7 @@ class ThemeComponentsImpl : ThemeComponents {
             shape = CircleShape,
         ),
         // chips
-        primaryChip = ChipStyle.default(
+        primaryChip = ChipStyle.Companion.default(
             colors = ChipStyle.Colors.default(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -385,7 +385,7 @@ class ThemeComponentsImpl : ThemeComponents {
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimaryContainer),
         ),
-        secondaryChip = ChipStyle.default(
+        secondaryChip = ChipStyle.Companion.default(
             colors = ChipStyle.Colors.default(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -396,14 +396,14 @@ class ThemeComponentsImpl : ThemeComponents {
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondaryContainer),
         ),
-        commonChip = ChipStyle.default(
+        commonChip = ChipStyle.Companion.default(
             colors = ChipStyle.Colors.default(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
-        destructiveChip = ChipStyle.default(
+        destructiveChip = ChipStyle.Companion.default(
             colors = ChipStyle.Colors.default(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -414,7 +414,7 @@ class ThemeComponentsImpl : ThemeComponents {
             ),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onErrorContainer),
         ),
-        mentionChip = ChipStyle.elevated(
+        mentionChip = ChipStyle.Companion.elevated(
             colors = ChipStyle.Colors.elevated(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                 disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -422,29 +422,29 @@ class ThemeComponentsImpl : ThemeComponents {
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // dropdown
-        dropdownMenu = SurfaceStyle.default(
+        dropdownMenu = SurfaceStyle.Companion.default(
             color = MenuDefaults.containerColor,
             tonalElevation = MenuDefaults.TonalElevation,
             shadowElevation = MenuDefaults.ShadowElevation,
             shape = MenuDefaults.shape,
             border = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
-        dropdownMenuItem = DropdownMenuItemStyle.default(
+        dropdownMenuItem = DropdownMenuItemStyle.Companion.default(
             contentPadding = PaddingValues(horizontal = 10.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
         ),
         // select, like HTML <select>
         select = SelectStyle.default(),
         // selection
-        selectionOnSurface = SelectionStyle.onSurface(),
-        selectionOnPrimary = SelectionStyle.onPrimary(),
+        selectionOnSurface = SelectionStyle.Companion.onSurface(),
+        selectionOnPrimary = SelectionStyle.Companion.onPrimary(),
         // other
-        settingsItem = ListItemStyle.default(
+        settingsItem = ListItemStyle.Companion.default(
             colors = ListItemDefaults.colors(
                 containerColor = Color.Transparent,
             )
         ),
-        library = LibraryStyle.default(
+        library = LibraryStyle.Companion.default(
             colors = LibraryDefaults.libraryColors(
                 libraryBackgroundColor = Color.Transparent,
                 licenseChipColors = LibraryDefaults.chipColors(),

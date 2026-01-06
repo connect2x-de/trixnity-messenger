@@ -1,25 +1,25 @@
 package de.connect2x.trixnity.messenger.util
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformSendLogToDevsModule(): Module = module {
     single<SendLogToDevs> {
-        val context = get<Context>()
+        val contextGetter = get<ContextGetter>()
         val rootPath = get<RootPath>().path
         SendLogToDevs { emailAddress, subject ->
+            val context = contextGetter()
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
                 rootPath.toFile().resolve("messenger.log")
             )
             val intent = Intent(Intent.ACTION_SEND).apply {
-                data = Uri.parse("mailto:")
+                data = "mailto:".toUri()
                 putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
                 putExtra(Intent.EXTRA_SUBJECT, subject)
                 putExtra(
@@ -31,7 +31,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
 
             // @see https://stackoverflow.com/a/22309656   to restrict to only email
             val restrictIntent = Intent(Intent.ACTION_SENDTO)
-            val data = Uri.parse("mailto:?to=$emailAddress")
+            val data = "mailto:?to=$emailAddress".toUri()
             restrictIntent.data = data
             intent.selector = restrictIntent
             ContextCompat.startActivity(

@@ -95,7 +95,9 @@ private val romanSymbols = listOf(
 )
 
 private fun romanNumeral(number: Int): String {
-    if (number < 1 || number > 3999) { return "" }
+    if (number < 1 || number > 3999) {
+        return ""
+    }
 
     var remaining = number
     return buildString {

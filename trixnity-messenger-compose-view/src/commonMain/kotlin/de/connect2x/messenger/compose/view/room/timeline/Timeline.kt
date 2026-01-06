@@ -38,11 +38,13 @@ import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.IsFocused
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
@@ -401,7 +403,7 @@ fun updateVisibleItems(
     visible: State<Pair<String, String>?>,
     timelineElementHolderViewModels: State<List<BaseTimelineElementHolderViewModel>>,
 ) {
-    val isFocused = IsFocused.current
+    val lifecycleState = LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val viewState = remember {
         derivedStateOf {
             visible.value?.let {
@@ -410,7 +412,7 @@ fun updateVisibleItems(
                     lastVisibleElement = it.second,
                     firstLoadedElement = timelineElementHolderViewModels.value.last().key,
                     lastLoadedElement = timelineElementHolderViewModels.value.first().key,
-                    windowIsFocused = isFocused,
+                    timelineIsFocused = lifecycleState.value.isAtLeast(Lifecycle.State.RESUMED),
                 )
             }
         }

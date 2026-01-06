@@ -63,8 +63,10 @@ internal fun MentionChip(
                 when (mention) {
                     is TimelineElementMention.Event ->
                         Icon(Icons.Default.ChatBubble, contentDescription = null, modifier = iconModifier)
+
                     is TimelineElementMention.Room ->
                         Icon(Icons.Default.Numbers, contentDescription = null, modifier = iconModifier)
+
                     is TimelineElementMention.User ->
                         Icon(Icons.Default.Person, contentDescription = null, modifier = iconModifier)
                 }

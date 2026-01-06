@@ -78,14 +78,14 @@ class UrlHandlerImpl(
     private fun readPortFromLockFile(): Int? {
         val lockFile = rootPath.resolve(lockFileName)
         return if (fileSystem.exists(lockFile)) {
-            fileSystem.read(lockFile) { readInt() }
+            fileSystem.read(lockFile) { readUtf8().toIntOrNull() }
         } else null
     }
 
     private fun writePortToLockFile(port: Int) {
         log.debug { "write port $port to lock file" }
         val lockFile = rootPath.resolve(lockFileName)
-        fileSystem.write(lockFile) { writeInt(port) }
+        fileSystem.write(lockFile) { writeUtf8(port.toString()) }
         val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
         val channel = randomAccessFile.getChannel()
         val lock = channel.tryLock(0, Long.MAX_VALUE, true)

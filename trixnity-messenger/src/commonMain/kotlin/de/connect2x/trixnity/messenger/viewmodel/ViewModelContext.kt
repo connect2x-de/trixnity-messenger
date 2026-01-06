@@ -10,6 +10,8 @@ import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +33,14 @@ interface ViewModelContext : KoinComponent, ComponentContext {
      * This should be used carefully, because it can lead to leaks when not used on the top level.
      */
     val coroutineScope: CoroutineScope
+
+    val trixnityMessengerBackHandler: BackHandler
+
+    @Deprecated(
+        "Don't use this, use trixnityMessengerBackHandler or registerBackCallback for lifecycle based callback registration",
+        replaceWith = ReplaceWith("trixnityMessengerBackHandler")
+    )
+    override val backHandler: com.arkivanov.essenty.backhandler.BackHandler
     fun childContext(key: String): ViewModelContext
     fun childContext(componentContext: ComponentContext): ViewModelContext
     fun childContext(key: String, userId: UserId): MatrixClientViewModelContext
@@ -41,6 +51,8 @@ interface ViewModelContext : KoinComponent, ComponentContext {
      * TODO This is just a temporary workaround until decompose allows to destroy children.
      */
     fun childContextWithOwnLifecycle(lifecycle: Lifecycle, userId: UserId): MatrixClientViewModelContext
+
+    fun registerBackCallback(backCallback: BackCallback)
 }
 
 interface MatrixClientViewModelContext : ViewModelContext {
@@ -74,6 +86,12 @@ open class ViewModelContextImpl(
         instanceKeeper.getOrCreate { ViewModelCoroutineScope(coroutineContext) }
 
     override fun getKoin(): Koin = di
+
+    override val trixnityMessengerBackHandler: BackHandler = di.get<BackHandler>()
+
+    override fun registerBackCallback(backCallback: BackCallback) {
+        with(trixnityMessengerBackHandler) { lifecycle.registerBackCallbackWithLifecycle(backCallback) }
+    }
 
     override fun childContext(key: String): ViewModelContext {
         val componentContext = this as ComponentContext
@@ -147,7 +165,8 @@ private class ViewModelCoroutineScope(
         log.error(exception) { "coroutine scope with lifecycle has been cancelled" }
     }
 
-    private val scope: CoroutineScope = CoroutineScope(coroutineContext + SupervisorJob(coroutineContext[Job]) + handler)
+    private val scope: CoroutineScope =
+        CoroutineScope(coroutineContext + SupervisorJob(coroutineContext[Job]) + handler)
 
     override val coroutineContext: CoroutineContext get() = scope.coroutineContext
 

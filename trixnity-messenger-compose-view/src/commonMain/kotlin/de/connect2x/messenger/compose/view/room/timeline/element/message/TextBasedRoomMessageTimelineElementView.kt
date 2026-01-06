@@ -118,7 +118,7 @@ private fun MessageTextContent(
                                 onLongPress = { showActionMenu() }
                             )
                         },
-                    colors = RichTextColors.default(
+                    colors = RichTextColors.Companion.default(
                         linkColor =
                             if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
                             else MaterialTheme.messengerColors.link

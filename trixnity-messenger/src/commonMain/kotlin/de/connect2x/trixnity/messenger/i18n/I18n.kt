@@ -321,11 +321,6 @@ open class I18n(
         DE - "$username hat den Avatar $groupOrChat geändert"
     }
 
-    open fun invitationFrom(inviter: String) = translate {
-        EN - "(Invitation from $inviter)"
-        DE - "(Einladung von $inviter)"
-    }
-
     open fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
         EN - "Account creation failed: ${message ?: commonUnknown()}"
         DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
@@ -571,11 +566,6 @@ open class I18n(
     open fun settingsNotificationsSound() = translate {
         EN - "sound"
         DE - "Töne"
-    }
-
-    open fun settingsNotificationsSilent() = translate {
-        EN - "silent"
-        DE - "Stumm"
     }
 
     open fun settingsNotificationsVibration() = translate {
@@ -836,9 +826,9 @@ open class I18n(
         DE - "Erwähnungen"
     }
 
-    open fun settingsRoomNotificationsSilent() = translate {
-        EN - "Silent"
-        DE - "Stumm"
+    open fun settingsRoomNotificationsOff() = translate {
+        EN - "Off"
+        DE - "Aus"
     }
 
     open fun settingsRoomNotificationsDefault() = translate {
@@ -856,7 +846,7 @@ open class I18n(
         DE - "Sie werden über Nachrichten informiert, die direkt an Sie gerichtet sind"
     }
 
-    open fun settingsRoomNotificationsSilentExplanation() = translate {
+    open fun settingsRoomNotificationsOffExplanation() = translate {
         EN - "you are not notified on any new message"
         DE - "Sie erhalten keinerlei Benachrichtigungen über neue Nachrichten"
     }
@@ -984,6 +974,16 @@ open class I18n(
     open fun matrixClientInitSuccess() = translate {
         EN - "Successfully loaded data."
         DE - "Daten erfolgreich geladen."
+    }
+
+    open fun initialSyncNotificationTitle() = translate {
+        EN - "initial sync"
+        DE - "initiale Synchronisierung"
+    }
+
+    open fun initialSyncNotificationDescription() = translate {
+        EN - "Your account data is loading."
+        DE - "Ihre Kontodaten werden geladen."
     }
 
     open fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
@@ -1365,6 +1365,16 @@ open class I18n(
     open fun deactivateAccountError(message: String) = translate {
         EN - "Account could not be deactivated: $message"
         DE - "Der Account konnte nicht deaktiviert werden: $message"
+    }
+
+    open fun newMessageTitle() = translate {
+        EN - "new messages"
+        DE - "neue Nachrichten"
+    }
+
+    open fun newMessageDescription() = translate {
+        EN - "You have new messages."
+        DE - "Sie haben neue Nachrichten."
     }
 
     open fun powerLevelUpdateBan(powerLevel: Long) = translate {

@@ -29,7 +29,7 @@ interface ThemeTypography {
     fun create(): Typography
 }
 
-class ThemeTypographyImpl: ThemeTypography {
+class ThemeTypographyImpl : ThemeTypography {
     @Composable
     override fun create(): Typography {
         return Typography().withFontFamily(

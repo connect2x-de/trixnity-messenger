@@ -43,7 +43,11 @@ internal fun InlineContent(
     }
 }
 
-internal fun AnnotatedString.Builder.Children(node: RichText.Inline.Block, context: InlineRichTextContext, first: Boolean) {
+internal fun AnnotatedString.Builder.Children(
+    node: RichText.Inline.Block,
+    context: InlineRichTextContext,
+    first: Boolean
+) {
     for (index in node.children.indices) {
         val child = node.children[index]
         when (child) {
@@ -53,7 +57,11 @@ internal fun AnnotatedString.Builder.Children(node: RichText.Inline.Block, conte
     }
 }
 
-internal fun AnnotatedString.Builder.Children(node: RichText.InlineSpan, context: InlineRichTextContext, first: Boolean) {
+internal fun AnnotatedString.Builder.Children(
+    node: RichText.InlineSpan,
+    context: InlineRichTextContext,
+    first: Boolean
+) {
     for (index in node.children.indices) {
         val child = node.children[index]
         when (child) {

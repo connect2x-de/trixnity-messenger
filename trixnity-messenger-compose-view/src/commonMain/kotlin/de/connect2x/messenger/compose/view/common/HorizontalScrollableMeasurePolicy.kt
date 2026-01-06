@@ -7,7 +7,7 @@ import androidx.compose.ui.layout.MeasureScope
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.Constraints
 
-object HorizontalScrollableMeasurePolicy: MeasurePolicy {
+object HorizontalScrollableMeasurePolicy : MeasurePolicy {
     object ScrollbarLayoutId
 
     override fun MeasureScope.measure(

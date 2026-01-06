@@ -40,7 +40,11 @@ class RoomSettingsExportRoomViewImpl : RoomSettingsExportRoomView {
                 style = MaterialTheme.components.primaryButton,
                 onClick = { roomSettingsViewModel.openExportRoomView() },
             ) {
-                Icon(Icons.Default.Archive, exportRoomText, modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize))
+                Icon(
+                    Icons.Default.Archive,
+                    exportRoomText,
+                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                )
                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                 Text(exportRoomText)
             }

@@ -13,7 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Wizard
 import de.connect2x.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.messenger.compose.view.common.WizardStep
@@ -123,7 +123,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
             }
         }
     }
-    Wizard(wizardSteps, viewModel.backHandler)
+    Wizard(wizardSteps, true)
 }
 
 private fun wizardStepExplanation(
@@ -181,18 +181,10 @@ private fun wizardStepNotification(
         id = step.stepId,
         title = { i18n.commonNotifications() },
         content = {
-            val enabledOnDevice = notificationSettingsViewModel.enabledForThisDevice.collectAsState().value
             Column {
-                ThemedListItemSwitch(
-                    style = MaterialTheme.components.settingsItem,
-                    headlineContent = { Text(i18n.notificationsSettingsEnabledForThisDevice()) },
-                    selected = enabledOnDevice,
-                    onChange = { notificationSettingsViewModel.toggleEnabledForThisDevice() },
-                )
-                MiddleSpacer()
-                PlatformNotificationSettings(notificationSettingsViewModel, enabledOnDevice)
-                MiddleSpacer()
-                PlatformNotificationAccountSettings(notificationSettingsViewModel, enabledOnDevice)
+                DeviceNotificationSettings(notificationSettingsViewModel)
+                SmallSpacer()
+                AccountNotificationSettings(notificationSettingsViewModel)
             }
         },
     )
