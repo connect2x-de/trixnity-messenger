@@ -23,7 +23,7 @@ actual fun platformModule(): Module = module {
         })
     }
     single<MediaPlayer> {
-        AppleMediaPlayer()
+        AppleMediaPlayer(get())
     }
     single<GetAmplitudes> {
         GetAmplitudesImpl()
