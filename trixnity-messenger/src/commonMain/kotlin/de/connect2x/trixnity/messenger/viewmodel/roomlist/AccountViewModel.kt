@@ -29,13 +29,13 @@ interface AccountViewModelFactory {
         onAccountSelected: (UserId?) -> Unit,
         onUserSettingsSelected: () -> Unit,
         onShowAppInfo: () -> Unit,
-        onShowProfile: () -> Unit,
+        onShowAccounts: () -> Unit,
     ): AccountViewModel = AccountViewModelImpl(
         viewModelContext,
         onAccountSelected,
         onUserSettingsSelected,
         onShowAppInfo,
-        onShowProfile,
+        onShowAccounts,
     )
 
     companion object : AccountViewModelFactory
@@ -56,7 +56,7 @@ interface AccountViewModel {
 
     fun selectActiveAccount(userId: UserId?)
     fun openUserSettings()
-    fun openUserProfile()
+    fun openUserAccounts()
     fun openAppInfo()
 }
 
@@ -65,7 +65,7 @@ open class AccountViewModelImpl(
     private val onAccountSelected: (UserId?) -> Unit,
     private val onUserSettingsSelected: () -> Unit,
     private val onShowAppInfo: () -> Unit,
-    private val onShowProfile: () -> Unit,
+    private val onShowAccounts: () -> Unit,
 ) : ViewModelContext by viewModelContext, AccountViewModel {
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -95,9 +95,9 @@ open class AccountViewModelImpl(
         }
     }
 
-    override fun openUserProfile() {
+    override fun openUserAccounts() {
         coroutineScope.launch {
-            onShowProfile()
+            onShowAccounts()
         }
     }
 
@@ -138,6 +138,6 @@ class PreviewAccountViewModel : AccountViewModel {
     override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun selectActiveAccount(userId: UserId?) {}
     override fun openUserSettings() {}
-    override fun openUserProfile() {}
+    override fun openUserAccounts() {}
     override fun openAppInfo() {}
 }

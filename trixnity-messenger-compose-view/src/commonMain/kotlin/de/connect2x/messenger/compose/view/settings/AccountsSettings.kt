@@ -103,7 +103,7 @@ class AccountsSettingsViewImpl : AccountsSettingsView {
 }
 
 @Composable
-private fun AccountsOverview(accountsViewModel: AccountsViewModel) {
+fun AccountsOverview(accountsViewModel: AccountsViewModel) {
     val i18n = DI.get<I18nView>()
     val error = accountsViewModel.error.collectAsState().value
     val accountSingleViewModels = accountsViewModel.accountSingleViewModels.collectAsState().value

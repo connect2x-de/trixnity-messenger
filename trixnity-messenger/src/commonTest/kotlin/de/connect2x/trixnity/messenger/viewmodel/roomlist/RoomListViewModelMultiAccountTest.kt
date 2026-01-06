@@ -828,7 +828,7 @@ class RoomListViewModelMultiAccountTest {
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit,
-                                onShowProfile: () -> Unit
+                                onShowAccounts: () -> Unit
                             ): AccountViewModel = object : AccountViewModel {
                                 override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
                                 override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
@@ -836,7 +836,7 @@ class RoomListViewModelMultiAccountTest {
 
                                 override fun selectActiveAccount(userId: UserId?) {}
                                 override fun openUserSettings() {}
-                                override fun openUserProfile() {}
+                                override fun openUserAccounts() {}
                                 override fun openAppInfo() {}
                             }
                         }
@@ -855,7 +855,7 @@ class RoomListViewModelMultiAccountTest {
             onRoomSelected = onRoomSelectedMock,
             onCreateNewRoom = mock(),
             onShowAccounts = mock(),
-            onUserProfileSelected = mock(),
+            onUserSettingsSelected = mock(),
             onOpenAppInfo = mock(),
             onSendLogs = mock(),
             onAccountSelected = mock(),
