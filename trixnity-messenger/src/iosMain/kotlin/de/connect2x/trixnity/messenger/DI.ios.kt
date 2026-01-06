@@ -8,10 +8,8 @@ import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProxy
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegate
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegateProxy
-import de.connect2x.trixnity.messenger.util.GetAmplitudesImpl
 import de.connect2x.trixnity.messenger.util.UrlHandler
 import de.connect2x.trixnity.messenger.util.UrlHandlerImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.GetAmplitudes
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -23,10 +21,7 @@ actual fun platformModule(): Module = module {
         })
     }
     single<MediaPlayer> {
-        AppleMediaPlayer(get())
-    }
-    single<GetAmplitudes> {
-        GetAmplitudesImpl()
+        AppleMediaPlayer()
     }
 }
 

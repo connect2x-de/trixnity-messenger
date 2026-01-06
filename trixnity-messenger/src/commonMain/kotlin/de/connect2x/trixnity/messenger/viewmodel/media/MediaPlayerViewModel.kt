@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import de.connect2x.trixnity.messenger.viewmodel.util.GetAmplitudes
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,16 +51,8 @@ interface MediaPlayerViewModel {
         object NotAvailable : State
 
         data class Failed(val cause: String? = null) : State
-
-        /**
-         * @param amplitudes the normalized amplitudes (0.0 to 1.0) of the audio file
-         */
-        data class Ready(val amplitudes: List<Float>) : State
-
-        /**
-         * @param amplitudes the normalized amplitudes (0.0 to 1.0) of the audio file
-         */
-        data class Playing(val amplitudes: List<Float>) : State
+        data object Ready : State
+        data object Playing : State
     }
 }
 
@@ -92,11 +83,8 @@ class MediaPlayerViewModelImpl(
             log.debug { "Initiating download of media '${audio.name}' for media player" }
             coroutineScope.launch {
                 audio.downloadMedia { media ->
-                    val getAmplitudes: GetAmplitudes = get()
-
                     platformMedia.value = media
-                    val amplitudes = getAmplitudes(media, 200).getOrThrow()
-                    state.value = State.Ready(amplitudes)
+                    state.value = State.Ready
                 }
             }
         }
@@ -119,7 +107,7 @@ class MediaPlayerViewModelImpl(
                     }
                 }
 
-                state.value = State.Playing((state.value as State.Ready).amplitudes)
+                state.value = State.Playing
             }
         }
     }
@@ -134,7 +122,7 @@ class MediaPlayerViewModelImpl(
                 }
 
                 log.info { "Stop playing media '${audio.name}' with media player" }
-                state.value = State.Ready((state.value as State.Playing).amplitudes)
+                state.value = State.Ready
                 player.stop()
             }
         }

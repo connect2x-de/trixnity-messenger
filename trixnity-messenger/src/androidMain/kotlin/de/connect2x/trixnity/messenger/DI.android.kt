@@ -5,8 +5,6 @@ import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
-import de.connect2x.trixnity.messenger.util.GetAmplitudesImpl
-import de.connect2x.trixnity.messenger.viewmodel.util.GetAmplitudes
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
@@ -22,8 +20,5 @@ actual fun platformModule(): Module = module {
     }
     single<MediaPlayer> {
         AndroidMediaPlayer(get())
-    }
-    single<GetAmplitudes> {
-        GetAmplitudesImpl
     }
 }
