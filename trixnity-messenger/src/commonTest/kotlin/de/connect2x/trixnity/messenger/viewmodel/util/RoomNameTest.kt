@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import dev.mokkery.answering.returns
 import dev.mokkery.every
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -67,7 +66,7 @@ class RoomNameTest {
 
     @Test
     fun `change the name of the room according to the explicitName field`() = runTest {
-        every { userServiceMock.getAll(eq(roomId)) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         val room = MutableStateFlow(
             createBasicRoom(
                 RoomDisplayName(
@@ -81,7 +80,7 @@ class RoomNameTest {
         )
         every { roomServiceMock.getById(roomId) } returns room
         every {
-            userServiceMock.getById(eq(roomId), eq(user1Id))
+            userServiceMock.getById(roomId, user1Id)
         } returns MutableStateFlow(
             createRoomUser(
                 i = 1, roomId = roomId, userId = user1Id, name = "user1", membership = Membership.JOIN

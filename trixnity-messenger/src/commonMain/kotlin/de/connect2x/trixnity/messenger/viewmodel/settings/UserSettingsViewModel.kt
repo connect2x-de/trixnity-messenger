@@ -1,30 +1,27 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import net.folivo.trixnity.core.model.UserId
 
 
 interface UserSettingsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onCloseUserSettings: () -> Unit,
-        onShowDevicesSettings: () -> Unit,
-        onShowProfile: () -> Unit,
+        onShowDeviceSettings: () -> Unit,
+        onShowAccounts: () -> Unit,
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
-        onShowAccountSetup: (userId: UserId) -> Unit,
     ): UserSettingsViewModel {
         return UserSettingsViewModelImpl(
             viewModelContext,
             onCloseUserSettings,
-            onShowDevicesSettings,
-            onShowProfile,
+            onShowDeviceSettings,
+            onShowAccounts,
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,
-            onShowAccountSetup,
         )
     }
 
@@ -33,23 +30,21 @@ interface UserSettingsViewModelFactory {
 
 interface UserSettingsViewModel {
     fun closeUserSettings()
-    fun showDevicesSettings()
+    fun showDeviceSettings()
     fun showProfile()
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
-    fun showAccountSetup(userId: UserId)
 }
 
 open class UserSettingsViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseUserSettings: () -> Unit,
-    private val onShowDevicesSettings: () -> Unit,
+    private val onShowDeviceSettings: () -> Unit,
     private val onShowProfile: () -> Unit,
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
-    private val onShowAccountSetup: (userId : UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
 
     private val backCallback = BackCallback {
@@ -57,15 +52,15 @@ open class UserSettingsViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun closeUserSettings() {
         onCloseUserSettings()
     }
 
-    override fun showDevicesSettings() {
-        onShowDevicesSettings()
+    override fun showDeviceSettings() {
+        onShowDeviceSettings()
     }
 
     override fun showProfile() {
@@ -82,9 +77,5 @@ open class UserSettingsViewModelImpl(
 
     override fun showAppearanceSettings() {
         onShowAppearanceSettings()
-    }
-
-    override fun showAccountSetup(userId: UserId) {
-        onShowAccountSetup(userId)
     }
 }

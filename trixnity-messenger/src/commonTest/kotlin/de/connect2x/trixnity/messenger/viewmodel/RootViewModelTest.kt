@@ -95,7 +95,7 @@ class RootViewModelTest {
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit,
-                                onShowProfile: () -> Unit
+                                onShowAccounts: () -> Unit
                             ): AccountViewModel = accountViewModelMock
                         }
                     }
@@ -107,10 +107,9 @@ class RootViewModelTest {
                                 onRoomSelected: (UserId, RoomId) -> Unit,
                                 onStartCreateNewRoom: (UserId) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
+                                onShowAccounts: () -> Unit,
                                 onOpenAppInfo: () -> Unit,
                                 onSendLogs: () -> Unit,
-                                onOpenAccountsOverview: () -> Unit,
                                 onAccountSelected: () -> Unit,
                                 onStartVerification: (UserId) -> Unit,
                                 onCloseRoom: () -> Unit,

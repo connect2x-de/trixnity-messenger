@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -77,9 +78,10 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {
-                    if (isSingleAccount) accountViewModel.openUserProfile()
+                    if (isSingleAccount) accountViewModel.openUserAccounts()
                     else accountSelectionOpen.value = accountSelectionOpen.value.not()
                 },
+                modifier = Modifier.expandable(accountSelectionOpen),
             ) {
                 AvatarArea(activeAccountInfo)
                 if (isSingleAccount.not()) {

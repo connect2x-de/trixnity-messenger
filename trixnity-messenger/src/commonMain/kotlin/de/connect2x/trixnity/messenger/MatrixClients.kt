@@ -1,11 +1,15 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.MatrixClients.CreateResult.Failure
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.deleteDatabaseKey
+import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
+import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
@@ -22,37 +26,20 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MatrixClient.LoginInfo
-import net.folivo.trixnity.clientserverapi.client.MatrixAuthProvider
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import net.folivo.trixnity.clientserverapi.client.classicInMemory
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
+import net.folivo.trixnity.client.RepositoriesModule
+import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import net.folivo.trixnity.clientserverapi.client.useApi
+import net.folivo.trixnity.core.ErrorResponse
+import net.folivo.trixnity.core.MatrixServerException
 import net.folivo.trixnity.core.model.UserId
+import kotlin.coroutines.CoroutineContext
 
 private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
-    suspend fun login(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        password: String,
-        initialDeviceDisplayName: String?,
-    ): Result<MatrixClient>
-
-    suspend fun login(
-        baseUrl: Url,
-        token: String,
-        initialDeviceDisplayName: String?,
-    ): Result<MatrixClient>
-
-    suspend fun loginWith(
-        baseUrl: Url,
-        loginInfo: LoginInfo,
-    ): Result<MatrixClient>
-
     data class InitFromStoreResult(
         val success: Set<UserId>,
         val failures: Map<UserId, MatrixClientInitializationException>,
@@ -61,12 +48,28 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
     val initFromStoreResult: StateFlow<InitFromStoreResult?>
     val isInitialized: StateFlow<Boolean>
 
-    @Deprecated("This should not be used anymore. It is called automatically on startup. Instead listen to initFromStoreResult or isInitialized when you need it.")
-    suspend fun initFromStore(): InitFromStoreResult
+    suspend fun create(
+        authProviderData: MatrixClientAuthProviderData
+    ): CreateResult
 
     suspend fun logout(userId: UserId): Result<Unit>
 
     suspend fun remove(userId: UserId): Result<Unit>
+
+    sealed interface CreateResult {
+        data object Success : CreateResult
+        sealed interface Failure : CreateResult {
+            val message: String
+
+            data class InvalidAuthentication(override val message: String) : Failure
+            data class UserDeactivated(override val message: String) : Failure
+            data class Connection(override val message: String) : Failure
+            data class AccountAlreadyExists(override val message: String) : Failure
+            data class Database(override val message: String) : Failure
+
+            data class Unknown(override val message: String) : Failure
+        }
+    }
 }
 
 data class AccountAlreadyExistsException(val userId: UserId) :
@@ -74,16 +77,23 @@ data class AccountAlreadyExistsException(val userId: UserId) :
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalForInheritanceCoroutinesApi::class)
 class MatrixClientsImpl(
-    private val factory: MatrixClientFactory,
+    private val matrixClientFactory: MatrixClientFactory,
     private val deleteAccountData: DeleteAccountData,
     private val settings: MatrixMessengerSettingsHolder,
     private val config: MatrixMessengerConfiguration,
     private val secretByteArrays: SecretByteArrays,
+    private val createRepositoriesModule: CreateRepositoriesModule,
+    private val createMediaStoreModule: CreateMediaStoreModule,
+    private val createCryptoDriverModule: CreateCryptoDriverModule,
+    private val appCoroutineContext: CoroutineContext,
+    private val i18n: I18n,
+    private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
+    private val onCreate: suspend (MatrixClientAuthProviderData, UserId) -> Unit = { _, _ -> },
 ) : Worker, MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     override suspend fun doWork() {
-        @Suppress("DEPRECATION")
         initFromStore()
+
         flatMapLatest { matrixClients ->
             combine(
                 matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
@@ -106,78 +116,76 @@ class MatrixClientsImpl(
             }
     }
 
-    override suspend fun login(
-        baseUrl: Url,
-        identifier: IdentifierType,
-        password: String,
-        initialDeviceDisplayName: String?,
-    ): Result<MatrixClient> =
-        factory.loginWith(
-            baseUrl = baseUrl,
-            getLoginInfo = { api ->
-                api.authentication.login(
-                    identifier = identifier,
-                    password = password,
-                    type = LoginType.Password,
-                    initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = config.useRefreshTokens,
-                ).getOrThrow().let { login ->
-                    LoginInfo(
-                        userId = login.userId,
-                        accessToken = login.accessToken,
-                        refreshToken = login.refreshToken,
-                        deviceId = login.deviceId,
-                    )
+    override suspend fun create(authProviderData: MatrixClientAuthProviderData): MatrixClients.CreateResult =
+        runCatching {
+            val userId = authProviderData.useApi(
+                httpClientConfig = config.httpClientConfig,
+                httpClientEngine = config.httpClientEngine,
+            ) { it.authentication.whoAmI() }.getOrThrow().userId
+            checkExisting(authProviderData, userId)
+            onCreate(authProviderData, userId)
+            val matrixClient = matrixClientFactory.create(
+                repositoriesModule = createRepositoriesModuleOrThrow(userId),
+                mediaStoreModule = createMediaStoreModule(userId),
+                cryptoDriverModule = createCryptoDriverModule(),
+                authProviderData = authProviderData,
+                coroutineContext = appCoroutineContext,
+            ) {
+                configurer.forEach { with(it) { invoke() } }
+            }.getOrThrow()
+            add(matrixClient)
+            matrixClient
+        }.fold(
+            onSuccess = { MatrixClients.CreateResult.Success },
+            onFailure = { exception ->
+                when (exception) {
+                    is CancellationException -> throw exception
+                    is MatrixServerException ->
+                        when (exception.errorResponse) {
+                            ErrorResponse.Forbidden -> Failure.InvalidAuthentication(i18n.createMatrixClientFailureInvalidAuthentication())
+                            ErrorResponse.UserDeactivated -> Failure.UserDeactivated(i18n.createMatrixClientFailureUserDeactivated())
+                            else -> Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
+                        }
+
+                    is AccountAlreadyExistsException ->
+                        Failure.AccountAlreadyExists(i18n.createMatrixClientFailureAlreadyExists(exception.userId))
+
+                    is MatrixClientInitializationException.DatabaseLockedException ->
+                        Failure.Database(i18n.createMatrixClientFailureDatabaseLocked())
+
+                    is MatrixClientInitializationException.DatabaseAccessException ->
+                        Failure.Database(i18n.createMatrixClientFailureDatabaseAccess())
+
+                    is ResponseException ->
+                        Failure.Connection(i18n.createMatrixClientFailureConnection(exception.message))
+
+                    else -> {
+                        log.warn(exception) { "unhandled exception: $exception" }
+                        Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
+                    }
                 }
-            },
-            checkExisting = { checkExisting(it, baseUrl) },
-        ).map {
-            applyLogin(it)
-            it
-        }
+            }
+        )
 
-    override suspend fun login(
-        baseUrl: Url,
-        token: String,
-        initialDeviceDisplayName: String?,
-    ): Result<MatrixClient> =
-        factory.loginWith(
-            baseUrl = baseUrl,
-            getLoginInfo = { api ->
-                api.authentication.login(
-                    token = token,
-                    type = LoginType.Token(),
-                    initialDeviceDisplayName = initialDeviceDisplayName,
-                    refreshToken = config.useRefreshTokens,
-                ).getOrThrow().let { login ->
-                    LoginInfo(
-                        userId = login.userId,
-                        accessToken = login.accessToken,
-                        refreshToken = login.refreshToken,
-                        deviceId = login.deviceId,
-                    )
-                }
-            },
-            checkExisting = { checkExisting(it, baseUrl) },
-        ).map {
-            applyLogin(it)
-            it
+    private suspend fun checkExisting(authProviderData: MatrixClientAuthProviderData, userId: UserId) {
+        if (value.containsKey(userId)) {
+            log.debug { "account $userId already exist -> logout" }
+            authProviderData.useApi(
+                httpClientConfig = config.httpClientConfig,
+                httpClientEngine = config.httpClientEngine,
+            ) {
+                it.authentication.logout()
+            }
+                .onFailure { log.error(it) { "could not logout of duplicate account" } }
+                .getOrNull()
+            throw AccountAlreadyExistsException(userId)
+        } else {
+            log.debug { "account $userId does not exist -> delete possible stale data" }
+            remove(userId)
         }
+    }
 
-    override suspend fun loginWith(
-        baseUrl: Url,
-        loginInfo: LoginInfo,
-    ): Result<MatrixClient> =
-        factory.loginWith(
-            baseUrl = baseUrl,
-            getLoginInfo = { loginInfo },
-            checkExisting = { checkExisting(it, baseUrl) },
-        ).map {
-            applyLogin(it)
-            it
-        }
-
-    private suspend fun applyLogin(matrixClient: MatrixClient) {
+    private suspend fun add(matrixClient: MatrixClient) {
         val displayColor =
             config.generateInitialAccountColor?.let { generateInitialAccountColor ->
                 generateInitialAccountColor(
@@ -197,60 +205,40 @@ class MatrixClientsImpl(
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }
 
-    private suspend fun checkExisting(loginInfo: LoginInfo, baseUrl: Url) {
-        if (value.containsKey(loginInfo.userId)) {
-            log.debug { "account ${loginInfo.userId} already exist -> logout" }
-            MatrixClientServerApiClientImpl(
-                baseUrl,
-                authProvider = MatrixAuthProvider.classicInMemory(
-                    accessToken = loginInfo.accessToken,
-                    refreshToken = loginInfo.refreshToken
-                ),
-                httpClientEngine = config.httpClientEngine,
-                httpClientConfig = config.httpClientConfig
-            ).use {
-                it.authentication.logout()
-            }
-                .onFailure { log.error(it) { "could not logout of duplicate account" } }
-                .getOrNull()
-            throw AccountAlreadyExistsException(loginInfo.userId)
-        } else {
-            log.debug { "account ${loginInfo.userId} does not exist -> delete possible stale data" }
-            remove(loginInfo.userId)
-        }
-    }
-
     private val _initFromStoreResult: MutableStateFlow<InitFromStoreResult?> = MutableStateFlow(null)
     override val initFromStoreResult: StateFlow<InitFromStoreResult?> = _initFromStoreResult.asStateFlow()
     private val _isInitialized: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
-    @Deprecated("This should not be used anymore. It is called automatically on startup. Instead listen to initFromStoreResult or isInitialized when you need it.")
-    override suspend fun initFromStore(): InitFromStoreResult = // TODO make internal and undeprecate
+    internal suspend fun initFromStore(): InitFromStoreResult =
         coroutineScope {
             val success = MutableStateFlow(setOf<UserId>())
             val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
             val newMatrixClients = settings.value.base.accounts.keys.map { account ->
                 async {
                     if (matrixClients.value[account] == null) {
-                        val newMatrixClient = factory.initFromStore(account)
-                            .fold(
-                                onSuccess = { newMatrixClient ->
-                                    if (newMatrixClient != null) success.update { it + account }
-                                    else failures.update { it + (account to MatrixClientInitializationException.NoDatabaseException) }
-                                    newMatrixClient
-                                },
-                                onFailure = { e ->
-                                    log.error(e) { "could not load $account from store" }
-                                    val failure = when (e) {
-                                        is CancellationException -> throw e
-                                        is MatrixClientInitializationException -> e
-                                        else -> MatrixClientInitializationException.Unknown(e.message)
-                                    }
-                                    failures.update { it + (account to failure) }
-                                    null
+                        val newMatrixClient =
+                            runCatching {
+                                matrixClientFactory.create(
+                                    repositoriesModule = loadRepositoriesModuleOrThrow(account),
+                                    mediaStoreModule = createMediaStoreModule(account),
+                                    cryptoDriverModule = createCryptoDriverModule(),
+                                    authProviderData = null,
+                                    coroutineContext = appCoroutineContext,
+                                ) {
+                                    configurer.forEach { with(it) { invoke() } }
+                                }.getOrThrow()
+                            }.onSuccess {
+                                success.update { it + account }
+                            }.onFailure { e ->
+                                log.error(e) { "could not load $account from store" }
+                                val failure = when (e) {
+                                    is CancellationException -> throw e
+                                    is MatrixClientInitializationException -> e
+                                    else -> MatrixClientInitializationException.Unknown(e.message)
                                 }
-                            )
+                                failures.update { it + (account to failure) }
+                            }.getOrNull()
                         if (newMatrixClient != null) account to newMatrixClient
                         else null
                     } else null
@@ -290,6 +278,7 @@ class MatrixClientsImpl(
             matrixClients.update { it - userId }
             secretByteArrays.deleteDatabaseKey(userId)
             deleteAccountData(userId)
+            _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
         }
     }.onFailure {
         log.warn(it) { "failed to remove user data fro $userId" }
@@ -298,4 +287,64 @@ class MatrixClientsImpl(
     override fun close() {
         value.values.forEach { it.close() }
     }
+
+    private suspend fun createRepositoriesModuleOrThrow(
+        userId: UserId,
+    ): RepositoriesModule {
+        log.debug { "create repositories module" }
+        val repositoriesModule = try {
+            createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
+        } catch (exc: Exception) {
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
+        }
+        return repositoriesModule
+    }
+
+    private suspend fun loadRepositoriesModuleOrThrow(
+        userId: UserId,
+    ): RepositoriesModule {
+        log.debug { "load repositories module" }
+        val repositoriesModule = try {
+            createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
+        } catch (exc: Exception) {
+            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
+        }
+        return repositoriesModule
+    }
+
+    private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
+        return if (createNew) {
+            val newKey = createRepositoriesModule.generateDatabaseKey() ?: return null
+            secretByteArrays.setDatabaseKey(userId, newKey)
+            newKey
+        } else {
+            secretByteArrays.getDatabaseKey(userId)
+        }
+    }
+
+    // we cannot check for SQLNonTransientConnectionException since this is common code
+    private fun isLocked(exc: Throwable): Boolean =
+        exc.cause?.message?.contains("locked") == true || exc.cause?.let { isLocked(it) } ?: false
 }
+
+@Serializable
+sealed interface MatrixClientInitializationException {
+    @Serializable
+    data class DatabaseAccessException(override val message: String? = null) : MatrixClientInitializationException,
+        RuntimeException(message)
+
+    @Serializable
+    data class DatabaseLockedException(override val message: String? = null) : MatrixClientInitializationException,
+        RuntimeException(message)
+
+    @Serializable
+    data class Unknown(override val message: String? = null) : MatrixClientInitializationException,
+        RuntimeException(message)
+}
+
+private fun InitFromStoreResult.remove(id: UserId) = copy(
+    success = success.minus(id),
+    failures = failures.minus(id)
+)

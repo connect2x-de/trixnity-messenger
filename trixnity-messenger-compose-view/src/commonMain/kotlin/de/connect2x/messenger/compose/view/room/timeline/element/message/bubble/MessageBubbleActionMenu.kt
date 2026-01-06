@@ -47,6 +47,7 @@ import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.Platform
 import de.connect2x.messenger.compose.view.buttonPointerModifier
+import de.connect2x.messenger.compose.view.common.modifier.expandable
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.isMobile
@@ -54,9 +55,6 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.context
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusChild
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import kotlinx.coroutines.launch
 
@@ -67,7 +65,7 @@ fun BoxScope.MessageBubbleActionMenu(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
-    interactionSource: MutableInteractionSource,
+    hoverInteractionSource: MutableInteractionSource,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     when {
@@ -81,6 +79,7 @@ fun BoxScope.MessageBubbleActionMenu(
 
         else -> MessageBubbleActionMenuDefault(
             holder,
+            hoverInteractionSource,
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
@@ -92,6 +91,7 @@ fun BoxScope.MessageBubbleActionMenu(
 @Composable
 private fun BoxScope.MessageBubbleActionMenuDefault(
     holder: BaseTimelineElementHolderViewModel,
+    hoverInteractionSource: MutableInteractionSource,
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
@@ -99,10 +99,8 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
-    val hover = interactionSource.collectIsHoveredAsState()
-    val isVisible: MutableTransitionState<Boolean> =
-        remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
-
+    val hover = hoverInteractionSource.collectIsHoveredAsState()
+    val isVisible = remember { MutableTransitionState(showActionMenu.value || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value || focus.value || hover.value
     }
@@ -110,8 +108,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     val transition = rememberTransition(isVisible)
     val opacity = transition.animateFloat { if (it) 0.1f else 0f }
 
-    val focusContainer = LocalRovingFocus.current
-    val focusItem = LocalRovingFocusItem.current
+
 
     val i18n = DI.get<I18nView>()
     val onClose = {
@@ -129,17 +126,16 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = opacity.value),
-            interactionSource = interactionSource,
             border = if (IsFocusHighlighting.current && focus.value) {
                 BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
             } else null,
+            interactionSource = interactionSource,
             onClick = {
                 showActionMenu.value = showActionMenu.value.not()
-                focusContainer?.selectItem(focusItem?.key, shouldFocus = true)
             },
             modifier = Modifier
                 .size(28.dp)
-                .rovingFocusChild()
+                .expandable(showActionMenu)
                 .semantics {
                     role = Role.Button
                     contentDescription = i18n.commonContextMenu()

@@ -22,7 +22,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -30,7 +30,7 @@ import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
-import de.connect2x.trixnity.messenger.util.UrlHandler
+import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +47,7 @@ private val log = KotlinLogging.logger {}
 fun CoroutineScope.messengerApp(
     matrixMultiMessenger: MatrixMultiMessenger,
     lifecycle: LifecycleRegistry,
-    urlHandler: UrlHandler
+    uriHandler: UriHandler
 ) {
     application {
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
@@ -85,7 +85,7 @@ fun CoroutineScope.messengerApp(
                     )
 
                     launch {
-                        urlHandler.collect {
+                        uriHandler.collect {
                             window.rootPane.requestFocus()
                         }
                     }
@@ -133,7 +133,7 @@ fun CoroutineScope.messengerApp(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            Profiles(matrixMultiMessenger, existingProfiles)
+                            IntroductionOrProfile()
                         }
                     }
                 }

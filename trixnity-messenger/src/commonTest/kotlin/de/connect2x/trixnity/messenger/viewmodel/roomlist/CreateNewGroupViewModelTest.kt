@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
@@ -13,7 +12,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
@@ -109,21 +107,19 @@ class CreateNewGroupViewModelTest {
             roomsApiClientMock.createRoom(
                 any(),
                 any(),
-                eqNull(),
+                null,
                 any(),
                 any(),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
-                eq(CreateRoom.Request.Preset.PUBLIC),
+                CreateRoom.Request.Preset.PUBLIC,
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         }
     }
@@ -144,7 +140,7 @@ class CreateNewGroupViewModelTest {
     fun `add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -189,31 +185,29 @@ class CreateNewGroupViewModelTest {
         } returns Unit
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
                 any(),
-                eq(setOf(userId2, userId3)),
+                setOf(userId2, userId3),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(roomId)
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"),
+                "u",
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -253,23 +247,21 @@ class CreateNewGroupViewModelTest {
         } returns Unit
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
-                eq(topicText),
+                topicText,
                 any(),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(roomId)
 
@@ -295,23 +287,21 @@ class CreateNewGroupViewModelTest {
 
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
                 any(),
-                eq(setOf(userId2, userId3)),
+                setOf(userId2, userId3),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.failure(
             MatrixServerException(
@@ -320,7 +310,7 @@ class CreateNewGroupViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(

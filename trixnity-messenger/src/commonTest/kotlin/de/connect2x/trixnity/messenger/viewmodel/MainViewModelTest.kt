@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
@@ -14,6 +13,8 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
@@ -41,7 +42,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
@@ -99,8 +99,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
-    private val backPressedHandler = BackDispatcher()
-
+    private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
@@ -153,7 +152,7 @@ class MainViewModelTest {
 
         every { roomServiceMock.getAll() } returns roomsFlow
         every {
-            roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            roomServiceMock.getState(any(), CreateEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
@@ -163,10 +162,10 @@ class MainViewModelTest {
         } returns NoOpTimeline()
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
         every {
-            roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
+            roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any())
         } returns flowOf(null)
         every {
-            roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any())
+            roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any())
         } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns flowOf(listOf())
         every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
@@ -180,7 +179,7 @@ class MainViewModelTest {
 
         every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.Valid(true))
 
-        everySuspend { userServiceMock.loadMembers(RoomId(any()), any()) } returns Unit
+        everySuspend { userServiceMock.loadMembers(any(), any()) } returns Unit
         every { userServiceMock.getAccountData(DirectEventContent::class) } returns MutableStateFlow(
             DirectEventContent(
                 emptyMap()
@@ -236,7 +235,7 @@ class MainViewModelTest {
     @Test
     fun `show room when room is selected`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -251,7 +250,7 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is closed`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -269,13 +268,13 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is left with the back button`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
-        backPressedHandler.back()
+        backHandler.goBack()
         delay(100)
 
         assertSoftly {
@@ -623,7 +622,7 @@ class MainViewModelTest {
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                componentContext = DefaultComponentContext(lifecycle),
                 di = koinApplication {
                     allowOverride(true)
                     modules(
@@ -665,10 +664,9 @@ class MainViewModelTest {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
-                                        onUserProfileSelected: () -> Unit,
+                                        onShowAccounts: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
                                         onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
@@ -679,10 +677,6 @@ class MainViewModelTest {
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
                                         override val elements: StateFlow<List<RoomListElementViewModel>> =
                                             MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -701,7 +695,7 @@ class MainViewModelTest {
 
                                             override fun selectActiveAccount(userId: UserId?) {}
                                             override fun openUserSettings() {}
-                                            override fun openUserProfile() {}
+                                            override fun openUserAccounts() {}
                                             override fun openAppInfo() {}
                                         }
 
@@ -710,12 +704,12 @@ class MainViewModelTest {
                                         override fun selectRoom(roomId: RoomId) {}
                                         override fun errorDismiss() {}
                                         override fun sendLogs() {}
-                                        override fun openAccountsOverview() {}
                                         override fun closeProfile() {}
                                         override fun verifyAccount(userId: UserId) {}
                                     }
                                 }
                             }
+                            single<BackHandler> { backHandler }
                         })
                 }.koin,
                 coroutineContext = backgroundScope.coroutineContext,

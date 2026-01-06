@@ -7,7 +7,6 @@ import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
@@ -22,7 +21,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -128,13 +126,13 @@ class TimelineViewModelTest {
 
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
         everySuspend {
-            roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
+            roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), null)
         } returns Result.success(Unit)
         everySuspend {
-            roomsApiClientMock.setAccountData(any(), any(), any(), any(), eqNull())
+            roomsApiClientMock.setAccountData(any(), any(), any(), any(), null)
         } returns Result.success(Unit)
         everySuspend {
-            roomsApiClientMock.setReceipt(any(), any(), any(), any(), eqNull())
+            roomsApiClientMock.setReceipt(any(), any(), any(), any(), null)
         } returns Result.success(Unit)
 
         every { roomServiceMock.getOutbox() } returns outboxMessagesFlow.map {
@@ -151,7 +149,7 @@ class TimelineViewModelTest {
 
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
         every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
-        every { roomServiceMock.getTimelineEventRelations(eq(roomId), any(), any()) } returns flowOf(null)
+        every { roomServiceMock.getTimelineEventRelations(roomId, any(), any()) } returns flowOf(null)
 
         every {
             userServiceMock.getAll(roomId)
@@ -190,11 +188,11 @@ class TimelineViewModelTest {
                 ),
             )
         )
-        every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getAllReceipts(roomId) } returns MutableStateFlow(emptyMap())
         every {
-            userServiceMock.getById(eq(roomId), any())
+            userServiceMock.getById(roomId, any())
         } returns MutableStateFlow(null)
-        every { userServiceMock.getById(eq(roomId), any()) } returns flowOf(null)
+        every { userServiceMock.getById(roomId, any()) } returns flowOf(null)
         everySuspend { userServiceMock.loadMembers(roomId, false) } returns Unit
 
         every { clock.now() } returns Instant.parse("2020-09-01T01:00:00.000Z")
@@ -597,7 +595,7 @@ class TimelineViewModelTest {
     @Test
     fun `leaveRoom » show an error message when leaving the room fails`() = runTest {
         everySuspend {
-            roomsApiClientMock.leaveRoom(roomId, any(), eqNull())
+            roomsApiClientMock.leaveRoom(roomId, any(), null)
         } returns Result.failure(RuntimeException("Oh no!"))
 
         timeline(roomServiceMock, roomId) {}

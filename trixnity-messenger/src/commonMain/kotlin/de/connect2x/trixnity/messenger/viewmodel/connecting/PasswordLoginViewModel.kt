@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -7,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +18,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import net.folivo.trixnity.clientserverapi.client.classicLoginWithPassword
+import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import org.koin.core.component.get
 import org.koin.core.component.inject
 
 
@@ -58,6 +66,7 @@ open class PasswordLoginViewModelImpl(
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, PasswordLoginViewModel {
 
+    private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
     override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -81,15 +90,30 @@ open class PasswordLoginViewModelImpl(
         coroutineScope.launch {
             log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.text.isNotBlank()) "***" else ""}." }
             if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
-                matrixClients.loginCatching(
-                    serverUrl = serverUrl,
-                    username = username.value.text,
+                addMatrixAccountState.value = AddMatrixAccountState.Connecting
+                MatrixClientAuthProviderData.classicLoginWithPassword(
+                    baseUrl = Url(serverUrl),
+                    identifier = IdentifierType.User(username.value.text),
                     password = password.value.text,
                     initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                    addMatrixAccountState = addMatrixAccountState,
-                    i18n = i18n,
-                    onLogin = onLogin,
-                )
+                    refreshToken = config.useRefreshTokens,
+                    httpClientEngine = config.httpClientEngine,
+                    httpClientConfig = config.httpClientConfig,
+                ).onClassicLoginFailure(i18n) { message ->
+                    addMatrixAccountState.value = AddMatrixAccountState.Failure(message)
+                }.onSuccess { authProviderData ->
+                    when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
+                        is MatrixClients.CreateResult.Success -> {
+                            addMatrixAccountState.value = AddMatrixAccountState.Success
+                            onLogin()
+                        }
+
+                        is MatrixClients.CreateResult.Failure -> {
+                            addMatrixAccountState.value =
+                                AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                        }
+                    }
+                }
             } else {
                 log.warn { "cannot login: canLogin=${canLogin.value}, serverUrl=${serverUrl}" }
             }
@@ -98,6 +122,14 @@ open class PasswordLoginViewModelImpl(
 
     override fun back() {
         onBack()
+    }
+
+    val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        registerBackCallback(backCallback)
     }
 }
 

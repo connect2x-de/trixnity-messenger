@@ -4,7 +4,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
-import de.connect2x.trixnity.messenger.util.defaultUrlHandler
+import de.connect2x.trixnity.messenger.util.defaultUriHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -26,7 +26,7 @@ fun startMultiMessenger(
 
     // to set the lang to EN:   matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update { it.copy(preferredLang = "en") }
 
-    val urlHandler = matrixMultiMessenger.defaultUrlHandler
+    val urlHandler = matrixMultiMessenger.defaultUriHandler
     urlHandler.start(args)
 
     messengerApp(matrixMultiMessenger, lifecycle, urlHandler)

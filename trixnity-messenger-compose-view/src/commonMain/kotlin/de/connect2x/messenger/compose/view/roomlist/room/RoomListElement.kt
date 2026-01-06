@@ -23,7 +23,6 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.messenger.compose.view.theme.components.themedSurface
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import net.folivo.trixnity.core.model.RoomId
@@ -74,7 +73,6 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     visibilityThreshold = IntOffset.VisibilityThreshold
                 )
             )
-                .rovingFocusItem()
                 .then(
                     if (roomId == selectedRoomId) Modifier.themedSurface(
                         MaterialTheme.components.roomListSelection,

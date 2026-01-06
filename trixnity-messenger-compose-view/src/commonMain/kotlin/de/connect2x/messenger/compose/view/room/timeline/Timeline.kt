@@ -47,6 +47,8 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementHolder
@@ -58,12 +60,6 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.theme.messengerIcons
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.scroll
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -128,6 +124,7 @@ class TimelineViewImpl : TimelineView {
                 }.asReversed()
             }
         }
+        val groupedSize = timelineElementViewModelGrouped.value.size
         val uiTimelineElements = remember {
             derivedStateOf {
                 buildList {
@@ -208,12 +205,6 @@ class TimelineViewImpl : TimelineView {
                     if (unreadMarkerOnFirstLoad >= 0) unreadMarkerOnFirstLoad else initialIndex
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
-                val lastItem = remember {
-                    derivedStateOf {
-                        navigatableTimelineElements.value.firstOrNull()
-                    }
-                }
-
                 LaunchedEffect(scrollTo, timelineElementHolderViewModels.value) {
                     if (scrollTo != null) {
                         val index = withTimeoutOrNull(5.seconds) {
@@ -231,6 +222,7 @@ class TimelineViewImpl : TimelineView {
                 updateVisibleItems(timelineViewModel, visibleItems, timelineElementHolderViewModels)
 
                 BoxWithConstraints(
+                    // On touchscreen devices, tapping the timeline will close the keyboard.
                     Modifier
                         .pointerInput(Unit) {
                             detectTapGestures(onTap = {
@@ -256,10 +248,7 @@ class TimelineViewImpl : TimelineView {
                             }
                         }
                     }
-                    Box(
-                        Modifier
-                            .padding(vertical = 2.dp)
-                    ) {
+                    Box(Modifier.padding(vertical = 2.dp)) {
                         val canScrollToEnd = remember {
                             derivedStateOf {
                                 val index = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
@@ -267,57 +256,55 @@ class TimelineViewImpl : TimelineView {
                             }
                         }
                         Box {
-                            RovingFocusContainer {
-                                LazyColumn(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .verticalRovingFocus(
-                                            default = lastItem.value,
-                                            scroll = scroll(listState, uiTimelineElements.value) { it },
-                                            up = { // inverse
-                                                getNextItem(
-                                                    navigatableTimelineElements.value,
-                                                    lastItem.value,
-                                                ) { it }
-                                            },
-                                            down = { // inverse
-                                                getPreviousItem(
-                                                    navigatableTimelineElements.value,
-                                                    lastItem.value,
-                                                ) { it }
-                                            },
-                                        )
-                                        .semantics {
-                                            collectionInfo =
-                                                CollectionInfo(1, timelineElementViewModelGrouped.value.size)
-                                            liveRegion = LiveRegionMode.Polite
-                                        },
-                                    contentPadding = PaddingValues(
-                                        top = 10.dp,
-                                        bottom = 10.dp,
-                                        start = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
-                                        end = if (this@BoxWithConstraints.maxWidth.value > 1000)
-                                            (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + (10 + additionalEndPadding)).dp else 18.dp // 10 + 8, since we cannot add a padding or Spacer at the end
-                                    ),
-                                    state = listState,
-                                    reverseLayout = true,
-                                    verticalArrangement = Arrangement.Bottom,
-                                ) {
-                                    log.trace { "rendering timeline elements" }
-                                    timelineElementViewModelGrouped.value.forEachIndexed { index, (date, viewModel) ->
-                                        item(viewModel.key) {
-                                            RovingFocusItem(viewModel.key) {
-                                                TimelineElementHolder(viewModel, index)
+                            var focusedElement by remember(timelineElementViewModelGrouped.value) { mutableStateOf(0) }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .rovingFocusContainer()
+                                    .semantics {
+                                        collectionInfo = CollectionInfo(1, groupedSize)
+                                        liveRegion = LiveRegionMode.Polite
+                                    },
+                                contentPadding = PaddingValues(
+                                    top = 10.dp,
+                                    bottom = 10.dp,
+                                    start = if (this@BoxWithConstraints.maxWidth.value > 1000)
+                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + 10).dp else 10.dp,
+                                    end = if (this@BoxWithConstraints.maxWidth.value > 1000)
+                                        (0.5 * (this@BoxWithConstraints.maxWidth.value - 1000) + (10 + additionalEndPadding)).dp else 18.dp // 10 + 8, since we cannot add a padding or Spacer at the end
+                                ),
+                                state = listState,
+                                reverseLayout = true,
+                                verticalArrangement = Arrangement.Bottom,
+                            ) {
+                                log.trace { "rendering timeline elements" }
+
+                                timelineElementViewModelGrouped.value.forEachIndexed { index, (date, viewModel) ->
+                                    // if an empty timeline-event is marked as the focusedElement we cannot tab into the
+                                    // timeline due to it not being focusable so we initially skip all empties
+                                    if (viewModel.element.value is TimelineElementViewModel.Empty && index == focusedElement)
+                                        focusedElement++
+                                    item(viewModel.key) {
+                                        Box(
+                                            Modifier.rovingFocusItem(
+                                                isFocused = focusedElement == index,
+                                                onFocus = { focusedElement = index },
+                                            )
+                                        ) {
+                                            TimelineElementHolder(viewModel, index)
+                                        }
+                                    }
+                                    if (date != null)
+                                        item("date-$date-${viewModel.key}") {
+                                            Box(
+                                                Modifier.rovingFocusItem(
+                                                    isFocused = focusedElement == groupedSize + index,
+                                                    onFocus = { focusedElement = groupedSize + index },
+                                                )
+                                            ) {
+                                                DateStickyHeader(date, focusable = true)
                                             }
                                         }
-                                        if (date != null)
-                                            item("date-$date-${viewModel.key}") {
-                                                RovingFocusItem("date-$date-${viewModel.key}") {
-                                                    DateStickyHeader(date, focusable = true)
-                                                }
-                                            }
-                                    }
                                 }
                             }
                             ListDateHeader(

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
+
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.Search
@@ -10,7 +10,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -70,7 +69,7 @@ class CreateNewRoomViewModelTest {
     fun `filter users by search term`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user1"), any(), any(), eqNull()
+                "user1", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -81,7 +80,7 @@ class CreateNewRoomViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("us"), any(), any(), eqNull()
+                "us", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -94,7 +93,7 @@ class CreateNewRoomViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user3"), any(), any(), eqNull()
+                "user3", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(

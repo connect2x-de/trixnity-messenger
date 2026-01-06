@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
@@ -74,7 +73,7 @@ class MemberStateTimelineElementViewModelTest {
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
 
         every {
-            userServiceMock.getById(any(), eq(UserId("bob", "localhost")))
+            userServiceMock.getById(any(), UserId("bob", "localhost"))
         } returns MutableStateFlow(
             RoomUser(
                 roomId = RoomId("!room1"),
@@ -91,7 +90,7 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         every {
-            userServiceMock.getById(any(), eq(UserId("mallory", "localhost")))
+            userServiceMock.getById(any(), UserId("mallory", "localhost"))
         } returns MutableStateFlow(
             RoomUser(
                 roomId = RoomId("!room1"),

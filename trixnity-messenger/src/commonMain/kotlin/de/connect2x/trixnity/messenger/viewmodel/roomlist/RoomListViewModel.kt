@@ -5,9 +5,9 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
-import de.connect2x.trixnity.messenger.util.UrlHandler
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -18,6 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.http.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,27 +73,25 @@ interface RoomListViewModelFactory {
         onRoomSelected: (UserId, RoomId) -> Unit,
         onStartCreateNewRoom: (UserId) -> Unit,
         onUserSettingsSelected: () -> Unit,
-        onUserProfileSelected: () -> Unit,
+        onShowAccounts: () -> Unit,
         onOpenAppInfo: () -> Unit,
         onSendLogs: () -> Unit,
-        onOpenAccountsOverview: () -> Unit,
         onAccountSelected: () -> Unit,
         onStartVerification: (UserId) -> Unit,
         onCloseRoom: () -> Unit
     ): RoomListViewModel {
         return RoomListViewModelImpl(
-            viewModelContext,
-            selectedRoomId,
-            onRoomSelected,
-            onStartCreateNewRoom,
-            onUserSettingsSelected,
-            onUserProfileSelected,
-            onOpenAppInfo,
-            onSendLogs,
-            onOpenAccountsOverview,
-            onAccountSelected,
-            onStartVerification,
-            onCloseRoom
+            viewModelContext = viewModelContext,
+            selectedRoomId = selectedRoomId,
+            onRoomSelected = onRoomSelected,
+            onCreateNewRoom = onStartCreateNewRoom,
+            onUserSettingsSelected = onUserSettingsSelected,
+            onShowAccounts = onShowAccounts,
+            onOpenAppInfo = onOpenAppInfo,
+            onSendLogs = onSendLogs,
+            onAccountSelected = onAccountSelected,
+            onStartVerification = onStartVerification,
+            onCloseRoom = onCloseRoom
         )
     }
 
@@ -106,12 +105,6 @@ interface RoomListViewModel {
     val errorType: StateFlow<ErrorType>
     val initialSyncFinished: StateFlow<Boolean>
     val syncStates: StateFlow<UserSyncStates>
-
-    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    val syncStateError: StateFlow<Map<UserId, Boolean>>
-
-    @Deprecated("Api cleanup", ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    val allSyncError: StateFlow<Boolean>
 
     val showSearch: MutableStateFlow<Boolean>
     val searchResultsEmpty: StateFlow<Boolean>
@@ -132,7 +125,6 @@ interface RoomListViewModel {
     fun selectRoom(roomId: RoomId)
     fun errorDismiss()
     fun sendLogs()
-    fun openAccountsOverview()
     fun verifyAccount(userId: UserId)
 
     /**
@@ -157,10 +149,9 @@ class RoomListViewModelImpl(
     private val onRoomSelected: (UserId, RoomId) -> Unit,
     private val onCreateNewRoom: (UserId) -> Unit,
     onUserSettingsSelected: () -> Unit,
-    onUserProfileSelected: () -> Unit,
+    onShowAccounts: () -> Unit,
     onOpenAppInfo: () -> Unit,
     private val onSendLogs: () -> Unit,
-    private val onOpenAccountsOverview: () -> Unit,
     private val onAccountSelected: () -> Unit, // TODO provide userId as argument?
     private val onStartVerification: (userId: UserId) -> Unit,
     onCloseRoom: () -> Unit
@@ -180,12 +171,6 @@ class RoomListViewModelImpl(
     override val initialSyncFinished: StateFlow<Boolean>
     private val _syncState: StateFlow<Map<UserId, SyncState>>
     override val syncStates: StateFlow<UserSyncStates>
-
-    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    override val syncStateError: StateFlow<Map<UserId, Boolean>>
-
-    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    override val allSyncError: StateFlow<Boolean>
 
     override val showSearch = MutableStateFlow(false)
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
@@ -225,7 +210,7 @@ class RoomListViewModelImpl(
             onAccountSelected = { onAccountSelected() },
             onUserSettingsSelected = onUserSettingsSelected,
             onShowAppInfo = onOpenAppInfo,
-            onShowProfile = onUserProfileSelected,
+            onShowAccounts = onShowAccounts,
         )
 
     private data class RoomListElementViewModelWrapper(
@@ -414,17 +399,6 @@ class RoomListViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), UserSyncStates(setOf(), setOf()))
 
-        @Suppress("DEPRECATION") // TODO: remove this eventually
-        syncStateError = syncStates
-            .mapLatest {
-                it.failedFor.associateWith { true } + it.operationalFor.associateWith { false }
-            }.stateIn(coroutineScope, WhileSubscribed(), mapOf())
-
-        @Suppress("DEPRECATION") // TODO: remove this eventually
-        allSyncError = syncStates
-            .mapLatest { it.failedForAll }
-            .stateIn(coroutineScope, WhileSubscribed(), false)
-
         var initialSyncFinishedOnce = false
         initialSyncFinished = _syncState
             .filterNot { it.isEmpty() }
@@ -443,15 +417,19 @@ class RoomListViewModelImpl(
                 allAccounts.size == 1 || activeAccount != null
             }.stateIn(coroutineScope, Eagerly, false) // Has to be `Eagerly` as it is used as a helper.
 
-        // andle room navigation requests through the app://localhost/matrix:roomid/<ID> scheme.
+        // andle room navigation requests through the appUriScheme://matrix:roomid/<ID> scheme.
         // TODO Should be removed when better deeplink support is added
         coroutineScope.launch {
-            get<UrlHandler>().collect {
-                val segments = it.rawSegments
+            this@RoomListViewModelImpl.get<UriHandler>().collect { uri ->
+                val segments = Url(uri).rawSegments
                 if (segments.size < 3 || segments[1] != "matrix:roomid") return@collect
                 selectRoom(RoomId("!" + segments[2]))
             }
         }
+        val backCallback = BackCallback(enabled = showSearch) {
+            showSearch.value = false
+        }
+        registerBackCallback(backCallback)
     }
 
     private fun resetSearchWhenNotShown() {
@@ -492,7 +470,7 @@ class RoomListViewModelImpl(
         }
     }
 
-    override val closeProfileNeeded: Boolean = getOrNull<MatrixMultiMessengerConfiguration>()?.multiProfile == true
+    override val closeProfileNeeded: Boolean get() = profileManager?.isMultiProfileEnabled?.value == true
 
     override fun closeProfile() {
         log.debug { "close profile" }
@@ -508,10 +486,6 @@ class RoomListViewModelImpl(
 
     override fun sendLogs() {
         onSendLogs()
-    }
-
-    override fun openAccountsOverview() {
-        onOpenAccountsOverview()
     }
 
     override fun verifyAccount(userId: UserId) {
@@ -532,12 +506,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
             )
         )
 
-    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    override val syncStateError: MutableStateFlow<Map<UserId, Boolean>> = MutableStateFlow(mapOf())
-
-    @Deprecated("Api cleanup", replaceWith = ReplaceWith("syncStates: StateFlow<UserSyncStates>"))
-    override val allSyncError: MutableStateFlow<Boolean> = MutableStateFlow(false)
-
     override val syncStates: StateFlow<UserSyncStates> = MutableStateFlow(UserSyncStates(setOf(), setOf()))
     override val initialSyncFinished: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -553,7 +521,6 @@ class PreviewRoomListViewModel : RoomListViewModel {
     override fun selectRoom(roomId: RoomId) {}
     override fun errorDismiss() {}
     override fun sendLogs() {}
-    override fun openAccountsOverview() {}
     override fun closeProfile() {}
     override fun verifyAccount(userId: UserId) {}
 }

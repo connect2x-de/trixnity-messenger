@@ -26,12 +26,11 @@ import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
+import kotlinx.coroutines.flow.MutableStateFlow
 
 interface UserSearchResultListView {
-
     // this function is no @Composable as it is used inside a LazyListScope
     fun create(
         scope: LazyListScope,
@@ -89,11 +88,17 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                             }
                         }
                     } else {
-                        items(state.users, key = { it.userId.toString() }) { user ->
-                            val defaultItem = state.users.firstOrNull()?.userId?.full
-                            RovingFocusItem(user.userId.full, defaultItem) {
-                                UserElement(user, onClick = { userClickReaction(user) })
-                            }
+                        val focusedElement = MutableStateFlow(state.users.firstOrNull()?.userId?.full)
+                        scope.items(state.users, key = { it.userId.toString() }) { user ->
+                            val focusedElementState by focusedElement.collectAsState()
+                            UserElement(
+                                user,
+                                modifier = Modifier.rovingFocusItem(
+                                    isFocused = focusedElementState == user.userId.full,
+                                    onFocus = { focusedElement.value = user.userId.full }
+                                ),
+                                onClick = { userClickReaction(user) },
+                            )
                         }
                     }
                 }
@@ -106,6 +111,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
 @Composable
 private fun UserElement(
     user: SearchUserElement,
+    modifier: Modifier,
     onClick: () -> Unit
 ) {
     val presence by user.presence.collectAsState()
@@ -132,7 +138,7 @@ private fun UserElement(
                 style = MaterialTheme.typography.labelMedium,
             )
         },
-        modifier = Modifier.rovingFocusItem(),
+        modifier = modifier,
         onClick = onClick,
     )
     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp).padding(horizontal = 10.dp))

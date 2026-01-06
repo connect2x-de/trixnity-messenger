@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -101,7 +101,7 @@ class SendAttachmentViewModelImpl(
 
     init {
         val maxSize = matrixClient.serverData.value?.mediaConfig?.maxUploadSize ?: Long.MAX_VALUE
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
         coroutineScope.launch {
             if (checkFileSizeExceedsLimit(fileSize = file.fileSize, maxSizeBytes = maxSize)) {
                 _error.value = i18n.attachmentSizeMaxSizeError(maxSize)
@@ -110,7 +110,7 @@ class SendAttachmentViewModelImpl(
             _fileContent.value = if (isImage == true) {
                 val imageByteArray = file.content.toByteArray(maxMediaSizeInMemory)
                 if (imageByteArray != null) {
-                    get<ProcessImageUpload>().invoke(
+                    this@SendAttachmentViewModelImpl.get<ProcessImageUpload>().invoke(
                         imageByteArray,
                         file.mimeType ?: Image.PNG, // TODO: check if defaulting to PNG isn't causing any issues
                     ).also {
@@ -137,7 +137,7 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) = if (size == null || size <= maxMediaSizeInMemory)
-                                get<GetImageDimensions>().invoke(
+                                this@SendAttachmentViewModelImpl.get<GetImageDimensions>().invoke(
                                     byteArrayFlow,
                                     maxMediaSizeInMemory,
                                     file.mimeType

@@ -483,54 +483,54 @@ open class I18n(
         DE - "$usernames und andere schreiben..."
     }
 
-    open fun connectingErrorStandard(message: String) = translate {
-        EN - "Cannot connect to the Matrix server: $message"
-        DE - "Matrix-Server kann nicht erreicht werden: $message"
+    open fun createMatrixClientFailureUnknown(message: String?) = translate {
+        EN - "Cannot connect to the Matrix server: ${message ?: commonUnknown()}"
+        DE - "Matrix Server kann nicht erreicht werden: ${message ?: commonUnknown()}"
     }
 
-    open fun connectingErrorForbidden() = translate {
+    open fun createMatrixClientFailureInvalidAuthentication() = translate {
         EN - "Your credentials are not correct."
         DE - "Die Zugangsdaten sind nicht korrekt."
     }
 
-    open fun connectingErrorNotFound() = translate {
-        EN - "Cannot find a Matrix server with the given address."
-        DE - "Kann keinen Matrix-Server unter der angegebenen Adresse finden."
+    open fun createMatrixClientFailureUserDeactivated() = translate {
+        EN - "The account has been deactivated."
+        DE - "Das Konto wurde deaktiviert."
     }
 
-    open fun connectingErrorWrongAddress() = translate {
-        EN - "The address of the Matrix server cannot be determined, or the address might be corrupt."
-        DE - "Die Adresse des Matrix-Servers kann nicht bestimmt werden bzw. ist fehlerhaft."
-    }
-
-    open fun connectingErrorHttps() = translate {
-        EN - "Only secure connections (https) are allowed."
-        DE - "Es muss eine sichere Verbindung (https) genutzt werden."
-    }
-
-    open fun connectingErrorNoMatrixClient() = translate {
-        EN - "No Matrix client could be initialized"
-        DE - "Ein Matrix Client kann nicht erstellt werden."
-    }
-
-    open fun connectingAccountAlreadyExists(userId: UserId) = translate {
+    open fun createMatrixClientFailureAlreadyExists(userId: UserId) = translate {
         EN - "There already is a local account for the user $userId."
         DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."
     }
 
-    open fun connectingErrorDbLocked() = translate {
+    open fun createMatrixClientFailureDatabaseLocked() = translate {
         EN - "This app seems to be running already. You cannot start more than one instance."
         DE - "Diese App läuft bereits. Sie können die App nur einmal starten."
     }
 
-    open fun connectingErrorDbAccess() = translate {
+    open fun createMatrixClientFailureDatabaseAccess() = translate {
         EN - "The local database cannot be accessed."
         DE - "Auf die lokale Datenbank kann nicht zugegriffen werden."
+    }
+
+    open fun createMatrixClientFailureConnection(message: String?) = translate {
+        EN - "There was a network connection error: ${message ?: commonUnknown()}"
+        DE - "Es gab einen Netzwerkverbindungsfehler: ${message ?: commonUnknown()}"
     }
 
     open fun logoutFailure() = translate {
         EN - "An error occurred during logout. Please try again later."
         DE - "Beim Ausloggen aus Ihrem Account gab es einen Fehler. Bitte versuchen Sie es später noch einmal."
+    }
+
+    open fun uriCallFailure() = translate {
+        EN - "Could not open URI."
+        DE - "URI konnte nicht geöffnet werden."
+    }
+
+    open fun oAuth2LoginFailure(reason: String?) = translate {
+        EN - "Authentication failed. Reason: ${reason ?: commonUnknown()}"
+        DE - "Authentifizierung fehlgeschlagen. Grund: ${reason ?: commonUnknown()}"
     }
 
     open fun registrationTokenNotValid() = translate {
@@ -619,6 +619,11 @@ open class I18n(
         DE - "zuletzt gesehen: ${date.day}.${date.month.number}.${date.year}"
     }
 
+    open fun unknownDevice() = translate {
+        EN - "Unknown device"
+        DE - "Unbekanntes Gerät"
+    }
+
     open fun settingsDevicesDisplayNameError() = translate {
         EN - "Cannot change the name of the device."
         DE - "Der Name des Geräts kann nicht geändert werden."
@@ -636,7 +641,7 @@ open class I18n(
         else "Sind sie sicher Sie wollen Gerät $deviceId entfernen?"
     }
 
-    open fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
+    open fun settingsDevicesRemoveError(message: String? = null) = translate {
         EN - "The device cannot be removed: ${message ?: commonUnknown()}"
         DE - "Das Gerät kann nicht gelöscht werden: ${message ?: commonUnknown()}"
     }
@@ -1600,6 +1605,11 @@ open class I18n(
     open fun powerLevelInputErrAboveAllowedPowerLevel(maxPowerLevel: Long) = translate {
         EN - "power level has to be below $maxPowerLevel"
         DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
+    }
+
+    open fun roomUpgraded(message: String) = translate {
+        EN - "This room has been upgraded. Message from the Admins: \"$message\""
+        DE - "Dieser Raum wurde aktualisiert. Nachricht von den Admins: \"$message\""
     }
 
     open fun newEventAlreadyExistsErr() = translate {

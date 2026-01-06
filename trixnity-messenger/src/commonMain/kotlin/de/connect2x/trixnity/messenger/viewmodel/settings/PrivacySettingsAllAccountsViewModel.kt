@@ -1,12 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
 
@@ -26,7 +22,7 @@ interface PrivacySettingsAllAccountsViewModelFactory {
 }
 
 interface PrivacySettingsAllAccountsViewModel {
-    val privacySettings: StateFlow<List<PrivacySettingsSingleAccountViewModel>>
+    val privacySettings: List<PrivacySettingsSingleAccountViewModel>
     fun back()
 }
 
@@ -41,19 +37,17 @@ class PrivacySettingsAllAccountsViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
-    override val privacySettings: StateFlow<List<PrivacySettingsSingleAccountViewModel>> =
-        matrixClients.scopedMapLatest { namedMatrixClients ->
-            namedMatrixClients.map { (userId, _) ->
-                get<PrivacySettingsSingleAccountViewModelFactory>()
-                    .create(
-                        viewModelContext = childContext("privacySetting-${userId}", userId = userId),
-                        onShowBlockedContactsSettings = onShowBlockedContactsSettings,
-                    )
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+    override val privacySettings: List<PrivacySettingsSingleAccountViewModel> =
+        matrixClients.value.map { (userId, _) ->
+            get<PrivacySettingsSingleAccountViewModelFactory>()
+                .create(
+                    viewModelContext = childContext("privacySetting-${userId}", userId = userId),
+                    onShowBlockedContactsSettings = onShowBlockedContactsSettings,
+                )
+        }
 
     override fun back() {
         onClosePrivacySettings()

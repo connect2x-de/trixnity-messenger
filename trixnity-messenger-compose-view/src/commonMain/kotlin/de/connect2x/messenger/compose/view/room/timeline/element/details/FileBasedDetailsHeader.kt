@@ -2,14 +2,17 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Tooltip
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -47,7 +51,7 @@ fun FileBasedDetailsHeader(
     val configuration = DI.get<MatrixMessengerConfiguration>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
-    Row(
+    FlowRow(
         Modifier
             .zIndex(99.0f)
             .fillMaxWidth()
@@ -60,8 +64,9 @@ fun FileBasedDetailsHeader(
                     false
                 }
             },
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)
+        itemVerticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small, alignment = Alignment.CenterHorizontally),
     ) {
         FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
 
@@ -83,7 +88,6 @@ fun FileBasedDetailsHeader(
         }
 
         additionalButtons(this)
-
         if (downloadProgress == null) {
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.Download,
@@ -92,12 +96,25 @@ fun FileBasedDetailsHeader(
                 onSave
             )
         } else {
-            ThemedProgressIndicator(
-                progress = {
-                    downloadProgress.percent
-                },
-                style = MaterialTheme.components.circularProgressIndicator
-            )
+            Box {
+                downloadProgress.percent?.let {
+                    ThemedProgressIndicator(
+                        progress = {
+                            it
+                        },
+                        style = MaterialTheme.components.circularProgressIndicator
+                    )
+                } ?: ThemedProgressIndicator(
+                    style = MaterialTheme.components.circularProgressIndicator
+                )
+                ThemedIconButton(
+                    onClick = element::cancelDownloadMedia,
+                    modifier = Modifier.buttonPointerModifier(),
+                    style = MaterialTheme.components.commonIconButton
+                ) {
+                    Icon(Icons.Default.Cancel, i18n.commonCancel())
+                }
+            }
         }
     }
 }

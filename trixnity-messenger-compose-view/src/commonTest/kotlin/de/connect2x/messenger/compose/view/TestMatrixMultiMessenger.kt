@@ -10,12 +10,13 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.media.createInMemoryMediaStoreModule
-import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
+import net.folivo.trixnity.client.MediaStoreModule
+import net.folivo.trixnity.client.RepositoriesModule
+import net.folivo.trixnity.client.media.inMemory
+import net.folivo.trixnity.client.store.repository.inMemory
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.module.Module
 import org.koin.dsl.module
 
 val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
@@ -47,24 +48,24 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                 module {
                     single<CreateRepositoriesModule> {
                         object : CreateRepositoriesModule {
-                            val modules: MutableMap<UserId, Module> = HashMap()
+                            val modules: MutableMap<UserId, RepositoriesModule> = HashMap()
 
                             override suspend fun generateDatabaseKey(): ByteArray? = null
-                            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
-                                val module = createInMemoryRepositoriesModule()
+                            override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule {
+                                val module = RepositoriesModule.inMemory()
                                 modules += (userId to module)
                                 return module
                             }
 
-                            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
+                            override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
                                 modules[userId]
                                     ?: throw IllegalStateException("Repositories module for $userId not instantiated")
                         }
                     }
                     single<CreateMediaStoreModule> {
                         object : CreateMediaStoreModule {
-                            val store by lazy { createInMemoryMediaStoreModule() }
-                            override suspend fun invoke(userId: UserId): Module = store
+                            val store by lazy { MediaStoreModule.inMemory() }
+                            override suspend fun invoke(userId: UserId): MediaStoreModule = store
                         }
                     }
 

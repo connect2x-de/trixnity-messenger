@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.SettingsSuggest
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +22,6 @@ import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 
@@ -48,9 +46,8 @@ class UserSettingsViewImpl : UserSettingsView {
                     ProfileInfo(userSettingsViewModel)
                     AppearanceSettings(userSettingsViewModel)
                     PrivacySettings(userSettingsViewModel)
-                    DevicesSettings(userSettingsViewModel)
+                    DeviceSettings(userSettingsViewModel)
                     NotificationsSettings(userSettingsViewModel)
-                    AccountSetupSettings(userSettingsViewModel)
                 }
             }
         }
@@ -62,7 +59,7 @@ fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Person, null) },
-        headlineContent = { Text(i18n.profileTitle()) },
+        headlineContent = { Text(i18n.accountYourAccounts()) },
         onClick = { userSettingsViewModel.showProfile() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
@@ -91,12 +88,12 @@ fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun DevicesSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Devices, null) },
         headlineContent = { Text(i18n.devicesTitle()) },
-        onClick = { userSettingsViewModel.showDevicesSettings() },
+        onClick = { userSettingsViewModel.showDeviceSettings() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
 }
@@ -110,18 +107,4 @@ fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
         onClick = { userSettingsViewModel.showNotificationsSettings() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
-}
-
-@Composable
-fun AccountSetupSettings(userSettingsViewModel: UserSettingsViewModel) {
-    val i18n = DI.get<I18nView>()
-    val account = DI.get<MatrixMessengerSettingsHolder>().value.base.selectedAccount
-    if (account != null) {
-        ThemedListItemButton(
-            leadingContent = { Icon(Icons.Default.SettingsSuggest, null) },
-            headlineContent = { Text(i18n.accountSetupWizardReset().capitalize(Locale.current)) },
-            onClick = { userSettingsViewModel.showAccountSetup(account) },
-            modifier = Modifier.heightIn(min = 72.dp),
-        )
-    }
 }

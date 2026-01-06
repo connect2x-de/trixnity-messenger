@@ -8,7 +8,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
@@ -61,7 +60,7 @@ class RoomSettingsAliasViewModelTest {
         directoryAliases.value = emptyMap()
 
         every {
-            roomServiceMock.getState(any(), eq(CanonicalAliasEventContent::class), any())
+            roomServiceMock.getState(any(), CanonicalAliasEventContent::class, any())
         } returns serverAliases.map {
             if (it == null) null
             else ClientEvent.RoomEvent.StateEvent(
@@ -130,7 +129,7 @@ class RoomSettingsAliasViewModelTest {
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
         every {
-            userServiceMock.canSendEvent(any(), eq(CanonicalAliasEventContent::class))
+            userServiceMock.canSendEvent(any(), CanonicalAliasEventContent::class)
         } returns canSendEvent
     }
 
@@ -169,10 +168,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                    )
                 ), any(), any()
             )
         }
@@ -229,10 +226,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         RoomAliasId("#epicroom:127.0.0.1"), setOf()
-                    )
                 ), any(), any()
             )
         }
@@ -279,10 +274,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                    )
                 ), any(), any()
             )
         }
@@ -379,10 +372,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         RoomAliasId("#awesomeroom:127.0.0.1"), setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                    )
                 ), any(), any()
             )
         }
@@ -434,10 +425,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         null, setOf()
-                    )
                 ), any(), any()
             )
         }
@@ -484,10 +473,8 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), eq(
-                    CanonicalAliasEventContent(
+                any(), CanonicalAliasEventContent(
                         null, setOf()
-                    )
                 ), any(), any()
             )
         }

@@ -2,14 +2,11 @@ package de.connect2x.messenger.compose.view.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -18,7 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,20 +27,18 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.modifier.customClickable
 import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
-import de.connect2x.messenger.compose.view.util.LocalRovingFocus
-import de.connect2x.messenger.compose.view.util.LocalRovingFocusItem
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.rovingFocus2D
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import kotlin.math.ceil
+import de.connect2x.messenger.compose.view.common.modifier.RovingFocusDirection
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 
 
 @Composable
@@ -50,70 +48,34 @@ fun EmojiSelector(
     onDismiss: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val defaultItem = emojis.firstOrNull()
+    var focusedItem by remember { mutableStateOf(emojis.firstOrNull()) }
 
     Box(modifier) {
-        Row(modifier = Modifier.verticalScroll(scrollState), horizontalArrangement = Arrangement.Center) {
+        Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center)) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
-                val calculatedEmojiSize = with(LocalDensity.current) { 48.dp.roundToPx() }
-                val columns = constraints.maxWidth / calculatedEmojiSize
-
-                RovingFocusContainer {
-                    FlowRow(
-                        modifier = Modifier.wrapContentWidth(align = Alignment.CenterHorizontally)
-                            .onKeyEvent { event ->
-                                when (event.key) {
-                                    Key.Escape -> {
-                                        if (event.type == KeyEventType.KeyDown) {
-                                            onDismiss()
-                                        }
-                                        true
-                                    }
-
-                                    else -> false
+                EmojiPicker(
+                    Modifier.onKeyEvent { event ->
+                        when (event.key) {
+                            Key.Escape -> {
+                                if (event.type == KeyEventType.KeyDown) {
+                                    onDismiss()
                                 }
+                                true
                             }
-                            .rovingFocus2D(
-                                default = defaultItem,
-                                scroll = {},
-                                up = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = emojis.indexOf(currentItem)
-                                    val nextIndex = currentIndex.minus(columns)
-                                    val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
-                                    if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
-                                    else emojis[currentIndex]
-                                },
-                                down = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = emojis.indexOf(currentItem)
-                                    val nextIndex = currentIndex.plus(columns)
-                                    val rows = emojis.lastIndex.toDouble().div(columns).let(::ceil).toInt()
-                                    if ((0..columns.times(rows)).contains(nextIndex)) emojis[nextIndex.coerceIn(emojis.indices)]
-                                    else emojis[currentIndex]
-                                },
-                                left = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = emojis.indexOf(currentItem)
-                                    val nextIndex = currentIndex.minus(1).coerceIn(emojis.indices)
-                                    emojis[nextIndex]
-                                },
-                                right = {
-                                    val currentItem = activeRef.value ?: defaultItem
-                                    val currentIndex = emojis.indexOf(currentItem)
-                                    val nextIndex = currentIndex.plus(1).coerceIn(emojis.indices)
-                                    emojis[nextIndex]
-                                },
-                            ),
-                    ) {
-                        for (emoji in emojis) {
-                            RovingFocusItem(emoji, defaultItem) {
-                                EmojiButton(
-                                    label = emoji,
-                                    onClick = { onTextAdded(emoji) },
-                                )
-                            }
+
+                            else -> false
                         }
+                    }.rovingFocusContainer(RovingFocusDirection.Grid)
+                ) {
+                    for (emoji in emojis) {
+                        EmojiButton(
+                            label = emoji,
+                            modifier = Modifier.rovingFocusItem(
+                                isFocused = focusedItem == emoji,
+                                onFocus = { focusedItem = emoji },
+                            ),
+                            onClick = { onTextAdded(emoji) },
+                        )
                     }
                 }
             }
@@ -127,25 +89,11 @@ fun EmojiSelector(
 @Composable
 fun EmojiButton(
     label: String,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val focusContainer = LocalRovingFocus.current
-    val focusItem = LocalRovingFocusItem.current
-    LaunchedEffect(Unit) {
-        focusContainer?.let { container ->
-            focusItem?.let { item ->
-                val currentItem = container.activeRef.value ?: item.default
-                if (item.key == currentItem) {
-                    container.selectItem(item.key, shouldFocus = true)
-                }
-            }
-        }
-    }
-
     Box(
-        modifier = Modifier
-            .requiredSize(48.dp)
-            .rovingFocusItem()
+        modifier = modifier
             .customClickable(
                 indication = ripple(bounded = false, radius = 24.dp),
                 onClick = onClick,
@@ -164,6 +112,48 @@ fun EmojiButton(
             text = label,
             style = LocalTextStyle.current.copy(fontSize = 18.sp, textAlign = TextAlign.Center)
         )
+    }
+}
+
+/**
+ * Custom emoji picker which arranges items similar to [androidx.compose.foundation.layout.Arrangement.SpaceBetween] with the exception of the last line, which is left-aligned
+ * and positioned with the same spacing as previous lines
+ * @param modifier The modifier to use on the layout
+ * @param content The emojis to arrange within the picker. For correct arrangement they are required to all have the same size
+ */
+@Composable
+private fun EmojiPicker(modifier: Modifier, content: @Composable () -> Unit) {
+    Layout(modifier = modifier, content = content) { measurables, constraints ->
+        if (measurables.isNotEmpty()) {
+            val placeables = measurables.map {
+                it.measure(constraints)
+            }
+            val itemSize = IntSize(placeables.first().width, placeables.first().height)
+            val emojisPerLine = constraints.maxWidth / itemSize.width
+
+            val consumedSize = emojisPerLine * itemSize.width
+            val noOfGaps = emojisPerLine - 1
+            val gapSize = (constraints.maxWidth - consumedSize).toFloat() / noOfGaps
+            val numOfRows =
+                (placeables.size / emojisPerLine).run { if (placeables.size % emojisPerLine != 0) this.inc() else this }
+            val height = numOfRows * itemSize.height
+            layout(constraints.maxWidth, height) {
+                var yPos = 0f
+                var xPos = 0f
+                var emojiIndex = 0
+                placeables.forEach {
+                    it.placeRelative(xPos.fastRoundToInt(), yPos.fastRoundToInt())
+
+                    xPos += it.width + gapSize
+                    emojiIndex++
+                    if (emojiIndex == emojisPerLine) {
+                        emojiIndex = 0
+                        xPos = 0F
+                        yPos += it.height
+                    }
+                }
+            }
+        } else layout(0, 0) {}
     }
 }
 

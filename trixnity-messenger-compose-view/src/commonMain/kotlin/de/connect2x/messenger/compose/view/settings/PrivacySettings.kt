@@ -1,15 +1,10 @@
 package de.connect2x.messenger.compose.view.settings
 
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
@@ -54,7 +48,7 @@ fun PrivacySettings(privacySettingsViewModel: PrivacySettingsAllAccountsViewMode
 class PrivacySettingsViewImpl : PrivacySettingsView {
     @Composable
     override fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
-        val privacySettings = privacySettingsViewModel.privacySettings.collectAsState().value
+        val privacySettings = privacySettingsViewModel.privacySettings
         val i18n = DI.get<I18nView>()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {

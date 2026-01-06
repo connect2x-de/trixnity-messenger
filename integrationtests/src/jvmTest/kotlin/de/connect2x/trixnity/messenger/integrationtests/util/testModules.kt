@@ -12,11 +12,11 @@ import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import de.connect2x.trixnity.messenger.update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
+import net.folivo.trixnity.client.RepositoriesModule
+import net.folivo.trixnity.client.store.repository.inMemory
 import net.folivo.trixnity.core.model.UserId
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.module.Module
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
@@ -26,16 +26,16 @@ fun createTrixnityMessengerTestModule(debugName: String = "client") = module {
     }
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
-            val modules: MutableMap<UserId, Module> = HashMap()
+            val modules: MutableMap<UserId, RepositoriesModule> = HashMap()
             override suspend fun generateDatabaseKey(): ByteArray? = null
 
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
-                val module = createInMemoryRepositoriesModule()
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule {
+                val module = RepositoriesModule.inMemory()
                 modules += (userId to module)
                 return module
             }
 
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module =
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
                 modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
         }
     }

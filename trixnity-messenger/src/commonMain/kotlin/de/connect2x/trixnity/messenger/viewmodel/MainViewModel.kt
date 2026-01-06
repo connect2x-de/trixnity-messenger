@@ -5,13 +5,13 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
@@ -88,7 +88,6 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
     fun openSelfVerification(userId: UserId)
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
-    fun closeAccountsOverview()
 }
 
 open class MainViewModelImpl(
@@ -118,7 +117,7 @@ open class MainViewModelImpl(
     }
 
     init { // Init before routers, so those can register other handlers that are executed beforehand.
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     private val initialSyncRouter = InitialSyncRouter(viewModelContext = viewModelContext)
@@ -185,7 +184,6 @@ open class MainViewModelImpl(
     }
 
     private fun onRemoveAccountInternal(userId: UserId) {
-        roomListRouter.closeAccountsOverview()
         this.onRemoveAccount(userId)
         coroutineScope.launch {
             if (messengerSettings.value.base.accounts.isEmpty()) {
@@ -243,7 +241,7 @@ open class MainViewModelImpl(
                 }
         }
         coroutineScope.launch {
-            get<NotificationHandlers>().continuouslyRequestPermissions()
+            this@MainViewModelImpl.get<NotificationHandlers>().continuouslyRequestPermissions()
         }
         lifecycle.doOnStop {
             coroutineScope.launch {
@@ -413,10 +411,6 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun closeAccountsOverview() {
-        roomListRouter.closeAccountsOverview()
-    }
-
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
@@ -457,11 +451,11 @@ open class MainViewModelImpl(
 
     private fun onSendLogs() {
         coroutineScope.launch {
-            val sendLogToDevs = getOrNull<SendLogToDevs>()
+            val sendLogToDevs = this@MainViewModelImpl.getOrNull<SendLogToDevs>()
             if (sendLogToDevs != null)
                 try {
-                    val config = get<MatrixMessengerBaseConfiguration>()
-                    val defaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()()
+                    val config = this@MainViewModelImpl.get<MatrixMessengerBaseConfiguration>()
+                    val defaultDeviceDisplayName = this@MainViewModelImpl.get<GetDefaultDeviceDisplayName>()()
                     log.debug { "send logs to devs (email: ${config.sendLogsEmailAddress})" }
                     config.sendLogsEmailAddress?.let { email ->
                         sendLogToDevs(
@@ -563,5 +557,4 @@ class PreviewMainViewModel : MainViewModel {
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
     override fun openSelfVerification(userId: UserId) {}
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
-    override fun closeAccountsOverview() {}
 }

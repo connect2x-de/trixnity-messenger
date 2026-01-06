@@ -154,10 +154,10 @@ class RoomViewModelTest {
         every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
         every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
         every {
-            roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            roomServiceMock.getState(any(), CreateEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
-            roomServiceMock.getState(any(), eq(PowerLevelsEventContent::class), any())
+            roomServiceMock.getState(any(), PowerLevelsEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.usersTyping
@@ -179,12 +179,12 @@ class RoomViewModelTest {
         every { keyServiceMock.getTrustLevel(any<UserId>()) } returns
                 flowOf(UserTrustLevel.Blocked)
         everySuspend {
-            userServiceMock.loadMembers(RoomId(any()), any())
+            userServiceMock.loadMembers(any(), any())
         } returns Unit
         every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
-        every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getAllReceipts(roomId) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
         every { userServiceMock.canInviteUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)

@@ -4,16 +4,20 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Connect2xComposeUiApi
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.window.ComposeViewport
+import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.ui.viewinterop.WebElementView
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -52,7 +56,7 @@ private fun getLogLevel(): Level {
     } ?: Level.INFO
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, Connect2xComposeUiApi::class, InternalComposeUiApi::class)
 suspend fun startMultiMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
@@ -117,7 +121,7 @@ suspend fun startMultiMessenger(
         })
 
     try {
-        ComposeViewport {
+        AccessibleComposeViewport {
             // As this is hopefully only temporary until FontFallback works automatically on Web with
             // Browser installed fonts, this is just put here instead of complicating the Theme definition
             // commonMain/kotlin/de/connect2x/messenger/compose/view/theme/Theme.kt with platform specific
@@ -156,7 +160,7 @@ suspend fun startMultiMessenger(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            Profiles(matrixMultiMessenger, existingProfiles)
+                            IntroductionOrProfile()
                         }
                     }
                 }

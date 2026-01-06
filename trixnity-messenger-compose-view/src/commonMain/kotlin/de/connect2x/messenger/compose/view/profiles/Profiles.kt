@@ -5,86 +5,61 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettings
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
+import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
+import kotlinx.coroutines.flow.first
 
 
 interface ProfilesView {
     @Composable
-    fun create(
-        matrixMultiMessenger: MatrixMultiMessenger,
-        existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-    )
+    fun create()
 }
 
 @Composable
-fun Profiles(
-    matrixMultiMessenger: MatrixMultiMessenger,
-    existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-) {
-    DI.get<ProfilesView>().create(matrixMultiMessenger, existingProfiles)
+fun Profiles() {
+    DI.get<ProfilesView>().create()
 }
 
 class ProfilesViewImpl : ProfilesView {
     @Composable
-    override fun create(
-        matrixMultiMessenger: MatrixMultiMessenger,
-        existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-    ) {
-        val multiProfile = DI.get<MatrixMultiMessengerConfiguration>().multiProfile
-        Surface(
-            Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-        ) {
-            if (existingProfiles.isEmpty() || !multiProfile) {
-                createAndUseDefaultUserProfile(matrixMultiMessenger)
+    override fun create() {
+        val profileManager = DI.get<ProfileManager>()
+        val multiProfile = profileManager.isMultiProfileEnabled.collectAsState().value
+        val existingProfiles = profileManager.profiles.collectAsState().value
+        Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
+            if (existingProfiles.isEmpty() || multiProfile == false) {
+                createAndUseDefaultUserProfile()
             } else {
-                createOrSelectManualUserProfile(
-                    matrixMultiMessenger,
-                    existingProfiles
-                )
+                createOrSelectManualUserProfile()
             }
         }
     }
 }
 
 @Composable
-fun createOrSelectManualUserProfile(
-    matrixMultiMessenger: MatrixMultiMessenger,
-    existingProfiles: Map<String, MatrixMultiMessengerProfileSettings>,
-) {
+fun createOrSelectManualUserProfile() {
     val di = DI.current
+    val profileManager = DI.get<ProfileManager>()
     val coroutineScope = rememberCoroutineScope()
     val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
     val showProfileCreation = ShowProfileCreation.current
+    val existingProfiles = profileManager.profiles.collectAsState().value
     if (existingProfiles.isEmpty() || showProfileCreation.value) {
-        ProfileCreation(profileCreationViewModel) {
-            showProfileCreation.value = false
-        }
+        ProfileCreation(profileCreationViewModel) { showProfileCreation.value = false }
     } else {
-        ProfileSelection(matrixMultiMessenger)
+        ProfileSelection(profileManager)
     }
 }
 
 @Composable
-fun createAndUseDefaultUserProfile(matrixMultiMessenger: MatrixMultiMessenger) {
-    LaunchedEffect(Unit) {
-        withContext(NonCancellable) {
-            if (matrixMultiMessenger.activeProfile.value == null) {
-                val profile = matrixMultiMessenger.profiles.value.keys.firstOrNull()
-                    ?: matrixMultiMessenger.createProfile()
-                matrixMultiMessenger.selectProfile(profile)
-            }
-        }
-    }
+fun createAndUseDefaultUserProfile() {
+    val pm = DI.get<ProfileManager>()
+    LaunchedEffect(Unit) { pm.singleModeMatrixMessenger().first() }
 }

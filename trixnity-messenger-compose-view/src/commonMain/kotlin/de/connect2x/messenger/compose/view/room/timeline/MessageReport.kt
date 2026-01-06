@@ -5,13 +5,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.modifier.focusOnFirstRender
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
@@ -31,18 +30,15 @@ fun MessageReport(
     val focusRequester = remember { FocusRequester() }
     val reason = reportToMessageViewModel.messageReportReason.collectAsTextFieldValueState()
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     ThemedModalDialog({ reportToMessageViewModel.closeReportMessageDialog() }) {
         ModalDialogHeader {
             Text(i18n.reportMessageHeader())
         }
         ModalDialogContent {
             OutlinedTextField(
-                modifier = Modifier.inputFocusNavigation()
-                    .focusRequester(focusRequester)
+                modifier = Modifier
+                    .inputFocusNavigation()
+                    .focusOnFirstRender()
                     .fillMaxWidth(),
                 value = reason.value,
                 onValueChange = { reason.value = it },

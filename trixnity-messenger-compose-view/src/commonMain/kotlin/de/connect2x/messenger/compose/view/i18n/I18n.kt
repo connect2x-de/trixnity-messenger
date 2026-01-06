@@ -646,6 +646,11 @@ open class I18nView(
         DE - "Anmelden"
     }
 
+    open fun register() = translate {
+        EN - "Register"
+        DE - "Registrieren"
+    }
+
     open fun authenticate() = translate {
         EN - "authenticate"
         DE - "Autorisieren"
@@ -666,12 +671,42 @@ open class I18nView(
         DE - "Anmelden mit Passwort"
     }
 
+    open fun loginWithOAuth2() = translate {
+        EN - "Login on Matrix server"
+        DE - "Anmelden am Matrix Server"
+    }
+
+    open fun loginWithOAuth2Description(serverUrl: String) = translate {
+        EN - "You will be redirected in the next step to log in on $serverUrl."
+        DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl anzumelden."
+    }
+
+    open fun loginWithOAuth2Waiting(serverUrl: String) = translate {
+        EN - "You have been redirected to log in on $serverUrl. Please follow the instructions there."
+        DE - "Sie wurden weitergeleitet, um sich auf $serverUrl anzumelden. Bitte folgen Sie dort den Anweisungen."
+    }
+
+    open fun registerWithOAuth2() = translate {
+        EN - "Register on Matrix server"
+        DE - "Registrieren am Matrix Server"
+    }
+
+    open fun registerWithOAuth2Description(serverUrl: String) = translate {
+        EN - "You will be redirected in the next step to register on $serverUrl."
+        DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl zu registrieren."
+    }
+
+    open fun loginWithMoreClassic() = translate {
+        EN - "More deprecated login methods"
+        DE - "Weitere veraltete Anmelde-Methoden"
+    }
+
     open fun loginWithSSO(name: String) = translate {
         EN - "Login with $name"
         DE - "Anmelden mit $name"
     }
 
-    open fun register() = translate {
+    open fun registerNewAccount() = translate {
         EN - "Create new account"
         DE - "Neues Konto anlegen"
     }
@@ -786,9 +821,9 @@ open class I18nView(
         DE - "$appName ist bereits geöffnet. Dieses Fenster wird nun geschlossen."
     }
 
-    open fun storeFailureLocalDbNotLoaded() = translate {
-        EN - "The local database could not be loaded."
-        DE - "Die lokale Datenbank konnte nicht geladen werden."
+    open fun storeFailureLocalDbNotLoaded(user: String) = translate {
+        EN - "The local database of $user could not be loaded."
+        DE - "Die lokale Datenbank von $user konnte nicht geladen werden."
     }
 
     open fun storeFailureLocalDbSelect() = translate {
@@ -3253,6 +3288,36 @@ open class I18nView(
     open fun mSpaceChildHeading() = translate {
         EN - "Link child spaces"
         DE - "Untergeordnete Spaces verknüpfen"
+    }
+
+    open fun editRoomName() = translate {
+        EN - "edit room name"
+        DE - "Raumnamen ändern"
+    }
+
+    open fun editRoomTopic() = translate {
+        EN - "edit room topic"
+        DE - "Raumbeschreibung ändern"
+    }
+
+    open fun accountOverviewWarning() = translate {
+        EN - "This function is not intended for adding accounts belonging to different owners. Instead, it enables one owner to manage multiple accounts."
+        DE - "Mit dieser Funktion können keine Konten von unterschiedlichen Eigentümern hinzugefügt werden. Sie erlaubt jedoch, dass ein Eigentümer mehrere Konten nutzen kann."
+    }
+
+    open fun accountOverviewWarningMultipleAccounts() = translate {
+        EN - "If you want to give another owner permission to add accounts, please log out of your profile here."
+        DE - "Wenn Sie einem weiteren Eigentümer erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab."
+    }
+
+    open fun  profileSelectionMultipleAccountHeader() = translate {
+        EN - "Multi Profile Setup"
+        DE - "Multi-Profil Einrichtung"
+    }
+
+    open fun  profileSelectionMultipleAccountSwitch() = translate {
+        EN - "Enable multi profile mode"
+        DE - "Multi-Profil-Modus aktivieren"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,7 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import com.arkivanov.decompose.defaultComponentContext
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
@@ -24,9 +25,10 @@ import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
-import de.connect2x.trixnity.messenger.util.defaultUrlHandler
+import de.connect2x.trixnity.messenger.util.defaultUriHandler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -61,6 +63,10 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
             val matrixMultiMessenger =
                 matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             matrixMultiMessenger.defaultActivityGetter { this@MatrixMultiMessengerActivity }
+            val backHandler = matrixMultiMessenger.di.get<BackHandler>()
+            onBackPressedDispatcher.addCallback {
+                backHandler.goBack()
+            }
             withContext(Dispatchers.Main) {
                 setContent {
                     WithProfileSelection(
@@ -90,7 +96,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                Profiles(matrixMultiMessenger, existingProfiles)
+                                IntroductionOrProfile()
                             }
                         }
                     }
@@ -136,7 +142,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
             val multiMessenger = matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             when (intent.action) {
                 Intent.ACTION_VIEW -> intent.data?.also {
-                    multiMessenger.defaultUrlHandler.onUri(it)
+                    multiMessenger.defaultUriHandler.onUri(it)
                 }
 
                 Intent.ACTION_SEND if intent.type == "text/plain" -> {

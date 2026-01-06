@@ -75,7 +75,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
 kotlin {
     androidTarget()
     jvm("desktop")
-    js("web") {
+    js {
         compilerOptions {
             sourceMap.set(true)
             sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
@@ -107,7 +107,7 @@ kotlin {
             isStatic = true
         }
     }
-
+    applyDefaultHierarchyTemplate()
     sourceSets {
         all {
             languageSettings.optIn("kotlin.time.ExperimentalTime")

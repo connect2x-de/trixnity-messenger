@@ -55,13 +55,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.util.RovingFocusContainer
-import de.connect2x.messenger.compose.view.util.RovingFocusItem
-import de.connect2x.messenger.compose.view.util.getNextItem
-import de.connect2x.messenger.compose.view.util.getPreviousItem
-import de.connect2x.messenger.compose.view.util.rovingFocusItem
-import de.connect2x.messenger.compose.view.util.scrollIntoView
-import de.connect2x.messenger.compose.view.util.verticalRovingFocus
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
@@ -209,13 +204,10 @@ fun ColumnScope.ReadersAndReactions(
             )
         }.plus(reactions.byUser).values.sortedByDescending { it.reactions.size }
     }
-
-    val references = remember(allReadersAndReactions) {
-        allReadersAndReactions.map { it.sender.userId }
-    }
-
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-    val defaultItem = references.firstOrNull()
+    var focusedItem by remember(allReadersAndReactions) {
+        mutableStateOf(allReadersAndReactions.map { it.sender.userId }.firstOrNull())
+    }
 
     Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
@@ -229,32 +221,18 @@ fun ColumnScope.ReadersAndReactions(
                 }
             )
             Box {
-                RovingFocusContainer {
-                    LazyColumn(
-                        state = state,
-                        modifier = Modifier.verticalRovingFocus(
-                            default = defaultItem,
-                            scroll = { item ->
-                                val index = references.indexOf(item)
-                                if (index != -1) {
-                                    parentScrollState.scrollTo(parentScrollState.maxValue)
-                                    state.scrollIntoView(index)
-                                }
-                            },
-                            up = { getPreviousItem(references, defaultItem) { it } },
-                            down = { getNextItem(references, defaultItem) { it } },
+                LazyColumn(Modifier.rovingFocusContainer(), state) {
+                    items(allReadersAndReactions) { eventReaction ->
+                        UserInfo(
+                            eventReaction.sender,
+                            Modifier.rovingFocusItem(
+                                isFocused = focusedItem == eventReaction.sender.userId,
+                                onFocus = { focusedItem = eventReaction.sender.userId }
+                            ),
+                            eventReaction.reactions.keys,
+                            onOpenUserProfile = onOpenUserProfile,
                         )
-                    ) {
-                        items(allReadersAndReactions) { eventReaction ->
-                            RovingFocusItem(eventReaction.sender.userId, defaultItem) {
-                                UserInfo(
-                                    eventReaction.sender,
-                                    eventReaction.reactions.keys,
-                                    onOpenUserProfile = onOpenUserProfile,
-                                )
-                            }
-                            Spacer(Modifier.height(5.dp))
-                        }
+                        Spacer(Modifier.height(5.dp))
                     }
                 }
                 if (state.canScrollForward || state.canScrollBackward) {
@@ -273,6 +251,7 @@ fun ColumnScope.ReadersAndReactions(
 @Composable
 private fun UserInfo(
     userInfo: UserInfoElement,
+    modifier: Modifier = Modifier,
     reactions: Set<String> = setOf(),
     onOpenUserProfile: (UserId) -> Unit,
 ) {
@@ -311,7 +290,7 @@ private fun UserInfo(
                     )
                 }
             },
-            modifier = Modifier.rovingFocusItem(),
+            modifier = modifier,
             onClick = {
                 onOpenUserProfile(userInfo.userId)
             }
