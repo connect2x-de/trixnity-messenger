@@ -19,6 +19,13 @@ plugins {
 configureJava(sharedLibs.versions.targetJvm)
 registerCoverageTask()
 
+tasks.register("koverXmlReportJvm") {
+    val desktopReport = tasks.named("koverXmlReportDesktop")
+
+    inputs.files(desktopReport)
+    outputs.files(desktopReport)
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xexpect-actual-classes")
