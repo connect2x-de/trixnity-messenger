@@ -78,7 +78,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
             ThemedButton(
                 style = MaterialTheme.components.accountSelector,
                 onClick = {
-                    if (isSingleAccount) accountViewModel.openUserAccount()
+                    if (isSingleAccount) accountViewModel.openUserAccounts()
                     else accountSelectionOpen.value = accountSelectionOpen.value.not()
                 },
                 modifier = Modifier.expandable(accountSelectionOpen),

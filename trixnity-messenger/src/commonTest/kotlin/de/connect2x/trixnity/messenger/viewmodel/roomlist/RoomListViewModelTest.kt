@@ -1134,7 +1134,7 @@ class RoomListViewModelTest {
                                     }
 
                                     override fun openUserSettings() {}
-                                    override fun openUserAccount() {}
+                                    override fun openUserAccounts() {}
                                     override fun openAppInfo() {}
                                 }
                             }

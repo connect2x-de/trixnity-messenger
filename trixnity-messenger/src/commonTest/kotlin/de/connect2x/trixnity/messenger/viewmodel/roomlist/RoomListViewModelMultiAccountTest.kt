@@ -836,7 +836,7 @@ class RoomListViewModelMultiAccountTest {
 
                                 override fun selectActiveAccount(userId: UserId?) {}
                                 override fun openUserSettings() {}
-                                override fun openUserAccount() {}
+                                override fun openUserAccounts() {}
                                 override fun openAppInfo() {}
                             }
                         }

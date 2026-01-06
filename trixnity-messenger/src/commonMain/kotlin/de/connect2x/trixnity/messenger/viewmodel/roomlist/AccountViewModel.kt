@@ -56,7 +56,7 @@ interface AccountViewModel {
 
     fun selectActiveAccount(userId: UserId?)
     fun openUserSettings()
-    fun openUserAccount()
+    fun openUserAccounts()
     fun openAppInfo()
 }
 
@@ -95,7 +95,7 @@ open class AccountViewModelImpl(
         }
     }
 
-    override fun openUserAccount() {
+    override fun openUserAccounts() {
         coroutineScope.launch {
             onShowAccounts()
         }
@@ -138,6 +138,6 @@ class PreviewAccountViewModel : AccountViewModel {
     override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun selectActiveAccount(userId: UserId?) {}
     override fun openUserSettings() {}
-    override fun openUserAccount() {}
+    override fun openUserAccounts() {}
     override fun openAppInfo() {}
 }
