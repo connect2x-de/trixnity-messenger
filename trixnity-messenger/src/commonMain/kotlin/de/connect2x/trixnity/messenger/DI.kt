@@ -7,8 +7,6 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
-import de.connect2x.trixnity.messenger.multi.MultiProfileMigrator
-import de.connect2x.trixnity.messenger.multi.MultiProfileMigratorImpl
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -129,7 +127,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
@@ -373,7 +371,7 @@ private fun settingsViewModels() = module {
     single<DeviceSettingsSingleAccountViewModelFactory> { DeviceSettingsSingleAccountViewModelFactory }
     single<DeviceSettingsAllAccountsViewModelFactory> { DeviceSettingsAllAccountsViewModelFactory }
     single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
-    single<ProfileViewModelFactory> { ProfileViewModelFactory }
+    single<AccountsViewModelFactory> { AccountsViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }

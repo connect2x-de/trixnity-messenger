@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
@@ -25,7 +26,6 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAl
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -164,7 +164,7 @@ class RoomListRouter(
             )
 
             is Config.Accounts -> Wrapper.Accounts(
-                viewModelContext.get<ProfileViewModelFactory>().create(
+                viewModelContext.get<AccountsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseAccounts = ::onCloseAccounts,
                     onOpenAvatarCutter = onOpenAvatarCutter,
