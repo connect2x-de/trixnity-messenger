@@ -61,12 +61,14 @@ open class MatrixClientInitializationViewModelImpl(
     private suspend fun retrieveMatrixClientsFromStore() {
         currentState.value = i18n.matrixClientInitLoading()
 
-        log.info { "init MatrixClients ${matrixClients.value.keys} from settings and store" }
-        if (settings.value.base.accounts.isEmpty()) { // no account defined yet, show account creation
+        val accounts = settings.value.base.accounts.keys
+        log.info { "init MatrixClients $accounts from settings and store" }
+        if (accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
             checkWhetherSelectedAccountIsStillValid()
             val initFromStoreResult = matrixClients.initFromStoreResult.filterNotNull().first()
+            log.debug { "init MatrixClients results: $initFromStoreResult" }
             when {
                 initFromStoreResult.failures.isNotEmpty() -> {
                     val firstFailure = initFromStoreResult.failures.entries.first()

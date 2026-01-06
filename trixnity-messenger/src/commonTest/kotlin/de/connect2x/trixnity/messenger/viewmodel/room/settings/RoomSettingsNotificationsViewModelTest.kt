@@ -51,7 +51,7 @@ class RoomSettingsNotificationsViewModelTest {
     @Test
     fun `set room's push rule to DEFAULT'`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(
             PushRulesEventContent(
                 global = PushRuleSet()
@@ -68,7 +68,7 @@ class RoomSettingsNotificationsViewModelTest {
     @Test
     fun `set room's push rule to ALL'`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(
             PushRulesEventContent(
                 global = PushRuleSet(
@@ -94,7 +94,7 @@ class RoomSettingsNotificationsViewModelTest {
     @Test
     fun `set room's push rule to MENTIONS'`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(
             PushRulesEventContent(
                 global = PushRuleSet(
@@ -120,7 +120,7 @@ class RoomSettingsNotificationsViewModelTest {
     @Test
     fun `set room's push rule to OFF'`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(
             PushRulesEventContent(
                 global = PushRuleSet(

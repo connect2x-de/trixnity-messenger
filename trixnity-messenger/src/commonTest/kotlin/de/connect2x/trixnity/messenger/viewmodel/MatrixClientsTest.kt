@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.AccountAlreadyExistsException
+import de.connect2x.trixnity.messenger.CreateCryptoDriverModule
+import de.connect2x.trixnity.messenger.CreateMediaStoreModule
+import de.connect2x.trixnity.messenger.CreateRepositoriesModule
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
-import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseLockedException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixClientsImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
@@ -11,6 +12,9 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.firstWithClue
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import dev.mokkery.answering.SuspendAnsweringScope
@@ -22,6 +26,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,9 +37,17 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.TimeZone
+import net.folivo.trixnity.client.CryptoDriverModule
 import net.folivo.trixnity.client.MatrixClient
+import net.folivo.trixnity.client.MediaStoreModule
+import net.folivo.trixnity.client.RepositoriesModule
+import net.folivo.trixnity.client.cryptodriver.vodozemac.vodozemac
+import net.folivo.trixnity.client.media.inMemory
 import net.folivo.trixnity.clientserverapi.client.AuthenticationApiClient
+import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import net.folivo.trixnity.clientserverapi.client.oauth2.oAuth2
 import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
 import net.folivo.trixnity.clientserverapi.model.authentication.Login
 import net.folivo.trixnity.core.model.UserId
@@ -48,11 +61,29 @@ import kotlin.test.fail
 
 @Suppress("NonAsciiCharacters")
 class MatrixClientsTest {
+    private val baseUrl = Url("https://localhost")
+    private val userId1 = UserId("user1", "localhost")
+    private val userId2 = UserId("user2", "localhost")
     private val mutableMatrixClients: MutableStateFlow<Map<UserId, MatrixClient>>
     private val loginState: MutableStateFlow<MatrixClient.LoginState>
 
+    // We could also do a mapping of access token to userId, but this is just simpler.
+    private val authProviderData1 = MatrixClientAuthProviderData.oAuth2(baseUrl, "1", userId1.full)
+    private val authProviderData2 = MatrixClientAuthProviderData.oAuth2(baseUrl, "2", userId2.full)
+
     private val matrixClientMock1 = mock<MatrixClient>()
     private val matrixClientMock2 = mock<MatrixClient>()
+    private val repositoriesModule1 = mock<RepositoriesModule>()
+    private val repositoriesModule2 = mock<RepositoriesModule>()
+    private val createRepositoriesModule = mock<CreateRepositoriesModule>() {
+        everySuspend { generateDatabaseKey() } returns null
+        everySuspend { create(userId1, any()) } returns repositoriesModule1
+        everySuspend { create(userId2, any()) } returns repositoriesModule2
+        everySuspend { load(userId1, any()) } returns repositoriesModule1
+        everySuspend { load(userId2, any()) } returns repositoriesModule2
+    }
+    private val createMediaStoreModule = mock<CreateMediaStoreModule>()
+    private val createCryptoDriverModule = mock<CreateCryptoDriverModule>()
     private val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
     private val authenticationApiClient = mock<AuthenticationApiClient>()
     private val matrixClientFactory = mock<MatrixClientFactory>()
@@ -61,35 +92,25 @@ class MatrixClientsTest {
 
     private val settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder()
 
-    private var loginCalled = false
+    private var createCalled = false
     private var logoutCalled = false
-    private var initFromStoreCalled = false
-    private var initFromStoreCalledCount = 0
+    private var createCalledCount = 0
 
-    private val login: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
-        matrixClientFactory.loginWith(
-            any(),
-            any(),
-            any(),
-        )
+    private val createMatrixClient: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
+        matrixClientFactory.create(any(), any(), any(), any(), any(), any())
     }
 
     init {
-        login calls {
-            runCatching {
-                @Suppress("UNCHECKED_CAST") val loginInfo =
-                    (it.args[1] as suspend (MatrixClientServerApiClient) -> MatrixClient.LoginInfo).invoke(
-                        matrixClientServerApiClient
-                    )
-                @Suppress("UNCHECKED_CAST") (it.args[2] as? suspend (MatrixClient.LoginInfo) -> Unit)?.invoke(loginInfo)
-                loginCalled = true
-                val username = loginInfo.userId.localpart
-                when (username) {
-                    "test1" -> matrixClientMock1
-                    "test2" -> matrixClientMock2
-                    else -> fail("username $username not supported in login")
-                }
+        createMatrixClient calls {
+            val repositoriesModule = it.args[0] as? RepositoriesModule
+            createCalled = true
+            createCalledCount++
+            val matrixClient = when (repositoriesModule) {
+                repositoriesModule1 -> matrixClientMock1
+                repositoriesModule2 -> matrixClientMock2
+                else -> fail("unconfigured repositories module $repositoriesModule")
             }
+            Result.success(matrixClient)
         }
 
         val state = koinApplication {
@@ -101,20 +122,8 @@ class MatrixClientsTest {
         }.koin
         every { matrixClientMock1.di } returns state
 
-        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
-            val username = checkNotNull((it.args[0] as? UserId)).localpart
-            initFromStoreCalled = true
-            initFromStoreCalledCount++
-            val matrixClient = when (username) {
-                "test1" -> matrixClientMock1
-                "test2" -> matrixClientMock2
-                else -> fail("username $username not supported in login")
-            }
-            Result.success(matrixClient)
-        }
-
-        every { matrixClientMock1.userId } returns UserId("test1", "server")
-        every { matrixClientMock2.userId } returns UserId("test2", "server")
+        every { matrixClientMock1.userId } returns userId1
+        every { matrixClientMock2.userId } returns userId2
         loginState = MutableStateFlow(MatrixClient.LoginState.LOGGED_IN)
         every { matrixClientMock1.loginState } returns loginState
         every { matrixClientMock2.loginState } returns loginState
@@ -123,6 +132,9 @@ class MatrixClientsTest {
             Result.success(Unit)
         }
         everySuspend { secretByteArrays.set(any(), any()) } returns Unit
+        everySuspend { secretByteArrays.get(any()) } returns null
+        everySuspend { createMediaStoreModule.invoke(any()) } returns MediaStoreModule.inMemory()
+        everySuspend { createCryptoDriverModule.invoke() } returns CryptoDriverModule.vodozemac()
         everySuspend {
             authenticationApiClient.login(
                 identifier = any(),
@@ -157,127 +169,110 @@ class MatrixClientsTest {
     @Test
     fun `login » login and register new account locally`() = runTest {
         val cut = createCut()
-        cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
-        cut.value shouldBe mapOf(UserId("test1", "server") to matrixClientMock1)
-        loginCalled shouldBe true
+        cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
+        cut.value shouldBe mapOf(userId1 to matrixClientMock1)
+        createCalled shouldBe true
+        createCalledCount shouldBe 1
     }
 
     @Test
     fun `login » login for another account and create additional MatrixClient`() = runTest {
         val cut = createCut()
-        cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
-        cut.login(Url("https://example2.org"), User("test2"), "password2", "").getOrThrow()
+        cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
+        cut.create(authProviderData2) shouldBe MatrixClients.CreateResult.Success
+
+        createCalled shouldBe true
+        createCalledCount shouldBe 2
 
         cut.value shouldBe mapOf(
-            UserId("test1", "server") to matrixClientMock1,
-            UserId("test2", "server") to matrixClientMock2,
+            userId1 to matrixClientMock1,
+            userId2 to matrixClientMock2,
         )
     }
 
     @Test
     fun `login » not login again if MatrixClient already present for account`() = runTest {
         val cut = createCut()
-        cut.login(Url("https://example.org"), User("test1"), "password", "").getOrThrow()
-        loginCalled = false
-        cut.login(Url("https://example.org"), User("test1"), "password", "") shouldBe Result.failure(
-            AccountAlreadyExistsException(UserId("test1", "server"))
-        )
-        //loginCalled shouldBe false // use the existing MatrixClient and do not log in again
+        cut.create(authProviderData1) shouldBe MatrixClients.CreateResult.Success
+        createCalled = false
+        cut.create(authProviderData1).shouldBeInstanceOf<MatrixClients.CreateResult.Failure.AccountAlreadyExists>()
+        createCalled shouldBe false // keep the existing MatrixClient and do not log in again
     }
 
     @Test
     fun `login » return exception in Result if login is not possible`() = runTest {
         val cut = createCut()
-        val exception = IllegalHeaderValueException("header", 0)
-        login returns Result.failure(exception)
+        createMatrixClient returns Result.failure(IllegalArgumentException())
 
-        val result = cut.login(Url("https://example.org"), User("test1"), "password", "")
-        result shouldBe Result.failure(exception)
+        cut.create(authProviderData1).shouldBeInstanceOf<MatrixClients.CreateResult.Failure.Unknown>().message
     }
 
     @Test
     fun `initFromStore » init from the store and settings`() = runTest {
         val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(
             setOf(
-                UserId("test1", "server"),
-                UserId("test2", "server"),
+                userId1,
+                userId2,
             ), mapOf()
         )
         cut.value shouldBe mapOf(
-            UserId("test1", "server") to matrixClientMock1,
-            UserId("test2", "server") to matrixClientMock2,
+            userId1 to matrixClientMock1,
+            userId2 to matrixClientMock2,
         )
-        initFromStoreCalled shouldBe true
+        createCalled shouldBe true
     }
 
     @Test
     fun `initFromStore » skip init from store when matrix client is already present`() = runTest {
         val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
-            UserId("test1", "server") to matrixClientMock1,
+            userId1 to matrixClientMock1,
         )
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(UserId("test2", "server")), mapOf()
+            setOf(userId2), mapOf()
         )
         cut.value shouldBe mapOf(
-            UserId("test1", "server") to matrixClientMock1,
-            UserId("test2", "server") to matrixClientMock2,
+            userId1 to matrixClientMock1,
+            userId2 to matrixClientMock2,
         )
-        initFromStoreCalledCount shouldBe 1
+        createCalledCount shouldBe 1
     }
 
     @Test
     fun `initFromStore » have failure when init from store is not possible`() = runTest {
         val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
-            initFromStoreCalled = true
-            Result.success(null)
-        }
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        createMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
 
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(), mapOf(UserId("test1", "server") to MatrixClientInitializationException.NoDatabaseException)
+            setOf(), mapOf(userId1 to MatrixClientInitializationException.DatabaseAccessException())
         )
         cut.value shouldBe mapOf()
-        initFromStoreCalled shouldBe true
-    }
-
-    @Test
-    fun `initFromStore » have failure on exception`() = runTest {
-        val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
-            Result.failure(DatabaseLockedException("The database is locked."))
-        }
-        cut.initFromStore() shouldBe MatrixClients.InitFromStoreResult(
-            success = setOf(),
-            failures = mapOf(UserId("test1", "server") to DatabaseLockedException("The database is locked."))
-        )
     }
 
     @Test
     fun `initFromStore » remove account from success on delete`() = runTest {
         val cut = createCut()
-        val id = UserId("test1", "server")
+        val id = userId1
 
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
 
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(setOf(id), mapOf())
         cut.value shouldBe mapOf(id to matrixClientMock1)
-        initFromStoreCalled shouldBe true
+        createCalled shouldBe true
 
         cut.remove(id)
         cut.initFromStoreResult.value shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf())
@@ -286,23 +281,19 @@ class MatrixClientsTest {
     @Test
     fun `initFromStore » remove account from failures on delete`() = runTest {
         val cut = createCut()
-        val id = UserId("test1", "server")
+        val id = userId1
 
         settings.create(id, MatrixMessengerAccountSettingsBase())
 
-        everySuspend { matrixClientFactory.initFromStore(any()) } calls {
-            initFromStoreCalled = true
-            Result.success(null)
-        }
+        createMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
 
         val result = cut.initFromStore()
 
         result shouldBe MatrixClients.InitFromStoreResult(
             setOf(),
-            mapOf(id to MatrixClientInitializationException.NoDatabaseException)
+            mapOf(id to MatrixClientInitializationException.DatabaseAccessException())
         )
         cut.value shouldBe mapOf()
-        initFromStoreCalled shouldBe true
 
         cut.remove(id)
         cut.initFromStoreResult.value shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf())
@@ -311,23 +302,23 @@ class MatrixClientsTest {
     @Test
     fun `logout » logout matrix client`() = runTest {
         val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
-            UserId("test1", "server") to matrixClientMock1,
-            UserId("test2", "server") to matrixClientMock2,
+            userId1 to matrixClientMock1,
+            userId2 to matrixClientMock2,
         )
 
-        cut.logout(UserId("test1", "server")) shouldBe Result.success(Unit)
+        cut.logout(userId1) shouldBe Result.success(Unit)
 
         cut.value shouldBe mapOf(
-            UserId("test2", "server") to matrixClientMock2,
+            userId2 to matrixClientMock2,
         )
         logoutCalled shouldBe true
-        settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
+        settings.value.base.accounts.keys shouldBe setOf(userId2)
         verifySuspend {
             matrixClientMock1.closeSuspending()
-            deleteAccountData.invoke(UserId("test1", "server"))
+            deleteAccountData.invoke(userId1)
         }
     }
 
@@ -336,9 +327,9 @@ class MatrixClientsTest {
     fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
         backgroundScope.launch { cut.doWork() }
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
-            UserId("test1", "server") to matrixClientMock1,
+            userId1 to matrixClientMock1,
         )
 
         loginState.value = MatrixClient.LoginState.LOGGED_OUT
@@ -349,48 +340,84 @@ class MatrixClientsTest {
         verifySuspend {
             matrixClientMock1.closeSuspending()
             secretByteArrays.set(any(), null)
-            deleteAccountData.invoke(UserId("test1", "server"))
+            deleteAccountData.invoke(userId1)
         }
     }
 
     @Test
     fun `remove » remove matrix client`() = runTest {
         val cut = createCut()
-        settings.create(UserId("test1", "server"), MatrixMessengerAccountSettingsBase())
-        settings.create(UserId("test2", "server"), MatrixMessengerAccountSettingsBase())
+        settings.create(userId1, MatrixMessengerAccountSettingsBase())
+        settings.create(userId2, MatrixMessengerAccountSettingsBase())
         mutableMatrixClients.value = mapOf(
-            UserId("test1", "server") to matrixClientMock1,
-            UserId("test2", "server") to matrixClientMock2,
+            userId1 to matrixClientMock1,
+            userId2 to matrixClientMock2,
         )
 
-        cut.remove(UserId("test1", "server")) shouldBe Result.success(Unit)
+        cut.remove(userId1) shouldBe Result.success(Unit)
 
         cut.value shouldBe mapOf(
-            UserId("test2", "server") to matrixClientMock2,
+            userId2 to matrixClientMock2,
         )
         logoutCalled shouldBe false
-        settings.value.base.accounts.keys shouldBe setOf(UserId("test2", "server"))
+        settings.value.base.accounts.keys shouldBe setOf(userId2)
         verifySuspend {
             matrixClientMock1.closeSuspending()
             secretByteArrays.set(any(), null)
-            deleteAccountData.invoke(UserId("test1", "server"))
+            deleteAccountData.invoke(userId1)
         }
     }
 
 
     private fun TestScope.createCut(): MatrixClientsImpl = MatrixClientsImpl(
-        factory = matrixClientFactory,
+        matrixClientFactory = matrixClientFactory,
         deleteAccountData = deleteAccountData,
         settings = settings,
         config = MatrixMessengerConfiguration().apply {
             httpClientEngine = MockEngine.create {
                 dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
-                addHandler {
-                    respond("")
+                addHandler { request ->
+                    when (request.url.fullPath) {
+                        "/_matrix/client/v3/account/whoami" -> {
+                            val userId = request.headers["Authorization"]?.removePrefix("Bearer ")?.let { UserId(it) }
+                            if (userId == null)
+                                respond(
+                                    "no Authorization header",
+                                    HttpStatusCode.Unauthorized
+                                )
+                            else
+                                respond(
+                                    """{"user_id":"${userId.full}","device_id":"deviceId"}""",
+                                    HttpStatusCode.OK,
+                                    headersOf(
+                                        HttpHeaders.ContentType,
+                                        ContentType.Application.Json.toString(),
+                                    )
+                                )
+                        }
+
+                        else -> {
+                            respond(
+                                "unknown ${request.url.fullPath}",
+                                HttpStatusCode.BadRequest
+                            )
+                        }
+                    }
                 }
             }
         },
+        createRepositoriesModule = createRepositoriesModule,
+        createMediaStoreModule = createMediaStoreModule,
+        createCryptoDriverModule = createCryptoDriverModule,
         secretByteArrays = secretByteArrays,
+        appCoroutineContext = backgroundScope.coroutineContext,
+        i18n = object : I18n(
+            DefaultLanguages,
+            createTestMatrixMessengerSettingsHolder(),
+            GetSystemLang { "en" },
+            TimeZone.of("CET"),
+        ) {},
+        configurer = listOf(),
         matrixClients = mutableMatrixClients,
     )
 }

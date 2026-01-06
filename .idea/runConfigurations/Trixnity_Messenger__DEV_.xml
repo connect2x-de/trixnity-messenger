@@ -16,14 +16,18 @@
       <option name="taskNames">
         <list>
           <option value=":trixnity-messenger-compose-app:run" />
+          <option value="--args=&quot;de.connect2x.trixnity.messenger.compose.app:/oAuth2#state=3b32b94b-db8f-6152-9ef6-a3560b2eb399&amp;code=bCUs7OGqz6gL0Oy5hqva7sMipmlPLpfw&quot;" />
         </list>
       </option>
       <option name="vmOptions" />
     </ExternalSystemSettings>
     <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
     <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
     <DebugAllEnabled>false</DebugAllEnabled>
     <RunAsTest>false</RunAsTest>
+    <GradleProfilingDisabled>false</GradleProfilingDisabled>
+    <GradleCoverageDisabled>false</GradleCoverageDisabled>
     <method v="2" />
   </configuration>
 </component>

@@ -8,6 +8,7 @@ import net.folivo.trixnity.clientserverapi.client.UIA
 import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
 import net.folivo.trixnity.clientserverapi.model.authentication.Register
 import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import net.folivo.trixnity.core.model.UserId
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -16,7 +17,7 @@ import org.testcontainers.utility.DockerImageName
 
 const val synapseVersion =
     "v1.129.0" // TODO you should update this from time to time. https://github.com/element-hq/synapse/releases
-        // version 1.126.0ff (at least 130) causes the user search to sometimes not return the correct results
+// version 1.126.0ff (at least 130) causes the user search to sometimes not return the correct results
 
 fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothing> {
     return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))
@@ -44,7 +45,7 @@ suspend fun MatrixClientServerApiClient.register(
     username: String? = null,
     password: String,
     deviceId: String? = null
-): Result<MatrixClient.LoginInfo> {
+): UserId {
     val registerStep = authentication.register(
         password = password,
         username = username,
@@ -55,10 +56,7 @@ suspend fun MatrixClientServerApiClient.register(
     registerStep.shouldBeInstanceOf<UIA.Step<Register.Response>>()
     val registerResult = registerStep.authenticate(AuthenticationRequest.Dummy).getOrThrow()
     registerResult.shouldBeInstanceOf<UIA.Success<Register.Response>>()
-    val (userId, createdDeviceId, accessToken, _, refreshToken) = registerResult.value
-    requireNotNull(createdDeviceId)
-    requireNotNull(accessToken)
-    return Result.success(MatrixClient.LoginInfo(userId, createdDeviceId, accessToken, refreshToken))
+    return registerResult.value.userId
 }
 
 data class StartedClient(

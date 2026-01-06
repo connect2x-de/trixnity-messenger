@@ -9,7 +9,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
@@ -129,26 +128,26 @@ class MemberListViewModelTest {
 
         every { matrixClientMock.userId } returns me
 
-        every { roomServiceMock.getById(eq(roomId)) } returns MutableStateFlow(
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
             Room(isDirect = true, roomId = roomId)
         )
 
-        every { userServiceMock.getAll(eq(roomId)) } returns roomUserMapFlow
-        every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.canBanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.canUnbanUser(eq(roomId), any()) } returns MutableStateFlow(true)
-        every { userServiceMock.getPowerLevel(eq(roomId), any()) } returns flowOf(PowerLevel.User(50))
+        every { userServiceMock.getAll(roomId) } returns roomUserMapFlow
+        every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(true)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(PowerLevel.User(50))
         every { userServiceMock.getPowerLevel(any(), any(), any()) } returns PowerLevel.User(50)
 
-        every { userServiceMock.getById(eq(roomId), eq(me)) } returns roomUserMeFlow
-        every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
-        every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
-        every { userServiceMock.canSetPowerLevelToMax(eq(roomId), any()) } returns MutableStateFlow(PowerLevel.User(1))
+        every { userServiceMock.getById(roomId, me) } returns roomUserMeFlow
+        every { userServiceMock.getById(roomId, alice) } returns roomUserAliceFlow
+        every { userServiceMock.getById(roomId, bob) } returns roomUserBobFlow
+        every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(1))
         every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
             IgnoredUserListEventContent(emptyMap())
         )
 
-        everySuspend { roomsApiClientMock.banUser(eq(roomId), any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.banUser(roomId, any(), any(), any()) } calls {
             val userId = (it.args[1] as UserId)
             val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
             setMemberEventContentOf(
@@ -158,7 +157,7 @@ class MemberListViewModelTest {
             )
             Result.success(Unit)
         }
-        everySuspend { roomsApiClientMock.unbanUser(eq(roomId), any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.unbanUser(roomId, any(), any(), any()) } calls {
             val userId = (it.args[1] as UserId)
             roomUserMapFlow.value -= userId
             Result.success(Unit)

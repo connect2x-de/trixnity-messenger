@@ -19,7 +19,8 @@ fun MatrixMultiMessengerConfiguration.configure() {
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses
     sendLogsEmailAddress = null
-    urlProtocol = BuildConfig.appId
+
+    appUri = "$appId:"
 
     modulesFactories += listOf(
         { composeViewModule(null) },

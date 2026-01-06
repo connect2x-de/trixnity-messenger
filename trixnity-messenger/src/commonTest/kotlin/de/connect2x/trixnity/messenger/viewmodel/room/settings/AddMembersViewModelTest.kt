@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
+
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -93,7 +93,7 @@ class AddMembersViewModelTest {
     fun `remove user - should add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -137,17 +137,17 @@ class AddMembersViewModelTest {
 
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId2), eqNull(), eqNull()
+                roomId, userId2, null, null
             )
         } returns Result.success(Unit)
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId3), eqNull(), eqNull()
+                roomId, userId3, null, null
             )
         } returns Result.success(Unit)
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -186,7 +186,7 @@ class AddMembersViewModelTest {
 
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId2), eqNull(), eqNull()
+                roomId, userId2, null, null
             )
         } returns Result.failure(
             MatrixServerException(
@@ -195,7 +195,7 @@ class AddMembersViewModelTest {
         )
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId3), eqNull(), eqNull()
+                roomId, userId3, null, null
             )
         } returns Result.failure(
             MatrixServerException(
@@ -204,7 +204,7 @@ class AddMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(), null
             )
         } returns Result.success(
             SearchUsers.Response(

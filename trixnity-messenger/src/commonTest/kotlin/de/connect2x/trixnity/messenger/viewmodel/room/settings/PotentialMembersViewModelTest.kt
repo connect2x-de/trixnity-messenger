@@ -1,7 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.Search
@@ -11,7 +10,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -83,10 +81,10 @@ class PotentialMembersViewModelTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user1"),
+                "user1",
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -97,10 +95,10 @@ class PotentialMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("us"),
+                "us",
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -113,10 +111,10 @@ class PotentialMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user3"),
+                "user3",
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -205,10 +203,10 @@ class PotentialMembersViewModelTest {
         setupRoomHasMembers()
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("us"),
+                "us",
                 any(),
                 any(),
-                eqNull(),
+                null,
             )
         } returns Result.success(
             SearchUsers.Response(

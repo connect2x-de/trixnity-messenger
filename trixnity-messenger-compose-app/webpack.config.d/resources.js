@@ -61,7 +61,7 @@ if (config.devServer) {
     }
     config.devServer.headers = {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET",
-        "Access-Control-Allow-Headers": "content-type"
+        "Access-Control-Allow-Methods": "*",
+        "Access-Control-Allow-Headers": "*"
     }
 }

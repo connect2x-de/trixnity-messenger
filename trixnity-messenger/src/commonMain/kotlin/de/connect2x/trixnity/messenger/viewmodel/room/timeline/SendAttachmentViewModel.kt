@@ -110,7 +110,7 @@ class SendAttachmentViewModelImpl(
             _fileContent.value = if (isImage == true) {
                 val imageByteArray = file.content.toByteArray(maxMediaSizeInMemory)
                 if (imageByteArray != null) {
-                    get<ProcessImageUpload>().invoke(
+                    this@SendAttachmentViewModelImpl.get<ProcessImageUpload>().invoke(
                         imageByteArray,
                         file.mimeType ?: Image.PNG, // TODO: check if defaulting to PNG isn't causing any issues
                     ).also {
@@ -137,7 +137,7 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) = if (size == null || size <= maxMediaSizeInMemory)
-                                get<GetImageDimensions>().invoke(
+                                this@SendAttachmentViewModelImpl.get<GetImageDimensions>().invoke(
                                     byteArrayFlow,
                                     maxMediaSizeInMemory,
                                     file.mimeType

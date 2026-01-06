@@ -8,7 +8,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.async
@@ -47,7 +46,7 @@ class ThumbnailsTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(thumbnailFile), any(), any()
+                thumbnailFile, any(), any()
             )
         } returns Result.success(InMemoryPlatformMedia("encryptedThumbnail".encodeToByteArray().toByteArrayFlow()))
         val cut = ThumbnailsImpl()
@@ -74,13 +73,13 @@ class ThumbnailsTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(thumbnailFile), any(), any()
+                thumbnailFile, any(), any()
             )
         } returns Result.failure(RuntimeException("Oh no!"))
         val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(originalFile), any(), any()
+                originalFile, any(), any()
             )
         } returns Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
@@ -108,13 +107,13 @@ class ThumbnailsTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(thumbnailFile), any(), any()
+                thumbnailFile, any(), any()
             )
         } returns Result.failure(RuntimeException("Oh no!"))
         val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(originalFile), any(), any()
+                originalFile, any(), any()
             )
         } returns Result.failure(RuntimeException("Oh no!"))
 
@@ -143,13 +142,13 @@ class ThumbnailsTest {
             val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
             everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    eq(thumbnailFile), any(), any()
+                    thumbnailFile, any(), any()
                 )
             } returns Result.failure(RuntimeException("Oh no!"))
             val originalFile = EncryptedFile("http://host.local/media/abcdef", jwk, "", mapOf())
             everySuspend {
                 mediaServiceMock.getEncryptedMedia(
-                    eq(originalFile), any(), any()
+                    originalFile, any(), any()
                 )
             } returns Result.success(InMemoryPlatformMedia("encryptedOriginal".encodeToByteArray().toByteArrayFlow()))
 
@@ -176,7 +175,7 @@ class ThumbnailsTest {
         val thumbnailFile = EncryptedFile("http://host.local/media/123456", jwk, "", mapOf())
         everySuspend {
             mediaServiceMock.getEncryptedMedia(
-                eq(thumbnailFile), any(), any()
+                thumbnailFile, any(), any()
             )
         } calls {
             delay(500)

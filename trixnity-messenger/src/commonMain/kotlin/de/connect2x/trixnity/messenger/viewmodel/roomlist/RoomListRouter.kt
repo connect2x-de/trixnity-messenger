@@ -12,20 +12,20 @@ import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -147,7 +147,7 @@ class RoomListRouter(
                 viewModelContext.get<UserSettingsViewModelFactory>().create(
                     viewModelContext = viewModelContext.childContext(componentContext),
                     onCloseUserSettings = ::onCloseUserSettings,
-                    onShowDevicesSettings = ::onShowDevicesSettings,
+                    onShowDeviceSettings = ::onShowDeviceSettings,
                     onShowAccounts = ::onShowAccounts,
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
@@ -155,11 +155,11 @@ class RoomListRouter(
                 )
             )
 
-            is Config.DevicesSettings -> Wrapper.DevicesSettings(
-                viewModelContext.get<DevicesSettingsViewModelFactory>()
+            is Config.DeviceSettings -> Wrapper.DeviceSettings(
+                viewModelContext.get<DeviceSettingsAllAccountsViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        onCloseDevicesSettings = ::onCloseDevicesSettings,
+                        onCloseDeviceSettings = ::onCloseDeviceSettings,
                     )
             )
 
@@ -284,12 +284,12 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onShowDevicesSettings() {
+    private fun onShowDeviceSettings() {
         log.debug { "show device settings" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.DevicesSettings)
+        navigation.launchPush(viewModelContext.coroutineScope, Config.DeviceSettings)
     }
 
-    private fun onCloseDevicesSettings() {
+    private fun onCloseDeviceSettings() {
         log.debug { "close device settings" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
@@ -385,7 +385,7 @@ class RoomListRouter(
         data object UserSettings : Config()
 
         @Serializable
-        data object DevicesSettings : Config()
+        data object DeviceSettings : Config()
 
         @Serializable
         data object Accounts : Config()
@@ -415,7 +415,7 @@ class RoomListRouter(
         class CreateNewGroup(val viewModel: CreateNewGroupViewModel) : Wrapper()
         class SearchGroup(val viewModel: SearchGroupViewModel) : Wrapper()
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
-        class DevicesSettings(val viewModel: DevicesSettingsViewModel) : Wrapper()
+        class DeviceSettings(val viewModel: DeviceSettingsAllAccountsViewModel) : Wrapper()
         class Accounts(val viewModel: AccountsViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()

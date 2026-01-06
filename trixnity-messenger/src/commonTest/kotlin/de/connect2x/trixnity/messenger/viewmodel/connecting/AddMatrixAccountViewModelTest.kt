@@ -50,6 +50,10 @@ class AddMatrixAccountViewModelTest {
                 "/_matrix/client/v3/register" ->
                     respondJson(Responses.REGISTER, HttpStatusCode.Unauthorized)
 
+
+                "/_matrix/client/v1/auth_metadata" ->
+                    respondJson(Responses.AUTH_METADATA)
+
                 else -> null
             }
         }
@@ -57,6 +61,7 @@ class AddMatrixAccountViewModelTest {
 
         cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
             setOf(
+                AddMatrixAccountMethod.OAuth2("https://matrix.server.host", type = OAuth2LoginViewModel.Type.LOGIN),
                 AddMatrixAccountMethod.Password("https://matrix.server.host"),
                 AddMatrixAccountMethod.SSO(
                     serverUrl = "https://matrix.server.host",
@@ -97,13 +102,19 @@ class AddMatrixAccountViewModelTest {
                 "/_matrix/client/v3/register" ->
                     respondError(HttpStatusCode.Forbidden)
 
+                "/_matrix/client/v1/auth_metadata" ->
+                    respondJson(Responses.AUTH_METADATA)
+
                 else -> null
             }
         }
         cut.serverUrl.update("server.host")
 
         cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
-            setOf(AddMatrixAccountMethod.Password("https://server.host"))
+            setOf(
+                AddMatrixAccountMethod.OAuth2("https://server.host", type = OAuth2LoginViewModel.Type.LOGIN),
+                AddMatrixAccountMethod.Password("https://server.host")
+            )
         )
 
         cut.selectAddMatrixAccountMethod(AddMatrixAccountMethod.Password("https://server.host"))
@@ -165,6 +176,31 @@ class AddMatrixAccountViewModelTest {
         const val PASSWORD_LOGIN = """{ "flows": [ { "type": "m.login.password" } ] }"""
         const val REGISTER =
             """{ "completed": [], "flows": [{ "stages": [ "m.login.dummy" ] }], "session": "xxxxxxyz" }"""
+
+        const val AUTH_METADATA =
+            """
+                {
+                  "authorization_endpoint": "https://account.example.com/oauth2/auth",
+                  "code_challenge_methods_supported": [
+                    "S256"
+                  ],
+                  "grant_types_supported": [
+                    "authorization_code",
+                    "refresh_token"
+                  ],
+                  "issuer": "https://account.example.com/",
+                  "registration_endpoint": "https://account.example.com/oauth2/clients/register",
+                  "response_modes_supported": [
+                    "query",
+                    "fragment"
+                  ],
+                  "response_types_supported": [
+                    "code"
+                  ],
+                  "revocation_endpoint": "https://account.example.com/oauth2/revoke",
+                  "token_endpoint": "https://account.example.com/oauth2/token"
+                }
+            """
     }
 }
 

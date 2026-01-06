@@ -107,7 +107,7 @@ class AccountsViewModelImpl(
         registerBackCallback(backCallback)
         accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
-                get<ProfileSingleViewModelFactory>().create(
+                this@AccountsViewModelImpl.get<ProfileSingleViewModelFactory>().create(
                     viewModelContext.childContext(this@AccountsViewModelImpl),
                     userId,
                     error,

@@ -15,7 +15,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -149,18 +148,18 @@ class RoomListElementViewModelTest {
 
         every {
             roomServiceMock.getState(
-                eq(roomId), eq(CreateEventContent::class), any()
+                roomId, CreateEventContent::class, any()
             )
         } returns flowOf(null)
         every {
             roomServiceMock.getState(
-                eq(roomId), eq(MemberEventContent::class), any()
+                roomId, MemberEventContent::class, any()
             )
         } returns flowOf(null)
-        every { roomServiceMock.getTimelineEvent(eq(roomId), any()) } returns MutableStateFlow(null)
+        every { roomServiceMock.getTimelineEvent(roomId, any()) } returns MutableStateFlow(null)
         every {
             roomServiceMock.getState(
-                any(), eq(JoinRulesEventContent::class), any()
+                any(), JoinRulesEventContent::class, any()
             )
         } returns MutableStateFlow(
             StateEvent(
@@ -174,9 +173,9 @@ class RoomListElementViewModelTest {
                 stateKey = "",
             )
         )
-        every { roomServiceMock.getAccountData(any(), eq(MarkedUnreadEventContent::class), any()) } returns flowOf(null)
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(null)
 
-        every { userServiceMock.getById(eq(roomId1), eq(me)) } returns MutableStateFlow(
+        every { userServiceMock.getById(roomId1, me) } returns MutableStateFlow(
             RoomUser(
                 roomId1,
                 userId = me,
@@ -184,7 +183,7 @@ class RoomListElementViewModelTest {
                 event = memberEvent(),
             )
         )
-        every { userServiceMock.getById(eq(roomId2), eq(me)) } returns MutableStateFlow(
+        every { userServiceMock.getById(roomId2, me) } returns MutableStateFlow(
             RoomUser(
                 roomId2,
                 userId = me,
@@ -192,11 +191,11 @@ class RoomListElementViewModelTest {
                 event = memberEvent(),
             )
         )
-        every { userServiceMock.getById(any(), eq(user2)) } returns MutableStateFlow(
+        every { userServiceMock.getById(any(), user2) } returns MutableStateFlow(
             RoomUser(RoomId(""), UserId(""), "User 2", memberEvent())
         )
-        every { userServiceMock.getById(eq(roomId1), eq(user2)) } returns user2Flow
-        every { userServiceMock.getById(eq(roomId1), eq(user3)) } returns MutableStateFlow(
+        every { userServiceMock.getById(roomId1, user2) } returns user2Flow
+        every { userServiceMock.getById(roomId1, user3) } returns MutableStateFlow(
             RoomUser(
                 roomId1,
                 userId = user3,
@@ -207,7 +206,7 @@ class RoomListElementViewModelTest {
 
         every {
             roomServiceMock.getState(
-                any(), eq(AvatarEventContent::class), any()
+                any(), AvatarEventContent::class, any()
             )
         } returns MutableStateFlow(null)
         everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.success(Unit)
@@ -224,9 +223,9 @@ class RoomListElementViewModelTest {
             )
         )
 
-        every { roomPresenceMock.invoke(eq(matrixClientMock), any()) } returns MutableStateFlow(null)
+        every { roomPresenceMock.invoke(matrixClientMock, any()) } returns MutableStateFlow(null)
 
-        every { roomNameMock.getRoomName(any<RoomId>(), eq(matrixClientMock), any()) } returns flowOf("RoomName")
+        every { roomNameMock.getRoomName(any<RoomId>(), matrixClientMock, any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
         every { notificationService.getCount(any()) } returns flowOf(0)
     }
@@ -235,19 +234,19 @@ class RoomListElementViewModelTest {
     fun `show time for last messages that were sent today and the date for messages from yesterday onwards`() =
         runTest {
             val room1LastEvent = timelineEvent(EventId("event1"), clock.now().minus(1.seconds))
-            every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(room1LastEvent.eventId)) } returns flowOf(
+            every { roomServiceMock.getTimelineEvent(roomId1, room1LastEvent.eventId) } returns flowOf(
                 room1LastEvent
             )
             val room2LastEvent = timelineEvent(EventId("event2"), clock.now().minus(1.minutes))
-            every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(room2LastEvent.eventId)) } returns flowOf(
+            every { roomServiceMock.getTimelineEvent(roomId2, room2LastEvent.eventId) } returns flowOf(
                 room2LastEvent
             )
             val room3LastEvent = timelineEvent(EventId("event3"), clock.now().minus(1.hours))
-            every { roomServiceMock.getTimelineEvent(eq(roomId3), eq(room3LastEvent.eventId)) } returns flowOf(
+            every { roomServiceMock.getTimelineEvent(roomId3, room3LastEvent.eventId) } returns flowOf(
                 room3LastEvent
             )
             val room4LastEvent = timelineEvent(EventId("event4"), clock.now().minus(1.days))
-            every { roomServiceMock.getTimelineEvent(eq(roomId4), eq(room4LastEvent.eventId)) } returns flowOf(
+            every { roomServiceMock.getTimelineEvent(roomId4, room4LastEvent.eventId) } returns flowOf(
                 room4LastEvent
             )
 
@@ -303,14 +302,14 @@ class RoomListElementViewModelTest {
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
         every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
                 "Hello!"
             )
         )
-        every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId2, eventId2) } returns flowOf(
             timelineEventEncrypted(
                 eventId2, Clock.System.now().minus(1.days), "What's up?"
             )
@@ -327,7 +326,7 @@ class RoomListElementViewModelTest {
             roomId1, lastEventId = eventId1, isDirect = true, lastRelevantEventId = eventId1
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(null)
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(null)
 
         roomListElementViewModel(roomId1).lastMessage.first { it == "" }
     }
@@ -344,7 +343,7 @@ class RoomListElementViewModelTest {
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
         every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
@@ -352,7 +351,7 @@ class RoomListElementViewModelTest {
                 sender = me,
             )
         )
-        every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId2, eventId2) } returns flowOf(
             timelineEventEncrypted(
                 eventId2,
                 Clock.System.now().minus(1.days),
@@ -383,7 +382,7 @@ class RoomListElementViewModelTest {
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
         every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             TimelineEvent(
                 MessageEvent(
                     RoomMessageEventContent.FileBased.Image(""),
@@ -397,7 +396,7 @@ class RoomListElementViewModelTest {
                 gap = null,
             )
         )
-        every { roomServiceMock.getTimelineEvent(eq(roomId2), eq(eventId2)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId2, eventId2) } returns flowOf(
             TimelineEvent(
                 MessageEvent(
                     MegolmEncryptedMessageEventContent(
@@ -434,14 +433,14 @@ class RoomListElementViewModelTest {
         val roomFlow = MutableStateFlow(room1)
 
         every { roomServiceMock.getById(roomId1) } returns roomFlow
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
                 "Hello!"
             )
         )
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId2)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId2) } returns flowOf(
             timelineEvent(
                 eventId2,
                 Clock.System.now(),
@@ -464,7 +463,7 @@ class RoomListElementViewModelTest {
         )
         val messageStateFlow = MutableStateFlow(timelineEvent(eventId1, Clock.System.now(), "Hello!"))
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns messageStateFlow
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns messageStateFlow
 
         val cut = roomListElementViewModel(roomId1)
 
@@ -481,7 +480,7 @@ class RoomListElementViewModelTest {
             roomId1, lastEventId = eventId1, isDirect = false, lastRelevantEventId = eventId1
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
@@ -502,7 +501,7 @@ class RoomListElementViewModelTest {
             lastRelevantEventId = eventId1,
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
@@ -524,7 +523,7 @@ class RoomListElementViewModelTest {
             lastRelevantEventId = eventId1,
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
@@ -545,7 +544,7 @@ class RoomListElementViewModelTest {
             lastRelevantEventId = eventId1,
         )
         every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
-        every { roomServiceMock.getTimelineEvent(eq(roomId1), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
             timelineEvent(
                 eventId1,
                 Clock.System.now(),
@@ -576,7 +575,7 @@ class RoomListElementViewModelTest {
         val newIgnored = baseIgnored + user2Ignored
 
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
-        every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId, eventId1) } returns flowOf(
             TimelineEvent(
                 event = inviteEvent(),
                 content = Result.success(inviteEvent().content),
@@ -605,8 +604,8 @@ class RoomListElementViewModelTest {
         verifySuspend {
             userServiceMock.getAccountData(IgnoredUserListEventContent::class)
             usersApiClientMock.setAccountData(
-                eq(IgnoredUserListEventContent(newIgnored)),
-                eq(me),
+                IgnoredUserListEventContent(newIgnored),
+                me,
                 any(),
                 any(),
             )
@@ -623,7 +622,7 @@ class RoomListElementViewModelTest {
         )
 
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
-        every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId, eventId1) } returns flowOf(
             TimelineEvent(
                 event = inviteEvent(),
                 content = Result.success(inviteEvent().content),
@@ -671,7 +670,7 @@ class RoomListElementViewModelTest {
         )
 
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(room)
-        every { roomServiceMock.getTimelineEvent(eq(roomId), eq(eventId1)) } returns flowOf(
+        every { roomServiceMock.getTimelineEvent(roomId, eventId1) } returns flowOf(
             TimelineEvent(
                 event = inviteEvent(),
                 content = Result.success(inviteEvent().content),

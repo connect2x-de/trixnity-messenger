@@ -8,8 +8,9 @@ import de.connect2x.sqlitenity.compat.SQLitenityCompatDriver
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.RootPath
 import io.github.oshai.kotlinlogging.KotlinLogging
+import net.folivo.trixnity.client.RepositoriesModule
 import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
-import net.folivo.trixnity.client.store.repository.room.createRoomRepositoriesModule
+import net.folivo.trixnity.client.store.repository.room.room
 import net.folivo.trixnity.core.model.UserId
 import net.folivo.trixnity.crypto.core.SecureRandom
 import okio.FileSystem
@@ -28,13 +29,13 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 if (databaseEncryptionEnabled) SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE + EncryptedSQLiteDriver.SALT_SIZE)
                 else null
 
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module {
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule {
                 fileSystem.createDirectories(rootPath.forAccountDatabase(userId), mustCreate = false)
-                return createRoomRepositoriesModule(db(userId, databaseKey))
+                return RepositoriesModule.room(db(userId, databaseKey))
             }
 
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module {
-                return createRoomRepositoriesModule(db(userId, databaseKey))
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule {
+                return RepositoriesModule.room(db(userId, databaseKey))
             }
 
             private fun db(userId: UserId, databaseKey: ByteArray?): RoomDatabase.Builder<TrixnityRoomDatabase> =
