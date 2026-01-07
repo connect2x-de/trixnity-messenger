@@ -41,6 +41,7 @@ interface MediaPlayerViewModel {
 
     fun start()
     fun stop()
+
     fun seekTo(duration: Duration)
 
     /**
@@ -92,33 +93,51 @@ class MediaPlayerViewModelImpl(
                     }
                 )
             }
+
+            coroutineScope.launch {
+                launch {
+                    player.isPlaying.collect { isPlaying ->
+                        if (state.value != State.Playing || isPlaying) {
+                            return@collect
+                        }
+
+                        this@MediaPlayerViewModelImpl.stop()
+                    }
+                }
+
+                launch {
+                    player.elapsedTime.collect { elapsedTime ->
+                        this@MediaPlayerViewModelImpl.elapsedTime.value = elapsedTime
+                        this@MediaPlayerViewModelImpl.duration.value = player.duration.value
+                    }
+                }
+            }
         }
     }
 
     override fun start() {
-        checkNotNull(player) { "The player should not be null when starting playing" }
+        if (player == null) {
+            log.error { "Unable to start playback of media file because the media player is not present" }
+            return
+        }
+
         coroutineScope.launch {
             stateChangeMutex.withLock {
                 check(state.value is State.Ready) { "The player is not ready or already playing" }
 
                 log.info { "Start playing media '${audio.name}' with media player" }
-                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value) { event ->
-                    when (event) {
-                        is MediaPlayer.Event.Stopped -> stop()
-                        is MediaPlayer.Event.Progress -> {
-                            elapsedTime.value = event.elapsedTime
-                            duration.value = event.duration
-                        }
-                    }
-                }
-
+                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value)
                 state.value = State.Playing
             }
         }
     }
 
     override fun stop() {
-        checkNotNull(player) { "The player should not be null when stopping playing" }
+        if (player == null) {
+            log.error { "Unable to start playback of media file because the media player is not present" }
+            return
+        }
+
         coroutineScope.launch {
             stateChangeMutex.withLock {
                 if (state.value !is State.Playing) {
@@ -134,7 +153,11 @@ class MediaPlayerViewModelImpl(
     }
 
     override fun seekTo(duration: Duration) {
-        checkNotNull(player) { "The player should not be null when stopping playing" }
+        if (player == null) {
+            log.error { "Unable to start playback of media file because the media player is not present" }
+            return
+        }
+
         coroutineScope.launch {
             log.debug { "Seeking media player to position '$duration' for media '${audio.name}'" }
             when (state.value) {

@@ -117,6 +117,7 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
     }
 
     DI.current.get<AudioPlayerView>().Create(
+        audio = element,
         viewModel = requireNotNull(element.audioPlayer),
         fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) }
     )

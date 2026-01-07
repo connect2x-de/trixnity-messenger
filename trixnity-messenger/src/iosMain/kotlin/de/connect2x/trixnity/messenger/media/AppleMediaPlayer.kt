@@ -63,8 +63,7 @@ class AppleMediaPlayer : MediaPlayer {
     override suspend fun start(
         media: PlatformMedia,
         mimeType: String?,
-        position: Duration,
-        eventCallback: (MediaPlayer.Event) -> Unit
+        position: Duration
     ) {
         check(media is OkioPlatformMedia) { "Platform media must be a OkioPlatformMedia" }
         media.getTemporaryFile().fold(

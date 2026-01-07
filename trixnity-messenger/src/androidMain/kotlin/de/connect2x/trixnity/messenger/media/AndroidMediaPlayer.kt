@@ -9,12 +9,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
@@ -28,10 +25,9 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
-class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
+class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
     private var controller: MediaController? = null
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private val lastPlayedMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
     private val mediaDataStore: MutableMap<String, Playback> = ConcurrentHashMap()
 
@@ -52,7 +48,6 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
                     if (controller.playbackState == Player.STATE_READY) {
                         elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
                         duration.value = controller.duration.coerceAtLeast(0).milliseconds
-                        metadata?.callback(MediaPlayer.Event.Progress(elapsedTime.value, duration.value))
                     }
 
                     if (!isPlaying) {
@@ -73,8 +68,7 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
     override suspend fun start(
         media: PlatformMedia,
         mimeType: String?,
-        position: Duration,
-        eventCallback: (MediaPlayer.Event) -> Unit
+        position: Duration
     ) {
         require(media is OkioPlatformMedia) { "Media is expected to be a OkioPlatformMedia" }
         val controller = checkNotNull(controller) { "Unable to play media when media player is not available yet!" }
@@ -94,12 +88,10 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
                     log.info { "Successfully acquired file, starting playback" }
                     isPlaying.value = true
                     mediaDataStore[tempFile.path.toString()] = Playback(
-                        callback = eventCallback,
                         updateJob = coroutineScope.launch {
                             while (isActive && isPlaying.value) {
                                 val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
                                 val duration = controller.duration.coerceAtLeast(0).milliseconds
-                                eventCallback(MediaPlayer.Event.Progress(elapsedTime, duration))
                                 this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
                                 this@AndroidMediaPlayer.duration.value = duration
                                 delay(150.milliseconds)
@@ -130,7 +122,6 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
 
     override fun close() {
         mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.close()
-        coroutineScope.cancel()
     }
 
     suspend fun stop0(pause: Boolean) {
@@ -149,18 +140,15 @@ class AndroidMediaPlayer(getContext: ContextGetter) : MediaPlayer {
     }
 
     data class Playback(
-        val callback: (MediaPlayer.Event) -> Unit,
         val updateJob: Job,
         var isClosed: Boolean = false
     ) : AutoCloseable {
         fun pause() {
-            callback(MediaPlayer.Event.Stopped)
             updateJob.cancel()
         }
 
         override fun close() {
             log.debug { "Closing playback resource by sending stop event and cancel update job" }
-            callback(MediaPlayer.Event.Progress(Duration.ZERO, Duration.ZERO))
             pause()
         }
     }

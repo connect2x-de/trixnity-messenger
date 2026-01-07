@@ -19,6 +19,6 @@ actual fun platformModule(): Module = module {
         }
     }
     single<MediaPlayer> {
-        AndroidMediaPlayer(get())
+        AndroidMediaPlayer(get(), get())
     }
 }
