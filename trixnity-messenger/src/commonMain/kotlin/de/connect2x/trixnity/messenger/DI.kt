@@ -43,7 +43,6 @@ import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountWarningViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
@@ -334,7 +333,6 @@ private fun connectingViewModels() = module {
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
     single<RegisterMatrixAccountViewModelFactory> { RegisterMatrixAccountViewModelFactory }
-    single<AddMatrixAccountWarningViewModelFactory> { AddMatrixAccountWarningViewModelFactory }
 }
 
 private fun syncViewModels() = module {

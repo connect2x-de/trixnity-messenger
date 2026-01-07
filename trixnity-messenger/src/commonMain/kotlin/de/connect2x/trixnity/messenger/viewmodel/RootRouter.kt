@@ -18,8 +18,6 @@ import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountWarningViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountWarningViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
@@ -126,7 +124,7 @@ class RootRouter(
                 Wrapper.Main(
                     viewModelContext.get<MainViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(componentContext),
-                        onCreateNewAccount = ::showAddAccountWarning,
+                        onCreateNewAccount = ::showAddMatrixAccount,
                         onRemoveAccount = ::showRemoveAccount,
                     ).apply { start() }
                 )
@@ -138,13 +136,6 @@ class RootRouter(
                     userId = config.userId,
                     exception = config.exception,
                     onDeletionFinished = ::showInitialization,
-                )
-            )
-            is Config.AddMatrixAccountWarning -> Wrapper.AddMatrixAccountWarning(
-                viewModelContext.get<AddMatrixAccountWarningViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
-                    ::cancelAddMatrixAccount,
-                    ::showAddMatrixAccount
                 )
             )
         }
@@ -248,16 +239,6 @@ class RootRouter(
         navigation.launchReplaceAll(viewModelContext.coroutineScope, Config.RemoveMatrixAccount(userId))
     }
 
-    private fun showAddAccountWarning() {
-        navigation.launchNavigate(viewModelContext.coroutineScope) {
-            if (it.contains(Config.AddMatrixAccountWarning)) it
-            else {
-                log.debug { "showAddAccountWarning" }
-                listOf(Config.AddMatrixAccountWarning)
-            }
-        }
-    }
-
     private suspend fun resumeSsoLogin(redirectUrl: Url) {
         log.debug { "requested resume ssl login" }
         val state = settings.value.base.ssoState
@@ -295,7 +276,6 @@ class RootRouter(
         class RemoveMatrixAccount(val viewModel: RemoveMatrixAccountViewModel) : Wrapper()
         class PasswordLogin(val viewModel: PasswordLoginViewModel) : Wrapper()
         class SSOLogin(val viewModel: SSOLoginViewModel) : Wrapper()
-        class AddMatrixAccountWarning(val viewModel: AddMatrixAccountWarningViewModel) : Wrapper()
     }
 
     @Serializable
@@ -334,7 +314,5 @@ class RootRouter(
             val userId: UserId,
             val exception: MatrixClientInitializationException,
         ) : Config()
-    @Serializable
-    data object AddMatrixAccountWarning: Config()
     }
 }

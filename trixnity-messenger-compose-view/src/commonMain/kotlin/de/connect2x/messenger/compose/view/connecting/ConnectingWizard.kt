@@ -1,6 +1,5 @@
 package de.connect2x.messenger.compose.view.connecting
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,12 +17,10 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountWarningViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 
-const val ADD_MATRIX_ACCOUNT_WARNING = "CREATE_ACCOUNT_WARNING"
 const val ADD_MATRIX_ACCOUNT = "ADD_MATRIX_ACCOUNT"
 const val PASSWORD_LOGIN = "PASSWORD_LOGIN"
 const val SSO_LOGIN = "SSO_LOGIN"
@@ -46,7 +43,6 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
     val wizardStep = remember(viewModel, i18n, additionalConnectingWizardStep) {
         listOf(
             when (viewModel) {
-                is AddMatrixAccountWarningViewModel -> addMatrixAccountWarningStep(viewModel, i18n)
                 is AddMatrixAccountViewModel -> addMatrixAccountStep(viewModel, i18n)
                 is PasswordLoginViewModel -> passwordLoginStep(viewModel, i18n)
                 is SSOLoginViewModel -> SSOLoginStep(viewModel, i18n)
@@ -57,48 +53,6 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
     }
 
     return Wizard(wizardStep)
-}
-
-private fun addMatrixAccountWarningStep(viewModel: AddMatrixAccountWarningViewModel, i18n: I18nView): WizardStep {
-    return WizardStep(
-        id = ADD_MATRIX_ACCOUNT_WARNING,
-        title = { i18n.accountsOverviewCreateNewAccount() },
-        content = {
-            val isMultiProfile = viewModel.isMultiProfile.collectAsState().value
-            Column {
-                Text(i18n.accountOverviewWarning())
-                if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
-            }
-        },
-        backButton = {
-            WizardNavigationButton.Custom {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = viewModel::cancelWarning,
-                    content = { Text(i18n.actionCancel()) },
-                )
-            }
-        },
-
-        additionalButton = {
-            val isMultiProfile = viewModel.isMultiProfile.collectAsState().value
-
-            if (isMultiProfile) ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                onClick = viewModel::logoutFromProfile,
-                content = { Text(i18n.accountsOverviewLogout()) },
-            )
-        },
-        nextButton = {
-            WizardNavigationButton.Custom {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = viewModel::createAccount,
-                    content = { Text(i18n.accountsOverviewCreateNewAccount()) },
-                )
-            }
-        }
-    )
 }
 
 private fun addMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {
@@ -114,6 +68,14 @@ private fun addMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18
         },
         content = {
             AddMatrixAccount(viewModel)
+        },
+        additionalButton = {
+            ThemedButton(onClick = {
+                viewModel.logoutFromProfile()
+            }) {
+                Text(i18n.accountsOverviewLogout())
+            }
+
         },
         nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
     )

@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -16,9 +18,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.launch
 import net.folivo.trixnity.client.serverDiscovery
 import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import net.folivo.trixnity.clientserverapi.client.UIA
@@ -54,6 +58,8 @@ interface AddMatrixAccountViewModel {
     val serverUrl: TextFieldViewModel
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
 
+    val isMultiProfile: StateFlow<Boolean>
+
     sealed interface ServerDiscoveryState {
         data object None : ServerDiscoveryState
         data object Loading : ServerDiscoveryState
@@ -63,6 +69,7 @@ interface AddMatrixAccountViewModel {
 
     fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod)
     fun cancel()
+    fun logoutFromProfile()
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -77,7 +84,7 @@ open class AddMatrixAccountViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     final override val serverUrl =
-        TextFieldViewModelImpl(maxLength = 1_000,get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
+        TextFieldViewModelImpl(maxLength = 1_000, get<MatrixMessengerConfiguration>().defaultHomeServer ?: "")
 
     private val config = get<MatrixMessengerConfiguration>()
 
@@ -181,6 +188,20 @@ open class AddMatrixAccountViewModelImpl(
                 }
         }
     }
+
+    val profileManager = getOrNull<ProfileManager>()
+    override val isMultiProfile: StateFlow<Boolean> =
+        (profileManager?.isMultiProfileEnabled?.map { it == true } ?: flowOf(false)).stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(),
+            false
+        )
+
+    override fun logoutFromProfile() {
+        coroutineScope.launch {
+            profileManager?.closeProfile()
+        }
+    }
 }
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
@@ -188,10 +209,13 @@ class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val serverUrl = TextFieldViewModelImpl(maxLength = 1_000, "matrix.org")
     override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
         MutableStateFlow(ServerDiscoveryState.None)
-
+    override val isMultiProfile: StateFlow<Boolean> = MutableStateFlow(false)
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
     }
 
     override fun cancel() {
+    }
+
+    override fun logoutFromProfile() {
     }
 }

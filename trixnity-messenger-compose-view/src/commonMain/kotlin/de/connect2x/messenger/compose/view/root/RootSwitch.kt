@@ -29,7 +29,6 @@ fun RootSwitch(stack: Value<ChildStack<*, RootRouter.Wrapper>>) {
             is RootRouter.Wrapper.RemoveMatrixAccount -> RemoveMatrixAccount(child.viewModel)
             is RootRouter.Wrapper.PasswordLogin -> ConnectingWizard(child.viewModel)
             is RootRouter.Wrapper.SSOLogin -> ConnectingWizard(child.viewModel)
-            is RootRouter.Wrapper.AddMatrixAccountWarning -> ConnectingWizard(child.viewModel)
         }
     }
 }
