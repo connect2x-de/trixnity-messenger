@@ -30,7 +30,6 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
         Column {
-
             ServerInputField(addMatrixAccountViewModel)
             Spacer(Modifier.height(20.dp))
             ServerDiscoveryState(addMatrixAccountViewModel)
