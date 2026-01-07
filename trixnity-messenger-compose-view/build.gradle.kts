@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalComposeLibrary::class)
+
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.registerCoverageTask
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
@@ -29,7 +32,6 @@ kotlin {
     }
     androidTarget {
         publishLibraryVariants("release")
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
     }
     jvm("desktop") {
@@ -40,7 +42,7 @@ kotlin {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
-    js("web") {
+    js {
         compilerOptions {
             sourceMap.set(true)
             sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
@@ -65,7 +67,19 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64()
     )
-    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate {
+        common {
+            group("desktopAndAndroid") {
+                withJvm()
+                withAndroidTarget()
+            }
+            group("skia") {
+                withJvm()
+                withJs()
+                withIos()
+            }
+        }
+    }
     sourceSets {
         all {
             languageSettings.optIn("kotlin.time.ExperimentalTime")
@@ -94,22 +108,13 @@ kotlin {
                 implementation(libs.filekit.compose)
             }
         }
-        val desktopAndAndroidMain by creating {
-            dependsOn(commonMain)
-        }
-        val skiaMain by creating {
-            dependsOn(commonMain)
-        }
         val desktopMain by getting {
-            dependsOn(desktopAndAndroidMain)
-            dependsOn(skiaMain)
             dependencies {
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
             }
         }
         androidMain {
-            dependsOn(desktopAndAndroidMain)
             dependencies {
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
@@ -125,7 +130,6 @@ kotlin {
             }
         }
         val webMain by getting {
-            dependsOn(skiaMain)
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
@@ -134,14 +138,9 @@ kotlin {
             }
         }
 
-        val iosMain by getting {
-            dependsOn(skiaMain)
-        }
-
         commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
-                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.uiTest)
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.test)

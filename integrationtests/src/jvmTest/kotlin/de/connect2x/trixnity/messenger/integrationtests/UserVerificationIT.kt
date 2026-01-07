@@ -56,8 +56,8 @@ class UserVerificationIT {
             port = synapseDocker.firstMappedPort
         ).build()
 
-        userId1 = MatrixClientServerApiClientImpl(baseUrl).register(user1, passwordUser1, "CLIENT1").getOrThrow().userId
-        userId2 = MatrixClientServerApiClientImpl(baseUrl).register(user2, passwordUser2, "CLIENT2").getOrThrow().userId
+        userId1 = MatrixClientServerApiClientImpl(baseUrl).register(user1, passwordUser1, "CLIENT1")
+        userId2 = MatrixClientServerApiClientImpl(baseUrl).register(user2, passwordUser2, "CLIENT2")
     }
 
     @AfterTest

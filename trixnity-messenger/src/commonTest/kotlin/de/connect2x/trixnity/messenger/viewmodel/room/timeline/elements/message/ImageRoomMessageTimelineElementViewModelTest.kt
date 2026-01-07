@@ -10,7 +10,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -43,7 +42,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns "thumbnail".encodeToByteArray()
 
@@ -58,7 +57,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } calls {
             delay(500.milliseconds)
@@ -81,7 +80,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns null
 

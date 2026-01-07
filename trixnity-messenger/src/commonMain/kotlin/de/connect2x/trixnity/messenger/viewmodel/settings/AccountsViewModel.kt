@@ -31,7 +31,7 @@ import org.koin.core.component.get
 
 private val log = KotlinLogging.logger {}
 
-interface ProfileViewModelFactory {
+interface AccountsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onCloseAccounts: () -> Unit,
@@ -50,7 +50,7 @@ interface ProfileViewModelFactory {
         )
     }
 
-    companion object : ProfileViewModelFactory
+    companion object : AccountsViewModelFactory
 }
 
 // TODO !!! This is totally cursed. The parent should not manipulate the child !!!
@@ -107,7 +107,7 @@ class AccountsViewModelImpl(
         registerBackCallback(backCallback)
         accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
-                get<ProfileSingleViewModelFactory>().create(
+                this@AccountsViewModelImpl.get<ProfileSingleViewModelFactory>().create(
                     viewModelContext.childContext(this@AccountsViewModelImpl),
                     userId,
                     error,

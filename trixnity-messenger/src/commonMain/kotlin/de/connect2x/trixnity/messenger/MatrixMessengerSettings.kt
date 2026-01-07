@@ -17,7 +17,7 @@ import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
-import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +26,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
+import net.folivo.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
 import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
@@ -36,7 +37,8 @@ data class MatrixMessengerSettingsBase(
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
-    val ssoState: SSOState? = null,
+    val ssoLoginState: SSOLoginState? = null,
+    val oAuth2LoginState: OAuth2LoginState? = null,
 
     val themeMode: ThemeMode = ThemeMode.DEFAULT,
     /**
@@ -52,7 +54,22 @@ data class MatrixMessengerSettingsBase(
     val fontSize: Float? = null,
     val displaySize: Float? = null,
     val applySystemSizes: Boolean = true,
-) : SettingsView<MatrixMessengerSettings>
+) : SettingsView<MatrixMessengerSettings> {
+    @Serializable
+    data class SSOLoginState(
+        val state: String,
+        val serverUrl: String,
+        val providerId: String?,
+        val providerName: String?,
+    )
+
+    @Serializable
+    data class OAuth2LoginState(
+        val serverUrl: String,
+        val type: OAuth2LoginViewModel.Type,
+        val state: OAuth2LoginFlow.AuthRequestData.State,
+    )
+}
 
 @Serializable
 @NestedSettingsView("secretByteArrays")

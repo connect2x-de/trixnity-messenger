@@ -7,7 +7,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
@@ -222,7 +221,7 @@ class SelfVerificationViewModelTest {
         )
         every { onCloseSelfVerificationMock.invoke(any()) } returns Unit
         everySuspend {
-            verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
+            verifyAccountMock.verify(any(), "iAmA Reco very Key1")
         } returns Result.success(Unit)
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
@@ -236,7 +235,7 @@ class SelfVerificationViewModelTest {
         delay(100)
 
         verifySuspend {
-            verifyAccountMock.verify(any(), eq("iAmA Reco very Key1"))
+            verifyAccountMock.verify(any(), "iAmA Reco very Key1")
             onCloseSelfVerificationMock.invoke(any())
         }
     }
@@ -256,7 +255,7 @@ class SelfVerificationViewModelTest {
         )
         var onCloseMockWasCalled = false
         every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
-        everySuspend { verifyAccountMock.verify(any(), eq("iAmA Sooo very Wron")) } returns Result.failure(
+        everySuspend { verifyAccountMock.verify(any(), "iAmA Sooo very Wron") } returns Result.failure(
             RecoveryKeyInvalidException("Nope")
         )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
@@ -288,7 +287,7 @@ class SelfVerificationViewModelTest {
         )
         var onCloseMockWasCalled = false
         every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
-        everySuspend { verifyAccountMock.verify(any(), eq("iAmA Reco very Key1")) } returns Result.failure(
+        everySuspend { verifyAccountMock.verify(any(), "iAmA Reco very Key1") } returns Result.failure(
             RuntimeException("Oh no!")
         )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods

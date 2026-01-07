@@ -25,6 +25,7 @@ fun RootSwitch(stack: Value<ChildStack<*, RootRouter.Wrapper>>) {
             is RootRouter.Wrapper.MatrixClientInitializationFailure -> MatrixClientInitializationFailure(child.viewModel)
             is RootRouter.Wrapper.Main -> Main(child.viewModel)
             is RootRouter.Wrapper.AddMatrixAccount -> ConnectingWizard(child.viewModel)
+            is RootRouter.Wrapper.OAuth2Login -> ConnectingWizard(child.viewModel)
             is RootRouter.Wrapper.RegisterMatrixAccount -> ConnectingWizard(child.viewModel)
             is RootRouter.Wrapper.RemoveMatrixAccount -> RemoveMatrixAccount(child.viewModel)
             is RootRouter.Wrapper.PasswordLogin -> ConnectingWizard(child.viewModel)

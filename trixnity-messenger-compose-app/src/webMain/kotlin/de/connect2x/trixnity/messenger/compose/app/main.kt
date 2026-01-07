@@ -1,15 +1,17 @@
 package de.connect2x.trixnity.messenger.compose.app
 
 import de.connect2x.messenger.compose.view.startMultiMessenger
+import io.ktor.http.*
 import kotlinx.browser.window
 
 suspend fun main() = startMultiMessenger(
     configuration = {
         configure()
-        urlProtocol = window.location.protocol.dropLast(1)
-        urlHost = window.location.host
+        appUri = Url(window.location.toString()).protocolWithAuthority
+        oAuth2ClientUrl = Url(window.location.toString()).protocolWithAuthority // dev only!
         messengerConfiguration {
-            ssoRedirectPath = "sso.html"
+            appUriSsoRedirect = "sso.html"
+            appUriOAuth2Redirect = "oauth2.html"
         }
     }
 )

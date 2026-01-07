@@ -14,7 +14,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
@@ -84,12 +83,12 @@ class SearchGroupViewModelTest {
         }
         knocked = false
 
-        everySuspend { roomServiceMock.getById(eq(roomId)) } returns flowOf(room)
+        everySuspend { roomServiceMock.getById(roomId) } returns flowOf(room)
     }
 
     @Test
     fun `entering groups - should handle successful joining`() = runTest {
-        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+        everySuspend { roomApiClientMock.joinRoom(roomId, any(), any(), any(), any()) } returns
                 Result.success(roomId)
 
         val cut = searchGroupViewModel()
@@ -109,9 +108,9 @@ class SearchGroupViewModelTest {
 
     @Test
     fun `entering groups - should handle successful knocking`() = runTest {
-        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+        everySuspend { roomApiClientMock.joinRoom(roomId, any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
-        everySuspend { roomApiClientMock.knockRoom(eq(roomId), any(), any(), any()) } returns
+        everySuspend { roomApiClientMock.knockRoom(roomId, any(), any(), any()) } returns
                 Result.success(roomId)
 
         val cut = searchGroupViewModel()
@@ -133,7 +132,7 @@ class SearchGroupViewModelTest {
     fun `entering groups - should handle failure`() = runTest {
         everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
                 Result.success(getPublicRoomsResponse(JoinRule.Public))
-        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+        everySuspend { roomApiClientMock.joinRoom(roomId, any(), any(), any(), any()) } returns
                 Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
 
         val cut = searchGroupViewModel()
@@ -146,7 +145,7 @@ class SearchGroupViewModelTest {
 
     @Test
     fun `entering groups - should handle error`() = runTest {
-        everySuspend { roomApiClientMock.joinRoom(eq(roomId), any(), any(), any(), any()) } returns
+        everySuspend { roomApiClientMock.joinRoom(roomId, any(), any(), any(), any()) } returns
                 Result.failure(Throwable("something went wrong :("))
         everySuspend { roomApiClientMock.getPublicRooms(any(), any(), any(), any(), any(), any(), any()) } returns
                 Result.success(getPublicRoomsResponse(JoinRule.Public))

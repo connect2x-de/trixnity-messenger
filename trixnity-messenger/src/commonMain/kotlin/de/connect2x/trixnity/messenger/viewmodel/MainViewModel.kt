@@ -241,7 +241,7 @@ open class MainViewModelImpl(
                 }
         }
         coroutineScope.launch {
-            get<NotificationHandlers>().continuouslyRequestPermissions()
+            this@MainViewModelImpl.get<NotificationHandlers>().continuouslyRequestPermissions()
         }
         lifecycle.doOnStop {
             coroutineScope.launch {
@@ -451,11 +451,11 @@ open class MainViewModelImpl(
 
     private fun onSendLogs() {
         coroutineScope.launch {
-            val sendLogToDevs = getOrNull<SendLogToDevs>()
+            val sendLogToDevs = this@MainViewModelImpl.getOrNull<SendLogToDevs>()
             if (sendLogToDevs != null)
                 try {
-                    val config = get<MatrixMessengerBaseConfiguration>()
-                    val defaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()()
+                    val config = this@MainViewModelImpl.get<MatrixMessengerBaseConfiguration>()
+                    val defaultDeviceDisplayName = this@MainViewModelImpl.get<GetDefaultDeviceDisplayName>()()
                     log.debug { "send logs to devs (email: ${config.sendLogsEmailAddress})" }
                     config.sendLogsEmailAddress?.let { email ->
                         sendLogToDevs(

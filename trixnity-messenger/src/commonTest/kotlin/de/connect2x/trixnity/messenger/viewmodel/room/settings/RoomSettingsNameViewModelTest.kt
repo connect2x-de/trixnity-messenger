@@ -10,7 +10,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -82,7 +81,7 @@ class RoomSettingsNameViewModelTest {
     fun `load permissions to change the room name based on the user's power level`() = runTest {
         every {
             // mockmp requires us to mock the user service within each test.
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         val canSendEvent = MutableStateFlow(true)
         canSendEventMocker returns canSendEvent
@@ -103,7 +102,7 @@ class RoomSettingsNameViewModelTest {
     fun `load the room name`() = runTest {
         every {
             // mockmp requires us to mock the user service within each test.
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         roomGetById returns MutableStateFlow<Room?>(room("room name"))
         val viewModel = roomSettingsNameViewModel()
@@ -116,7 +115,7 @@ class RoomSettingsNameViewModelTest {
     fun `edit and apply room name change`() = runTest {
         every {
             // mockmp requires us to mock the user service within each test.
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         val homeServerHandle = mockSendToHomeServer(NameEventContent("edited name"))
         backgroundScope.launch { homeServerHandle.numCallsToHomeServer.collect() }
@@ -136,7 +135,7 @@ class RoomSettingsNameViewModelTest {
     private fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
         val handle = MockHomeServerHandle()
         everySuspend {
-            roomsApiClientMock.sendStateEvent(eq(roomId), eq(expectedRequestContent), any(), any())
+            roomsApiClientMock.sendStateEvent(roomId, expectedRequestContent, any(), any())
         } calls {
             handle.numCallsToHomeServer.value += 1
             Result.success(EventId("1"))

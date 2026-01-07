@@ -21,12 +21,13 @@ private val colors =
 @TrixnityMessengerDsl
 data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
-    override var appId: String = "de.connect2x.messenger",
+    override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
 
-    override var urlProtocol: String = appId,
-    override var urlHost: String = "localhost",
-    var ssoRedirectPath: String = "sso",
+    override var appUri: String = "$appId:",
+    var appUriSsoRedirect: String = "sso",
+    var appUriOAuth2Redirect: String = "oAuth2",
+    override var oAuth2ClientUrl: String = "https://messenger.trixnity.connect2x.de",
 
     var generateInitialAccountColor: (suspend (alreadyUsedColors: Set<Long>) -> Long)? = { alreadyUsedColors: Set<Long> ->
         colors.firstOrNull { alreadyUsedColors.contains(it).not() } ?: 0x00000000
@@ -39,7 +40,7 @@ data class MatrixMessengerConfiguration(
 
     var databaseEncryptionEnabled: Boolean = true,
 
-    val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
+    val features: Features = Features(
         enablePdfReader = true,
         enablePowerlevelEventConfigurationInRoomSettings = true,
     ),
@@ -105,6 +106,8 @@ data class MatrixMessengerConfiguration(
      */
     var useRefreshTokens: Boolean = false,
 
+    var cryptoDriver: CryptoDriver = CryptoDriver.VODOZEMAC,
+
     /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */
@@ -126,4 +129,20 @@ data class MatrixMessengerConfiguration(
      * ```
      */
     var modulesFactories: List<ModuleFactory> = createTrixnityMessengerDefaultModuleFactories(),
-) : MatrixMessengerBaseConfiguration
+) : MatrixMessengerBaseConfiguration {
+    /**
+     * A list of feature toggles for the Matrix Messenger.
+     */
+    data class Features(
+        /**
+         * If true, the PDF reader details view in the timeline will be enabled.
+         */
+        var enablePdfReader: Boolean = true,
+        var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
+    )
+
+    enum class CryptoDriver {
+        LIBOLM,
+        VODOZEMAC
+    }
+}

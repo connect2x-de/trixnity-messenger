@@ -17,6 +17,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
@@ -112,6 +113,75 @@ private fun passwordLoginStep(viewModel: PasswordLoginViewModel, i18n: I18nView)
     )
 }
 
+                is OAuth2LoginViewModel -> WizardStep(
+                    id = SSO_LOGIN,
+                    title = {
+                        when (viewModel.type) {
+                            OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
+                            OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
+                        }
+                    },
+                    content = {
+                        OAuth2Login(viewModel)
+                    },
+                    additionalButton = {
+                        ThemedButton(
+                            style = MaterialTheme.components.commonButton,
+                            onClick = viewModel::back,
+                        ) {
+                            Text(i18n.commonBack().capitalize(Locale.current))
+                        }
+                    },
+                    nextButton = {
+                        WizardNavigationButton.Custom {
+                            val state = viewModel.state.collectAsState().value
+                            val canLogin = state is OAuth2LoginViewModel.State.None
+                            ThemedButton(
+                                style = MaterialTheme.components.primaryButton,
+                                enabled = canLogin,
+                                onClick = { viewModel.startLogin() },
+                            ) {
+                                val text = when (viewModel.type) {
+                                    OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
+                                    OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
+                                }
+                                Text(text)
+                            }
+                        }
+                    },
+                )
+
+                is SSOLoginViewModel -> WizardStep(
+                    id = SSO_LOGIN,
+                    title = { i18n.loginAt(viewModel.serverUrl) },
+                    content = {
+                        SSOLogin(viewModel)
+                    },
+                    backButton = {
+                        WizardNavigationButton.Custom {
+                            ThemedButton(
+                                style = MaterialTheme.components.commonButton,
+                                onClick = viewModel::back,
+                            ) {
+                                Text(i18n.commonBack().capitalize(Locale.current))
+                            }
+                        }
+                    },
+                    nextButton = {
+                        WizardNavigationButton.Custom {
+                            val state = viewModel.addMatrixAccountState.collectAsState().value
+                            val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
+                            val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
+                            ThemedButton(
+                                style = MaterialTheme.components.primaryButton,
+                                enabled = canLogin,
+                                onClick = { viewModel.tryLogin() },
+                            ) {
+                                Text(i18n.login())
+                            }
+                        }
+                    },
+                )
 private fun SSOLoginStep(viewModel: SSOLoginViewModel, i18n: I18nView): WizardStep {
     return WizardStep(
         id = SSO_LOGIN,
@@ -172,4 +242,40 @@ private fun registerMatrixAccountStep(viewModel: RegisterMatrixAccountViewModel,
             }
         },
     )
+                is RegisterMatrixAccountViewModel -> WizardStep(
+                    id = REGISTER_NEW_ACCOUNT,
+                    title = { i18n.registrationHeader() },
+                    content = {
+                        RegisterNewAccount(viewModel)
+                    },
+                    backButton = {
+                        WizardNavigationButton.Custom {
+                            ThemedButton(
+                                style = MaterialTheme.components.commonButton,
+                                onClick = viewModel::back,
+                            ) {
+                                Text(i18n.commonBack().capitalize(Locale.current))
+                            }
+                        }
+                    },
+                    nextButton = {
+                        WizardNavigationButton.Custom {
+                            val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
+                            ThemedButton(
+                                style = MaterialTheme.components.primaryButton,
+                                enabled = canRegisterNewUser,
+                                onClick = { viewModel.register() },
+                            ) {
+                                Text(i18n.registerNewAccount())
+                            }
+                        }
+                    },
+                )
+
+                else -> additionalConnectingWizardStep.create(viewModel)
+            }
+        )
+    }
+
+    return Wizard(wizardStep)
 }

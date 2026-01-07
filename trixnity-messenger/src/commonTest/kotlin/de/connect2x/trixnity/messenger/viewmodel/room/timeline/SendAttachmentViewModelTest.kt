@@ -57,7 +57,9 @@ class SendAttachmentViewModelTest {
     private val mediaServiceMock: MediaService = mock()
     private val serverData: MutableStateFlow<ServerData> = MutableStateFlow(
         ServerData(
-            versions = GetVersions.Response(listOf()), mediaConfig = GetMediaConfig.Response(50.mb())
+            versions = GetVersions.Response(listOf()),
+            capabilities = null,
+            mediaConfig = GetMediaConfig.Response(50.mb())
         )
     )
     private val imageProcessMock = object : ProcessImageUpload {

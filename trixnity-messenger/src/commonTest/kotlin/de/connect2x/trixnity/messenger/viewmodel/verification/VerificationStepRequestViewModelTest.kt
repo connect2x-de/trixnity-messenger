@@ -7,7 +7,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
@@ -70,9 +69,9 @@ class VerificationStepRequestViewModelTest {
         every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         every { matrixClientMock.displayName } returns MutableStateFlow(ourUserDisplayName)
-        everySuspend { usersApiClientMock.getDisplayName(eq(theirUserId)) } returns Result.success(theirUserDisplayName)
-        everySuspend { devicesApiClientMock.getDevice(eq(ourDeviceId), any()) } returns Result.success(ourDevice)
-        everySuspend { devicesApiClientMock.getDevice(eq(theirDeviceId), any()) } returns Result.success(theirDevice)
+        everySuspend { usersApiClientMock.getDisplayName(theirUserId) } returns Result.success(theirUserDisplayName)
+        everySuspend { devicesApiClientMock.getDevice(ourDeviceId, any()) } returns Result.success(ourDevice)
+        everySuspend { devicesApiClientMock.getDevice(theirDeviceId, any()) } returns Result.success(theirDevice)
     }
 
     @Test
@@ -102,7 +101,7 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching external user display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { usersApiClientMock.getDisplayName(eq(theirUserId)) } returns responseForbidden()
+        everySuspend { usersApiClientMock.getDisplayName(theirUserId) } returns responseForbidden()
         backgroundScope.launch { cut.theirDisplayName.collect() }
         eventually(1.seconds) {
             cut.theirDisplayName.value shouldBe theirUserId.full
@@ -112,7 +111,7 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching own device display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { devicesApiClientMock.getDevice(eq(ourDeviceId), any()) } returns responseForbidden()
+        everySuspend { devicesApiClientMock.getDevice(ourDeviceId, any()) } returns responseForbidden()
         backgroundScope.launch { cut.ourDeviceDisplayName.collect() }
         eventually(1.seconds) {
             cut.ourDeviceDisplayName.value shouldBe ourDeviceId
@@ -122,7 +121,7 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching external device display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { devicesApiClientMock.getDevice(eq(theirDeviceId), any()) } returns responseForbidden()
+        everySuspend { devicesApiClientMock.getDevice(theirDeviceId, any()) } returns responseForbidden()
         backgroundScope.launch { cut.theirDeviceDisplayName.collect() }
         eventually(1.seconds) {
             cut.theirDeviceDisplayName.value shouldBe theirDeviceId

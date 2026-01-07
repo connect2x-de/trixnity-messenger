@@ -13,7 +13,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
@@ -247,7 +246,7 @@ class SearchTest {
         val cancelled = MutableStateFlow(false)
 
         injectSearchUsers(searchTerm, listOf(user))
-        every { userServiceMock.getPresence(eq(user.userId)) } returns flow {
+        every { userServiceMock.getPresence(user.userId) } returns flow {
             currentCoroutineContext().job.invokeOnCompletion { cancelled.value = true }
             started.value = true
         }
@@ -280,7 +279,7 @@ class SearchTest {
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq(searchTerm), acceptLanguage = i18n.currentLang.code, limit
+                searchTerm, acceptLanguage = i18n.currentLang.code, limit
             )
         } returns Result.success(SearchUsers.Response(limited = limit != null, results = results))
     }
@@ -314,7 +313,7 @@ class SearchTest {
     }
 
     private fun setupGetProfile(userId: UserId, displayName: String, avatarUrl: String? = null) {
-        everySuspend { usersApiClientMock.getProfile(eq(userId)) } returns Result.success(
+        everySuspend { usersApiClientMock.getProfile(userId) } returns Result.success(
             GetProfile.Response(
                 displayName = displayName,
                 avatarUrl = avatarUrl,
@@ -325,13 +324,13 @@ class SearchTest {
     private fun setupGetPresence(userId: UserId, presence: StateFlow<Presence?>) {
         when (val p = presence.value) {
             null -> {
-                everySuspend { usersApiClientMock.getPresence(eq(userId), any()) } returns Result.failure(
+                everySuspend { usersApiClientMock.getPresence(userId, any()) } returns Result.failure(
                     Exception("presence not available")
                 )
             }
 
             else -> {
-                everySuspend { usersApiClientMock.getPresence(eq(userId), any()) } returns Result.success(
+                everySuspend { usersApiClientMock.getPresence(userId, any()) } returns Result.success(
                     PresenceEventContent(p)
                 )
             }
@@ -340,7 +339,7 @@ class SearchTest {
 
     private fun setupGetThumbnail(data: Pair<String, ByteArray>?) {
         data?.also { (url, bytes) ->
-            everySuspend { mediaServiceMock.getThumbnail(eq(url), any(), any()) } returns Result.success(
+            everySuspend { mediaServiceMock.getThumbnail(url, any(), any()) } returns Result.success(
                 InMemoryPlatformMedia(
                     flow {
                         bytes.forEach { emit(byteArrayOf(it)) }

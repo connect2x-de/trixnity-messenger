@@ -8,7 +8,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.shouldBe
@@ -100,11 +99,11 @@ class ReportMessageViewModelTest {
         canSendEventMocker returns flowOf(true)
         everySuspend {
             roomServiceMock.sendMessage(
-                eq(roomId), any(), any()
+                roomId, any(), any()
             )
         } returns ""
         every {
-            roomServiceMock.getTimelineEvent(any(), eq(eventId), any())
+            roomServiceMock.getTimelineEvent(any(), eventId, any())
         } returns flowOf(
             TimelineEvent(
                 event = messageEvent,

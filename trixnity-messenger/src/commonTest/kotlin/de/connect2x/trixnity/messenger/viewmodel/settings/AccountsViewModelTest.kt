@@ -12,7 +12,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
@@ -95,9 +94,9 @@ class AccountsViewModelTest {
         every { matrixClientMock2.userId } returns ownUserId2
         everySuspend {
             mediaServiceMock2.getThumbnail(
-                eq("mxc://localhost/098765"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/098765",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -124,9 +123,9 @@ class AccountsViewModelTest {
         every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -166,9 +165,9 @@ class AccountsViewModelTest {
         }
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -201,9 +200,9 @@ class AccountsViewModelTest {
         }
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -235,9 +234,9 @@ class AccountsViewModelTest {
         }
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -269,9 +268,9 @@ class AccountsViewModelTest {
         every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),
@@ -301,9 +300,9 @@ class AccountsViewModelTest {
         every { matrixClientMock.displayName } returns MutableStateFlow(null)
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
-                eq(avatarSize().toLong()),
-                eq(avatarSize().toLong()),
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
                 any(),
                 any(),
                 any(),

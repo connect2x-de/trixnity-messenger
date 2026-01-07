@@ -5,8 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import js.promise.await
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.suspendCancellableCoroutine
 import pdfjs.GetViewportParameters
 import pdfjs.PDFDocumentProxy
 import pdfjs.RenderParameters
@@ -17,8 +15,8 @@ import web.canvas.ID
 import web.dom.ElementId
 import web.dom.document
 import web.html.HTMLCanvasElement
+import web.html.toBlob
 import web.url.URL
-import kotlin.coroutines.resume
 
 private val log = KotlinLogging.logger { }
 
@@ -64,8 +62,4 @@ class PdfReaderWeb internal constructor(
                 id = ElementId("pdf-canvas-page-$pageId")
             }) as HTMLCanvasElement
     }
-}
-
-private suspend fun HTMLCanvasElement.toBlob(): Blob? = suspendCancellableCoroutine { continuation ->
-    toBlob(callback = { blob -> continuation.resume(blob) })
 }

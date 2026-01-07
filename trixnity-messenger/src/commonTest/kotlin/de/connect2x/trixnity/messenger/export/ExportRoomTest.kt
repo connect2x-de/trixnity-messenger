@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
-import de.connect2x.trixnity.messenger.eqNull
+
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
@@ -126,16 +126,24 @@ class ExportRoomTest {
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
+        val timelineEvents = (0..9).map {
+            timelineEvent(it.toLong()).first()
+        }
+        val timelineEventsWithMedia = (10..19).map {
+            timelineEventWithMedia(it.toLong()).first()
+        }
+
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
             sinkMock.start()
-            (0..9).forEach {
-                sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
+            for (timelineEvent in timelineEvents) {
+                sinkMock.processTimelineEvent(timelineEvent, null)
             }
-            (10..19).forEach {
-                mediaServiceMock.getMedia(any(), any(), eq(false))
-                sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+
+            for (timelineEventWithMedia in timelineEventsWithMedia) {
+                mediaServiceMock.getMedia(any(), any(), false)
+                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
             }
             sinkMock.finish()
         }
@@ -154,16 +162,24 @@ class ExportRoomTest {
             timeZone = TimeZone.of("CET")
         ) shouldBe ExportRoomResult.Success()
 
+        val timelineEvents = (0..9).map {
+            timelineEvent(it.toLong()).first()
+        }
+        val timelineEventsWithMedia = (10..19).map {
+            timelineEventWithMedia(it.toLong()).first()
+        }
+
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
             sinkMock.start()
-            (0..9).forEach {
-                sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
+            for (timelineEvent in timelineEvents) {
+                sinkMock.processTimelineEvent(timelineEvent, null)
             }
-            (10..19).forEach {
-                mediaServiceMock.getMedia(any(), any(), eq(false))
-                sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+
+            for (timelineEventWithMedia in timelineEventsWithMedia) {
+                mediaServiceMock.getMedia(any(), any(), false)
+                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
             }
             sinkMock.finish()
         }
@@ -183,7 +199,7 @@ class ExportRoomTest {
         ) shouldBe ExportRoomResult.Success()
 
         verifySuspend(VerifyMode.not) {
-            mediaServiceMock.getMedia(any(), any(), eq(false))
+            mediaServiceMock.getMedia(any(), any(), false)
         }
     }
 
@@ -218,6 +234,13 @@ class ExportRoomTest {
             timeZone = TimeZone.of("CET"),
         ) shouldBe ExportRoomResult.Success()
 
+        val timelineEvents = (6..9).map {
+            timelineEvent(it.toLong()).first()
+        }
+        val timelineEventsWithMedia = (10..14).map {
+            timelineEventWithMedia(it.toLong()).first()
+        }
+
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
@@ -225,13 +248,13 @@ class ExportRoomTest {
 
             roomServiceMock.getTimelineEvents(any(), any(), any(), any())
 
-            (6..9).forEach {
-                sinkMock.processTimelineEvent(eq(timelineEvent(it.toLong()).first()), eqNull())
+            for (timelineEvent in timelineEvents) {
+                sinkMock.processTimelineEvent(timelineEvent, null)
             }
-            (10..14).forEach {
+            for (timelineEventWithMedia in timelineEventsWithMedia) {
                 matrixClientMock.di
-                mediaServiceMock.getMedia(any(), any(), eq(false))
-                sinkMock.processTimelineEvent(eq(timelineEventWithMedia(it.toLong()).first()), notNull())
+                mediaServiceMock.getMedia(any(), any(), false)
+                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
             }
             sinkMock.finish()
         }

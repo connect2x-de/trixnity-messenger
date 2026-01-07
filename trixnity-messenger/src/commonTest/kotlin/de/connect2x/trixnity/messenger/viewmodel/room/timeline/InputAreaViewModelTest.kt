@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.settle
@@ -15,7 +14,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContainOnly
@@ -134,9 +132,9 @@ class InputAreaViewModelTest {
         }
 
         canSendEventMocker returns flowOf(true)
-        everySuspend { roomServiceMock.sendMessage(eq(roomId), any(), any()) } returns ""
+        everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } returns ""
         every {
-            roomServiceMock.getTimelineEvent(any(), eq(eventId), any())
+            roomServiceMock.getTimelineEvent(any(), eventId, any())
         } returns flowOf(
             TimelineEvent(
                 event = messageEvent,
@@ -298,7 +296,7 @@ class InputAreaViewModelTest {
     fun `set 'is typing' when message was changed and is not empty`() = runTest {
         var setTypingWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(eq(roomId), eq(ourUserId), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(roomId, ourUserId, true, any(), null)
         } calls {
             setTypingWasCalled = true
             Result.success(Unit)
@@ -318,13 +316,13 @@ class InputAreaViewModelTest {
     fun `keep 'is typing' when message changes at least once every 3 seconds`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -354,13 +352,13 @@ class InputAreaViewModelTest {
     fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -384,13 +382,13 @@ class InputAreaViewModelTest {
     fun `set 'is not typing' when the message has been sent`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()

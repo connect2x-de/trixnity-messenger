@@ -11,7 +11,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -65,7 +64,7 @@ class RoomSettingsSecurityViewModelTest {
                     single { roomServiceMock }
                 })
         }.koin
-        canSendEventMock = every { userServiceMock.canSendEvent(roomId, eq(EncryptionEventContent::class)) }
+        canSendEventMock = every { userServiceMock.canSendEvent(roomId, EncryptionEventContent::class) }
         roomGetById = every { roomServiceMock.getById(roomId) }
         every { matrixClientMock.userId } returns me
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
@@ -109,7 +108,7 @@ class RoomSettingsSecurityViewModelTest {
 
     private fun mockSendStateEvent(expectedEvent: StateEventContent, callCounter: MutableStateFlow<Int>) {
         everySuspend {
-            roomsApiClientMock.sendStateEvent(eq(roomId), eq(expectedEvent), any(), any())
+            roomsApiClientMock.sendStateEvent(roomId, expectedEvent, any(), any())
         } calls {
             callCounter.value += 1
             Result.success(EventId("1"))

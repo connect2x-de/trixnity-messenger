@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Completely new notification handling
+- SDK: Support OAuth2 based authentication
+- SDK: Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
+  MatrixMessengerConfiguration)
 - SDK: Change back handling to use custom handler instead of Decomposes
 - UI / ANDROID: Close room list search with back button
 - UI: Merge the 'Your Accounts' panel into profile settings

@@ -686,7 +686,7 @@ class TimelineViewModelImpl(
 
                     val lifecycleRegistry = LifecycleRegistry()
                     lifecycleRegistry.start()
-                    get<OutboxElementHolderViewModelFactory>().create(
+                    this@TimelineViewModelImpl.get<OutboxElementHolderViewModelFactory>().create(
                         viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
                         key = transactionId.asKey(roomId),
                         outboxMessageFlow = outboxMessage,

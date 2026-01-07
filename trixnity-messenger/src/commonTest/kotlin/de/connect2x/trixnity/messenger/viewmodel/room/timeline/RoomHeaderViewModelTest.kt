@@ -14,7 +14,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -141,7 +140,7 @@ class RoomHeaderViewModelTest {
         roomTopicElement returns MutableStateFlow("My Topic")
         every { roomServiceMock.usersTyping } returns MutableStateFlow(emptyMap())
 
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
+        every { userServiceMock.getAll(roomId) } returns flowOf(
             mapOf(
                 me to flowOf(meRoomUser),
                 otherUser to flowOf(otherRoomUser),
@@ -159,7 +158,7 @@ class RoomHeaderViewModelTest {
         every {
             roomServiceMock.getState(
                 any(),
-                eq(JoinRulesEventContent::class),
+                JoinRulesEventContent::class,
                 any()
             )
         } returns MutableStateFlow(
@@ -176,7 +175,7 @@ class RoomHeaderViewModelTest {
         )
         everySuspend {
             mediaServiceMock.getThumbnail(
-                eq("mxc://localhost/123456"),
+                "mxc://localhost/123456",
                 any(),
                 any(),
                 any(),
@@ -184,7 +183,7 @@ class RoomHeaderViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
-        every { roomPresenceMock.invoke(any(), eq(roomId)) } returns flowOf(Presence.ONLINE)
+        every { roomPresenceMock.invoke(any(), roomId) } returns flowOf(Presence.ONLINE)
 
         every { userBlockingMock.isUserBlocked(any(), any()) } returns MutableStateFlow(false)
     }
@@ -193,7 +192,7 @@ class RoomHeaderViewModelTest {
     fun `should show correct room name with initials and avatar and react to changes`() = runTest {
         val roomName = MutableStateFlow("My Room")
         roomNameElement returns roomName
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(mapOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -226,7 +225,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `compute trust level of null for non-direct rooms`() = runTest {
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(mapOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -242,8 +241,8 @@ class RoomHeaderViewModelTest {
             me to flowOf(meRoomUser)
         ))
         room.update { it?.copy(isDirect = true) }
-        every { userServiceMock.getAll(eq(roomId)) } returns directRoom
-        every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
+        every { userServiceMock.getAll(roomId) } returns directRoom
+        every { keyServiceMock.getTrustLevel(otherUser) } returns trustLevel
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -265,13 +264,13 @@ class RoomHeaderViewModelTest {
     fun `allow to verify other user if not yet verified and vice versa`() = runTest {
         val trustLevel = MutableStateFlow(UserTrustLevel.CrossSigned(verified = false))
         room.update { it?.copy(isDirect = true) }
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
+        every { userServiceMock.getAll(roomId) } returns flowOf(
             mapOf(
                 otherUser to flowOf(otherRoomUser),
                 me to flowOf(meRoomUser)
             )
         )
-        every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns trustLevel
+        every { keyServiceMock.getTrustLevel(otherUser) } returns trustLevel
 
         val cut = roomHeaderViewModel()
         delay(100)
@@ -286,8 +285,8 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `not allow user verification in non-direct room`() = runTest {
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(mapOf())
-        every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        every { keyServiceMock.getTrustLevel(otherUser) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
 
@@ -303,13 +302,13 @@ class RoomHeaderViewModelTest {
             val ignoredUsersEventContent = MutableStateFlow(IgnoredUserListEventContent(mapOf()))
             ignoredUsers returns ignoredUsersEventContent
             room.update { it?.copy(isDirect = true) }
-            every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
+            every { userServiceMock.getAll(roomId) } returns flowOf(
                 mapOf(
                     otherUser to flowOf(otherRoomUser),
                     me to flowOf(meRoomUser)
                 )
             )
-            every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
+            every { keyServiceMock.getTrustLevel(otherUser) } returns flowOf(
                 UserTrustLevel.CrossSigned(verified = false)
             )
 
@@ -333,8 +332,8 @@ class RoomHeaderViewModelTest {
     @Test
     fun `not allow to block user in non-direct rooms or direct rooms with more than 2 participants`() = runTest {
         val directRoom = MutableStateFlow(mapOf<UserId, Flow<RoomUser>>())
-        every { userServiceMock.getAll(eq(roomId)) } returns directRoom
-        every { keyServiceMock.getTrustLevel(eq(otherUser)) } returns flowOf(
+        every { userServiceMock.getAll(roomId) } returns directRoom
+        every { keyServiceMock.getTrustLevel(otherUser) } returns flowOf(
             UserTrustLevel.CrossSigned(verified = false)
         )
 
@@ -367,7 +366,7 @@ class RoomHeaderViewModelTest {
 
     @Test
     fun `knocking » should calculate amount of knocking users`() = runTest {
-        every { userServiceMock.getAll(eq(roomId)) } returns flowOf(
+        every { userServiceMock.getAll(roomId) } returns flowOf(
             mapOf(
                 otherUser to flowOf(
                     otherRoomUser.copy(
