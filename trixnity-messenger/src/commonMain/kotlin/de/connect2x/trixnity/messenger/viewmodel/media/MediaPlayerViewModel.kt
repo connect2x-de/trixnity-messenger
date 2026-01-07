@@ -82,10 +82,15 @@ class MediaPlayerViewModelImpl(
         if (player != null) {
             log.debug { "Initiating download of media '${audio.name}' for media player" }
             coroutineScope.launch {
-                audio.downloadMedia { media ->
-                    platformMedia.value = media
-                    state.value = State.Ready
-                }
+                audio.downloadMedia(
+                    processFile = { media ->
+                        platformMedia.value = media
+                        state.value = State.Ready
+                    },
+                    onDownloadCancelled = {
+                        state.value = State.Failed()
+                    }
+                )
             }
         }
     }
