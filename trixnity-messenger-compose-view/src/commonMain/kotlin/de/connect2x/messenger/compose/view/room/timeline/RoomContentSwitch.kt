@@ -61,7 +61,6 @@ fun AttachmentTimelineSwitch(timelineViewModel: TimelineViewModel) {
             is TimelineViewModel.Wrapper.None -> {
                 Column {
                     Timeline(timelineViewModel)
-                    TypingIndicator(timelineViewModel)
                     InputArea(timelineViewModel.inputAreaViewModel)
                 }
             }
