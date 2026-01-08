@@ -278,7 +278,7 @@ class TimelineViewImpl : TimelineView {
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
-
+                                item { TypingIndicator(timelineViewModel) }
                                 timelineElementViewModelGrouped.value.forEachIndexed { index, (date, viewModel) ->
                                     // if an empty timeline-event is marked as the focusedElement we cannot tab into the
                                     // timeline due to it not being focusable so we initially skip all empties
