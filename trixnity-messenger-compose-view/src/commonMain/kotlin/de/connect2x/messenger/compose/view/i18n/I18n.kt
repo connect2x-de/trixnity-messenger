@@ -3306,7 +3306,7 @@ open class I18nView(
     }
 
     open fun accountOverviewWarningMultipleAccounts() = translate {
-        EN - "If you want to give another owner permission to add accounts, please log out of your profile here. Afterwards you can create a new profile."
+        EN - "If you want to give another owner permission to add accounts, please log out of your profile and can create a new one."
         DE - "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab und legen Sie ein neues Profil an."
     }
 

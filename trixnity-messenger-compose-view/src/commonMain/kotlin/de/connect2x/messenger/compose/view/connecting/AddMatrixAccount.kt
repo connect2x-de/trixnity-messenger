@@ -43,33 +43,38 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
     @Composable
     override fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel) {
         val i18n = DI.get<I18nView>()
+        val isFirstMatrixClient = addMatrixAccountViewModel.isFirstMatrixClient.collectAsState().value
         Column {
             ServerInputField(addMatrixAccountViewModel)
             Spacer(Modifier.height(20.dp))
             ServerDiscoveryState(addMatrixAccountViewModel)
             MiddleSpacer()
-            Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium) {
-                val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
-                Column(
-                    Modifier.padding(MaterialTheme.messengerDpConstants.middle),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
+            if (isFirstMatrixClient == false) {
+                Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium) {
+                    val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
+                    Column(
+                        Modifier.padding(MaterialTheme.messengerDpConstants.middle),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Default.Warning, "Warning")
-                        SmallSpacer()
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(i18n.accountOverviewWarning())
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Warning, "Warning")
                             SmallSpacer()
-                            if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(i18n.accountOverviewWarning())
+                                SmallSpacer()
+                                if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
+                            }
                         }
-                    }
-                    SmallSpacer()
-                    ThemedButton(onClick = {
-                        addMatrixAccountViewModel.logoutFromProfile()
-                    }) {
-                        Text(i18n.accountsOverviewLogout())
+                        if (isMultiProfile) {
+                            SmallSpacer()
+                            ThemedButton(onClick = {
+                                addMatrixAccountViewModel.logoutFromProfile()
+                            }) {
+                                Text(i18n.accountsOverviewLogout())
+                            }
+                        }
                     }
                 }
             }
