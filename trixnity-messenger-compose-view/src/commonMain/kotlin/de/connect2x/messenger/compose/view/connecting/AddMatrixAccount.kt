@@ -65,14 +65,6 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
                                 if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
                             }
                         }
-                        if (isMultiProfile) {
-                            SmallSpacer()
-                            ThemedButton(onClick = {
-                                addMatrixAccountViewModel.logoutFromProfile()
-                            }) {
-                                Text(i18n.accountsOverviewLogout())
-                            }
-                        }
                     }
                 }
             }

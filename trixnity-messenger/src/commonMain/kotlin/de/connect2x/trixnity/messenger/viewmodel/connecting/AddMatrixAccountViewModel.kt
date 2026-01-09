@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
-import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -73,7 +72,6 @@ interface AddMatrixAccountViewModel {
 
     fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod)
     fun cancel()
-    fun logoutFromProfile()
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -112,16 +110,6 @@ open class AddMatrixAccountViewModelImpl(
                 }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ServerDiscoveryState.None)
-
-    private val profileManager = get<ProfileManager>()
-    override val hasOtherAccountsOrProfiles = combine(
-        isFirstMatrixClient.filterNotNull(),
-        profileManager.isMultiProfileEnabled.filterNotNull()
-    ) { isFirstClient, isMultiProfile -> !isFirstClient || isMultiProfile }.stateIn(
-        coroutineScope,
-        SharingStarted.WhileSubscribed(),
-        false
-    )
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         onAddMatrixAccountMethod(addMatrixAccountMethod)
@@ -235,11 +223,14 @@ open class AddMatrixAccountViewModelImpl(
             false
         )
 
-    override fun logoutFromProfile() {
-        coroutineScope.launch {
-            profileManager?.closeProfile()
-        }
-    }
+    override val hasOtherAccountsOrProfiles = combine(
+        isFirstMatrixClient.filterNotNull(),
+        isMultiProfile
+    ) { isFirstClient, isMultiProfile -> !isFirstClient || isMultiProfile }.stateIn(
+        coroutineScope,
+        SharingStarted.WhileSubscribed(),
+        false
+    )
 }
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
@@ -253,8 +244,5 @@ class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     }
 
     override fun cancel() {
-    }
-
-    override fun logoutFromProfile() {
     }
 }

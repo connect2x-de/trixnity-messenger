@@ -78,6 +78,16 @@ fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): 
             AddMatrixAccount(viewModel)
         },
         nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
+        backButton = {
+            val hasOtherAccountsOrProfiles = viewModel.hasOtherAccountsOrProfiles.collectAsState().value
+            if (hasOtherAccountsOrProfiles) {
+                WizardNavigationButton.Custom {
+                    ThemedButton(style = MaterialTheme.components.commonButton, onClick = { viewModel.cancel() }) {
+                        Text(i18n.commonCancel())
+                    }
+                }
+            } else WizardNavigationButton.None
+        }
     )
 }
 
