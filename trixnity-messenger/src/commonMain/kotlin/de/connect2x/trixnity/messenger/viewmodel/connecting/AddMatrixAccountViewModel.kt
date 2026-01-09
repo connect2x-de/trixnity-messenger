@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -16,7 +17,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -57,6 +60,7 @@ interface AddMatrixAccountViewModel {
 
     val serverUrl: TextFieldViewModel
     val serverDiscoveryState: StateFlow<ServerDiscoveryState>
+    val hasOtherAccountsOrProfiles: StateFlow<Boolean>
 
     val isMultiProfile: StateFlow<Boolean>
 
@@ -108,6 +112,16 @@ open class AddMatrixAccountViewModelImpl(
                 }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), ServerDiscoveryState.None)
+
+    private val profileManager = get<ProfileManager>()
+    override val hasOtherAccountsOrProfiles = combine(
+        isFirstMatrixClient.filterNotNull(),
+        profileManager.isMultiProfileEnabled.filterNotNull()
+    ) { isFirstClient, isMultiProfile -> !isFirstClient || isMultiProfile }.stateIn(
+        coroutineScope,
+        SharingStarted.WhileSubscribed(),
+        false
+    )
 
     override fun selectAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         onAddMatrixAccountMethod(addMatrixAccountMethod)
@@ -230,6 +244,7 @@ open class AddMatrixAccountViewModelImpl(
 
 class PreviewAddMatrixAccountViewModel : AddMatrixAccountViewModel {
     override val isFirstMatrixClient: MutableStateFlow<Boolean?> = MutableStateFlow(true)
+    override val hasOtherAccountsOrProfiles: StateFlow<Boolean> = MutableStateFlow(true)
     override val serverUrl = TextFieldViewModelImpl(maxLength = 1_000, "matrix.org")
     override val serverDiscoveryState: MutableStateFlow<ServerDiscoveryState> =
         MutableStateFlow(ServerDiscoveryState.None)
