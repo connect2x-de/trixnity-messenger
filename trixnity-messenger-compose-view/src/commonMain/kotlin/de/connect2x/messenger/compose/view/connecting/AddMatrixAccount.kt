@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -24,8 +22,8 @@ import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
@@ -50,7 +48,7 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
             ServerDiscoveryState(addMatrixAccountViewModel)
             MiddleSpacer()
             if (isFirstMatrixClient == false) {
-                Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium) {
+                ThemedSurface(style = MaterialTheme.components.warningBanner.copy(shape = MaterialTheme.shapes.medium)) {
                     val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
                     Column(
                         Modifier.padding(MaterialTheme.messengerDpConstants.middle),
