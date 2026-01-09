@@ -78,13 +78,6 @@ fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): 
             AddMatrixAccount(viewModel)
         },
         nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
-        additionalButton = {
-            Button(onClick = {
-                viewModel.logoutFromProfile()
-            }) {
-                Text(i18n.accountsOverviewLogout())
-            }
-        }
     )
 }
 

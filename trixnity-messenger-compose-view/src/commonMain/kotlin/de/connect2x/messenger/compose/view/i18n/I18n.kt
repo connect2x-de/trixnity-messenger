@@ -3302,12 +3302,12 @@ open class I18nView(
 
     open fun accountOverviewWarning() = translate {
         EN - "This function is not intended for adding accounts belonging to different owners. Instead, it enables one owner to manage multiple accounts."
-        DE - "Mit dieser Funktion können keine Konten von unterschiedlichen Eigentümern hinzugefügt werden. Sie erlaubt jedoch, dass ein Eigentümer mehrere Konten nutzen kann."
+        DE - "Diese Funktion sollte nicht verwendet werden um die Konten mehrerer Personen zu verwalten. Stattdessen sollte sie genutzt werden, um auf mehrere Konten im Besitz der gleichen Person zuzugreifen."
     }
 
     open fun accountOverviewWarningMultipleAccounts() = translate {
-        EN - "If you want to give another owner permission to add accounts, please log out of your profile here."
-        DE - "Wenn Sie einem weiteren Eigentümer erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab."
+        EN - "If you want to give another owner permission to add accounts, please log out of your profile here. Afterwards you can create a new profile."
+        DE - "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab und legen Sie ein neues Profil an."
     }
 
     open fun  profileSelectionMultipleAccountHeader() = translate {

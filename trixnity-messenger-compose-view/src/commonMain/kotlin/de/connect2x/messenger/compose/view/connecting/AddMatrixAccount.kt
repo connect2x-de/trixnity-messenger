@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,6 +23,7 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
@@ -48,15 +50,26 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
             MiddleSpacer()
             Surface(color = MaterialTheme.colorScheme.errorContainer, shape = MaterialTheme.shapes.medium) {
                 val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
-                Row(
+                Column(
                     Modifier.padding(MaterialTheme.messengerDpConstants.middle),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(Icons.Default.Warning, "Warning")
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Warning, "Warning")
+                        SmallSpacer()
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(i18n.accountOverviewWarning())
+                            SmallSpacer()
+                            if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
+                        }
+                    }
                     SmallSpacer()
-                    Column {
-                        Text(i18n.accountOverviewWarning())
-                        if (isMultiProfile) Text(i18n.accountOverviewWarningMultipleAccounts())
+                    ThemedButton(onClick = {
+                        addMatrixAccountViewModel.logoutFromProfile()
+                    }) {
+                        Text(i18n.accountsOverviewLogout())
                     }
                 }
             }
