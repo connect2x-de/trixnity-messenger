@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.profiles
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -14,6 +15,7 @@ import de.connect2x.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.messenger.compose.view.common.WizardStep
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.multi.ProfileManager
@@ -55,6 +57,7 @@ class IntroductionViewImpl : IntroductionView {
                                     open.value = false
                                 },
                                 content = { Text(i18n.commonNext()) },
+                                style = MaterialTheme.components.primaryButton
                             )
                         }
                     },

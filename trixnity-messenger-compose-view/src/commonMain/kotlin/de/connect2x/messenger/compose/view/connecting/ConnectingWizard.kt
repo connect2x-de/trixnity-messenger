@@ -57,6 +57,20 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
                     content = {
                         AddMatrixAccount(viewModel)
                     },
+                    backButton = {
+                        val canCancel = viewModel.hasOtherAccountsOrProfiles.collectAsState().value
+                        if (canCancel) {
+                            WizardNavigationButton.Custom {
+                                ThemedButton(
+                                    onClick = { viewModel.cancel() },
+                                    style = MaterialTheme.components.commonButton
+                                ) {
+                                    Text(i18n.commonCancel())
+                                }
+                            }
+                        }
+                        else WizardNavigationButton.None
+                    },
                     nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
                 )
 
