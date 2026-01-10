@@ -93,9 +93,9 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         val systemDensity = SystemDensity.current
         Column(
             Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)
-            // remove this from the focus chain and hide it from accessibility
-            .clearAndSetSemantics { hideFromAccessibility() }
-            .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
+                // remove this from the focus chain and hide it from accessibility
+                .clearAndSetSemantics { hideFromAccessibility() }
+                .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
         ) {
             CompositionLocalProvider(
                 LocalDensity provides Density(
@@ -238,6 +238,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val redactionWarningIsEnabled: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -247,6 +248,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun disableRedactWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}
@@ -292,6 +294,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val redactionWarningIsEnabled: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -301,6 +304,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun disableRedactWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}

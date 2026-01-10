@@ -90,6 +90,8 @@ import de.connect2x.messenger.compose.view.room.timeline.InputAreaView
 import de.connect2x.messenger.compose.view.room.timeline.InputAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyView
 import de.connect2x.messenger.compose.view.room.timeline.LocationReplyViewImpl
+import de.connect2x.messenger.compose.view.room.timeline.RedactionWarningView
+import de.connect2x.messenger.compose.view.room.timeline.RedactionWarningViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaView
 import de.connect2x.messenger.compose.view.room.timeline.ReplyToAreaViewImpl
 import de.connect2x.messenger.compose.view.room.timeline.RoomHeaderView
@@ -534,6 +536,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     single<SendAttachmentView> { SendAttachmentViewImpl() }
     single<SendAttachmentTitleView> { SendAttachmentTitleViewImpl() }
     single<TypingIndicatorView> { TypingIndicatorViewImpl() }
+    single<RedactionWarningView> { RedactionWarningViewImpl() }
 }
 
 fun timelineElementDetailsViewsModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {

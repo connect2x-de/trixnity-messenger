@@ -3310,12 +3310,12 @@ open class I18nView(
         DE - "Wenn Sie einem weiteren Eigentümer erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte hier aus Ihrem Profil ab."
     }
 
-    open fun  profileSelectionMultipleAccountHeader() = translate {
+    open fun profileSelectionMultipleAccountHeader() = translate {
         EN - "Multi Profile Setup"
         DE - "Multi-Profil Einrichtung"
     }
 
-    open fun  profileSelectionMultipleAccountSwitch() = translate {
+    open fun profileSelectionMultipleAccountSwitch() = translate {
         EN - "Enable multi profile mode"
         DE - "Multi-Profil-Modus aktivieren"
     }
@@ -3328,6 +3328,11 @@ open class I18nView(
     open fun redactionWarningInfo() = translate {
         EN - "Are you sure you want to delete this message? This action cannot be reversed!"
         DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
+    }
+
+    open fun redactionWarningDisable() = translate {
+        EN - "Do you want to disable this warning in the future"
+        DE - "Diese Warnung in Zukunft nicht mehr anzeigen"
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)
