@@ -21,8 +21,8 @@ import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
@@ -48,7 +48,7 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
             ServerDiscoveryState(addMatrixAccountViewModel)
             MiddleSpacer()
             if (isFirstMatrixClient == false) {
-                ThemedSurface(style = MaterialTheme.components.warningBanner.copy(shape = MaterialTheme.shapes.medium)) {
+                ThemedSurface(style = MaterialTheme.components.details.copy(shape = MaterialTheme.shapes.medium)) {
                     val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
                     Column(
                         Modifier.padding(MaterialTheme.messengerDpConstants.middle),
@@ -57,8 +57,12 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Warning, "Warning")
-                            SmallSpacer()
+                            Icon(
+                                Icons.Default.Warning,
+                                i18n.commonWarning(),
+                                tint = MaterialTheme.messengerColors.warning
+                            )
+                            MiddleSpacer()
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(i18n.accountOverviewWarning())
                                 SmallSpacer()
