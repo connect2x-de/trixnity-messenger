@@ -12,7 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoDelete
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -21,10 +25,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
 interface MessageBubbleView {
@@ -66,6 +78,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
+        val showRedactWarning = remember { mutableStateOf(false) }
 
         val reactionsOpen = remember { mutableStateOf(false) }
 
@@ -100,6 +113,10 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         isPreview = isPreview,
                         interactionSource = interactionSource,
                         index = index,
+                        onRedact = {
+                            println("Showing redact warning")
+                            showRedactWarning.value = true
+                        },
                         content = content,
                     )
                 }
@@ -109,6 +126,31 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         reactionsOpen,
                         modifier = Modifier.padding(start = 8.dp),
                     )
+                }
+            }
+        }
+        val i18n = DI.get<I18nView>()
+        val holder = holder.asTimelineElementHolder()
+        if (showRedactWarning.value) {
+            ThemedModalDialog(onDismissRequest = { showRedactWarning.value = false }) {
+                ModalDialogHeader { Text(i18n.redactionWarningInfoTitle()) }
+                ModalDialogContent {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Warning, i18n.commonWarning(), tint = MaterialTheme.messengerColors.warning)
+                        SmallSpacer()
+                        Text(i18n.redactionWarningInfo())
+                    }
+                }
+                ModalDialogFooter {
+                    ThemedButton(
+                        onClick = { showRedactWarning.value = false },
+                        style = MaterialTheme.components.commonButton
+                    ) {
+                        Text(i18n.commonCancel())
+                    }
+                    ThemedButton(onClick = { holder?.redact() }, style = MaterialTheme.components.primaryButton) {
+                        Text(i18n.commonConfirm())
+                    }
                 }
             }
         }

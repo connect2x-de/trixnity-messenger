@@ -3320,6 +3320,16 @@ open class I18nView(
         DE - "Multi-Profil-Modus aktivieren"
     }
 
+    open fun redactionWarningInfoTitle() = translate {
+        EN - "Deletion confirmation"
+        DE - "Löschvorgang bestätigen"
+    }
+
+    open fun redactionWarningInfo() = translate {
+        EN - "Are you sure you want to delete this message? This action cannot be reversed!"
+        DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)
