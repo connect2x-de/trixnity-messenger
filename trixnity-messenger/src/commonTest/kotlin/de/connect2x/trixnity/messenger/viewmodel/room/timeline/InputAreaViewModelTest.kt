@@ -787,9 +787,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
+            println(formattedBody)
             formattedBody shouldBe """
                 <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
-                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+                <br />und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
             """.trimIndent()
         }
     }
