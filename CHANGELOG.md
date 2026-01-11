@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI: Markdown formating to make a single line break lead to a visible new line
 - Completely new notification handling
 - SDK: Support OAuth2 based authentication
 - SDK: Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
