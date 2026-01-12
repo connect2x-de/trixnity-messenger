@@ -3,11 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
-import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -157,14 +154,12 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
-    val redactionWarningIsEnabled: StateFlow<Boolean>
 
     val highlight: StateFlow<Boolean>
 
     fun replace()
     fun endReplace()
     fun redact()
-    fun disableRedactWarning()
     fun reply()
     fun endReply()
     fun report()
@@ -175,7 +170,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineElementHolderViewModelImpl(
-    val viewModelContext: MatrixClientViewModelContext,
+    viewModelContext: MatrixClientViewModelContext,
     override val key: String,
     timelineEventFlow: Flow<TimelineEvent>,
     override val roomId: RoomId,
@@ -498,12 +493,6 @@ class TimelineElementHolderViewModelImpl(
         .map { it == null || it.sentAt != null }
         .stateIn(coroutineScope, WhileSubscribed(), true)
 
-    override val redactionWarningIsEnabled: StateFlow<Boolean> =
-        get<MatrixMessengerSettingsHolder>().map {
-            it.base.accounts[it.base.selectedAccount]?.base?.showRedactWarning ?: true
-        }
-            .stateIn(coroutineScope, WhileSubscribed(), false)
-
     override fun replace() {
         editInProgress.value = true
         coroutineScope.launch {
@@ -544,15 +533,6 @@ class TimelineElementHolderViewModelImpl(
         } else log.warn {
             "try to redact timeline event $eventId," +
                     " but is already marked for redaction"
-        }
-    }
-
-    override fun disableRedactWarning() {
-        val settings = get<MatrixMessengerSettingsHolder>()
-        coroutineScope.launch {
-            settings.update<MatrixMessengerAccountSettingsBase>(viewModelContext.userId) {
-                it.copy(showRedactWarning = false)
-            }
         }
     }
 
@@ -647,11 +627,9 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val redactionWarningIsEnabled: StateFlow<Boolean> = MutableStateFlow(true)
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
-    override fun disableRedactWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}
@@ -703,12 +681,9 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val redactionWarningIsEnabled: StateFlow<Boolean> = MutableStateFlow(true)
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
-    override fun disableRedactWarning() {}
-
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}

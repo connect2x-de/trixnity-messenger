@@ -139,7 +139,6 @@ data class MatrixMessengerConfiguration(
          */
         var enablePdfReader: Boolean = true,
         var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
-        var enableRedactionWarning: Boolean = true,
     )
 
     enum class CryptoDriver {

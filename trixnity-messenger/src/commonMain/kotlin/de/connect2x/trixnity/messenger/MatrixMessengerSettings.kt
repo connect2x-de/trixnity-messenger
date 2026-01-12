@@ -107,7 +107,6 @@ data class MatrixMessengerAccountSettingsBase(
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
     val accountSetupFinished: Boolean = false,
-    val showRedactWarning: Boolean = true,
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -119,7 +118,6 @@ data class MatrixMessengerAccountSettingsBase(
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
             accountSetupFinished = config.useAccountSetupWizard.not(),
-            showRedactWarning = config.features.enableRedactionWarning
         )
     }
 }

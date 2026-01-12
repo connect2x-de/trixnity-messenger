@@ -3329,12 +3329,6 @@ open class I18nView(
         EN - "Are you sure you want to delete this message? This action cannot be reversed!"
         DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
-
-    open fun redactionWarningDisable() = translate {
-        EN - "Do you want to disable this warning in the future"
-        DE - "Diese Warnung in Zukunft nicht mehr anzeigen"
-    }
-
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)
