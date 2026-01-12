@@ -35,6 +35,10 @@ interface MediaPlayerViewModelFactory {
 }
 
 interface MediaPlayerViewModel {
+    /**
+     * This field represents the elapsed time while playing the media. When paused, the elapsed time duration
+     * should be preserved to the time played allowing to start at that time when re-starting audio playback.
+     */
     val elapsedTime: StateFlow<Duration>
     val duration: StateFlow<Duration>
     val state: StateFlow<State>
@@ -93,25 +97,6 @@ class MediaPlayerViewModelImpl(
                     }
                 )
             }
-
-            coroutineScope.launch {
-                launch {
-                    player.isPlaying.collect { isPlaying ->
-                        if (state.value != State.Playing || isPlaying) {
-                            return@collect
-                        }
-
-                        this@MediaPlayerViewModelImpl.stop()
-                    }
-                }
-
-                launch {
-                    player.elapsedTime.collect { elapsedTime ->
-                        this@MediaPlayerViewModelImpl.elapsedTime.value = elapsedTime
-                        this@MediaPlayerViewModelImpl.duration.value = player.duration.value
-                    }
-                }
-            }
         }
     }
 
@@ -126,7 +111,15 @@ class MediaPlayerViewModelImpl(
                 check(state.value is State.Ready) { "The player is not ready or already playing" }
 
                 log.info { "Start playing media '${audio.name}' with media player" }
-                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value)
+                player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value) { event ->
+                    when (event) {
+                        is MediaPlayer.Event.Stopped -> stop()
+                        is MediaPlayer.Event.Progress -> {
+                            elapsedTime.value = event.elapsedTime
+                            duration.value = event.duration
+                        }
+                    }
+                }
                 state.value = State.Playing
             }
         }
@@ -154,7 +147,7 @@ class MediaPlayerViewModelImpl(
 
     override fun seekTo(duration: Duration) {
         if (player == null) {
-            log.error { "Unable to start playback of media file because the media player is not present" }
+            log.error { "Unable to seek media file because the media player is not present" }
             return
         }
 

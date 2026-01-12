@@ -27,8 +27,6 @@ private val log = KotlinLogging.logger { }
 
 class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
     private var controller: MediaController? = null
-
-    private val lastPlayedMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
     private val mediaDataStore: MutableMap<String, Playback> = ConcurrentHashMap()
 
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
@@ -46,8 +44,11 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                     val controller = requireNotNull(controller)
                     val metadata = mediaDataStore[controller.currentMediaItem?.mediaId]
                     if (controller.playbackState == Player.STATE_READY) {
-                        elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
-                        duration.value = controller.duration.coerceAtLeast(0).milliseconds
+                        val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
+                        val duration = controller.duration.coerceAtLeast(0).milliseconds
+                        metadata?.callback(MediaPlayer.Event.Progress(elapsedTime, duration))
+                        this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
+                        this@AndroidMediaPlayer.duration.value = duration
                     }
 
                     if (!isPlaying) {
@@ -68,7 +69,8 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
     override suspend fun start(
         media: PlatformMedia,
         mimeType: String?,
-        position: Duration
+        position: Duration,
+        callback: (MediaPlayer.Event) -> Unit
     ) {
         require(media is OkioPlatformMedia) { "Media is expected to be a OkioPlatformMedia" }
         val controller = checkNotNull(controller) { "Unable to play media when media player is not available yet!" }
@@ -82,19 +84,22 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
             media.getTemporaryFile().fold(
                 onFailure = {
                     log.error(it) { "Unexpected error when acquiring file for playback" }
-                    return@withContext
                 },
                 onSuccess = { tempFile ->
                     log.info { "Successfully acquired file, starting playback" }
                     isPlaying.value = true
                     mediaDataStore[tempFile.path.toString()] = Playback(
+                        callback = callback,
                         updateJob = coroutineScope.launch {
                             while (isActive && isPlaying.value) {
-                                val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
-                                val duration = controller.duration.coerceAtLeast(0).milliseconds
-                                this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
-                                this@AndroidMediaPlayer.duration.value = duration
-                                delay(150.milliseconds)
+                                withContext(Dispatchers.Main) {
+                                    val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
+                                    val duration = controller.duration.coerceAtLeast(0).milliseconds
+                                    callback(MediaPlayer.Event.Progress(elapsedTime, duration))
+                                    this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
+                                    this@AndroidMediaPlayer.duration.value = duration
+                                }
+                                delay(150)
                             }
                         }
                     )
@@ -105,7 +110,6 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                     controller.prepare()
                     controller.seekTo(position.inWholeMilliseconds)
                     controller.play()
-                    lastPlayedMedia.value = media
                 }
             )
         }
@@ -114,14 +118,25 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
     override suspend fun stop() = stop0(pause = true)
 
     override suspend fun seekTo(position: Duration) {
-        check(isPlaying.value) { "Unable to seek playback position without anything being played" }
+        if (!isPlaying.value) {
+            log.error { "Unable to seek media playback because player is currently not playing" }
+            return
+        }
+
         withContext(Dispatchers.Main) {
+            if (controller?.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)?.not() ?: true) {
+                log.error { "Unable to seek media playback because seek command is not available" }
+                return@withContext
+            }
+
+            log.debug { "Seeking media playback to $position" }
             controller?.seekTo(position.inWholeMilliseconds)
         }
     }
 
     override fun close() {
-        mediaDataStore.remove(controller?.currentMediaItem?.mediaId)?.close()
+        mediaDataStore.forEach { (_, entry) -> entry.close() }
+        mediaDataStore.clear()
     }
 
     suspend fun stop0(pause: Boolean) {
@@ -140,15 +155,18 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
     }
 
     data class Playback(
+        val callback: (MediaPlayer.Event) -> Unit,
         val updateJob: Job,
         var isClosed: Boolean = false
     ) : AutoCloseable {
         fun pause() {
+            callback(MediaPlayer.Event.Stopped)
             updateJob.cancel()
         }
 
         override fun close() {
             log.debug { "Closing playback resource by sending stop event and cancel update job" }
+            callback(MediaPlayer.Event.Progress(Duration.ZERO, Duration.ZERO))
             pause()
         }
     }

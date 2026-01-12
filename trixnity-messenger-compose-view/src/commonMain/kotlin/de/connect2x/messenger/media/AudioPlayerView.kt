@@ -59,7 +59,7 @@ private fun PlayableAudioMessage(
 ) {
     val isPlaying = viewModel.state.collectAsState().value is MediaPlayerViewModel.State.Playing
     val duration = viewModel.duration.collectAsState().value
-    val elapsedTime = viewModel.elapsedTime.collectAsState().value.inWholeMilliseconds
+    val elapsedTime = viewModel.elapsedTime.collectAsState().value
 
     Column(modifier = Modifier.padding(4.dp)) {
         Row {
@@ -86,16 +86,22 @@ private fun PlayableAudioMessage(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${formatDuration(audio.duration ?: duration)}${audio.size ?: ""}",
+                    text = "${formatDuration(duration)}${audio.size ?: ""}",
                     style = MaterialTheme.typography.labelMedium
                 )
             }
         }
+
         ThemedSlider(
-            value = elapsedTime.toFloat(),
-            onValueChange = { viewModel.seekTo(it.toLong().milliseconds) },
-            valueRange = 0F..duration.inWholeMilliseconds.toFloat(),
-            modifier = Modifier.width(250.dp)
+            modifier = Modifier.width(250.dp),
+            valueRange = 0F..1F,
+            value = (elapsedTime / duration).let {
+                if (it.isNaN()) 0 else it
+            }.toFloat(),
+            onValueChange = {
+                val elapsedTime = duration.inWholeMilliseconds * it
+                viewModel.seekTo(elapsedTime.toLong().milliseconds)
+            }
         )
     }
 }
