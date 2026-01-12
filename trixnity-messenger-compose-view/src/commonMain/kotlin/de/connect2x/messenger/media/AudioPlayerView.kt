@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -61,37 +62,26 @@ private fun PlayableAudioMessage(
     val duration = viewModel.duration.collectAsState().value
     val elapsedTime = viewModel.elapsedTime.collectAsState().value
 
-    Column(modifier = Modifier.padding(4.dp)) {
-        Row {
-            ThemedIconButton(
-                onClick = {
-                    if (isPlaying) {
-                        viewModel.stop()
-                    } else {
-                        viewModel.start()
-                    }
+    Row(
+        modifier = Modifier.padding(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ThemedIconButton(
+            onClick = {
+                if (isPlaying) {
+                    viewModel.stop()
+                } else {
+                    viewModel.start()
                 }
-            ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    modifier = Modifier.size(50.dp),
-                    contentDescription = null, // TODO: Accessibility
-                )
             }
-            Spacer(Modifier.width(5.dp))
-            Column {
-                Text(
-                    text = audio.name,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${formatDuration(duration)}${audio.size ?: ""}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
+        ) {
+            Icon(
+                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                modifier = Modifier.size(50.dp),
+                contentDescription = null, // TODO: Accessibility
+            )
         }
-
+        Spacer(Modifier.width(5.dp)) // TODO: Show current and end time
         ThemedSlider(
             modifier = Modifier.width(250.dp),
             valueRange = 0F..1F,

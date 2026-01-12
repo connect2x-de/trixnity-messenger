@@ -51,7 +51,7 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                         this@AndroidMediaPlayer.duration.value = duration
                     }
 
-                    if (!isPlaying) {
+                    if (controller.playbackState == Player.STATE_ENDED && !isPlaying) {
                         metadata?.let {
                             it.close()
                             mediaDataStore.remove(controller.currentMediaItem?.mediaId)
@@ -139,7 +139,7 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
         mediaDataStore.clear()
     }
 
-    suspend fun stop0(pause: Boolean) {
+    private suspend fun stop0(pause: Boolean) {
         withContext(Dispatchers.Main) {
             val mediaId = controller?.currentMediaItem?.mediaId
             if (pause) {

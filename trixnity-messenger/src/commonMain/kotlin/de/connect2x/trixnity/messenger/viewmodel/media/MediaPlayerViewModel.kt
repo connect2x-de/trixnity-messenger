@@ -116,7 +116,9 @@ class MediaPlayerViewModelImpl(
                         is MediaPlayer.Event.Stopped -> stop()
                         is MediaPlayer.Event.Progress -> {
                             elapsedTime.value = event.elapsedTime
-                            duration.value = event.duration
+                            if (event.duration > Duration.ZERO) {
+                                duration.value = event.duration
+                            }
                         }
                     }
                 }
