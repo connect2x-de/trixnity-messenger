@@ -39,12 +39,8 @@ class AudioPlayerService : MediaSessionService(), MediaSession.Callback {
         Futures.immediateFuture(mediaItems.map { it.buildUpon().setUri(it.mediaId).build() }.toMutableList())
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-        val player = requireNotNull(mediaSession?.player)
-        if (player.playWhenReady) {
-            player.pause()
-        }
-        stopSelf()
+        player.clearMediaItems()
+        pauseAllPlayersAndStopSelf()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
