@@ -75,18 +75,16 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
         require(media is OkioPlatformMedia) { "Media is expected to be a OkioPlatformMedia" }
         val controller = checkNotNull(controller) { "Unable to play media when media player is not available yet!" }
         withContext(Dispatchers.Main) {
-            elapsedTime.value = Duration.ZERO
-            duration.value = Duration.ZERO
-
-            log.trace { "The media requested is not dame media as played last time, queueing new media" }
-            stop0(pause = false)
-
             media.getTemporaryFile().fold(
                 onFailure = {
                     log.error(it) { "Unexpected error when acquiring file for playback" }
                 },
                 onSuccess = { tempFile ->
                     log.info { "Successfully acquired file, starting playback" }
+                    elapsedTime.value = Duration.ZERO
+                    duration.value = Duration.ZERO
+                    controller.clearMediaItems()
+
                     isPlaying.value = true
                     mediaDataStore[tempFile.path.toString()] = Playback(
                         callback = callback,
@@ -104,9 +102,7 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                         }
                     )
 
-                    controller.setMediaItem(MediaItem.Builder()
-                        .setMediaId(tempFile.path.toString())
-                        .setMimeType(mimeType ?: MimeTypes.AUDIO_RAW).build())
+                    controller.setMediaItem(MediaItem.Builder().setMimeType(mimeType ?: MimeTypes.AUDIO_RAW).build())
                     controller.prepare()
                     controller.seekTo(position.inWholeMilliseconds)
                     controller.play()
@@ -150,6 +146,8 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                 controller?.stop()
             }
 
+            elapsedTime.value = Duration.ZERO
+            duration.value = Duration.ZERO
             isPlaying.value = false
         }
     }
