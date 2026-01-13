@@ -111,10 +111,12 @@ class MediaPlayerViewModelImpl(
                 check(state.value is State.Ready) { "The player is not ready or already playing" }
 
                 log.info { "Start playing media '${audio.name}' with media player" }
+                val startTime = elapsedTime.value
                 player.start(requireNotNull(platformMedia.value), audio.mimeType, elapsedTime.value) { event ->
                     when (event) {
                         is MediaPlayer.Event.Stopped -> stop()
                         is MediaPlayer.Event.Progress -> {
+                            println("EEEEEEEEE: ${event.elapsedTime} of ${event.duration} (ST = $startTime)")
                             elapsedTime.value = event.elapsedTime
                             if (event.duration > Duration.ZERO) {
                                 duration.value = event.duration

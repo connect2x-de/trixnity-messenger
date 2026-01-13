@@ -2,11 +2,14 @@ package de.connect2x.trixnity.messenger.media
 
 import android.content.ComponentName
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +28,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
-class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
+class AndroidMediaPlayer(
+    getContext: ContextGetter,
+    getActivity: ActivityGetter,
+    private val coroutineScope: CoroutineScope,
+) : MediaPlayer {
     private var controller: MediaController? = null
     private val mediaDataStore: MutableMap<String, Playback> = ConcurrentHashMap()
 
@@ -34,6 +41,17 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
     override val isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
+        // Lifecycle.addObserver must be called on the main thread
+        coroutineScope.launch {
+            withContext(Dispatchers.Main) {
+                getActivity().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                    override fun onStop(owner: LifecycleOwner) {
+                        controller?.clearMediaItems()
+                    }
+                })
+            }
+        }
+
         val context = getContext()
         val sessionToken = SessionToken(context, ComponentName(context, AudioPlayerService::class.java))
         val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
@@ -43,14 +61,6 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     val controller = requireNotNull(controller)
                     val metadata = mediaDataStore[controller.currentMediaItem?.mediaId]
-                    if (controller.playbackState == Player.STATE_READY) {
-                        val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
-                        val duration = controller.duration.coerceAtLeast(0).milliseconds
-                        metadata?.callback(MediaPlayer.Event.Progress(elapsedTime, duration))
-                        this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
-                        this@AndroidMediaPlayer.duration.value = duration
-                    }
-
                     if (controller.playbackState == Player.STATE_ENDED && !isPlaying) {
                         metadata?.let {
                             it.close()
@@ -83,7 +93,6 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                     log.info { "Successfully acquired file, starting playback" }
                     elapsedTime.value = Duration.ZERO
                     duration.value = Duration.ZERO
-                    controller.clearMediaItems()
 
                     isPlaying.value = true
                     mediaDataStore[tempFile.path.toString()] = Playback(
@@ -102,9 +111,13 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
                         }
                     )
 
-                    controller.setMediaItem(MediaItem.Builder().setMimeType(mimeType ?: MimeTypes.AUDIO_RAW).build())
+                    val mediaItem = MediaItem.Builder()
+                        .setMediaId(tempFile.path.toString())
+                        .setMimeType(mimeType ?: MimeTypes.AUDIO_RAW)
+                        .build()
+                    controller.setMediaItem(mediaItem)
+                    controller.seekTo(0, position.inWholeMilliseconds)
                     controller.prepare()
-                    controller.seekTo(position.inWholeMilliseconds)
                     controller.play()
                 }
             )
@@ -149,6 +162,7 @@ class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: 
             elapsedTime.value = Duration.ZERO
             duration.value = Duration.ZERO
             isPlaying.value = false
+            controller?.clearMediaItems()
         }
     }
 
