@@ -42,7 +42,10 @@ interface CreateNewGroupViewModelFactory {
 interface CreateNewGroupViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val groupUsers: StateFlow<List<SearchUserElement>>
-    val isPrivate: MutableStateFlow<Boolean>
+    val isPrivate: StateFlow<Boolean>
+    fun setIsPrivate(isPrivate: Boolean)
+    val directoryVisibilityIsPublic: StateFlow<Boolean>
+    fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean)
     val isEncrypted: MutableStateFlow<Boolean>
     val isCreating: StateFlow<Boolean>
     val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
@@ -76,7 +79,19 @@ open class CreateNewGroupViewModelImpl(
     MatrixClientViewModelContext by viewModelContext {
     private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
+    override val directoryVisibilityIsPublic = MutableStateFlow(false)
     override val isPrivate = MutableStateFlow(true)
+
+    override fun setIsPrivate(isPrivate: Boolean) {
+        this.isPrivate.value = isPrivate
+        if (isPrivate)
+            directoryVisibilityIsPublic.value = false
+    }
+
+    override fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean) {
+        if (!isPrivate.value) this.directoryVisibilityIsPublic.value = setDirectoryVisibilityIsPublic
+    }
+
     override val isEncrypted = MutableStateFlow(true)
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
@@ -130,7 +145,8 @@ open class CreateNewGroupViewModelImpl(
         } ?: emptyList()
         val optionalName = optionalRoomName.value.text.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.text.ifBlank { null }
-        val directoryVisibility = if (isPrivate.value) DirectoryVisibility.PRIVATE else DirectoryVisibility.PUBLIC
+        val directoryVisibility =
+            if (directoryVisibilityIsPublic.value) DirectoryVisibility.PUBLIC else DirectoryVisibility.PRIVATE
         coroutineScope.launch {
             matrixClient.api.room.createRoom(
                 name = optionalName,
@@ -206,6 +222,9 @@ class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override fun setIsPrivate(isPrivate: Boolean) {}
+    override val directoryVisibilityIsPublic: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean) {}
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =

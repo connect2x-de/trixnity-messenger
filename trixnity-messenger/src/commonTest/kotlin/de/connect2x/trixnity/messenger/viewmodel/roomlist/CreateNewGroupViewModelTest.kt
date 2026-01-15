@@ -340,6 +340,112 @@ class CreateNewGroupViewModelTest {
         groupCreatedWasCalled shouldBe false
     }
 
+    @Test
+    fun `test relationship between isPrivate and directoryVisibilityIsPublic`() = runTest {
+        val model = createNewGroupViewModel() as CreateNewGroupViewModel
+
+        backgroundScope.launch { model.isPrivate.collect {} }
+        backgroundScope.launch { model.directoryVisibilityIsPublic.collect {} }
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setDirectoryVisibilityIsPublic(true)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setIsPrivate(false)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe false
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setDirectoryVisibilityIsPublic(false)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe false
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setIsPrivate(true)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+    }
+
+    @Test
+    fun `directoryVisibilityIsPublic is true results in visibility is PUBLIC`() = runTest {
+        everySuspend {
+            roomsApiClientMock.createRoom(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns Result.success(RoomId("!room1"))
+
+        val model = createNewGroupViewModel()
+
+        model.directoryVisibilityIsPublic.value = true
+
+        eventually(2.seconds) {
+            model.canCreateNewGroup.value shouldBe true
+        }
+
+        model.createNewGroup()
+        yield()
+
+        verifySuspend {
+            roomsApiClientMock.createRoom(
+                name = any(),
+                topic = any(),
+                preset = any(),
+                isDirect = any(),
+                invite = any(),
+                initialState = any(),
+                visibility = DirectoryVisibility.PUBLIC,
+            )
+        }
+    }
+
+
+    @Test
+    fun `directoryVisibilityIsPublic is false results in visibility is PRIVATE`() = runTest {
+        everySuspend {
+            roomsApiClientMock.createRoom(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+            )
+        } returns Result.success(RoomId("!room1"))
+
+        val model = createNewGroupViewModel()
+
+        model.directoryVisibilityIsPublic.value = false
+
+        eventually(2.seconds) {
+            model.canCreateNewGroup.value shouldBe true
+        }
+
+        model.createNewGroup()
+        yield()
+
+        verifySuspend {
+            roomsApiClientMock.createRoom(
+                name = any(),
+                topic = any(),
+                preset = any(),
+                isDirect = any(),
+                invite = any(),
+                initialState = any(),
+                visibility = DirectoryVisibility.PRIVATE,
+            )
+        }
+    }
+
     private fun TestScope.createNewGroupViewModel(): CreateNewGroupViewModelImpl {
         val createNewGroupViewModelImpl = CreateNewGroupViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(

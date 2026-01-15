@@ -46,6 +46,7 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
     @Composable
     override fun create(createNewGroupViewModel: CreateNewGroupViewModel, historyExpanded: MutableState<Boolean>) {
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
+        val directoryVisibilityIsPublic by createNewGroupViewModel.directoryVisibilityIsPublic.collectAsState()
         val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val historyVisibility by createNewGroupViewModel.optionalRoomHistoryVisibility.collectAsState()
         val i18n = DI.get<I18nView>()
@@ -56,8 +57,17 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                     Text(i18n.roomVisibility() + if (isPrivate) i18n.roomTypePrivate() else i18n.roomTypePublic())
                 },
                 selected = isPrivate,
-                onChange = { createNewGroupViewModel.isPrivate.value = it },
+                onChange = { createNewGroupViewModel.setIsPrivate(it) },
                 leadingContent = { HelpIcon(if (isPrivate) i18n.roomTypePrivateInfo() else i18n.roomTypePublicInfo()) },
+                style = MaterialTheme.components.settingsItem,
+            )
+            ThemedListItemSwitch(
+                headlineContent = { Text(i18n.roomDirectoryVisibility()) },
+                selected = directoryVisibilityIsPublic,
+                onChange = { createNewGroupViewModel.setDirectoryVisibilityIsPublic(it) },
+                leadingContent = { HelpIcon(i18n.roomDirectoryVisibilityInfo()) },
+                supportingContent = { if (isPrivate) Text(i18n.roomDirectoryVisibilityExplanation()) },
+                enabled = !isPrivate,
                 style = MaterialTheme.components.settingsItem,
             )
             ThemedListItemSwitch(

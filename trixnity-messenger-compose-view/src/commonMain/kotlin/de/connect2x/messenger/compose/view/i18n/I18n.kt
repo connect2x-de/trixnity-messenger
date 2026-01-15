@@ -2418,6 +2418,21 @@ open class I18nView(
         DE - "Private Räume sind nur für eingeladene Nutzer sichtbar. Sie können ihnen nur mit einer Einladung beitreten."
     }
 
+    open fun roomDirectoryVisibility() = translate {
+        EN - "Show in room directory"
+        DE - "Im Raumverzeichnis anzeigen"
+    }
+
+    open fun roomDirectoryVisibilityInfo() = translate {
+        EN - "When enabled, a publicly visible room will also be shown in the local room directory."
+        DE - "Wenn aktiviert, wird der öffentlich sichtbare Raum auch im lokalen Raumverzeichnis angezeigt."
+    }
+
+    open fun roomDirectoryVisibilityExplanation() = translate {
+        EN - "Private rooms cannot be visible"
+        DE - "Private Räume können nicht angezeigt werden"
+    }
+
     open fun roomVisibility() = translate {
         EN - "Visibility: "
         DE - "Sichtbarkeit: "
@@ -3310,12 +3325,12 @@ open class I18nView(
         DE - "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte aus Ihrem Profil ab und legen Sie ein neues Profil an."
     }
 
-    open fun  profileSelectionMultipleAccountHeader() = translate {
+    open fun profileSelectionMultipleAccountHeader() = translate {
         EN - "Multi Profile Setup"
         DE - "Multi-Profil Einrichtung"
     }
 
-    open fun  profileSelectionMultipleAccountSwitch() = translate {
+    open fun profileSelectionMultipleAccountSwitch() = translate {
         EN - "Enable multi profile mode"
         DE - "Multi-Profil-Modus aktivieren"
     }
