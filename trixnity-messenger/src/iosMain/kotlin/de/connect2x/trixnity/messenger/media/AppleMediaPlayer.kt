@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.trixnity.messenger.interop.observer.NSObjectObserverProtocol
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.util.collections.ConcurrentMap
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CValue
@@ -40,20 +41,24 @@ import platform.CoreMedia.CMTimeMake
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.Foundation.NSError
 import platform.Foundation.NSKeyValueObservingOptionInitial
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
 import platform.Foundation.addObserver
+import platform.Foundation.removeObserver
 import platform.darwin.NSEC_PER_SEC
 import platform.darwin.NSObject
+import platform.darwin.NSObjectProtocol
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalForeignApi::class)
-class AppleMediaPlayer : MediaPlayer {
+class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
+    private val playerItems: ConcurrentMap<String, PlayerItem> = ConcurrentMap()
     private val observer: AVPlayerObserver = AVPlayerObserver()
-    private val itemObserver: AVPlayerItemObserver = AVPlayerItemObserver()
-    private var currentPlayer: AVPlayer? = null
     private var tempFile: OkioPlatformMedia.TemporaryFile? = null
+    private var currentPlayer: AVPlayer? = null
 
     override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     override val duration: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
@@ -95,15 +100,27 @@ class AppleMediaPlayer : MediaPlayer {
                 // done in this case because the path of the file doesn't end with a file extension. In such cases, it's
                 // possible to use player items with URL assets allowing to specify the mime type manually and bypass
                 // the automatic derivation.
-                val playerItem = AVPlayerItem.playerItemWithAsset(AVURLAsset.URLAssetWithURL(
-                    file.path.toNSUrl(),
-                    mapOf(AVURLAssetOverrideMIMETypeKey to mimeType!!) // TODO: Alternative when null
-                ))
-                itemObserver.observe(playerItem)
+                playerItems.remove(file.path.toString()) // Remove if present
+                val playerItem = PlayerItem(
+                    file = file,
+                    coroutineScope = coroutineScope,
+                    item = AVPlayerItem.playerItemWithAsset(AVURLAsset.URLAssetWithURL(
+                        file.path.toNSUrl(),
+                        mapOf(AVURLAssetOverrideMIMETypeKey to mimeType!!) // TODO: Alternative when null
+                    )),
+                    sendEvent = callback,
+                    onReadyForPlay = { duration ->
+                        this.duration.value = duration
+                    },
+                    onClose = {
+                        playerItems.remove(file.path.toString())
+                    }
+                )
+                playerItems[file.path.toString()] = playerItem
 
-                currentPlayer?.replaceCurrentItemWithPlayerItem(playerItem)
+                currentPlayer?.replaceCurrentItemWithPlayerItem(playerItem.item)
                 if (currentPlayer == null) {
-                    currentPlayer = AVPlayer.playerWithPlayerItem(playerItem)
+                    currentPlayer = AVPlayer.playerWithPlayerItem(playerItem.item)
                     observer.attach()
                 }
 
@@ -135,17 +152,42 @@ class AppleMediaPlayer : MediaPlayer {
     }
 
     override fun close(): Unit = runBlocking {
+        playerItems.forEach { (_, item) -> item.close() }
+        playerItems.clear()
         stop()
         observer.detach()
     }
 
-    /**
-     * This observer is used to listen for status changes in the player item observer, allowing the media player to
-     * have information about the duration of the media item.
-     */
-    inner class AVPlayerItemObserver : NSObject(), NSObjectObserverProtocol {
-        fun observe(item: AVPlayerItem) {
+    class PlayerItem(
+        val item: AVPlayerItem,
+        private val coroutineScope: CoroutineScope,
+        private val file: OkioPlatformMedia.TemporaryFile,
+        private val sendEvent: (MediaPlayer.Event) -> Unit,
+        private val onReadyForPlay: (Duration) -> Unit,
+        private val onClose: () -> Unit
+    ) : NSObject(), NSObjectObserverProtocol {
+        private val playbackEndObserver: NSObjectProtocol = NSNotificationCenter.defaultCenter.addObserverForName(
+            name = AVPlayerItemDidPlayToEndTimeNotification,
+            queue = NSOperationQueue.mainQueue,
+            `object` = item
+        ) {
+            log.debug { "Playback of media item has been finished, stopping playback..." }
+            sendEvent(MediaPlayer.Event.Progress(elapsedTime = Duration.ZERO, duration = null))
+            close()
+        }
+
+        init {
             item.addObserver(this, "status", NSKeyValueObservingOptionInitial, null)
+        }
+
+        fun close() {
+            NSNotificationCenter.defaultCenter.removeObserver(playbackEndObserver)
+            item.removeObserver(this, "status")
+            sendEvent(MediaPlayer.Event.Stopped)
+            onClose()
+            coroutineScope.launch {
+                file.delete()
+            }
         }
 
         override fun observeValueForKeyPath(
@@ -154,13 +196,13 @@ class AppleMediaPlayer : MediaPlayer {
             change: Map<Any?, *>?,
             context: COpaquePointer?
         ) {
-            val item = ofObject as? AVPlayerItem ?: return
             if (item.status == AVPlayerItemStatusReadyToPlay) {
                 log.trace { "Player item is ready to play, applying duration" }
                 item.duration.useContents {
                     if (this.timescale == 0)
                         return@useContents
-                    duration.value = (this.value * 1000 / this.timescale).milliseconds
+
+                    onReadyForPlay((this.value * 1000 / this.timescale).milliseconds)
                 }
             }
         }
@@ -168,7 +210,7 @@ class AppleMediaPlayer : MediaPlayer {
 
     /**
      * This observer is used to listen for time changes while playing a media file. So it updates the elapsed time info
-     * of the media player. it also notifies the media player when it has finished the playback of the media file.
+     * of the media player. It also notifies the media player when it has finished the playback of the media file.
      */
     inner class AVPlayerObserver {
         private var timeObserver: Any? = null
@@ -176,7 +218,7 @@ class AppleMediaPlayer : MediaPlayer {
         fun attach() {
             detach()
             currentPlayer?.let { player ->
-                val interval = CMTimeMakeWithSeconds(0.1, NSEC_PER_SEC.toInt())
+                val interval = CMTimeMakeWithSeconds(0.25, NSEC_PER_SEC.toInt()) // 250ms
                 timeObserver = player.addPeriodicTimeObserverForInterval(interval, null) { time: CValue<CMTime> ->
                     if (!isPlaying.value) {
                         return@addPeriodicTimeObserverForInterval

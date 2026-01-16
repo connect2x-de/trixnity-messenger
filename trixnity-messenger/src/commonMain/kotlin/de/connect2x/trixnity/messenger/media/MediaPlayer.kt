@@ -20,7 +20,7 @@ interface MediaPlayer : AutoCloseable {
     suspend fun seekTo(position: Duration)
 
     sealed interface Event {
-        data class Progress(val elapsedTime: Duration, val duration: Duration) : Event
+        data class Progress(val elapsedTime: Duration, val duration: Duration?) : Event
         object Stopped : Event
     }
 }

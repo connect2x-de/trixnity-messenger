@@ -178,7 +178,7 @@ class AndroidMediaPlayer(
 
         override fun close() {
             log.debug { "Closing playback resource by sending stop event and cancel update job" }
-            callback(MediaPlayer.Event.Progress(Duration.ZERO, Duration.ZERO))
+            callback(MediaPlayer.Event.Progress(elapsedTime = Duration.ZERO, duration = null))
             pause()
         }
     }
