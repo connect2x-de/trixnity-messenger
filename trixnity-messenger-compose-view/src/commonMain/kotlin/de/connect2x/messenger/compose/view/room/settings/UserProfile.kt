@@ -45,6 +45,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.messenger.compose.view.common.ErrorView
@@ -144,7 +145,10 @@ class UserProfileViewImpl : UserProfileView {
                                     initials = userInfoElement.initials,
                                     image = image,
                                     presence = null,
-                                    size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                                    size = min(
+                                        this@BoxWithConstraints.maxWidth,
+                                        this@BoxWithConstraints.maxHeight
+                                    ).coerceAtMost(180.dp)
                                 )
                             }
                         }
