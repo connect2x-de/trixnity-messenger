@@ -1132,6 +1132,10 @@ open class I18nView(
         DE - "Formatted Body"
     }
 
+    open fun timelineElementMetadataEventId() = translate {
+        EN - "Event Id"
+        DE - "Event Id"
+    }
     open fun timelineJumpToEnd() = translate {
         EN - "Jump to the end"
         DE - "Ans Ende springen"
@@ -1195,6 +1199,11 @@ open class I18nView(
     open fun roomSettingsMentions() = translate {
         EN - "Mentions"
         DE - "Erwähnungen"
+    }
+
+    open fun roomSettingsRoomId() = translate {
+        EN - "Room Id"
+        DE - "Raum Id"
     }
 
     open fun userSearchSearchPeople() = translate {

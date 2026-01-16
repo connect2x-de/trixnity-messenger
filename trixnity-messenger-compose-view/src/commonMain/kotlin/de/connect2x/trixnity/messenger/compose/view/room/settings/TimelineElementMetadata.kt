@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +21,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,6 +109,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val reactions = firstElement?.reactions?.collectAsState()?.value
         val readers = firstElement?.readers?.collectAsState()?.value
         val scrollState = rememberScrollState()
+        var showDevInfo by remember { mutableStateOf<Boolean>(false) }
 
         LaunchedEffect(Unit) {
             launch {
@@ -151,22 +157,37 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
-                        messageElement?.body?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
-                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                            }
-                            SmallSpacer()
-                        }
-                        messageElement?.formattedBody?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataFormattedBody(), icon = Icons.Default.Code) {
-                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                            }
-                            SmallSpacer()
-                        }
                         HorizontalDivider()
                         MiddleSpacer()
                         ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
-                        SmallSpacer()
+
+                        IconToggleButton(showDevInfo, {showDevInfo=!showDevInfo}){Icon(Icons.Default.Info, "Info")}
+                        if(showDevInfo){
+                            SmallSpacer()
+                            Row (Modifier.padding(start = Icons.Default.Info.defaultWidth)){
+                                Column {
+                                    messageElement?.body?.let { content ->
+                                        ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
+                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
+                                        }
+
+                                        SmallSpacer()
+                                    }
+                                    messageElement?.formattedBody?.let { content ->
+                                        ExpandableSection(i18n.timelineElementMetadataFormattedBody(), icon = Icons.Default.Code) {
+                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
+                                        }
+                                        SmallSpacer()
+                                    }
+                                    viewModel.element.value?.eventId?.full?.let { content ->
+                                        ExpandableSection(i18n.timelineElementMetadataEventId(), icon = Icons.Default.Numbers) {
+                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
+                                        }
+                                        SmallSpacer()
+                                    }
+                                }
+                            }
+                        }
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }

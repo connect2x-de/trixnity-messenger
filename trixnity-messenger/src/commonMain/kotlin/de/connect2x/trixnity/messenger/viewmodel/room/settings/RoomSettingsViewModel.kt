@@ -1,6 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -12,12 +18,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 interface RoomSettingsViewModelFactory {
@@ -49,6 +49,7 @@ interface RoomSettingsViewModelFactory {
 }
 
 interface RoomSettingsViewModel {
+    val roomId: RoomId
     val error: StateFlow<String?>
     val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
@@ -103,6 +104,9 @@ class RoomSettingsViewModelImpl(
     init {
         registerBackCallback(backCallback)
     }
+
+    override val roomId: RoomId
+        get() = selectedRoomId
 
     override val error = MutableStateFlow<String?>(null)
 
@@ -269,6 +273,7 @@ class RoomSettingsViewModelImpl(
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
+    override val roomId = RoomId("")
     override val roomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
     override val roomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel = PreviewRoomSettingsNotificationsViewModel()
