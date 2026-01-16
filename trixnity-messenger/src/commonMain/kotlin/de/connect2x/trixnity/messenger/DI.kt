@@ -233,7 +233,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> { MatrixClientFactory }
-            single<MatrixClientsImpl> {
+            single<MatrixClients> {
                 MatrixClientsImpl(
                     matrixClientFactory = get(),
                     deleteAccountData = get(),
@@ -248,7 +248,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     configurer = getAll()
                 )
             }.apply {
-                bind<MatrixClients>()
                 bind<AutoCloseable>()
                 bind<Worker>()
             }

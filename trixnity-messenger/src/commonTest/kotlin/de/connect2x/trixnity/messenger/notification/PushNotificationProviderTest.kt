@@ -92,6 +92,10 @@ class PushNotificationProviderTest {
             override fun close() {
                 TODO("Not yet implemented")
             }
+
+            override suspend fun doWork() {
+                TODO("Not yet implemented")
+            }
         }
         every { matrixClient1.api } returns matrixClientApi
         every { matrixClientApi.push } returns matrixClientApiPush
