@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Merge the 'Your Accounts' panel into profile settings
 - SDK: Rename references to profile in the settings to accounts
 - UI: Turn the typing indicator into a message bubble
+- UI: Show a warning when redacting messages
 
 ### Deprecated
 
