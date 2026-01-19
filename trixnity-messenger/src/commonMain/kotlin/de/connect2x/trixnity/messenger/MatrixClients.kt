@@ -39,7 +39,7 @@ import kotlin.coroutines.CoroutineContext
 private val log = KotlinLogging.logger { }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
+interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, Worker {
     data class InitFromStoreResult(
         val success: Set<UserId>,
         val failures: Map<UserId, MatrixClientInitializationException>,
@@ -90,7 +90,7 @@ class MatrixClientsImpl(
     private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
     private val onCreate: suspend (MatrixClientAuthProviderData, UserId) -> Unit = { _, _ -> },
-) : Worker, MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
+) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     override suspend fun doWork() {
         initFromStore()
 

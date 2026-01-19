@@ -19,9 +19,9 @@ variables:
   GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
-  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-base:latest
-  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
-  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
+  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-base:latest
+  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
+  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
   FF_USE_FASTZIP: "true"
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
   CACHE_COMPRESSION_LEVEL: "fastest"

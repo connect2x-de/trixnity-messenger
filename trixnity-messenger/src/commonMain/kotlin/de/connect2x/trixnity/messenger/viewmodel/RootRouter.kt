@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.util.getOrNull
@@ -204,11 +205,22 @@ class RootRouter(
 
     private fun cancelAddMatrixAccount() = viewModelContext.coroutineScope.launch {
         log.debug { "cancelAddMatrixAccount" }
-        if (matrixClients.value.isEmpty()) {
-            log.info { "There are no MatrixClients configured yet, so close the app" }
-            viewModelContext.getOrNull<CloseApp>()?.invoke()
-        } else {
-            navigation.replaceAllSuspending(Config.MatrixClientInitialization)
+
+        val profileManager = viewModelContext.get<ProfileManager>()
+        val isMultiProfile = profileManager.isMultiProfileEnabled.value
+        when {
+            matrixClients.value.isNotEmpty() -> {
+                navigation.replaceAllSuspending(Config.MatrixClientInitialization)
+            }
+
+            isMultiProfile == true -> {
+                profileManager.closeProfile()
+            }
+
+            else -> {
+                log.info { "There are no MatrixClients configured yet, so close the app" }
+                viewModelContext.getOrNull<CloseApp>()?.invoke()
+            }
         }
     }
 
