@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- ANDROID / IOS / UI: Make several dialogs and modals adapt to font/display size changes
+- ANDROID / UI: Fix crash when trying to apply font/display size changes in setup wizard
 
 ### Security
 
