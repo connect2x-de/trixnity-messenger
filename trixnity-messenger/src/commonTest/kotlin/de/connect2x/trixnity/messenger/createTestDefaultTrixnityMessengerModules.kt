@@ -84,6 +84,10 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
             override fun close() {
                 TODO("Not yet implemented")
             }
+
+            override suspend fun doWork() {
+                TODO("Not yet implemented")
+            }
         }
     }
     single<CreateRepositoriesModule> {
