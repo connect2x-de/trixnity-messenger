@@ -1,5 +1,6 @@
 package de.connect2x.messenger.compose.view.connecting
 
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,152 +45,15 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
     val wizardStep = remember(viewModel, i18n, additionalConnectingWizardStep) {
         listOf(
             when (viewModel) {
-                is AddMatrixAccountViewModel -> WizardStep(
-                    id = ADD_MATRIX_ACCOUNT,
-                    title = {
-                        val isFirstMatrixClient = viewModel.isFirstMatrixClient.collectAsState().value
-                        if (isFirstMatrixClient != false) {
-                            i18n.addMatrixClientCreateMatrixAccount()
-                        } else {
-                            i18n.addMatrixClientAnotherMatrixClient()
-                        }
-                    },
-                    content = {
-                        AddMatrixAccount(viewModel)
-                    },
-                    nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
-                )
+                is AddMatrixAccountViewModel -> AddMatrixAccountStep(viewModel, i18n)
 
-                is PasswordLoginViewModel -> WizardStep(
-                    id = PASSWORD_LOGIN,
-                    title = { i18n.loginAt(viewModel.serverUrl) },
-                    content = {
-                        PasswordLogin(viewModel)
-                    },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
-                        }
-                    },
-                    nextButton = {
-                        WizardNavigationButton.Custom {
-                            val state = viewModel.addMatrixAccountState.collectAsState().value
-                            val canLogin = viewModel.canLogin.collectAsState().value
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                enabled = canLogin && state !is AddMatrixAccountState.Connecting,
-                                onClick = { viewModel.tryLogin() },
-                            ) {
-                                Text(i18n.login())
-                            }
-                        }
-                    }
-                )
+                is PasswordLoginViewModel -> LoginWithPasswordStep(viewModel, i18n)
 
-                is OAuth2LoginViewModel -> WizardStep(
-                    id = SSO_LOGIN,
-                    title = {
-                        when (viewModel.type) {
-                            OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
-                            OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
-                        }
-                    },
-                    content = {
-                        OAuth2Login(viewModel)
-                    },
-                    additionalButton = {
-                        ThemedButton(
-                            style = MaterialTheme.components.commonButton,
-                            onClick = viewModel::back,
-                        ) {
-                            Text(i18n.commonBack().capitalize(Locale.current))
-                        }
-                    },
-                    nextButton = {
-                        WizardNavigationButton.Custom {
-                            val state = viewModel.state.collectAsState().value
-                            val canLogin = state is OAuth2LoginViewModel.State.None
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                enabled = canLogin,
-                                onClick = { viewModel.startLogin() },
-                            ) {
-                                val text = when (viewModel.type) {
-                                    OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
-                                    OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
-                                }
-                                Text(text)
-                            }
-                        }
-                    },
-                )
+                is OAuth2LoginViewModel -> LoginWithOAuth2Step(viewModel, i18n)
 
-                is SSOLoginViewModel -> WizardStep(
-                    id = SSO_LOGIN,
-                    title = { i18n.loginAt(viewModel.serverUrl) },
-                    content = {
-                        SSOLogin(viewModel)
-                    },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
-                        }
-                    },
-                    nextButton = {
-                        WizardNavigationButton.Custom {
-                            val state = viewModel.addMatrixAccountState.collectAsState().value
-                            val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
-                            val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                enabled = canLogin,
-                                onClick = { viewModel.tryLogin() },
-                            ) {
-                                Text(i18n.login())
-                            }
-                        }
-                    },
-                )
+                is SSOLoginViewModel -> LoginWithSSOStep(viewModel, i18n)
 
-                is RegisterMatrixAccountViewModel -> WizardStep(
-                    id = REGISTER_NEW_ACCOUNT,
-                    title = { i18n.registrationHeader() },
-                    content = {
-                        RegisterNewAccount(viewModel)
-                    },
-                    backButton = {
-                        WizardNavigationButton.Custom {
-                            ThemedButton(
-                                style = MaterialTheme.components.commonButton,
-                                onClick = viewModel::back,
-                            ) {
-                                Text(i18n.commonBack().capitalize(Locale.current))
-                            }
-                        }
-                    },
-                    nextButton = {
-                        WizardNavigationButton.Custom {
-                            val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                enabled = canRegisterNewUser,
-                                onClick = { viewModel.register() },
-                            ) {
-                                Text(i18n.registerNewAccount())
-                            }
-                        }
-                    },
-                )
+                is RegisterMatrixAccountViewModel -> RegisterNewAccountStep(viewModel, i18n)
 
                 else -> additionalConnectingWizardStep.create(viewModel)
             }
@@ -197,4 +61,171 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
     }
 
     return Wizard(wizardStep)
+}
+
+fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {
+    return WizardStep(
+        id = ADD_MATRIX_ACCOUNT,
+        title = {
+            val isFirstMatrixClient = viewModel.isFirstMatrixClient.collectAsState().value
+            if (isFirstMatrixClient != false) {
+                i18n.addMatrixClientCreateMatrixAccount()
+            } else {
+                i18n.addMatrixClientAnotherMatrixClient()
+            }
+        },
+        content = {
+            AddMatrixAccount(viewModel)
+        },
+        nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
+        backButton = {
+            val hasOtherAccountsOrProfiles = viewModel.hasOtherAccountsOrProfiles.collectAsState().value
+            if (hasOtherAccountsOrProfiles) {
+                WizardNavigationButton.Custom {
+                    ThemedButton(style = MaterialTheme.components.commonButton, onClick = { viewModel.cancel() }) {
+                        Text(i18n.commonCancel())
+                    }
+                }
+            } else WizardNavigationButton.None
+        }
+    )
+}
+
+fun LoginWithPasswordStep(viewModel: PasswordLoginViewModel, i18n: I18nView): WizardStep {
+    return WizardStep(
+        id = PASSWORD_LOGIN,
+        title = { i18n.loginAt(viewModel.serverUrl) },
+        content = {
+            PasswordLogin(viewModel)
+        },
+        backButton = {
+            WizardNavigationButton.Custom {
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
+                    onClick = viewModel::back,
+                ) {
+                    Text(i18n.commonBack().capitalize(Locale.current))
+                }
+            }
+        },
+        nextButton = {
+            WizardNavigationButton.Custom {
+                val state = viewModel.addMatrixAccountState.collectAsState().value
+                val canLogin = viewModel.canLogin.collectAsState().value
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    enabled = canLogin && state !is AddMatrixAccountState.Connecting,
+                    onClick = { viewModel.tryLogin() },
+                ) {
+                    Text(i18n.login())
+                }
+            }
+        }
+    )
+}
+
+fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): WizardStep {
+    return WizardStep(
+        id = SSO_LOGIN,
+        title = {
+            when (viewModel.type) {
+                OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
+                OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
+            }
+        },
+        content = {
+            OAuth2Login(viewModel)
+        },
+        additionalButton = {
+            ThemedButton(
+                style = MaterialTheme.components.commonButton,
+                onClick = viewModel::back,
+            ) {
+                Text(i18n.commonBack().capitalize(Locale.current))
+            }
+        },
+        nextButton = {
+            WizardNavigationButton.Custom {
+                val state = viewModel.state.collectAsState().value
+                val canLogin = state is OAuth2LoginViewModel.State.None
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    enabled = canLogin,
+                    onClick = { viewModel.startLogin() },
+                ) {
+                    val text = when (viewModel.type) {
+                        OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
+                        OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
+                    }
+                    Text(text)
+                }
+            }
+        },
+    )
+}
+
+fun LoginWithSSOStep(viewModel: SSOLoginViewModel, i18n: I18nView): WizardStep {
+    return WizardStep(
+        id = SSO_LOGIN,
+        title = { i18n.loginAt(viewModel.serverUrl) },
+        content = {
+            SSOLogin(viewModel)
+        },
+        backButton = {
+            WizardNavigationButton.Custom {
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
+                    onClick = viewModel::back,
+                ) {
+                    Text(i18n.commonBack().capitalize(Locale.current))
+                }
+            }
+        },
+        nextButton = {
+            WizardNavigationButton.Custom {
+                val state = viewModel.addMatrixAccountState.collectAsState().value
+                val waitForRedirect = viewModel.waitForRedirect.collectAsState().value
+                val canLogin = !waitForRedirect && state !is AddMatrixAccountState.Connecting
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    enabled = canLogin,
+                    onClick = { viewModel.tryLogin() },
+                ) {
+                    Text(i18n.login())
+                }
+            }
+        },
+    )
+}
+
+fun RegisterNewAccountStep(viewModel: RegisterMatrixAccountViewModel, i18n: I18nView): WizardStep {
+    return WizardStep(
+        id = REGISTER_NEW_ACCOUNT,
+        title = { i18n.registrationHeader() },
+        content = {
+            RegisterNewAccount(viewModel)
+        },
+        backButton = {
+            WizardNavigationButton.Custom {
+                ThemedButton(
+                    style = MaterialTheme.components.commonButton,
+                    onClick = viewModel::back,
+                ) {
+                    Text(i18n.commonBack().capitalize(Locale.current))
+                }
+            }
+        },
+        nextButton = {
+            WizardNavigationButton.Custom {
+                val canRegisterNewUser = viewModel.canRegisterNewUser.collectAsState().value
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    enabled = canRegisterNewUser,
+                    onClick = { viewModel.register() },
+                ) {
+                    Text(i18n.registerNewAccount())
+                }
+            }
+        },
+    )
 }

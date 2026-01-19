@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.files.toImageBitmap
 import de.connect2x.messenger.compose.view.get
@@ -106,7 +107,8 @@ private fun OAuth2LoginItems(
                             },
                             modifier = Modifier.clickable {
                                 addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                            })
+                            }.buttonPointerModifier()
+                        )
                     }
 
                     OAuth2LoginViewModel.Type.REGISTER -> {
@@ -121,7 +123,8 @@ private fun OAuth2LoginItems(
                             },
                             modifier = Modifier.clickable {
                                 addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                            })
+                            }.buttonPointerModifier()
+                        )
                     }
                 }
             }
@@ -155,7 +158,8 @@ private fun ClassicLoginItems(
                     },
                     modifier = Modifier.clickable {
                         addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                    })
+                    }.buttonPointerModifier()
+                )
             }
 
             is AddMatrixAccountMethod.SSO -> {
@@ -179,7 +183,8 @@ private fun ClassicLoginItems(
                     },
                     modifier = Modifier.clickable {
                         addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                    })
+                    }.buttonPointerModifier()
+                )
             }
 
             is AddMatrixAccountMethod.Register -> {
@@ -195,7 +200,8 @@ private fun ClassicLoginItems(
                     },
                     modifier = Modifier.clickable {
                         addMatrixAccountViewModel.selectAddMatrixAccountMethod(type)
-                    })
+                    }.buttonPointerModifier()
+                )
             }
 
             is AddMatrixAccountMethod.OAuth2 -> {}

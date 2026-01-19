@@ -15,6 +15,7 @@ import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -225,7 +226,7 @@ class ThemeComponentsImpl : ThemeComponents {
         ),
         warningBanner = SurfaceStyle.Companion.default(
             color = MaterialTheme.messengerColors.warning,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = contentColorFor(MaterialTheme.messengerColors.warning),
         ),
         commonBanner = SurfaceStyle.Companion.default(
             color = MaterialTheme.colorScheme.surface,
