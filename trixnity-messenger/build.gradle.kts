@@ -82,7 +82,8 @@ kotlin {
             dependencies {
                 api(libs.trixnity.client)
                 implementation(libs.trixnity.client.cryptodriver.libolm)
-                implementation(libs.trixnity.client.cryptodriver.vodozemac)
+                // to prevent diverging trixnity versions downstream,
+                api(libs.trixnity.client.cryptodriver.vodozemac)
                 implementation(libs.trixnity.crypto.core)
                 api(sharedLibs.ktor.client.logging)
                 api(sharedLibs.decompose)
