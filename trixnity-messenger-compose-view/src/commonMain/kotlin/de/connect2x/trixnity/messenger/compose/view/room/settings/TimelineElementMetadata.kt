@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,12 +19,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconToggleButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +38,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
+import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
+import de.connect2x.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.messenger.compose.view.common.SmallSpacer
+import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
+import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
@@ -109,7 +126,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
         val reactions = firstElement?.reactions?.collectAsState()?.value
         val readers = firstElement?.readers?.collectAsState()?.value
         val scrollState = rememberScrollState()
-        var showDevInfo by remember { mutableStateOf<Boolean>(false) }
 
         LaunchedEffect(Unit) {
             launch {
@@ -135,6 +151,11 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             error = null,
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
+            {
+                IconButton({viewModel.openDevInfo()}){
+                    Icon(Icons.Default.Info, "Info")
+                }
+            }
         ) {
             if (reactions == null || readers == null || sender == null || lastElement == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())
@@ -160,34 +181,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         HorizontalDivider()
                         MiddleSpacer()
                         ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
-
-                        IconToggleButton(showDevInfo, {showDevInfo=!showDevInfo}){Icon(Icons.Default.Info, "Info")}
-                        if(showDevInfo){
-                            SmallSpacer()
-                            Row (Modifier.padding(start = Icons.Default.Info.defaultWidth, end = Icons.Default.Info.defaultWidth)){
-                                Column {
-                                    messageElement?.body?.let { content ->
-                                        ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
-                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                                        }
-
-                                        SmallSpacer()
-                                    }
-                                    messageElement?.formattedBody?.let { content ->
-                                        ExpandableSection(i18n.timelineElementMetadataFormattedBody(), icon = Icons.Default.Code) {
-                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                                        }
-                                        SmallSpacer()
-                                    }
-                                    viewModel.element.value?.eventId?.full?.let { content ->
-                                        ExpandableSection(i18n.timelineElementMetadataEventId(), icon = Icons.Default.Numbers) {
-                                            ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                                        }
-                                        SmallSpacer()
-                                    }
-                                }
-                            }
-                        }
+                        SmallSpacer()
                     }
                     VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
                 }
@@ -230,7 +224,7 @@ fun ColumnScope.ReadersAndReactions(
         mutableStateOf(allReadersAndReactions.map { it.sender.userId }.firstOrNull())
     }
 
-    Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
+    Column(Modifier.heightIn(min = 25.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
             ThemedListItem(
                 style = MaterialTheme.components.settingsItem,

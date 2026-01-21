@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementMetadata
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementDevInfo
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
@@ -41,11 +42,13 @@ interface ExtrasRouter {
     suspend fun openPowerLevel(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
     suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId)
+    suspend fun openTimelineElementDevInfo(eventId: EventId, roomId: RoomId)
 
     sealed class Wrapper {
         data object None : Wrapper()
         class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
         class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
+        class TimelineElementDevInfo(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class DevInfo(val viewModel: DevInfoViewModel) : Wrapper()
@@ -82,6 +85,9 @@ interface ExtrasRouter {
 
             @Serializable
             data class TimelineElementMetadata(val eventId: EventId, val roomId: RoomId) : Config
+
+            @Serializable
+            data class TimelineElementDevInfo(val eventId: EventId, val roomId: RoomId) : Config
         }
 
         @Serializable
@@ -178,6 +184,15 @@ class ExtrasRouterImpl(
         log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
     }
 
+    override suspend fun openTimelineElementDevInfo(eventId: EventId, roomId: RoomId){
+        if (stack.value.active.configuration !is TimelineElementMetadata) {
+            openTimelineElementMetadata(eventId, roomId)
+        }
+        extrasNavigation.pushSuspending(TimelineElementDevInfo(eventId, roomId)) {
+            log.debug { "extras: opened message dev info for event: $eventId from room $roomId" }
+        }
+    }
+
     private fun createSettingsChild(
         config: Config,
         componentContext: ComponentContext,
@@ -254,6 +269,18 @@ class ExtrasRouterImpl(
                 eventId = config.eventId,
                 roomId = config.roomId,
                 onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                onOpenDevInfo = {onOpenTimelineElementDevInfo(config.eventId, config.roomId)},
+                onBack = ::onBack,
+            )
+        )
+
+        is TimelineElementDevInfo -> Wrapper.TimelineElementDevInfo(
+            viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext(componentContext),
+                eventId = config.eventId,
+                roomId = config.roomId,
+                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                onOpenDevInfo = {},
                 onBack = ::onBack,
             )
         )
@@ -288,6 +315,12 @@ class ExtrasRouterImpl(
         viewModelContext.coroutineScope.launch {
             openUserProfile(userId, roomId)
         }
+
+    private fun onOpenTimelineElementDevInfo(eventId: EventId, roomId: RoomId){
+        viewModelContext.coroutineScope.launch {
+            openTimelineElementDevInfo(eventId, roomId)
+        }
+    }
 
     private fun onOpenPowerLevel(roomId: RoomId) = viewModelContext.coroutineScope.launch {
         openPowerLevel(roomId)

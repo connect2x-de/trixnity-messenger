@@ -6,21 +6,20 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.runtime.remember
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.Header
 import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.settings.DevInfoCard
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.DevInfoViewModel
 import net.folivo.trixnity.core.model.UserId
 
@@ -60,18 +59,8 @@ class DevInfoViewImpl : DevInfoView {
                     Header(devInfoViewModel::back, i18n.devInfo())
                     SmallSpacer()
                     Column(Modifier.padding(start = 8.dp, end = 8.dp)){
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Column(Modifier.padding(start = 8.dp)){
-                                VerySmallSpacer()
-                                Text(i18n.roomSettingsRoomId(), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Start)
-                                VerySmallSpacer()
-                                CopyableUserId(roomIdAsUserId, MaterialTheme.typography.bodyLarge)
-                            }
+                        DevInfoCard(i18n.roomSettingsRoomId(), Icons.Default.Numbers){
+                            CopyableUserId(roomIdAsUserId, MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }

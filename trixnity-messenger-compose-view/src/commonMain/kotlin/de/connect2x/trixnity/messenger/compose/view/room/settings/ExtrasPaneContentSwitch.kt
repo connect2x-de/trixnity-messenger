@@ -30,6 +30,7 @@ fun ExtrasPaneContentSwitch(
             is ExtrasRouter.Wrapper.TimelineElementMetadata -> TimelineElementMetadata(
                 child.viewModel, isBottomOfStack, isSinglePane,
             )
+            is ExtrasRouter.Wrapper.TimelineElementDevInfo -> TimelineElementDevInfo(child.viewModel)
 
             is ExtrasRouter.Wrapper.PowerLevels -> ChangePowerLevel(child.viewModel)
 

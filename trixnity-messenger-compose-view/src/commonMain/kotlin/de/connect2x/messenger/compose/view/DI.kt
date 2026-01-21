@@ -76,6 +76,8 @@ import de.connect2x.messenger.compose.view.room.settings.RoomSettingsView
 import de.connect2x.messenger.compose.view.room.settings.RoomSettingsViewImpl
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementDevInfoView
+import de.connect2x.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
 import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataView
 import de.connect2x.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.messenger.compose.view.room.settings.UserProfileView
@@ -451,6 +453,7 @@ fun roomViewModule() = module {
 fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = null) = module {
     single<RoomSettingsView> { RoomSettingsViewImpl() }
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
+    single<TimelineElementDevInfoView> { TimelineElementDevInfoViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }
     single<RoomSettingsTopicView> { RoomSettingsTopicViewImpl() }
