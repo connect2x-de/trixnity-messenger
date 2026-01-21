@@ -1201,6 +1201,10 @@ open class I18nView(
         DE - "Erwähnungen"
     }
 
+    open fun devInfo() = translate {
+        EN - "Developer Information"
+        DE - "Entwickler Informationen"
+    }
     open fun roomSettingsRoomId() = translate {
         EN - "Room Id"
         DE - "Raum Id"

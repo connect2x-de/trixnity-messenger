@@ -17,6 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Conf
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.DevInfos
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.PowerLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
@@ -35,6 +36,7 @@ interface ExtrasRouter {
     suspend fun closeAll()
     suspend fun openRoomSettings(roomId: RoomId)
     suspend fun openAddMembers(roomId: RoomId)
+    suspend fun openDevInfo(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
     suspend fun openPowerLevel(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
@@ -46,6 +48,7 @@ interface ExtrasRouter {
         class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
+        class DevInfo(val viewModel: DevInfoViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
         class PowerLevels(val viewModel: PowerlevelViewModel) : Wrapper()
     }
@@ -61,6 +64,9 @@ interface ExtrasRouter {
 
             @Serializable
             data class AddMembers(val roomId: RoomId) : RoomSettings
+
+            @Serializable
+            data class DevInfos(val roomId: RoomId): RoomSettings
 
             @Serializable
             data class PowerLevels(val roomId: RoomId) : RoomSettings
@@ -131,6 +137,15 @@ class ExtrasRouterImpl(
         }
     }
 
+    override suspend fun openDevInfo(roomId: RoomId) {
+        if (stack.value.active.configuration !is RoomSettings) {
+            openRoomSettings(roomId)
+        }
+        extrasNavigation.pushSuspending(DevInfos(roomId)) {
+            log.debug { "extras: opened dev information for room: $roomId" }
+        }
+    }
+
     override suspend fun openPowerLevel(roomId: RoomId) {
         if (stack.value.active.configuration !is RoomSettings) {
             openRoomSettings(roomId)
@@ -175,6 +190,7 @@ class ExtrasRouterImpl(
                 onCloseRoom = onCloseRoom,
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
+                onOpenDevInfo = { onOpenDevInfo(config.roomId)},
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
@@ -194,6 +210,14 @@ class ExtrasRouterImpl(
                         viewModelContext = viewModelContext.childContext("PartialMembers", componentContext),
                         roomId = config.roomId,
                     ),
+            )
+        )
+
+        is DevInfos -> Wrapper.DevInfo(
+            viewModelContext.get<DevInfoViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext(componentContext),
+                roomId = config.roomId,
+                onBack = ::onBack,
             )
         )
 
@@ -243,6 +267,11 @@ class ExtrasRouterImpl(
     private fun onOpenAddMembers(roomId: RoomId) =
         viewModelContext.coroutineScope.launch {
             openAddMembers(roomId)
+        }
+
+    private fun onOpenDevInfo(roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            openDevInfo(roomId)
         }
 
     private fun onOpenExportRoom(roomId: RoomId) =

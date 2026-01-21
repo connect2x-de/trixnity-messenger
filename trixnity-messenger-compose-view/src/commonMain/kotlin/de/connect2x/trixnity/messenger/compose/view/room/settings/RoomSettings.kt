@@ -16,15 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,11 +26,8 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
-import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 
@@ -72,13 +63,17 @@ class RoomSettingsViewImpl : RoomSettingsView {
         val leaveRoomWarningOpen = roomSettingsViewModel.leaveRoomWarningOpen.collectAsState().value
         val joinRule = roomSettingsViewModel.roomSettingsJoinRulesViewModel.joinRule.collectAsState().value
         val scroll = rememberScrollState()
-        var showDevInfo by remember { mutableStateOf<Boolean>(false) }
 
         ExtrasPaneHeader(
             i18n.roomSettings(),
             error,
             { roomSettingsViewModel.close() },
             if (isSinglePane) BACK else CLOSE,
+            {
+                IconButton({roomSettingsViewModel.openDevInfoView()}){
+                    Icon(Icons.Default.Info, "Info")
+                }
+            }
         ) {
             Box(
                 Modifier.fillMaxSize()
@@ -120,19 +115,6 @@ class RoomSettingsViewImpl : RoomSettingsView {
                     RoomSettingsExportRoom(roomSettingsViewModel)
                     RoomSettingsLeaveRoom(roomSettingsViewModel)
                     if (leaveRoomWarningOpen) RoomSettingsLeaveRoomWarning(roomSettingsViewModel)
-
-                    IconToggleButton(showDevInfo, {showDevInfo=!showDevInfo}){Icon(Icons.Default.Info, "Info")}
-                    if(showDevInfo){
-                        Row (Modifier.padding(start = Icons.Default.Info.defaultWidth)){
-                            Column {
-                                Row{
-                                    Text(i18n.roomSettingsRoomId() + ": ")
-                                    ThemedSelectableText(roomSettingsViewModel.roomId.full, MaterialTheme.components.selectionOnSurface)
-                                }
-                            }
-                        }
-                        SmallSpacer()
-                    }
                 }
                 VerticalScrollbar(
                     Modifier.align(Alignment.CenterEnd).fillMaxHeight(),

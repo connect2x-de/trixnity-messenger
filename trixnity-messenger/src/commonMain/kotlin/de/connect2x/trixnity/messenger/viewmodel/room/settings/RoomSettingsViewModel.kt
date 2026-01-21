@@ -26,6 +26,7 @@ interface RoomSettingsViewModelFactory {
         selectedRoomId: RoomId,
         onCloseRoom: () -> Unit,
         onOpenAddMembers: () -> Unit,
+        onOpenDevInfo: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenUserProfile: (UserId) -> Unit,
@@ -36,6 +37,7 @@ interface RoomSettingsViewModelFactory {
         viewModelContext = viewModelContext,
         selectedRoomId = selectedRoomId,
         onOpenAddMembers = onOpenAddMembers,
+        onOpenDevInfo = onOpenDevInfo,
         onOpenExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
@@ -73,6 +75,7 @@ interface RoomSettingsViewModel {
     val leaveRoomWarningConfirmButtonText: StateFlow<String>
 
     fun openAddMembersView()
+    fun openDevInfoView()
     fun openExportRoomView()
     fun openPowerLevelView()
     fun leaveRoom()
@@ -87,6 +90,7 @@ class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onOpenAddMembers: () -> Unit,
+    private val onOpenDevInfo: () -> Unit,
     private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onCloseRoom: () -> Unit,
@@ -259,6 +263,10 @@ class RoomSettingsViewModelImpl(
         onOpenAddMembers()
     }
 
+    override fun openDevInfoView() {
+        onOpenDevInfo()
+    }
+
     override fun openExportRoomView() {
         onOpenExportRoom()
     }
@@ -294,6 +302,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val isEncrypted = MutableStateFlow(false)
     override val isLeave = MutableStateFlow(false)
     override fun openAddMembersView() {}
+    override fun openDevInfoView() {}
     override fun openExportRoomView() {}
     override fun openPowerLevelView() {}
     override fun openUserProfile(userId: UserId) {}

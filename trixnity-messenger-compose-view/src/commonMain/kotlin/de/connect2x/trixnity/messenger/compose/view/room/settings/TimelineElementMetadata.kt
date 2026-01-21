@@ -164,7 +164,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         IconToggleButton(showDevInfo, {showDevInfo=!showDevInfo}){Icon(Icons.Default.Info, "Info")}
                         if(showDevInfo){
                             SmallSpacer()
-                            Row (Modifier.padding(start = Icons.Default.Info.defaultWidth)){
+                            Row (Modifier.padding(start = Icons.Default.Info.defaultWidth, end = Icons.Default.Info.defaultWidth)){
                                 Column {
                                     messageElement?.body?.let { content ->
                                         ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
