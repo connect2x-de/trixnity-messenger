@@ -2418,6 +2418,21 @@ open class I18nView(
         DE - "Private Räume sind nur für eingeladene Nutzer sichtbar. Sie können ihnen nur mit einer Einladung beitreten."
     }
 
+    open fun roomDirectoryVisibility() = translate {
+        EN - "Show in room directory"
+        DE - "Im Raumverzeichnis anzeigen"
+    }
+
+    open fun roomDirectoryVisibilityInfo() = translate {
+        EN - "When enabled, a publicly visible room will also be shown in the local room directory."
+        DE - "Wenn aktiviert, wird der öffentlich sichtbare Raum auch im lokalen Raumverzeichnis angezeigt."
+    }
+
+    open fun roomDirectoryVisibilityExplanation() = translate {
+        EN - "Private rooms cannot be visible"
+        DE - "Private Räume können nicht angezeigt werden"
+    }
+
     open fun roomVisibility() = translate {
         EN - "Visibility: "
         DE - "Sichtbarkeit: "
