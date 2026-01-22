@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support UnifiedPush
+- UI: Profiles setting tab in settings
 
 ### Changed
 

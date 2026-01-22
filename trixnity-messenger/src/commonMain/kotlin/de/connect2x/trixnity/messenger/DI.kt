@@ -130,6 +130,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
@@ -372,6 +373,7 @@ private fun settingsViewModels() = module {
     single<DeviceSettingsAllAccountsViewModelFactory> { DeviceSettingsAllAccountsViewModelFactory }
     single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
     single<AccountsViewModelFactory> { AccountsViewModelFactory }
+    single<ProfilesSettingsViewModelFactory> { ProfilesSettingsViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }

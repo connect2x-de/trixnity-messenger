@@ -7,6 +7,8 @@ import androidx.compose.runtime.remember
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.get
 
 @Composable
 fun IntroductionOrProfile() = DI.get<IntroductionOrProfileView>().create()
@@ -19,13 +21,7 @@ interface IntroductionOrProfileView {
 class IntroductionOrProfileViewImpl : IntroductionOrProfileView {
     @Composable
     override fun create() {
-        val pm = DI.get<ProfileManager>()
-        val multiProfileConfig = pm.isMultiProfileEnabled.collectAsState().value
-        val open = remember { mutableStateOf(multiProfileConfig == null) }
-        if (multiProfileConfig == null || open.value) {
-            Introduction(open)
-        } else {
-            Profiles()
-        }
+        //There is currently no content for the introduction page, thus Profiles()
+        Profiles()
     }
 }

@@ -22,6 +22,19 @@ import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettin
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettings
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettings
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedVerticalDivider
+import de.connect2x.messenger.compose.view.roomlist.create.CreateNewChat
+import de.connect2x.messenger.compose.view.roomlist.create.CreateNewGroup
+import de.connect2x.messenger.compose.view.roomlist.search.SearchGroup
+import de.connect2x.messenger.compose.view.settings.AccountsSettings
+import de.connect2x.messenger.compose.view.settings.ProfilesSettings
+import de.connect2x.messenger.compose.view.settings.AppInfo
+import de.connect2x.messenger.compose.view.settings.AppearanceSettings
+import de.connect2x.messenger.compose.view.settings.BlockedContactsSettings
+import de.connect2x.messenger.compose.view.settings.DeviceSettings
+import de.connect2x.messenger.compose.view.settings.NotificationsSettings
+import de.connect2x.messenger.compose.view.settings.PrivacySettings
+import de.connect2x.messenger.compose.view.settings.UserSettings
+import de.connect2x.messenger.compose.view.theme.components.ThemedVerticalDivider
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 
@@ -42,6 +55,7 @@ fun RoomListSwitch(
                 is RoomListRouter.Wrapper.UserSettings -> UserSettings(child.viewModel, mainViewModel)
                 is RoomListRouter.Wrapper.DeviceSettings -> DeviceSettings(child.viewModel)
                 is RoomListRouter.Wrapper.Accounts -> AccountsSettings(child.viewModel)
+                is RoomListRouter.Wrapper.ProfilesSettings -> ProfilesSettings(child.viewModel)
                 is RoomListRouter.Wrapper.NotificationsSettings -> NotificationsSettings(child.viewModel)
                 is RoomListRouter.Wrapper.PrivacySettings -> PrivacySettings(child.viewModel)
                 is RoomListRouter.Wrapper.AppearanceSettings -> AppearanceSettings(child.viewModel)

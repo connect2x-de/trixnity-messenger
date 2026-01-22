@@ -70,6 +70,25 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.VerticalScrollbar
+import de.connect2x.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.messenger.compose.view.common.ErrorView
+import de.connect2x.messenger.compose.view.common.FilePickerType
+import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.icons.EditIcon
+import de.connect2x.messenger.compose.view.common.icons.HelpIcon
+import de.connect2x.messenger.compose.view.files.LoadFileDialog
+import de.connect2x.messenger.compose.view.files.filterFilePickerOptionsByAvailability
+import de.connect2x.messenger.compose.view.get
+import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.theme.components
+import de.connect2x.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedFloatingActionButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
+import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
@@ -107,8 +126,6 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
     val i18n = DI.get<I18nView>()
     val error = accountsViewModel.error.collectAsState().value
     val accountSingleViewModels = accountsViewModel.accountSingleViewModels.collectAsState().value
-    val multiProfileEnabled = accountsViewModel.isMultiProfile.collectAsState().value
-    val canChangeMultiProfileMode = accountsViewModel.canChangeMultiProfileMode.collectAsState().value
     val scroll = rememberScrollState()
 
     Box(Modifier.fillMaxSize()) {
@@ -119,13 +136,7 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
             Box {
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                        ThemedListItemSwitch(
-                            headlineContent = { Text(i18n.profileSelectionMultipleAccountSwitch()) },
-                            enabled = canChangeMultiProfileMode,
-                            selected = multiProfileEnabled,
-                            onChange = { accountsViewModel.setMultiProfileEnabled(it) },
-                        )
-                        accountSingleViewModels.map { accountSingleViewModel ->
+                        accountSingleViewModels.forEach { accountSingleViewModel ->
                             AccountCard(accountSingleViewModel, accountsViewModel)
                         }
                         // leave space so that the floating action button does not cover up other elements

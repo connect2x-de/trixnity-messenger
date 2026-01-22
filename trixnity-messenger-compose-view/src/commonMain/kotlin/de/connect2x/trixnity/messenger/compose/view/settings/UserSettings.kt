@@ -43,7 +43,8 @@ class UserSettingsViewImpl : UserSettingsView {
             Column {
                 Header(userSettingsViewModel::closeUserSettings, i18n.commonSettings().capitalize(Locale.current))
                 Column {
-                    ProfileInfo(userSettingsViewModel)
+                    AccountsInfo(userSettingsViewModel)
+                    ProfilesSettingsButton(userSettingsViewModel)
                     AppearanceSettings(userSettingsViewModel)
                     PrivacySettings(userSettingsViewModel)
                     DeviceSettings(userSettingsViewModel)
@@ -55,12 +56,23 @@ class UserSettingsViewImpl : UserSettingsView {
 }
 
 @Composable
-fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
+fun AccountsInfo(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Person, null) },
         headlineContent = { Text(i18n.accountYourAccounts()) },
-        onClick = { userSettingsViewModel.showProfile() },
+        onClick = { userSettingsViewModel.showAccounts() },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
+}
+
+@Composable
+fun ProfilesSettingsButton(userSettingsViewModel: UserSettingsViewModel){
+    val i18n = DI.get<I18nView>()
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Person, null) },
+        headlineContent = { Text(i18n.profilesSettings()) },
+        onClick = { userSettingsViewModel.showProfilesSettings() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
 }
