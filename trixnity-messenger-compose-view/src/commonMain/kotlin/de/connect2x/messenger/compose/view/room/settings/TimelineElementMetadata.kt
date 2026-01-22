@@ -315,19 +315,13 @@ private fun ColumnScope.MessageContentHistorySwitch(
         )
     }
 
-    Column(Modifier.heightIn(min = 50.dp, max = 500.dp)) {
-        if (showHistory) {
-            MessageHistory(elementHistory)
-        } else {
-            val scrollState = rememberScrollState()
-            Box {
-                Column(Modifier.verticalScroll(scrollState).padding(end = 10.dp)) {
-                    DateStickyHeader(element.formattedDate, focusable = true)
-                    Spacer(Modifier.height(8.dp))
-                    MessageContent(element)
-                }
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
-            }
+    if (showHistory) {
+        MessageHistory(elementHistory)
+    } else {
+        Column(Modifier.padding(end = 10.dp)) {
+            DateStickyHeader(element.formattedDate, focusable = true)
+            Spacer(Modifier.height(8.dp))
+            MessageContent(element)
         }
     }
 }

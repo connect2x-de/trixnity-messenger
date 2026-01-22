@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Gradle not validating distribution hash
 - WEB: Keyboard shortcuts now work reliably by only preventing the default action of focus-related keys
 - SDK: Fix MatrixClientsImpl being improperly registered in the DI
+- UI: Remove large gap between message and expandable sections in message details
+- UI: The avatar shape no longer deforms at very small heights in the profile view
 
 ### Security
 
