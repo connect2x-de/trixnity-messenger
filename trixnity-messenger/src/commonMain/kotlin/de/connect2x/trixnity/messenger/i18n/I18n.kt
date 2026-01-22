@@ -50,7 +50,7 @@ open class I18n(
 
     open fun uiaCancelledByUser() = translate {
         EN - "The authorization has been cancelled by you."
-        DE - "Die Autorisierung wurde durch von Ihnen abgebrochen."
+        DE - "Die Autorisierung wurde von Ihnen abgebrochen."
     }
 
     open fun uiaGenericError(message: String? = commonUnknown()) = translate {

@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
@@ -31,12 +32,14 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.WizardButtons.NextButton
@@ -121,36 +124,35 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
         }
     }
 
-    Dialog(
-        onDismissRequest = {
-            backHandler.goBack()
-        },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false
-        ),
+    val density = LocalDensity.current
+    //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
+    Popup(
+        onDismissRequest = { backHandler.goBack() },
+        properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
-        key(wizardStep) {
-            if (wizardStep != null) {
-                // this is necessary to have a scroll position saved on every step,
-                // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-                savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
-                    val scrollState = rememberScrollState()
-                    Surface(
-                        Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
+        CompositionLocalProvider(LocalDensity provides density) {
+            key(wizardStep) {
+                if (wizardStep != null) {
+                    // this is necessary to have a scroll position saved on every step,
+                    // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+                    savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                        val scrollState = rememberScrollState()
+                        Surface(
+                            Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.background,
                         ) {
-                            BoxWithConstraints(
-                                Modifier.fillMaxWidth().weight(1f),
-                                contentAlignment = Alignment.Center,
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
                             ) {
-                                WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                                BoxWithConstraints(
+                                    Modifier.fillMaxWidth().weight(1f),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
+                                }
+                                LegalFooter()
                             }
-                            LegalFooter()
                         }
                     }
                 }
@@ -187,7 +189,7 @@ private fun BoxWithConstraintsScope.WizardContainer(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Column {
+                Column(Modifier.semantics { dialog() }) {
                     WizardHeading(wizardStep)
                     WizardContent(wizardStep, scrollState, boxWithConstraints)
                     WizardButtons(wizardSteps, wizardStep, currentStep)
