@@ -34,7 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove reset account setup button from settings
 
 ### Fixed
-
+- ANDROID / IOS / UI: Make several dialogs and modals adapt to font/display size changes
+- ANDROID / UI: Fix crash when trying to apply font/display size changes in setup wizard
 - UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - SDK: Fix BackHandler missing in MatrixMultiMessenger
 - IDE: Fix Gradle using the binary-only distribution instead of the -all distribution
