@@ -48,6 +48,7 @@ fun MessageBubbleContainer(
     isPreview: Boolean,
     interactionSource: MutableInteractionSource,
     index: Int,
+    onRedact: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
@@ -118,6 +119,7 @@ fun MessageBubbleContainer(
                     onReactToMessage = { reactionsOpen.value = true },
                     hoverInteractionSource = hoverInteractionSource,
                     additionalContextActions = additionalContextActions,
+                    onRedact = onRedact
                 )
             }
 

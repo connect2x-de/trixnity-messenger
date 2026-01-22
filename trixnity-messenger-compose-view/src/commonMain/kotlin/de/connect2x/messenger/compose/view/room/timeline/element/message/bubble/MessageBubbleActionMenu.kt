@@ -66,6 +66,7 @@ fun BoxScope.MessageBubbleActionMenu(
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     hoverInteractionSource: MutableInteractionSource,
+    onRedact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     when {
@@ -74,6 +75,7 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
+            onRedact,
             additionalContextActions,
         )
 
@@ -83,6 +85,7 @@ fun BoxScope.MessageBubbleActionMenu(
             showActionMenu,
             onOpenMetadata,
             onReactToMessage,
+            onRedact,
             additionalContextActions,
         )
     }
@@ -95,6 +98,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    onRedact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -158,7 +162,7 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
                 .sizeIn(maxWidth = 300.dp),
         ) {
             additionalContextActions(onClose)
-            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage, onRedact)
                 .forEach { action -> action.render { onClose() } }
         }
     }
@@ -171,6 +175,7 @@ private fun MessageBubbleActionMenuMobile(
     showActionMenu: MutableState<Boolean>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    onRedact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
@@ -196,7 +201,7 @@ private fun MessageBubbleActionMenuMobile(
                 .padding(bottom = 40.dp)
         ) {
             additionalContextActions(onClose)
-            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage)
+            holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage, onRedact)
                 .forEach { action -> action.render { onClose() } }
         }
     }

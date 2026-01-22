@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.room.timeline.RedactionWarning
 import de.connect2x.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -66,6 +67,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
             holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
+        val showRedactWarning = remember { mutableStateOf(false) }
 
         val reactionsOpen = remember { mutableStateOf(false) }
 
@@ -100,6 +102,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         isPreview = isPreview,
                         interactionSource = interactionSource,
                         index = index,
+                        onRedact = { showRedactWarning.value = true },
                         content = content,
                     )
                 }
@@ -109,6 +112,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         reactionsOpen,
                         modifier = Modifier.padding(start = 8.dp),
                     )
+                    RedactionWarning(holder, showRedactWarning)
                 }
             }
         }

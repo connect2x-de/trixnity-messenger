@@ -31,6 +31,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
     i18n: I18nView,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
+    onRedact: () -> Unit,
 ): List<BaseTimelineElementHolderContextMenuAction> {
     val canBeReactedTo = asTimelineElementHolder()?.canBeReactedTo?.collectAsState()?.value == true
     val canBeRepliedTo = asTimelineElementHolder()?.canBeRepliedTo?.collectAsState()?.value == true
@@ -78,7 +79,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
             if (canBeRedacted) add(
                 BaseTimelineElementHolderContextMenuAction(
                     label = i18n.redactMessage(),
-                    action = ::redact,
+                    action = onRedact,
                 )
             )
             if (canBeReported) add(
