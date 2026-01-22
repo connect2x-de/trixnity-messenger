@@ -673,7 +673,7 @@ class InputAreaViewModelTest {
     fun `convert markdown to HTML`() = runTest {
         val markdown = """
             # The train station and Sony
-           
+            
             ## Origins
             
             There once was an amazing train station. It was so amazing that people in Germany began to say
@@ -722,19 +722,19 @@ class InputAreaViewModelTest {
 
         val html = """
             <h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
-            the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
-            its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
-            This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
-            for example:</p><pre><code>fun main() {
+            <br />the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
+            <br />its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
+            <br />This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
+            <br />for example:</p><pre><code>fun main() {
                 println(&quot;Hello World 👋👋👋&quot;)
             }
             </code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-            The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
-            the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
-            infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
-            video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
-            Hope you had a good read? It's mostly non-sense
-            Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
+            <br />The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
+            <br />the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
+            <br />infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
+            <br />video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
+            <br />Hope you had a good read? It's mostly non-sense
+            <br />Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
         """.trimIndent()
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -787,9 +787,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
+            println(formattedBody)
             formattedBody shouldBe """
                 <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
-                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+                <br />und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
             """.trimIndent()
         }
     }
