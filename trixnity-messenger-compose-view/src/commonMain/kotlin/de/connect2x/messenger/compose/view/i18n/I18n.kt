@@ -1747,6 +1747,11 @@ open class I18nView(
         DE - "Geräteeinstellungen"
     }
 
+    open fun notificationsSettingsProvider() = translate {
+        EN - "Notification Provider"
+        DE - "Benachrichtigungsanbieter"
+    }
+
     open fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
         EN - "The app does not have permission to send notifications. Please go to your device settings."
         DE - "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."
@@ -3344,6 +3349,7 @@ open class I18nView(
         EN - "Are you sure you want to delete this message? This action cannot be reversed!"
         DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

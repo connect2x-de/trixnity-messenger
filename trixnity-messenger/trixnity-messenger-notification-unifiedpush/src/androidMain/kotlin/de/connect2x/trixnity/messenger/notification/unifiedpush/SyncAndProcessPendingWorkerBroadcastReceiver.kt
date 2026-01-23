@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.notification.fcm
+package de.connect2x.trixnity.messenger.notification.unifiedpush
 
 import android.content.BroadcastReceiver
 import android.content.Context

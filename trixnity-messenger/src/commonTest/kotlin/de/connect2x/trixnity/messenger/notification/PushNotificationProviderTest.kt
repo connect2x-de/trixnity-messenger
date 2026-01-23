@@ -333,7 +333,7 @@ class PushNotificationProviderTest {
         matrixClients: MatrixClients,
         coroutineScope: CoroutineScope,
     ) : PushNotificationProvider(
-        config = config,
+        messengerConfig = config,
         multiSettings = multiSettings,
         settings = settings,
         getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,

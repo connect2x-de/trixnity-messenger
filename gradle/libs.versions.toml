@@ -6,7 +6,9 @@ seskar = "4.30.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gra
 
 trixnity = "5.0.0-DEV-61920332" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.3.1-DEV-62137441" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.4" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
+unifiedPush = "3.2.0" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.16.4" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js
@@ -24,7 +26,6 @@ kotlinLogging = "7.0.13" # https://github.com/MicroUtils/kotlin-logging/releases
 slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
 logback = "1.5.22" # https://github.com/qos-ch/logback/tags
 logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
-sqlitenity = "0.0.4"
 
 [libraries]
 
@@ -40,7 +41,10 @@ trixnity-client-cryptodriver-libolm = { module = "net.folivo:trixnity-client-cry
 trixnity-client-cryptodriver-vodozemac = { module = "net.folivo:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
+sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
+sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
 
+unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logback-android = { module = "com.github.tony19:logback-android", version.ref = "logbackAndroid" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
@@ -57,8 +61,6 @@ icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
 
 [bundles]
 

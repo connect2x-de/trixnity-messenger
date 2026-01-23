@@ -139,6 +139,7 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationFcm)
+                implementation(projects.trixnityMessenger.trixnityMessengerNotificationUnifiedpush)
                 implementation(compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)

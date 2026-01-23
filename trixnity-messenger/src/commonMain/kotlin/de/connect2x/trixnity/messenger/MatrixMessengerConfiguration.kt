@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.notification.NotificationProvider
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
@@ -96,8 +97,7 @@ data class MatrixMessengerConfiguration(
     override var imprint: String? = null,
     override var licenses: String? = null,
 
-    var pushUrl: String? = null,
-    var pushAppId: String? = null,
+    var notificationProviderConfigurations: MutableMap<NotificationProvider.Id<*>, NotificationProvider.Config<*>> = mutableMapOf(),
 
     var downloadsDisabled: Boolean = false,
 

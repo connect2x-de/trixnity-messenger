@@ -11,6 +11,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AlternateEmail
+import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsActive
@@ -99,6 +101,8 @@ fun ColumnScope.DeviceNotificationSettings(
     val i18n = DI.get<I18nView>()
     val deviceSettings = viewModel.deviceSettings.collectAsState().value
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
+    val availableProviders = viewModel.availableProviders
+    val selectedProvider = viewModel.selectedProvider.collectAsState().value
 
     ThemedListItemSwitch(
         style = MaterialTheme.components.settingsItem,
@@ -106,7 +110,6 @@ fun ColumnScope.DeviceNotificationSettings(
         selected = enabledForThisDevice,
         onChange = { viewModel.toggleEnabledForThisDevice() },
     )
-
 
     SmallSpacer()
     val permissionNecessary = viewModel.notificationPermissionsNecessary.collectAsState().value
@@ -123,9 +126,23 @@ fun ColumnScope.DeviceNotificationSettings(
     PlatformDeviceNotificationSettings(viewModel)
 
     SmallSpacer()
+    if (availableProviders.isNotEmpty() && selectedProvider != null) {
+        RadioSetting(
+            text = i18n.notificationsSettingsProvider(),
+            icon = Icons.Default.CloudDownload,
+            options = availableProviders.associate { provider ->
+                provider.id to RadioSettingOption(text = provider.displayName)
+            },
+            value = selectedProvider.id,
+            set = { viewModel.selectProvider(it) },
+            enabled = enabledForThisDevice
+        )
+    }
 
+    SmallSpacer()
     CollapsableOptionSetting(
         text = i18n.notificationsSettingsPlatform(),
+        icon = Icons.Default.Devices,
         options = listOf(
             OptionSettingOption(
                 text = i18n.notificationsSettingsPlatformPlaySound(),
@@ -190,7 +207,7 @@ fun ColumnScope.AccountNotificationSettings(
 
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.NotificationsActive
+        icon = Icons.Default.NotificationsActive
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
@@ -233,7 +250,7 @@ fun ColumnScope.AccountNotificationSettings(
     MiddleSpacer()
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Filled.Notifications
+        icon = Icons.Default.Notifications
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
