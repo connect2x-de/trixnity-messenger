@@ -50,7 +50,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
         val messageElement =
-            lastElement?.element?.collectAsState()?.value as? RoomMessageTimelineElementViewModel.TextBased<*>
+            lastElement?.element?.collectAsState()?.value as? RoomMessageTimelineElementViewModel
 
         LaunchedEffect(Unit) {
             timelineElementMetadataViewModel.element.filterNotNull().collect { newElement ->
