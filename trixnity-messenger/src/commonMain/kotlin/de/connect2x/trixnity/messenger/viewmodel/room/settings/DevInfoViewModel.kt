@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import net.folivo.trixnity.core.model.RoomId
 
@@ -21,7 +21,7 @@ interface DevInfoViewModelFactory {
 }
 
 interface DevInfoViewModel {
-    val roomId: RoomId;
+    val roomId: RoomId
     fun back()
 }
 
@@ -36,7 +36,7 @@ class DevInfoViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun back() {

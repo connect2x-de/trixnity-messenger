@@ -7,7 +7,7 @@ object SupportedMimeTypes {
         ContentType.Image.JPEG,
         ContentType.Image.PNG,
         ContentType.Image.BMP,
-        ContentType.Image.Webp,
+        ContentType.Image.WEBP,
         ContentType.Image.GIF
     )
 
