@@ -132,7 +132,7 @@ private suspend fun RootViewModel.viewAccounts(): AccountsViewModel {
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         .accountViewModel.openUserSettings()
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.UserSettings::class).viewModel
-        .showProfile()
+        .showAccounts()
     return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.Accounts::class).viewModel
 }
 
