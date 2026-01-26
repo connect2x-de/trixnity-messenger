@@ -126,7 +126,7 @@ fun ColumnScope.DeviceNotificationSettings(
     PlatformDeviceNotificationSettings(viewModel)
 
     SmallSpacer()
-    if (availableProviders.isNotEmpty() && selectedProvider != null) {
+    if (availableProviders.size > 1 && selectedProvider != null) {
         RadioSetting(
             text = i18n.notificationsSettingsProvider(),
             icon = Icons.Default.CloudDownload,
