@@ -1,14 +1,21 @@
 package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.update
+import de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.settings.NestedSettingsView
+import de.connect2x.trixnity.messenger.settings.SettingsView
+import de.connect2x.trixnity.messenger.settings.settingsView
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import dev.mokkery.answering.returns
@@ -26,11 +33,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.folivo.trixnity.client.MatrixClient
@@ -101,9 +112,10 @@ class PushNotificationProviderTest {
         every { matrixClientApi.push } returns matrixClientApiPush
     }
 
-    fun TestScope.cut() = TestPushNotificationProvider(
+    fun TestScope.cut() = TestNotificationProvider(
         config = MatrixMessengerConfiguration().apply {
-            pushUrl = "https://push.connect2x.de"
+            notificationProviderConfigurations[TestNotificationProvider] =
+                TestNotificationProvider.Config("de.connect2x.test.push")
         },
         multiSettings = multiSettings,
         settings = settings,
@@ -115,16 +127,22 @@ class PushNotificationProviderTest {
     @Test
     fun `deliverPushKeys - enabled - different pushKey in settings - set`() = runTest {
         everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = true, deliveredPushKey = "old_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(
+                enabled = true,
+                deliveredPusher = PusherSettings(pushKey = "old_push_key", url = "https://push.connect2x.de")
+            )
         }
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
-            it.copy(enabled = true, deliveredPushKey = "new_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
+            it.copy(
+                enabled = true,
+                deliveredPusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de")
+            )
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -132,8 +150,14 @@ class PushNotificationProviderTest {
 
         verifySuspend(VerifyMode.exhaustive) {
             matrixClientApiPush.setPushers(
+                SetPushers.Request.Remove(
+                    appId = "de.connect2x.test.push",
+                    pushkey = "old_push_key",
+                )
+            )
+            matrixClientApiPush.setPushers(
                 SetPushers.Request.Set(
-                    appId = "de.connect2x.trixnity.messenger",
+                    appId = "de.connect2x.test.push",
                     appDisplayName = "Trixnity Messenger",
                     data = PusherData(
                         url = "https://push.connect2x.de",
@@ -153,16 +177,22 @@ class PushNotificationProviderTest {
     @Test
     fun `deliverPushKeys - disabled - different pushKey in settings - remove`() = runTest {
         everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = false, deliveredPushKey = "old_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(
+                enabled = false,
+                deliveredPusher = PusherSettings(pushKey = "old_push_key", url = "https://push.connect2x.de")
+            )
         }
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
-            it.copy(enabled = true, deliveredPushKey = "new_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
+            it.copy(
+                enabled = true,
+                deliveredPusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de")
+            )
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -171,7 +201,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exhaustive) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.trixnity.messenger",
+                    appId = "de.connect2x.test.push",
                     pushkey = "old_push_key",
                 )
             )
@@ -181,12 +211,15 @@ class PushNotificationProviderTest {
     @Test
     fun `deliverPushKeys - enabled - same pushKey in settings - skip`() = runTest {
         everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = true, deliveredPushKey = "new_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(
+                enabled = true,
+                deliveredPusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de")
+            )
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -198,12 +231,12 @@ class PushNotificationProviderTest {
     @Test
     fun `deliverPushKeys - disabled - null pushKey in settings - skip`() = runTest {
         everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = false, deliveredPushKey = null)
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(enabled = false, deliveredPusher = null)
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -217,12 +250,15 @@ class PushNotificationProviderTest {
         everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.failure(
             MatrixServerException(HttpStatusCode.Unauthorized, ErrorResponse.Unauthorized(""))
         )
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = false, deliveredPushKey = "old_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(
+                enabled = false,
+                deliveredPusher = PusherSettings(pushKey = "old_push_key", url = "https://push.connect2x.de")
+            )
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -231,7 +267,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exactly(1)) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.trixnity.messenger",
+                    appId = "de.connect2x.test.push",
                     pushkey = "old_push_key",
                 )
             )
@@ -246,12 +282,15 @@ class PushNotificationProviderTest {
             ),
             Result.success(Unit)
         )
-        multiSettings.update<MatrixMultiMessengerNotificationProviderPushSettings> {
-            it.copy(pushKey = "new_push_key")
+        multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
+            it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
-            it.copy(enabled = false, deliveredPushKey = "old_push_key")
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
+            it.copy(
+                enabled = false,
+                deliveredPusher = PusherSettings(pushKey = "old_push_key", url = "https://push.connect2x.de")
+            )
         }
 
         backgroundScope.launch { cut().doWork() }
@@ -260,7 +299,7 @@ class PushNotificationProviderTest {
         verifySuspend(VerifyMode.exactly(2)) {
             matrixClientApiPush.setPushers(
                 SetPushers.Request.Remove(
-                    appId = "de.connect2x.trixnity.messenger",
+                    appId = "de.connect2x.test.push",
                     pushkey = "old_push_key",
                 )
             )
@@ -271,17 +310,17 @@ class PushNotificationProviderTest {
     fun `isEnabled - one account enabled - true`() = runTest {
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
             it.copy(enabled = false)
         }
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
             it.copy(enabled = false)
         }
         val cut = cut()
 
         cut.isEnabled.value shouldBe false
 
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
             it.copy(enabled = true)
         }
         delay(100.milliseconds)
@@ -292,17 +331,17 @@ class PushNotificationProviderTest {
     fun `isEnabled - all account disabled - false`() = runTest {
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
             it.copy(enabled = false)
         }
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
             it.copy(enabled = true)
         }
         val cut = cut()
 
         cut.isEnabled.value shouldBe true
 
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
             it.copy(enabled = false)
         }
         delay(100.milliseconds)
@@ -313,10 +352,10 @@ class PushNotificationProviderTest {
     fun `isEnabled - for user`() = runTest {
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId1) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId1) {
             it.copy(enabled = false)
         }
-        settings.update<MatrixMessengerAccountNotificationProviderPushSettings>(userId2) {
+        settings.update<MatrixMessengerAccountNotificationProviderTestSettings>(userId2) {
             it.copy(enabled = true)
         }
         val cut = cut()
@@ -324,38 +363,101 @@ class PushNotificationProviderTest {
         cut.isEnabled(userId1).first() shouldBe false
         cut.isEnabled(userId2).first() shouldBe true
     }
+}
 
-    class TestPushNotificationProvider(
-        config: MatrixMessengerConfiguration,
-        multiSettings: MatrixMultiMessengerSettingsHolder?,
-        settings: MatrixMessengerSettingsHolder,
-        getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
-        matrixClients: MatrixClients,
-        coroutineScope: CoroutineScope,
-    ) : PushNotificationProvider(
-        messengerConfig = config,
-        multiSettings = multiSettings,
-        settings = settings,
-        getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
-        matrixClients = matrixClients,
-        coroutineScope = coroutineScope,
+@Serializable
+@NestedSettingsView("notification", "provider", "test")
+data class MatrixMultiMessengerNotificationProviderTestSettings(
+    val pusher: PusherSettings? = null,
+) : SettingsView<MatrixMultiMessengerSettings>
+
+val MatrixMultiMessengerSettings.notificationProviderTest
+        by settingsView<MatrixMultiMessengerSettings, MatrixMultiMessengerNotificationProviderTestSettings>()
+
+@Serializable
+@NestedSettingsView("notification", "provider", "test")
+data class MatrixMessengerNotificationProviderTestSettings(
+    val pusher: PusherSettings? = null,
+) : SettingsView<MatrixMessengerSettings>
+
+val MatrixMessengerSettings.notificationProviderTest
+        by settingsView<MatrixMessengerSettings, MatrixMessengerNotificationProviderTestSettings>()
+
+@Serializable
+@NestedSettingsView("notification", "provider", "test")
+data class MatrixMessengerAccountNotificationProviderTestSettings(
+    val enabled: Boolean = false,
+    val deliveredPusher: PusherSettings? = null,
+) : SettingsView<MatrixMessengerAccountSettings>
+
+val MatrixMessengerAccountSettings.notificationProviderTest
+        by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderTestSettings>()
+
+class TestNotificationProvider(
+    config: MatrixMessengerConfiguration,
+    multiSettings: MatrixMultiMessengerSettingsHolder?,
+    settings: MatrixMessengerSettingsHolder,
+    getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
+    matrixClients: MatrixClients,
+    coroutineScope: CoroutineScope,
+) : PushNotificationProvider(
+    messengerConfig = config,
+    multiSettings = multiSettings,
+    settings = settings,
+    getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
+    matrixClients = matrixClients,
+    coroutineScope = coroutineScope,
+) {
+    var enableServiceCalled: Boolean = false
+    override suspend fun enableService() {
+        enableServiceCalled = true
+    }
+
+    var disableServiceCalled: Boolean = false
+    override suspend fun disableService() {
+        disableServiceCalled = true
+    }
+
+    override suspend fun getPusherCustomFields(
+        profile: String?,
+        account: UserId
+    ): JsonObject = JsonObject(mapOf("dino" to JsonPrimitive(true)))
+
+    companion object Id : NotificationProvider.Id<TestNotificationProvider>
+
+    data class Config(override val appId: String) : PushNotificationProvider.Config
+
+    override val id = Id
+    override val config = getProviderConfig<Config>()
+    override val displayName: String = "test"
+
+    override val currentPusherSettings =
+        (multiSettings?.map { s -> s.notificationProviderTest.pusher }
+            ?: settings.map { s -> s.notificationProviderTest.pusher })
+            .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
+    override val MatrixMessengerAccountSettings.pusherSettings: PusherAccountSettings
+        get() = notificationProviderTest.run {
+            PusherAccountSettings(
+                enabled = enabled,
+                deliveredPusher = deliveredPusher,
+            )
+        }
+
+    override suspend fun MatrixMessengerSettingsHolder.updatePusherSettings(
+        account: UserId,
+        updater: (PusherAccountSettings) -> PusherAccountSettings
     ) {
-        var enableServiceCalled: Boolean = false
-        override suspend fun enableService() {
-            enableServiceCalled = true
+        update<MatrixMessengerAccountNotificationProviderTestSettings>(account) {
+            val updateResult = updater(
+                PusherAccountSettings(
+                    enabled = it.enabled,
+                    deliveredPusher = it.deliveredPusher,
+                )
+            )
+            it.copy(
+                enabled = updateResult.enabled,
+                deliveredPusher = updateResult.deliveredPusher,
+            )
         }
-
-        var disableServiceCalled: Boolean = false
-        override suspend fun disableService() {
-            disableServiceCalled = true
-        }
-
-        override suspend fun getPusherCustomFields(
-            profile: String?,
-            account: UserId
-        ): JsonObject = JsonObject(mapOf("dino" to JsonPrimitive(true)))
-
-        override val id: String = "test"
-        override val displayName: String = "test"
     }
 }
