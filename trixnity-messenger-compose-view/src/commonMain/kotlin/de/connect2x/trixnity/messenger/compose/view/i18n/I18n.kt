@@ -3355,8 +3355,8 @@ open class I18nView(
     }
 
     open fun multiProfileModeDescription() = translate {
-        EN - "In Multi Profile Mode, you can manage your accounts in separate profiles."
-        DE - "Im Multi-Profil-Modus können sie mehrere Profile verwalten."
+        EN - "In Multi Profile Mode, multiple profiles can be used."
+        DE - "Im Multi-Profil-Modus können mehrere Profile verwendet werden."
     }
 
     open fun cannotDisableMultiProfileMode() = translate {
@@ -3369,9 +3369,14 @@ open class I18nView(
         DE - "Multi-Profil-Modus aktivieren"
     }
 
-    open fun setFirstProfileName() = translate {
-        EN - "Please set a name for your current Profile"
-        DE - "Bitte setzen sie einen Namen für ihr jetziges Profil fest"
+    open fun profileNameSettings() = translate {
+        EN - "Profile name"
+        DE - "Profilname"
+    }
+
+    open fun profileNameTextfield() = translate {
+        EN - "Change current profile name"
+        DE - "Ändere den aktuellen Profilname"
     }
 
     open fun profileNamePlaceholder() = translate {

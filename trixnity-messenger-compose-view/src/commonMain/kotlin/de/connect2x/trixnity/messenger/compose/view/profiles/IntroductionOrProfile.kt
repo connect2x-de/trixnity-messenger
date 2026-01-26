@@ -21,7 +21,7 @@ interface IntroductionOrProfileView {
 class IntroductionOrProfileViewImpl : IntroductionOrProfileView {
     @Composable
     override fun create() {
-        //There is currently no content for the introduction page, thus Profiles()
+        //There is currently no content for the nor a introduction page, thus Profiles()
         Profiles()
     }
 }

@@ -1,20 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.multi.updateProfile
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull
 
 interface ProfilesSettingsViewModelFactory {
     fun create(
@@ -31,11 +33,13 @@ interface ProfilesSettingsViewModelFactory {
 }
 
 interface ProfilesSettingsViewModel {
-    val profileNameTextField: ApprovableTextFieldViewModel
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
-    val shouldShowProfileRename: StateFlow<Boolean>
+    val currentProfileName: StateFlow<String?>
+    val isProfileNameSet: StateFlow<Boolean>
+    val profileNameTextFieldViewModel: ApprovableTextFieldViewModel
 
+    suspend fun changeProfileName(newName: String)
     fun setMultiProfileEnabled(enabled: Boolean)
     fun close()
 }
@@ -44,15 +48,7 @@ class ProfilesSettingsViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val onCloseProfilesSettings: () -> Unit,
 ) : ProfilesSettingsViewModel, ViewModelContext by viewModelContext {
-    private val profileManager = getOrNull<ProfileManager>() //change
-
-    override val profileNameTextField: ApprovableTextFieldViewModel =
-        ApprovableTextFieldViewModelImpl(
-            serverValue = flowOf(""), //change
-            maxLength = 1000,
-            coroutineScope = coroutineScope,
-            onApplyChange = { changeProfileNameAndUseMultipleProfile(it) },
-        )
+    private val profileManager = getOrNull<ProfileManager>()
 
     override val isMultiProfile: StateFlow<Boolean> =
         (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false))
@@ -67,26 +63,52 @@ class ProfilesSettingsViewModelImpl(
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
 
-    override val shouldShowProfileRename: StateFlow<Boolean> = (profileManager?.profiles
+    override val currentProfileName: StateFlow<String?> = (profileManager?.profiles
         ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
-            profiles[activeProfile]?.get("displayName") == JsonNull
-        }?: flowOf(false))
-        .stateIn(coroutineScope, WhileSubscribed(), false)
+            profiles[activeProfile]?.base?.displayName
+        }?:flowOf(null)).stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private fun changeProfileNameAndUseMultipleProfile(newName: String) : Result<String>{
+    /**
+     * Returns false if there is currently a readable profile and it's display name is null
+     */
+    override val isProfileNameSet: StateFlow<Boolean> = (profileManager?.profiles
+        ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
+            profiles[activeProfile]?.base
+        }?:flowOf(null))
+        .combine(currentProfileName){ base, current ->
+            if(base == null){
+                false
+            }else{
+                (current != null)
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val profileNameTextFieldViewModel: ApprovableTextFieldViewModel =
+        ApprovableTextFieldViewModelImpl(
+            serverValue = currentProfileName.map { it?: "" },
+            maxLength = 100,
+            coroutineScope = coroutineScope,
+            onApplyChange = {
+                changeProfileName(it)
+                if(!isProfileNameSet.value){
+                    Result.failure<String>(IllegalStateException("There was no current profile selected, while trying to change it's name!"))
+                }else{
+                    Result.success(it)
+                }
+            },
+        )
+
+    override suspend fun changeProfileName(newName: String){
         val activeProfile = profileManager?.activeProfile?.value
         if(activeProfile!= null){
-            coroutineScope.launch {
-                profileManager.updateProfile(activeProfile) {
-                    set("displayName", Json.parseToJsonElement(newName))
+            profileManager.updateProfile(
+                profile = activeProfile,
+                serializer = MatrixMultiMessengerProfileSettingsBase.serializer(),
+                updater = { settings ->
+                    settings.copy(displayName = newName)
                 }
-            }
-            setMultiProfileEnabled(true)
-            if(profileManager.profiles.value[activeProfile]?.get("displayName") == null){
-                return Result.failure(IllegalStateException("There was no current profile selected, while trying to change it's name!"))
-            }
+            )
         }
-        return Result.success(newName)
     }
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
