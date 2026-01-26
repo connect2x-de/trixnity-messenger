@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.settingsView
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.ActivityGetter
+import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -77,6 +78,7 @@ class UnifiedPushNotificationProvider(
     getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
     matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
+    private val contextGetter: ContextGetter,
     private val activityGetter: ActivityGetter,
 ) : PushNotificationProvider(
     messengerConfig = config,
@@ -97,6 +99,8 @@ class UnifiedPushNotificationProvider(
     override val id = Id
     override val config = getProviderConfig<Config>()
     override val displayName: String = "UnifiedPush"
+
+    override val canBeEnabled: Boolean = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
 
     override val currentPusherSettings =
         (multiSettings?.map { s -> s.notificationProviderUnifiedPush.pusher }
@@ -185,6 +189,7 @@ private fun unifiedPushNotificationProviderModule() = module {
             getDefaultDeviceDisplayName = get(),
             matrixClients = get(),
             coroutineScope = get(),
+            contextGetter = get(),
             activityGetter = get(),
         )
     }.apply {
