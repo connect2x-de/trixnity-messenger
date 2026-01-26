@@ -100,7 +100,7 @@ class UnifiedPushNotificationProvider(
     override val config = getProviderConfig<Config>()
     override val displayName: String = "UnifiedPush"
 
-    override val canBeEnabled: Boolean = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
+    override val canBeEnabled: Boolean get() = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
 
     override val currentPusherSettings =
         (multiSettings?.map { s -> s.notificationProviderUnifiedPush.pusher }
