@@ -30,6 +30,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedSlider
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 @Stable
@@ -52,8 +53,7 @@ class AudioPlayerViewImpl : AudioPlayerView {
         when (viewModel.state.collectAsState().value) {
             is MediaPlayerViewModel.State.Ready -> PlayableAudioMessage(audio, viewModel)
             is MediaPlayerViewModel.State.Playing -> PlayableAudioMessage(audio, viewModel)
-            is MediaPlayerViewModel.State.Failed, is MediaPlayerViewModel.State.NotAvailable -> fallbackView()
-            is MediaPlayerViewModel.State.Loading -> fallbackView() // TODO
+            is MediaPlayerViewModel.State.NotReady -> fallbackView()
         }
     }
 }
@@ -125,7 +125,7 @@ private fun PlayableAudioMessage(
 
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    text = formatDuration(elapsedTime),
+                    text = if (duration == Duration.ZERO) "--:--" else formatDuration(elapsedTime),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.weight(1f))

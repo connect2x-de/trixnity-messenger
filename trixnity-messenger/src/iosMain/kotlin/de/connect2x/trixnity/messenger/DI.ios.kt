@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.media.AppleMediaPlayer
-import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegate
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProxy
@@ -19,9 +17,6 @@ actual fun platformModule(): Module = module {
         UrlHandlingUIWindowSceneDelegate(checkNotNull(get<UriHandler>() as? UriHandlerImpl) {
             "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
         })
-    }
-    single<MediaPlayer> {
-        AppleMediaPlayer(get())
     }
 }
 

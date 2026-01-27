@@ -2,184 +2,101 @@ package de.connect2x.trixnity.messenger.media
 
 import android.content.ComponentName
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import de.connect2x.trixnity.messenger.util.ActivityGetter
+import com.google.common.util.concurrent.ListenableFuture
 import de.connect2x.trixnity.messenger.util.ContextGetter
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
-class AndroidMediaPlayer(
-    getContext: ContextGetter,
-    getActivity: ActivityGetter,
-    private val coroutineScope: CoroutineScope,
-) : MediaPlayer {
-    private var controller: MediaController? = null
-    private val mediaDataStore: MutableMap<String, Playback> = ConcurrentHashMap()
+internal class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
+    private val _playingItem: MutableStateFlow<AndroidPlayerItem?> = MutableStateFlow(null)
+    private val controller: ListenableFuture<MediaController>
+    private val playingItemMutex: Mutex = Mutex()
+    private val updateJob = coroutineScope.launch {
+        while (isActive) {
+            delay(150)
+            val playingItem = _playingItem.value ?: continue
 
-    override val elapsedTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
-    override val duration: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
-    override val isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
+            withMediaController { controller ->
+                playingItem.duration.value = controller.duration.coerceAtLeast(0).milliseconds
+                playingItem.elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
+            }
+        }
+    }
+
+    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+    override val playingItem: StateFlow<MediaPlayer.Item?> = _playingItem.asStateFlow()
 
     init {
-        // Lifecycle.addObserver must be called on the main thread
-        coroutineScope.launch {
-            withContext(Dispatchers.Main) {
-                getActivity().lifecycle.addObserver(object : DefaultLifecycleObserver {
-                    override fun onStop(owner: LifecycleOwner) {
-                        controller?.clearMediaItems()
+        val context = getContext()
+        val sessionToken = SessionToken(context, ComponentName(context, MediaPlayerService::class.java))
+        controller = MediaController.Builder(context, sessionToken).buildAsync()
+        controller.addListener(
+            {
+                val mediaController = controller.get()
+                mediaController.addListener(object : Player.Listener {
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        val item = _playingItem.value ?: return
+                        try {
+                            val controller = controller.get(10, TimeUnit.SECONDS)
+                            if (controller.playbackState != Player.STATE_ENDED || isPlaying)
+                                return
+
+                            coroutineScope.launch {
+                                item.pause()
+                                item.elapsedTime.value = Duration.ZERO
+                            }
+                        } catch (ex: TimeoutException) {
+                            log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
+                            state.value = MediaPlayer.State.Failed("Unable to acquire media controller: $ex")
+                        }
                     }
                 })
-            }
-        }
-
-        val context = getContext()
-        val sessionToken = SessionToken(context, ComponentName(context, AudioPlayerService::class.java))
-        val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-        val futureListener = Runnable {
-            controller = controllerFuture.get()
-            controller?.addListener(object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    val controller = requireNotNull(controller)
-                    val metadata = mediaDataStore[controller.currentMediaItem?.mediaId]
-                    if (controller.playbackState == Player.STATE_ENDED && !isPlaying) {
-                        metadata?.let {
-                            it.close()
-                            mediaDataStore.remove(controller.currentMediaItem?.mediaId)
-                        }
-                        duration.value = Duration.ZERO
-                        this@AndroidMediaPlayer.isPlaying.value = false
-                    }
-                }
-            })
-        }
-
-        controllerFuture.addListener(futureListener, ContextCompat.getMainExecutor(context))
+            },
+            ContextCompat.getMainExecutor(context)
+        )
     }
 
-    override suspend fun start(
-        media: PlatformMedia,
-        mimeType: String?,
-        position: Duration,
-        callback: (MediaPlayer.Event) -> Unit
-    ) {
-        require(media is OkioPlatformMedia) { "Media is expected to be a OkioPlatformMedia" }
-        val controller = checkNotNull(controller) { "Unable to play media when media player is not available yet!" }
-        withContext(Dispatchers.Main) {
-            media.getTemporaryFile().fold(
-                onFailure = {
-                    log.error(it) { "Unexpected error when acquiring file for playback" }
-                },
-                onSuccess = { tempFile ->
-                    log.info { "Successfully acquired file, starting playback" }
-                    elapsedTime.value = Duration.ZERO
-                    duration.value = Duration.ZERO
-
-                    isPlaying.value = true
-                    mediaDataStore[tempFile.path.toString()] = Playback(
-                        callback = callback,
-                        updateJob = coroutineScope.launch {
-                            while (isActive && isPlaying.value) {
-                                withContext(Dispatchers.Main) {
-                                    val elapsedTime = controller.currentPosition.coerceAtLeast(0).milliseconds
-                                    val duration = controller.duration.coerceAtLeast(0).milliseconds
-                                    callback(MediaPlayer.Event.Progress(elapsedTime, duration))
-                                    this@AndroidMediaPlayer.elapsedTime.value = elapsedTime
-                                    this@AndroidMediaPlayer.duration.value = duration
-                                }
-                                delay(150)
-                            }
-                        }
-                    )
-
-                    val mediaItem = MediaItem.Builder()
-                        .setMediaId(tempFile.path.toString())
-                        .setMimeType(mimeType ?: MimeTypes.AUDIO_RAW)
-                        .build()
-                    controller.setMediaItem(mediaItem)
-                    controller.seekTo(0, position.inWholeMilliseconds)
-                    controller.prepare()
-                    controller.play()
-                }
-            )
-        }
-    }
-
-    override suspend fun stop() = stop0(pause = true)
-
-    override suspend fun seekTo(position: Duration) {
-        if (!isPlaying.value) {
-            log.error { "Unable to seek media playback because player is currently not playing" }
-            return
-        }
-
-        withContext(Dispatchers.Main) {
-            if (controller?.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)?.not() ?: true) {
-                log.error { "Unable to seek media playback because seek command is not available" }
-                return@withContext
-            }
-
-            log.debug { "Seeking media playback to $position" }
-            controller?.seekTo(position.inWholeMilliseconds)
-        }
-    }
+    override fun open(media: RoomMessageTimelineElementViewModel.FileBased<*>): MediaPlayer.Item =
+        AndroidPlayerItem(media, state, coroutineScope, playingItemMutex, _playingItem, ::withMediaController)
 
     override fun close() {
-        mediaDataStore.forEach { (_, entry) -> entry.close() }
-        mediaDataStore.clear()
-    }
-
-    private suspend fun stop0(pause: Boolean) {
-        withContext(Dispatchers.Main) {
-            val mediaId = controller?.currentMediaItem?.mediaId
-            if (pause) {
-                mediaId?.let { mediaDataStore.remove(mediaId)?.pause() }
-                controller?.pause()
-            } else {
-                mediaId?.let { mediaDataStore.remove(mediaId)?.close() }
-                controller?.stop()
+        updateJob.cancel()
+        coroutineScope.launch {
+            withMediaController { controller ->
+                controller.clearMediaItems()
             }
-
-            elapsedTime.value = Duration.ZERO
-            duration.value = Duration.ZERO
-            isPlaying.value = false
-            controller?.clearMediaItems()
         }
     }
 
-    data class Playback(
-        val callback: (MediaPlayer.Event) -> Unit,
-        val updateJob: Job,
-        var isClosed: Boolean = false
-    ) : AutoCloseable {
-        fun pause() {
-            callback(MediaPlayer.Event.Stopped)
-            updateJob.cancel()
+    private suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit = try {
+        val controller = withContext(Dispatchers.IO) {
+            controller.get(10, TimeUnit.SECONDS)
         }
 
-        override fun close() {
-            log.debug { "Closing playback resource by sending stop event and cancel update job" }
-            callback(MediaPlayer.Event.Progress(elapsedTime = Duration.ZERO, duration = null))
-            pause()
+        withContext(Dispatchers.Main) {
+            closure(controller)
         }
+    } catch (ex: TimeoutException) {
+        log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
+        state.value = MediaPlayer.State.Failed("Unable to acquire media controller: Failed to create in 10 seconds")
     }
 }

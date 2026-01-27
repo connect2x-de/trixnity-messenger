@@ -1,26 +1,29 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.time.Duration
 
 interface MediaPlayer : AutoCloseable {
-    val elapsedTime: StateFlow<Duration>
-    val duration: StateFlow<Duration>
-    val isPlaying: StateFlow<Boolean>
+    val playingItem: StateFlow<Item?>
+    val state: StateFlow<State>
 
-    suspend fun start(
-        media: PlatformMedia,
-        mimeType: String? = null,
-        position: Duration = Duration.ZERO,
-        callback: (Event) -> Unit
-    )
+    fun open(media: RoomMessageTimelineElementViewModel.FileBased<*>): Item
 
-    suspend fun stop()
-    suspend fun seekTo(position: Duration)
+    interface Item : AutoCloseable {
+        val isPlaying: StateFlow<Boolean>
+        val duration: StateFlow<Duration?>
+        val elapsedTime: StateFlow<Duration?>
+        val state: StateFlow<State>
 
-    sealed interface Event {
-        data class Progress(val elapsedTime: Duration, val duration: Duration?) : Event
-        object Stopped : Event
+        suspend fun play(startPosition: Duration? = null)
+        suspend fun pause()
+        suspend fun seekTo(position: Duration)
     }
+
+    sealed interface State {
+        object Ready : State
+        class Failed(val message: String) : State
+    }
+
 }
