@@ -24,6 +24,11 @@ import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
+import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
 import de.connect2x.trixnity.messenger.compose.view.R
@@ -100,7 +105,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                IntroductionOrProfile()
+                                Profiles()
                             }
                         }
                     }

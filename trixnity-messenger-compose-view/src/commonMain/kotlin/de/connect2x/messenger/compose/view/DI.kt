@@ -27,8 +27,6 @@ import de.connect2x.messenger.compose.view.connecting.ServerDiscoveryStateViewIm
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.messenger.compose.view.i18n.i18nViewModule
-import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileView
-import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfileViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.messenger.compose.view.profiles.ProfileSelectionView
@@ -403,7 +401,6 @@ fun filesViewModule() = module {
 }
 
 fun profileViewModule() = module {
-    single<IntroductionOrProfileView> { IntroductionOrProfileViewImpl() }
     single<ProfilesView> { ProfilesViewImpl() }
     single<ProfileCreationView> { ProfileCreationViewImpl() }
     single<ProfileSelectionView> { ProfileSelectionViewImpl() }

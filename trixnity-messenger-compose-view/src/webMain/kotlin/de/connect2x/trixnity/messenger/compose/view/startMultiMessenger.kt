@@ -18,6 +18,11 @@ import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
+import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -146,7 +151,7 @@ suspend fun startMultiMessenger(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            IntroductionOrProfile()
+                            Profiles()
                         }
                     }
                 }

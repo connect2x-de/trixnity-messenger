@@ -8,7 +8,12 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.ApplicationLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
+import de.connect2x.messenger.compose.view.profiles.Profiles
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
+import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
+import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
@@ -107,7 +112,7 @@ private fun MultiMessengerViewController(lifecycle: Lifecycle): UIViewController
                     IsFocusHighlighting provides false,
                 ) {
                     MessengerTheme {
-                        IntroductionOrProfile()
+                        Profiles()
                     }
                 }
             }
