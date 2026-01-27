@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Conf
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.DevInfos
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.RoomDevInfos
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.PowerLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
@@ -37,7 +37,7 @@ interface ExtrasRouter {
     suspend fun closeAll()
     suspend fun openRoomSettings(roomId: RoomId)
     suspend fun openAddMembers(roomId: RoomId)
-    suspend fun openDevInfo(roomId: RoomId)
+    suspend fun openRoomDevInfo(roomId: RoomId)
     suspend fun openExportRoom(roomId: RoomId)
     suspend fun openPowerLevel(roomId: RoomId)
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
@@ -51,7 +51,7 @@ interface ExtrasRouter {
         class TimelineElementDevInfo(val viewModel:  TimelineElementDevInfoViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
-        class DevInfo(val viewModel: DevInfoViewModel) : Wrapper()
+        class RoomDevInfo(val viewModel: RoomDevInfoViewModel) : Wrapper()
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
         class PowerLevels(val viewModel: PowerlevelViewModel) : Wrapper()
     }
@@ -69,7 +69,7 @@ interface ExtrasRouter {
             data class AddMembers(val roomId: RoomId) : RoomSettings
 
             @Serializable
-            data class DevInfos(val roomId: RoomId): RoomSettings
+            data class RoomDevInfos(val roomId: RoomId): RoomSettings
 
             @Serializable
             data class PowerLevels(val roomId: RoomId) : RoomSettings
@@ -143,11 +143,11 @@ class ExtrasRouterImpl(
         }
     }
 
-    override suspend fun openDevInfo(roomId: RoomId) {
+    override suspend fun openRoomDevInfo(roomId: RoomId) {
         if (stack.value.active.configuration !is RoomSettings) {
             openRoomSettings(roomId)
         }
-        extrasNavigation.pushSuspending(DevInfos(roomId)) {
+        extrasNavigation.pushSuspending(RoomDevInfos(roomId)) {
             log.debug { "extras: opened dev information for room: $roomId" }
         }
     }
@@ -205,7 +205,7 @@ class ExtrasRouterImpl(
                 onCloseRoom = onCloseRoom,
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
-                onOpenDevInfo = { onOpenDevInfo(config.roomId)},
+                onOpenDevInfo = { onOpenRoomDevInfo(config.roomId)},
                 onOpenExportRoom = { onOpenExportRoom(config.roomId) },
                 onCloseRoomSettings = ::onCloseRoomSettings,
                 onOpenAvatarCutter = onOpenAvatarCutter,
@@ -228,9 +228,9 @@ class ExtrasRouterImpl(
             )
         )
 
-        is DevInfos -> Wrapper.DevInfo(
-            viewModelContext.get<DevInfoViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+        is RoomDevInfos -> Wrapper.RoomDevInfo(
+            viewModelContext.get<RoomDevInfoViewModelFactory>().create(
+                viewModelContext = viewModelContext.childContext("RoomDevInfo", componentContext),
                 roomId = config.roomId,
                 onBack = ::onBack,
             )
@@ -276,11 +276,11 @@ class ExtrasRouterImpl(
 
         is TimelineElementDevInfo -> Wrapper.TimelineElementDevInfo(
             viewModelContext.get<TimelineElementDevInfoViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("TimelineElementDevInfo", componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,
                 timelineElementMetadataViewModel = viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("TimelineElementDevInfo", componentContext),
                     eventId = config.eventId,
                     roomId = config.roomId,
                     onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
@@ -302,9 +302,9 @@ class ExtrasRouterImpl(
             openAddMembers(roomId)
         }
 
-    private fun onOpenDevInfo(roomId: RoomId) =
+    private fun onOpenRoomDevInfo(roomId: RoomId) =
         viewModelContext.coroutineScope.launch {
-            openDevInfo(roomId)
+            openRoomDevInfo(roomId)
         }
 
     private fun onOpenExportRoom(roomId: RoomId) =

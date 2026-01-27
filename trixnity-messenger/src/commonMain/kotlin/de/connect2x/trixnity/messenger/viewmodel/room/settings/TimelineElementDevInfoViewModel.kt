@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -9,8 +11,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
 
 interface TimelineElementDevInfoViewModelFactory {
     fun create(

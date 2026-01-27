@@ -2,34 +2,34 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.RoomId
 
-interface DevInfoViewModelFactory {
+interface RoomDevInfoViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         onBack: () -> Unit,
-    ): DevInfoViewModel {
-        return DevInfoViewModelImpl(
+    ): RoomDevInfoViewModel {
+        return RoomDevInfoViewModelImpl(
             viewModelContext,
             roomId,
             onBack,
         )
     }
 
-    companion object : DevInfoViewModelFactory
+    companion object : RoomDevInfoViewModelFactory
 }
 
-interface DevInfoViewModel {
+interface RoomDevInfoViewModel {
     val roomId: RoomId
     fun back()
 }
 
-class DevInfoViewModelImpl(
+class RoomDevInfoViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val roomId: RoomId,
     private val onBack: () -> Unit,
-) : DevInfoViewModel, MatrixClientViewModelContext by viewModelContext {
+) : RoomDevInfoViewModel, MatrixClientViewModelContext by viewModelContext {
 
     private val backCallback = BackCallback {
         onBack()

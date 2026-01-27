@@ -38,29 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.BACK
-import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
-import de.connect2x.messenger.compose.view.common.LoadingSpinner
-import de.connect2x.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.common.Tooltip
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
-import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
-import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
-import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -77,7 +57,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -90,7 +69,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import de.connect2x.trixnity.core.model.UserId
 
 interface TimelineElementMetadataView {
     @Composable
