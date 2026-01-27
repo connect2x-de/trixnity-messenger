@@ -14,7 +14,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.update
 import de.connect2x.trixnity.messenger.notification.PushNotificationProvider
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
+import de.connect2x.trixnity.messenger.withDiFromService
 
 class OnNewTokenWorker(
     private val context: Context,
@@ -43,13 +43,13 @@ class OnNewTokenWorker(
 
     override suspend fun doWork(): Result {
         val pushKey = inputData.getString("pushKey") ?: return Result.failure()
-        withMatrixMessengerFromService(context) {
+        withDiFromService(context) { di ->
             val pusher = PushNotificationProvider.PusherSettings(
                 pushKey = pushKey,
-                url = it.di.get<FcmPushNotificationProvider>().config.url
+                url = di.get<FcmPushNotificationProviderConfig>().pushUrl
             )
-            val multiSettings = it.di.getOrNull<MatrixMultiMessengerSettingsHolder>()
-            val settings = it.di.getOrNull<MatrixMessengerSettingsHolder>()
+            val multiSettings = di.getOrNull<MatrixMultiMessengerSettingsHolder>()
+            val settings = di.getOrNull<MatrixMessengerSettingsHolder>()
             if (multiSettings != null) {
                 multiSettings.update<MatrixMultiMessengerNotificationProviderFcmSettings> {
                     it.copy(pusher = pusher)

@@ -66,8 +66,15 @@ data class MatrixMessengerAccountNotificationProviderFcmSettings(
 val MatrixMessengerAccountSettings.notificationProviderFcm
         by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderFcmSettings>()
 
+data class FcmPushNotificationProviderConfig(
+    val pushAppId: String,
+    val pushUrl: String,
+    val periodicSyncInterval: Duration,
+)
+
 class FcmPushNotificationProvider(
-    config: MatrixMessengerConfiguration,
+    val config: FcmPushNotificationProviderConfig,
+    messengerConfig: MatrixMessengerConfiguration,
     multiSettings: MatrixMultiMessengerSettingsHolder?,
     settings: MatrixMessengerSettingsHolder,
     getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
@@ -75,23 +82,15 @@ class FcmPushNotificationProvider(
     coroutineScope: CoroutineScope,
     private val contextGetter: ContextGetter,
 ) : PushNotificationProvider(
-    messengerConfig = config,
+    pushAppId = config.pushAppId,
+    config = messengerConfig,
     multiSettings = multiSettings,
     settings = settings,
     getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
     matrixClients = matrixClients,
     coroutineScope = coroutineScope,
 ) {
-    companion object Id : NotificationProvider.Id<FcmPushNotificationProvider>
-
-    data class Config(
-        override val appId: String,
-        val url: String,
-        val periodicSyncInterval: Duration,
-    ) : PushNotificationProvider.Config
-
-    override val id = Id
-    override val config = getProviderConfig<Config>()
+    override val id = "de.connect2x.trixnity.messenger.notification.fcm"
     override val displayName: String = "Google Firebase Cloud Messaging"
 
     override val currentPusherSettings =
@@ -173,6 +172,7 @@ private fun fcmPushNotificationProviderModule() = module {
     single<FcmPushNotificationProvider> {
         FcmPushNotificationProvider(
             config = get(),
+            messengerConfig = get(),
             multiSettings = getOrNull(),
             settings = get(),
             getDefaultDeviceDisplayName = get(),
@@ -186,19 +186,28 @@ private fun fcmPushNotificationProviderModule() = module {
     }
 }
 
+private fun fcmPushNotificationProviderConfigModule(
+    pushAppId: String,
+    pushUrl: String,
+    periodicSyncInterval: Duration
+) = module {
+    single { FcmPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) }
+}
+
 fun MatrixMultiMessengerConfiguration.addFcmPushNotificationProvider(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
+    modulesFactories += {
+        fcmPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+    }
     messengerConfiguration {
-        modulesFactories += ::fcmPushNotificationProviderModule
-        notificationProviderConfigurations[FcmPushNotificationProvider] =
-            FcmPushNotificationProvider.Config(
-                appId = pushAppId,
-                url = pushUrl,
-                periodicSyncInterval = periodicSyncInterval
-            )
+        addFcmPushNotificationProvider(
+            pushAppId = pushAppId,
+            pushUrl = pushUrl,
+            periodicSyncInterval = periodicSyncInterval
+        )
     }
 }
 
@@ -207,11 +216,8 @@ fun MatrixMessengerConfiguration.addFcmPushNotificationProvider(
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
+    modulesFactories += {
+        fcmPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+    }
     modulesFactories += ::fcmPushNotificationProviderModule
-    notificationProviderConfigurations[FcmPushNotificationProvider] =
-        FcmPushNotificationProvider.Config(
-            appId = pushAppId,
-            url = pushUrl,
-            periodicSyncInterval = periodicSyncInterval
-        )
 }

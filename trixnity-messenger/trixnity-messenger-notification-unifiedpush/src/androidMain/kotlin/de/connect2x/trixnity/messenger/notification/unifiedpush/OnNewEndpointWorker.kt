@@ -15,7 +15,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.update
 import de.connect2x.trixnity.messenger.notification.PushNotificationProvider
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
+import de.connect2x.trixnity.messenger.withDiFromService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -78,8 +78,8 @@ class OnNewEndpointWorker(
             port = parsedEndpointUrl.port
         }.build()
 
-        withMatrixMessengerFromService(context) {
-            val config = it.di.get<MatrixMessengerBaseConfiguration>()
+        withDiFromService(context) { di ->
+            val config = di.get<MatrixMessengerBaseConfiguration>()
             val httpClientConfig: HttpClientConfig<*>.() -> Unit = {
                 config.httpClientConfig?.invoke(this)
                 expectSuccess = false
@@ -98,14 +98,14 @@ class OnNewEndpointWorker(
                 pushKeyAsUrl.toString()
             } catch (e: Exception) {
                 log.warn(e) { "Failed to fetch push endpoint discovery for $pushKey, using fallback url from config instead" }
-                it.di.get<UnifiedPushNotificationProvider>().config.url
+                di.get<UnifiedPushNotificationProviderConfig>().pushUrl
             }
             val pusher = PushNotificationProvider.PusherSettings(
                 pushKey = pushKey,
                 url = url
             )
-            val multiSettings = it.di.getOrNull<MatrixMultiMessengerSettingsHolder>()
-            val settings = it.di.getOrNull<MatrixMessengerSettingsHolder>()
+            val multiSettings = di.getOrNull<MatrixMultiMessengerSettingsHolder>()
+            val settings = di.getOrNull<MatrixMessengerSettingsHolder>()
             if (multiSettings != null) {
                 multiSettings.update<MatrixMultiMessengerNotificationProviderUnifiedPushSettings> {
                     it.copy(pusher = pusher)

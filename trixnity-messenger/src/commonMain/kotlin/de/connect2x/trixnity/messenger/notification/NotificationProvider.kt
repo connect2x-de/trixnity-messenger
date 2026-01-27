@@ -5,11 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import net.folivo.trixnity.core.model.UserId
 
 interface NotificationProvider {
-    interface Id<T : NotificationProvider>
-    interface Config<T : NotificationProvider>
-
-    val id: Id<*>
-    val config: Config<*>
+    val id: String
     val displayName: String
 
     val canBeEnabled: Boolean

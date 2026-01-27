@@ -113,10 +113,7 @@ class PushNotificationProviderTest {
     }
 
     fun TestScope.cut() = TestNotificationProvider(
-        config = MatrixMessengerConfiguration().apply {
-            notificationProviderConfigurations[TestNotificationProvider] =
-                TestNotificationProvider.Config("de.connect2x.test.push")
-        },
+        config = MatrixMessengerConfiguration(),
         multiSettings = multiSettings,
         settings = settings,
         getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
@@ -401,7 +398,8 @@ class TestNotificationProvider(
     matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
 ) : PushNotificationProvider(
-    messengerConfig = config,
+    pushAppId = "de.connect2x.test.push",
+    config = config,
     multiSettings = multiSettings,
     settings = settings,
     getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
@@ -423,12 +421,7 @@ class TestNotificationProvider(
         account: UserId
     ): JsonObject = JsonObject(mapOf("dino" to JsonPrimitive(true)))
 
-    companion object Id : NotificationProvider.Id<TestNotificationProvider>
-
-    data class Config(override val appId: String) : PushNotificationProvider.Config
-
-    override val id = Id
-    override val config = getProviderConfig<Config>()
+    override val id = "test"
     override val displayName: String = "test"
 
     override val currentPusherSettings =

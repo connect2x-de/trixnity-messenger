@@ -42,20 +42,14 @@ private val log = KotlinLogging.logger {}
  * Basic implementation for push-based notifications.
  */
 abstract class PushNotificationProvider(
-    protected val messengerConfig: MatrixMessengerConfiguration,
+    private val pushAppId: String,
+    private val config: MatrixMessengerConfiguration,
     protected val multiSettings: MatrixMultiMessengerSettingsHolder?,
     protected val settings: MatrixMessengerSettingsHolder,
     private val getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
     private val matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
 ) : NotificationProvider, Worker {
-    interface Config : NotificationProvider.Config<PushNotificationProvider> {
-        /**
-         * This is used for the pusher and may be different from the actual [de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration.appId].
-         */
-        val appId: String
-    }
-
     @Serializable
     data class PusherSettings(
         val pushKey: String,
@@ -67,11 +61,6 @@ abstract class PushNotificationProvider(
         val enabled: Boolean,
         val deliveredPusher: PusherSettings? = null,
     )
-
-    protected inline fun <reified T : Config> getProviderConfig() =
-        (messengerConfig.notificationProviderConfigurations[id]
-            ?: throw IllegalStateException("cannot set pusher, because notificationProviderConfigurations is not set for id: $id")) as? T
-            ?: throw IllegalStateException("cannot set pusher, because notificationProviderConfigurations[$id] is not of type PushNotificationProvider.Config")
 
     abstract val currentPusherSettings: SharedFlow<PusherSettings?>
     abstract val MatrixMessengerAccountSettings.pusherSettings: PusherAccountSettings
@@ -251,13 +240,12 @@ abstract class PushNotificationProvider(
     }
 
     private suspend fun setPusher(profile: String?, account: UserId, pusher: PusherSettings): Result<Unit> {
-        val providerConfig = getProviderConfig<Config>()
         val matrixClient = matrixClients.value[account]
             ?: return Result.failure(IllegalStateException("cannot set pusher, because MatrixClient not present"))
         return matrixClient.api.push.setPushers(
             SetPushers.Request.Set(
-                appId = providerConfig.appId,
-                appDisplayName = messengerConfig.appName,
+                appId = pushAppId,
+                appDisplayName = config.appName,
                 data = PusherData(
                     url = pusher.url,
                     format = "event_id_only",
@@ -273,10 +261,9 @@ abstract class PushNotificationProvider(
     }
 
     private suspend fun removePusher(userId: UserId, pusher: PusherSettings): Result<Unit> {
-        val providerConfig = getProviderConfig<Config>()
         return matrixClients.value[userId]?.api?.push?.setPushers(
             SetPushers.Request.Remove(
-                appId = providerConfig.appId,
+                appId = pushAppId,
                 pushkey = pusher.pushKey,
             )
         ) ?: Result.success(Unit)

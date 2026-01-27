@@ -74,31 +74,30 @@ data class MatrixMessengerAccountNotificationProviderApnsSettings(
 val MatrixMessengerAccountSettings.notificationProviderApns
         by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderApnsSettings>()
 
+data class ApnsPushNotificationProviderConfig(
+    val pushAppId: String,
+    val pushUrl: String,
+    val periodicSyncInterval: Duration,
+)
+
 class ApnsPushNotificationProvider(
-    config: MatrixMessengerConfiguration,
+    val config: ApnsPushNotificationProviderConfig,
+    messengerConfig: MatrixMessengerConfiguration,
     multiSettings: MatrixMultiMessengerSettingsHolder?,
     settings: MatrixMessengerSettingsHolder,
     getDefaultDeviceDisplayName: GetDefaultDeviceDisplayName,
     matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
 ) : PushNotificationProvider(
-    messengerConfig = config,
+    pushAppId = config.pushAppId,
+    config = messengerConfig,
     multiSettings = multiSettings,
     settings = settings,
     getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
     matrixClients = matrixClients,
     coroutineScope = coroutineScope,
 ) {
-    companion object Id : NotificationProvider.Id<ApnsPushNotificationProvider>
-
-    data class Config(
-        override val appId: String,
-        val url: String,
-        val periodicSyncInterval: Duration,
-    ) : PushNotificationProvider.Config
-
-    override val id = Id
-    override val config = getProviderConfig<Config>()
+    override val id = "de.connect2x.trixnity.messenger.notification.apns"
     override val displayName: String = "Apple Push Notification service"
 
     override val currentPusherSettings =
@@ -132,7 +131,7 @@ class ApnsPushNotificationProvider(
     }
 
     override suspend fun enableService() {
-        SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(getProviderConfig<Config>().periodicSyncInterval)
+        SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(config.periodicSyncInterval)
     }
 
     override suspend fun disableService() {
@@ -154,9 +153,9 @@ class ApnsPushNotificationProvider(
         }
 
     class UIApplicationDelegate(
+        private val config: ApnsPushNotificationProviderConfig,
         private val multiSettings: MatrixMultiMessengerSettingsHolder?,
         private val settings: MatrixMessengerSettingsHolder,
-        private val config: MatrixMessengerConfiguration,
     ) : ApplicationDelegateProtocol {
 
         override fun didFinishLaunching(
@@ -168,12 +167,8 @@ class ApnsPushNotificationProvider(
         }
 
         override fun didRegisterForRemoteNotifications(application: UIApplication, deviceToken: NSData) {
-            val url =
-                (config.notificationProviderConfigurations[ApnsPushNotificationProvider] as? Config
-                    ?: throw IllegalStateException("cannot set pusher, because notificationProviderConfigurations[ApnsPushNotificationProvider.Id] is not of type ApnsPushNotificationProvider.Config")
-                        ).url
             val pushKey = deviceToken.toByteString().toHexString()
-            val pusher = PusherSettings(pushKey = pushKey, url = url)
+            val pusher = PusherSettings(pushKey = pushKey, url = config.pushUrl)
             runBlocking {
                 if (multiSettings != null) {
                     multiSettings.update<MatrixMultiMessengerNotificationProviderApnsSettings> {
@@ -224,6 +219,7 @@ private fun apnsPushNotificationProviderModule() = module {
     single<ApnsPushNotificationProvider> {
         ApnsPushNotificationProvider(
             config = get(),
+            messengerConfig = get(),
             multiSettings = getOrNull(),
             settings = get(),
             getDefaultDeviceDisplayName = get(),
@@ -242,20 +238,25 @@ private fun apnsPushNotificationProviderUIApplicationDelegateModule() = module {
     }
 }
 
+private fun apnsPushNotificationProviderConfigModule(
+    pushAppId: String,
+    pushUrl: String,
+    periodicSyncInterval: Duration
+) = module {
+    single { ApnsPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) }
+}
+
 fun MatrixMultiMessengerConfiguration.addApnsPushNotificationProvider(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
+    modulesFactories += {
+        apnsPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+    }
     modulesFactories += ::apnsPushNotificationProviderUIApplicationDelegateModule
     messengerConfiguration {
         modulesFactories += ::apnsPushNotificationProviderModule
-        notificationProviderConfigurations[ApnsPushNotificationProvider] =
-            ApnsPushNotificationProvider.Config(
-                appId = pushAppId,
-                url = pushUrl,
-                periodicSyncInterval = periodicSyncInterval
-            )
     }
 }
 
@@ -264,12 +265,9 @@ fun MatrixMessengerConfiguration.addApnsPushNotificationProvider(
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
+    modulesFactories += {
+        apnsPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+    }
     modulesFactories += ::apnsPushNotificationProviderUIApplicationDelegateModule
     modulesFactories += ::apnsPushNotificationProviderModule
-    notificationProviderConfigurations[ApnsPushNotificationProvider] =
-        ApnsPushNotificationProvider.Config(
-            appId = pushAppId,
-            url = pushUrl,
-            periodicSyncInterval = periodicSyncInterval
-        )
 }

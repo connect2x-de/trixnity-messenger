@@ -10,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -40,6 +41,7 @@ class SyncAndProcessPendingWorker(
                         .setRequiresBatteryNotLow(true)
                         .build()
                 )
+                .setInputData(workDataOf("interval" to interval.inWholeSeconds))
                 .build()
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, workRequest)
@@ -51,9 +53,14 @@ class SyncAndProcessPendingWorker(
     }
 
     override suspend fun doWork(): Result {
+        val currentInterval = inputData.getLong("interval", -1)
         withFcmPushNotificationProvider(context) {
-            if (it.isEnabled.value) it.possiblySyncAndProcessPending()
-            else stopUniquePeriodicWork(context) // BroadcastReceiver may not know that we are not active
+            if (it.isEnabled.value) {
+                if (currentInterval != it.config.periodicSyncInterval.inWholeSeconds) {
+                    enqueueUniquePeriodicWork(context, interval = it.config.periodicSyncInterval)
+                }
+                it.possiblySyncAndProcessPending()
+            } else stopUniquePeriodicWork(context) // BroadcastReceiver may not know that we are not active
         }
 
         return Result.success()

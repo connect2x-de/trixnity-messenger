@@ -5,7 +5,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.notification.NoOpNotificationProvider
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
-import de.connect2x.trixnity.messenger.notification.NotificationProvider
 import de.connect2x.trixnity.messenger.notification.NotificationProviders
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -116,7 +115,7 @@ data class DeviceNotificationSettings(
 
 interface NotificationSettingsSingleAccountViewModel {
     data class NotificationProviderViewModel(
-        val id: NotificationProvider.Id<*>,
+        val id: String,
         val displayName: String,
     )
 
@@ -126,7 +125,7 @@ interface NotificationSettingsSingleAccountViewModel {
     fun toggleEnabledForThisDevice()
     val availableProviders: List<NotificationProviderViewModel>
     val selectedProvider: StateFlow<NotificationProviderViewModel?>
-    fun selectProvider(id: NotificationProvider.Id<*>)
+    fun selectProvider(id: String)
 
     val notificationHandlerId: String
     val notificationPermissionsNecessary: StateFlow<Boolean>
@@ -190,7 +189,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
                 )
             }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override fun selectProvider(id: NotificationProvider.Id<*>) {
+    override fun selectProvider(id: String) {
         coroutineScope.launch {
             log.debug { "select notification provider $id" }
             changeProviderMutex.withLock {
