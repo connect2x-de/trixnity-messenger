@@ -27,6 +27,7 @@ import de.connect2x.messenger.compose.view.settings.DevInfoCard
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementDevInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -35,37 +36,29 @@ import net.folivo.trixnity.core.model.UserId
 
 interface TimelineElementDevInfoView {
     @Composable
-    fun create(timelineElementMetadataViewModel: TimelineElementMetadataViewModel)
+    fun create(timelineElementDevInfoViewModel: TimelineElementDevInfoViewModel)
 }
 
 @Composable
-fun TimelineElementDevInfo(timelineElementMetadataViewModel: TimelineElementMetadataViewModel) {
-    DI.get<TimelineElementDevInfoView>().create(timelineElementMetadataViewModel)
+fun TimelineElementDevInfo(timelineElementDevInfoViewModel: TimelineElementDevInfoViewModel) {
+    DI.get<TimelineElementDevInfoView>().create(timelineElementDevInfoViewModel)
 }
 
 class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
     @Composable
-    override fun create(timelineElementMetadataViewModel: TimelineElementMetadataViewModel) {
+    override fun create(timelineElementDevInfoViewModel: TimelineElementDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
-        val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-        var lastElement by remember { mutableStateOf<TimelineElementHolderViewModel?>(null) }
-        val messageElement =
-            lastElement?.element?.collectAsState()?.value as? RoomMessageTimelineElementViewModel
 
-        LaunchedEffect(Unit) {
-            timelineElementMetadataViewModel.element.filterNotNull().collect { newElement ->
-                waitForElementWithTimeout(timelineElementViewSelector, newElement)
-                lastElement = newElement
-            }
-        }
+        val body = timelineElementDevInfoViewModel.body.collectAsState().value
+        val formatedBody = timelineElementDevInfoViewModel.formatedBody.collectAsState().value
 
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 Column{
-                    Header(timelineElementMetadataViewModel::back, i18n.devInfo())
+                    Header(timelineElementDevInfoViewModel::back, i18n.devInfo())
                     SmallSpacer()
                     Column(Modifier.padding(start = 8.dp, end = 8.dp)){
-                        messageElement?.body?.let { content ->
+                        body?.let { content ->
                             DevInfoCard(i18n.timelineElementMetadataBody(), Icons.Default.Code){
                                 ThemedSelectableText(
                                     content,
@@ -74,7 +67,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                             }
                             SmallSpacer()
                         }
-                        messageElement?.formattedBody?.let { content ->
+                        formatedBody?.let { content ->
                             DevInfoCard(i18n.timelineElementMetadataFormattedBody(), Icons.Default.Code){
                                 ThemedSelectableText(
                                     content,
@@ -83,9 +76,9 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                             }
                             SmallSpacer()
                         }
-                        timelineElementMetadataViewModel.element.value?.eventId?.full?.let { content ->
+                        timelineElementDevInfoViewModel.eventId.let { content ->
                             DevInfoCard(i18n.timelineElementMetadataEventId(), Icons.Default.Numbers){
-                                CopyableUserId(UserId(content), MaterialTheme.typography.bodyLarge)
+                                CopyableUserId(UserId(content.full), MaterialTheme.typography.bodyLarge)
                             }
                             SmallSpacer()
                         }

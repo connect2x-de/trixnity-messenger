@@ -48,7 +48,7 @@ interface ExtrasRouter {
         data object None : Wrapper()
         class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
         class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
-        class TimelineElementDevInfo(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
+        class TimelineElementDevInfo(val viewModel:  TimelineElementDevInfoViewModel) : Wrapper()
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
         class DevInfo(val viewModel: DevInfoViewModel) : Wrapper()
@@ -275,12 +275,18 @@ class ExtrasRouterImpl(
         )
 
         is TimelineElementDevInfo -> Wrapper.TimelineElementDevInfo(
-            viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
+            viewModelContext.get<TimelineElementDevInfoViewModelFactory>().create(
                 viewModelContext = viewModelContext.childContext(componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,
-                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
-                onOpenDevInfo = {},
+                timelineElementMetadataViewModel = viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(componentContext),
+                    eventId = config.eventId,
+                    roomId = config.roomId,
+                    onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                    onOpenDevInfo = {},
+                    onBack = ::onBack,
+                ),
                 onBack = ::onBack,
             )
         )
