@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.updateProfile
@@ -8,11 +7,9 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -35,11 +32,9 @@ interface ProfilesSettingsViewModelFactory {
 interface ProfilesSettingsViewModel {
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
-    val currentProfileName: StateFlow<String?>
     val isProfileNameSet: StateFlow<Boolean>
     val profileNameTextFieldViewModel: ApprovableTextFieldViewModel
 
-    suspend fun changeProfileName(newName: String)
     fun setMultiProfileEnabled(enabled: Boolean)
     fun close()
 }
@@ -63,13 +58,13 @@ class ProfilesSettingsViewModelImpl(
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
 
-    override val currentProfileName: StateFlow<String?> = (profileManager?.profiles
+    private val currentProfileName: StateFlow<String?> = (profileManager?.profiles
         ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
             profiles[activeProfile]?.base?.displayName
         }?:flowOf(null)).stateIn(coroutineScope, WhileSubscribed(), null)
 
     /**
-     * Returns false if there is currently a readable profile and it's display name is null
+     * Returns false if there is currently a readable profile,and it's display name is null
      */
     override val isProfileNameSet: StateFlow<Boolean> = (profileManager?.profiles
         ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
@@ -98,16 +93,12 @@ class ProfilesSettingsViewModelImpl(
             },
         )
 
-    override suspend fun changeProfileName(newName: String){
+    private suspend fun changeProfileName(newName: String){
         val activeProfile = profileManager?.activeProfile?.value
         if(activeProfile!= null){
-            profileManager.updateProfile(
-                profile = activeProfile,
-                serializer = MatrixMultiMessengerProfileSettingsBase.serializer(),
-                updater = { settings ->
-                    settings.copy(displayName = newName)
-                }
-            )
+            profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(activeProfile){
+                it.copy(displayName = newName)
+            }
         }
     }
 
