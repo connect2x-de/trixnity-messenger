@@ -42,7 +42,6 @@ class RedactionWarningViewImpl : RedactionWarningView {
             return
         }
         val i18n = DI.get<I18nView>()
-        val disableWarning = remember { mutableStateOf(false) }
         if (showRedactWarning.value) {
             ThemedModalDialog(onDismissRequest = { showRedactWarning.value = false }) {
                 ModalDialogHeader { Text(i18n.redactionWarningInfoTitle()) }
@@ -60,7 +59,6 @@ class RedactionWarningViewImpl : RedactionWarningView {
                 ModalDialogFooter {
                     ThemedButton(
                         onClick = {
-                            disableWarning.value = false
                             showRedactWarning.value = false
                         },
                         style = MaterialTheme.components.commonButton

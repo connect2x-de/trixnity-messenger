@@ -63,11 +63,14 @@ class MessageBubbleViewImpl : MessageBubbleView {
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
+        val timelineElementHolder = holder.asTimelineElementHolder()
         val redactionInProgress =
-            holder.asTimelineElementHolder()?.redactionInProgress?.collectAsState()?.value == true
+            timelineElementHolder?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
         val showRedactWarning = remember { mutableStateOf(false) }
+        val redactWarningEnabled =
+            timelineElementHolder?.redactionWarningEnabled?.collectAsState()?.value != false
 
         val reactionsOpen = remember { mutableStateOf(false) }
 
@@ -102,7 +105,13 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         isPreview = isPreview,
                         interactionSource = interactionSource,
                         index = index,
-                        onRedact = { showRedactWarning.value = true },
+                        onRedact = {
+                            if (redactWarningEnabled) {
+                                showRedactWarning.value = true
+                            } else {
+                                timelineElementHolder.redact()
+                            }
+                        },
                         content = content,
                     )
                 }

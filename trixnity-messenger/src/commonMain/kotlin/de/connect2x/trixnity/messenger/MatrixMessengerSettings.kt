@@ -52,6 +52,7 @@ data class MatrixMessengerSettingsBase(
     val fontSize: Float? = null,
     val displaySize: Float? = null,
     val applySystemSizes: Boolean = true,
+    val showRedactionWarning: Boolean = true
 ) : SettingsView<MatrixMessengerSettings> {
     @Serializable
     data class SSOLoginState(

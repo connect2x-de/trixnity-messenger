@@ -30,6 +30,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
@@ -151,6 +152,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
+    val redactionWarningEnabled: StateFlow<Boolean?>
 
     val highlight: StateFlow<Boolean>
 
@@ -200,6 +202,9 @@ class TimelineElementHolderViewModelImpl(
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val redactionWarningEnabled: StateFlow<Boolean?> =
+        get<MatrixMessengerSettingsHolder>().map { it.base.showRedactionWarning }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -620,6 +625,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val redactionWarningEnabled: StateFlow<Boolean?> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -674,6 +680,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val redactionWarningEnabled: StateFlow<Boolean?> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
