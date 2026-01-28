@@ -16,7 +16,7 @@ class MessengerApplication : Application() {
         super.onCreate()
         Backend.set(DefaultBackend)
         SerializableConfig uses CoreConfigExtension
-        checkNotNull(this::class.java.getResourceAsStream("lognity.json")).use { stream ->
+        applicationContext.assets.open("lognity.json").buffered().use { stream ->
             Backend.setDefaultConfig(stream.asSource().buffered())
         }
         MatrixMultiMessengerService.configuration = {
