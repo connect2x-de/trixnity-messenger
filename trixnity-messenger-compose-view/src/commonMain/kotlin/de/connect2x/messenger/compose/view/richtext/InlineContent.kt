@@ -49,8 +49,7 @@ internal fun AnnotatedString.Builder.Children(
     first: Boolean
 ) {
     for (index in node.children.indices) {
-        val child = node.children[index]
-        when (child) {
+        when (val child = node.children[index]) {
             is RichText.Inline.Block -> inlineContent(child, context, first = first && index == 0)
             is RichText.Inline.Text -> inlineContent(child, context, first = first && index == 0)
         }
@@ -63,8 +62,7 @@ internal fun AnnotatedString.Builder.Children(
     first: Boolean
 ) {
     for (index in node.children.indices) {
-        val child = node.children[index]
-        when (child) {
+        when (val child = node.children[index]) {
             is RichText.Inline.Block -> inlineContent(child, context, first = first && index == 0)
             is RichText.Inline.Text -> inlineContent(child, context, first = first && index == 0)
         }
@@ -93,7 +91,7 @@ internal fun AnnotatedString.Builder.inlineContent(
     } else {
         when (node.tag) {
             "del", "s" -> {
-                pushStyle(SpanStyle(textDecoration = TextDecoration.Companion.LineThrough))
+                pushStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
                 Children(node, context, first)
                 pop()
             }
@@ -125,31 +123,31 @@ internal fun AnnotatedString.Builder.inlineContent(
             }
 
             "sup" -> {
-                pushStyle(SpanStyle(baselineShift = BaselineShift.Companion.Superscript))
+                pushStyle(SpanStyle(baselineShift = BaselineShift.Superscript))
                 Children(node, context, first)
                 pop()
             }
 
             "sub" -> {
-                pushStyle(SpanStyle(baselineShift = BaselineShift.Companion.Subscript))
+                pushStyle(SpanStyle(baselineShift = BaselineShift.Subscript))
                 Children(node, context, first)
                 pop()
             }
 
             "b", "strong" -> {
-                pushStyle(SpanStyle(fontWeight = FontWeight.Companion.Bold))
+                pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
                 Children(node, context, first)
                 pop()
             }
 
             "i", "em" -> {
-                pushStyle(SpanStyle(fontStyle = FontStyle.Companion.Italic))
+                pushStyle(SpanStyle(fontStyle = FontStyle.Italic))
                 Children(node, context, first)
                 pop()
             }
 
             "u" -> {
-                pushStyle(SpanStyle(textDecoration = TextDecoration.Companion.Underline))
+                pushStyle(SpanStyle(textDecoration = TextDecoration.Underline))
                 Children(node, context, first)
                 pop()
             }
@@ -157,7 +155,7 @@ internal fun AnnotatedString.Builder.inlineContent(
             "code" -> {
                 pushStyle(
                     SpanStyle(
-                        fontFamily = FontFamily.Companion.Monospace,
+                        fontFamily = FontFamily.Monospace,
                     )
                 )
                 Children(node, context, first)

@@ -6,17 +6,14 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.mb
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Instant
-
-private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
 @Suppress("UNUSED")
@@ -1624,7 +1621,6 @@ internal fun getLang(
     getSystemLang: GetSystemLang
 ): Language {
     val preferredLang = settings.value.base.preferredLang
-    log.trace { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
         ?: languages.langOf(getSystemLang())
         ?: EN// fallback is english

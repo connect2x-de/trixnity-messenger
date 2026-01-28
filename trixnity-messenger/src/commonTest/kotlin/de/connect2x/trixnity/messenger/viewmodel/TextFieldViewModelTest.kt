@@ -1,9 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class TextFieldViewModelTest {
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `should limit the text field to the max length`() {

@@ -2,11 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.firstOrNull
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.ActiveVerification
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.ActiveVerification
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 
 interface ActiveVerifications {  // TODO this as part of the DI just adds complexity
     /**

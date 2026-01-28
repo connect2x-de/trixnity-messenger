@@ -14,7 +14,7 @@ fun main(args: List<String>) {
                 pushAppId = "$appId.apns"
             }
         }
-    } catch(t: Throwable) {
+    } catch (t: Throwable) {
         throw IllegalStateException(t)
     }
 }

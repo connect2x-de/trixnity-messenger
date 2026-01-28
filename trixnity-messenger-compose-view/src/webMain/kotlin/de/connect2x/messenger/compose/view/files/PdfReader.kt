@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view.files
 
 import androidx.compose.ui.graphics.ImageBitmap
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import js.promise.await
 import js.typedarrays.Uint8Array
 import js.typedarrays.toByteArray
@@ -18,7 +18,7 @@ import web.html.HTMLCanvasElement
 import web.html.toBlob
 import web.url.URL
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.files.PdfReaderKt")
 
 suspend fun PdfReaderWeb(blob: Blob): PdfReaderWeb {
     val doc = getDocument(URL(URL.createObjectURL(blob))).promise.await()

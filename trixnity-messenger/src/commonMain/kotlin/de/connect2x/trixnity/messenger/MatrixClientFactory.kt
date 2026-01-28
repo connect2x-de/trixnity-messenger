@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger
 
-import net.folivo.trixnity.client.CryptoDriverModule
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.MediaStoreModule
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.client.create
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import kotlin.coroutines.CoroutineContext
 
 interface MatrixClientFactory {

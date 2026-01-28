@@ -70,7 +70,7 @@ fun Tooltip(
     }
 }
 
-
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Tooltip(

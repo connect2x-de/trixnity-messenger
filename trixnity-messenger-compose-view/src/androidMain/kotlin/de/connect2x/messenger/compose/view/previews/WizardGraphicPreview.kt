@@ -15,8 +15,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.ThemeMode
 import de.connect2x.trixnity.messenger.update
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.Res
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.vault
 
 @Composable
 @Preview

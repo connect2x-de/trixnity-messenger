@@ -32,7 +32,7 @@ import platform.darwin.NSObjectMeta
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 
-class ApplicationDelegate: UIApplicationDelegateProtocol, NSObject {
+class ApplicationDelegate : UIApplicationDelegateProtocol, NSObject {
 
     @OverrideInit
     constructor() : super()
@@ -43,7 +43,9 @@ class ApplicationDelegate: UIApplicationDelegateProtocol, NSObject {
 
     override fun setWindow(
         window: UIWindow?,
-    ) { delegate.window = WithDefault.Value(window) }
+    ) {
+        delegate.window = WithDefault.Value(window)
+    }
 
     @ObjCSignatureOverride
     override fun application(
@@ -245,7 +247,9 @@ class ApplicationDelegate: UIApplicationDelegateProtocol, NSObject {
     companion object : UIApplicationDelegateProtocolMeta, NSObjectMeta() {
         var delegate: ApplicationDelegateProtocol
             get() = globalDelegate
-            set(value) { globalDelegate = value }
+            set(value) {
+                globalDelegate = value
+            }
     }
 }
 

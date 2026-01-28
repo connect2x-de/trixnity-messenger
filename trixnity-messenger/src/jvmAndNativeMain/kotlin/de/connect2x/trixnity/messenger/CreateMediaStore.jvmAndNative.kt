@@ -4,8 +4,8 @@ import de.connect2x.trixnity.messenger.util.RootPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.MediaStoreModule
-import net.folivo.trixnity.client.media.okio.okio
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.media.okio.okio
 import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module

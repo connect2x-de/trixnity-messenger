@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.currentStateAsState
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.LoadingSpinner
@@ -66,14 +67,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.room.timeline.TimelineKt")
 
 interface TimelineView {
     @Composable
@@ -125,7 +125,7 @@ class TimelineViewImpl : TimelineView {
             }
         }
         val groupedSize = timelineElementViewModelGrouped.value.size
-        val uiTimelineElements = remember {
+        remember {
             derivedStateOf {
                 buildList {
                     for ((date, viewModel) in timelineElementViewModelGrouped.value) {
@@ -137,7 +137,7 @@ class TimelineViewImpl : TimelineView {
                 }
             }
         }
-        val navigatableTimelineElements = remember {
+        remember {
             derivedStateOf {
                 buildList {
                     for ((date, viewModel) in timelineElementViewModelGrouped.value) {

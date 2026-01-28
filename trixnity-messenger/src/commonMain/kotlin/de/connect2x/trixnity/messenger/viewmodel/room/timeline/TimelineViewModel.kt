@@ -10,6 +10,29 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.GetTimelineEventsConfig
+import de.connect2x.trixnity.client.room.Timeline
+import de.connect2x.trixnity.client.room.getAccountData
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.isFirst
+import de.connect2x.trixnity.client.store.isLast
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -40,7 +63,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -87,36 +110,11 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.GetTimelineEventsConfig
-import net.folivo.trixnity.client.room.Timeline
-import net.folivo.trixnity.client.room.getAccountData
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.isFirst
-import net.folivo.trixnity.client.store.isLast
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
-import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-
-
-private val log = KotlinLogging.logger {}
 
 interface TimelineViewModelFactory {
     fun create(
@@ -395,7 +393,7 @@ class TimelineViewModelImpl(
         is Config.None -> Wrapper.None
         is Config.SendAttachmentView -> Wrapper.View(
             get<SendAttachmentViewModelFactory>().create(
-                viewModelContext = childContext(componentContext),
+                viewModelContext = childContext("SendAttachmentView", componentContext),
                 file = config.file,
                 selectedRoomId = roomId,
                 onCloseAttachmentSendView = ::closeAttachmentSendView,
@@ -616,7 +614,7 @@ class TimelineViewModelImpl(
             formatTime(Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone))
 
         val viewModel = get<TimelineElementHolderViewModelFactory>().create(
-            viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
+            viewModelContext = childContextWithOwnLifecycle(key, lifecycleRegistry),
             key = key,
             timelineEventFlow = timelineEventFlow,
             roomId = roomId,
@@ -687,7 +685,7 @@ class TimelineViewModelImpl(
                     val lifecycleRegistry = LifecycleRegistry()
                     lifecycleRegistry.start()
                     this@TimelineViewModelImpl.get<OutboxElementHolderViewModelFactory>().create(
-                        viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
+                        viewModelContext = childContextWithOwnLifecycle(transactionId, lifecycleRegistry),
                         key = transactionId.asKey(roomId),
                         outboxMessageFlow = outboxMessage,
                         roomId = roomId,

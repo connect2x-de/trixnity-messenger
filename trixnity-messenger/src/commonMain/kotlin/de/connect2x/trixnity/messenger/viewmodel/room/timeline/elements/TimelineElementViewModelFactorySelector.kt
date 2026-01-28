@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedErrorTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModelFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
@@ -11,19 +11,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.utils.concurrentMutableMap
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlin.reflect.KClass
 
-
-private val log = KotlinLogging.logger {}
-
 interface TimelineElementViewModelFactorySelector {
-    fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>, filter: ((TimelineEvent) -> Boolean)? = null): Flow<TimelineEvent?>
+    fun nextSupportedTimelineEvent(
+        timelineEvents: Flow<Flow<TimelineEvent>>,
+        filter: ((TimelineEvent) -> Boolean)? = null
+    ): Flow<TimelineEvent?>
+
     suspend fun supports(timelineEvent: Flow<TimelineEvent>): Boolean
 
     suspend fun create(
@@ -42,6 +43,10 @@ class TimelineElementViewModelFactorySelectorImpl(
     private val encryptedWaitTimelineElementViewModelFactory: EncryptedWaitTimelineElementViewModelFactory,
     private val encryptedErrorTimelineElementViewModelFactory: EncryptedErrorTimelineElementViewModelFactory,
 ) : TimelineElementViewModelFactorySelector {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactorySelectorImpl")
+    }
 
     private sealed interface Mapping {
         data object None : Mapping
@@ -57,7 +62,10 @@ class TimelineElementViewModelFactorySelectorImpl(
 
     private val factoryMapping = concurrentMutableMap<KClass<out RoomEventContent>, Mapping>()
 
-    override fun nextSupportedTimelineEvent(timelineEvents: Flow<Flow<TimelineEvent>>, filter: ((TimelineEvent) -> Boolean)?): Flow<TimelineEvent?> =
+    override fun nextSupportedTimelineEvent(
+        timelineEvents: Flow<Flow<TimelineEvent>>,
+        filter: ((TimelineEvent) -> Boolean)?
+    ): Flow<TimelineEvent?> =
         flow {
             timelineEvents.collect { timelineEvent ->
                 timelineEvent

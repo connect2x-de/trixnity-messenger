@@ -60,7 +60,6 @@ import kotlin.time.Duration.Companion.seconds
 
 @ExperimentalMaterial3Api
 class CanvasSemanticsOwnerListenerTest {
-
     // TODO maybe create a dsl like this to define variables for use in both ui and assertions
 //    @Test
 //    fun aaa() = semTest2 {

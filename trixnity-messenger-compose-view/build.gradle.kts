@@ -1,10 +1,14 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalComposeLibrary::class)
 
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerCoverageTask
+import de.connect2x.conventions.withAndroidLibrary
+import de.connect2x.conventions.withIos
+import de.connect2x.conventions.withJs
+import de.connect2x.conventions.withJvm
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 
 plugins {
@@ -14,27 +18,19 @@ plugins {
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.kotlin.parcelize)
     alias(sharedLibs.plugins.kotlinx.kover)
+    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
-registerCoverageTask()
-
-tasks.register("koverXmlReportJvm") {
-    val desktopReport = tasks.named("koverXmlReportDesktop")
-
-    inputs.files(desktopReport)
-    outputs.files(desktopReport)
-}
+registerCoverageTask("koverXmlReportJvm")
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-    androidTarget {
-        publishLibraryVariants("release")
+    withSourcesJar()
+    defaultCompilerOptions()
+    withAndroidLibrary {
         instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
     }
-    jvm("desktop") {
+    withJvm {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
@@ -42,17 +38,12 @@ kotlin {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
-    js {
-        compilerOptions {
-            sourceMap.set(true)
-            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
-        }
+    withJs {
         browser {
             commonWebpackConfig {
                 showProgress = true
             }
-            // Run test in firefox for ci as trixnity/kmp-dockerfiles/base has only firefox
-            testRuns.create("firefox").executionTask.configure {
+            testTask {
                 useKarma {
                     useFirefoxHeadless()
                 }
@@ -62,17 +53,9 @@ kotlin {
         binaries.library()
         generateTypeScriptDefinitions()
     }
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    )
+    withIos()
     applyDefaultHierarchyTemplate {
         common {
-            group("desktopAndAndroid") {
-                withJvm()
-                withAndroidTarget()
-            }
             group("skia") {
                 withJvm()
                 withJs()
@@ -81,10 +64,7 @@ kotlin {
         }
     }
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(projects.trixnityMessenger)
                 api(compose.runtime)
@@ -108,7 +88,7 @@ kotlin {
                 implementation(libs.filekit.compose)
             }
         }
-        val desktopMain by getting {
+        jvmMain {
             dependencies {
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(libs.pdfbox)
@@ -120,34 +100,30 @@ kotlin {
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
-                implementation(libs.logback.android)
                 implementation(compose.preview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(sharedLibs.firebase.messaging)
-                // for Previews:
-                implementation(libs.slf4j.api)
             }
         }
-        val webMain by getting {
+        webMain {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
-                implementation(project(":wrappers-pdfjs"))
+                implementation(projects.wrappersPdfjs)
             }
         }
-
         commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
                 implementation(compose.uiTest)
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.test)
+                implementation(sharedLibs.lognity.test)
             }
         }
-
-        val desktopTest by getting {
+        jvmTest {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(sharedLibs.kotlinx.coroutines.swing)
@@ -163,14 +139,10 @@ dependencies {
 
 android {
     namespace = "de.connect2x.messenger.compose.view"
-    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
     }
     defaultConfig {
-        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
-        testOptions.targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
-        lint.targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     sourceSets {

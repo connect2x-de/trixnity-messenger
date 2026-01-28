@@ -3,12 +3,12 @@ package de.connect2x.messenger.compose.view.theme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.common.invertedHue
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.theme.ThemeLightColorSchemeKt")
 
 interface ThemeLightColorScheme {
     fun create(accentColor: Color): ColorScheme

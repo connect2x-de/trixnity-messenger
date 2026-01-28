@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
@@ -7,7 +8,6 @@ import de.connect2x.trixnity.messenger.settings.SettingsJson
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,8 +20,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.serializer
-
-private val log = KotlinLogging.logger {}
 
 interface ProfileManager {
     val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>>
@@ -50,6 +48,10 @@ class ProfileManagerImpl(
     private val deleteProfileData: DeleteProfileData,
     private val coroutineScope: CoroutineScope,
 ) : ProfileManager {
+    private companion object {
+        val log = Logger("de.connect2x.trixnity.messenger.multi.ProfileManagerImpl")
+    }
+
     override val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>> =
         settingsHolder.map { it.base.profiles }
             .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.profiles)

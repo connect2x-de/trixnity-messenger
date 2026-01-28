@@ -3,16 +3,15 @@ package de.connect2x.trixnity.messenger.util
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.i18n.I18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.byteArrayFlowFromSource
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.byteArrayFlowFromSource
 import okio.Buffer
 import okio.source
 
-
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriFileDescriptorKt")
 
 class UriFileDescriptor(
     private val context: Context,

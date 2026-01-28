@@ -34,6 +34,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
             val data = "mailto:?to=$emailAddress".toUri()
             restrictIntent.data = data
             intent.selector = restrictIntent
+            @Suppress("DEPRECATION")
             ContextCompat.startActivity(
                 context,
                 Intent.createChooser(intent, "E-Mail").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),

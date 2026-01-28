@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.initiateUserVe
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.originalClientAcceptVerificationWithEmoji
 import de.connect2x.trixnity.messenger.integrationtests.messenger.startVerificationWithEmoji
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
@@ -21,8 +22,8 @@ import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.core.model.UserId
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -32,11 +33,17 @@ import kotlin.test.Test
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class UserVerificationIT {
+    init {
+        configureTestLogging()
+    }
+
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger1: MatrixMessengerWithRoot
     private lateinit var messenger2: MatrixMessengerWithRoot
-    private lateinit var userId1: UserId
-    private lateinit var userId2: UserId
+
+    // Lateinit not possible for inline value classes
+    private var userId1: UserId? = null
+    private var userId2: UserId? = null
 
     private val user1 = "user1"
     private val passwordUser1 = "user$1passw0rd"
@@ -86,8 +93,8 @@ class UserVerificationIT {
         val roomId = messenger1.createChatWithUser(user2).roomId
         messenger2.acceptInvitationToRoom(roomId)
         messenger1.di.get<MatrixClients>().value.forEach { it.value.syncOnce() }
-        messenger1.initiateUserVerification(roomId, userId2)
-        messenger2.acceptUserVerification(roomId, userId1)
+        messenger1.initiateUserVerification(roomId, userId2!!)
+        messenger2.acceptUserVerification(roomId, userId1!!)
         messenger1.startVerificationWithEmoji(roomId)
         messenger2.acceptVerificationWithEmoji(roomId)
         messenger1.originalClientAcceptVerificationWithEmoji(roomId)

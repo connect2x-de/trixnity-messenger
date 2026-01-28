@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.util
 
-import com.sun.jna.*
+import com.sun.jna.Library
+import com.sun.jna.Native
+import com.sun.jna.NativeLibrary
+import com.sun.jna.Pointer
+import com.sun.jna.Structure
 import com.sun.jna.platform.win32.WinBase.FILETIME
 import com.sun.jna.platform.win32.WinDef.DWORD
 import com.sun.jna.ptr.PointerByReference

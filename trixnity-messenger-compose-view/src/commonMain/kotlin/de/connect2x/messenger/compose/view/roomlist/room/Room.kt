@@ -96,7 +96,7 @@ class RoomListElementViewImpl : RoomListElementView {
         val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val error by roomListElementViewModel.error.collectAsState()
-        val roomName = roomListElementViewModel.roomName.collectAsState().value
+        roomListElementViewModel.roomName.collectAsState().value
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
 
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -158,7 +158,7 @@ fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
 
 @Composable
 fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
-    val i18n = DI.get<I18nView>()
+    DI.get<I18nView>()
     val isInvite = roomElementViewModel.isInvite.collectAsState().value
     val roomImage = roomElementViewModel.roomImage.collectAsState().value
     val roomImageInitials = roomElementViewModel.roomImageInitials.collectAsState().value

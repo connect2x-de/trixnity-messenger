@@ -112,7 +112,7 @@ internal fun rememberMentionChipMeasurer(
                     Placeholder(
                         width = with(density) { width.toSp() },
                         height = with(density) { height.toSp() },
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.Companion.TextCenter,
+                        placeholderVerticalAlign = PlaceholderVerticalAlign.TextCenter,
                     )
                 }
         }

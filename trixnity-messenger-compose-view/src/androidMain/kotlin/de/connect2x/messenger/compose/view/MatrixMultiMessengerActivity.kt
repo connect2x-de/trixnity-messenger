@@ -17,6 +17,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.net.toUri
 import com.arkivanov.decompose.defaultComponentContext
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
@@ -29,7 +31,6 @@ import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
 import de.connect2x.trixnity.messenger.util.defaultSharedDataHandler
 import de.connect2x.trixnity.messenger.util.defaultUriHandler
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,11 +41,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MatrixMultiMessengerActivity : AppCompatActivity() {
-    private val log = KotlinLogging.logger { }
-    private val matrixMultiMessengerServiceConnection = MatrixMultiMessengerServiceConnection()
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
-        log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
-    })
+    private val log: Logger = Logger("de.connect2x.messenger.compose.view.MatrixMultiMessengerActivity")
+    private val matrixMultiMessengerServiceConnection: MatrixMultiMessengerServiceConnection =
+        MatrixMultiMessengerServiceConnection()
+    private val coroutineScope: CoroutineScope =
+        CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
+            log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
+        })
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,7 +90,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                    ) { existingProfiles ->
+                    ) {
                         val showProfileCreation = remember { mutableStateOf(false) }
                         CompositionLocalProvider(
                             Platform provides PlatformType.ANDROID,

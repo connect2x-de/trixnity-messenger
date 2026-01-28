@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.UserId
-
 
 interface VerificationStepRequestViewModelFactory {
     fun create(
@@ -44,13 +44,14 @@ open class VerificationStepRequestViewModelImpl(
     override val ourUserId: UserId = userId
 
     override val ourDisplayName: StateFlow<String> =
-        matrixClient.displayName.map { it ?: userId.full }
+        matrixClient.profile.map { it?.get(ProfileField.DisplayName)?.value ?: userId.full }
             .stateIn(coroutineScope, WhileSubscribed(), userId.full)
 
     override val theirDisplayName: StateFlow<String?> =
         flow {
             emit(theirUserId?.let { userId ->
-                matrixClient.api.user.getDisplayName(userId).fold({ it }, { theirUserId?.full })
+                matrixClient.api.user.getProfileField(userId, ProfileField.DisplayName)
+                    .fold({ it.value }, { theirUserId?.full })
             })
         }
             .stateIn(coroutineScope, WhileSubscribed(), theirUserId?.full)

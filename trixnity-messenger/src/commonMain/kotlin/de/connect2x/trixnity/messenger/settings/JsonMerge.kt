@@ -18,7 +18,7 @@ fun jsonMerge(source: JsonObject, update: JsonObject, override: List<String>? = 
 
         for ((key, updateValue) in currentUpdate) {
             val baseValue = currentBase[key]
-            
+
             if (baseValue is JsonObject && updateValue is JsonObject) {
                 val newPath = path + key
                 if (newPath == override) {

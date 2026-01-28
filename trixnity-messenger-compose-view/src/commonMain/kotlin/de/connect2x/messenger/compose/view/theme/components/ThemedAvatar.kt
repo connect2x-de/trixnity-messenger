@@ -43,7 +43,7 @@ import de.connect2x.messenger.compose.view.theme.SystemDensity
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import net.folivo.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.Presence
 
 data class AvatarStyle(
     val color: Color,
@@ -86,7 +86,6 @@ fun ThemedUserAvatar(
     modifier: Modifier = Modifier,
     overlay: @Composable () -> Unit = {},
 ) {
-    val i18n = DI.get<I18nView>()
     val bitmap = remember(image) { image?.toImageBitmap() }
 
     val tooltip = presenceText(presence)

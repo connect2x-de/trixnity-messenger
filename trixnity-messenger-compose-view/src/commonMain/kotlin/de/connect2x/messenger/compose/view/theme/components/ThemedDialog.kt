@@ -192,7 +192,7 @@ fun AdaptiveDialogHeader(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            verticalAlignment = Alignment.Companion.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (onBack == null) {
                 Spacer(Modifier.width(24.dp))
@@ -355,10 +355,10 @@ fun ModalDialogHeader(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
-            verticalAlignment = Alignment.Companion.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Spacer(Modifier.width(24.dp))
-            Column(Modifier.Companion.weight(1f)) {
+            Column(Modifier.weight(1f)) {
                 CompositionLocalProvider(
                     LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
                 ) {

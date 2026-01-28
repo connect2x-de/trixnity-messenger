@@ -113,7 +113,6 @@ private fun BoxScope.MessageBubbleActionMenuDefault(
     val opacity = transition.animateFloat { if (it) 0.1f else 0f }
 
 
-
     val i18n = DI.get<I18nView>()
     val onClose = {
         showActionMenu.value = false

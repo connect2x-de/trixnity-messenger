@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.secrets
 
-import net.folivo.trixnity.crypto.core.hmacSha256
+import de.connect2x.trixnity.crypto.core.hmacSha256
 
 internal suspend fun hkdfSha256(
     key: ByteArray,

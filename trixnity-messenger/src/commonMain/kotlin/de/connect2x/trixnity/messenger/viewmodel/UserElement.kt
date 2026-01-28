@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.avatarUrl
+import de.connect2x.trixnity.core.model.UserId
 
 data class UserInfoElement(
     val userId: UserId,

@@ -8,15 +8,12 @@ import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import de.connect2x.trixnity.messenger.util.ContextGetter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.crypto.core.SecureRandom
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-
-private val log = KotlinLogging.logger {}
 
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
     single<SecretByteArrayKeyProvider>(named(PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID)) {

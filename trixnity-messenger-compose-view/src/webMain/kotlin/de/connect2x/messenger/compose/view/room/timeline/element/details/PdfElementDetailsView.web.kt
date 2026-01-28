@@ -10,9 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
-import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import pdfjs.GlobalWorkerOptions
 import web.blob.Blob
 

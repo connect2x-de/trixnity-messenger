@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.secrets
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.toByteArray
 import de.connect2x.trixnity.messenger.util.toNSData
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.convert
@@ -11,7 +11,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.crypto.core.SecureRandom
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -38,7 +38,7 @@ import platform.Security.kSecReturnData
 import platform.Security.kSecValueData
 import platform.darwin.OSStatus
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.secrets.PlatformSecretByteArrayKeyProviderKt")
 
 @OptIn(ExperimentalForeignApi::class)
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {

@@ -15,6 +15,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastAll
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.messenger.compose.view.common.HorizontalScrollableMeasurePolicy
 import de.connect2x.messenger.compose.view.richtext.Children
@@ -22,10 +23,9 @@ import de.connect2x.messenger.compose.view.richtext.RichText
 import de.connect2x.messenger.compose.view.richtext.RichTextContext
 import de.connect2x.messenger.compose.view.richtext.em
 import de.connect2x.messenger.compose.view.richtext.table.DataTable
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.time.ExperimentalTime
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.richtext.html.TableContentKt")
 
 @OptIn(ExperimentalTime::class)
 @Composable

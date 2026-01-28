@@ -2,11 +2,11 @@ package de.connect2x.trixnity.messenger.util
 
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriCallerKt")
 
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {

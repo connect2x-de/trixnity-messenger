@@ -9,16 +9,15 @@ import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.NavigationKt")
 
 // TODO use context receivers for CoroutineScope in future Kotlin version
-
-private val log = KotlinLogging.logger {}
 
 /**
  * @see [com.arkivanov.decompose.router.stack.navigate]

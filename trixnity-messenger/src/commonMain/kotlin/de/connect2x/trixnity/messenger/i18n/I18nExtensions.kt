@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.i18n
 
-import net.folivo.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
 
-fun RoomOutboxMessage.SendError.getErrorMessage(i18n: I18n) : String? {
+fun RoomOutboxMessage.SendError.getErrorMessage(i18n: I18n): String? {
     return when (this) {
         RoomOutboxMessage.SendError.NoEventPermission -> i18n.sendErrorEventPermission()
         RoomOutboxMessage.SendError.NoMediaPermission -> i18n.sendErrorMediaPermission()

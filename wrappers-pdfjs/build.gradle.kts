@@ -1,4 +1,6 @@
-import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.withBrowser
+import de.connect2x.conventions.withJs
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -8,23 +10,12 @@ plugins {
 }
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-    js {
-        compilerOptions {
-            sourceMap.set(true)
-            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
-        }
-        browser {
+    withSourcesJar()
+    defaultCompilerOptions()
+    withJs {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
-            }
-            testTask {
-                useKarma {
-                    useFirefoxHeadless()
-                    useConfigDirectory(rootDir.resolve("karma.config.d"))
-                }
             }
         }
         useEsModules()
@@ -33,7 +24,7 @@ kotlin {
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(npm("pdfjs-dist", libs.versions.pdfjs.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))

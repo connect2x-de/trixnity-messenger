@@ -6,9 +6,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 
 class OnMessageReceivedWorker(
     private val context: Context,
@@ -36,7 +36,7 @@ class OnMessageReceivedWorker(
         val account = inputData.getString("account")?.let(::UserId)
         val roomId = inputData.getString("roomId")?.let(::RoomId) ?: return Result.failure()
         val eventId = inputData.getString("eventId")?.let(::EventId)
-        
+
         withFcmPushNotificationProvider(context) {
             val didAlreadyProcessOnPush = it.onPush(profile, account, roomId, eventId)
             if (!didAlreadyProcessOnPush) it.processPending(profile, account)

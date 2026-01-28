@@ -6,8 +6,7 @@ import platform.Foundation.NSString
 import platform.Foundation.rangeOfComposedCharacterSequenceAtIndex
 import platform.Foundation.substringWithRange
 
-internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider
-        = NsGraphemeIterableProvider
+internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider = NsGraphemeIterableProvider
 
 internal object NsGraphemeIterableProvider : GraphemeIterableProvider {
     override fun invoke(string: String): GraphemeIterable {
@@ -35,8 +34,7 @@ private class NsGaphemeIterable(
             return count
         }
 
-    override fun iterator(): GraphemeIterator
-            = NsGaphemeIterator(nsString)
+    override fun iterator(): GraphemeIterator = NsGaphemeIterator(nsString)
 }
 
 private class NsGaphemeIterator(val inner: NSString) : GraphemeIterator {
@@ -51,6 +49,6 @@ private class NsGaphemeIterator(val inner: NSString) : GraphemeIterator {
         return substring
     }
 
-    override fun hasNext(): Boolean = 
+    override fun hasNext(): Boolean =
         index < inner.length
 }

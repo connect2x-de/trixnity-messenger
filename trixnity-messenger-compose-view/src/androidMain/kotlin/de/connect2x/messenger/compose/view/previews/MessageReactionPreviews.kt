@@ -48,8 +48,8 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.UserId
 
 
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =

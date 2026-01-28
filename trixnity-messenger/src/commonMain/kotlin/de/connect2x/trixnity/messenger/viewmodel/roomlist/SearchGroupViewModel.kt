@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsWithFilter
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -9,7 +15,6 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,15 +26,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.clientserverapi.model.rooms.GetPublicRoomsWithFilter
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
-
-private val log = KotlinLogging.logger { }
 
 interface SearchGroupViewModelFactory {
     fun create(

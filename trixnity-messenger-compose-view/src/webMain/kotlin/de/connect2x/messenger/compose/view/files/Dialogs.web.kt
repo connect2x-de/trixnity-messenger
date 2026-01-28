@@ -4,6 +4,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -19,14 +21,13 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.JsFileDescriptor
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
-import net.folivo.trixnity.client.media.opfs.OpfsPlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import web.dom.document
 import web.file.File
 import web.html.HtmlTagName
@@ -36,7 +37,7 @@ import web.window.WindowTarget
 import web.window._self
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.files.DialogsKt")
 
 /**
  * This component invokes a file picker by which the user can select

@@ -5,7 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.TrixnityMessengerDsl
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import net.folivo.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.client.ModuleFactory
 
 @TrixnityMessengerDsl
 data class MatrixMultiMessengerConfiguration(

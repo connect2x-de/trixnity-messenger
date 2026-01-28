@@ -1,5 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+
+import de.connect2x.lognity.api.logger.debug
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.serverDiscovery
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.ProfileManager
@@ -9,7 +17,8 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.ktor.http.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -23,20 +32,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.serverDiscovery
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
-import net.folivo.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
-import net.folivo.trixnity.utils.takeBytes
-import net.folivo.trixnity.utils.toByteArray
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
-
-
-private val log = KotlinLogging.logger {}
 
 interface AddMatrixAccountViewModelFactory {
     fun create(
@@ -168,8 +165,7 @@ open class AddMatrixAccountViewModelImpl(
                                             api.media.downloadLegacy(it) { media ->
                                                 byteArray =
                                                     media.content.toByteArrayFlow()
-                                                        .takeBytes(5 * 1024 * 1024) // max 5 MB
-                                                        .toByteArray()
+                                                        .toByteArray(5 * 1024 * 1024) // max 5 MB
                                             }.onFailure { error ->
                                                 log.warn { "could not download idp icon $error" }
                                             }.getOrNull()

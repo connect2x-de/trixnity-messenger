@@ -2,11 +2,9 @@ package de.connect2x.trixnity.messenger.util
 
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
-private val log = KotlinLogging.logger { }
 
 interface BackHandler {
     /**
@@ -52,6 +50,10 @@ data class BackCallback(
 )
 
 class BackHandlerImpl : BackHandler {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.BackHandlerImpl")
+    }
+
     private val _backCallbackStack: MutableList<BackCallback> = mutableListOf()
     override val stack: List<BackCallback> = _backCallbackStack
 

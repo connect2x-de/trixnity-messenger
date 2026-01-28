@@ -7,7 +7,7 @@ import platform.UIKit.UIScene
 import platform.UIKit.UISceneConnectionOptions
 import platform.UIKit.UISceneSession
 
-open class SceneDelegateProxy<T: SceneDelegateProtocol>(
+open class SceneDelegateProxy<T : SceneDelegateProtocol>(
     delegates: List<T>
 ) : Delegator<T>(delegates), SceneDelegateProtocol {
 

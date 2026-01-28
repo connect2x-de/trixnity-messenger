@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.notification
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.NotificationIcon
@@ -12,7 +14,6 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
@@ -22,21 +23,19 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.notification
-import net.folivo.trixnity.client.notification.NotificationUpdate
-import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.notification
+import de.connect2x.trixnity.client.notification.NotificationUpdate
+import de.connect2x.trixnity.client.store.avatarUrl
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.utils.toByteArray
 import kotlin.time.Duration.Companion.milliseconds
-
-private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.notification.NotificationService")
 
 class NotificationSyncService(
     private val matrixClients: MatrixClients,
@@ -48,6 +47,9 @@ class NotificationSyncService(
     private val getNotificationIcon: GetNotificationIcon?,
     private val i18n: I18n,
 ) : Worker {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationService")
+    }
 
     override suspend fun doWork() {
         syncNotifications()

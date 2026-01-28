@@ -7,28 +7,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Connect2xComposeUiApi
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
-import androidx.compose.ui.viewinterop.WebElementView
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.pause
 import com.arkivanov.essenty.lifecycle.resume
-import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.messenger.compose.view.profiles.Profiles
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.multi.create
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.oshai.kotlinlogging.KotlinLoggingConfiguration
-import io.github.oshai.kotlinlogging.Level
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
@@ -44,24 +39,15 @@ import web.focus.FOCUS
 import web.focus.FocusEvent
 import web.keyboard.KeyboardEvent
 import web.prompts.alert
-import web.url.URL
 import web.window.window
 
-private val log = KotlinLogging.logger {}
-
-private fun getLogLevel(): Level {
-    val levelName = URL(window.location.href).searchParams.get("loglevel")
-    return Level.entries.find {
-        it.name.equals(levelName, ignoreCase = true)
-    } ?: Level.INFO
-}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.startMultiMessengerKt")
 
 @OptIn(ExperimentalComposeUiApi::class, Connect2xComposeUiApi::class, InternalComposeUiApi::class)
 suspend fun startMultiMessenger(
     configuration: MatrixMultiMessengerConfiguration.() -> Unit,
 ) {
     log.info { "Starting client" }
-    KotlinLoggingConfiguration.logLevel = getLogLevel()
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
     val config = matrixMultiMessenger.di.get<MatrixMessengerBaseConfiguration>()
