@@ -35,7 +35,6 @@ fun MatrixMultiMessengerConfiguration.configure() {
             }
         },
     )
-    multiProfile = true
 
     // MatrixMultiMessengerConfiguration flavors
     when (BuildConfig.flavor) {

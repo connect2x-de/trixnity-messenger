@@ -1,9 +1,10 @@
-package de.connect2x.trixnity.messenger.notification.fcm
+package de.connect2x.trixnity.messenger.notification.unifiedpush
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
-import com.google.firebase.messaging.FirebaseMessaging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -20,6 +21,7 @@ import de.connect2x.trixnity.messenger.settings.NestedSettingsView
 import de.connect2x.trixnity.messenger.settings.SettingsView
 import de.connect2x.trixnity.messenger.settings.settingsView
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
@@ -32,48 +34,49 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.unifiedpush.android.connector.UnifiedPush
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
 @Serializable
-@NestedSettingsView("notification", "provider", "fcm")
-data class MatrixMultiMessengerNotificationProviderFcmSettings(
+@NestedSettingsView("notification", "provider", "unifiedpush")
+data class MatrixMultiMessengerNotificationProviderUnifiedPushSettings(
     val pusher: PusherSettings? = null,
 ) : SettingsView<MatrixMultiMessengerSettings>
 
-val MatrixMultiMessengerSettings.notificationProviderFcm
-        by settingsView<MatrixMultiMessengerSettings, MatrixMultiMessengerNotificationProviderFcmSettings>()
+val MatrixMultiMessengerSettings.notificationProviderUnifiedPush
+        by settingsView<MatrixMultiMessengerSettings, MatrixMultiMessengerNotificationProviderUnifiedPushSettings>()
 
 @Serializable
-@NestedSettingsView("notification", "provider", "fcm")
-data class MatrixMessengerNotificationProviderFcmSettings(
+@NestedSettingsView("notification", "provider", "unifiedpush")
+data class MatrixMessengerNotificationProviderUnifiedPushSettings(
     val pusher: PusherSettings? = null,
 ) : SettingsView<MatrixMessengerSettings>
 
-val MatrixMessengerSettings.notificationProviderFcm
-        by settingsView<MatrixMessengerSettings, MatrixMessengerNotificationProviderFcmSettings>()
+val MatrixMessengerSettings.notificationProviderUnifiedPush
+        by settingsView<MatrixMessengerSettings, MatrixMessengerNotificationProviderUnifiedPushSettings>()
 
 @Serializable
-@NestedSettingsView("notification", "provider", "fcm")
-data class MatrixMessengerAccountNotificationProviderFcmSettings(
+@NestedSettingsView("notification", "provider", "unifiedpush")
+data class MatrixMessengerAccountNotificationProviderUnifiedPushSettings(
     val enabled: Boolean = false,
     val deliveredPusher: PusherSettings? = null,
 ) : SettingsView<MatrixMessengerAccountSettings>
 
-val MatrixMessengerAccountSettings.notificationProviderFcm
-        by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderFcmSettings>()
+val MatrixMessengerAccountSettings.notificationProviderUnifiedPush
+        by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderUnifiedPushSettings>()
 
-data class FcmPushNotificationProviderConfig(
+
+data class UnifiedPushNotificationProviderConfig(
     val pushAppId: String,
     val pushUrl: String,
     val periodicSyncInterval: Duration,
 )
 
-class FcmPushNotificationProvider(
-    val config: FcmPushNotificationProviderConfig,
+class UnifiedPushNotificationProvider(
+    val config: UnifiedPushNotificationProviderConfig,
     messengerConfig: MatrixMessengerConfiguration,
     multiSettings: MatrixMultiMessengerSettingsHolder?,
     settings: MatrixMessengerSettingsHolder,
@@ -81,6 +84,7 @@ class FcmPushNotificationProvider(
     matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
     private val contextGetter: ContextGetter,
+    private val activityGetter: ActivityGetter,
 ) : PushNotificationProvider(
     pushAppId = config.pushAppId,
     config = messengerConfig,
@@ -90,15 +94,22 @@ class FcmPushNotificationProvider(
     matrixClients = matrixClients,
     coroutineScope = coroutineScope,
 ) {
-    override val id = "de.connect2x.trixnity.messenger.notification.fcm"
-    override val displayName: String = "Google Firebase Cloud Messaging"
+    companion object {
+        private val log =
+            Logger("de.connect2x.trixnity.messenger.notification.unifiedpush.UnifiedPushNotificationProvider")
+    }
+
+    override val id = "de.connect2x.trixnity.messenger.notification.unifiedpush"
+    override val displayName: String = "UnifiedPush"
+
+    override val canBeEnabled: Boolean get() = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
 
     override val currentPusherSettings =
-        (multiSettings?.map { s -> s.notificationProviderFcm.pusher }
-            ?: settings.map { s -> s.notificationProviderFcm.pusher })
+        (multiSettings?.map { s -> s.notificationProviderUnifiedPush.pusher }
+            ?: settings.map { s -> s.notificationProviderUnifiedPush.pusher })
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
     override val MatrixMessengerAccountSettings.pusherSettings: PusherAccountSettings
-        get() = notificationProviderFcm.run {
+        get() = notificationProviderUnifiedPush.run {
             PusherAccountSettings(
                 enabled = enabled,
                 deliveredPusher = deliveredPusher,
@@ -109,7 +120,7 @@ class FcmPushNotificationProvider(
         account: UserId,
         updater: (PusherAccountSettings) -> PusherAccountSettings
     ) {
-        update<MatrixMessengerAccountNotificationProviderFcmSettings>(account) {
+        update<MatrixMessengerAccountNotificationProviderUnifiedPushSettings>(account) {
             val updateResult = updater(
                 PusherAccountSettings(
                     enabled = it.enabled,
@@ -124,31 +135,34 @@ class FcmPushNotificationProvider(
     }
 
     override suspend fun enableService() {
-        val context = contextGetter()
-        context.packageManager.setComponentEnabledSetting(
-            ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
+        val activity = activityGetter()
+        activity.packageManager.setComponentEnabledSetting(
+            ComponentName(activity, TrixnityMessengerUnifiedPushService::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
             PackageManager.DONT_KILL_APP,
         )
         SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(
-            context = context,
+            context = activity,
             interval = config.periodicSyncInterval
         )
-        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
-            OnNewTokenWorker.enqueueUniqueWork(
-                context = context, pushKey = token
-            )
+        UnifiedPush.tryUseCurrentOrDefaultDistributor(context = activity) { success ->
+            if (!success) {
+                log.error { "Could not initialize UnifiedPush (distributors=${UnifiedPush.getDistributors(activity)})" }
+            } else {
+                UnifiedPush.register(context = activity)
+            }
         }
     }
 
     override suspend fun disableService() {
-        val context = contextGetter()
-        context.packageManager.setComponentEnabledSetting(
-            ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
+        val activity = activityGetter()
+        activity.packageManager.setComponentEnabledSetting(
+            ComponentName(activity, TrixnityMessengerUnifiedPushService::class.java),
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
             PackageManager.DONT_KILL_APP,
         )
-        SyncAndProcessPendingWorker.stopUniquePeriodicWork(context = context)
+        SyncAndProcessPendingWorker.stopUniquePeriodicWork(context = activity)
+        UnifiedPush.unregister(context = activity)
     }
 
     override suspend fun getPusherCustomFields(profile: String?, account: UserId): JsonObject =
@@ -160,17 +174,17 @@ class FcmPushNotificationProvider(
         }
 }
 
-internal suspend fun <T> withFcmPushNotificationProvider(
+internal suspend fun <T> withUnifiedPushNotificationProvider(
     context: Context,
-    block: suspend (FcmPushNotificationProvider) -> T
+    block: suspend (UnifiedPushNotificationProvider) -> T
 ): T = withMatrixMessengerFromService(context) {
-    val fcmPushNotificationProvider = it.di.get<FcmPushNotificationProvider>()
-    block(fcmPushNotificationProvider)
+    val unifiedPushNotificationProvider = it.di.get<UnifiedPushNotificationProvider>()
+    block(unifiedPushNotificationProvider)
 }
 
-private fun fcmPushNotificationProviderModule() = module {
-    single<FcmPushNotificationProvider> {
-        FcmPushNotificationProvider(
+private fun unifiedPushNotificationProviderModule() = module {
+    single<UnifiedPushNotificationProvider> {
+        UnifiedPushNotificationProvider(
             config = get(),
             messengerConfig = get(),
             multiSettings = getOrNull(),
@@ -179,6 +193,7 @@ private fun fcmPushNotificationProviderModule() = module {
             matrixClients = get(),
             coroutineScope = get(),
             contextGetter = get(),
+            activityGetter = get(),
         )
     }.apply {
         bind<NotificationProvider>()
@@ -186,24 +201,24 @@ private fun fcmPushNotificationProviderModule() = module {
     }
 }
 
-private fun fcmPushNotificationProviderConfigModule(
+private fun unifiedPushNotificationProviderConfigModule(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration
 ) = module {
-    single { FcmPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) }
+    single { UnifiedPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) }
 }
 
-fun MatrixMultiMessengerConfiguration.addFcmPushNotificationProvider(
+fun MatrixMultiMessengerConfiguration.addUnifiedPushNotificationProvider(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
     modulesFactories += {
-        fcmPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+        unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
     }
     messengerConfiguration {
-        addFcmPushNotificationProvider(
+        addUnifiedPushNotificationProvider(
             pushAppId = pushAppId,
             pushUrl = pushUrl,
             periodicSyncInterval = periodicSyncInterval
@@ -211,13 +226,13 @@ fun MatrixMultiMessengerConfiguration.addFcmPushNotificationProvider(
     }
 }
 
-fun MatrixMessengerConfiguration.addFcmPushNotificationProvider(
+fun MatrixMessengerConfiguration.addUnifiedPushNotificationProvider(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
     modulesFactories += {
-        fcmPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
+        unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
     }
-    modulesFactories += ::fcmPushNotificationProviderModule
+    modulesFactories += ::unifiedPushNotificationProviderModule
 }

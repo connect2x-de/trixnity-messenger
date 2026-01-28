@@ -1747,6 +1747,11 @@ open class I18nView(
         DE - "Geräteeinstellungen"
     }
 
+    open fun notificationsSettingsProvider() = translate {
+        EN - "Notification Provider"
+        DE - "Benachrichtigungsanbieter"
+    }
+
     open fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
         EN - "The app does not have permission to send notifications. Please go to your device settings."
         DE - "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."

@@ -28,12 +28,13 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(
     "trixnity-messenger",
-    "trixnity-messenger:trixnity-messenger-notification-fcm",
     "trixnity-messenger:trixnity-messenger-notification-apns",
+    "trixnity-messenger:trixnity-messenger-notification-fcm",
+    "trixnity-messenger:trixnity-messenger-notification-unifiedpush",
+    "trixnity-messenger-compose-view",
+    "trixnity-messenger-compose-app",
     "integrationtests",
     "emojis",
     "wrappers-zipjs",
     "wrappers-pdfjs",
-    "trixnity-messenger-compose-view",
-    "trixnity-messenger-compose-app",
 )

@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.notification.fcm
+package de.connect2x.trixnity.messenger.notification.unifiedpush
 
 import android.content.ComponentName
 import android.content.Context
@@ -19,7 +19,8 @@ class SyncAndProcessPendingWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
     companion object {
-        const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.fcm.SyncAndProcessPendingWorker"
+        const val UNIQUE_WORK_NAME =
+            "de.connect2x.trixnity.messenger.notification.unifiedpush.SyncAndProcessPendingWorker"
 
         fun enqueueUniquePeriodicWork(context: Context, interval: Duration) {
             val serviceEnabled =
@@ -27,7 +28,7 @@ class SyncAndProcessPendingWorker(
                     context.packageManager.getServiceInfo(
                         ComponentName(
                             context,
-                            TrixnityMessengerFirebaseMessagingService::class.java
+                            TrixnityMessengerUnifiedPushService::class.java
                         ), 0
                     ).enabled
                 } catch (_: PackageManager.NameNotFoundException) {
@@ -54,7 +55,7 @@ class SyncAndProcessPendingWorker(
 
     override suspend fun doWork(): Result {
         val currentInterval = inputData.getLong("interval", -1)
-        withFcmPushNotificationProvider(context) {
+        withUnifiedPushNotificationProvider(context) {
             if (it.isEnabled.value) {
                 if (currentInterval != it.config.periodicSyncInterval.inWholeSeconds) {
                     enqueueUniquePeriodicWork(context, interval = it.config.periodicSyncInterval)

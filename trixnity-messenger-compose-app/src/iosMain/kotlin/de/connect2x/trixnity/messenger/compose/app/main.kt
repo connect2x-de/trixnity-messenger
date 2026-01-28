@@ -8,11 +8,10 @@ fun main(args: List<String>) {
     try {
         startMultiMessenger(args) {
             configure()
-            addApnsPushNotificationProvider()
-            messengerConfiguration {
-                pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify"
-                pushAppId = "$appId.apns"
-            }
+            addApnsPushNotificationProvider(
+                pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify",
+                pushAppId = "$appId.apns",
+            )
         }
     } catch (t: Throwable) {
         throw IllegalStateException(t)

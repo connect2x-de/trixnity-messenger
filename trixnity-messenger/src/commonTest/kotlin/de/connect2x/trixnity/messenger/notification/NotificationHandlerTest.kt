@@ -119,7 +119,7 @@ class NotificationHandlerTest {
     }
 
     class NotificationProviderMock : NotificationProvider {
-        override val id: String = "mock"
+        override val id = "mock"
         override val displayName: String = "mock"
         override val canBeEnabled: Boolean = true
         override val isEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)

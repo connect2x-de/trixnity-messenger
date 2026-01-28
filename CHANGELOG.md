@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support UnifiedPush
+
 ### Changed
 
 - UI: Adjusted Markdown formating to make a single line break lead to a visible new line
