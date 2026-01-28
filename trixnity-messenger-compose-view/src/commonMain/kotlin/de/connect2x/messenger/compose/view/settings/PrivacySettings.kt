@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.VerticalScrollbar
 import de.connect2x.messenger.compose.view.common.Header
+import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
@@ -49,14 +50,22 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
     @Composable
     override fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
         val privacySettings = privacySettingsViewModel.privacySettings
+        val redactionWarningEnabled = privacySettingsViewModel.redactionWarningEnabled.collectAsState().value == true
         val i18n = DI.get<I18nView>()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
             Column {
                 Header(privacySettingsViewModel::back, i18n.privacyTitle())
-
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
+                        ThemedListItemSwitch(
+                            style = MaterialTheme.components.settingsItem,
+                            headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+                            supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+                            selected = redactionWarningEnabled,
+                            onChange = { privacySettingsViewModel.toggleRedactionWarningEnabledState() }
+                        )
+                        SmallSpacer()
                         privacySettings.map { privacySetting ->
                             PrivacySettingsSingleAccount(privacySetting)
                         }

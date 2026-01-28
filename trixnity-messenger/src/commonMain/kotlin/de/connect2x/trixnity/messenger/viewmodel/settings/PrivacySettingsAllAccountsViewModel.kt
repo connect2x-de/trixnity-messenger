@@ -4,6 +4,14 @@ import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.update
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 
@@ -23,7 +31,9 @@ interface PrivacySettingsAllAccountsViewModelFactory {
 
 interface PrivacySettingsAllAccountsViewModel {
     val privacySettings: List<PrivacySettingsSingleAccountViewModel>
+    val redactionWarningEnabled: StateFlow<Boolean?>
     fun back()
+    fun toggleRedactionWarningEnabledState()
 }
 
 class PrivacySettingsAllAccountsViewModelImpl(
@@ -38,6 +48,22 @@ class PrivacySettingsAllAccountsViewModelImpl(
 
     init {
         registerBackCallback(backCallback)
+    }
+
+    val settings = get<MatrixMessengerSettingsHolder>()
+
+    override val redactionWarningEnabled: StateFlow<Boolean?> =
+        settings.map { it.base.showRedactionWarning }.stateIn(
+            coroutineScope,
+            SharingStarted.WhileSubscribed(), null
+        )
+
+    override fun toggleRedactionWarningEnabledState() {
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(showRedactionWarning = !it.showRedactionWarning)
+            }
+        }
     }
 
     override val privacySettings: List<PrivacySettingsSingleAccountViewModel> =
