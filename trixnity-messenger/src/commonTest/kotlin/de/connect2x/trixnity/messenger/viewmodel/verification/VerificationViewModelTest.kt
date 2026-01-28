@@ -67,7 +67,7 @@ class VerificationViewModelTest {
 
     private val onCloseDeviceVerificationMock = mock<Function0<Unit>>()
     private val onRedoSelfVerificationMock = mock<Function0<Unit>>()
-    private val activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification> =
+    private val activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification?> =
         MutableStateFlow(activeVerification)
 
     init {
@@ -202,6 +202,20 @@ class VerificationViewModelTest {
 
         eventually(1.seconds) {
             cut.stack.value.active.configuration should beOfType<Config.Request>()
+        }
+    }
+
+    @Test
+    fun `cancel verification when no verification could be found`() = runTest {
+        var cancelledVerification = false
+        activeDeviceVerificationFlow.value = null
+        every { onCloseDeviceVerificationMock.invoke() } calls {
+            cancelledVerification = true
+        }
+        val cut = deviceVerificationViewModel()
+
+        eventually(1.seconds) {
+            cancelledVerification shouldBe true
         }
     }
 
