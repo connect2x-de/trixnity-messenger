@@ -1,16 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import org.koin.core.component.get
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.updateProfile
-import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -32,7 +31,6 @@ interface ProfilesSettingsViewModelFactory {
 interface ProfilesSettingsViewModel {
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
-    val isProfileNameSet: StateFlow<Boolean>
     val profileNameTextFieldViewModel: ApprovableTextFieldViewModel
 
     fun setMultiProfileEnabled(enabled: Boolean)
@@ -43,14 +41,14 @@ class ProfilesSettingsViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val onCloseProfilesSettings: () -> Unit,
 ) : ProfilesSettingsViewModel, ViewModelContext by viewModelContext {
-    private val profileManager = getOrNull<ProfileManager>()
+    private val profileManager = get<ProfileManager>()
 
     override val isMultiProfile: StateFlow<Boolean> =
-        (profileManager?.isMultiProfileEnabled?.map { it == true } ?: flowOf(false))
+        (profileManager.isMultiProfileEnabled.map { it == true })
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canChangeMultiProfileMode: StateFlow<Boolean> =
-        combine(isMultiProfile, profileManager?.profiles?.map { it.size > 1 } ?: flowOf(false)) {
+        combine(isMultiProfile, profileManager.profiles.map { it.size > 1 } ) {
             val isMultiProfile = it[0]
             val moreThanOneProfile = it[1]
             // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more than
@@ -58,25 +56,10 @@ class ProfilesSettingsViewModelImpl(
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
 
-    private val currentProfileName: StateFlow<String?> = (profileManager?.profiles
-        ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
+    private val currentProfileName: StateFlow<String?> = (profileManager.profiles
+        .combine(profileManager.activeProfile){ profiles, activeProfile ->
             profiles[activeProfile]?.base?.displayName
-        }?:flowOf(null)).stateIn(coroutineScope, WhileSubscribed(), null)
-
-    /**
-     * Returns false if there is currently a readable profile,and it's display name is null
-     */
-    override val isProfileNameSet: StateFlow<Boolean> = (profileManager?.profiles
-        ?.combine(profileManager.activeProfile){ profiles, activeProfile ->
-            profiles[activeProfile]?.base
-        }?:flowOf(null))
-        .combine(currentProfileName){ base, current ->
-            if(base == null){
-                false
-            }else{
-                (current != null)
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
+        }).stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val profileNameTextFieldViewModel: ApprovableTextFieldViewModel =
         ApprovableTextFieldViewModelImpl(
@@ -85,8 +68,8 @@ class ProfilesSettingsViewModelImpl(
             coroutineScope = coroutineScope,
             onApplyChange = {
                 changeProfileName(it)
-                if(!isProfileNameSet.value){
-                    Result.failure<String>(IllegalStateException("There was no current profile selected, while trying to change it's name!"))
+                if(currentProfileName.value != it){
+                    Result.failure<String>(IllegalStateException("Changing profile name failed"))
                 }else{
                     Result.success(it)
                 }
@@ -94,7 +77,7 @@ class ProfilesSettingsViewModelImpl(
         )
 
     private suspend fun changeProfileName(newName: String){
-        val activeProfile = profileManager?.activeProfile?.value
+        val activeProfile = profileManager.activeProfile.value
         if(activeProfile!= null){
             profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(activeProfile){
                 it.copy(displayName = newName)
@@ -103,7 +86,7 @@ class ProfilesSettingsViewModelImpl(
     }
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
-        coroutineScope.launch { profileManager?.setMultiProfileEnabled(enabled) }
+        coroutineScope.launch { profileManager.setMultiProfileEnabled(enabled) }
     }
 
     override fun close() {
