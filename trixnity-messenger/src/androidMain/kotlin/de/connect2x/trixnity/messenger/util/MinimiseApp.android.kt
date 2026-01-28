@@ -7,7 +7,7 @@ actual fun platformMinimizeAppModule(): Module = module {
     single<MinimizeApp> {
         val activityGetter = get<ActivityGetter>()
         MinimizeApp {
-            activityGetter()?.moveTaskToBack(true)
+            activityGetter().moveTaskToBack(true)
         }
     }
 }

@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
 import io.kotest.matchers.maps.shouldHaveSize
@@ -11,11 +12,16 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MultiMessengerProfilesIT {
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun shouldHandleMultipleProfiles() = runTest {

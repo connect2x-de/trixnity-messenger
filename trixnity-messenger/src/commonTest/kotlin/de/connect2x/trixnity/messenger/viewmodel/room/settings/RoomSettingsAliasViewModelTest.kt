@@ -1,5 +1,20 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.model.room.GetRoomAlias
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -20,22 +35,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.model.rooms.GetRoomAlias
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -75,7 +77,7 @@ class RoomSettingsAliasViewModelTest {
         }
 
         everySuspend {
-            roomsApiClientMock.sendStateEvent(any(), any(), any(), any())
+            roomsApiClientMock.sendStateEvent(any(), any(), any())
         } calls {
             serverAliases.value = it.args[1] as CanonicalAliasEventContent?
             Result.success(EventId("\$eventId"))
@@ -104,14 +106,14 @@ class RoomSettingsAliasViewModelTest {
         }
 
         everySuspend {
-            roomsApiClientMock.setRoomAlias(any(), any(), any())
+            roomsApiClientMock.setRoomAlias(any(), any())
         } calls {
             directoryAliases.value += it.args[1] as RoomAliasId to it.args[0] as RoomId
             Result.success(Unit)
         }
 
         everySuspend {
-            roomsApiClientMock.deleteRoomAlias(any(), any())
+            roomsApiClientMock.deleteRoomAlias(any())
         } calls {
             directoryAliases.value -= it.args[0] as RoomAliasId
             Result.success(Unit)
@@ -133,6 +135,10 @@ class RoomSettingsAliasViewModelTest {
         } returns canSendEvent
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `load permissions to change the room alias based on the user's power level`() = runTest {
@@ -168,9 +174,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                ),
+                any(),
             )
         }
     }
@@ -226,9 +234,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        RoomAliasId("#epicroom:127.0.0.1"), setOf()
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    RoomAliasId("#epicroom:127.0.0.1"), setOf()
+                ),
+                any(),
             )
         }
     }
@@ -274,9 +284,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                ),
+                any(),
             )
         }
     }
@@ -372,9 +384,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        RoomAliasId("#awesomeroom:127.0.0.1"), setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    RoomAliasId("#awesomeroom:127.0.0.1"), setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                ),
+                any(),
             )
         }
     }
@@ -425,9 +439,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        null, setOf()
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    null, setOf()
+                ),
+                any(),
             )
         }
     }
@@ -473,9 +489,11 @@ class RoomSettingsAliasViewModelTest {
 
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
-                any(), CanonicalAliasEventContent(
-                        null, setOf()
-                ), any(), any()
+                any(),
+                CanonicalAliasEventContent(
+                    null, setOf()
+                ),
+                any(),
             )
         }
     }

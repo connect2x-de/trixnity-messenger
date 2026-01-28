@@ -11,18 +11,18 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificati
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.client.key.KeySecretService
-import net.folivo.trixnity.client.key.KeyTrustService
-import net.folivo.trixnity.client.store.KeySignatureTrustLevel
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
-import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
-import net.folivo.trixnity.client.verification.SelfVerificationMethod.CrossSignedDeviceVerification
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import net.folivo.trixnity.core.model.keys.Key
-import net.folivo.trixnity.core.model.keys.SignedCrossSigningKeys
-import net.folivo.trixnity.core.model.keys.SignedDeviceKeys
+import de.connect2x.trixnity.client.key.KeySecretService
+import de.connect2x.trixnity.client.key.KeyTrustService
+import de.connect2x.trixnity.client.store.KeySignatureTrustLevel
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.CrossSignedDeviceVerification
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
+import de.connect2x.trixnity.core.model.keys.Key
+import de.connect2x.trixnity.core.model.keys.SignedCrossSigningKeys
+import de.connect2x.trixnity.core.model.keys.SignedDeviceKeys
 
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)

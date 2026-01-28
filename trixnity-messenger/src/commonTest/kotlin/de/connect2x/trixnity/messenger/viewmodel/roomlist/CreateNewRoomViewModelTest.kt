@@ -1,7 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.Search
@@ -15,16 +23,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class CreateNewRoomViewModelTest {
@@ -65,11 +66,16 @@ class CreateNewRoomViewModelTest {
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `filter users by search term`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                "user1", any(), any(), null
+                "user1", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -80,7 +86,7 @@ class CreateNewRoomViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                "us", any(), any(), null
+                "us", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -93,7 +99,7 @@ class CreateNewRoomViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                "user3", any(), any(), null
+                "user3", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(

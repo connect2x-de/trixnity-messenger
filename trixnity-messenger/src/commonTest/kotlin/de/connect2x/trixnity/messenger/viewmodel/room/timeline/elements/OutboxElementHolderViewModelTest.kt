@@ -1,6 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -22,22 +38,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -114,6 +117,11 @@ class OutboxElementHolderViewModelTest {
         every { roomServiceMock.getOutbox(roomId) } returns outbox.map { it.map { flowOf(it) } }
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `isFirstInUserSequence » be true when last timeline event is not by us`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
@@ -122,7 +130,11 @@ class OutboxElementHolderViewModelTest {
             }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = us,
                 roomId = roomId,

@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view.i18n
 
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 
 fun HistoryVisibilityEventContent.HistoryVisibility.getExplanation(i18n: I18nView): String {
     return when (this) {

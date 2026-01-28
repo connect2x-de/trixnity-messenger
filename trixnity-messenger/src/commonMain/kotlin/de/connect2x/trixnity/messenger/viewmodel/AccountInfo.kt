@@ -1,19 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.core.model.UserId
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.AccountInfoKt")
 
 data class AccountInfo(
     val userId: UserId,
@@ -60,21 +63,16 @@ fun MatrixClients.toAccountInfo(
     flatMapLatest { matrixClients ->
         combine(
             matrixClients.map { (userId, matrixClient) ->
-                val serverDisplayNameFlow = matrixClient.displayName.map { it ?: userId.localpart }
-                val avatarFlow = matrixClient.avatarUrl.map { avatarUrlOrNull ->
-                    avatarUrlOrNull?.let { avatarUrl ->
+                val serverDisplayNameFlow = matrixClient.profile.map { it?.displayName ?: userId.localpart }
+                val avatarFlow = matrixClient.profile.map { profile ->
+                    profile?.avatarUrl?.let { avatarUrl ->
                         matrixClient.media.getThumbnail(
                             avatarUrl,
                             avatarSize().toLong(),
                             avatarSize().toLong(),
                         ).fold(
-                            onSuccess = {
-                                it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                            },
-                            onFailure = {
-                                log.error(it) { "Cannot load user avatar" }
-                                null
-                            }
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onFailure = { log.error(it) { "Cannot load user avatar" }; null }
                         )
                     }
                 }

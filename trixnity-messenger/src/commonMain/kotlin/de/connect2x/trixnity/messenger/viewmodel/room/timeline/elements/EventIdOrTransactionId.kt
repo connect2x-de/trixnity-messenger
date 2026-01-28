@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import kotlin.jvm.JvmInline
-import net.folivo.trixnity.core.model.EventId as TrixnityEventId
+import de.connect2x.trixnity.core.model.EventId as TrixnityEventId
 
 sealed interface EventIdOrTransactionId {
     @JvmInline

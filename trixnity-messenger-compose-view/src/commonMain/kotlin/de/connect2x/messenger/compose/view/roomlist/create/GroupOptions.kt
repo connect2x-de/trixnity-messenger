@@ -27,7 +27,7 @@ import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 interface CreateGroupOptionsView {
     @Composable

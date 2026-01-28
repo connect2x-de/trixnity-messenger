@@ -25,7 +25,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedHorizontalDivi
 import de.connect2x.messenger.compose.view.theme.components.themedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.RoomId
 
 interface RoomListElementContainerView {
     @Composable

@@ -1,7 +1,6 @@
 package de.connect2x.messenger.compose.view.theme.components
 
 import androidx.compose.foundation.focusGroup
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors

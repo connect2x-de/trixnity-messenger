@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -20,7 +21,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -46,42 +46,34 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.room.message.mentions
-import net.folivo.trixnity.client.room.message.replace
-import net.folivo.trixnity.client.room.message.reply
-import net.folivo.trixnity.client.room.message.text
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.concurrentMutableMap
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.room.message.mentions
+import de.connect2x.trixnity.client.room.message.replace
+import de.connect2x.trixnity.client.room.message.reply
+import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import org.intellij.markdown.IElementType
 import org.intellij.markdown.ast.ASTNode
-import org.intellij.markdown.flavours.gfm.GFMElementTypes
-import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.html.GeneratingProvider
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
-import org.intellij.markdown.html.SimpleInlineTagProvider
-import org.intellij.markdown.html.URI
-import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import net.folivo.trixnity.core.util.Reference as TrixnityReference
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.core.util.Reference as TrixnityReference
 
 private sealed interface SubstringType {
     suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String
@@ -210,7 +202,7 @@ open class InputAreaViewModelImpl(
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
-    private class HtmlTagRenderer() : TagRenderer {
+    private class HtmlTagRenderer : TagRenderer {
         override fun openTag(
             node: ASTNode,
             tagName: CharSequence,
@@ -448,7 +440,7 @@ open class InputAreaViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                viewModelContext = childContextWithOwnLifecycle(eventId.full, lifecycle),
                 key = "element",
                 timelineEventFlow = timelineEventFlow,
                 roomId = roomId,

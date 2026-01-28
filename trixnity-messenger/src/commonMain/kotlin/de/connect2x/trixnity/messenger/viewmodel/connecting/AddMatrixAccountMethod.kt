@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
 
 sealed interface AddMatrixAccountMethod {
     val serverUrl: String

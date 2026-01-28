@@ -20,14 +20,14 @@ import com.mikepenz.aboutlibraries.entity.Library
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.modifier.focusHighlighting
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.messenger.compose.view.theme.components.ThemedAdaptiveDialog
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 

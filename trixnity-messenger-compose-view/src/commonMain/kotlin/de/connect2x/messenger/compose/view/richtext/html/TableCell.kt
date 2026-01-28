@@ -29,8 +29,7 @@ internal fun TableCell(node: RichText.Block, context: RichTextContext) {
             ) {
                 Column {
                     for (index in node.children.indices) {
-                        val child = node.children[index]
-                        when (child) {
+                        when (val child = node.children[index]) {
                             is RichText.Block -> BlockContent(child, context)
                             is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
                         }
@@ -42,8 +41,7 @@ internal fun TableCell(node: RichText.Block, context: RichTextContext) {
         "td" -> {
             Column {
                 for (index in node.children.indices) {
-                    val child = node.children[index]
-                    when (child) {
+                    when (val child = node.children[index]) {
                         is RichText.Block -> BlockContent(child, context)
                         is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
                     }

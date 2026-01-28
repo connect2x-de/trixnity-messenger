@@ -1,17 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.verification.ActiveSasVerificationMethod
-import net.folivo.trixnity.client.verification.ActiveSasVerificationState
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger { }
 
 interface AcceptSasStartViewModelFactory {
     fun create(

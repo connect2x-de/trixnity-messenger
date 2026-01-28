@@ -8,6 +8,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.ApplicationLifecycle
 import com.arkivanov.essenty.lifecycle.Lifecycle
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.profiles.IntroductionOrProfile
 import de.connect2x.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.messenger.compose.view.profiles.WithProfileSelection
@@ -19,7 +20,6 @@ import de.connect2x.trixnity.messenger.delegateModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.uikit.WindowSceneDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.WithDefault
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -30,7 +30,7 @@ import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.MultiMessengerViewControllerKt")
 
 fun MatrixMultiMessengerConfiguration.addViewProvider() {
     modulesFactories += ::viewModule

@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import dev.mokkery.matcher.*
-
-import dev.mokkery.answering.*
-
 val notificationSettingsConverterJsonSample1 = """
 {
     "global": {

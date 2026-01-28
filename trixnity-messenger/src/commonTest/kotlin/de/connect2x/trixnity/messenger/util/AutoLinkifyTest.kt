@@ -142,14 +142,14 @@ class AutoLinkifyTest {
             expected = HtmlNode.HtmlElement(
                 "#root", emptyMap(), listOf(
                     HtmlNode.HtmlElement(
-                        tag="span",
-                        attributes=emptyMap(),
-                        children=listOf(
+                        tag = "span",
+                        attributes = emptyMap(),
+                        children = listOf(
                             HtmlNode.HtmlElement(
-                                tag="a",
-                                attributes=mapOf("href" to "matrix:roomid/WvOltebgJfkgHzhfpW:matrix.org/e/KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A?via=matrix.org&via=imbitbu.de"),
-                                children=listOf(
-                                    HtmlNode.TextContent(content="\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A")
+                                tag = "a",
+                                attributes = mapOf("href" to "matrix:roomid/WvOltebgJfkgHzhfpW:matrix.org/e/KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A?via=matrix.org&via=imbitbu.de"),
+                                children = listOf(
+                                    HtmlNode.TextContent(content = "\$KoEcMwZKqGpCeuMjAmt9zvmWgO72f7hDFkvfBMS479A")
                                 )
                             ),
                             HtmlNode.TextContent(" This is an event mention"),

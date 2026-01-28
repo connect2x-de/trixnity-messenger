@@ -55,9 +55,9 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectionContainer
 import de.connect2x.trixnity.messenger.viewmodel.verification.CrossSigningBootstrapViewModel
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.Res
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.recoverykey
-import de.connect2x.trixnity_messenger_compose_view.generated.resources.vault
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.Res
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.recoverykey
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view.generated.resources.vault
 import kotlinx.coroutines.launch
 
 const val RECOVERY_KEY_EXPLANATION = "RECOVERY_KEY_EXPLANATION"

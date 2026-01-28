@@ -1,16 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.TopicEventContent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
-
 
 interface RoomTopic {
-
     fun getRoomTopic(
         roomId: RoomId,
         matrixClient: MatrixClient,
@@ -19,7 +17,6 @@ interface RoomTopic {
 }
 
 open class RoomTopicImpl : RoomTopic {
-
     override fun getRoomTopic(
         roomId: RoomId,
         matrixClient: MatrixClient,
@@ -27,6 +24,7 @@ open class RoomTopicImpl : RoomTopic {
     ): Flow<String> = matrixClient.room
         .getState<TopicEventContent>(roomId = roomId, stateKey = "")
         .map { topic ->
-            topic?.content?.topic ?: ""
+            val content = topic?.content
+            content?.topic?.text?.plain ?: content?.legacy?.topic ?: ""
         }
 }

@@ -59,7 +59,7 @@ import de.connect2x.messenger.compose.view.util.toClipEntry
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Image
-import net.folivo.trixnity.core.MSC2448
+import de.connect2x.trixnity.core.MSC2448
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
 

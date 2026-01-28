@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
-import net.folivo.trixnity.utils.byteArrayFlowFromSource
+import de.connect2x.trixnity.utils.byteArrayFlowFromSource
 import okio.FileSystem
 import okio.Path
 

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -34,11 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.modifier.customClickable
-import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 import de.connect2x.messenger.compose.view.common.modifier.RovingFocusDirection
+import de.connect2x.messenger.compose.view.common.modifier.customClickable
 import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
+import de.connect2x.messenger.compose.view.theme.messengerFocusIndicator
 
 
 @Composable

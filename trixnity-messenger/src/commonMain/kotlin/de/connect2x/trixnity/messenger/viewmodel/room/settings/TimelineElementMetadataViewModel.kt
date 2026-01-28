@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -36,20 +35,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.concurrentMutableMap
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getTimelineEventReplaceAggregation
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Instant
-
-private val log = KotlinLogging.logger {}
 
 interface TimelineElementMetadataViewModelFactory {
     fun create(
@@ -175,7 +172,7 @@ class TimelineElementMetadataViewModelImpl(
                     lifecycle.start()
                     log.debug { "create Holder for: $timelineEvent" }
                     timelineElementHolderViewModelFactory.create(
-                        viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                        viewModelContext = childContextWithOwnLifecycle(historyEventId.full, lifecycle),
                         key = "element-history-${historyEventId.full}",
                         timelineEventFlow = timelineEventFlow,
                         roomId = roomId,

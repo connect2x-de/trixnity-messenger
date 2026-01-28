@@ -12,8 +12,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.Hi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModel
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.RoomEventContent
 import kotlin.reflect.KClass
 
 interface TimelineElementViewModelFactory<C : RoomEventContent> {

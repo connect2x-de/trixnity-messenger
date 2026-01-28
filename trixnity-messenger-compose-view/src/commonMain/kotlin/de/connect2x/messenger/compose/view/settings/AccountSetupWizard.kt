@@ -80,7 +80,7 @@ interface AdditionalAccountSetupWizardStep {
     fun <T : Any> create(viewModel: T, step: AccountSetupWizardStep): WizardStep
 }
 
-class AdditionalAccountSetupWizardStepImpl() : AdditionalAccountSetupWizardStep {
+class AdditionalAccountSetupWizardStepImpl : AdditionalAccountSetupWizardStep {
     override fun <T : Any> create(
         viewModel: T,
         step: AccountSetupWizardStep

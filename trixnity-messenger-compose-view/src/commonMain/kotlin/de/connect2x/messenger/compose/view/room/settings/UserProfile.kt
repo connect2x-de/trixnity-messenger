@@ -79,10 +79,10 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 
 
 @Composable

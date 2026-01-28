@@ -24,7 +24,7 @@ import de.connect2x.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 
 
 @Composable

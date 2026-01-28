@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.ExportRoom
 import de.connect2x.trixnity.messenger.export.ExportRoomProgress
@@ -9,13 +9,13 @@ import de.connect2x.trixnity.messenger.export.ExportRoomRangeStartCondition
 import de.connect2x.trixnity.messenger.export.ExportRoomResult
 import de.connect2x.trixnity.messenger.export.ExportRoomSinkProperties
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Error
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Running
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Success
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -25,15 +25,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import org.koin.core.component.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
-
-
-private val log = KotlinLogging.logger {}
 
 interface ExportRoomViewModelFactory {
     fun create(

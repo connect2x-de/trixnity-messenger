@@ -64,7 +64,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModel
-import net.folivo.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.MSC3814
 
 interface DeviceSettingsView {
     @Composable

@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
@@ -37,8 +36,8 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.UserId
 import androidx.compose.ui.semantics.Role as SemanticRole
 
 interface RoomSettingsMemberListElementView {

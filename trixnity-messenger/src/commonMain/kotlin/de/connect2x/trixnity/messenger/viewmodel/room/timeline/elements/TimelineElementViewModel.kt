@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.StateEventContent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.StateEventContent
 
 sealed interface TimelineElementViewModel<C : RoomEventContent> {
     interface State<C : StateEventContent> : TimelineElementViewModel<C>

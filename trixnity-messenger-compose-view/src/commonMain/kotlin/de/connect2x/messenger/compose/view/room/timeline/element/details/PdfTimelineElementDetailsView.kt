@@ -87,7 +87,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedProgressIndica
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -96,14 +95,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlin.time.Clock
-
-private val log = KotlinLogging.logger {}
 
 interface PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File>
 

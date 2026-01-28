@@ -4,7 +4,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt

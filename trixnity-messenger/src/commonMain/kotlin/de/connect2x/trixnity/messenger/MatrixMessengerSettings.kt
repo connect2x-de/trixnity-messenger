@@ -2,6 +2,7 @@
 
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
@@ -18,7 +19,6 @@ import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
 import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -26,11 +26,9 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
-import net.folivo.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
-
-private val log = KotlinLogging.logger { }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
@@ -169,6 +167,10 @@ class MatrixMessengerSettingsHolderImpl(
     settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
 ) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
     MatrixMessengerSettingsHolder {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl")
+    }
+
     override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> =
         map { it.base.accounts[userId] }
 

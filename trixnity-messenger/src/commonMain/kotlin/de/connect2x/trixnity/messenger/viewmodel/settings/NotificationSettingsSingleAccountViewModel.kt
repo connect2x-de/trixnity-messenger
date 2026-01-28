@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -12,7 +13,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
 import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
@@ -35,15 +35,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
-
-private val log = KotlinLogging.logger { }
 
 interface NotificationSettingsSingleAccountViewModelFactory {
     fun create(

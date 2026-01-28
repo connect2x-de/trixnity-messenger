@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.notification
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,10 +13,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.updateAndGet
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
-
-private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface NotificationHandlers : AutoCloseable, Worker {
@@ -47,6 +45,9 @@ class NotificationHandlersImpl(
         NotificationHandler(name = name, id = id, appId = appId)
     }
 ) : NotificationHandlers {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
+    }
 
     private val notificationHandlers: MutableStateFlow<Map<UserId, Lazy<NotificationHandler>>> =
         MutableStateFlow(mapOf())

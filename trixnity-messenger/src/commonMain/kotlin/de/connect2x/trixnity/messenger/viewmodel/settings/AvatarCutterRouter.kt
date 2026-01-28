@@ -8,8 +8,8 @@ import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 class AvatarCutterRouter(
@@ -29,7 +29,7 @@ class AvatarCutterRouter(
             is Config.None -> Wrapper.None
             is Config.AvatarCutterUserProfile -> Wrapper.AvatarCutter(
                 viewModelContext.get<AvatarCutterViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    viewModelContext = viewModelContext.childContext("AvatarCutterUserProfile", componentContext, config.userId),
                     file = config.file,
                     onClose = ::onClose,
                 )
@@ -37,7 +37,7 @@ class AvatarCutterRouter(
 
             is Config.AvatarCutterRoom -> Wrapper.AvatarCutter(
                 viewModelContext.get<AvatarCutterViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    viewModelContext = viewModelContext.childContext("AvatarCutterRoom", componentContext, config.userId),
                     roomId = config.roomId,
                     file = config.file,
                     onClose = ::onClose,

@@ -1,14 +1,12 @@
 package de.connect2x.trixnity.messenger.export
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.core.model.RoomId
 import okio.ByteString.Companion.toByteString
 import kotlin.time.Clock
-
-private val log = KotlinLogging.logger { }
 
 expect class Destination
 
@@ -22,6 +20,10 @@ class FileBasedExportRoomSinkFactory(
     private val clock: Clock,
     private val timeZone: TimeZone,
 ) : ExportRoomSinkFactory {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.export.FileBasedExportRoomSink")
+    }
+
     override fun create(roomId: RoomId, properties: ExportRoomSinkProperties): ExportRoomSink? {
         if (properties !is FileBasedExportRoomProperties) return null
         val converter = converterFactories.firstNotNullOfOrNull { it.create(roomId, properties) }

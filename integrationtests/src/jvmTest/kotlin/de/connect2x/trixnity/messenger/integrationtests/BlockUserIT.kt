@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.findRoomWithId
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.rejectTheInvitationToRoomAndBlock
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
@@ -20,7 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -31,6 +32,9 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class BlockUserIT {
+    init {
+        configureTestLogging()
+    }
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger1: MatrixMessengerWithRoot

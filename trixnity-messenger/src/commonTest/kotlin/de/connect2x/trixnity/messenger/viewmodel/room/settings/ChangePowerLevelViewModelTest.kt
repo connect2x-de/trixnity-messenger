@@ -2,8 +2,23 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -12,7 +27,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.withClue
@@ -28,21 +42,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -96,6 +95,7 @@ class ChangePowerLevelViewModelTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
         resetMocks(
             matrixClientMock,
             roomServiceMock,
@@ -155,7 +155,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     any(),
                     any(),
-                    null
                 )
             } returns Result.success(EventId(""))
 
@@ -169,7 +168,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     PowerLevelsEventContent(users = mapOf(alice to 100L)),
                     any(),
-                    null
                 )
             }
         }
@@ -204,7 +202,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     any(),
                     any(),
-                    null
                 )
             } returns Result.failure(Throwable())
 
@@ -225,7 +222,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     any(),
                     any(),
-                    null
                 )
             } returns Result.success(EventId(""))
 
@@ -239,7 +235,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     PowerLevelsEventContent(users = mapOf(alice to 99L)),
                     any(),
-                    null
                 )
             }
         }
@@ -268,7 +263,6 @@ class ChangePowerLevelViewModelTest {
                     roomId,
                     any(),
                     any(),
-                    null
                 )
             } returns Result.failure(Throwable())
 
@@ -435,6 +429,7 @@ class ChangePowerLevelViewModelTest {
                 }.koin,
                 userId = userId,
                 coroutineContext = backgroundScope.coroutineContext,
+                name = "PowerLevel"
             ),
             targetUser = userId,
             error = MutableStateFlow(null),

@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.navigateSuspending
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
@@ -19,18 +20,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Conf
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.PowerLevels
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.*
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
@@ -94,6 +90,9 @@ class ExtrasRouterImpl(
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
     private val onOpenMention: OpenMentionCallback,
 ) : ExtrasRouter {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl")
+    }
 
     private val extrasNavigation = StackNavigation<Config>()
     override val stack = viewModelContext.childStack(
@@ -172,7 +171,7 @@ class ExtrasRouterImpl(
 
         is RoomSettings.Main -> Wrapper.RoomSettings(
             viewModelContext.get<RoomSettingsViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("RoomSettingsMain", componentContext),
                 onCloseRoom = onCloseRoom,
                 selectedRoomId = config.roomId,
                 onOpenAddMembers = { onOpenAddMembers(config.roomId) },
@@ -187,12 +186,12 @@ class ExtrasRouterImpl(
 
         is AddMembers -> Wrapper.AddMember(
             viewModelContext.get<AddMembersViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("AddMembers", componentContext),
                 onBack = ::onBack,
                 roomId = config.roomId,
                 addMembersToRoomViewModel = viewModelContext.get<PotentialMembersViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext(componentContext),
+                        viewModelContext = viewModelContext.childContext("PartialMembers", componentContext),
                         roomId = config.roomId,
                     ),
             )
@@ -200,7 +199,7 @@ class ExtrasRouterImpl(
 
         is PowerLevels -> Wrapper.PowerLevels(
             viewModelContext.get<PowerlevelViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("PowerLevels", componentContext),
                 roomId = config.roomId,
                 onBack = ::onBack,
             )
@@ -208,7 +207,7 @@ class ExtrasRouterImpl(
 
         is ExportRoom -> Wrapper.ExportRoom(
             viewModelContext.get<ExportRoomViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("ExportRoom", componentContext),
                 roomId = config.roomId,
                 onBack = ::onBack,
             )
@@ -216,7 +215,7 @@ class ExtrasRouterImpl(
 
         is UserProfile -> Wrapper.UserProfile(
             viewModelContext.get<UserProfileViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("UserProfile", componentContext),
                 userId = config.userId,
                 selectedRoomId = config.roomId,
                 onOpenRoom = onOpenRoom,
@@ -227,7 +226,7 @@ class ExtrasRouterImpl(
 
         is TimelineElementMetadata -> Wrapper.TimelineElementMetadata(
             viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext(componentContext),
+                viewModelContext = viewModelContext.childContext("TimelineElementMetadata", componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,
                 onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },

@@ -69,7 +69,7 @@ import de.connect2x.messenger.compose.view.theme.messengerColors
 import de.connect2x.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 
 interface SelfVerificationWizardView {
     @Composable

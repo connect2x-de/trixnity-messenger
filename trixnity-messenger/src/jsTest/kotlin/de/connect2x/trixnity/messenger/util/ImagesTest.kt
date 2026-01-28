@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.util
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.utils.toByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import kotlin.test.Test
 

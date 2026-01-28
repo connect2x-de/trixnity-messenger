@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 @Suppress("UNUSED")
@@ -3344,6 +3344,7 @@ open class I18nView(
         EN - "Are you sure you want to delete this message? This action cannot be reversed!"
         DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

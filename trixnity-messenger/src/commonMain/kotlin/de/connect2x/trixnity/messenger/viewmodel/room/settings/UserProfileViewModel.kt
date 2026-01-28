@@ -1,7 +1,31 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.store.avatarUrl
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.store.originalName
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
+import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -11,7 +35,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,30 +53,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.store.originalName
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger {}
 
 interface UserProfileViewModelFactory {
     fun create(
@@ -350,7 +350,6 @@ class UserProfileViewModelImpl(
                     selectedRoomId,
                     userId,
                     kickUserReason.value.text.ifBlank { null },
-                    null
                 ).fold(
                     onSuccess = {
                         kickUserReason.update("")

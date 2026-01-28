@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -16,11 +17,12 @@ import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import net.folivo.trixnity.clientserverapi.model.uia.UIAState
-import net.folivo.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
+import de.connect2x.trixnity.core.ErrorResponse
 import org.koin.dsl.koinApplication
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -34,6 +36,11 @@ class UiaStepFallbackViewModelTest {
 
         every { onNextMock.invoke(any()) } returns Unit
         every { onCancelMock.invoke() } returns Unit
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

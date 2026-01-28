@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -12,14 +13,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
@@ -49,6 +46,9 @@ class RoomRouterImpl(
     private val onOpenMention: OpenMentionCallback,
     private val onOpenAvatarCutter: OpenAvatarCutterCallback,
 ) : RoomRouter {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.room.RoomRouterImpl")
+    }
 
     private val roomNavigation = StackNavigation<Config>()
     override val stack: Value<ChildStack<Config, Wrapper>> =
@@ -68,7 +68,7 @@ class RoomRouterImpl(
             is Config.None -> Wrapper.None
             is Config.View -> Wrapper.View(
                 viewModelContext.get<RoomViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, roomConfig.userId),
+                    viewModelContext = viewModelContext.childContext("Room", componentContext, roomConfig.userId),
                     selectedRoomId = RoomId(roomConfig.roomId),
                     onOpenRoom = onOpenRoom,
                     onCloseRoom = onCloseRoom,

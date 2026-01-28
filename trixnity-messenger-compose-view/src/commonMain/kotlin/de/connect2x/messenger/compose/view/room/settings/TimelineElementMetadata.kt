@@ -45,6 +45,8 @@ import de.connect2x.messenger.compose.view.common.LoadingSpinner
 import de.connect2x.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.messenger.compose.view.common.SmallSpacer
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
+import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.room.timeline.DateStickyHeader
@@ -55,8 +57,6 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusItem
-import de.connect2x.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModel
@@ -68,7 +68,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 
 interface TimelineElementMetadataView {
     @Composable

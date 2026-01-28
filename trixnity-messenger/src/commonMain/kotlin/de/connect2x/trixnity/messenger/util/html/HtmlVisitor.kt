@@ -40,6 +40,7 @@ class HtmlVisitor {
                     )
                 )
             }
+
             is Element -> {
                 val children = mutableListOf<HtmlNode>()
                 acc.add(

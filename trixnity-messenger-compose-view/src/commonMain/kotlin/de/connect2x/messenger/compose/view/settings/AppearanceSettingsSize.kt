@@ -50,9 +50,9 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsView
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.math.round
 import kotlin.math.roundToInt
 
@@ -93,9 +93,9 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         val systemDensity = SystemDensity.current
         Column(
             Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)
-            // remove this from the focus chain and hide it from accessibility
-            .clearAndSetSemantics { hideFromAccessibility() }
-            .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
+                // remove this from the focus chain and hide it from accessibility
+                .clearAndSetSemantics { hideFromAccessibility() }
+                .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
         ) {
             CompositionLocalProvider(
                 LocalDensity provides Density(
@@ -211,7 +211,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b/>everyone!"
-            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(mapOf())
@@ -265,7 +265,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"
             override val formattedBody: String = "Hello!"
-            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(mapOf())

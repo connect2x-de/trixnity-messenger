@@ -1,5 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.PushApiClient
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.push.PushAction
+import de.connect2x.trixnity.core.model.push.PushRuleKind
+import de.connect2x.trixnity.core.model.push.PushRuleSet
+import de.connect2x.trixnity.core.model.push.ServerDefaultPushRules
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
@@ -21,19 +33,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.PushApiClient
-import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushRuleKind
-import net.folivo.trixnity.core.model.push.PushRuleSet
-import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -90,29 +92,34 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
             )
         } returns pushRulesEventContentState.map { PushRulesEventContent((it)) }
         everySuspend {
-            pushApiClientMock.setPushRule(any(), any(), any(), any(), any(), any(), any())
+            pushApiClientMock.setPushRule(any(), any(), any(), any(), any(), any())
         } calls {
             continueHandlePushRuleRequest.first { it }
             Result.success(Unit)
         }
         everySuspend {
-            pushApiClientMock.deletePushRule(any(), any(), any(), any())
+            pushApiClientMock.deletePushRule(any(), any(), any())
         } calls {
             continueHandlePushRuleRequest.first { it }
             Result.success(Unit)
         }
         everySuspend {
-            pushApiClientMock.setPushRuleActions(any(), any(), any(), any(), any())
+            pushApiClientMock.setPushRuleActions(any(), any(), any(), any())
         } calls {
             continueHandlePushRuleRequest.first { it }
             Result.success(Unit)
         }
         everySuspend {
-            pushApiClientMock.setPushRuleEnabled(any(), any(), any(), any(), any())
+            pushApiClientMock.setPushRuleEnabled(any(), any(), any(), any())
         } calls {
             continueHandlePushRuleRequest.first { it }
             Result.success(Unit)
         }
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -149,26 +156,26 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
 
         verifySuspend {
             pushApiClientMock.setPushRule(
-                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice2", pushRule = SetPushRule.Request(
+                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice2",
+                pushRule = SetPushRule.Request(
                     actions = actions(notify = true, highlight = true), pattern = "alice2"
-                ), beforeRuleId = null, afterRuleId = null, asUserId = null
+                ),
+                beforeRuleId = null, afterRuleId = null,
             )
             pushApiClientMock.deletePushRule(
-                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice1", asUserId = null
+                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice1",
             )
             pushApiClientMock.setPushRuleEnabled(
                 scope = "global",
                 kind = PushRuleKind.OVERRIDE,
                 ruleId = ServerDefaultPushRules.SuppressNotice.id,
                 enabled = false,
-                asUserId = null
             )
             pushApiClientMock.setPushRuleActions(
                 scope = "global",
                 kind = PushRuleKind.UNDERRIDE,
                 ruleId = ServerDefaultPushRules.Call.id,
                 actions = actions(notify = true, sound = true, soundType = "ring"),
-                asUserId = null
             )
         }
         cut.updateAccountSettingsError.value shouldBe null

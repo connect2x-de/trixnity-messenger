@@ -8,13 +8,15 @@ import platform.UIKit.UITraitCollection
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
 
-open class WindowSceneDelegateProxy<T: WindowSceneDelegateProtocol>(
+open class WindowSceneDelegateProxy<T : WindowSceneDelegateProtocol>(
     delegates: List<T>
 ) : SceneDelegateProxy<T>(delegates), WindowSceneDelegateProtocol {
 
     override var window: WithDefault<UIWindow?>
         get() = delegateDefault { window }
-        set(value) { delegate { window = value } }
+        set(value) {
+            delegate { window = value }
+        }
 
     override suspend fun performAction(
         windowScene: UIWindowScene,

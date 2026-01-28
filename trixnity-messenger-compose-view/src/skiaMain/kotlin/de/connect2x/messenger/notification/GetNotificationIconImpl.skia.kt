@@ -1,10 +1,11 @@
-package de.connect2x.trixnity.messenger.notification
+package de.connect2x.messenger.notification
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.decodeToImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import de.connect2x.sysnotify.NotificationIcon
+import de.connect2x.trixnity.messenger.notification.GetNotificationIcon
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.FilterMipmap
 import org.jetbrains.skia.FilterMode

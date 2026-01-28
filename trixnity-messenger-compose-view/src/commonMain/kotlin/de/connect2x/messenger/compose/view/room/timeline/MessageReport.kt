@@ -27,7 +27,7 @@ fun MessageReport(
     reportToMessageViewModel: ReportMessageViewModel,
 ) {
     val i18n = DI.get<I18nView>()
-    val focusRequester = remember { FocusRequester() }
+    remember { FocusRequester() }
     val reason = reportToMessageViewModel.messageReportReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ reportToMessageViewModel.closeReportMessageDialog() }) {

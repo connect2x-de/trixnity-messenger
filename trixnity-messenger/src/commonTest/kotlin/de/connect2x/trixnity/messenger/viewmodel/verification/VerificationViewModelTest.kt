@@ -1,5 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.verification.ActiveDeviceVerification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.clientserverapi.client.DeviceApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.device.Device
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.settle
@@ -24,21 +40,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.verification.ActiveDeviceVerification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.devices.Device
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -81,15 +85,17 @@ class VerificationViewModelTest {
         every { matrixClientMock.userId } returns ownUserId
         every { matrixClientMock.deviceId } returns ownDeviceId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
-        every { matrixClientMock.displayName } returns MutableStateFlow("otherUser")
+        val profile = Profile(ProfileField.DisplayName("otherUser"))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientServerApiClientMock.json } returns Json
         every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
 
         everySuspend {
-            devicesApiClientMock.getDevice(any(), null)
+            devicesApiClientMock.getDevice(any())
         } returns Result.success(Device(ownDeviceId))
-        everySuspend { usersApiClientMock.getDisplayName(otherUserId) } returns Result.success("otherUser")
+        everySuspend { usersApiClientMock.getProfileField(otherUserId, ProfileField.DisplayName) } returns
+                Result.success(ProfileField.DisplayName("otherUser"))
 
         every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
         every { activeVerification.theirDeviceId } returns otherDeviceId
@@ -100,6 +106,10 @@ class VerificationViewModelTest {
         every { onCloseDeviceVerificationMock.invoke() } returns Unit
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `show verification request when a verification is started by another client`() = runTest {

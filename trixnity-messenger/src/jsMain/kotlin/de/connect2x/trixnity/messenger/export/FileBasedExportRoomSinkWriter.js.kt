@@ -4,7 +4,7 @@ import js.typedarrays.asInt8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.ByteArrayFlow
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.dom.document

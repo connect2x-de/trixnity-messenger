@@ -439,8 +439,8 @@ class CanvasSemanticsOwnerListener(
         el.removeAttribute("aria-live")
         setIf("aria-live", SemanticsProperties.LiveRegion) {
             when (it) {
-                LiveRegionMode.Companion.Polite -> "polite"
-                LiveRegionMode.Companion.Assertive -> "assertive"
+                LiveRegionMode.Polite -> "polite"
+                LiveRegionMode.Assertive -> "assertive"
                 else -> "off"
             }
         }
@@ -565,7 +565,7 @@ private fun EventHandlerCaller(canvas: HTMLCanvasElement): EventHandlerCaller {
     return EventHandlerCaller { event ->
         for (info in map.values) {
             if (info.type == event.type) {
-                val listener = info.listener
+                info.listener
                 js(
                     """
                     if ("handleEvent" in listener) {

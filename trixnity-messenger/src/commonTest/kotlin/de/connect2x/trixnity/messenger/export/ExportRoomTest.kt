@@ -1,6 +1,19 @@
 package de.connect2x.trixnity.messenger.export
 
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import dev.mokkery.answering.calls
@@ -8,7 +21,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.matcher.nullable.notNull
 import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode
@@ -21,24 +33,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class ExportRoomTest {
-
     val roomId = RoomId("!room1")
     val roomIdWithErrors = RoomId("!roomWithErrors")
     val alice = UserId("alice", "localhost")
@@ -51,7 +51,6 @@ class ExportRoomTest {
         )
     } + (10..21).map { timelineEventWithMedia(it.toLong()) }
 
-
     val roomServiceMock = mock<RoomService> {
         every { getById(roomId) } returns MutableStateFlow(
             Room(isDirect = true, roomId = roomId, lastEventId = EventId("19"))
@@ -60,22 +59,22 @@ class ExportRoomTest {
             Room(isDirect = true, roomId = roomIdWithErrors, lastEventId = EventId("21"))
         )
         every {
-            getTimelineEvents(roomId, any(), Direction.BACKWARDS, any())
+            getTimelineEvents(roomId, any(), GetEvents.Direction.BACKWARDS, any())
         } returns timeline.reversed().asFlow()
         every {
             getTimelineEvents(
-                roomIdWithErrors, any(), Direction.BACKWARDS, any()
+                roomIdWithErrors, any(), GetEvents.Direction.BACKWARDS, any()
             )
         } returns timelineWithErrors.reversed().asFlow()
         every {
-            getTimelineEvents(roomId, any(), Direction.FORWARDS, any())
+            getTimelineEvents(roomId, any(), GetEvents.Direction.FORWARDS, any())
         } calls { params ->
             val eventId = params.args[1] as EventId
             timeline.asFlow().dropWhile { it.first().eventId != eventId }
         }
         every {
             getTimelineEvents(
-                roomIdWithErrors, any(), Direction.FORWARDS, any()
+                roomIdWithErrors, any(), GetEvents.Direction.FORWARDS, any()
             )
         } calls { params ->
             val eventId = params.args[1] as EventId
@@ -112,6 +111,11 @@ class ExportRoomTest {
 
     val sinkFactoryMock = mock<ExportRoomSinkFactory> {
         every { create(any(), any()) } returns sinkMock
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

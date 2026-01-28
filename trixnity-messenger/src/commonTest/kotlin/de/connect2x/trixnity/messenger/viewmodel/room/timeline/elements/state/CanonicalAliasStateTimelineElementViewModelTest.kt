@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
@@ -17,23 +18,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -56,7 +58,7 @@ class CanonicalAliasStateTimelineElementViewModelTest {
         DefaultLanguages,
         createTestMatrixMessengerSettingsHolder(),
         GetSystemLang { "en" },
-        TimeZone.Companion.of("CET"),
+        TimeZone.of("CET"),
     ) {}
 
     init {
@@ -81,6 +83,11 @@ class CanonicalAliasStateTimelineElementViewModelTest {
             )
         )
         every { roomServiceMock.getById(roomId) } returns flowOf(Room(roomId, isDirect = true))
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

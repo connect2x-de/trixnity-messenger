@@ -1,10 +1,12 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.integrationtests.messenger.registerAccountWithToken
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -23,11 +25,14 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
-private val log = KotlinLogging.logger { }
-
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 @Testcontainers
 class RegistrationIT {
+    init {
+        configureTestLogging()
+    }
+
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.RegistrationIT")
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
 
     @Container

@@ -1,33 +1,33 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.core.model.events.EmptyEventContent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.StateEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationReadyEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStartEventContent
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.GuestAccessEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.ThirdPartyInviteEventContent
+import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
+import de.connect2x.trixnity.core.model.events.m.room.TopicEventContent
+import de.connect2x.trixnity.core.model.events.stateKeyOrNull
 import de.connect2x.trixnity.messenger.i18n.I18n
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.events.EmptyEventContent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.StateEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.ReactionEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationReadyEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationStartEventContent
-import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.GuestAccessEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.NameEventContent
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.ThirdPartyInviteEventContent
-import net.folivo.trixnity.core.model.events.m.room.TombstoneEventContent
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
-import net.folivo.trixnity.core.model.events.stateKeyOrNull
 
 fun interface TimelineEventContentToString {
     operator fun invoke(timelineEvent: TimelineEvent, fileName: String?): String?
@@ -86,7 +86,10 @@ class TimelineEventContentToStringImpl(private val i18n: I18n) : TimelineEventCo
                             )
 
                             is NameEventContent -> i18n.exportRoomName(content.name)
-                            is TopicEventContent -> i18n.exportRoomTopic(content.topic)
+                            is TopicEventContent -> i18n.exportRoomTopic(
+                                content.topic?.text?.plain ?: content.legacy.topic
+                            )
+
                             is EncryptionEventContent -> i18n.exportRoomEncryption()
                             is HistoryVisibilityEventContent -> i18n.exportRoomHistoryVisibility(content.historyVisibility.name)
                             is GuestAccessEventContent -> i18n.exportRoomGuestAccess(content.guestAccess.name)

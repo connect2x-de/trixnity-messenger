@@ -19,7 +19,7 @@ interface WindowSceneDelegateProtocol : SceneDelegateProtocol {
      */
     var window: WithDefault<UIWindow?>
         get() = Default
-        set(value) { }
+        set(value) {}
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:performactionfor:completionhandler:))
@@ -35,7 +35,8 @@ interface WindowSceneDelegateProtocol : SceneDelegateProtocol {
     fun userDidAcceptCloudKitShare(
         windowScene: UIWindowScene,
         cloudKitShareMetadata: CKShareMetadata,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:didupdate:interfaceorientation:traitcollection:))
@@ -45,5 +46,6 @@ interface WindowSceneDelegateProtocol : SceneDelegateProtocol {
         previousCoordinateSpace: UICoordinateSpaceProtocol,
         previousInterfaceOrientation: UIInterfaceOrientation,
         previousTraitCollection: UITraitCollection,
-    ) { }
+    ) {
+    }
 }

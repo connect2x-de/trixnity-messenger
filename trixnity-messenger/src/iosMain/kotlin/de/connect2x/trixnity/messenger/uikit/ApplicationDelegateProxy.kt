@@ -16,13 +16,15 @@ import platform.UIKit.UISceneSession
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 
-open class ApplicationDelegateProxy<T: ApplicationDelegateProtocol>(
+open class ApplicationDelegateProxy<T : ApplicationDelegateProtocol>(
     delegates: List<T>
 ) : Delegator<T>(delegates), ApplicationDelegateProtocol {
 
     override var window: WithDefault<UIWindow?>
         get() = delegateDefault { window }
-        set(value) { delegate { window = value } }
+        set(value) {
+            delegate { window = value }
+        }
 
     override fun willFinishLaunching(
         application: UIApplication,

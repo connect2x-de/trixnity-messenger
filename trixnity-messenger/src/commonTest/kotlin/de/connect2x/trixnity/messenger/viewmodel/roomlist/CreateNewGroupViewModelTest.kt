@@ -2,6 +2,21 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
+import de.connect2x.trixnity.clientserverapi.model.room.DirectoryVisibility
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -27,22 +42,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
-import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -87,11 +89,16 @@ class CreateNewGroupViewModelTest {
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `create a room for public + encrypted`() = runTest {
         everySuspend {
             roomsApiClientMock.createRoom(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
             )
         } returns Result.success(RoomId("!room1"))
         val cut = createNewGroupViewModel()
@@ -119,7 +126,6 @@ class CreateNewGroupViewModelTest {
                 CreateRoom.Request.Preset.PUBLIC,
                 any(),
                 any(),
-                null,
             )
         }
     }
@@ -140,7 +146,7 @@ class CreateNewGroupViewModelTest {
     fun `add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                "u", any(), any(), null
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -199,7 +205,6 @@ class CreateNewGroupViewModelTest {
                 any(),
                 false,
                 any(),
-                null,
             )
         } returns Result.success(roomId)
         everySuspend {
@@ -207,7 +212,6 @@ class CreateNewGroupViewModelTest {
                 "u",
                 any(),
                 any(),
-                null,
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -261,7 +265,6 @@ class CreateNewGroupViewModelTest {
                 any(),
                 false,
                 any(),
-                null,
             )
         } returns Result.success(roomId)
 
@@ -301,7 +304,6 @@ class CreateNewGroupViewModelTest {
                 any(),
                 false,
                 any(),
-                null,
             )
         } returns Result.failure(
             MatrixServerException(
@@ -310,7 +312,7 @@ class CreateNewGroupViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                "u", any(), any(), null
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -385,7 +387,7 @@ class CreateNewGroupViewModelTest {
     fun `directoryVisibilityIsPublic is true results in visibility is PUBLIC`() = runTest {
         everySuspend {
             roomsApiClientMock.createRoom(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
             )
         } returns Result.success(RoomId("!room1"))
 
@@ -418,7 +420,7 @@ class CreateNewGroupViewModelTest {
     fun `directoryVisibilityIsPublic is false results in visibility is PRIVATE`() = runTest {
         everySuspend {
             roomsApiClientMock.createRoom(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
             )
         } returns Result.success(RoomId("!room1"))
 
@@ -458,7 +460,8 @@ class CreateNewGroupViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "NewGroup"
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
             onBack = onBackMock,
@@ -479,7 +482,8 @@ class CreateNewGroupViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "NewRoom"
             ),
             onRoomCreated = onRoomCreatedMock,
         )

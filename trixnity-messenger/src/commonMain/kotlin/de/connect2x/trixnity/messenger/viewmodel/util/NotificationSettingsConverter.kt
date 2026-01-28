@@ -2,11 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings.DefaultLevel
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleSet
-import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.push.PushAction
+import de.connect2x.trixnity.core.model.push.PushRule
+import de.connect2x.trixnity.core.model.push.PushRuleSet
+import de.connect2x.trixnity.core.model.push.ServerDefaultPushRules
 
 internal fun PushRuleSet.toNotificationSettings(): AccountNotificationSettings {
     val serverDefaultRules = getServerDefaultRules()

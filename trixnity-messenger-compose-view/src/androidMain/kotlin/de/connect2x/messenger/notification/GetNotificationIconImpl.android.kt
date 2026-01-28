@@ -1,10 +1,11 @@
-package de.connect2x.trixnity.messenger.notification
+package de.connect2x.messenger.notification
 
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.decodeToImageBitmap
 import androidx.core.graphics.scale
 import de.connect2x.sysnotify.NotificationIcon
 import de.connect2x.sysnotify.fromBitmap
+import de.connect2x.trixnity.messenger.notification.GetNotificationIcon
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import kotlin.coroutines.cancellation.CancellationException

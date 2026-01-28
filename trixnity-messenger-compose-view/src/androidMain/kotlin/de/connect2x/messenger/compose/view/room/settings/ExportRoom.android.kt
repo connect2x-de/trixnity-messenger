@@ -12,18 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
-import io.github.oshai.kotlinlogging.KotlinLogging
 import okio.Path.Companion.toPath
 import java.io.IOException
 
-
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.room.settings.ExportRoomKt")
 
 @Composable
 internal actual fun SelectExportDestination(

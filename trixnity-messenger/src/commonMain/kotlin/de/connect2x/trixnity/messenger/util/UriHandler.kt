@@ -1,7 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.onEach
 import org.koin.core.module.Module
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriHandlerKt")
 
 /**
  * There is no common Uri type in Kotlin Multiplatform. Therefore [String] is used.

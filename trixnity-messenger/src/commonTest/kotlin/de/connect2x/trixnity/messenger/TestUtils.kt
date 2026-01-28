@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.lognity.api.backend.Backend
+import de.connect2x.lognity.test.TestBackend
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -27,15 +29,19 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.Koin
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+
+fun configureTestLogging() {
+    Backend.setOnce(TestBackend)
+}
 
 @OptIn(FlowPreview::class)
 suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, crossinline expected: (T) -> T): T {
@@ -110,7 +116,8 @@ inline fun <reified T> MokkeryMatcherScope.isNot(
 fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by ViewModelContextImpl(
     di = di,
     componentContext = DefaultComponentContext(LifecycleRegistry()),
-    coroutineContext = backgroundScope.coroutineContext
+    coroutineContext = backgroundScope.coroutineContext,
+    "Test"
 ) {
     override val coroutineScope = backgroundScope
 }
@@ -121,7 +128,8 @@ fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) =
         di = di,
         componentContext = DefaultComponentContext(LifecycleRegistry()),
         userId = userId,
-        coroutineContext = backgroundScope.coroutineContext
+        coroutineContext = backgroundScope.coroutineContext,
+        "TestMatrixClient"
     ) {
         override val coroutineScope = backgroundScope
     }

@@ -1,20 +1,28 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.core.MegolmMessageValue
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.keys.KeyValue
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RelevantTimelineEventsTest {
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     val cut = object : RelevantTimelineEvents {}
 
     @Test
@@ -38,7 +46,9 @@ class RelevantTimelineEventsTest {
     fun `consider unknown message events as not relevant`() = runTest {
         cut.isRelevantTimelineEvent(
             UnknownEventContent(
-                raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))), "m.reaction"
+                blocks = EventContentBlocks(),
+                raw = JsonObject(mapOf("dino" to JsonPrimitive("unicorn"))),
+                eventType = "m.reaction",
             )
         ) shouldBe false
     }

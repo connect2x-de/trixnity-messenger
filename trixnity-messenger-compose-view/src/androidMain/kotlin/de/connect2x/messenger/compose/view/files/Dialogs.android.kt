@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -42,16 +44,14 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
 import java.io.File
 import java.io.IOException
 
-
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.files.DialogsKt")
 
 @Composable
 actual fun SaveFileDialog(

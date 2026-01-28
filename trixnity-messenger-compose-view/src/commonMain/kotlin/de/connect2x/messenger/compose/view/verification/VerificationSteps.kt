@@ -50,7 +50,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepSuccessViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
 
 @Composable
 fun ColumnScope.DeviceVerificationWaitForOtherContent() {

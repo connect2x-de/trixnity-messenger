@@ -1,14 +1,20 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class UrlHandlerBaseTest {
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `filter allowed host and protocol for uri`() = runTest {

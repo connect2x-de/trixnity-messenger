@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.export
 
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.core.model.RoomId
 
 interface FileBasedExportRoomSinkConverterFactory {
     /**
