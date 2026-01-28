@@ -45,7 +45,7 @@ kotlin {
 }
 
 android {
-    namespace = "$group.trixnity.messenger.notification.fcm"
+    namespace = "$group.notification.fcm"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     defaultConfig {
         minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()

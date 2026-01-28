@@ -220,7 +220,7 @@ skie {
             // so we have to use annotations where necessary
             DefaultArgumentInterop.Enabled(true)
         }
-        group("$group.trixnity.messenger.settings") {
+        group("$group.settings") {
             FlowInterop.Enabled(false)
             EnumInterop.Enabled(false)
             SealedInterop.Enabled(false)
