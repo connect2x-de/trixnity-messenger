@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.0.0
+
+### Added
+
 - Support UnifiedPush
 
 ### Changed
@@ -26,8 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Show a warning when redacting messages
 - SDK: Replace all logging with new Lognity logging framework
 
-### Deprecated
-
 ### Removed
 
 - UI: Remove AccountsOverview, AccountsOverviewViewModel
@@ -43,8 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove large gap between message and expandable sections in message details
 - UI: The avatar shape no longer deforms at very small heights in the profile view
 - SDK: Fix empty verification screen when ending verification on other device before starting messenger
-
-### Security
 
 ## 3.10.0
 
