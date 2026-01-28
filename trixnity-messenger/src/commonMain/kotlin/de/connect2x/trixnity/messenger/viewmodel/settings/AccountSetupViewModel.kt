@@ -39,6 +39,7 @@ interface AccountSetupViewModel {
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
     val setupBackHandler: BackHandler
+    val privacySettingsAllAccountsViewModel: PrivacySettingsAllAccountsViewModel
 }
 
 class AccountSetupViewModelImpl(
@@ -59,6 +60,9 @@ class AccountSetupViewModelImpl(
     }
     override val notificationSettingsViewModel by lazy {
         get<NotificationSettingsSingleAccountViewModelFactory>().create(viewModelContext)
+    }
+    override val privacySettingsAllAccountsViewModel by lazy {
+        get<PrivacySettingsAllAccountsViewModelFactory>().create(viewModelContext, {}, {})
     }
 
     private val verificationInProgress = MutableStateFlow(false)
