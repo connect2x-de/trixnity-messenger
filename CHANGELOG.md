@@ -11,18 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- UI: Markdown formating to make a single line break lead to a visible new line
-- Completely new notification handling
+- UI: Adjusted Markdown formating to make a single line break lead to a visible new line
+- SDK: Completely new notification handling
 - SDK: Support OAuth2 based authentication
-- SDK: Support Vodozemac (this is now the default, if this is not wanted, it can be changed it in
-  MatrixMessengerConfiguration)
+- SDK: Support Vodozemac (this is now the default)
 - SDK: Change back handling to use custom handler instead of Decomposes
-- UI / ANDROID: Close room list search with back button
+- UI: Close room list search with back button
 - UI: Merge the 'Your Accounts' panel into profile settings
 - SDK: Rename references to profile in the settings to accounts
 - UI: Turn the typing indicator into a message bubble
-- UI / SDK: Move account creation warning from separate modal to connection wizard
-- SDK: make `trixnity-client-cryptodriver-vodozemac` an api dependency
+- UI,SDK: Move account creation warning from separate modal to connection wizard
 - UI: Show a warning when redacting messages
 - SDK: Replace all logging with new Lognity logging framework
 
@@ -30,20 +28,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- UI: Remove AccountsOverview
-- UI: Remove AccountsOverviewViewModel
+- UI: Remove AccountsOverview, AccountsOverviewViewModel
 - UI: Remove reset account setup button from settings
 
 ### Fixed
 
-- ANDROID / IOS / UI: Make several dialogs and modals adapt to font/display size changes
-- ANDROID / UI: Fix crash when trying to apply font/display size changes in setup wizard
+- ANDROID,IOS,UI: Make several dialogs and modals adapt to font/display size changes
+- ANDROID,UI: Fix crash when trying to apply font/display size changes in setup wizard
 - UI: Fix setup wizard sometimes not responding to clicks when starting verifications
 - SDK: Fix BackHandler missing in MatrixMultiMessenger
-- IDE: Fix Gradle using the binary-only distribution instead of the -all distribution
-- Fix Gradle not validating distribution hash
 - WEB: Keyboard shortcuts now work reliably by only preventing the default action of focus-related keys
-- SDK: Fix MatrixClientsImpl being improperly registered in the DI
 - UI: Remove large gap between message and expandable sections in message details
 - UI: The avatar shape no longer deforms at very small heights in the profile view
 
