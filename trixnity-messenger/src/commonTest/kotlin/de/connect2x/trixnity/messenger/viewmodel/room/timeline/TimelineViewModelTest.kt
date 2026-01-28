@@ -4,7 +4,27 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -40,29 +60,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -72,7 +74,6 @@ import kotlin.time.Instant
 
 @Suppress("NonAsciiCharacters")
 class TimelineViewModelTest {
-
     private var lifecycleRegistry: LifecycleRegistry
 
     private val roomId = RoomId("!room1")
@@ -126,13 +127,13 @@ class TimelineViewModelTest {
 
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
         everySuspend {
-            roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), null)
+            roomsApiClientMock.setReadMarkers(any(), any(), any(), any())
         } returns Result.success(Unit)
         everySuspend {
-            roomsApiClientMock.setAccountData(any(), any(), any(), any(), null)
+            roomsApiClientMock.setAccountData(any(), any(), any(), any())
         } returns Result.success(Unit)
         everySuspend {
-            roomsApiClientMock.setReceipt(any(), any(), any(), any(), null)
+            roomsApiClientMock.setReceipt(any(), any(), any(), any())
         } returns Result.success(Unit)
 
         every { roomServiceMock.getOutbox() } returns outboxMessagesFlow.map {
@@ -201,6 +202,11 @@ class TimelineViewModelTest {
 
         lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.start()
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     // TODO
@@ -595,7 +601,7 @@ class TimelineViewModelTest {
     @Test
     fun `leaveRoom » show an error message when leaving the room fails`() = runTest {
         everySuspend {
-            roomsApiClientMock.leaveRoom(roomId, any(), null)
+            roomsApiClientMock.leaveRoom(roomId, any())
         } returns Result.failure(RuntimeException("Oh no!"))
 
         timeline(roomServiceMock, roomId) {}
@@ -945,6 +951,7 @@ class TimelineViewModelTest {
                 }.koin,
                 userId = UserId("test", "server"),
                 coroutineContext = backgroundScope.coroutineContext,
+                name = "Timeline"
             ),
             roomId = roomId,
             onOpenSettings = mock(),

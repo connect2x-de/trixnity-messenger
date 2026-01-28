@@ -1,5 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
+import de.connect2x.trixnity.core.model.events.m.room.TopicEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
@@ -15,13 +22,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import kotlin.reflect.KClass
 
 interface TopicStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<TopicEventContent> {
@@ -69,7 +69,7 @@ class TopicStateTimelineElementViewModelImpl(
                     val previousContent =
                         if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
                     val from = if (previousContent is TopicEventContent) {
-                        i18n.eventChangeFrom(previousContent.topic)
+                        i18n.eventChangeFrom(previousContent.topic?.text?.plain ?: previousContent.legacy.topic)
                     } else ""
 
                     val groupOrChat =
@@ -80,7 +80,7 @@ class TopicStateTimelineElementViewModelImpl(
                         userInfo?.name ?: timelineEvent.sender.full,
                         groupOrChat,
                         from,
-                        content.topic
+                        content.topic?.text?.plain ?: content.legacy.topic
                     )
                 }
             )

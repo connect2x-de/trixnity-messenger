@@ -1,7 +1,7 @@
 package de.connect2x.messenger.compose.view
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import web.broadcast.BroadcastChannel
@@ -12,7 +12,7 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val BROADCAST_PING: String = "ping!"
 private const val BROADCAST_PONG: String = "pong!"
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.isPrimaryInstanceKt")
 private var pingPongChannel: BroadcastChannel? = null
 
 private fun getOrCreatePingPongChannel(appId: String): BroadcastChannel {

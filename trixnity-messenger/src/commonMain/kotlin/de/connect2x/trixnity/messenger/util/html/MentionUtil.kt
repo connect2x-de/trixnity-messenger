@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.util.html
 
 import io.ktor.http.*
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.util.Reference
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.util.Reference
 
 fun Reference.toLink(): String = when (this) {
     is Reference.Event -> buildString {

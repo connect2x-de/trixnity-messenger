@@ -2,10 +2,10 @@ package de.connect2x.messenger.compose.view.theme
 
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.common.times
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.theme.ThemeHighContrastLightColorSchemeKt")
 
 interface ThemeHighContrastLightColorScheme {
     fun create(accentColor: Color): ColorScheme
@@ -35,6 +35,7 @@ private fun makeHighContrastColorScheme(scheme: ColorScheme, isDarkTheme: Boolea
     val background = if (isDarkTheme) Color.White else Color.Black
 
     // TODO: we do not currently have proper fixed colors
+    @Suppress("DEPRECATION")
     return ColorScheme(
         primary = background,
         onPrimary = foreground,

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger
 
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
 interface CreateRepositoriesModule {

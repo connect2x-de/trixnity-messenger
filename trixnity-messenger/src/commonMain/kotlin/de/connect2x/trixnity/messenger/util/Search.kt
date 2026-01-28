@@ -1,12 +1,21 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -17,14 +26,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
-
-private val log = KotlinLogging.logger { }
 
 interface Search {
     suspend fun searchUsers(
@@ -55,9 +56,7 @@ interface Search {
 
             other as SearchUserElement
 
-            if (userId != other.userId) return false
-
-            return true
+            return userId == other.userId
         }
 
         override fun hashCode(): Int {
@@ -71,6 +70,9 @@ class SearchImpl(
     private val i18n: I18n,
     matrixMessengerConfiguration: MatrixMessengerConfiguration,
 ) : Search {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.SearchImpl")
+    }
 
     private val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
 

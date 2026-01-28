@@ -14,10 +14,10 @@ import de.connect2x.messenger.compose.view.room.timeline.element.details.FileBas
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.ImageRoomMessageTimelineElementViewModelImpl
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
@@ -29,6 +29,7 @@ private fun ElementDetailsHeaderPreview() {
                     di = DI.current,
                     componentContext = DefaultComponentContext(LifecycleRegistry()),
                     userId = UserId("1", "localhost"),
+                    name = "ImageRoomMessageTimelineElement"
                 ),
                 content = FileBased.Image(body = "image.png"),
                 roomId = RoomId("!testimage:server"),

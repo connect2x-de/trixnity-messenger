@@ -3,19 +3,21 @@ package de.connect2x.trixnity.messenger.viewmodel.initialsync
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.launchReplaceCurrent
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger { }
 
 class InitialSyncRouter(
     private val viewModelContext: ViewModelContext,
 ) {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter")
+    }
+
     private val initialSyncNavigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
         source = initialSyncNavigation,
@@ -35,7 +37,7 @@ class InitialSyncRouter(
             is Config.Undefined -> Wrapper.Undefined
             is Config.Sync -> Wrapper.Sync(
                 viewModelContext.get<SyncViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("InitialSync", componentContext),
                     onSyncDone = ::hideSync,
                 )
             )

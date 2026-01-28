@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.util
 
 import io.ktor.http.ContentType
 import io.ktor.http.fromFilePath
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.byteArrayFlowFromReadableStream
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.byteArrayFlowFromReadableStream
 import web.file.File
 
 class JsFileDescriptor(val file: File) : FileDescriptor {

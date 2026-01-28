@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -11,7 +12,6 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.matcher.capture.Capture
 import dev.mokkery.matcher.capture.capture
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.shouldBe
@@ -20,13 +20,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArray
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 
@@ -38,7 +40,6 @@ class AvatarCutterViewModelTest {
     val fileDescriptorMock = mock<FileDescriptor>()
 
     private val onCloseMock = mock<Function0<Unit>>()
-
 
     init {
         resetMocks(matrixClientMock, mediaServiceMock, fileDescriptorMock, onCloseMock)
@@ -55,6 +56,11 @@ class AvatarCutterViewModelTest {
         every { fileDescriptorMock.mimeType } returns null
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `try to upload image`() = runTest {
         val thumbnailCapture = Capture.slot<ByteArrayFlow>()
@@ -67,7 +73,7 @@ class AvatarCutterViewModelTest {
             mediaServiceMock.uploadMedia("cache://localhost/123456", any(), any())
         } returns Result.success("mxc://localhost/123456")
         everySuspend {
-            matrixClientMock.setAvatarUrl("mxc://localhost/123456")
+            matrixClientMock.setProfileField(ProfileField.AvatarUrl("mxc://localhost/123456"))
         } returns Result.success(Unit)
         every { onCloseMock.invoke() } returns Unit
 

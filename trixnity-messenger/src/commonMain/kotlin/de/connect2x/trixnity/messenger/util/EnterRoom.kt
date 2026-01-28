@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.i18n.I18n
-import io.ktor.http.HttpStatusCode
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.model.rooms.JoinRoom.Request
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
-import net.folivo.trixnity.core.model.keys.Signed
+import io.ktor.http.*
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.model.room.JoinRoom
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
+import de.connect2x.trixnity.core.model.keys.Signed
 
 /**
  * Joins a room based on its joinRule
@@ -20,7 +20,7 @@ interface EnterRoom {
         roomId: RoomId,
         reason: String? = null,
         via: Set<String>? = null,
-        thirdPartySigned: Signed<Request.ThirdParty, String>? = null
+        thirdPartySigned: Signed<JoinRoom.Request.ThirdParty, String>? = null
     ): Result
 
     sealed interface Result {
@@ -46,7 +46,7 @@ class EnterRoomImpl : EnterRoom {
         roomId: RoomId,
         reason: String?,
         via: Set<String>?,
-        thirdPartySigned: Signed<Request.ThirdParty, String>?
+        thirdPartySigned: Signed<JoinRoom.Request.ThirdParty, String>?
     ): EnterRoom.Result {
         return when (joinRule) {
             JoinRule.Invite, JoinRule.Public, JoinRule.Restricted, JoinRule.KnockRestricted ->

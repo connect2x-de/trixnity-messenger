@@ -31,14 +31,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import de.connect2x.messenger.compose.view.DI
+import de.connect2x.messenger.compose.view.common.ExpandableSection
 import de.connect2x.messenger.compose.view.common.Tooltip
+import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.common.deriveFromHue
 import de.connect2x.messenger.compose.view.common.hue
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.common.ExpandableSection
-import de.connect2x.messenger.compose.view.common.SmallSpacer
-import de.connect2x.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.messenger.compose.view.theme.DefaultAccentColor
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.IconButtonStyle
@@ -80,8 +79,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
         fun getCurrentHue() = if (newHue != -1F && newHue != color.hue) newHue else color.hue
 
         val currentColor = defaultAccentColor.deriveFromHue(getCurrentHue())
-        val primaryIconButtonStyle = MaterialTheme.components.primaryIconButton
-        val accentIconButtonStyle = when (primaryIconButtonStyle) {
+        val accentIconButtonStyle = when (val primaryIconButtonStyle = MaterialTheme.components.primaryIconButton) {
             is IconButtonStyle.Default -> primaryIconButtonStyle.copy(
                 colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
             )

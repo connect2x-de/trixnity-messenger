@@ -1,22 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
-import net.folivo.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.core.model.events.m.room.FileBasedInfo
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.FileBasedInfo
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 
 interface Thumbnails { // TODO this as part of the DI just adds complexity
     suspend fun loadThumbnail(
@@ -100,6 +99,10 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
 }
 
 class ThumbnailsImpl : Thumbnails {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl")
+    }
 
     override suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,

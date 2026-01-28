@@ -1,9 +1,20 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.firstWithContent
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
@@ -24,25 +35,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.firstWithContent
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import okio.ByteString.Companion.toByteString
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-
-
-private val log = KotlinLogging.logger {}
 
 data class ExportRoomProgress(val processed: Long? = null, val total: Long? = null)
 
@@ -81,6 +78,10 @@ interface ExportRoom {
 class ExportRoomImpl(
     private val sinkFactories: List<ExportRoomSinkFactory>,
 ) : ExportRoom {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.export.ExportRoomImpl")
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun invoke(
         roomId: RoomId,

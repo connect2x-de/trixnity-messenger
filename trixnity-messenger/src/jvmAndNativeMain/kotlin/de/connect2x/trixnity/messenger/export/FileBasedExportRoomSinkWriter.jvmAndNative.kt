@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.export
 
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.writeTo
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.writeTo
 import okio.BufferedSink
 import okio.FileSystem
 import okio.buffer

@@ -20,42 +20,48 @@ interface SceneDelegateProtocol {
         scene: UIScene,
         session: UISceneSession,
         connectionOptions: UISceneConnectionOptions,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scenediddisconnect(_:))
      */
     fun sceneDidDisconnect(
         scene: UIScene,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scenewillenterforeground(_:))
      */
     fun sceneWillEnterForeground(
         scene: UIScene,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scenedidbecomeactive(_:))
      */
     fun sceneDidBecomeActive(
         scene: UIScene,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scenewillresignactive(_:))
      */
     fun sceneWillResignActive(
         scene: UIScene,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scenedidenterbackground(_:))
      */
     fun sceneDidEnterBackground(
         scene: UIScene,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scene(_:openurlcontexts:))
@@ -63,7 +69,8 @@ interface SceneDelegateProtocol {
     fun openUrlContexts(
         scene: UIScene,
         openUrlContexts: Set<UIOpenURLContext>,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scene(_:willcontinueuseractivitywithtype:))
@@ -71,7 +78,8 @@ interface SceneDelegateProtocol {
     fun willContinueUserActivity(
         scene: UIScene,
         userActivityType: String,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scene(_:continue:))
@@ -79,7 +87,8 @@ interface SceneDelegateProtocol {
     fun continueUserActivity(
         scene: UIScene,
         userActivity: NSUserActivity,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scene(_:didfailtocontinueuseractivitywithtype:error:))
@@ -88,7 +97,8 @@ interface SceneDelegateProtocol {
         scene: UIScene,
         userActivityType: String,
         error: NSError,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/staterestorationactivity(for:))
@@ -103,7 +113,8 @@ interface SceneDelegateProtocol {
     fun restoreInteractionState(
         scene: UIScene,
         stateRestorationActivity: NSUserActivity,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiscenedelegate/scene(_:didupdate:))
@@ -111,5 +122,6 @@ interface SceneDelegateProtocol {
     fun didUpdate(
         scene: UIScene,
         userActivity: NSUserActivity,
-    ) { }
+    ) {
+    }
 }

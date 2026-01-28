@@ -12,7 +12,7 @@ import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.client.ModuleFactory
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.component.get
@@ -35,11 +35,11 @@ open class AppInfoViewModelImpl(
     override val showLicenses = MutableStateFlow(false)
 
     private val backCallback = BackCallback {
-        if (showPrivacy.value || showImprint.value || showLicenses.value){
+        if (showPrivacy.value || showImprint.value || showLicenses.value) {
             showPrivacy.value = false
             showImprint.value = false
             showLicenses.value = false
-        }else {
+        } else {
             close()
         }
     }
@@ -54,7 +54,7 @@ open class AppInfoViewModelImpl(
 }
 
 class PreviewAppInfoViewModel : AppInfoViewModel {
-    override val version: String? = "4.2.0"
+    override val version: String = "4.2.0"
     override val showPrivacy: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showImprint: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLicenses: MutableStateFlow<Boolean> = MutableStateFlow(false)

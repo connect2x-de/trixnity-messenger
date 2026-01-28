@@ -1,10 +1,11 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.util.RootPath
-import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.client.MediaStoreModule
-import net.folivo.trixnity.client.media.indexeddb.indexedDB
-import net.folivo.trixnity.client.media.opfs.opfs
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.media.indexeddb.indexedDB
+import de.connect2x.trixnity.client.media.opfs.opfs
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.fs.FileSystemGetDirectoryOptions
@@ -12,7 +13,7 @@ import web.fs.getDirectoryHandle
 import web.navigator.navigator
 import web.storage.getDirectory
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.CreateMediaStoreKt")
 
 actual fun platformCreateMediaStoreModuleModule(): Module = module {
     single<CreateMediaStoreModule> {

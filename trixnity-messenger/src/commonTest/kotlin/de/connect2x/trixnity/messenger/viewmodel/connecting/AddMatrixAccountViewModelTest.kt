@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -22,8 +23,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.clientserverapi.model.authentication.LoginType
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.dsl.koinApplication
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -31,6 +33,11 @@ import kotlin.test.fail
 class AddMatrixAccountViewModelTest {
     val onCancelMock = mock<Function0<Unit>>(autoUnit)
     val onAddMatrixAccountMethodMock = mock<Function1<AddMatrixAccountMethod, Unit>>(autoUnit)
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `do server discovery and collect login and registration options`() = runTest {
@@ -148,7 +155,8 @@ class AddMatrixAccountViewModelTest {
             viewModelContext = ViewModelContextImpl(
                 di = di,
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
-                coroutineContext = backgroundScope.coroutineContext
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "AddMatrixAccount"
             ),
             onAddMatrixAccountMethod = onAddMatrixAccountMethodMock,
             onCancel = onCancelMock,

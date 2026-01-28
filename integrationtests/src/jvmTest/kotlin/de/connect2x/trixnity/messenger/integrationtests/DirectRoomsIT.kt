@@ -1,16 +1,17 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.acceptInvitationToRoom
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createChatWithUser
 import de.connect2x.trixnity.messenger.integrationtests.messenger.leaveRoom
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -27,11 +28,15 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger {}
-
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 @Testcontainers
 class DirectRoomsIT {
+    init {
+        configureTestLogging()
+    }
+
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.DirectRoomsIT")
+
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger1: MatrixMessengerWithRoot
     private lateinit var messenger2: MatrixMessengerWithRoot

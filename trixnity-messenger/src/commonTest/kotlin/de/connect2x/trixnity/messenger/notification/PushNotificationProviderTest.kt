@@ -1,11 +1,21 @@
 package de.connect2x.trixnity.messenger.notification
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.PushApiClient
+import de.connect2x.trixnity.clientserverapi.model.push.PusherData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings
@@ -44,15 +54,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.PushApiClient
-import net.folivo.trixnity.clientserverapi.model.push.PusherData
-import net.folivo.trixnity.clientserverapi.model.push.SetPushers
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -74,6 +75,8 @@ class PushNotificationProviderTest {
     @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
     @BeforeTest
     fun setup() {
+        configureTestLogging()
+
         resetMocks(matrixClient1, matrixClient2, matrixClientApi)
         multiSettings = createTestMatrixMultiMessengerSettingsHolder()
         settings = createTestMatrixMessengerSettingsHolder()
@@ -123,7 +126,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - enabled - different pushKey in settings - set`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
+        everySuspend { matrixClientApiPush.setPushers(any()) } returns Result.success(Unit)
         multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
             it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
@@ -173,7 +176,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - disabled - different pushKey in settings - remove`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
+        everySuspend { matrixClientApiPush.setPushers(any()) } returns Result.success(Unit)
         multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
             it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
@@ -207,7 +210,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - enabled - same pushKey in settings - skip`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
+        everySuspend { matrixClientApiPush.setPushers(any()) } returns Result.success(Unit)
         multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
             it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
@@ -227,7 +230,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - disabled - null pushKey in settings - skip`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.success(Unit)
+        everySuspend { matrixClientApiPush.setPushers(any()) } returns Result.success(Unit)
         multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
             it.copy(pusher = PusherSettings(pushKey = "new_push_key", url = "https://push.connect2x.de"))
         }
@@ -244,7 +247,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - MatrixServerException - skip retry`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } returns Result.failure(
+        everySuspend { matrixClientApiPush.setPushers(any()) } returns Result.failure(
             MatrixServerException(HttpStatusCode.Unauthorized, ErrorResponse.Unauthorized(""))
         )
         multiSettings.update<MatrixMultiMessengerNotificationProviderTestSettings> {
@@ -273,7 +276,7 @@ class PushNotificationProviderTest {
 
     @Test
     fun `deliverPushKeys - other exceptions retry`() = runTest {
-        everySuspend { matrixClientApiPush.setPushers(any(), any()) } sequentiallyReturns listOf(
+        everySuspend { matrixClientApiPush.setPushers(any()) } sequentiallyReturns listOf(
             Result.failure(
                 RuntimeException("dino")
             ),

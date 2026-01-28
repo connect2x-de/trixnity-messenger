@@ -10,16 +10,17 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 
-private val log = KotlinLogging.logger {}
+private val log: Logger =
+    Logger("de.connect2x.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
 
 actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
     val reader = PDFPlatformReader(media, onError)

@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 
-
 interface VerificationStepSuccessViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,

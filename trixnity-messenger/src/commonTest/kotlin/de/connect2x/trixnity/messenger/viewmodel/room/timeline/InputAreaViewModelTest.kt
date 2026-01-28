@@ -1,13 +1,34 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -30,29 +51,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.message.MessageBuilder
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -180,11 +182,15 @@ class InputAreaViewModelTest {
 
         everySuspend {
             roomsApiClientMock.setTyping(
-                any(), any(), any(), any(), any()
+                any(), any(), any(), any(),
             )
         } returns Result.success(Unit)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `not allow sending when message is empty`() = runTest {
@@ -296,7 +302,7 @@ class InputAreaViewModelTest {
     fun `set 'is typing' when message was changed and is not empty`() = runTest {
         var setTypingWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(roomId, ourUserId, true, any(), null)
+            roomsApiClientMock.setTyping(roomId, ourUserId, true, any())
         } calls {
             setTypingWasCalled = true
             Result.success(Unit)
@@ -316,13 +322,13 @@ class InputAreaViewModelTest {
     fun `keep 'is typing' when message changes at least once every 3 seconds`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -352,13 +358,13 @@ class InputAreaViewModelTest {
     fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -382,13 +388,13 @@ class InputAreaViewModelTest {
     fun `set 'is not typing' when the message has been sent`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()

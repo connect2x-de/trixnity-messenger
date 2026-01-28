@@ -23,12 +23,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.core.MSC2448
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.core.MSC2448
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArray
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Preview
@@ -59,7 +59,7 @@ fun TextMessageBubblePreview() {
     val element = object : RoomMessageTimelineElementViewModel.TextBased.Text {
         override val body: String = "Hello everyone!"
         override val formattedBody: String = "Hello <b/>everyone!"
-        override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+        override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
         override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
             MutableStateFlow(mapOf())
@@ -91,16 +91,16 @@ fun ImageMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     val element = object : RoomMessageTimelineElementViewModel.FileBased.Image {
         override val thumbnail: StateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
-        override val width: Int? = 40
-        override val height: Int? = 40
-        override val thumbnailWidth: Int? = 40
-        override val thumbnailHeight: Int? = 40
+        override val width: Int = 40
+        override val height: Int = 40
+        override val thumbnailWidth: Int = 40
+        override val thumbnailHeight: Int = 40
         override val blurhash: String? = null
         override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
         override val name: String = "kiwi.png"
-        override val size: String? = "465kb"
-        override val mimeType: String? = "image/png"
+        override val size: String = "465kb"
+        override val mimeType: String = "image/png"
         override val hasCaption: Boolean = true
         override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
@@ -155,8 +155,8 @@ fun FileMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     val element = object : RoomMessageTimelineElementViewModel.FileBased.File {
         override val name: String = "kiwi.txt"
-        override val size: String? = "465kb"
-        override val mimeType: String? = "text/plain"
+        override val size: String = "465kb"
+        override val mimeType: String = "text/plain"
         override val hasCaption: Boolean = true
         override val loadMediaResultPlatformMedia: StateFlow<PlatformMedia?> =
             MutableStateFlow(InMemoryPlatformMedia(flowOf("Kiwi".toByteArray())))
@@ -207,5 +207,5 @@ class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia
         coroutineScope: CoroutineScope?,
         expectedSize: Long?,
         maxSize: Long?
-    ): ByteArray? = delegate.toByteArray()
+    ): ByteArray = delegate.toByteArray()
 }

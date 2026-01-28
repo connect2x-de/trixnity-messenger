@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
 import kotlin.coroutines.CoroutineContext
 
-
 interface RootViewModelFactory {
     fun create(
         componentContext: ComponentContext,
@@ -34,11 +33,11 @@ class RootViewModelImpl(
     di: Koin,
     coroutineContext: CoroutineContext = Dispatchers.Default,
 ) : ComponentContext by componentContext, RootViewModel {
-    private val uiaRouter = UiaRouter(ViewModelContextImpl(di, componentContext, coroutineContext))
+    private val uiaRouter = UiaRouter(ViewModelContextImpl(di, componentContext, coroutineContext, "UIA"))
     override val uiaStack = uiaRouter.stack
 
     private val router = RootRouter(
-        viewModelContext = ViewModelContextImpl(di, componentContext, coroutineContext),
+        viewModelContext = ViewModelContextImpl(di, componentContext, coroutineContext, "Root"),
     ).apply { showInitialization() }
     override val stack: Value<ChildStack<Config, RootRouter.Wrapper>> = router.stack
 }

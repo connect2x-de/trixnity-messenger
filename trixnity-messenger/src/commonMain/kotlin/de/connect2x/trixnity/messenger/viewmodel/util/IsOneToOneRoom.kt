@@ -5,11 +5,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 /**
  * Provides a boolean flow to determine whether a room is
@@ -29,7 +29,7 @@ object IsOneToOneRoomImpl : IsOneToOneRoom {
         roomId: RoomId
     ): Flow<Boolean> = matrixClient.room.getById(roomId).flatMapLatest { room ->
         if (room?.isDirect == true) matrixClient.user.getAll(roomId).flatMapLatest { users ->
-            if(users.isNotEmpty()) combine(users.values) { combinedUsers ->
+            if (users.isNotEmpty()) combine(users.values) { combinedUsers ->
                 combinedUsers.filter { user -> user?.event?.content?.membership == Membership.JOIN }.size == 2
             } else flowOf(false)
         }

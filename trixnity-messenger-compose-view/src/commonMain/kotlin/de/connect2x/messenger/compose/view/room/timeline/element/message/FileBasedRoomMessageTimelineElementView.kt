@@ -38,9 +38,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
-
-private val log = KotlinLogging.logger { }
 
 interface FileBasedRoomMessageTimelineElementView {
     @Composable

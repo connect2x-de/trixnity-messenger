@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.notification
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -7,7 +9,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -26,17 +27,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.notification
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.model.push.PusherData
-import net.folivo.trixnity.clientserverapi.model.push.SetPushers
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.retry
-
-private val log = KotlinLogging.logger {}
+import de.connect2x.trixnity.client.notification
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.push.PusherData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushers
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.retry
 
 /**
  * Basic implementation for push-based notifications.
@@ -50,7 +49,11 @@ abstract class PushNotificationProvider(
     private val matrixClients: MatrixClients,
     coroutineScope: CoroutineScope,
 ) : NotificationProvider, Worker {
-    @Serializable
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.PushNotificationProvider")
+    }
+
+      @Serializable
     data class PusherSettings(
         val pushKey: String,
         val url: String,

@@ -64,9 +64,7 @@ fun TimelineElementHolderSwitch(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     index: Int,
 ) {
-    val element = timelineElementHolderViewModel.element.collectAsState().value
-
-    when (element) {
+    when (val element = timelineElementHolderViewModel.element.collectAsState().value) {
         is TimelineElementViewModel.Message<*>, is TimelineElementViewModel.State<*> -> {
             TimelineElementSelector(timelineElementHolderViewModel, element, index)
         }

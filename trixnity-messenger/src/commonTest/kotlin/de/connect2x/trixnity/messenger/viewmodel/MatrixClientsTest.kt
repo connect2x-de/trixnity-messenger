@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.MatrixClientsImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
@@ -38,23 +39,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.CryptoDriverModule
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MediaStoreModule
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.client.cryptodriver.vodozemac.vodozemac
-import net.folivo.trixnity.client.media.inMemory
-import net.folivo.trixnity.clientserverapi.client.AuthenticationApiClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.oauth2.oAuth2
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType.User
-import net.folivo.trixnity.clientserverapi.model.authentication.Login
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.clientserverapi.client.AuthenticationApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType.User
+import de.connect2x.trixnity.clientserverapi.model.authentication.Login
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
 
@@ -75,7 +77,7 @@ class MatrixClientsTest {
     private val matrixClientMock2 = mock<MatrixClient>()
     private val repositoriesModule1 = mock<RepositoriesModule>()
     private val repositoriesModule2 = mock<RepositoriesModule>()
-    private val createRepositoriesModule = mock<CreateRepositoriesModule>() {
+    private val createRepositoriesModule = mock<CreateRepositoriesModule> {
         everySuspend { generateDatabaseKey() } returns null
         everySuspend { create(userId1, any()) } returns repositoriesModule1
         everySuspend { create(userId2, any()) } returns repositoriesModule2
@@ -156,7 +158,7 @@ class MatrixClientsTest {
             )
         }
         every { matrixClientServerApiClient.authentication } returns authenticationApiClient
-        everySuspend { authenticationApiClient.logout(any()) } returns Result.success(Unit)
+        everySuspend { authenticationApiClient.logout() } returns Result.success(Unit)
         every { matrixClientMock1.close() } returns Unit
         every { matrixClientMock2.close() } returns Unit
         everySuspend { matrixClientMock1.closeSuspending() } returns Unit
@@ -164,6 +166,11 @@ class MatrixClientsTest {
 
         everySuspend { deleteAccountData.invoke(any()) } returns Unit
         mutableMatrixClients = MutableStateFlow(mapOf())
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

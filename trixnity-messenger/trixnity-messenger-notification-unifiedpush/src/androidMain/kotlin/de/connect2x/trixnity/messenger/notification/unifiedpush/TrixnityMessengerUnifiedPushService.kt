@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.notification.unifiedpush
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -10,9 +11,12 @@ import org.unifiedpush.android.connector.UnifiedPush
 import org.unifiedpush.android.connector.data.PushEndpoint
 import org.unifiedpush.android.connector.data.PushMessage
 
-private val log = KotlinLogging.logger { }
-
 class TrixnityMessengerUnifiedPushService : PushService() {
+
+    companion object {
+        private val log =
+            Logger("de.connect2x.trixnity.messenger.notification.unifiedpush.TrixnityMessengerUnifiedPushService")
+    }
 
     override fun onCreate() {
         log.trace { "onCreate" }

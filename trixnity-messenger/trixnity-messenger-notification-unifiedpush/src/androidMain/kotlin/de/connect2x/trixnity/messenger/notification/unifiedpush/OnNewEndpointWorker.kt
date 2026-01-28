@@ -9,6 +9,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
@@ -16,7 +18,6 @@ import de.connect2x.trixnity.messenger.multi.update
 import de.connect2x.trixnity.messenger.notification.PushNotificationProvider
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.withDiFromService
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -25,13 +26,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-private val log = KotlinLogging.logger {}
-
 class OnNewEndpointWorker(
     private val context: Context,
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
     companion object {
+        private val log = Logger("de.connect2x.trixnity.messenger.notification.unifiedpush.OnNewEndpointWorker")
         const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.unifiedpush.OnNewEndpointWorker"
 
         fun enqueueUniqueWork(

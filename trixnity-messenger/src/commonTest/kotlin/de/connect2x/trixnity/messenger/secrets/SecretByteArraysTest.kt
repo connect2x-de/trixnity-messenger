@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.secrets
 
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.SecretByteArraySettings
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.update
@@ -18,9 +19,9 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.crypto.core.AesHmacSha2EncryptedData
-import net.folivo.trixnity.crypto.core.decryptAesHmacSha2
-import net.folivo.trixnity.crypto.core.encryptAesHmacSha2
+import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
+import de.connect2x.trixnity.crypto.core.decryptAesHmacSha2
+import de.connect2x.trixnity.crypto.core.encryptAesHmacSha2
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -38,6 +39,7 @@ class SecretByteArraysTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
         resetMocks(provider1, provider2)
 
         every { provider1.id } returns "provider-1"

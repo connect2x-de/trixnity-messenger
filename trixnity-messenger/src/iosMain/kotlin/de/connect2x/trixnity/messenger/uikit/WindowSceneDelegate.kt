@@ -28,7 +28,7 @@ import platform.darwin.NSObjectMeta
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 
-class WindowSceneDelegate: UIWindowSceneDelegateProtocol, NSObject {
+class WindowSceneDelegate : UIWindowSceneDelegateProtocol, NSObject {
 
     @OverrideInit
     constructor() : super()
@@ -39,7 +39,9 @@ class WindowSceneDelegate: UIWindowSceneDelegateProtocol, NSObject {
 
     override fun setWindow(
         window: UIWindow?,
-    ) { ApplicationDelegate.delegate.window = WithDefault.Value(window) }
+    ) {
+        ApplicationDelegate.delegate.window = WithDefault.Value(window)
+    }
 
     override fun windowScene(
         windowScene: UIWindowScene,
@@ -174,7 +176,9 @@ class WindowSceneDelegate: UIWindowSceneDelegateProtocol, NSObject {
     companion object : UIWindowSceneDelegateProtocolMeta, NSObjectMeta() {
         var delegate: WindowSceneDelegateProtocol
             get() = globalDelegate
-            set(value) { globalDelegate = value }
+            set(value) {
+                globalDelegate = value
+            }
     }
 }
 

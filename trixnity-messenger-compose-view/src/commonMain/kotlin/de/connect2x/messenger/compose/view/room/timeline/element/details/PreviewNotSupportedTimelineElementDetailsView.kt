@@ -20,7 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import io.ktor.http.*
 import kotlin.reflect.KClass
 
-class PreviewNotSupportedTimelineElementDetailsView() :
+class PreviewNotSupportedTimelineElementDetailsView :
     TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased<*>> {
     override val supports: KClass<RoomMessageTimelineElementViewModel.FileBased<*>> =
         RoomMessageTimelineElementViewModel.FileBased::class

@@ -1,15 +1,15 @@
 package de.connect2x.messenger.compose.view.room.settings
 
 import androidx.compose.runtime.Composable
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
-import io.github.oshai.kotlinlogging.KotlinLogging
 import okio.Path.Companion.toPath
 import platform.Foundation.NSDownloadsDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.room.settings.ExportRoomKt")
 
 @Composable
 internal actual fun SelectExportDestination(

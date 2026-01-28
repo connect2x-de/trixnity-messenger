@@ -15,14 +15,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.unsigned
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
-import net.folivo.trixnity.core.model.events.originTimestampOrNull
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.unsigned
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.originTimestampOrNull
 import org.koin.core.component.get
 import kotlin.reflect.KClass
 import kotlin.time.Instant
@@ -71,15 +71,14 @@ class RedactedTimelineElementViewModelImpl(
 
     override val message =
         flow {
-            val redactedBy = timelineEvent.await().unsigned?.redactedBecause?.sender
-            when (redactedBy) {
+            when (val redactedBy = timelineEvent.await().unsigned?.redactedBecause?.sender) {
                 null -> emit(i18n.eventMessageRedactedByUnknown())
                 matrixClient.userId -> emit(i18n.eventMessageRedactedByMe())
                 else -> emitAll(matrixClient.user.getById(roomId, redactedBy).map {
                     i18n.eventMessageRedacted(it?.name ?: redactedBy.full)
                 })
             }
-        }.stateIn(coroutineScope, SharingStarted.Companion.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val redactedAt: StateFlow<String?> =
         flow {
@@ -89,12 +88,12 @@ class RedactedTimelineElementViewModelImpl(
                     "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
                 }
             )
-        }.stateIn(coroutineScope, SharingStarted.Companion.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val reason: StateFlow<String?> =
         flow {
             emit(
                 (timelineEvent.await().unsigned?.redactedBecause?.content as? RedactionEventContent)?.reason
             )
-        }.stateIn(coroutineScope, SharingStarted.Companion.WhileSubscribed(), null)
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 }

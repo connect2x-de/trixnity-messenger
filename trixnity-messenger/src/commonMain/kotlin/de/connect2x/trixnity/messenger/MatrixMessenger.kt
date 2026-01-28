@@ -3,11 +3,12 @@ package de.connect2x.trixnity.messenger
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -25,14 +26,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.notification
+import de.connect2x.trixnity.client.notification
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
-
-private val log = KotlinLogging.logger {}
 
 interface MatrixMessenger : AutoCloseable {
     companion object
@@ -52,6 +51,8 @@ class MatrixMessengerImpl private constructor(
     override val di: Koin,
 ) : MatrixMessenger {
     companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerImpl")
+
         suspend operator fun invoke(
             coroutineContext: CoroutineContext = Dispatchers.Default,
             configuration: MatrixMessengerConfiguration.() -> Unit,
@@ -122,7 +123,6 @@ class MatrixMessengerImpl private constructor(
 fun MatrixMessenger.createRoot(
     componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
 ): RootViewModel {
-    log.debug { "create RootViewModel" }
     return di.get<RootViewModelFactory>().create(
         componentContext = componentContext,
         di = di,

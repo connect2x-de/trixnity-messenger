@@ -64,8 +64,7 @@ internal data class RichTextContext(
 @Composable
 internal fun ColumnScope.Children(node: RichText.Block, context: RichTextContext) {
     for (index in node.children.indices) {
-        val child = node.children[index]
-        when (child) {
+        when (val child = node.children[index]) {
             is RichText.Block -> BlockContent(child, context)
             is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
         }
@@ -342,8 +341,7 @@ internal fun ColumnScope.BlockContent(node: RichText.Block, context: RichTextCon
                     },
                     details = {
                         for (index in children.indices) {
-                            val child = children[index]
-                            when (child) {
+                            when (val child = children[index]) {
                                 is RichText.Block -> BlockContent(child, context)
                                 is RichText.InlineSpan -> InlineContent(child, context, first = index == 0)
                             }

@@ -3,16 +3,16 @@ package de.connect2x.messenger.compose.view.room.timeline.element.details
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.toByteArray
-import kotlinx.cinterop.useContents
 import de.connect2x.trixnity.messenger.util.toNSUrl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import platform.CoreGraphics.CGContextFillRect
 import platform.CoreGraphics.CGContextRestoreGState
@@ -36,7 +36,8 @@ actual suspend fun getPlatformPDFReader(
     onError: (String?) -> Unit
 ): PDFReader = PlatformPDFReader(media, onError).also { it.initialize() }
 
-private val log = KotlinLogging.logger { }
+private val log: Logger =
+    Logger("de.connect2x.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewKt")
 
 fun UIImage.toByteArray(compressionQuality: Double = 0.9): ByteArray? =
     UIImageJPEGRepresentation(this, compressionQuality)?.toByteArray()

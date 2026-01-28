@@ -17,7 +17,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,21 +37,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flatten
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.concurrentMutableMap
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Clock
 import kotlin.time.Instant
-
-private val log = KotlinLogging.logger { }
 
 interface OutboxElementHolderViewModelFactory {
     fun create(
@@ -123,7 +120,7 @@ class OutboxElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
-                childContextWithOwnLifecycle(lifecycle),
+                childContextWithOwnLifecycle(key, lifecycle),
                 outboxMessage.content,
                 Result.success(outboxMessage.content),
                 roomId,
@@ -179,7 +176,7 @@ class OutboxElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                viewModelContext = childContextWithOwnLifecycle(repliedEventId.full, lifecycle),
                 key = "element",
                 timelineEventFlow = timelineEventFlow,
                 roomId = roomId,

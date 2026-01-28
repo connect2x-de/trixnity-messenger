@@ -34,7 +34,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
 
 @Composable
 fun BoxScope.DeviceVerificationWizardStepSwitch(

@@ -11,6 +11,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import dev.snipme.highlights.Highlights
@@ -18,9 +20,8 @@ import dev.snipme.highlights.model.BoldHighlight
 import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
-import io.github.oshai.kotlinlogging.KotlinLogging
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.richtext.HighlightedCodeKt")
 
 @Immutable
 internal data class HighlightedCode(
@@ -93,7 +94,7 @@ internal fun rememberHighlightedCode(node: RichText.Block): HighlightedCode? {
                             start = highlight.location.start,
                             end = highlight.location.end,
                             style = when (highlight) {
-                                is BoldHighlight -> SpanStyle(fontWeight = FontWeight.Companion.Bold)
+                                is BoldHighlight -> SpanStyle(fontWeight = FontWeight.Bold)
                                 is ColorHighlight -> SpanStyle(color = Color(highlight.rgb or 0xFF000000.toInt()))
                             }
                         )

@@ -44,7 +44,7 @@ import de.connect2x.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
-import net.folivo.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomAliasId
 
 
 @Composable

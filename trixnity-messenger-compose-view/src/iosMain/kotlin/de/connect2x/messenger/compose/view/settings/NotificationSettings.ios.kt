@@ -5,18 +5,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
 import de.connect2x.messenger.compose.view.theme.components
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIApplicationOpenSettingsURLString
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.settings.NotificationSettingsKt")
 
 @Composable
 internal actual fun ColumnScope.PlatformDeviceNotificationSettings(

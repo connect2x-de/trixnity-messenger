@@ -1,13 +1,15 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private class HtmlTagRenderer() : TagRenderer {
+private class HtmlTagRenderer : TagRenderer {
     override fun openTag(
         node: ASTNode,
         tagName: CharSequence,
@@ -46,8 +48,13 @@ private class HtmlTagRenderer() : TagRenderer {
 }
 
 class MatrixMarkdownFlavourTest {
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
-    fun `a single linebreak leads to newline tag`(){
+    fun `a single linebreak leads to newline tag`() {
         val markdownFlavourDescriptor = MatrixMarkdownFlavourImpl()
         val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -62,7 +69,7 @@ class MatrixMarkdownFlavourTest {
     }
 
     @Test
-    fun `two linebreaks result in new paragraph`(){
+    fun `two linebreaks result in new paragraph`() {
         val markdownFlavourDescriptor = MatrixMarkdownFlavourImpl()
         val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -77,7 +84,7 @@ class MatrixMarkdownFlavourTest {
     }
 
     @Test
-    fun `three linebreaks result in no additional tags`(){
+    fun `three linebreaks result in no additional tags`() {
         val markdownFlavourDescriptor = MatrixMarkdownFlavourImpl()
         val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 

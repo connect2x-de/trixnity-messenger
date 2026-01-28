@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.messenger.compose.view.DI
 import de.connect2x.messenger.compose.view.common.FilePickerType
 import de.connect2x.messenger.compose.view.common.FilePickerTypeSelection
@@ -18,7 +19,6 @@ import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
@@ -32,9 +32,9 @@ import io.github.vinceglb.filekit.sink
 import io.github.vinceglb.filekit.utils.toPath
 import kotlinx.coroutines.flow.map
 import kotlinx.io.Buffer
-import net.folivo.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.PlatformMedia
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.messenger.compose.view.files.DialogsKt")
 
 @Composable
 actual fun SaveFileDialog(

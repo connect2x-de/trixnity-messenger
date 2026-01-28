@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.notification.unifiedpush
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -23,7 +25,6 @@ import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -33,14 +34,11 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
-import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.unifiedpush.android.connector.UnifiedPush
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-
-private val log = KotlinLogging.logger {}
 
 @Serializable
 @NestedSettingsView("notification", "provider", "unifiedpush")
@@ -96,6 +94,11 @@ class UnifiedPushNotificationProvider(
     matrixClients = matrixClients,
     coroutineScope = coroutineScope,
 ) {
+    companion object {
+        private val log =
+            Logger("de.connect2x.trixnity.messenger.notification.unifiedpush.UnifiedPushNotificationProvider")
+    }
+
     override val id = "de.connect2x.trixnity.messenger.notification.unifiedpush"
     override val displayName: String = "UnifiedPush"
 

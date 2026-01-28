@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
 import io.ktor.http.*
-import net.folivo.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.ByteArrayFlow
 
 interface FileDescriptor {
     val fileName: String

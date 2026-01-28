@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import net.folivo.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.client.ModuleFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 

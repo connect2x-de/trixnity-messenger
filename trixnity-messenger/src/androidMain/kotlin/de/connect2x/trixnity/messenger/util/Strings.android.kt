@@ -2,8 +2,7 @@ package de.connect2x.trixnity.messenger.util
 
 import android.icu.text.BreakIterator
 
-internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider
-    = AndroidGraphemeIterableProvider
+internal actual fun platformGraphemeIterableProvider(): GraphemeIterableProvider = AndroidGraphemeIterableProvider
 
 internal object AndroidGraphemeIterableProvider : GraphemeIterableProvider {
     override fun invoke(string: String): GraphemeIterable {
@@ -24,8 +23,7 @@ private class AndroidGaphemeIterable(val inner: String) : GraphemeIterable {
             return count
         }
 
-    override fun iterator(): GraphemeIterator
-        = AndroidGaphemeIterator(inner)
+    override fun iterator(): GraphemeIterator = AndroidGaphemeIterator(inner)
 }
 
 private class AndroidGaphemeIterator(val inner: String) : GraphemeIterator {

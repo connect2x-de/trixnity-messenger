@@ -57,7 +57,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArray
 
 interface ShareDataView {
     @Composable

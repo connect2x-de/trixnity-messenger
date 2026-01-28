@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -20,9 +21,10 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -41,6 +43,11 @@ class MatrixClientInitializationViewModelTest {
                 failures = emptyMap(),
             )
         )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -125,7 +132,7 @@ class MatrixClientInitializationViewModelTest {
         accounts.forEach { (account, accountSettings) ->
             settings.create(account, accountSettings)
         }
-        settings.update<MatrixMessengerSettingsBase>() { it.copy(selectedAccount = selectedAccount) }
+        settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = selectedAccount) }
         val viewModelContext = testViewModelContext(di)
         // prevent GC to clean up the viewmodel
         cut = MatrixClientInitializationViewModelImpl(

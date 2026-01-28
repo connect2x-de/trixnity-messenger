@@ -1,22 +1,20 @@
 package de.connect2x.trixnity.messenger.secrets
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.SecretByteArraySettings
 import de.connect2x.trixnity.messenger.settings.SettingsJson
 import de.connect2x.trixnity.messenger.update
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
-import net.folivo.trixnity.core.serialization.canonicalJsonString
-import net.folivo.trixnity.crypto.core.AesHmacSha2EncryptedData
-import net.folivo.trixnity.crypto.core.decryptAesHmacSha2
-import net.folivo.trixnity.crypto.core.encryptAesHmacSha2
-import net.folivo.trixnity.crypto.core.hmacSha256
-
-private val log = KotlinLogging.logger {}
+import de.connect2x.trixnity.core.serialization.canonicalJsonString
+import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
+import de.connect2x.trixnity.crypto.core.decryptAesHmacSha2
+import de.connect2x.trixnity.crypto.core.encryptAesHmacSha2
+import de.connect2x.trixnity.crypto.core.hmacSha256
 
 interface SecretByteArrays {
     suspend fun set(id: String, raw: ByteArray?)
@@ -39,6 +37,10 @@ class SecretByteArraysImpl(
     private val settings: MatrixMessengerSettingsHolder,
     secretByteArrayKeyProviders: Lazy<List<SecretByteArrayKeyProvider>>,
 ) : SecretByteArrays {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.secrets.SecretByteArraysImpl")
+    }
+
     private val keySize = 32
     private val secretByteArrayKeyProviders: List<SecretByteArrayKeyProvider> by lazy {
         secretByteArrayKeyProviders.value.sortedWith(

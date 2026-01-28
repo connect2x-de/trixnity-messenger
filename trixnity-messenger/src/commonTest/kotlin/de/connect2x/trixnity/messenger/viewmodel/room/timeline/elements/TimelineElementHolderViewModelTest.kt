@@ -1,6 +1,35 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.TimelineEventRelation
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.Mentions
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -30,36 +59,10 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.TimelineEventRelation
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.Mentions
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.RelationType
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -179,6 +182,11 @@ class TimelineElementHolderViewModelTest {
         receipts.value = mapOf()
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `isFirstInUserSequence » be true when first in a user sequence`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
@@ -190,7 +198,11 @@ class TimelineElementHolderViewModelTest {
             }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = aliceId,
                 roomId = roomId,
@@ -216,7 +228,11 @@ class TimelineElementHolderViewModelTest {
             }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = bobId,
                 roomId = roomId,
@@ -392,7 +408,7 @@ class TimelineElementHolderViewModelTest {
     @Test
     fun `isSent » should be true when outbox is empty`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        val timeline = timeline(roomServiceMock, roomId) {
+        timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
         val cut = cut()
@@ -641,7 +657,11 @@ class TimelineElementHolderViewModelTest {
         timeline.addEvents {
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = bobId,
                 roomId = roomId,

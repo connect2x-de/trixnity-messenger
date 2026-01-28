@@ -1,14 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.core.model.RoomId
-
-private val log = KotlinLogging.logger {}
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.core.model.RoomId
 
 data class RoomInfoElement(
     val name: String,

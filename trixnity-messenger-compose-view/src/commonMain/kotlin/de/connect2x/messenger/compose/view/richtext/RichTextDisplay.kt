@@ -52,15 +52,15 @@ fun RichTextDisplay(
             onMentionClick = onMentionClick,
             textLinkStyles = TextLinkStyles(
                 style = SpanStyle(color = colors.linkColor),
-                hoveredStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Companion.Underline),
-                focusedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Companion.Underline),
-                pressedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Companion.Underline),
+                hoveredStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
+                focusedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
+                pressedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
             ),
             spoilerStyles = TextLinkStyles(
                 style = SpanStyle(color = colors.spoilerColor, background = colors.spoilerColor),
-                hoveredStyle = SpanStyle(color = textColor, background = Color.Companion.Transparent),
-                focusedStyle = SpanStyle(color = textColor, background = Color.Companion.Transparent),
-                pressedStyle = SpanStyle(color = textColor, background = Color.Companion.Transparent),
+                hoveredStyle = SpanStyle(color = textColor, background = Color.Transparent),
+                focusedStyle = SpanStyle(color = textColor, background = Color.Transparent),
+                pressedStyle = SpanStyle(color = textColor, background = Color.Transparent),
             )
         )
     }

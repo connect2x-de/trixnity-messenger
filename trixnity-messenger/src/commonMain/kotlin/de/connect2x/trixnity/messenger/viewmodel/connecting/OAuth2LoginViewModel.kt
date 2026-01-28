@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
@@ -12,8 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -22,19 +22,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import net.folivo.trixnity.clientserverapi.client.oauth2.ApplicationType
-import net.folivo.trixnity.clientserverapi.client.oauth2.LocalizedField
-import net.folivo.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import net.folivo.trixnity.clientserverapi.client.oauth2.oAuth2Login
-import net.folivo.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
-import net.folivo.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.oauth2.ApplicationType
+import de.connect2x.trixnity.clientserverapi.client.oauth2.LocalizedField
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2Login
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
 import org.koin.core.component.get
 import org.koin.core.component.inject
 import kotlin.reflect.KClass
-
-
-private val log = KotlinLogging.logger {}
 
 interface OAuth2LoginViewModelFactory {
     fun create(

@@ -15,13 +15,13 @@ abstract class SharedIntentData {
     abstract fun toSharedData(context: Context, i18n: I18n): SharedData?
 
     data class SharedText(val text: String) : SharedIntentData() {
-        override fun toSharedData(context: Context, i18n: I18n): SharedData? = SharedData.PlainText(text)
+        override fun toSharedData(context: Context, i18n: I18n): SharedData = SharedData.PlainText(text)
     }
 
     data class SharedUrl(val url: String, val icon: Uri?) : SharedIntentData() {
-        override fun toSharedData(context: Context, i18n: I18n): SharedData? {
+        override fun toSharedData(context: Context, i18n: I18n): SharedData {
             val icon = icon?.let { icon ->
-                val isImage = context.contentResolver.getType(icon)?.let {
+                context.contentResolver.getType(icon)?.let {
                     it.split("/").firstOrNull() == "image"
                 }
 
@@ -48,7 +48,7 @@ private fun ClipData.Item.toFileDescriptor(context: Context, i18n: I18n): FileDe
     return uri?.let { it.toFileDescriptor(context, i18n) } ?: text?.let { it.toFileDescriptor(context, i18n) }
 }
 
-private fun CharSequence.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor? {
+private fun CharSequence.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor {
     val data = toString().encodeToByteArray()
     return BasicFileDescriptor(
         "${i18n.commonUnknown()}.txt",
@@ -58,6 +58,6 @@ private fun CharSequence.toFileDescriptor(context: Context, i18n: I18n): FileDes
     )
 }
 
-private fun Uri.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor? {
+private fun Uri.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor {
     return UriFileDescriptor(context, this, i18n)
 }

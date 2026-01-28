@@ -1,5 +1,19 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -13,20 +27,6 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -46,9 +46,10 @@ class LeaveRoomTest {
 
     @BeforeTest
     fun beforeTests() {
+        configureTestLogging()
         room.value = Room(roomId)
         resetMocks(matrixClient, roomApiClient, roomService, matrixClientServerApiClient)
-        every { roomService.getState(roomId, CreateEventContent::class) } returns flowOf(
+        every { roomService.getState(roomId, CreateEventContent::class, any()) } returns flowOf(
             ClientEvent.RoomEvent.StateEvent(
                 content = CreateEventContent(
                     predecessor = CreateEventContent.PreviousRoom(upgradedRoomId, EventId("bla"))
@@ -61,7 +62,7 @@ class LeaveRoomTest {
                 stateKey = ""
             )
         )
-        every { roomService.getState(upgradedRoomId, CreateEventContent::class) } returns flowOf(null)
+        every { roomService.getState(upgradedRoomId, CreateEventContent::class, any()) } returns flowOf(null)
         every { roomService.getById(roomId) } returns room
         every { roomService.getById(upgradedRoomId) } returns upgradedRoom
         everySuspend { roomService.forgetRoom(any(), any()) } returns Unit

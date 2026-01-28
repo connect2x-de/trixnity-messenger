@@ -7,7 +7,7 @@ actual fun platformCloseAppModule(): Module = module {
     single<CloseApp> {
         val activityGetter = get<ActivityGetter>()
         CloseApp {
-            activityGetter()?.finishAndRemoveTask()
+            activityGetter().finishAndRemoveTask()
         }
     }
 }

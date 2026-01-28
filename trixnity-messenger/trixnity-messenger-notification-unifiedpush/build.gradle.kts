@@ -47,7 +47,7 @@ kotlin {
 }
 
 android {
-    namespace = "$group.trixnity.messenger.notification.unifiedpush"
+    namespace = "$group.notification.unifiedpush"
     compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     defaultConfig {
         minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()

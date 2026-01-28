@@ -9,8 +9,7 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,14 +17,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import net.folivo.trixnity.clientserverapi.client.classicLoginWithPassword
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.classicLoginWithPassword
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import org.koin.core.component.get
 import org.koin.core.component.inject
-
-
-private val log = KotlinLogging.logger {}
 
 interface PasswordLoginViewModelFactory {
     fun create(

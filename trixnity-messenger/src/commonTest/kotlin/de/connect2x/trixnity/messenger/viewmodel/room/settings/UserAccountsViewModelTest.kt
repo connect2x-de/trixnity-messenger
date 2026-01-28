@@ -1,5 +1,34 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.client.verification.ActiveUserVerification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
@@ -33,35 +62,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.UserPresence
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.verification.ActiveUserVerification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.GetProfile
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -172,13 +175,13 @@ class UserAccountsViewModelTest {
             IgnoredUserListEventContent(emptyMap())
         )
 
-        everySuspend { roomsApiClientMock.banUser(roomId, any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.banUser(roomId, any(), any()) } calls {
             val userId = (it.args[1] as UserId)
             roomUserMapFlow.value -= userId
             Result.success(Unit)
         }
 
-        everySuspend { roomsApiClientMock.unbanUser(roomId, any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.unbanUser(roomId, any(), any()) } calls {
             val userId = (it.args[1] as UserId)
             val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
             setMemberEventContentOf(
@@ -196,10 +199,7 @@ class UserAccountsViewModelTest {
         )
 
         everySuspend { usersApiClientMock.getProfile(carol) } returns Result.success(
-            GetProfile.Response(
-                displayName = "Carol",
-                avatarUrl = null,
-            )
+            Profile(ProfileField.DisplayName("Carol"))
         )
 
         every { onOpenRoomMock.invoke(any(), any()) } returns Unit
@@ -208,6 +208,10 @@ class UserAccountsViewModelTest {
         every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `initially do not create MemberElement before subscription`() = runTest {
@@ -258,7 +262,7 @@ class UserAccountsViewModelTest {
         setupKickingAUser()
         everySuspend {
             roomsApiClientMock.kickUser(
-                roomId, alice, null, null
+                roomId, alice, null
             )
         } returns Result.success(Unit)
 
@@ -268,7 +272,7 @@ class UserAccountsViewModelTest {
 
         cut.error.value shouldBe null
         verifySuspend {
-            roomsApiClientMock.kickUser(roomId, alice, null, null)
+            roomsApiClientMock.kickUser(roomId, alice, null)
         }
         cut.kickUserWarningOpen.value shouldBe false
 
@@ -293,7 +297,7 @@ class UserAccountsViewModelTest {
         setupKickingAUser()
         everySuspend {
             roomsApiClientMock.kickUser(
-                roomId, alice, null, null
+                roomId, alice, null,
             )
         } returns Result.failure(RuntimeException("Oh nooo"))
 
@@ -381,8 +385,8 @@ class UserAccountsViewModelTest {
     }
 
     fun setupMembershipHandlingForKnockTest() {
-        everySuspend { roomsApiClientMock.kickUser(roomId, any(), any(), any()) } returns Result.success(Unit)
-        everySuspend { roomsApiClientMock.inviteUser(roomId, any(), any(), any()) } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.kickUser(roomId, any(), any()) } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.inviteUser(roomId, any(), any()) } returns Result.success(Unit)
         every { userServiceMock.getPowerLevel(roomId, any()) } returns MutableStateFlow(PowerLevel.User(50))
     }
 
@@ -396,7 +400,7 @@ class UserAccountsViewModelTest {
 
         cut.error.value shouldBe null
         verifySuspend {
-            roomsApiClientMock.inviteUser(roomId, alice, any(), any())
+            roomsApiClientMock.inviteUser(roomId, alice, any())
         }
 
         cut.membershipChanging.value shouldBe false
@@ -412,7 +416,7 @@ class UserAccountsViewModelTest {
 
         cut.error.value shouldBe null
         verifySuspend {
-            roomsApiClientMock.kickUser(roomId, alice, any(), any())
+            roomsApiClientMock.kickUser(roomId, alice, any())
         }
         cut.membershipChanging.value shouldBe false
     }

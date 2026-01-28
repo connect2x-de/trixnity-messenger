@@ -9,6 +9,7 @@ import com.sun.jna.platform.mac.CoreFoundation.CFStringRef
 import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.ptr.PointerByReference
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.Credential
 import de.connect2x.trixnity.messenger.util.MacOsCoreFoundation
@@ -17,16 +18,15 @@ import de.connect2x.trixnity.messenger.util.OS
 import de.connect2x.trixnity.messenger.util.SecretNotFoundException
 import de.connect2x.trixnity.messenger.util.WinCredentials
 import de.connect2x.trixnity.messenger.util.getOs
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.crypto.core.SecureRandom
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.secrets.PlatformSecretByteArrayKeyProviderKt")
 
 actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
     single<SecretByteArrayKeyProvider>(named(PLATFORM_SECRET_BYTE_ARRAY_KEY_PROVIDER_ID)) {
@@ -79,7 +79,6 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     getNewKey = get(null, getNewInputKey),
                     newExtra = null,
                 )
-
 
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {

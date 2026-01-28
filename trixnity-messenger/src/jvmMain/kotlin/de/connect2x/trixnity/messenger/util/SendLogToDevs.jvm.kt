@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.marker.Marker
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +12,8 @@ import java.awt.Desktop
 import java.net.URI
 import java.nio.file.Files
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.SendLogToDevsKt")
+
 actual fun platformSendLogToDevsModule(): Module = module {
     single<SendLogToDevs> {
         val rootPath = get<RootPath>().path
@@ -20,7 +23,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
                     Files.readString(rootPath.resolve("messenger.log").toNioPath()) // TODO configurable and as file
                 }
             } catch (exc: Exception) {
-                log.error(exc) { "cannot read log content" }
+                log.error(exc as Marker?) { "cannot read log content" }
                 ""
             }
             try {
@@ -31,7 +34,7 @@ actual fun platformSendLogToDevsModule(): Module = module {
                     subject.encodeURLParameter(),
                     content.encodeURLParameter()
                 )
-                val mailURI = URI(mailURIStr);
+                val mailURI = URI(mailURIStr)
                 desktop.mail(mailURI)
             } catch (exc: Exception) {
                 log.error(exc) { "cannot open mail program to send logs" }

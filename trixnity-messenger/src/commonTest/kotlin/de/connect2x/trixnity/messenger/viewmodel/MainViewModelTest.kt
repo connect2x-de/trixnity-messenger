@@ -5,8 +5,36 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeySecretService
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.key.KeyTrustService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.TimelineStateChange
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import de.connect2x.trixnity.clientserverapi.client.SyncEvents
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
@@ -64,34 +92,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeySecretService
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.KeyTrustService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.TimelineStateChange
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
-import net.folivo.trixnity.clientserverapi.client.SyncEvents
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -110,6 +115,8 @@ class MainViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
+    val profile1 = Profile()
+    val profile2 = Profile()
     val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
     val inputAreaViewModelMock = mock<InputAreaViewModel>()
     private val matrixClientMock2 = mock<MatrixClient>()
@@ -142,8 +149,7 @@ class MainViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns myUserId
         every { matrixClientMock.deviceId } returns myDeviceId
-        every { matrixClientMock.displayName } returns MutableStateFlow(null)
-        every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+        every { matrixClientMock.profile } returns MutableStateFlow(profile1)
         syncState = every { matrixClientMock.syncState }
         syncState returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock.startSync(any()) } calls { startSyncPresenceCapture.add(it.arg(0)) }
@@ -203,12 +209,15 @@ class MainViewModelTest {
         }.koin
         every { matrixClientMock2.userId } returns myUserId
         every { matrixClientMock2.deviceId } returns myDeviceId
-        every { matrixClientMock2.displayName } returns MutableStateFlow(null)
-        every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
         every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock2.startSync() } returns Unit
         everySuspend { matrixClientMock2.cancelSync() } returns Unit
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @AfterTest
@@ -713,6 +722,7 @@ class MainViewModelTest {
                         })
                 }.koin,
                 coroutineContext = backgroundScope.coroutineContext,
+                name = "Main"
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},

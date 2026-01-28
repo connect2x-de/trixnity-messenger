@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 @Suppress("UNUSED")

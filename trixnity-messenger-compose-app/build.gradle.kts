@@ -1,9 +1,13 @@
+import de.connect2x.conventions.CI
 import de.connect2x.conventions.configureJava
-import de.connect2x.conventions.isCI
+import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
+import de.connect2x.conventions.withAndroid
+import de.connect2x.conventions.withIos
+import de.connect2x.conventions.withJs
+import de.connect2x.conventions.withJvm
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
@@ -26,7 +30,7 @@ enum class BuildFlavor { PROD, DEV }
 val buildFlavor = BuildFlavor.valueOf(
     project.properties["tm_build_flavor"] as? String
         ?: System.getenv("TM_BUILD_FLAVOR")
-        ?: if (isCI) "PROD" else "DEV"
+        ?: if (CI.isCI) "PROD" else "DEV"
 )
 
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
@@ -73,13 +77,10 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
 }
 
 kotlin {
-    androidTarget()
-    jvm("desktop")
-    js {
-        compilerOptions {
-            sourceMap.set(true)
-            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
-        }
+    defaultCompilerOptions()
+    withAndroid()
+    withJvm()
+    withJs {
         browser {
             commonWebpackConfig {
                 showProgress = true
@@ -94,12 +95,8 @@ kotlin {
         binaries.executable()
         useEsModules()
     }
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
+    withIos {
+        binaries.framework {
             export(sharedLibs.decompose)
             export(sharedLibs.essenty.lifecycle)
             export(projects.trixnityMessengerComposeView)
@@ -109,18 +106,18 @@ kotlin {
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
         commonMain {
             dependencies {
                 api(projects.trixnityMessengerComposeView) // api because of iOS
                 implementation(compose.components.resources)
+                implementation(sharedLibs.lognity.core)
+                implementation(sharedLibs.lognity.config)
+                implementation(sharedLibs.lognity.core.config)
                 api(sharedLibs.decompose) // needed for export to iOS
                 api(sharedLibs.essenty.lifecycle) // needed for export to iOS
             }
         }
-        val desktopMain by getting {
+        jvmMain {
             dependencies {
                 // this is needed to create lock files working on all machines
                 if (System.getProperty("bundleAll") == "true") {
@@ -132,7 +129,6 @@ kotlin {
                 } else {
                     implementation(compose.desktop.currentOs)
                 }
-                implementation(libs.logback.classic)
                 implementation(sharedLibs.kotlinx.coroutines.swing)
             }
         }
@@ -144,8 +140,6 @@ kotlin {
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
-                implementation(libs.logback.android)
-                implementation(libs.slf4j.api)
             }
         }
         iosMain {
@@ -153,7 +147,7 @@ kotlin {
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns)
             }
         }
-        val webMain by getting {
+        webMain {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
             }
@@ -169,7 +163,7 @@ val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.lau
 compose {
     desktop {
         application {
-            mainClass = "$appId.MainKt"
+            mainClass = "$appId.Main"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
             javaHome = distributionJavaHome
             buildTypes.release.proguard {
@@ -201,13 +195,10 @@ compose {
 
 android {
     namespace = appId
-    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
     buildFeatures {
         compose = true
     }
     defaultConfig {
-        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
-        targetSdk = sharedLibs.versions.androidTargetSDK.get().toInt()
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }
