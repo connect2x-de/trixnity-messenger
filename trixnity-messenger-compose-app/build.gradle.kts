@@ -3,6 +3,7 @@ import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import de.connect2x.conventions.withAndroid
+import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
@@ -78,10 +79,10 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
 
 kotlin {
     defaultCompilerOptions()
-    withAndroid()
+    withAndroid("$group.compose.app")
     withJvm()
     withJs {
-        browser {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
             }
@@ -155,7 +156,7 @@ kotlin {
     }
 }
 
-val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
+val distributionJavaHome: String = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
     languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
     vendor = JvmVendorSpec.ADOPTIUM
 }.get().metadata.installationPath.asFile.absolutePath

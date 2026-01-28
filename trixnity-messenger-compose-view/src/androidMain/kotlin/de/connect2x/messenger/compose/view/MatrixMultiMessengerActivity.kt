@@ -53,7 +53,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
+        //log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMultiMessengerServiceConnection.bind(applicationContext)
         onNewIntent(intent)

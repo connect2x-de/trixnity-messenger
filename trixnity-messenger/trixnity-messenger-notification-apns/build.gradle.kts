@@ -12,6 +12,7 @@ plugins {
 configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
+    withSourcesJar()
     defaultCompilerOptions()
     withIos()
     applyDefaultHierarchyTemplate()

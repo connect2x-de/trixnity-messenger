@@ -1,34 +1,29 @@
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.withAndroidLibrary
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.android.library)
     alias(sharedLibs.plugins.dokka)
-    `maven-publish`
+    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-    androidTarget {
-        publishLibraryVariants("release")
-    }
+    withSourcesJar()
+    defaultCompilerOptions()
+    withAndroidLibrary("$group.notification.unifiedpush")
     applyDefaultHierarchyTemplate()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(projects.trixnityMessenger)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
                 implementation(sharedLibs.kotlinx.coroutines.test)
@@ -47,11 +42,6 @@ kotlin {
 }
 
 android {
-    namespace = "$group.notification.unifiedpush"
-    compileSdk = sharedLibs.versions.androidCompileSDK.get().toInt()
-    defaultConfig {
-        minSdk = sharedLibs.versions.androidMinimalSDK.get().toInt()
-    }
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")

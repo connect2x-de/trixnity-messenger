@@ -13,8 +13,9 @@ plugins {
 configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
+    withSourcesJar()
     defaultCompilerOptions()
-    withAndroidLibrary("$group.trixnity.messenger.notification.fcm")
+    withAndroidLibrary("$group.notification.fcm")
     applyDefaultHierarchyTemplate()
     sourceSets {
         commonMain {
