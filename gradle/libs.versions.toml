@@ -5,7 +5,7 @@ trixnityMessenger = "4.0.0"
 seskar = "4.30.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "5.0.2" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.3.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.3.2" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.5" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.2.0" # https://codeberg.org/UnifiedPush/android-connector/releases
