@@ -1,10 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.media
 
+import com.arkivanov.essenty.lifecycle.Lifecycle
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.core.component.get
 import kotlin.time.Duration
 
 private val log = KotlinLogging.logger { }
@@ -52,6 +55,8 @@ class MediaPlayerViewModelImpl(
     media: RoomMessageTimelineElementViewModel.FileBased<*>,
     initialDurationOptional: Duration?
 ) : MediaPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
+    private val globalScope: CoroutineScope = get()
+
     private val player: MediaPlayer? = getOrNull()
     private val item: MediaPlayer.Item? = player?.open(media)
     private val initialDuration = initialDurationOptional ?: Duration.ZERO
@@ -69,6 +74,14 @@ class MediaPlayerViewModelImpl(
         MutableStateFlow(if (player != null) MediaPlayerViewModel.State.Ready else MediaPlayerViewModel.State.NotReady)
 
     init {
+        lifecycle.subscribe(object : Lifecycle.Callbacks {
+            override fun onDestroy() {
+                globalScope.launch {
+                    item?.close()
+                }
+            }
+        })
+
         player?.playingItem?.let {
             coroutineScope.launch {
                 it.collect { playingItem ->
