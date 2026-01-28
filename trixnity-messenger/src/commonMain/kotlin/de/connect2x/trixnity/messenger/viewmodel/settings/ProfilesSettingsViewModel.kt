@@ -46,7 +46,7 @@ class ProfilesSettingsViewModelImpl(
     private val profileManager = getOrNull<ProfileManager>()
 
     override val isMultiProfile: StateFlow<Boolean> =
-        (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false))
+        (profileManager?.isMultiProfileEnabled?.map { it == true } ?: flowOf(false))
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canChangeMultiProfileMode: StateFlow<Boolean> =
