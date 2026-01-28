@@ -1,33 +1,27 @@
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.withIos
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.dokka)
-    `maven-publish`
+    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
+    defaultCompilerOptions()
+    withIos()
     applyDefaultHierarchyTemplate()
-    iosArm64()
-    iosX64()
-    iosSimulatorArm64()
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.uuid.ExperimentalUuidApi")
-            languageSettings.optIn("kotlin.time.ExperimentalTime")
-        }
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(projects.trixnityMessenger)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
                 implementation(sharedLibs.kotlinx.coroutines.test)
