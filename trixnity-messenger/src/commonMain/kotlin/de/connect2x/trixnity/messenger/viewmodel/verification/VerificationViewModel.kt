@@ -47,6 +47,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
+import kotlinx.coroutines.flow.filterNotNull
 import org.koin.core.component.get
 import kotlin.jvm.JvmInline
 
@@ -257,16 +258,16 @@ open class VerificationViewModelImpl(
         })
         coroutineScope.launch {
             if (timelineEventId == null) {
+                if (matrixClient.verification.activeDeviceVerification.value == null) {
+                    log.warn { "Found no active verification, cancelling verification process" }
+                    onCloseVerification()
+                }
                 matrixClient.verification.activeDeviceVerification
+                    .filterNotNull()
                     .collectLatest {
-                        if (it != null) {
-                            log.debug { "new device verification" }
-                            activeVerification.value = it
-                            verificationSteps()
-                        } else {
-                            log.warn { "Found no active verification, cancelling verification process" }
-                            onCloseVerification()
-                        }
+                        log.debug { "new device verification" }
+                        activeVerification.value = it
+                        verificationSteps()
                     }
             } else {
                 roomId?.let {
