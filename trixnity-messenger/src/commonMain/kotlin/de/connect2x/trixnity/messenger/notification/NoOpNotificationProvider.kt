@@ -32,7 +32,7 @@ class NoOpNotificationProvider(
     private val settings: MatrixMessengerSettingsHolder,
     coroutineScope: CoroutineScope,
 ) : NotificationProvider {
-    override val id: String = "de.connect2x.trixnity.messenger.notification.noop"
+    override val id = "de.connect2x.trixnity.messenger.notification.noop"
     override val displayName: String = "no op"
     override val canBeEnabled: Boolean = true
 

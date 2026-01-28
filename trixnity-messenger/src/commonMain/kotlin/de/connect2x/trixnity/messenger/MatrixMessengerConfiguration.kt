@@ -96,9 +96,6 @@ data class MatrixMessengerConfiguration(
     override var imprint: String? = null,
     override var licenses: String? = null,
 
-    var pushUrl: String? = null,
-    var pushAppId: String? = null,
-
     var downloadsDisabled: Boolean = false,
 
     /**

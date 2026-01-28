@@ -29,7 +29,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -48,6 +47,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
+import kotlinx.coroutines.flow.filterNotNull
 import org.koin.core.component.get
 import kotlin.jvm.JvmInline
 
@@ -258,6 +258,10 @@ open class VerificationViewModelImpl(
         })
         coroutineScope.launch {
             if (timelineEventId == null) {
+                if (matrixClient.verification.activeDeviceVerification.value == null) {
+                    log.warn { "Found no active verification, cancelling verification process" }
+                    onCloseVerification()
+                }
                 matrixClient.verification.activeDeviceVerification
                     .filterNotNull()
                     .collectLatest {

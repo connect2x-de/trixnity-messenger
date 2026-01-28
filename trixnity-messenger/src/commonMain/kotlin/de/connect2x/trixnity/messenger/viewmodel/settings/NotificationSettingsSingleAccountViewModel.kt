@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.notification.NoOpNotificationProvider
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
 import de.connect2x.trixnity.messenger.notification.NotificationProviders
 import de.connect2x.trixnity.messenger.update
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
@@ -121,7 +123,7 @@ interface NotificationSettingsSingleAccountViewModel {
     fun toggleEnabledForThisDevice()
     val availableProviders: List<NotificationProviderViewModel>
     val selectedProvider: StateFlow<NotificationProviderViewModel?>
-    fun selectProvider(provider: String)
+    fun selectProvider(id: String)
 
     val notificationHandlerId: String
     val notificationPermissionsNecessary: StateFlow<Boolean>
@@ -150,7 +152,7 @@ class NotificationSettingsSingleAccountViewModelImpl(
             .stateIn(coroutineScope, Eagerly, false)
 
     override val availableProviders: List<NotificationProviderViewModel> =
-        notificationProviders.filter { it.canBeEnabled }
+        notificationProviders.filter { it.canBeEnabled && it !is NoOpNotificationProvider }
             .map { NotificationProviderViewModel(it.id, it.displayName) }
 
     private val changeProviderMutex = Mutex()
@@ -171,19 +173,26 @@ class NotificationSettingsSingleAccountViewModelImpl(
         combine(notificationProviders.map { notificationProvider ->
             notificationProvider.isEnabled(account).map { notificationProvider to it }
         }
-        ) { notificationProvidersEnabled ->
-            val firstEnabledNotificationProvider =
-                notificationProvidersEnabled.firstOrNull { it.second }?.first ?: return@combine null
-            NotificationProviderViewModel(
-                firstEnabledNotificationProvider.id,
-                firstEnabledNotificationProvider.displayName
-            )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        ) { it }
+            .filterNot { it.none { (_, enabled) -> enabled } } // prevent flickering when selecting a new provider
+            .map { notificationProvidersEnabled ->
+                val firstEnabledNotificationProvider =
+                    notificationProvidersEnabled
+                        .firstOrNull { it.first !is NoOpNotificationProvider && it.second }
+                        ?.first
+                        ?: return@map null
+                NotificationProviderViewModel(
+                    firstEnabledNotificationProvider.id,
+                    firstEnabledNotificationProvider.displayName
+                )
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override fun selectProvider(provider: String) {
+    override fun selectProvider(id: String) {
         coroutineScope.launch {
+            log.debug { "select notification provider $id" }
             changeProviderMutex.withLock {
-                notificationProviders.forEach { it.disable(account) }
+                notificationProviders.filter { it.id != id }.forEach { it.disable(account) }
+                notificationProviders.find { it.id == id }?.enable(account)
             }
         }
     }

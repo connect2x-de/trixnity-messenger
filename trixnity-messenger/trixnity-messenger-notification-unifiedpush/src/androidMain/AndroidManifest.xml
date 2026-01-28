@@ -3,11 +3,11 @@
   <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
   <application>
     <service
-        android:name=".TrixnityMessengerFirebaseMessagingService"
+        android:name=".TrixnityMessengerUnifiedPushService"
         android:enabled="true"
-        android:exported="true">
+        android:exported="false">
       <intent-filter>
-        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+        <action android:name="org.unifiedpush.android.connector.PUSH_EVENT"/>
       </intent-filter>
     </service>
     <receiver

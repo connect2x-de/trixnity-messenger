@@ -10,22 +10,26 @@ import de.connect2x.trixnity.messenger.MatrixMultiMessengerService
 import de.connect2x.trixnity.messenger.notification.fcm.addFcmPushNotificationProvider
 import kotlinx.io.asSource
 import kotlinx.io.buffered
+import de.connect2x.trixnity.messenger.notification.unifiedpush.addUnifiedPushNotificationProvider
 
 class MessengerApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         Backend.set(DefaultBackend)
         SerializableConfig uses CoreConfigExtension
-        checkNotNull(this::class.java.getResourceAsStream("lognity.json")).use { stream ->
+        applicationContext.assets.open("lognity.json").buffered().use { stream ->
             Backend.setDefaultConfig(stream.asSource().buffered())
         }
         MatrixMultiMessengerService.configuration = {
             configure()
-            addFcmPushNotificationProvider()
-            messengerConfiguration {
-                pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify"
-                pushAppId = "$appId.fcm"
-            }
+            addFcmPushNotificationProvider(
+                pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify",
+                pushAppId = "$appId.fcm",
+            )
+            addUnifiedPushNotificationProvider(
+                pushUrl = "https://ntfy.demo.timmy-messenger.de/_matrix/push/v1/notify",
+                pushAppId = "$appId.unifiedpush",
+            )
         }
     }
 }

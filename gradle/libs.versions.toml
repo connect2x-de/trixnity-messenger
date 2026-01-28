@@ -1,12 +1,14 @@
 [versions]
 
-trixnityMessenger = "4.0.0"
+trixnityMessenger = "4.0.1"
 
 seskar = "4.30.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "5.0.2" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.3.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.3.2" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.5" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
+unifiedPush = "3.2.0" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.16.4" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js
@@ -20,7 +22,6 @@ ksoup = "0.2.5" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases
-sqlitenity = "0.0.5"
 
 [libraries]
 
@@ -36,7 +37,10 @@ trixnity-client-cryptodriver-libolm = { module = "de.connect2x.trixnity:trixnity
 trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
 sysnotify = { module = "de.connect2x.sysnotify:sysnotify", version.ref = "sysnotify" }
+sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
+sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
 
+unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
@@ -49,8 +53,6 @@ pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
 
 [bundles]
 
