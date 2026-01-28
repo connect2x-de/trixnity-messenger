@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Fix MatrixClientsImpl being improperly registered in the DI
 - UI: Remove large gap between message and expandable sections in message details
 - UI: The avatar shape no longer deforms at very small heights in the profile view
+- SDK: Fix empty verification screen when ending verification on other device before starting messenger
 
 ### Security
 

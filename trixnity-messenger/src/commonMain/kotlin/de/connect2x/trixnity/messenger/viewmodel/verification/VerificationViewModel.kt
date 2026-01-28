@@ -29,7 +29,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -259,11 +258,15 @@ open class VerificationViewModelImpl(
         coroutineScope.launch {
             if (timelineEventId == null) {
                 matrixClient.verification.activeDeviceVerification
-                    .filterNotNull()
                     .collectLatest {
-                        log.debug { "new device verification" }
-                        activeVerification.value = it
-                        verificationSteps()
+                        if (it != null) {
+                            log.debug { "new device verification" }
+                            activeVerification.value = it
+                            verificationSteps()
+                        } else {
+                            log.warn { "Found no active verification, cancelling verification process" }
+                            onCloseVerification()
+                        }
                     }
             } else {
                 roomId?.let {
