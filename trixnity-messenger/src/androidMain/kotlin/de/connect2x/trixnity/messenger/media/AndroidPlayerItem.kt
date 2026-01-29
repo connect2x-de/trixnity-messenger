@@ -16,9 +16,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.time.Duration
 
 private val log = KotlinLogging.logger { }
@@ -48,8 +51,8 @@ internal class AndroidPlayerItem(
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), MediaPlayer.State.Ready)
 
-    override suspend fun play(startPosition: Duration?): Unit = withMediaFile { tempFile ->
-        playingItemMutex.withLock {
+    override suspend fun play(startPosition: Duration?): Unit = playingItemMutex.withLock {
+        withMediaFile { tempFile ->
             if (isPlaying.value || state.value !is MediaPlayer.State.Ready) {
                 log.error { "Unable to start playback: Media file is not in the state to be played" }
                 return@withMediaFile
@@ -71,9 +74,8 @@ internal class AndroidPlayerItem(
                 controller.setMediaItem(item, startDuration.inWholeMilliseconds)
                 controller.prepare()
                 controller.play()
+                playingItem.value = this
             }
-
-            playingItem.value = this
         }
     }
 
@@ -127,29 +129,32 @@ internal class AndroidPlayerItem(
     }
 
     private suspend fun withMediaFile(closure: suspend (OkioPlatformMedia.TemporaryFile) -> Unit) {
-        val tempFile = file.value
-        if (tempFile != null) {
-            closure(tempFile)
-            return
-        }
-
-        log.debug { "No media found, downloading media file...." }
-        item.downloadMedia(
-            onDownloadCancelled = {},
-            processFile = { media ->
-                check(media is OkioPlatformMedia) { "Media must be a OkioPlatformMedia" }
-                media.getTemporaryFile().fold(
-                    onFailure = {
-                        log.error(it) { "Unexpected error when acquiring file for playback" }
-                        itemState.value = MediaPlayer.State.Failed("Unable to download media: $it")
-                    },
-                    onSuccess = {
-                        log.debug { "Successfully downloaded media file" }
-                        file.value = it
-                        closure(it)
+        suspendCancellableCoroutine { continuation ->
+            item.downloadMedia(
+                onDownloadCancelled = {
+                    if (continuation.isActive) {
+                        continuation.cancel(Exception("Download cancelled"))
                     }
-                )
+                },
+                processFile = { media ->
+                    try {
+                        check(media is OkioPlatformMedia) { "Media must be a OkioPlatformMedia" }
+                        continuation.resume(media.getTemporaryFile())
+                    } catch (e: Throwable) {
+                        continuation.resumeWithException(e)
+                    }
+                }
+            )
+        }.fold(
+            onFailure = {
+                log.error(it) { "Unexpected error when acquiring file for playback" }
+                itemState.value = MediaPlayer.State.Failed("Unable to download media: $it")
             },
+            onSuccess = {
+                log.debug { "Successfully downloaded media file" }
+                file.value = it
+                closure(it)
+            }
         )
     }
 }
