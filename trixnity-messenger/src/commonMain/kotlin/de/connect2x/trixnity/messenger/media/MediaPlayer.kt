@@ -16,7 +16,19 @@ interface MediaPlayer : AutoCloseable {
         val elapsedTime: StateFlow<Duration?>
         val state: StateFlow<State>
 
+        /**
+         * This function stops the currently played media (if there is one playing) and starts this media at the
+         * position specified, alternatively the elapsed time position. When being played, this function changes the
+         * `playingItem` state of the media player.
+         *
+         * @param startPosition the override for the starting position when playing
+         */
         suspend fun play(startPosition: Duration? = null)
+
+        /**
+         * This function pauses this item when currently played. It also changes the `playingItem` state of the media
+         * player.
+         */
         suspend fun pause()
         suspend fun seekTo(position: Duration)
     }

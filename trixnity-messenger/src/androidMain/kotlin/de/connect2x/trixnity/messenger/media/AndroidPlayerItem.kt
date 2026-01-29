@@ -52,15 +52,15 @@ internal class AndroidPlayerItem(
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), MediaPlayer.State.Ready)
 
     override suspend fun play(startPosition: Duration?): Unit = playingItemMutex.withLock {
+        if (isPlaying.value || state.value !is MediaPlayer.State.Ready) {
+            log.error { "Unable to start playback: Media file is not in the state to be played" }
+            return@withLock
+        }
+
+        log.debug { "Stop previously played media file before starting to play new media file" }
+        playingItem.value?.pause0() // Stop the currently playing element if one is currently played
+
         withMediaFile { tempFile ->
-            if (isPlaying.value || state.value !is MediaPlayer.State.Ready) {
-                log.error { "Unable to start playback: Media file is not in the state to be played" }
-                return@withMediaFile
-            }
-
-            log.debug { "Stop previously played media file before starting to play new media file" }
-            playingItem.value?.pause0() // Stop the currently playing element if one is currently played
-
             isPlaying.value = true
             log.debug { "Starting playback of media item '${item.name}'" }
             withMediaController { controller ->

@@ -125,12 +125,12 @@ private fun PlayableAudioMessage(
 
             Row(Modifier.fillMaxWidth()) {
                 Text(
-                    text = if (duration == Duration.ZERO) "--:--" else formatDuration(elapsedTime),
+                    text = formatDuration(elapsedTime),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = formatDuration(duration),
+                    text = if (duration == Duration.ZERO) "--:--" else formatDuration(duration),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

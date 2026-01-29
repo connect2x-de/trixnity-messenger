@@ -82,6 +82,10 @@ class MediaPlayerViewModelImpl(
             }
         })
 
+        if (player == null || item == null) {
+            state.value = MediaPlayerViewModel.State.NotReady // Not available
+        }
+
         player?.playingItem?.let {
             coroutineScope.launch {
                 it.collect { playingItem ->
