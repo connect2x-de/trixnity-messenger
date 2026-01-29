@@ -22,7 +22,7 @@ plugins {
 
 configureJava(sharedLibs.versions.targetJvm)
 
-val version = "1.0.0"
+val appVersion = "1.0.0"
 val appName = "Trixnity Messenger"
 val appId = "de.connect2x.trixnity.messenger.compose.app"
 
@@ -57,7 +57,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
             package $appId            
             
             actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
-                override val version: String = "$version"
+                override val version: String = "$appVersion"
                 override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
@@ -176,7 +176,7 @@ compose {
                 // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
                 appResourcesRootDir = layout.buildDirectory
                 packageName = appId
-                packageVersion = version
+                packageVersion = appVersion
 
                 windows {
                     menu = true
