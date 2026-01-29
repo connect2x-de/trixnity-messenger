@@ -48,7 +48,7 @@ import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCa
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased

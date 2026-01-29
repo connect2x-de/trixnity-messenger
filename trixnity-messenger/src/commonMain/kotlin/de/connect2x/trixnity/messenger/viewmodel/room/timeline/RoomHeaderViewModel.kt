@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.serialization.builtins.PairSerializer
 import de.connect2x.trixnity.client.flattenValues
 import de.connect2x.trixnity.client.key
 import de.connect2x.trixnity.client.media
@@ -41,7 +40,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
