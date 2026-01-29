@@ -6,7 +6,7 @@ import de.connect2x.lognity.config.CoreConfigExtension
 import de.connect2x.lognity.config.SerializableConfig
 import de.connect2x.lognity.config.extension.ConfigExtension
 import de.connect2x.lognity.config.setDefaultConfig
-import de.connect2x.messenger.compose.view.startMultiMessenger
+import de.connect2x.trixnity.messenger.compose.view.startMultiMessenger
 import de.connect2x.trixnity.messenger.util.getAppPath
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.io.asSource

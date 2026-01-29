@@ -75,7 +75,7 @@ data class MatrixMessengerConfiguration(
     var defaultHomeServer: String? = null,
 
     /**
-     * Whether the [de.connect2x.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
+     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
      *
      * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel]
      * and others can be used to manually guide the user through the setup process.

@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.app
 
-import de.connect2x.messenger.compose.view.composeViewModule
+import de.connect2x.trixnity.messenger.compose.view.composeViewModule
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages

@@ -79,7 +79,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
 
 kotlin {
     defaultCompilerOptions()
-    withAndroid("$group.compose.app")
+    withAndroid("$group.compose.app", minSdk = libs.versions.minSdkVersion)
     withJvm()
     withJs {
         withBrowser {

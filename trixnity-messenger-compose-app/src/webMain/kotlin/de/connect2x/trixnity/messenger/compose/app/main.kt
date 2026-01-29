@@ -5,7 +5,7 @@ import de.connect2x.lognity.backend.DefaultBackend
 import de.connect2x.lognity.config.CoreConfigExtension
 import de.connect2x.lognity.config.SerializableConfig
 import de.connect2x.lognity.config.withDefaultConfig
-import de.connect2x.messenger.compose.view.startMultiMessenger
+import de.connect2x.trixnity.messenger.compose.view.startMultiMessenger
 import io.ktor.http.*
 import kotlinx.browser.window
 
