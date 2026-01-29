@@ -129,6 +129,12 @@ fun MessageBubbleContent(
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value == true
+    val messageBubbleStyle = when {
+        sendError != null -> MaterialTheme.components.messageBubbleError
+        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+        else -> MaterialTheme.components.messageBubbleOther
+    }
+
 
     val highlighted = if (highlight) Modifier.border(
         width = 3.dp,
@@ -161,7 +167,7 @@ fun MessageBubbleContent(
                             text = sender.name,
                             style = MaterialTheme.typography.labelLarge.copy(
                                 color = MaterialTheme.messengerColors.getUserColor(
-                                    sender.userId
+                                    sender.userId, messageBubbleStyle.color
                                 )
                             ),
                         )

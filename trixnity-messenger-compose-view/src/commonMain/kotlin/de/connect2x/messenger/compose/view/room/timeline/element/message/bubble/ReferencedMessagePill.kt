@@ -29,7 +29,13 @@ fun ReferencedMessagePill(
     content: @Composable () -> Unit,
 ) {
     val sender = holder.sender.collectAsState().value
-    val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId) } ?: Color.Unspecified
+    val sendError = holder.sendError.collectAsState().value
+    val messageBubbleStyle = when {
+        sendError != null -> MaterialTheme.components.messageBubbleError
+        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+        else -> MaterialTheme.components.messageBubbleOther
+    }
+    val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId,messageBubbleStyle.color) } ?: Color.Unspecified
     val outlineColor = MaterialTheme.colorScheme.outline
     val isFocused = interactionSource.collectIsFocusedAsState()
 
