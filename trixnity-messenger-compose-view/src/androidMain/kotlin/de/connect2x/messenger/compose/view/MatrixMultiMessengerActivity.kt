@@ -26,6 +26,7 @@ import de.connect2x.messenger.compose.view.theme.IsFocusHighlighting
 import de.connect2x.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMultiMessengerServiceConnection
+import de.connect2x.trixnity.messenger.compose.view.R
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.defaultActivityGetter
@@ -53,7 +54,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        //log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
+        log.debug { "Creating activity instance for '${getString(R.string.app_name)}'" }
 
         matrixMultiMessengerServiceConnection.bind(applicationContext)
         onNewIntent(intent)
