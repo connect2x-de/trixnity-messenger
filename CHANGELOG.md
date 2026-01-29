@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: Move account creation warning from separate modal to connection wizard
 - UI: Show a warning when redacting messages
 - SDK: Replace all logging with new Lognity logging framework
+- SDK: Update to conventions version 20260129.102940
 
 ### Removed
 
