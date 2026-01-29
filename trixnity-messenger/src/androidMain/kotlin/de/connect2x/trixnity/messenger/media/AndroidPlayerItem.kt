@@ -114,6 +114,7 @@ internal class AndroidPlayerItem(
             playingItem.value = null
             isPlaying.value = false
             controller.pause()
+            controller.clearMediaItems()
         }
 
         playingItem.value = null

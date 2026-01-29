@@ -1,9 +1,12 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.trixnity.messenger.interop.observer.NSObjectObserverProtocol
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,14 +19,24 @@ import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
+import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
+import platform.AVFoundation.AVPlayerItemStatusReadyToPlay
 import platform.AVFoundation.AVURLAsset
 import platform.AVFoundation.AVURLAssetOverrideMIMETypeKey
+import platform.AVFoundation.duration
 import platform.AVFoundation.pause
 import platform.AVFoundation.play
 import platform.AVFoundation.seekToTime
 import platform.CoreMedia.CMTimeMake
+import platform.Foundation.NSKeyValueObservingOptionInitial
+import platform.Foundation.NSNotificationCenter
+import platform.Foundation.NSOperationQueue
+import platform.Foundation.addObserver
+import platform.Foundation.removeObserver
 import platform.darwin.NSObject
+import platform.darwin.NSObjectProtocol
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger {}
 
@@ -33,13 +46,16 @@ internal class ApplePlayerItem(
     playerState: StateFlow<MediaPlayer.State>,
     private val playerMutex: Mutex,
     private val coroutineScope: CoroutineScope,
-    private val playingItem: StateFlow<ApplePlayerItem?>,
+    private val playingItem: MutableStateFlow<ApplePlayerItem?>,
     private val withPlayer: (item: AVPlayerItem?, closure: (AVPlayer) -> Unit) -> Unit
-) : NSObject(), MediaPlayer.Item {
+) : MediaPlayer.Item {
     private val itemState: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
     private val file: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
     private val isAudio = item is RoomMessageTimelineElementViewModel.FileBased.Audio
     private val rawMimeType = if (isAudio) "audio/raw" else "video/raw"
+
+    private val statusObserver: ItemStatusObserver = ItemStatusObserver()
+    private var playEndObserver: NSObjectProtocol? = null
     private var playerItem: AVPlayerItem? = null
 
     override val isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -69,14 +85,22 @@ internal class ApplePlayerItem(
                 val options = mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to (item.mimeType ?: rawMimeType))
                 val asset = AVURLAsset.URLAssetWithURL(file.path.toNSUrl(), options)
                 playerItem = AVPlayerItem.playerItemWithAsset(asset)
+                playerItem?.addObserver(statusObserver, "status", NSKeyValueObservingOptionInitial, null)
+                playEndObserver = NSNotificationCenter.defaultCenter.addObserverForName(
+                    name = AVPlayerItemDidPlayToEndTimeNotification,
+                    queue = NSOperationQueue.mainQueue,
+                    `object` = playerItem
+                ) {
+                    elapsedTime.value = Duration.ZERO
+                    pause0()
+                }
             }
 
             withPlayer(requireNotNull(playerItem)) { player ->
-                if (startPosition != null) {
-                    player.seekToTime(CMTimeMake(startPosition.inWholeMilliseconds, 1000))
-                }
-
+                val startDuration = startPosition ?: elapsedTime.value ?: Duration.ZERO
+                player.seekToTime(CMTimeMake(startDuration.inWholeMilliseconds, 1000))
                 player.play()
+                playingItem.value = this
             }
         }
     }
@@ -96,21 +120,30 @@ internal class ApplePlayerItem(
             return
         }
 
-        withPlayer(null) { player ->
-            val time = CMTimeMake(position.inWholeMilliseconds, 1000)
-            player.seekToTime(time)
-        }
+        seekTo0(position)
     }
 
     override fun close() {
+        playerItem?.removeObserver(statusObserver, "status")
+        playEndObserver?.let { observer ->
+            NSNotificationCenter.defaultCenter.removeObserver(observer)
+        }
+
         coroutineScope.launch {
             file.value?.delete()
         }
     }
 
     private fun pause0() = withPlayer(null) { player ->
+        seekTo0(Duration.ZERO)
         player.pause()
         isPlaying.value = false
+        playingItem.value = null
+    }
+
+    private fun seekTo0(position: Duration) = withPlayer(null) { player ->
+        val time = CMTimeMake(position.inWholeMilliseconds, 1000)
+        player.seekToTime(time)
     }
 
     private suspend fun withMediaFile(closure: suspend (OkioPlatformMedia.TemporaryFile) -> Unit) {
@@ -138,5 +171,24 @@ internal class ApplePlayerItem(
                 )
             },
         )
+    }
+
+    inner class ItemStatusObserver : NSObject(), NSObjectObserverProtocol {
+        override fun observeValueForKeyPath(
+            keyPath: String?,
+            ofObject: Any?,
+            change: Map<Any?, *>?,
+            context: COpaquePointer?
+        ) {
+            if (playerItem?.let { it.status != AVPlayerItemStatusReadyToPlay } ?: true)
+                return
+
+            playerItem?.duration?.useContents {
+                if (this.timescale == 0)
+                    return@useContents
+
+                duration.value = (this.value * 1000 / this.timescale).milliseconds
+            }
+        }
     }
 }

@@ -37,7 +37,7 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
 
     @OptIn(ExperimentalForeignApi::class)
     private fun withPlayer(item: AVPlayerItem?, closure: (AVPlayer) -> Unit) {
-        if (item == null) {
+        if (item != null) {
             player?.replaceCurrentItemWithPlayerItem(item)
             if (player == null) {
                 player = AVPlayer.playerWithPlayerItem(item)
