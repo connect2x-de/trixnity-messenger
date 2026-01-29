@@ -57,11 +57,13 @@ internal class AndroidPlayerItem(
             return@withLock
         }
 
-        log.debug { "Stop previously played media file before starting to play new media file" }
-        playingItem.value?.pause0() // Stop the currently playing element if one is currently played
+        // Stop the currently playing element if one is currently played
+        playingItem.value?.let { previousItem ->
+            log.debug { "Stop previously played media file before starting to play new media file" }
+            previousItem.pause0()
+        }
 
         withMediaFile { tempFile ->
-            isPlaying.value = true
             log.debug { "Starting playback of media item '${item.name}'" }
             withMediaController { controller ->
                 log.trace { "Successfully acquired media player, Starting media playback" }
@@ -75,6 +77,7 @@ internal class AndroidPlayerItem(
                 controller.prepare()
                 controller.play()
                 playingItem.value = this
+                isPlaying.value = true
             }
         }
     }
@@ -118,12 +121,11 @@ internal class AndroidPlayerItem(
             controller.pause()
             controller.clearMediaItems()
         }
-
-        playingItem.value = null
     }
 
     override fun close() {
         coroutineScope.launch {
+            pause0()
             file.value?.delete()
         }
     }
