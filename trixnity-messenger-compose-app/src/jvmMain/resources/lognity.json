@@ -1,7 +1,7 @@
 {
     "$schema": "https://gitlab.com/connect2x/lognity/-/raw/main/schema/Lognity%20Config%20V1.json",
     "version": 1,
-    "level": "DEBUG",
+    "level": "INFO",
     "enabled": true,
     "appenders": [
         {
