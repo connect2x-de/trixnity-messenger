@@ -11,17 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- SDK: Upgrade Trixnity to 5.0.4
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- UI: Adjust the color of names in message bubbles to have better contrast
-
 ### Security
+
+## 4.0.1
+
+### Changed
+
+- SDK: Upgrade Trixnity to 5.0.4
+
+### Fixed
+
+- UI: Adjust the color of names in message bubbles to have better contrast
 
 ## 4.0.0
 
