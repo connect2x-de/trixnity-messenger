@@ -97,10 +97,15 @@ internal class ApplePlayerItem(
             }
 
             withPlayer(requireNotNull(playerItem)) { player ->
-                val startDuration = startPosition ?: elapsedTime.value ?: Duration.ZERO
-                player.seekToTime(CMTimeMake(startDuration.inWholeMilliseconds, 1000))
-                player.play()
-                playingItem.value = this
+                try {
+                    val startDuration = startPosition ?: elapsedTime.value ?: Duration.ZERO
+                    player.seekToTime(CMTimeMake(startDuration.inWholeMilliseconds, 1000))
+                    player.play()
+                    playingItem.value = this
+                } catch (ex: Exception) {
+                    log.error(ex) { "Failed to play media item" }
+                    itemState.value = MediaPlayer.State.Failed("Unable to play media item: ${ex.message}")
+                }
             }
         }
     }

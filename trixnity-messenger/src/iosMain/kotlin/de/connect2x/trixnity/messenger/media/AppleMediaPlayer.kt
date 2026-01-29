@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,8 @@ import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.CoreMedia.CMTimeMakeWithSeconds
 import platform.darwin.NSEC_PER_SEC
 import kotlin.time.Duration.Companion.milliseconds
+
+private val log = KotlinLogging.logger { }
 
 internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val _playingItem: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
@@ -38,20 +41,25 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
     @OptIn(ExperimentalForeignApi::class)
     private fun withPlayer(item: AVPlayerItem?, closure: (AVPlayer) -> Unit) {
         if (item != null) {
-            player?.replaceCurrentItemWithPlayerItem(item)
-            if (player == null) {
-                player = AVPlayer.playerWithPlayerItem(item)
+            try {
+                player?.replaceCurrentItemWithPlayerItem(item)
+                if (player == null) {
+                    player = AVPlayer.playerWithPlayerItem(item)
 
-                val interval = CMTimeMakeWithSeconds(0.125, NSEC_PER_SEC.toInt()) // 125ms
-                timeObserver = player?.addPeriodicTimeObserverForInterval(interval, null) { time ->
-                    time.useContents {
-                        if (timescale <= 0)
-                            return@useContents
+                    val interval = CMTimeMakeWithSeconds(0.125, NSEC_PER_SEC.toInt()) // 125ms
+                    timeObserver = player?.addPeriodicTimeObserverForInterval(interval, null) { time ->
+                        time.useContents {
+                            if (timescale <= 0)
+                                return@useContents
 
-                        val elapsedTime = (this.value * 1000 / this.timescale).milliseconds
-                        _playingItem.value?.elapsedTime?.value = elapsedTime
+                            val elapsedTime = (this.value * 1000 / this.timescale).milliseconds
+                            _playingItem.value?.elapsedTime?.value = elapsedTime
+                        }
                     }
                 }
+            } catch (ex: Exception) {
+                log.error(ex) { "Unable to prepare media player" }
+                state.value = MediaPlayer.State.Failed("Unable to prepare media player: ${ex.message}")
             }
         }
 
