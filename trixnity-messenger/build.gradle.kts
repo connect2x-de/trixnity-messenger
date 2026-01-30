@@ -11,6 +11,7 @@ import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.withAndroidLibrary
+import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
@@ -44,13 +45,12 @@ kotlin {
         }
     }
     withJs {
-        browser {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
             }
             testTask {
                 useKarma {
-                    useFirefoxHeadless()
                     useConfigDirectory(rootDir.resolve("karma.config.d"))
                 }
             }
@@ -112,7 +112,7 @@ kotlin {
                 implementation(sharedLibs.skie.annotations)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
                 implementation(sharedLibs.kotlinx.coroutines.test)
@@ -123,7 +123,7 @@ kotlin {
                 implementation(libs.okio.fakefilesystem)
             }
         }
-        val jvmAndNativeMain by getting {
+        named("jvmAndNativeMain") {
             dependencies {
                 implementation(libs.trixnity.client.repository.room)
                 // implementation(sharedLibs.androidx.sqlite3mc.bundled)
@@ -132,7 +132,7 @@ kotlin {
                 api(libs.trixnity.client.media.okio)
             }
         }
-        val jvmAndAndroidMain by getting {
+        named("jvmAndAndroidMain") {
             dependencies {
                 api(sharedLibs.lognity.slf4j)
             }

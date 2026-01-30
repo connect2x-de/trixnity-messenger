@@ -4,6 +4,7 @@ import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.withAndroidLibrary
+import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
@@ -27,19 +28,21 @@ registerCoverageTask("koverXmlReportJvm")
 kotlin {
     withSourcesJar()
     defaultCompilerOptions()
-    withAndroidLibrary {
+    withAndroidLibrary("$group.compose.view") {
         instrumentedTestVariant.sourceSetTree.set(KotlinSourceSetTree.test)
     }
     withJvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
+        testRuns.named("test") {
+            executionTask.configure {
+                useJUnitPlatform()
+            }
         }
         tasks.withType<Test>().configureEach {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
     withJs {
-        browser {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
             }
@@ -138,7 +141,6 @@ dependencies {
 }
 
 android {
-    namespace = "de.connect2x.messenger.compose.view"
     buildFeatures {
         compose = true
     }

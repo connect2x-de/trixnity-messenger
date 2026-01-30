@@ -5,7 +5,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenLocal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // compose multiplatform a11y
+        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // Compose Multiplatform A11y
     }
 }
 
@@ -15,13 +15,16 @@ dependencyResolutionManagement {
     repositories {
         mavenLocal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        maven("https://gitlab.com/api/v4/projects/75787860/packages/maven") // compose multiplatform core a11y
-        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // compose multiplatform a11y
+        maven("https://gitlab.com/api/v4/projects/75787860/packages/maven") // Compose Multiplatform Core A11y
+        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // Compose Multiplatform A11y
+        maven("https://gitlab.com/api/v4/projects/72301746/packages/maven") // Lognity
+        maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // Sysnotify
+        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // Trixnity
     }
 }
 
 plugins {
-    id("de.connect2x.conventions.c2x-settings-plugin") version "20260127.085233"
+    id("de.connect2x.conventions.c2x-settings-plugin") version "20260129.102940"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

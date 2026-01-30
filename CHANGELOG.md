@@ -9,6 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.0.2
+
+### Changed
+
+- UI: Moved de.connect2x.messenger -> de.connect2x.trixnity.messenger
+
+## 4.0.1
+
+### Changed
+
+- SDK: Upgrade Trixnity to 5.0.4
+
+### Fixed
+
+- UI: Adjust the color of names in message bubbles to have better contrast
+
+## 4.0.0
+
+### Added
+
 - Support UnifiedPush
 
 ### Changed
@@ -25,8 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: Move account creation warning from separate modal to connection wizard
 - UI: Show a warning when redacting messages
 - SDK: Replace all logging with new Lognity logging framework
-
-### Deprecated
+- SDK: Update to conventions version 20260129.102940
 
 ### Removed
 
@@ -43,8 +72,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Remove large gap between message and expandable sections in message details
 - UI: The avatar shape no longer deforms at very small heights in the profile view
 - SDK: Fix empty verification screen when ending verification on other device before starting messenger
-
-### Security
 
 ## 3.10.0
 

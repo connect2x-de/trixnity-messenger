@@ -3,6 +3,7 @@ import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import de.connect2x.conventions.withAndroid
+import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
@@ -21,7 +22,7 @@ plugins {
 
 configureJava(sharedLibs.versions.targetJvm)
 
-val version = "1.0.0"
+val appVersion = "1.0.0"
 val appName = "Trixnity Messenger"
 val appId = "de.connect2x.trixnity.messenger.compose.app"
 
@@ -56,7 +57,7 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
             package $appId            
             
             actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
-                override val version: String = "$version"
+                override val version: String = "$appVersion"
                 override val flavor: Flavor = Flavor.valueOf("$buildFlavor")
                 override val appName: String = "$appName"
                 override val appId: String = "$appId"
@@ -78,10 +79,10 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
 
 kotlin {
     defaultCompilerOptions()
-    withAndroid()
+    withAndroid("$group.compose.app", minSdk = libs.versions.minSdkVersion)
     withJvm()
     withJs {
-        browser {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
             }
@@ -155,7 +156,7 @@ kotlin {
     }
 }
 
-val distributionJavaHome = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
+val distributionJavaHome: String = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
     languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
     vendor = JvmVendorSpec.ADOPTIUM
 }.get().metadata.installationPath.asFile.absolutePath
@@ -175,7 +176,7 @@ compose {
                 // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
                 appResourcesRootDir = layout.buildDirectory
                 packageName = appId
-                packageVersion = version
+                packageVersion = appVersion
 
                 windows {
                     menu = true
