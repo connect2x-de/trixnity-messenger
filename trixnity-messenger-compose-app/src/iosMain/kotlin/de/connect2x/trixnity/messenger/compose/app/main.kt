@@ -19,7 +19,7 @@ fun main(args: List<String>) {
     val path = bundle.pathForResource("lognity", "json") ?: error("Unable to locate logger config")
     val data = NSData.dataWithContentsOfFile(path)?.toByteArray() ?: error("Unable to read logger config")
 
-    Backend.setOnce(DefaultBackend)
+    Backend.set(DefaultBackend)
     SerializableConfig uses CoreConfigExtension
     Backend.setDefaultConfig(Buffer().also { it.write(data) })
 
