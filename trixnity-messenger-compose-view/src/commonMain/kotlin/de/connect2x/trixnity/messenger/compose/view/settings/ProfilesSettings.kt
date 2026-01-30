@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.settings
+package de.connect2x.trixnity.messenger.compose.view.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,14 +13,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.VerticalScrollbar
-import de.connect2x.messenger.compose.view.common.ApprovableTextField
-import de.connect2x.messenger.compose.view.common.Header
-import de.connect2x.messenger.compose.view.common.RunningText
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.components.ThemedListItemSwitch
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
+import de.connect2x.trixnity.messenger.compose.view.common.ApprovableTextField
+import de.connect2x.trixnity.messenger.compose.view.common.Header
+import de.connect2x.trixnity.messenger.compose.view.common.RunningText
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
 
 interface ProfilesSettingsView {
