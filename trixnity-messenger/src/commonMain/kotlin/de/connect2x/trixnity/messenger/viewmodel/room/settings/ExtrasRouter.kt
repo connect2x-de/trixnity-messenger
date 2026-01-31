@@ -6,28 +6,28 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.navigateSuspending
 import de.connect2x.trixnity.messenger.util.popSuspending
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementDevInfo
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.TimelineElementMetadata
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.Details.UserProfile
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.AddMembers
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.RoomDevInfos
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.ExportRoom
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.PowerLevels
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings.RoomDevInfos
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface ExtrasRouter {
@@ -279,14 +279,6 @@ class ExtrasRouterImpl(
                 viewModelContext = viewModelContext.childContext("TimelineElementDevInfo", componentContext),
                 eventId = config.eventId,
                 roomId = config.roomId,
-                timelineElementMetadataViewModel = viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("TimelineElementDevInfo", componentContext),
-                    eventId = config.eventId,
-                    roomId = config.roomId,
-                    onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
-                    onOpenDevInfo = {},
-                    onBack = ::onBack,
-                ),
                 onBack = ::onBack,
             )
         )

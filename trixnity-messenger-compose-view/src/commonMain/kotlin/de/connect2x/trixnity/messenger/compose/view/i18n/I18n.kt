@@ -1121,15 +1121,9 @@ open class I18nView(
     }
 
     // Eigenname, daher keine Übersetzung
-    open fun timelineElementMetadataBody() = translate {
-        EN - "Body"
-        DE - "Body"
-    }
-
-    // Eigenname, daher keine Übersetzung
-    open fun timelineElementMetadataFormattedBody() = translate {
-        EN - "Formatted Body"
-        DE - "Formatted Body"
+    open fun timelineElementMetadataEvent() = translate {
+        EN - "Timeline-event"
+        DE - "Timeline-event"
     }
 
     open fun timelineElementMetadataEventId() = translate {
