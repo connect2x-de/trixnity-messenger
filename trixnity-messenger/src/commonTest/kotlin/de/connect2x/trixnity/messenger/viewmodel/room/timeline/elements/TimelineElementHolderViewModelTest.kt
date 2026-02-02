@@ -10,6 +10,8 @@ import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.originTimestamp
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -29,16 +31,20 @@ import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
@@ -113,6 +119,8 @@ class TimelineElementHolderViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
+    val roomApiClientMock = mock<RoomApiClient>()
 
     val timelineEvent = TimelineEvent(
         event = MessageEvent(
@@ -130,15 +138,17 @@ class TimelineElementHolderViewModelTest {
 
     private val receipts = MutableStateFlow<Map<EventId, Set<UserId>>>(mapOf())
     private val scope = TestScope()
+
+    private val settings = createTestMatrixMessengerSettingsHolder()
     private val di = koinApplication {
         modules(
-            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock)),
+            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings),
         )
     }.koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
 
     init {
-        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        resetCalls(matrixClientMock, roomServiceMock, userServiceMock, roomApiClientMock)
         every { matrixClientMock.di } returns koinApplication {
             modules(
                 module {
@@ -179,6 +189,8 @@ class TimelineElementHolderViewModelTest {
             )
         }
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(null)
+        every { matrixClientMock.api } returns matrixClientServerApiClientMock
+        every { matrixClientServerApiClientMock.room } returns roomApiClientMock
         receipts.value = mapOf()
     }
 
@@ -788,6 +800,60 @@ class TimelineElementHolderViewModelTest {
         cut.sendError.launchIn(backgroundScope)
         eventually(100.milliseconds) {
             cut.sendError.value shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `redact » should redact via warning if enabled`() = runTest {
+        settings.update<MatrixMessengerSettingsBase> { it.copy(showRedactionWarning = true) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        var redactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls {
+            redactCalled = true
+            Result.success(it.args[1] as EventId)
+        }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        eventually(100.milliseconds) {
+            cut.showRedactionWarning.value shouldBe true
+        }
+        continually(100.milliseconds) {
+            redactCalled shouldBe false
+        }
+        cut.acceptRedactionWarning()
+        eventually(100.milliseconds) {
+            redactCalled shouldBe true
+        }
+    }
+
+    @Test
+    fun `redact » should redact directly when no warning is enabled`() = runTest {
+        settings.update<MatrixMessengerSettingsBase> { it.copy(showRedactionWarning = false) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        var redactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls {
+            redactCalled = true
+            Result.success(it.args[1] as EventId)
+        }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        continually(100.milliseconds) {
+            cut.showRedactionWarning.value shouldBe false
+        }
+        eventually(100.milliseconds) {
+            redactCalled shouldBe true
         }
     }
 

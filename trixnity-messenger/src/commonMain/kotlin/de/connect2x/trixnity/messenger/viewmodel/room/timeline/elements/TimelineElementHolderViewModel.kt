@@ -546,6 +546,7 @@ class TimelineElementHolderViewModelImpl(
         if (!redactionWarningEnabled.value) {
             redactElement()
         } else {
+            log.debug { "Showing redaction warning instead of redacting directly" }
             _showRedactionWarning.value = true
         }
     }
