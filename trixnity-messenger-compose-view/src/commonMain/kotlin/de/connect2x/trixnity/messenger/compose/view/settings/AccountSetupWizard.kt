@@ -221,13 +221,13 @@ private fun wizardStepPrivacy(
         val publicPresence = privacySettingsViewModel.presenceIsPublic.collectAsState().value
         val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
         val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
-        val redactWarningEnabled = privacySettingsAllAccountsViewModel.redactionWarningEnabled.collectAsState().value
+        val redactWarningEnabled = privacySettingsAllAccountsViewModel.redactionWarningEnabled.collectAsState().value == true
         Column {
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
                 supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
-                selected = redactWarningEnabled == true,
+                selected = redactWarningEnabled,
                 onChange = { privacySettingsAllAccountsViewModel.toggleRedactionWarningEnabledState() },
             )
             ThemedListItemSwitch(

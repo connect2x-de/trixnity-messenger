@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getTimelineEventReplaceAggregation
@@ -28,7 +29,6 @@ import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -152,13 +153,15 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
-    val redactionWarningEnabled: StateFlow<Boolean?>
+    val showRedactionWarning: StateFlow<Boolean>
 
     val highlight: StateFlow<Boolean>
 
     fun replace()
     fun endReplace()
     fun redact()
+    fun acceptRedactionWarning()
+    fun cancelRedactionWarning()
     fun reply()
     fun endReply()
     fun report()
@@ -202,9 +205,10 @@ class TimelineElementHolderViewModelImpl(
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val redactionWarningEnabled: StateFlow<Boolean?> =
-        get<MatrixMessengerSettingsHolder>().map { it.base.showRedactionWarning }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+    private val redactionWarningEnabled =
+        get<MatrixMessengerSettingsHolder>().map { it.base.showRedactionWarning }.stateIn(coroutineScope, Eagerly, true)
+    private val _showRedactionWarning = MutableStateFlow(false)
+    override val showRedactionWarning: StateFlow<Boolean> = _showRedactionWarning.asStateFlow()
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
@@ -506,7 +510,7 @@ class TimelineElementHolderViewModelImpl(
         editInProgress.value = false
     }
 
-    override fun redact() {
+    private fun redactElement() {
         if (redactionInProgress.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 timelineEventFlow.first().let { timelineEvent ->
@@ -536,6 +540,23 @@ class TimelineElementHolderViewModelImpl(
             "try to redact timeline event $eventId," +
                     " but is already marked for redaction"
         }
+    }
+
+    override fun redact() {
+        if (!redactionWarningEnabled.value) {
+            redactElement()
+        } else {
+            _showRedactionWarning.value = true
+        }
+    }
+
+    override fun acceptRedactionWarning() {
+        redactElement()
+        _showRedactionWarning.value = false
+    }
+
+    override fun cancelRedactionWarning() {
+        _showRedactionWarning.value = false
     }
 
     override fun reply() {
@@ -625,7 +646,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val redactionWarningEnabled: StateFlow<Boolean?> = MutableStateFlow(true)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -633,6 +654,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}
@@ -680,7 +703,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val redactionWarningEnabled: StateFlow<Boolean?> = MutableStateFlow(true)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -688,6 +711,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}

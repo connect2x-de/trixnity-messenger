@@ -64,7 +64,8 @@ class SettingsTest {
                 "accentColor": 1,
                 "fontSize": null,
                 "displaySize": null,
-                "applySystemSizes": true
+                "applySystemSizes": true,
+                "showRedactionWarning": true
             }
         """.trimIndent()
     }

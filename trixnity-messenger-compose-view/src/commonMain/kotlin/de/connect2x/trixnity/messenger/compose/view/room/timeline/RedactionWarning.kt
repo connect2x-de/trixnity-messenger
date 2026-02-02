@@ -27,49 +27,47 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 
 interface RedactionWarningView {
     @Composable
-    fun create(holder: BaseTimelineElementHolderViewModel, showRedactWarning: MutableState<Boolean>)
+    fun create(holder: BaseTimelineElementHolderViewModel)
 }
 
 @Composable
-fun RedactionWarning(holder: BaseTimelineElementHolderViewModel, showRedactWarning: MutableState<Boolean>) {
-    DI.get<RedactionWarningView>().create(holder, showRedactWarning)
+fun RedactionWarning(holder: BaseTimelineElementHolderViewModel) {
+    DI.get<RedactionWarningView>().create(holder)
 }
 
 class RedactionWarningViewImpl : RedactionWarningView {
     @Composable
-    override fun create(holder: BaseTimelineElementHolderViewModel, showRedactWarning: MutableState<Boolean>) {
+    override fun create(holder: BaseTimelineElementHolderViewModel) {
         if (holder !is TimelineElementHolderViewModel) {
             return
         }
         val i18n = DI.get<I18nView>()
-        if (showRedactWarning.value) {
-            ThemedModalDialog(onDismissRequest = { showRedactWarning.value = false }) {
-                ModalDialogHeader { Text(i18n.redactionWarningInfoTitle()) }
-                ModalDialogContent {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Warning,
-                            i18n.commonWarning(),
-                            tint = MaterialTheme.messengerColors.warning
-                        )
-                        MiddleSpacer()
-                        Text(i18n.redactionWarningInfo())
-                    }
+        ThemedModalDialog(onDismissRequest = { holder.cancelRedactionWarning() }) {
+            ModalDialogHeader { Text(i18n.redactionWarningInfoTitle()) }
+            ModalDialogContent {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Warning,
+                        i18n.commonWarning(),
+                        tint = MaterialTheme.messengerColors.warning
+                    )
+                    MiddleSpacer()
+                    Text(i18n.redactionWarningInfo())
                 }
-                ModalDialogFooter {
-                    ThemedButton(
-                        onClick = {
-                            showRedactWarning.value = false
-                        },
-                        style = MaterialTheme.components.commonButton
-                    ) {
-                        Text(i18n.commonCancel())
-                    }
-                    ThemedButton(onClick = {
-                        holder.redact()
-                    }, style = MaterialTheme.components.primaryButton) {
-                        Text(i18n.commonConfirm())
-                    }
+            }
+            ModalDialogFooter {
+                ThemedButton(
+                    onClick = {
+                        holder.cancelRedactionWarning()
+                    },
+                    style = MaterialTheme.components.commonButton
+                ) {
+                    Text(i18n.commonCancel())
+                }
+                ThemedButton(onClick = {
+                    holder.acceptRedactionWarning()
+                }, style = MaterialTheme.components.primaryButton) {
+                    Text(i18n.commonConfirm())
                 }
             }
         }
