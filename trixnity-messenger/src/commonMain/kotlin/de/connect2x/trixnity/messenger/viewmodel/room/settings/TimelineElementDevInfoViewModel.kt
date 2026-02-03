@@ -60,10 +60,14 @@ class TimelineElementDevInfoViewModelImpl(
             .map { it?.mergedEvent?.getOrNull() }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+    private val json = Json(matrixClient.di.get<Json>()){
+        prettyPrint = true
+    }
+
     override val serializedTimelineEvent: StateFlow<String?> =
         timelineEventMergedEvent.filterNotNull().map { event ->
             Json.encodeToString(
-                matrixClient.di.get<Json>().serializersModule.getContextual(
+                json.serializersModule.getContextual(
                     ClientEvent.RoomEvent::class
                 ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,
                 event
