@@ -16,12 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.CopyableUserId
 import de.connect2x.trixnity.messenger.compose.view.settings.DevInfoCard
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomDevInfoViewModel
 
 
@@ -52,16 +55,26 @@ class RoomDevInfoViewImpl : RoomDevInfoView {
     @Composable
     override fun create(roomDevInfoViewModel: RoomDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
-        val roomIdAsUserId = remember { UserId(roomDevInfoViewModel.roomId.full) }
 
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
-                Column{
+                Column {
                     Header(roomDevInfoViewModel::back, i18n.devInfo())
                     SmallSpacer()
-                    Column(Modifier.padding(start = 8.dp, end = 8.dp)){
-                        DevInfoCard(i18n.roomSettingsRoomId(), Icons.Default.Numbers){
-                            CopyableUserId(roomIdAsUserId, MaterialTheme.typography.bodyLarge)
+                    Column(Modifier.padding(start = 8.dp, end = 8.dp)) {
+                        DevInfoCard(
+                            i18n.roomSettingsRoomId(),
+                            Icons.Default.Numbers,
+                            additionalButtons = {
+                                CopyToClipboardButton(
+                                    roomDevInfoViewModel.roomId.full,
+                                    i18n.copyToClipboardButton()
+                                )
+                            }) {
+                            ThemedSelectableText(
+                                roomDevInfoViewModel.roomId.full,
+                                MaterialTheme.components.selectionOnSurface
+                            )
                         }
                     }
                 }

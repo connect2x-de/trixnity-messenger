@@ -969,7 +969,6 @@ open class I18nView(
         EN - "copy MXID"
         DE - "Kopiere MXID"
     }
-
     open fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"
@@ -1145,6 +1144,10 @@ open class I18nView(
         DE - "Entwickler Informationen"
     }
 
+    open fun copyToClipboardButton() = translate {
+        EN - "Copy to clipboard"
+        DE - "Zur Zwischenablage kopieren"
+    }
     open fun roomSettingsRoomName() = translate {
         EN - "Name"
         DE - "Name"

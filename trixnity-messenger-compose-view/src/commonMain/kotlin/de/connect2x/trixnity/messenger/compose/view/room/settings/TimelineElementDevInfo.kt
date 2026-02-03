@@ -16,9 +16,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -54,7 +56,11 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                     Column(Modifier.padding(start = 8.dp, end = 8.dp)) {
 
                         decryptedEventJson?.let { content ->
-                            DevInfoCard(i18n.timelineElementMetadataEvent(), Icons.Default.Code) {
+                            DevInfoCard(
+                                i18n.timelineElementMetadataEvent(),
+                                Icons.Default.Code,
+                                additionalButtons = { CopyToClipboardButton(content, i18n.copyToClipboardButton()) }
+                            ) {
                                 ThemedSelectableText(
                                     content,
                                     MaterialTheme.components.selectionOnSurface
@@ -63,8 +69,20 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                             SmallSpacer()
                         }
                         timelineElementDevInfoViewModel.eventId.let { content ->
-                            DevInfoCard(i18n.timelineElementMetadataEventId(), Icons.Default.Numbers){
-                                CopyableUserId(UserId(content.full), MaterialTheme.typography.bodyLarge)
+                            DevInfoCard(
+                                i18n.timelineElementMetadataEventId(),
+                                Icons.Default.Numbers,
+                                additionalButtons = {
+                                    CopyToClipboardButton(
+                                        content.full,
+                                        i18n.copyToClipboardButton()
+                                    )
+                                }
+                            ) {
+                                ThemedSelectableText(
+                                    content.full,
+                                    MaterialTheme.components.selectionOnSurface
+                                )
                             }
                             SmallSpacer()
                         }

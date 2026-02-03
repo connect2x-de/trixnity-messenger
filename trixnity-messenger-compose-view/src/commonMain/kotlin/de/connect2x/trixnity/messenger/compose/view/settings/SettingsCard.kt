@@ -21,16 +21,24 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DevInfoCard(title: String,
-                icon: ImageVector? = null,
-                content: @Composable ColumnScope.() -> Unit
+fun DevInfoCard(
+    title: String,
+    icon: ImageVector? = null,
+    additionalButtons: @Composable (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     SettingsCard(
         title,
         icon,
-        CardColors(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurface, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurface),{
-            content()
-        })
+        CardColors(
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+            MaterialTheme.colorScheme.onSurface,
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+            MaterialTheme.colorScheme.onSurface
+        ),
+        additionalButtons,
+        content
+    )
 }
 
 @Composable
@@ -38,6 +46,7 @@ fun SettingsCard(
     title: String,
     icon: ImageVector? = null,
     colors: CardColors = CardDefaults.elevatedCardColors(),
+    additionalButtons: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     ElevatedCard(Modifier.padding(bottom = 10.dp), colors = colors) {
@@ -51,6 +60,10 @@ fun SettingsCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                 )
+                if (additionalButtons != null) {
+                    Spacer(Modifier.weight(1.0f, false).fillMaxWidth())
+                    additionalButtons()
+                }
             }
             HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
             content()
