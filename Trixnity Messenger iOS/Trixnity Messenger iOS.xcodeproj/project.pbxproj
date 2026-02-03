@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		43ABB3472F30E09900A3CCA9 /* lognity.json in Resources */ = {isa = PBXBuildFile; fileRef = 43ABB3462F30E09900A3CCA9 /* lognity.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		21A1B0502D806E4300623456 /* Trixnity Messenger iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Trixnity Messenger iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		43ABB3462F30E09900A3CCA9 /* lognity.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = lognity.json; path = "../trixnity-messenger-compose-app/src/iosMain/resources/lognity.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		21A1B0472D806E4300623456 = {
 			isa = PBXGroup;
 			children = (
+				43ABB3462F30E09900A3CCA9 /* lognity.json */,
 				21A1B0522D806E4300623456 /* Trixnity Messenger iOS */,
 				21A1B0512D806E4300623456 /* Products */,
 			);
@@ -110,6 +116,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43ABB3472F30E09900A3CCA9 /* lognity.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

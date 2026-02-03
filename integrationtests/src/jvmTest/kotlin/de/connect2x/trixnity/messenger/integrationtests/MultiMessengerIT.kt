@@ -23,11 +23,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import kotlinx.coroutines.delay
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
@@ -106,6 +108,7 @@ class MultiMessengerIT {
         messenger.verifyAccountsArePresent("user1", "user2")
         multiMessenger.closeSuspending()
 
+        delay(100.milliseconds )
         DebugProbes.dumpCoroutinesInfo() shouldHaveSize 1 // only the coroutine of this test should still be active
     }
 }
