@@ -68,6 +68,11 @@ data class MatrixMessengerSettingsBase(
         val type: OAuth2LoginViewModel.Type,
         val state: OAuth2LoginFlow.AuthRequestData.State,
     )
+
+    companion object {
+        fun MatrixMessengerSettingsBase.applyConfigDefaults(config: MatrixMessengerConfiguration): MatrixMessengerSettingsBase =
+            this.copy(showRedactionWarning = config.defaultEnableRedactionWarning)
+    }
 }
 
 @Serializable

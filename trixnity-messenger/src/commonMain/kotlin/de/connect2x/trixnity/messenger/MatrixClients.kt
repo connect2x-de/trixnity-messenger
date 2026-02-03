@@ -36,6 +36,7 @@ import de.connect2x.trixnity.clientserverapi.client.useApi
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase.Companion.applyConfigDefaults
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
@@ -203,8 +204,8 @@ class MatrixClientsImpl(
                 config = config
             )
         )
-        if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
-            settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
+        if (settings.value.base.accounts.size == 1) { // if first account, set as the active account and apply config
+            settings.update<MatrixMessengerSettingsBase> { it.applyConfigDefaults(config).copy(selectedAccount = matrixClient.userId) }
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }

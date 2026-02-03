@@ -247,7 +247,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override fun replace() {}
     override fun endReplace() {}
-    override fun redact() {}
+    override fun redact(forceRedactionWarning: Boolean) {}
     override fun acceptRedactionWarning() {}
     override fun cancelRedactionWarning() {}
     override fun reply() {}
@@ -304,7 +304,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override fun replace() {}
     override fun endReplace() {}
-    override fun redact() {}
+    override fun redact(forceRedactionWarning: Boolean) {}
     override fun acceptRedactionWarning() {}
     override fun cancelRedactionWarning() {}
     override fun reply() {}
