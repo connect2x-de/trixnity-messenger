@@ -20,6 +20,7 @@ dependencyResolutionManagement {
         maven("https://gitlab.com/api/v4/projects/72301746/packages/maven") // Lognity
         maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // Sysnotify
         maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // Trixnity
+        maven("https://gitlab.com/api/v4/projects/72850047/packages/maven") // SQLitenity
     }
 }
 
