@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,14 +21,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 
 
 @Composable
@@ -70,8 +70,10 @@ class RoomSettingsViewImpl : RoomSettingsView {
             { roomSettingsViewModel.close() },
             if (isSinglePane) BACK else CLOSE,
             {
-                IconButton({roomSettingsViewModel.openDevInfoView()}){
-                    Icon(Icons.Default.Info, "Info")
+                Tooltip(i18n.devInfoButtonTooltip()){
+                    IconButton({roomSettingsViewModel.openDevInfoView()}){
+                        Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
+                    }
                 }
             }
         ) {

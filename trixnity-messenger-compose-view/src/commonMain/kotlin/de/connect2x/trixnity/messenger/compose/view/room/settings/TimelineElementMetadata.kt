@@ -130,8 +130,10 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
             {
-                IconButton({viewModel.openDevInfo()}){
-                    Icon(Icons.Default.Info, "Info")
+                Tooltip(i18n.devInfoButtonTooltip()){
+                    IconButton({viewModel.openDevInfo()}){
+                        Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
+                    }
                 }
             }
         ) {

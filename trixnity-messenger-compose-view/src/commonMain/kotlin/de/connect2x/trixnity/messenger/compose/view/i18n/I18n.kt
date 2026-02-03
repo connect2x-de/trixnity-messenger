@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
@@ -11,7 +12,6 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 @Suppress("UNUSED")
@@ -1138,6 +1138,11 @@ open class I18nView(
     open fun roomSettings() = translate {
         EN - "room settings"
         DE - "Raumeinstellungen"
+    }
+
+    open fun devInfoButtonTooltip() = translate {
+        EN - "Developer Information"
+        DE - "Entwickler Informationen"
     }
 
     open fun roomSettingsRoomName() = translate {
