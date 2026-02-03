@@ -44,7 +44,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
     override fun create(timelineElementDevInfoViewModel: TimelineElementDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
 
-        val serializedTimelineEvent = timelineElementDevInfoViewModel.serializedTimelineEvent.collectAsState().value
+        val decryptedEventJson = timelineElementDevInfoViewModel.decryptedEventJson.collectAsState().value
 
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
@@ -53,7 +53,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                     SmallSpacer()
                     Column(Modifier.padding(start = 8.dp, end = 8.dp)) {
 
-                        serializedTimelineEvent?.let { content ->
+                        decryptedEventJson?.let { content ->
                             DevInfoCard(i18n.timelineElementMetadataEvent(), Icons.Default.Code) {
                                 ThemedSelectableText(
                                     content,

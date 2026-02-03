@@ -44,7 +44,8 @@ interface TimelineElementDevInfoViewModelFactory {
 
 interface TimelineElementDevInfoViewModel {
     val eventId: EventId
-    val serializedTimelineEvent: StateFlow<String?>
+    val eventJson: StateFlow<String?>
+    val decryptedEventJson: StateFlow<String?>
     fun back()
 }
 
@@ -55,16 +56,30 @@ class TimelineElementDevInfoViewModelImpl(
     roomId: RoomId,
     private val onBack: () -> Unit,
 ) : TimelineElementDevInfoViewModel, MatrixClientViewModelContext by viewModelContext {
+    private val timelineEventEvent: SharedFlow<ClientEvent.RoomEvent<*>> =
+        matrixClient.room.getTimelineEvent(roomId, eventId)
+            .filterNotNull()
+            .map { it.event }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
     private val timelineEventMergedEvent: SharedFlow<ClientEvent.RoomEvent<*>?> =
         matrixClient.room.getTimelineEvent(roomId, eventId)
             .map { it?.mergedEvent?.getOrNull() }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    private val json = Json(matrixClient.di.get<Json>()){
+    private val json = Json(matrixClient.di.get<Json>()) {
         prettyPrint = true
     }
+    override val eventJson: StateFlow<String?> =
+        timelineEventEvent.map { event ->
+            Json.encodeToString(
+                json.serializersModule.getContextual(
+                    ClientEvent.RoomEvent::class
+                ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,
+                event
+            )
+        }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val serializedTimelineEvent: StateFlow<String?> =
+    override val decryptedEventJson: StateFlow<String?> =
         timelineEventMergedEvent.filterNotNull().map { event ->
             Json.encodeToString(
                 json.serializersModule.getContextual(
