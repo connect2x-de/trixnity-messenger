@@ -251,11 +251,10 @@ fun MatrixMultiMessengerConfiguration.addApnsPushNotificationProvider(
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
-    modulesFactories += {
-        apnsPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
-    }
+    modulesFactories += { apnsPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval) }
     modulesFactories += ::apnsPushNotificationProviderUIApplicationDelegateModule
     messengerConfiguration {
+        modulesFactories += { apnsPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval) }
         modulesFactories += ::apnsPushNotificationProviderModule
     }
 }

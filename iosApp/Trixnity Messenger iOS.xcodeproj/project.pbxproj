@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		43ABB3472F30E09900A3CCA9 /* lognity.json in Resources */ = {isa = PBXBuildFile; fileRef = 43ABB3462F30E09900A3CCA9 /* lognity.json */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		21A1B0502D806E4300623456 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		21A1B0502D806E4300623456 /* Trixnity Messenger iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Trixnity Messenger iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		43ABB3462F30E09900A3CCA9 /* lognity.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = lognity.json; path = "../trixnity-messenger-compose-app/src/iosMain/resources/lognity.json"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,6 +37,7 @@
 		21A1B0472D806E4300623456 = {
 			isa = PBXGroup;
 			children = (
+				43ABB3462F30E09900A3CCA9 /* lognity.json */,
 				21A1B0522D806E4300623456 /* Trixnity Messenger iOS */,
 				21A1B0512D806E4300623456 /* Products */,
 			);
@@ -40,7 +46,7 @@
 		21A1B0512D806E4300623456 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				21A1B0502D806E4300623456 /* iosApp.app */,
+				21A1B0502D806E4300623456 /* Trixnity Messenger iOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +54,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		21A1B04F2D806E4300623456 /* iosApp */ = {
+		21A1B04F2D806E4300623456 /* Trixnity Messenger iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 21A1B05E2D806E4500623456 /* Build configuration list for PBXNativeTarget "iosApp" */;
+			buildConfigurationList = 21A1B05E2D806E4500623456 /* Build configuration list for PBXNativeTarget "Trixnity Messenger iOS" */;
 			buildPhases = (
 				21A1B0612D806E6900623456 /* ShellScript */,
 				21A1B04C2D806E4300623456 /* Sources */,
@@ -64,11 +70,11 @@
 			fileSystemSynchronizedGroups = (
 				21A1B0522D806E4300623456 /* Trixnity Messenger iOS */,
 			);
-			name = iosApp;
+			name = "Trixnity Messenger iOS";
 			packageProductDependencies = (
 			);
 			productName = "Trixnity Messenger iOS";
-			productReference = 21A1B0502D806E4300623456 /* iosApp.app */;
+			productReference = 21A1B0502D806E4300623456 /* Trixnity Messenger iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -100,7 +106,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				21A1B04F2D806E4300623456 /* iosApp */,
+				21A1B04F2D806E4300623456 /* Trixnity Messenger iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -110,6 +116,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43ABB3472F30E09900A3CCA9 /* lognity.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,7 +354,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		21A1B05E2D806E4500623456 /* Build configuration list for PBXNativeTarget "iosApp" */ = {
+		21A1B05E2D806E4500623456 /* Build configuration list for PBXNativeTarget "Trixnity Messenger iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				21A1B05F2D806E4500623456 /* Debug */,

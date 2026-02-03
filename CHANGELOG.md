@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- IOS: Fix initialization of APNS notification provider
+
 ### Security
 
 ## 4.0.2
