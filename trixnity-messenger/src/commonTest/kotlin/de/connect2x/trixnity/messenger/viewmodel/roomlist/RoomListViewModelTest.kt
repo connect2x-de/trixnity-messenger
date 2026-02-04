@@ -59,6 +59,7 @@ import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent.RoomType
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -224,6 +225,24 @@ class RoomListViewModelTest {
             StateEvent(
                 content = JoinRulesEventContent(
                     joinRule = JoinRulesEventContent.JoinRule.Private
+                ),
+                EventId("1"),
+                user1,
+                roomId1,
+                0L,
+                stateKey = "",
+            )
+        )
+        every {
+            roomServiceMock.getState(
+                any(),
+                HistoryVisibilityEventContent::class,
+                any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
                 ),
                 EventId("1"),
                 user1,
@@ -823,6 +842,24 @@ class RoomListViewModelTest {
                 roomId = roomId1,
                 originTimestamp = 0L,
                 stateKey = ""
+            )
+        )
+        every {
+            roomServiceMock2.getState(
+                any(),
+                HistoryVisibilityEventContent::class,
+                any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                EventId("1"),
+                user1,
+                roomId1,
+                0L,
+                stateKey = "",
             )
         )
 

@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI: Adjusted which rooms are shows as public
+
 ### Deprecated
 
 ### Removed
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI: Moved de.connect2x.messenger -> de.connect2x.trixnity.messenger
+- IOS: Rename iOS project folder for debug app to 'iosApp'
 
 ## 4.0.1
 
