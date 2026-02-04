@@ -28,6 +28,8 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.settings.SettingsJson
+import kotlinx.serialization.json.jsonObject
 import org.koin.core.module.Module
 
 @Serializable
@@ -70,8 +72,8 @@ data class MatrixMessengerSettingsBase(
     )
 
     companion object {
-        fun MatrixMessengerSettingsBase.applyConfigDefaults(config: MatrixMessengerConfiguration): MatrixMessengerSettingsBase =
-            this.copy(showRedactionWarning = config.defaultEnableRedactionWarning)
+        fun withConfigDefaults(config: MatrixMessengerConfiguration): MatrixMessengerSettingsBase =
+            MatrixMessengerSettingsBase(showRedactionWarning = config.defaultEnableRedactionWarning)
     }
 }
 
@@ -170,8 +172,15 @@ interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings
 
 class MatrixMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
-) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
+    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null),
+    defaultSettings: MatrixMessengerSettingsBase? = null
+) : SettingsHolderImpl<MatrixMessengerSettings>(
+    storage, ::MatrixMessengerSettings, settings,
+    if (defaultSettings != null) SettingsJson.encodeToJsonElement(
+        MatrixMessengerSettingsBase.serializer(),
+        defaultSettings
+    ).jsonObject else mapOf()
+),
     MatrixMessengerSettingsHolder {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl")

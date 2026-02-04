@@ -3,6 +3,13 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.useApi
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients.CreateResult.Failure
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -29,14 +36,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.useApi
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase.Companion.applyConfigDefaults
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
@@ -204,8 +203,8 @@ class MatrixClientsImpl(
                 config = config
             )
         )
-        if (settings.value.base.accounts.size == 1) { // if first account, set as the active account and apply config
-            settings.update<MatrixMessengerSettingsBase> { it.applyConfigDefaults(config).copy(selectedAccount = matrixClient.userId) }
+        if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
+            settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
         }
         matrixClients.update { it + (matrixClient.userId to matrixClient) }
     }
