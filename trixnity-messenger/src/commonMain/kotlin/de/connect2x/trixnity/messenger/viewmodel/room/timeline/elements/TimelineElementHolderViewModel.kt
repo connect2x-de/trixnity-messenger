@@ -159,7 +159,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     fun replace()
     fun endReplace()
-    fun redact(forceRedactionWarning: Boolean = false)
+    fun redact()
     fun acceptRedactionWarning()
     fun cancelRedactionWarning()
     fun reply()
@@ -542,8 +542,8 @@ class TimelineElementHolderViewModelImpl(
         }
     }
 
-    override fun redact(forceRedactionWarning: Boolean) {
-        if (!redactionWarningEnabled.value && !forceRedactionWarning) {
+    override fun redact() {
+        if (!redactionWarningEnabled.value) {
             redactElement()
         } else {
             log.debug { "Showing redaction warning instead of redacting directly" }
@@ -654,7 +654,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
-    override fun redact(forceRedactionWarning: Boolean) {}
+    override fun redact() {}
     override fun acceptRedactionWarning() {}
     override fun cancelRedactionWarning() {}
     override fun reply() {}
@@ -711,7 +711,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override fun replace() {}
     override fun endReplace() {}
-    override fun redact(forceRedactionWarning: Boolean) {}
+    override fun redact() {}
     override fun acceptRedactionWarning() {}
     override fun cancelRedactionWarning() {}
     override fun reply() {}

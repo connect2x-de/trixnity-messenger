@@ -50,7 +50,6 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
     @Composable
     override fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
         val privacySettings = privacySettingsViewModel.privacySettings
-        val redactionWarningEnabled = privacySettingsViewModel.redactionWarningEnabled.collectAsState().value == true
         val i18n = DI.get<I18nView>()
         val scroll = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
@@ -58,13 +57,7 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
                 Header(privacySettingsViewModel::back, i18n.privacyTitle())
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                        ThemedListItemSwitch(
-                            style = MaterialTheme.components.settingsItem,
-                            headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
-                            supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
-                            selected = redactionWarningEnabled,
-                            onChange = { privacySettingsViewModel.toggleRedactionWarningEnabledState() }
-                        )
+                        PrivacySettingsAllAccounts(privacySettingsViewModel)
                         SmallSpacer()
                         privacySettings.forEach { privacySetting ->
                             PrivacySettingsSingleAccount(privacySetting)
@@ -131,4 +124,17 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             )
         }
     }
+}
+
+@Composable
+fun PrivacySettingsAllAccounts(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
+    val i18n = DI.get<I18nView>()
+    val redactionWarningEnabled = privacySettingsViewModel.redactionWarningEnabled.collectAsState().value == true
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+        supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+        selected = redactionWarningEnabled,
+        onChange = { privacySettingsViewModel.toggleRedactionWarningEnabled() }
+    )
 }

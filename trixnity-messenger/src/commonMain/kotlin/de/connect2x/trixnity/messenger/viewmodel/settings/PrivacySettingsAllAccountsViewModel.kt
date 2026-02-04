@@ -33,7 +33,7 @@ interface PrivacySettingsAllAccountsViewModel {
     val privacySettings: List<PrivacySettingsSingleAccountViewModel>
     val redactionWarningEnabled: StateFlow<Boolean?>
     fun back()
-    fun toggleRedactionWarningEnabledState()
+    fun toggleRedactionWarningEnabled()
 }
 
 class PrivacySettingsAllAccountsViewModelImpl(
@@ -58,7 +58,7 @@ class PrivacySettingsAllAccountsViewModelImpl(
             SharingStarted.WhileSubscribed(), null
         )
 
-    override fun toggleRedactionWarningEnabledState() {
+    override fun toggleRedactionWarningEnabled() {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(showRedactionWarning = !it.showRedactionWarning)

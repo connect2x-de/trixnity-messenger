@@ -228,7 +228,7 @@ private fun wizardStepPrivacy(
                 headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
                 supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
                 selected = redactWarningEnabled,
-                onChange = { privacySettingsAllAccountsViewModel.toggleRedactionWarningEnabledState() },
+                onChange = { privacySettingsAllAccountsViewModel.toggleRedactionWarningEnabled() },
             )
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
