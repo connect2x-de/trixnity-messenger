@@ -77,6 +77,7 @@ internal class AppleMediaPlayer : MediaPlayer {
             } catch (ex: Exception) {
                 log.error(ex) { "Unable to prepare media player" }
                 state.value = MediaPlayer.State.Failed("Unable to prepare media player: ${ex.message}")
+                return
             }
         }
 
