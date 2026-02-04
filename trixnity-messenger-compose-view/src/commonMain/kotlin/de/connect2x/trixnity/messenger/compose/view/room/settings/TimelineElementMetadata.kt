@@ -335,6 +335,7 @@ private fun MessageContent(messageHolder: TimelineElementHolderViewModel) {
 @Composable
 private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>) {
     val scrollState = rememberLazyListState()
+    val canScroll by remember { derivedStateOf { scrollState.canScrollForward || scrollState.canScrollBackward } }
 
     if (elementHistory.isNotEmpty()) {
         val elementHistoryGrouped by derivedStateOf {
@@ -354,7 +355,9 @@ private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>)
             }
         }
 
-        Box {
+
+        // The max height is required here due to this component being a nested scroll container; no max height results in a crash
+        Box(Modifier.heightIn(max = 400.dp)) {
             LazyColumn(Modifier.fillMaxWidth().padding(end = 10.dp), state = scrollState) {
                 elementHistoryGrouped.forEach { (date, viewModel) ->
                     if (date != null) {
@@ -368,7 +371,10 @@ private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>)
                     }
                 }
             }
-            VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState, false)
+
+            // If the scroll bar were always shown it would force the box to its maximum height, creating a lot of empty space.
+            if (canScroll)
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState, false)
         }
     }
 }
