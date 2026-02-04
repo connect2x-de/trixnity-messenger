@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI: Adjusted which rooms are shows as public
 - UI: Show application version in About Panel
 
 ### Deprecated
@@ -19,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- IOS: Fix initialization of APNS notification provider
+
 ### Security
 
 ## 4.0.2
@@ -26,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI: Moved de.connect2x.messenger -> de.connect2x.trixnity.messenger
+- IOS: Rename iOS project folder for debug app to 'iosApp'
 
 ## 4.0.1
 

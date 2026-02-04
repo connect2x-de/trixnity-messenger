@@ -48,6 +48,7 @@ import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCa
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
@@ -177,9 +178,14 @@ open class RoomListElementViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isPublic: StateFlow<Boolean?> =
-        matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
-            it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        combine(
+            matrixClient.room.getState<HistoryVisibilityEventContent>(roomId).map {
+                it?.content?.historyVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+            },
+            matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
+                it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
+            }
+        ){a,b -> a || b }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomName: StateFlow<String?> =
         roomNameCalculations.getRoomName(roomId, matrixClient).map { it }

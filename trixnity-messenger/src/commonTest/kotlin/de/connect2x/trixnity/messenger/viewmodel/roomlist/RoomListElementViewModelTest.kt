@@ -25,6 +25,7 @@ import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -33,7 +34,6 @@ import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -175,6 +175,22 @@ class RoomListElementViewModelTest {
                 me,
                 roomId,
                 0L,
+                stateKey = "",
+            )
+        )
+        every {
+            roomServiceMock.getState(
+                any(), HistoryVisibilityEventContent::class, any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
                 stateKey = "",
             )
         )
@@ -749,14 +765,69 @@ class RoomListElementViewModelTest {
 
 
     @Test
-    fun `provide correct information on whether the room is public and whether it is encrypted or not`() = runTest {
+    fun `encryption being turned on should lead to encryption being turned on`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+            Room(
+                roomId,
+                isDirect = false,
+                encrypted = true,
+                membership = Membership.INVITE,
+                membersLoaded = false,
+            )
+        )
+
         val cut = roomListElementViewModel(roomId)
 
-        eventually(100.milliseconds) {
-            cut.isPublic.value shouldBe false
-            cut.isEncrypted.value shouldBe true
-        }
+        delay(10)
+
+        cut.isEncrypted.value shouldBe true
     }
+
+    @Test
+    fun `JoinRule Public should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = JoinRulesEventContent(
+                    joinRule = JoinRulesEventContent.JoinRule.Public
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomListElementViewModel(roomId)
+
+        delay(10)
+
+        cut.isPublic.value shouldBe true
+    }
+
+    @Test
+    fun `HistoryVisibility World_Readable should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomListElementViewModel(roomId)
+
+        delay(10)
+
+        cut.isPublic.value shouldBe true
+    }
+
+
 
     private fun TestScope.roomListElementViewModel(
         roomId: RoomId
