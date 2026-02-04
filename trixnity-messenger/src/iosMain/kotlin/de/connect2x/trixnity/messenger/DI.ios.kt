@@ -21,7 +21,7 @@ actual fun platformModule(): Module = module {
         })
     }
     single<MediaPlayer> {
-        AppleMediaPlayer(get())
+        AppleMediaPlayer()
     }
 }
 

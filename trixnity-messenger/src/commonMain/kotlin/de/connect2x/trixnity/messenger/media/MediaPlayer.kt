@@ -1,14 +1,22 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.time.Duration
 
 interface MediaPlayer : AutoCloseable {
     val playingItem: StateFlow<Item?>
     val state: StateFlow<State>
 
-    fun open(media: RoomMessageTimelineElementViewModel.FileBased<*>): Item
+    /**
+     * @param media          the platform media containing a file
+     * @param mimeType       the mime type of the platform media
+     * @param coroutineScope the coroutine scope of the media
+     * @return               the created media item or an error
+     */
+    suspend fun open(media: PlatformMedia, mimeType: String, coroutineScope: CoroutineScope): Result<Item>
 
     interface Item : AutoCloseable {
         val isPlaying: StateFlow<Boolean>

@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.messenger.interop.observer.NSObjectObserverProtocol
 import de.connect2x.trixnity.messenger.util.toNSUrl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -14,10 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
-import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.AVPlayerItemStatusReadyToPlay
@@ -42,17 +39,13 @@ private val log = KotlinLogging.logger {}
 
 @OptIn(ExperimentalForeignApi::class)
 internal class ApplePlayerItem(
-    private val item: RoomMessageTimelineElementViewModel.FileBased<*>,
-    playerState: StateFlow<MediaPlayer.State>,
-    private val playerMutex: Mutex,
+    private val tempFile: OkioPlatformMedia.TemporaryFile,
+    private val mimeType: String,
     private val coroutineScope: CoroutineScope,
-    private val playingItem: MutableStateFlow<ApplePlayerItem?>,
-    private val withPlayer: (item: AVPlayerItem?, closure: (AVPlayer) -> Unit) -> Unit
+    private val player: AppleMediaPlayer
 ) : MediaPlayer.Item {
     private val itemState: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
     private val file: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
-    private val isAudio = item is RoomMessageTimelineElementViewModel.FileBased.Audio
-    private val rawMimeType = if (isAudio) "audio/raw" else "video/raw"
 
     private val statusObserver: ItemStatusObserver = ItemStatusObserver()
     private var playEndObserver: NSObjectProtocol? = null
@@ -62,28 +55,28 @@ internal class ApplePlayerItem(
     override val duration: MutableStateFlow<Duration?> = MutableStateFlow(null)
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
     override val state: StateFlow<MediaPlayer.State> =
-        combine(itemState, playerState) { itemState, playerState ->
+        combine(itemState, player.state) { itemState, playerState ->
             when (playerState) {
                 is MediaPlayer.State.Failed -> playerState
                 else -> itemState
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), MediaPlayer.State.Ready)
 
-    override suspend fun play(startPosition: Duration?) = withMediaFile { file ->
-        playerMutex.withLock {
+    override suspend fun play(startPosition: Duration?) {
+        player.playerMutex.withLock {
             if (isPlaying.value || state.value !is MediaPlayer.State.Ready) {
                 log.error { "Unable to start playback: Media file is not in the state to be played" }
-                return@withMediaFile
+                return
             }
 
             log.debug { "Stop previously played media file before starting to play new media file" }
-            playingItem.value?.pause0() // Stop the currently playing element if one is currently played
+            player.currentItemPlaying.value?.pause0() // Stop the currently playing element if one is currently played
 
             isPlaying.value = true
-            log.debug { "Starting playback of media item '${item.name}'" }
+            log.debug { "Starting playback of media item" }
             if (playerItem == null) {
-                val options = mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to (item.mimeType ?: rawMimeType))
-                val asset = AVURLAsset.URLAssetWithURL(file.path.toNSUrl(), options)
+                val options = mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to mimeType)
+                val asset = AVURLAsset.URLAssetWithURL(tempFile.path.toNSUrl(), options)
                 playerItem = AVPlayerItem.playerItemWithAsset(asset)
                 playerItem?.addObserver(statusObserver, "status", NSKeyValueObservingOptionInitial, null)
                 playEndObserver = NSNotificationCenter.defaultCenter.addObserverForName(
@@ -96,12 +89,12 @@ internal class ApplePlayerItem(
                 }
             }
 
-            withPlayer(requireNotNull(playerItem)) { player ->
+            player.withPlayer(requireNotNull(playerItem)) { applePlayer ->
                 try {
                     val startDuration = startPosition ?: elapsedTime.value ?: Duration.ZERO
-                    player.seekToTime(CMTimeMake(startDuration.inWholeMilliseconds, 1000))
-                    player.play()
-                    playingItem.value = this
+                    applePlayer.seekToTime(CMTimeMake(startDuration.inWholeMilliseconds, 1000))
+                    applePlayer.play()
+                    player.currentItemPlaying.value = this
                 } catch (ex: Exception) {
                     log.error(ex) { "Failed to play media item" }
                     itemState.value = MediaPlayer.State.Failed("Unable to play media item: ${ex.message}")
@@ -110,7 +103,7 @@ internal class ApplePlayerItem(
         }
     }
 
-    override suspend fun pause() = playerMutex.withLock {
+    override suspend fun pause() = player.playerMutex.withLock {
         if (!isPlaying.value || state.value !is MediaPlayer.State.Ready) {
             log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
             return@withLock
@@ -139,43 +132,16 @@ internal class ApplePlayerItem(
         }
     }
 
-    private fun pause0() = withPlayer(null) { player ->
+    private fun pause0() = player.withPlayer(null) { applePlayer ->
         seekTo0(Duration.ZERO)
-        player.pause()
+        applePlayer.pause()
         isPlaying.value = false
-        playingItem.value = null
+        player.currentItemPlaying.value = null
     }
 
-    private fun seekTo0(position: Duration) = withPlayer(null) { player ->
+    private fun seekTo0(position: Duration) = player.withPlayer(null) { player ->
         val time = CMTimeMake(position.inWholeMilliseconds, 1000)
         player.seekToTime(time)
-    }
-
-    private suspend fun withMediaFile(closure: suspend (OkioPlatformMedia.TemporaryFile) -> Unit) {
-        val tempFile = file.value
-        if (tempFile != null) {
-            closure(tempFile)
-            return
-        }
-
-        log.debug { "No media found, downloading media file...." }
-        item.downloadMedia(
-            onDownloadCancelled = {},
-            processFile = { media ->
-                check(media is OkioPlatformMedia) { "Media must be a OkioPlatformMedia" }
-                media.getTemporaryFile().fold(
-                    onFailure = {
-                        log.error(it) { "Unexpected error when acquiring file for playback" }
-                        itemState.value = MediaPlayer.State.Failed("Unable to download media: $it")
-                    },
-                    onSuccess = {
-                        log.debug { "Successfully downloaded media file" }
-                        file.value = it
-                        closure(it)
-                    }
-                )
-            },
-        )
     }
 
     inner class ItemStatusObserver : NSObject(), NSObjectObserverProtocol {
