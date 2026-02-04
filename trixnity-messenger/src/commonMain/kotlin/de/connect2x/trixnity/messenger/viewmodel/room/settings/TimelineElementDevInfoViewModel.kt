@@ -1,23 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.ClientEvent
-import kotlinx.serialization.KSerializer
-import de.connect2x.trixnity.core.model.events.RoomEventContent
-import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -71,7 +63,7 @@ class TimelineElementDevInfoViewModelImpl(
     }
     override val eventJson: StateFlow<String?> =
         timelineEventEvent.map { event ->
-            Json.encodeToString(
+            json.encodeToString(
                 json.serializersModule.getContextual(
                     ClientEvent.RoomEvent::class
                 ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,
@@ -81,7 +73,7 @@ class TimelineElementDevInfoViewModelImpl(
 
     override val decryptedEventJson: StateFlow<String?> =
         timelineEventMergedEvent.filterNotNull().map { event ->
-            Json.encodeToString(
+            json.encodeToString(
                 json.serializersModule.getContextual(
                     ClientEvent.RoomEvent::class
                 ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,

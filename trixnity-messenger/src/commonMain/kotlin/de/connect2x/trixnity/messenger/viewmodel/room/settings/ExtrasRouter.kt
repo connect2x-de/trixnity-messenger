@@ -179,7 +179,7 @@ class ExtrasRouterImpl(
 
     override suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId) {
         extrasNavigation.navigateSuspending {
-            it.filterNot { it is TimelineElementMetadata } + TimelineElementMetadata(eventId, roomId)
+            it.filterNot { it is TimelineElementMetadata }.filterNot { it is TimelineElementDevInfo } + TimelineElementMetadata(eventId, roomId)
         }
         log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
     }
