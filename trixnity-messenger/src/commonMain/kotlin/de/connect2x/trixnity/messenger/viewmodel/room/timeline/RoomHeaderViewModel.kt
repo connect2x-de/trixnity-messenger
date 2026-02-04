@@ -40,6 +40,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
@@ -154,14 +155,21 @@ open class RoomHeaderViewModelImpl(
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
+    private val matrixClientStateInfo = combine(
+        matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
+        matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
+    ) { a, b ->
+        Pair(a, b)
+    }
+
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
         combine(
             matrixClient.room.getById(selectedRoomId),
             roomName.getRoomName(selectedRoomId, matrixClient),
             roomTopic.getRoomTopic(selectedRoomId, matrixClient),
             roomPresence.invoke(matrixClient, selectedRoomId),
-            matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
-        ) { room, roomNameElement, roomTopicElement, userPresence, joinRules ->
+            matrixClientStateInfo
+        ) { room, roomNameElement, roomTopicElement, userPresence, matrixClientStateInfo ->
             val roomImage = room?.avatarUrl?.let { avatarUrl ->
                 matrixClient.media.getThumbnail(
                     avatarUrl,
@@ -186,7 +194,7 @@ open class RoomHeaderViewModelImpl(
                 roomImage = roomImage,
                 presence = userPresence,
                 isEncrypted = room?.encrypted == true,
-                isPublic = joinRules?.content?.joinRule == JoinRulesEventContent.JoinRule.Public,
+                isPublic = (matrixClientStateInfo.first?.content?.joinRule == JoinRulesEventContent.JoinRule.Public) || (matrixClientStateInfo.second?.content?.historyVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE),
                 isLeave = room?.membership?.let { it == Membership.LEAVE } == true
             )
         }.stateIn(
