@@ -17,6 +17,7 @@ fun ExtrasPaneHeader(
     error: String?,
     onBack: () -> Unit,
     backButtonType: HeaderBackButtonType,
+    additionalButtons: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(
@@ -26,7 +27,7 @@ fun ExtrasPaneHeader(
             Header(
                 onBack, title,
                 backButtonType = backButtonType,
-                additionalButtons = null,
+                additionalButtons = additionalButtons,
             )
             if (error != null) ErrorView(error)
             content()

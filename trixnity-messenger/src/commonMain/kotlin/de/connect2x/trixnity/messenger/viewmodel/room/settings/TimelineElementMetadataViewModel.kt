@@ -54,6 +54,7 @@ interface TimelineElementMetadataViewModelFactory {
         eventId: EventId,
         roomId: RoomId,
         onOpenUserProfile: (UserId) -> Unit,
+        onOpenDevInfo: () -> Unit,
         onBack: () -> Unit,
     ): TimelineElementMetadataViewModel =
         TimelineElementMetadataViewModelImpl(
@@ -61,6 +62,7 @@ interface TimelineElementMetadataViewModelFactory {
             eventId = eventId,
             roomId = roomId,
             onOpenUserProfile = onOpenUserProfile,
+            onOpenDevInfo = onOpenDevInfo,
             onBack = onBack,
         )
 
@@ -71,6 +73,7 @@ interface TimelineElementMetadataViewModel {
     val elementHistory: StateFlow<List<TimelineElementHolderViewModel>?>
     val element: StateFlow<TimelineElementHolderViewModel?>
     fun openUserProfile(userId: UserId)
+    fun openDevInfo()
     fun back()
 }
 
@@ -79,6 +82,7 @@ class TimelineElementMetadataViewModelImpl(
     eventId: EventId,
     roomId: RoomId,
     private val onOpenUserProfile: (UserId) -> Unit,
+    private val onOpenDevInfo: () -> Unit,
     private val onBack: () -> Unit,
 ) : TimelineElementMetadataViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timeZone = get<TimeZone>()
@@ -212,6 +216,10 @@ class TimelineElementMetadataViewModelImpl(
     override fun openUserProfile(userId: UserId) {
         onOpenUserProfile(userId)
     }
+
+    override fun openDevInfo() {
+        onOpenDevInfo()
+    }
 }
 
 class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewModel {
@@ -321,6 +329,8 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
     )
 
     override fun openUserProfile(userId: UserId) {}
+
+    override fun openDevInfo() {}
 
     override fun back() {}
 

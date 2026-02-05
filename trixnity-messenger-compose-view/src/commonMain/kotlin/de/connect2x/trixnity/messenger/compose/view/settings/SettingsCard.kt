@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -19,12 +21,35 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
 @Composable
+fun DevInfoCard(
+    title: String,
+    icon: ImageVector? = null,
+    additionalButtons: @Composable (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    SettingsCard(
+        title,
+        icon,
+        CardColors(
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+            MaterialTheme.colorScheme.onSurface,
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+            MaterialTheme.colorScheme.onSurface
+        ),
+        additionalButtons,
+        content
+    )
+}
+
+@Composable
 fun SettingsCard(
     title: String,
     icon: ImageVector? = null,
+    colors: CardColors = CardDefaults.elevatedCardColors(),
+    additionalButtons: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    ElevatedCard(Modifier.padding(bottom = 10.dp)) {
+    ElevatedCard(Modifier.padding(bottom = 10.dp), colors = colors) {
         Column(Modifier.padding(10.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -35,6 +60,10 @@ fun SettingsCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                 )
+                if (additionalButtons != null) {
+                    Spacer(Modifier.weight(1.0f, false).fillMaxWidth())
+                    additionalButtons()
+                }
             }
             HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
             content()

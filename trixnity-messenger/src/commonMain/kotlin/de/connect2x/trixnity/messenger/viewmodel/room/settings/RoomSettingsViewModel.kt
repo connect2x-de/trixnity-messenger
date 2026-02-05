@@ -1,6 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -12,12 +18,6 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 interface RoomSettingsViewModelFactory {
@@ -26,6 +26,7 @@ interface RoomSettingsViewModelFactory {
         selectedRoomId: RoomId,
         onCloseRoom: () -> Unit,
         onOpenAddMembers: () -> Unit,
+        onOpenDevInfo: () -> Unit,
         onOpenExportRoom: () -> Unit,
         onCloseRoomSettings: () -> Unit,
         onOpenUserProfile: (UserId) -> Unit,
@@ -36,6 +37,7 @@ interface RoomSettingsViewModelFactory {
         viewModelContext = viewModelContext,
         selectedRoomId = selectedRoomId,
         onOpenAddMembers = onOpenAddMembers,
+        onOpenDevInfo = onOpenDevInfo,
         onOpenExportRoom = onOpenExportRoom,
         onCloseRoomSettings = onCloseRoomSettings,
         onOpenAvatarCutter = onOpenAvatarCutter,
@@ -49,6 +51,7 @@ interface RoomSettingsViewModelFactory {
 }
 
 interface RoomSettingsViewModel {
+    val roomId: RoomId
     val error: StateFlow<String?>
     val changeRoomAvatarViewModel: ChangeRoomAvatarViewModel
     val roomSettingsNameViewModel: RoomSettingsNameViewModel
@@ -72,6 +75,7 @@ interface RoomSettingsViewModel {
     val leaveRoomWarningConfirmButtonText: StateFlow<String>
 
     fun openAddMembersView()
+    fun openDevInfoView()
     fun openExportRoomView()
     fun openPowerLevelView()
     fun leaveRoom()
@@ -86,6 +90,7 @@ class RoomSettingsViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
     private val onOpenAddMembers: () -> Unit,
+    private val onOpenDevInfo: () -> Unit,
     private val onOpenExportRoom: () -> Unit,
     private val onCloseRoomSettings: () -> Unit,
     private val onCloseRoom: () -> Unit,
@@ -103,6 +108,9 @@ class RoomSettingsViewModelImpl(
     init {
         registerBackCallback(backCallback)
     }
+
+    override val roomId: RoomId
+        get() = selectedRoomId
 
     override val error = MutableStateFlow<String?>(null)
 
@@ -255,6 +263,10 @@ class RoomSettingsViewModelImpl(
         onOpenAddMembers()
     }
 
+    override fun openDevInfoView() {
+        onOpenDevInfo()
+    }
+
     override fun openExportRoomView() {
         onOpenExportRoom()
     }
@@ -269,6 +281,7 @@ class RoomSettingsViewModelImpl(
 }
 
 class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
+    override val roomId = RoomId("")
     override val roomSettingsNameViewModel = PreviewRoomSettingsNameViewModel()
     override val roomSettingsTopicViewModel = PreviewRoomSettingsTopicViewModel()
     override val roomSettingsNotificationsViewModel = PreviewRoomSettingsNotificationsViewModel()
@@ -289,6 +302,7 @@ class PreviewRoomSettingsViewModel : RoomSettingsViewModel {
     override val isEncrypted = MutableStateFlow(false)
     override val isLeave = MutableStateFlow(false)
     override fun openAddMembersView() {}
+    override fun openDevInfoView() {}
     override fun openExportRoomView() {}
     override fun openPowerLevelView() {}
     override fun openUserProfile(userId: UserId) {}

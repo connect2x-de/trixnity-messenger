@@ -24,11 +24,13 @@ fun ExtrasPaneContentSwitch(
         when (val child = stackItem.instance) {
             is ExtrasRouter.Wrapper.RoomSettings -> RoomSettingsContainer(child.viewModel, isSinglePane)
             is ExtrasRouter.Wrapper.AddMember -> AddMembersContainer(child.viewModel)
+            is ExtrasRouter.Wrapper.RoomDevInfo -> RoomDevInfoContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
             is ExtrasRouter.Wrapper.UserProfile -> UserProfileContainer(child.viewModel)
             is ExtrasRouter.Wrapper.TimelineElementMetadata -> TimelineElementMetadata(
                 child.viewModel, isBottomOfStack, isSinglePane,
             )
+            is ExtrasRouter.Wrapper.TimelineElementDevInfo -> TimelineElementDevInfo(child.viewModel)
 
             is ExtrasRouter.Wrapper.PowerLevels -> ChangePowerLevel(child.viewModel)
 
