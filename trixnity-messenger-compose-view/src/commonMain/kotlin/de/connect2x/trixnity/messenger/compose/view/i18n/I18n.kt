@@ -1119,10 +1119,9 @@ open class I18nView(
         DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
-    // Eigenname, daher keine Übersetzung
     open fun timelineElementMetadataEvent() = translate {
-        EN - "Timeline-event"
-        DE - "Timeline-event"
+        EN - "Decrypted event"
+        DE - "Entschlüsseltes Event"
     }
 
     open fun timelineElementMetadataEventId() = translate {
