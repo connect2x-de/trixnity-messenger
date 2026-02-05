@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import org.koin.core.component.get
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.updateProfile
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 interface ProfilesSettingsViewModelFactory {
     fun create(
@@ -68,11 +68,7 @@ class ProfilesSettingsViewModelImpl(
             coroutineScope = coroutineScope,
             onApplyChange = {
                 changeProfileName(it)
-                if(currentProfileName.value != it){
-                    Result.failure<String>(IllegalStateException("Changing profile name failed"))
-                }else{
-                    Result.success(it)
-                }
+                Result.success(it)
             },
         )
 

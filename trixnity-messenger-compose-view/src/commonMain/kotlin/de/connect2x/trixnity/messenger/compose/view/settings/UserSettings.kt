@@ -43,12 +43,12 @@ class UserSettingsViewImpl : UserSettingsView {
             Column {
                 Header(userSettingsViewModel::closeUserSettings, i18n.commonSettings().capitalize(Locale.current))
                 Column {
-                    AccountsInfo(userSettingsViewModel)
+                    AccountsInfoButton(userSettingsViewModel)
                     ProfilesSettingsButton(userSettingsViewModel)
-                    AppearanceSettings(userSettingsViewModel)
-                    PrivacySettings(userSettingsViewModel)
-                    DeviceSettings(userSettingsViewModel)
-                    NotificationsSettings(userSettingsViewModel)
+                    AppearanceSettingsButton(userSettingsViewModel)
+                    PrivacySettingsButton(userSettingsViewModel)
+                    DeviceSettingsButton(userSettingsViewModel)
+                    NotificationsSettingsButton(userSettingsViewModel)
                 }
             }
         }
@@ -56,7 +56,7 @@ class UserSettingsViewImpl : UserSettingsView {
 }
 
 @Composable
-fun AccountsInfo(userSettingsViewModel: UserSettingsViewModel) {
+fun AccountsInfoButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Person, null) },
@@ -78,7 +78,7 @@ fun ProfilesSettingsButton(userSettingsViewModel: UserSettingsViewModel){
 }
 
 @Composable
-fun AppearanceSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun AppearanceSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Palette, null) },
@@ -89,7 +89,7 @@ fun AppearanceSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
+fun PrivacySettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.PrivacyTip, null) },
@@ -100,7 +100,7 @@ fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun DeviceSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Devices, null) },
@@ -111,7 +111,7 @@ fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun NotificationsSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Notifications, null) },
