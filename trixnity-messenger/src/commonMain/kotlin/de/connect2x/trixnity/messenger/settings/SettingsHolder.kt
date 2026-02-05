@@ -34,8 +34,7 @@ suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,
     private val settingsFactory: (Map<String, JsonElement>) -> S,
-    private val settings: MutableStateFlow<S?> = MutableStateFlow(null),
-    private val defaultSettings: Map<String, JsonElement> = mapOf()
+    private val settings: MutableStateFlow<S?> = MutableStateFlow(null)
 ) : SettingsHolder<S>, StateFlow<S> {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.settings.SettingsHolderImpl")
@@ -61,7 +60,7 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
                 log.debug { "init SettingsHolder" }
                 val settingsString = storage.read()
                 val settingsContent =
-                    if (settingsString == null) defaultSettings
+                    if (settingsString == null) emptyMap()
                     else SettingsJson.decodeFromString<Map<String, JsonElement>>(settingsString)
                 settings.value = settingsFactory(settingsContent)
             } else {

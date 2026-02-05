@@ -38,7 +38,7 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
 
-    var defaultEnableRedactionWarning: Boolean = true,
+    var defaultRedactionWarningIsEnabled: Boolean = true,
 
     var databaseEncryptionEnabled: Boolean = true,
 

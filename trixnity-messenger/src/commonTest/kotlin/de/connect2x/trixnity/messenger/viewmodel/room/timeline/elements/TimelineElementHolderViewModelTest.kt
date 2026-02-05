@@ -30,8 +30,8 @@ import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -805,7 +805,8 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `redact » should redact via warning if enabled`() = runTest {
-        settings.update<MatrixMessengerSettingsBase> { it.copy(showRedactionWarning = true) }
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = true) }
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
         var redactCalled = false
@@ -834,7 +835,8 @@ class TimelineElementHolderViewModelTest {
 
     @Test
     fun `redact » should redact directly when no warning is enabled`() = runTest {
-        settings.update<MatrixMessengerSettingsBase> { it.copy(showRedactionWarning = false) }
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = false) }
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
         var redactCalled = false

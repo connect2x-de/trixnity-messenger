@@ -206,7 +206,8 @@ class TimelineElementHolderViewModelImpl(
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     private val redactionWarningEnabled =
-        get<MatrixMessengerSettingsHolder>().map { it.base.showRedactionWarning }.stateIn(coroutineScope, Eagerly, true)
+        get<MatrixMessengerSettingsHolder>()[userId].map { it?.base?.redactionWarningIsEnabled ?: true }
+            .stateIn(coroutineScope, Eagerly, true)
     private val _showRedactionWarning = MutableStateFlow(false)
     override val showRedactionWarning: StateFlow<Boolean> = _showRedactionWarning.asStateFlow()
 

@@ -3,6 +3,8 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
@@ -26,10 +28,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.messenger.settings.SettingsJson
-import kotlinx.serialization.json.jsonObject
 import org.koin.core.module.Module
 
 @Serializable
@@ -54,7 +52,6 @@ data class MatrixMessengerSettingsBase(
     val fontSize: Float? = null,
     val displaySize: Float? = null,
     val applySystemSizes: Boolean = true,
-    val showRedactionWarning: Boolean = true
 ) : SettingsView<MatrixMessengerSettings> {
     @Serializable
     data class SSOLoginState(
@@ -70,11 +67,6 @@ data class MatrixMessengerSettingsBase(
         val type: OAuth2LoginViewModel.Type,
         val state: OAuth2LoginFlow.AuthRequestData.State,
     )
-
-    companion object {
-        fun withConfigDefaults(config: MatrixMessengerConfiguration): MatrixMessengerSettingsBase =
-            MatrixMessengerSettingsBase(showRedactionWarning = config.defaultEnableRedactionWarning)
-    }
 }
 
 @Serializable
@@ -113,6 +105,7 @@ data class MatrixMessengerAccountSettingsBase(
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
     val accountSetupFinished: Boolean = false,
+    val redactionWarningIsEnabled: Boolean = true
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -124,6 +117,7 @@ data class MatrixMessengerAccountSettingsBase(
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
             accountSetupFinished = config.useAccountSetupWizard.not(),
+            redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled
         )
     }
 }
@@ -172,15 +166,8 @@ interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings
 
 class MatrixMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null),
-    defaultSettings: MatrixMessengerSettingsBase? = null
-) : SettingsHolderImpl<MatrixMessengerSettings>(
-    storage, ::MatrixMessengerSettings, settings,
-    if (defaultSettings != null) SettingsJson.encodeToJsonElement(
-        MatrixMessengerSettingsBase.serializer(),
-        defaultSettings
-    ).jsonObject else mapOf()
-),
+    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
+) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
     MatrixMessengerSettingsHolder {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl")

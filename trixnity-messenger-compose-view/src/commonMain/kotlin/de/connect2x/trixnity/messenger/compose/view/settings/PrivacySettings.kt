@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.Header
@@ -30,8 +31,6 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModel
 
@@ -57,8 +56,6 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
                 Header(privacySettingsViewModel::back, i18n.privacyTitle())
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                        PrivacySettingsAllAccounts(privacySettingsViewModel)
-                        SmallSpacer()
                         privacySettings.forEach { privacySetting ->
                             PrivacySettingsSingleAccount(privacySetting)
                         }
@@ -78,6 +75,8 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
     val presenceIsPublic = privacySettingViewModel.presenceIsPublic.collectAsState().value
     val readMarkerIsPublic = privacySettingViewModel.readMarkerIsPublic.collectAsState().value
     val typingIsPublic = privacySettingViewModel.typingIsPublic.collectAsState().value
+    val redactionWarningEnabled = privacySettingViewModel.redactionWarningIsEnabled.collectAsState().value
+
     val i18n = DI.get<I18nView>()
 
     SettingsAccountCard(privacySettingViewModel.account) {
@@ -102,6 +101,13 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             selected = typingIsPublic,
             onChange = { privacySettingViewModel.toggleTypingIsPublic() },
         )
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+            supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+            selected = redactionWarningEnabled,
+            onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() }
+        )
 
         val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
@@ -124,17 +130,4 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
             )
         }
     }
-}
-
-@Composable
-fun PrivacySettingsAllAccounts(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel) {
-    val i18n = DI.get<I18nView>()
-    val redactionWarningEnabled = privacySettingsViewModel.redactionWarningEnabled.collectAsState().value == true
-    ThemedListItemSwitch(
-        style = MaterialTheme.components.settingsItem,
-        headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
-        supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
-        selected = redactionWarningEnabled,
-        onChange = { privacySettingsViewModel.toggleRedactionWarningEnabled() }
-    )
 }

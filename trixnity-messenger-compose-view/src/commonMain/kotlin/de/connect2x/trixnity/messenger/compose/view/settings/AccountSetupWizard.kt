@@ -215,21 +215,13 @@ private fun wizardStepPrivacy(
     i18n: I18nView
 ): WizardStep {
     val privacySettingsViewModel = viewModel.privacySettingsViewModel
-    val privacySettingsAllAccountsViewModel = viewModel.privacySettingsAllAccountsViewModel
     return WizardStep(id = step.stepId, title = { i18n.privacyTitle() }, content = {
         val di = DI.current
         val publicPresence = privacySettingsViewModel.presenceIsPublic.collectAsState().value
         val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
         val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
-        val redactWarningEnabled = privacySettingsAllAccountsViewModel.redactionWarningEnabled.collectAsState().value == true
+        val redactWarningEnabled = privacySettingsViewModel.redactionWarningIsEnabled.collectAsState().value
         Column {
-            ThemedListItemSwitch(
-                style = MaterialTheme.components.settingsItem,
-                headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
-                supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
-                selected = redactWarningEnabled,
-                onChange = { privacySettingsAllAccountsViewModel.toggleRedactionWarningEnabled() },
-            )
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
@@ -250,6 +242,13 @@ private fun wizardStepPrivacy(
                 supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
                 selected = publicTyping,
                 onChange = { privacySettingsViewModel.toggleTypingIsPublic() },
+            )
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+                supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+                selected = redactWarningEnabled,
+                onChange = { privacySettingsViewModel.toggleRedactionWarningIsEnabled() },
             )
         }
     })
