@@ -34,7 +34,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModel
 
-// TODO TIM
 interface PrivacySettingsView {
     @Composable
     fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel)
@@ -72,62 +71,89 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
 
 @Composable
 fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
-    val presenceIsPublic = privacySettingViewModel.presenceIsPublic.collectAsState().value
-    val readMarkerIsPublic = privacySettingViewModel.readMarkerIsPublic.collectAsState().value
-    val typingIsPublic = privacySettingViewModel.typingIsPublic.collectAsState().value
-    val redactionWarningEnabled = privacySettingViewModel.redactionWarningIsEnabled.collectAsState().value
-
-    val i18n = DI.get<I18nView>()
-
     SettingsAccountCard(privacySettingViewModel.account) {
-        ThemedListItemSwitch(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
-            supportingContent = { Text(i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName)) },
-            selected = presenceIsPublic,
-            onChange = { privacySettingViewModel.togglePresenceIsPublic() },
-        )
-        ThemedListItemSwitch(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = { Text(i18n.privacyReadMarkerIsPublic()) },
-            supportingContent = { Text(i18n.privacyReadMarkerIsPublicExplanation()) },
-            selected = readMarkerIsPublic,
-            onChange = { privacySettingViewModel.toggleReadMarkerIsPublic() },
-        )
-        ThemedListItemSwitch(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = { Text(i18n.privacyTypingIsPublic()) },
-            supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
-            selected = typingIsPublic,
-            onChange = { privacySettingViewModel.toggleTypingIsPublic() },
-        )
-        ThemedListItemSwitch(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
-            supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
-            selected = redactionWarningEnabled,
-            onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() }
-        )
+        PrivacySettingsTogglePresence(privacySettingViewModel)
+        PrivacySettingsToggleReadMarker(privacySettingViewModel)
+        PrivacySettingsToggleTyping(privacySettingViewModel)
+        PrivacySettingsToggleRedactionWarning(privacySettingViewModel)
 
-        val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
-        val interactionSource = remember { MutableInteractionSource() }
-        ElevatedCard(
-            modifier = Modifier
-                .padding(top = 5.dp, bottom = 10.dp)
-                .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
+        PrivacySettingsBlockedAccounts(privacySettingViewModel)
+    }
+}
+
+@Composable
+fun PrivacySettingsTogglePresence(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val presenceIsPublic = privacySettingViewModel.presenceIsPublic.collectAsState().value
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
+        supportingContent = { Text(i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName)) },
+        selected = presenceIsPublic,
+        onChange = { privacySettingViewModel.togglePresenceIsPublic() },
+    )
+}
+
+@Composable
+fun PrivacySettingsToggleReadMarker(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val readMarkerIsPublic = privacySettingViewModel.readMarkerIsPublic.collectAsState().value
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        headlineContent = { Text(i18n.privacyReadMarkerIsPublic()) },
+        supportingContent = { Text(i18n.privacyReadMarkerIsPublicExplanation()) },
+        selected = readMarkerIsPublic,
+        onChange = { privacySettingViewModel.toggleReadMarkerIsPublic() },
+    )
+}
+
+@Composable
+fun PrivacySettingsToggleTyping(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val typingIsPublic = privacySettingViewModel.typingIsPublic.collectAsState().value
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        headlineContent = { Text(i18n.privacyTypingIsPublic()) },
+        supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
+        selected = typingIsPublic,
+        onChange = { privacySettingViewModel.toggleTypingIsPublic() },
+    )
+}
+
+@Composable
+fun PrivacySettingsToggleRedactionWarning(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val redactionWarningEnabled = privacySettingViewModel.redactionWarningIsEnabled.collectAsState().value
+    ThemedListItemSwitch(
+        style = MaterialTheme.components.settingsItem,
+        headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+        supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+        selected = redactionWarningEnabled,
+        onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() }
+    )
+}
+
+@Composable
+fun PrivacySettingsBlockedAccounts(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
+    val interactionSource = remember { MutableInteractionSource() }
+    ElevatedCard(
+        modifier = Modifier
+            .padding(top = 5.dp, bottom = 10.dp)
+            .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
+        interactionSource = interactionSource,
+        onClick = {
+            privacySettingViewModel.showBlockedContactsSettings()
+        },
+    ) {
+        ThemedListItemButton(
+            headlineContent = { Text(i18n.blockedContactsButtonCaption(blockedCount)) },
+            trailingContent = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
             interactionSource = interactionSource,
             onClick = {
                 privacySettingViewModel.showBlockedContactsSettings()
-            },
-        ) {
-            ThemedListItemButton(
-                headlineContent = { Text(i18n.blockedContactsButtonCaption(blockedCount)) },
-                trailingContent = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
-                interactionSource = interactionSource,
-                onClick = {
-                    privacySettingViewModel.showBlockedContactsSettings()
-                }
-            )
-        }
+            }
+        )
     }
 }
