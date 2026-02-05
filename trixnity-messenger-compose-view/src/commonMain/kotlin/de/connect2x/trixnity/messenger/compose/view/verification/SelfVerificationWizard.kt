@@ -49,6 +49,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
@@ -69,7 +70,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 
 interface SelfVerificationWizardView {
     @Composable
@@ -583,7 +583,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             backButton = {
                 Custom {
-                    val showStep = selfVerificationViewModel.showRecoveryKeyMethod.collectAsState().value != null
+                    val showStep = selfVerificationViewModel.showPassphraseMethod.collectAsState().value != null
                     if (!showStep) {
                         currentStepId.value = SelfVerificationWizardStep.SelfVerificationWizardMethods.stepId
                     }
