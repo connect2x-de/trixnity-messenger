@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.view
 
+import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionView
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsernameView
@@ -451,6 +455,8 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<TimelineElementMetadataView> { TimelineElementMetadataViewImpl() }
     single<ChangeRoomAvatarView> { ChangeRoomAvatarViewImpl() }
     single<RoomSettingsNameView> { RoomSettingsNameViewImpl() }
+    single<TimelineElementDevInfoView> { TimelineElementDevInfoViewImpl() }
+    single<RoomDevInfoView> { RoomDevInfoViewImpl() }
     single<RoomSettingsTopicView> { RoomSettingsTopicViewImpl() }
     single<RoomSettingsMemberListView> { RoomSettingsMemberListViewImpl() }
     single<RoomSettingsMemberListElementView> { RoomSettingsMemberListElementViewImpl() }
