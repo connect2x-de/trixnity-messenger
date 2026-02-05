@@ -65,16 +65,6 @@ kotlin {
         iosSimulatorArm64(),
         iosX64(),
     ).forEach {
-        // This is required because Kotlin didn't reflect the observer required for the Media player into the Kotlin
-        // interop API. It creates a protocol allowing the media player to detect status changes.
-        it.compilations.getByName("main") {
-            cinterops {
-                val objectObserver by creating {
-                    packageName("de.connect2x.trixnity.messenger.interop.observer")
-                }
-            }
-        }
-
         it.binaries.framework {
             baseName = "TrixnityMessenger"
             export(sharedLibs.decompose)

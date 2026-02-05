@@ -50,10 +50,11 @@ class AudioPlayerViewImpl : AudioPlayerView {
         viewModel: MediaPlayerViewModel,
         fallbackView: @Composable () -> Unit
     ) {
-        when (viewModel.state.collectAsState().value) {
+        when (val state = viewModel.state.collectAsState().value) {
             is MediaPlayerViewModel.State.Ready -> PlayableAudioMessage(audio, viewModel)
             is MediaPlayerViewModel.State.Playing -> PlayableAudioMessage(audio, viewModel)
-            is MediaPlayerViewModel.State.NotReady, is MediaPlayerViewModel.State.Failure -> fallbackView()
+            is MediaPlayerViewModel.State.NotReady -> fallbackView()
+            is MediaPlayerViewModel.State.Failure -> Text(state.cause)
         }
     }
 }

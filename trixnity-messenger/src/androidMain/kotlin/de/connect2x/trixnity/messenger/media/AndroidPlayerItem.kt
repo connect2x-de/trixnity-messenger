@@ -100,7 +100,7 @@ internal class AndroidPlayerItem(
             player.currentItemPlaying.value = null
             controller.pause()
             controller.clearMediaItems()
-            (state.value as MediaPlayer.State.Playing).updateJob.cancel()
+            (state.value as MediaPlayer.State.Playing).updateJob?.cancel()
             state.value = MediaPlayer.State.Ready
         }
     }

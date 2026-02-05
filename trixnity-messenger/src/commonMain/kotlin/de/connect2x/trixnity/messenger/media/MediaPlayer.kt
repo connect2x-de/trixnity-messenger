@@ -38,7 +38,7 @@ interface MediaPlayer : AutoCloseable {
 
     sealed interface State {
         object Ready : State
-        class Playing(internal val updateJob: Job) : State
+        class Playing(internal val updateJob: Job?) : State
         class Failed(val message: String) : State
     }
 
