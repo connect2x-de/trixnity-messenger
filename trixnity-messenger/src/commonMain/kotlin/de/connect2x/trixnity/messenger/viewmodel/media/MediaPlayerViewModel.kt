@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,17 +18,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koin.core.component.get
 import kotlin.time.Duration
 
 private val log = KotlinLogging.logger { }
 
 interface MediaPlayerViewModelFactory {
     fun create(
+        id: String,
         viewModelContext: MatrixClientViewModelContext,
         media: RoomMessageTimelineElementViewModel.FileBased<*>,
         initialDuration: Duration?
     ) : MediaPlayerViewModel = MediaPlayerViewModelImpl(
+        id = id,
         viewModelContext = viewModelContext,
         media = media,
         initialDurationOptional = initialDuration
@@ -57,16 +57,15 @@ interface MediaPlayerViewModel {
 
 class MediaPlayerViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
+    private val id: String,
     private val media: RoomMessageTimelineElementViewModel.FileBased<*>,
     initialDurationOptional: Duration?
 ) : MediaPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val globalScope: CoroutineScope = get()
     private val isAudio = media is RoomMessageTimelineElementViewModel.FileBased.Audio
     private val mimeType = media.mimeType ?: if (isAudio) "audio/raw" else "video/raw"
 
     private val player: MediaPlayer? = getOrNull()
     private val item: MutableStateFlow<MediaPlayer.Item?> = MutableStateFlow(null)
-    private val initialDuration = initialDurationOptional ?: Duration.ZERO
     private val mutex: Mutex = Mutex()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,11 +74,7 @@ class MediaPlayerViewModelImpl(
         .map { it ?: Duration.ZERO }
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Duration.ZERO)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override val duration: StateFlow<Duration> = item
-        .flatMapLatest { it?.duration ?: flowOf(initialDuration) }
-        .map { it ?: initialDuration }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), initialDuration)
+    override val duration: MutableStateFlow<Duration> = MutableStateFlow(initialDurationOptional ?: Duration.ZERO)
 
     override val state: MutableStateFlow<MediaPlayerViewModel.State> =
         MutableStateFlow(if (player != null) MediaPlayerViewModel.State.Ready else MediaPlayerViewModel.State.NotReady)
@@ -87,17 +82,21 @@ class MediaPlayerViewModelImpl(
     init {
         lifecycle.subscribe(object : Lifecycle.Callbacks {
             override fun onDestroy() {
-                globalScope.launch {
-                    item.value?.close()
+                if (state.value !is MediaPlayerViewModel.State.Playing) {
+                    coroutineScope.launch {
+                        item.value?.close()
+                    }
                 }
             }
         })
 
-        player?.playingItem?.let {
-            coroutineScope.launch {
-                it.collect { playingItem ->
-                    if (playingItem == null && state.value is MediaPlayerViewModel.State.Playing) {
-                        state.value = MediaPlayerViewModel.State.Ready
+        coroutineScope.launch {
+            mutex.withLock {
+                player?.playingItem?.let { item ->
+                    val itemValue = item.value
+                    if (itemValue != null && id == itemValue.id) {
+                        this@MediaPlayerViewModelImpl.item.value = itemValue
+                        listenForItemState(itemValue)
                     }
                 }
             }
@@ -114,7 +113,7 @@ class MediaPlayerViewModelImpl(
 
                 if (item.value == null) {
                     log.debug { "Media item is not present, downloading item" }
-                    openMedia().fold(
+                    acquireMedia().fold(
                         onFailure = {
                             log.error(it) { "Unable to download media" }
                             val message = it.message ?: "Unable to download media"
@@ -124,6 +123,9 @@ class MediaPlayerViewModelImpl(
                         onSuccess = {
                             log.debug { "Successfully downloaded media" }
                             item.value = it
+                            it?.duration?.let { value ->
+                                duration.value = value
+                            }
                         }
                     )
                 }
@@ -161,15 +163,33 @@ class MediaPlayerViewModelImpl(
         }
     }
 
-    private suspend fun openMedia(): Result<MediaPlayer.Item?> = suspendCancellableCoroutine { continuation ->
-        media.downloadMedia(
-            onDownloadCancelled = {
-                continuation.resume(Result.failure(Exception("Download was cancelled"))) { _, _, _ -> }
-            },
-            processFile = { media ->
-                val item = player?.open(media, mimeType, coroutineScope) ?: Result.success(null)
-                continuation.resume(item) { _, _, _ -> }
+    private suspend fun acquireMedia(): Result<MediaPlayer.Item?> {
+        return suspendCancellableCoroutine { continuation ->
+            media.downloadMedia(
+                onDownloadCancelled = {
+                    continuation.resume(Result.failure(Exception("Download was cancelled"))) { _, _, _ -> }
+                },
+                processFile = { downloadedMedia ->
+                    val item = player?.open(id, downloadedMedia, mimeType) ?: Result.success(null)
+                    if (item.isSuccess) {
+                        listenForItemState(requireNotNull(item.getOrNull()))
+                    }
+
+                    continuation.resume(item) { _, _, _ -> }
+                }
+            )
+        }
+    }
+
+    private fun listenForItemState(item: MediaPlayer.Item) {
+        coroutineScope.launch {
+            item.state.collect { itemState ->
+                when (itemState) {
+                    is MediaPlayer.State.Ready -> state.value = MediaPlayerViewModel.State.Ready
+                    is MediaPlayer.State.Playing -> state.value = MediaPlayerViewModel.State.Playing
+                    is MediaPlayer.State.Failed -> state.value = MediaPlayerViewModel.State.Failure(itemState.message)
+                }
             }
-        )
+        }
     }
 }

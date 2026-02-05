@@ -7,40 +7,32 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val log = KotlinLogging.logger { }
 
 @OptIn(UnstableApi::class)
 internal class AndroidPlayerItem(
+    override val id: String,
+    override val duration: Duration,
     private val mimeType: String,
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
-    private val player: AndroidMediaPlayer,
+    private val player: AndroidMediaPlayer
 ) : MediaPlayer.Item {
-    private val itemState: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
-
-    override val isPlaying: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val duration: MutableStateFlow<Duration?> = MutableStateFlow(null)
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
-    override val state: StateFlow<MediaPlayer.State> =
-        combine(itemState, player.state) { itemState, playerState ->
-            when (playerState) {
-                is MediaPlayer.State.Failed -> playerState
-                else -> itemState
-            }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), MediaPlayer.State.Ready)
+    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
 
-    override suspend fun play(startPosition: Duration?): Unit = player.playingItemMutex.withLock {
-        if (isPlaying.value || state.value !is MediaPlayer.State.Ready) {
+    override suspend fun play(): Unit = player.playingItemMutex.withLock {
+        if (state.value !is MediaPlayer.State.Ready) {
             log.error { "Unable to start playback: Media file is not in the state to be played" }
             return@withLock
         }
@@ -59,17 +51,24 @@ internal class AndroidPlayerItem(
                 .setMimeType(mimeType)
                 .build()
 
-            val startDuration = startPosition ?: elapsedTime.value ?: Duration.ZERO
+            val startDuration = elapsedTime.value ?: Duration.ZERO
             controller.setMediaItem(item, startDuration.inWholeMilliseconds)
             controller.prepare()
             controller.play()
             player.currentItemPlaying.value = this
-            isPlaying.value = true
+            state.value = MediaPlayer.State.Playing(coroutineScope.launch {
+                while (isActive) {
+                    delay(150)
+                    player.withMediaController { controller ->
+                        elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
+                    }
+                }
+            })
         }
     }
 
     override suspend fun pause(): Unit = player.playingItemMutex.withLock {
-        if (!isPlaying.value || state.value !is MediaPlayer.State.Ready) {
+        if (state.value !is MediaPlayer.State.Playing) {
             log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
             return@withLock
         }
@@ -78,11 +77,7 @@ internal class AndroidPlayerItem(
     }
 
     override suspend fun seekTo(position: Duration): Unit = player.playingItemMutex.withLock {
-        seekTo0(position)
-    }
-
-    private suspend fun seekTo0(position: Duration) {
-        if (!isPlaying.value) {
+        if (state.value !is MediaPlayer.State.Playing) {
             elapsedTime.value = position
             return
         }
@@ -103,9 +98,10 @@ internal class AndroidPlayerItem(
         player.withMediaController { controller ->
             log.trace { "Successfully acquired media player, stopping media playback" }
             player.currentItemPlaying.value = null
-            isPlaying.value = false
             controller.pause()
             controller.clearMediaItems()
+            (state.value as MediaPlayer.State.Playing).updateJob.cancel()
+            state.value = MediaPlayer.State.Ready
         }
     }
 
@@ -113,6 +109,7 @@ internal class AndroidPlayerItem(
         coroutineScope.launch {
             pause0()
             tempFile.delete()
+            coroutineScope.cancel()
         }
     }
 }
