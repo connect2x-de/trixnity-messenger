@@ -15,6 +15,7 @@ import org.koin.dsl.module
 fun MatrixMultiMessengerConfiguration.configure() {
     appName = BuildConfig.appName
     appId = BuildConfig.appId
+    appVersion = BuildConfig.version
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses
