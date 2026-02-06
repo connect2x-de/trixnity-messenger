@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
@@ -11,7 +12,6 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 @Suppress("UNUSED")
@@ -969,7 +969,6 @@ open class I18nView(
         EN - "copy MXID"
         DE - "Kopiere MXID"
     }
-
     open fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"
@@ -1120,18 +1119,15 @@ open class I18nView(
         DE - "Bisher keine Nachrichtsinteraktionen"
     }
 
-    // Eigenname, daher keine Übersetzung
-    open fun timelineElementMetadataBody() = translate {
-        EN - "Body"
-        DE - "Body"
+    open fun timelineElementMetadataEvent() = translate {
+        EN - "Decrypted event"
+        DE - "Entschlüsseltes Event"
     }
 
-    // Eigenname, daher keine Übersetzung
-    open fun timelineElementMetadataFormattedBody() = translate {
-        EN - "Formatted Body"
-        DE - "Formatted Body"
+    open fun timelineElementMetadataEventId() = translate {
+        EN - "Event Id"
+        DE - "Event Id"
     }
-
     open fun timelineJumpToEnd() = translate {
         EN - "Jump to the end"
         DE - "Ans Ende springen"
@@ -1142,6 +1138,15 @@ open class I18nView(
         DE - "Raumeinstellungen"
     }
 
+    open fun devInfoButtonTooltip() = translate {
+        EN - "Developer Information"
+        DE - "Entwickler Informationen"
+    }
+
+    open fun copyToClipboardButton() = translate {
+        EN - "Copy to clipboard"
+        DE - "Zur Zwischenablage kopieren"
+    }
     open fun roomSettingsRoomName() = translate {
         EN - "Name"
         DE - "Name"
@@ -1195,6 +1200,15 @@ open class I18nView(
     open fun roomSettingsMentions() = translate {
         EN - "Mentions"
         DE - "Erwähnungen"
+    }
+
+    open fun devInfo() = translate {
+        EN - "Developer Information"
+        DE - "Entwickler Informationen"
+    }
+    open fun roomSettingsRoomId() = translate {
+        EN - "Room Id"
+        DE - "Raum Id"
     }
 
     open fun userSearchSearchPeople() = translate {
@@ -3165,9 +3179,9 @@ open class I18nView(
         DE - "Rolle"
     }
 
-    open fun newEventIdLabel() = translate {
-        EN - "Event id"
-        DE - "Event Id"
+    open fun newEventTypeLabel() = translate {
+        EN - "Event Type"
+        DE - "Event Typ"
     }
 
     open fun mRoomMessageHeading() = translate {

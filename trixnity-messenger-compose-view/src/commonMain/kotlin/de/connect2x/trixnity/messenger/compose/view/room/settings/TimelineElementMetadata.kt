@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,9 +38,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -55,7 +57,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.util.waitForElementWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -68,7 +69,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import de.connect2x.trixnity.core.model.UserId
 
 interface TimelineElementMetadataView {
     @Composable
@@ -129,6 +129,13 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             error = null,
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
+            {
+                Tooltip(i18n.devInfoButtonTooltip()){
+                    IconButton({viewModel.openDevInfo()}){
+                        Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
+                    }
+                }
+            }
         ) {
             if (reactions == null || readers == null || sender == null || lastElement == null || elementHistory.isEmpty()) {
                 LoadingSpinner(Modifier.fillMaxSize())
@@ -151,18 +158,6 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                             MessageContentHistorySwitch(it, elementHistory)
                         }
                         SmallSpacer()
-                        messageElement?.body?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataBody(), icon = Icons.Default.Code) {
-                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                            }
-                            SmallSpacer()
-                        }
-                        messageElement?.formattedBody?.let { content ->
-                            ExpandableSection(i18n.timelineElementMetadataFormattedBody(), icon = Icons.Default.Code) {
-                                ThemedSelectableText(content, MaterialTheme.components.selectionOnSurface)
-                            }
-                            SmallSpacer()
-                        }
                         HorizontalDivider()
                         MiddleSpacer()
                         ReadersAndReactions(reactions, readers, scrollState, viewModel::openUserProfile)
@@ -209,7 +204,7 @@ fun ColumnScope.ReadersAndReactions(
         mutableStateOf(allReadersAndReactions.map { it.sender.userId }.firstOrNull())
     }
 
-    Column(Modifier.heightIn(min = 100.dp, max = 500.dp)) {
+    Column(Modifier.heightIn(min = 25.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
             ThemedListItem(
                 style = MaterialTheme.components.settingsItem,

@@ -83,6 +83,7 @@ import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 
 
 @Composable
@@ -234,14 +235,10 @@ fun CopyableUserId(userId: UserId, textStyle: TextStyle) {
             overflow = TextOverflow.Visible
         )
         Spacer(Modifier.size(5.dp))
-        Tooltip({ Text(i18n.userProfileCopyUserId()) }, Modifier.semantics(mergeDescendants = true) {}) {
-            ThemedIconButton(
-                style = MaterialTheme.components.commonIconButton,
-                onClick = { clipboard.setText(AnnotatedString(userId.full)) }
-            ) {
-                Icon(Icons.Default.CopyAll, i18n.userProfileCopyUserId())
-            }
-        }
+        CopyToClipboardButton(
+            userId.full,
+            i18n.userProfileCopyUserId()
+        )
     }
 }
 
