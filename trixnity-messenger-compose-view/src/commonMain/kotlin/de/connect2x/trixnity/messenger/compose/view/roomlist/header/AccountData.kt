@@ -38,7 +38,7 @@ class AccountDataViewImpl : AccountDataView {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     AccountAvatar(accountViewModel)
-                    CloseProfile(roomListViewModel)
+                    CloseProfile(roomListViewModel.closeProfileNeeded, {roomListViewModel.closeProfile()})
                     ShowSearch(roomListViewModel)
                     AccountOptions(accountViewModel, roomListViewModel)
                 }

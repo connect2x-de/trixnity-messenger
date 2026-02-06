@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
-import de.connect2x.trixnity.messenger.multi.updateProfile
-import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
-import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,7 +16,7 @@ interface ProfilesSettingsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onCloseProfilesSettings: () -> Unit,
-    ):  ProfilesSettingsViewModel{
+    ): ProfilesSettingsViewModel {
         return ProfilesSettingsViewModelImpl(
             viewModelContext,
             onCloseProfilesSettings,
@@ -29,11 +27,19 @@ interface ProfilesSettingsViewModelFactory {
 }
 
 interface ProfilesSettingsViewModel {
+    val profilesSingleViewModels: StateFlow<Map<String, ProfilesSingleViewModel>>
+    val activeProfile: StateFlow<String?>
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
-    val profileNameTextFieldViewModel: ApprovableTextFieldViewModel
-
+    val openedDialogueType: StateFlow<ProfileDialogue?>
+    val openedDialogueProfileId: StateFlow<String?>
+    fun openRenameDialogue(profileId: String)
+    fun openSelectDialogue(profileId: String)
+    fun openDeleteDialogue(profileId: String)
+    fun openCreateDialogue()
+    fun closeOpenedDialogue()
     fun setMultiProfileEnabled(enabled: Boolean)
+    fun closeProfile()
     fun close()
 }
 
@@ -43,12 +49,24 @@ class ProfilesSettingsViewModelImpl(
 ) : ProfilesSettingsViewModel, ViewModelContext by viewModelContext {
     private val profileManager = get<ProfileManager>()
 
+    override val activeProfile: StateFlow<String?> = profileManager.activeProfile
+
+    override val profilesSingleViewModels: StateFlow<Map<String, ProfilesSingleViewModel>> = profileManager.profiles.map {
+        it.mapValues { (profileId, _) ->
+            this@ProfilesSettingsViewModelImpl.get<ProfilesSingleViewModelFactory>()
+                .create(
+                    viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl),
+                    profileId
+                )
+        }
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+
     override val isMultiProfile: StateFlow<Boolean> =
         (profileManager.isMultiProfileEnabled.map { it == true })
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canChangeMultiProfileMode: StateFlow<Boolean> =
-        combine(isMultiProfile, profileManager.profiles.map { it.size > 1 } ) {
+        combine(isMultiProfile, profileManager.profiles.map { it.size > 1 }) {
             val isMultiProfile = it[0]
             val moreThanOneProfile = it[1]
             // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more than
@@ -56,28 +74,33 @@ class ProfilesSettingsViewModelImpl(
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
 
-    private val currentProfileName: StateFlow<String?> = (profileManager.profiles
-        .combine(profileManager.activeProfile){ profiles, activeProfile ->
-            profiles[activeProfile]?.base?.displayName
-        }).stateIn(coroutineScope, WhileSubscribed(), null)
+    override val openedDialogueType: MutableStateFlow<ProfileDialogue?> = MutableStateFlow(null)
+    override val openedDialogueProfileId: MutableStateFlow<String?> = MutableStateFlow(null)
+    override fun openRenameDialogue(profileId: String){
+        openedDialogueType.value = ProfileDialogue.RENAME
+        openedDialogueProfileId.value = profileId
+    }
+    override fun openSelectDialogue(profileId: String) {
+        openedDialogueType.value = ProfileDialogue.SELECT
+        openedDialogueProfileId.value = profileId
+    }
+    override fun openDeleteDialogue(profileId: String) {
+        openedDialogueType.value = ProfileDialogue.DELETE
+        openedDialogueProfileId.value = profileId
+    }
+    override fun openCreateDialogue(){
+        openedDialogueType.value = ProfileDialogue.CREATE
+        openedDialogueProfileId.value = activeProfile.value
+    }
+    override fun closeOpenedDialogue() {
+        openedDialogueType.value = null
+        openedDialogueProfileId.value = null
+    }
 
-    override val profileNameTextFieldViewModel: ApprovableTextFieldViewModel =
-        ApprovableTextFieldViewModelImpl(
-            serverValue = currentProfileName.map { it?: "" },
-            maxLength = 100,
-            coroutineScope = coroutineScope,
-            onApplyChange = {
-                changeProfileName(it)
-                Result.success(it)
-            },
-        )
-
-    private suspend fun changeProfileName(newName: String){
-        val activeProfile = profileManager.activeProfile.value
-        if(activeProfile!= null){
-            profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(activeProfile){
-                it.copy(displayName = newName)
-            }
+    override fun closeProfile() {
+        log.debug { "close profile" }
+        coroutineScope.launch {
+            profileManager.closeProfile()
         }
     }
 
@@ -89,3 +112,8 @@ class ProfilesSettingsViewModelImpl(
         onCloseProfilesSettings()
     }
 }
+
+enum class ProfileDialogue{
+    RENAME, DELETE, SELECT, CREATE
+}
+

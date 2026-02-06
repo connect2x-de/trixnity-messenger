@@ -13,29 +13,28 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 interface CloseProfileView {
     @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    fun create(closeProfileNeeded: Boolean, closeProfile: () -> Unit)
 }
 
 @Composable
-fun CloseProfile(roomListViewModel: RoomListViewModel) {
-    DI.get<CloseProfileView>().create(roomListViewModel)
+fun CloseProfile(closeProfileNeeded: Boolean, closeProfile: () -> Unit) {
+    DI.get<CloseProfileView>().create(closeProfileNeeded, closeProfile)
 }
 
 class CloseProfileViewImpl : CloseProfileView {
     @Composable
-    override fun create(roomListViewModel: RoomListViewModel) {
+    override fun create(closeProfileNeeded: Boolean, closeProfile: () -> Unit) {
         val i18n = DI.get<I18nView>()
 
-        if (roomListViewModel.closeProfileNeeded) {
+        if (closeProfileNeeded) {
             Box {
                 Tooltip({ Text(i18n.accountCloseProfile()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.destructiveIconButton,
-                        onClick = { roomListViewModel.closeProfile() },
+                        onClick = { closeProfile() },
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Logout, i18n.accountCloseProfile())
                     }
