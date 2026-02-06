@@ -3179,9 +3179,9 @@ open class I18nView(
         DE - "Rolle"
     }
 
-    open fun newEventIdLabel() = translate {
-        EN - "Event id"
-        DE - "Event Id"
+    open fun newEventTypeLabel() = translate {
+        EN - "Event Type"
+        DE - "Event Typ"
     }
 
     open fun mRoomMessageHeading() = translate {

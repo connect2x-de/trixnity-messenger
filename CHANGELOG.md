@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Adjusted which rooms are shows as public
 - UI: Show application version in About Panel
+- UI: Fix typo in "Change Power Levels" for event type
 - SDK: Make redaction method of `TimelineElementHolderViewModel` account for redaction warning if necessary
 
 ### Deprecated
