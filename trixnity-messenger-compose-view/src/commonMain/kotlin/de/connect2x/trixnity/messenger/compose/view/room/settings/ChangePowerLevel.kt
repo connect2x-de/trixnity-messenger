@@ -154,7 +154,7 @@ private fun NewEvent(model: PowerlevelViewModel) {
                 value = input,
                 onValueChange = { input = it },
                 enabled = enabled,
-                label = { Text(i18n.newEventIdLabel()) },
+                label = { Text(i18n.newEventTypeLabel()) },
                 isError = isError,
                 supportingText = { Text(errMsg ?: "") })
             ThemedButton(
