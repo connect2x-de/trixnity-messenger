@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - UI: Dev info panel to room setttings and message information panel
+- SDK,UI Introduced profiles settings
 
 ### Changed
 
@@ -49,7 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support UnifiedPush
-- UI: Profiles setting tab in settings
 
 ### Changed
 
