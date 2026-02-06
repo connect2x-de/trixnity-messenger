@@ -1,4 +1,4 @@
-package de.connect2x.messenger.media
+package de.connect2x.messenger.compose.view.media
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column

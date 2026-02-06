@@ -316,8 +316,8 @@ import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWiza
 import de.connect2x.messenger.compose.view.verification.RedoSelfVerificationWizardViewImpl
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.messenger.compose.view.verification.SelfVerificationWizardViewImpl
-import de.connect2x.messenger.media.AudioPlayerView
-import de.connect2x.messenger.media.AudioPlayerViewImpl
+import de.connect2x.messenger.compose.view.media.AudioPlayerView
+import de.connect2x.messenger.compose.view.media.AudioPlayerViewImpl
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
 import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
