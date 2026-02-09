@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UI: "Show message history" no longer causes a crash
+- WEB,A11Y: Fix keyboard navigation not working due js interop error
 
 ### Security
 

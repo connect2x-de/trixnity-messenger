@@ -565,7 +565,8 @@ private fun EventHandlerCaller(canvas: HTMLCanvasElement): EventHandlerCaller {
     return EventHandlerCaller { event ->
         for (info in map.values) {
             if (info.type == event.type) {
-                info.listener
+                // DO NOT REMOVE! This is not unused. Look at the js below.
+                val listener = info.listener
                 js(
                     """
                     if ("handleEvent" in listener) {
