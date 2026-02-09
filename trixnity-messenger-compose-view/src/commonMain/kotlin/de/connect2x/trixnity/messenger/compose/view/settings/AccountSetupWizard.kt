@@ -220,6 +220,7 @@ private fun wizardStepPrivacy(
         val publicPresence = privacySettingsViewModel.presenceIsPublic.collectAsState().value
         val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
         val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
+        val redactWarningEnabled = privacySettingsViewModel.redactionWarningIsEnabled.collectAsState().value
         Column {
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
@@ -241,6 +242,13 @@ private fun wizardStepPrivacy(
                 supportingContent = { Text(i18n.privacyTypingIsPublicExplanation()) },
                 selected = publicTyping,
                 onChange = { privacySettingsViewModel.toggleTypingIsPublic() },
+            )
+            ThemedListItemSwitch(
+                style = MaterialTheme.components.settingsItem,
+                headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
+                supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
+                selected = redactWarningEnabled,
+                onChange = { privacySettingsViewModel.toggleRedactionWarningIsEnabled() },
             )
         }
     })

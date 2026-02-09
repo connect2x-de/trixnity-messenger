@@ -3364,6 +3364,16 @@ open class I18nView(
         DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
 
+    open fun redactionWarningSettingTitle() = translate {
+        EN - "Deletion Warning"
+        DE - "Warnung beim Löschen"
+    }
+
+    open fun redactionWarningSettingDescription() = translate {
+        EN - "Display warning before deleting messages."
+        DE - "Zeige vor dem Löschen von Nachrichten eine Warnung an."
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)
