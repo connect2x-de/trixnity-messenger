@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI,SDK: Add option to disable redaction warning
-- SDK,UI Introduced profiles settings
-
 ### Changed
 
 ### Deprecated
@@ -20,10 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 4.1.0
+
+### Added
+
+- UI,SDK: Add option to disable redaction warning
+- SDK,UI Introduced profiles settings
+
+### Fixed
+
 - UI: "Show message history" no longer causes a crash
 - WEB,A11Y: Fix keyboard navigation not working due js interop error
-
-### Security
 
 ## 4.0.3
 
