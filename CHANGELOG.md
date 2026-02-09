@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- API: Media playback API (currently only supporting audio on Android and iOS)
+- UI, IOS, ANDROID: Add support for playback of audio files
+
 ### Changed
 
 ### Deprecated
