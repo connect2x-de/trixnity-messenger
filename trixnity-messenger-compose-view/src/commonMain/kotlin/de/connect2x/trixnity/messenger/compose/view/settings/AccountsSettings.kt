@@ -67,7 +67,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -107,8 +106,6 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
     val i18n = DI.get<I18nView>()
     val error = accountsViewModel.error.collectAsState().value
     val accountSingleViewModels = accountsViewModel.accountSingleViewModels.collectAsState().value
-    val multiProfileEnabled = accountsViewModel.isMultiProfile.collectAsState().value
-    val canChangeMultiProfileMode = accountsViewModel.canChangeMultiProfileMode.collectAsState().value
     val scroll = rememberScrollState()
 
     Box(Modifier.fillMaxSize()) {
@@ -119,13 +116,7 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
             Box {
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                        ThemedListItemSwitch(
-                            headlineContent = { Text(i18n.profileSelectionMultipleAccountSwitch()) },
-                            enabled = canChangeMultiProfileMode,
-                            selected = multiProfileEnabled,
-                            onChange = { accountsViewModel.setMultiProfileEnabled(it) },
-                        )
-                        accountSingleViewModels.map { accountSingleViewModel ->
+                        accountSingleViewModels.forEach { accountSingleViewModel ->
                             AccountCard(accountSingleViewModel, accountsViewModel)
                         }
                         // leave space so that the floating action button does not cover up other elements

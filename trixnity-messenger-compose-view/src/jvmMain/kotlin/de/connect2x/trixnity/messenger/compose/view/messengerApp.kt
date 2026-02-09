@@ -22,7 +22,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionOrProfile
+import de.connect2x.trixnity.messenger.compose.view.profiles.Profiles
 import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
@@ -128,7 +128,7 @@ fun messengerApp(
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
                         MessengerTheme {
-                            IntroductionOrProfile()
+                            Profiles()
                         }
                     }
                 }

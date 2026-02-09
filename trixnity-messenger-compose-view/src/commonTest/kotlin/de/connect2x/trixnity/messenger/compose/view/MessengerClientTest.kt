@@ -10,7 +10,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.backend.Backend
 import de.connect2x.lognity.test.TestBackend
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionOrProfile
+import de.connect2x.trixnity.messenger.compose.view.profiles.Profiles
 import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelection
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
@@ -47,7 +47,7 @@ class MessengerClientTest {
                             IsFocusHighlighting provides false,
                         ) {
                             MessengerTheme {
-                                IntroductionOrProfile()
+                                Profiles()
                             }
                         }
                     },

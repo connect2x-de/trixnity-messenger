@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.compose.view.settings.BlockedContactsSett
 import de.connect2x.trixnity.messenger.compose.view.settings.DeviceSettings
 import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettings
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettings
+import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettings
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettings
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedVerticalDivider
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
@@ -42,6 +43,7 @@ fun RoomListSwitch(
                 is RoomListRouter.Wrapper.UserSettings -> UserSettings(child.viewModel, mainViewModel)
                 is RoomListRouter.Wrapper.DeviceSettings -> DeviceSettings(child.viewModel)
                 is RoomListRouter.Wrapper.Accounts -> AccountsSettings(child.viewModel)
+                is RoomListRouter.Wrapper.ProfilesSettings -> ProfilesSettings(child.viewModel)
                 is RoomListRouter.Wrapper.NotificationsSettings -> NotificationsSettings(child.viewModel)
                 is RoomListRouter.Wrapper.PrivacySettings -> PrivacySettings(child.viewModel)
                 is RoomListRouter.Wrapper.AppearanceSettings -> AppearanceSettings(child.viewModel)

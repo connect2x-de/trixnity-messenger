@@ -3344,14 +3344,44 @@ open class I18nView(
         DE - "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte aus Ihrem Profil ab und legen Sie ein neues Profil an."
     }
 
-    open fun profileSelectionMultipleAccountHeader() = translate {
-        EN - "Multi Profile Setup"
-        DE - "Multi-Profil Einrichtung"
+    open fun profilesSettings() = translate {
+        EN - "Profiles"
+        DE - "Profile"
+    }
+
+    open fun multiProfilesModeSettings() = translate {
+        EN - "Multi profile mode"
+        DE - "Multi-Profil-Modus"
+    }
+
+    open fun multiProfileModeDescription() = translate {
+        EN - "In Multi Profile Mode, multiple profiles can be used."
+        DE - "Im Multi-Profil-Modus können mehrere Profile verwendet werden."
+    }
+
+    open fun cannotDisableMultiProfileMode() = translate {
+        EN - "There is currently more than one Profile"
+        DE - "Es gibt zurzeit mehr als ein Profil"
     }
 
     open fun profileSelectionMultipleAccountSwitch() = translate {
         EN - "Enable multi profile mode"
         DE - "Multi-Profil-Modus aktivieren"
+    }
+
+    open fun profileNameSettings() = translate {
+        EN - "Profile name"
+        DE - "Profilname"
+    }
+
+    open fun profileNameTextfield() = translate {
+        EN - "Change current profile name"
+        DE - "Ändere den aktuellen Profilname"
+    }
+
+    open fun profileNamePlaceholder() = translate {
+        EN - "Profile name"
+        DE - "Profilname"
     }
 
     open fun redactionWarningInfoTitle() = translate {

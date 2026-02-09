@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrivacyTip
+import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,11 +44,12 @@ class UserSettingsViewImpl : UserSettingsView {
             Column {
                 Header(userSettingsViewModel::closeUserSettings, i18n.commonSettings().capitalize(Locale.current))
                 Column {
-                    ProfileInfo(userSettingsViewModel)
-                    AppearanceSettings(userSettingsViewModel)
-                    PrivacySettings(userSettingsViewModel)
-                    DeviceSettings(userSettingsViewModel)
-                    NotificationsSettings(userSettingsViewModel)
+                    AccountsInfoButton(userSettingsViewModel)
+                    NotificationsSettingsButton(userSettingsViewModel)
+                    AppearanceSettingsButton(userSettingsViewModel)
+                    PrivacySettingsButton(userSettingsViewModel)
+                    DeviceSettingsButton(userSettingsViewModel)
+                    ProfilesSettingsButton(userSettingsViewModel)
                 }
             }
         }
@@ -55,18 +57,29 @@ class UserSettingsViewImpl : UserSettingsView {
 }
 
 @Composable
-fun ProfileInfo(userSettingsViewModel: UserSettingsViewModel) {
+fun AccountsInfoButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
-        leadingContent = { Icon(Icons.Default.Person, null) },
+        leadingContent = { Icon(Icons.Default.SwitchAccount, null) },
         headlineContent = { Text(i18n.accountYourAccounts()) },
-        onClick = { userSettingsViewModel.showProfile() },
+        onClick = { userSettingsViewModel.showAccounts() },
         modifier = Modifier.heightIn(min = 72.dp),
     )
 }
 
 @Composable
-fun AppearanceSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun ProfilesSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
+    val i18n = DI.get<I18nView>()
+    ThemedListItemButton(
+        leadingContent = { Icon(Icons.Default.Group, null) },
+        headlineContent = { Text(i18n.profilesSettings()) },
+        onClick = { userSettingsViewModel.showProfilesSettings() },
+        modifier = Modifier.heightIn(min = 72.dp),
+    )
+}
+
+@Composable
+fun AppearanceSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Palette, null) },
@@ -77,7 +90,7 @@ fun AppearanceSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
+fun PrivacySettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.PrivacyTip, null) },
@@ -88,7 +101,7 @@ fun PrivacySettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun DeviceSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Devices, null) },
@@ -99,7 +112,7 @@ fun DeviceSettings(userSettingsViewModel: UserSettingsViewModel) {
 }
 
 @Composable
-fun NotificationsSettings(userSettingsViewModel: UserSettingsViewModel) {
+fun NotificationsSettingsButton(userSettingsViewModel: UserSettingsViewModel) {
     val i18n = DI.get<I18nView>()
     ThemedListItemButton(
         leadingContent = { Icon(Icons.Default.Notifications, null) },

@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger.compose.view
 
-import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionView
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.common.MatrixUsernameView
@@ -31,10 +30,6 @@ import de.connect2x.trixnity.messenger.compose.view.connecting.ServerDiscoverySt
 import de.connect2x.trixnity.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.trixnity.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.i18n.i18nViewModule
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionOrProfileView
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionOrProfileViewImpl
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionView
-import de.connect2x.trixnity.messenger.compose.view.profiles.IntroductionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileSelectionView
@@ -51,6 +46,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangeRoomAvat
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangeRoomAvatarViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ExportRoomView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ExportRoomViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomDevInfoViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsExportRoomView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsExportRoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsHistoryVisibilityView
@@ -78,6 +75,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsVi
 import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSettingsView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementDevInfoViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
@@ -272,6 +271,8 @@ import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettin
 import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettingsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettingsView
+import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.sharing.ShareDataView
@@ -323,9 +324,6 @@ import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerific
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -407,8 +405,6 @@ fun filesViewModule() = module {
 }
 
 fun profileViewModule() = module {
-    single<IntroductionOrProfileView> { IntroductionOrProfileViewImpl() }
-    single<IntroductionView> { IntroductionViewImpl() }
     single<ProfilesView> { ProfilesViewImpl() }
     single<ProfileCreationView> { ProfileCreationViewImpl() }
     single<ProfileSelectionView> { ProfileSelectionViewImpl() }
@@ -574,6 +570,7 @@ fun settingsViewModule() = module {
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<AccountsSettingsView> { AccountsSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
+    single<ProfilesSettingsView> { ProfilesSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }
     single<AccountSetupWizardStepList> { AccountSetupWizardStepListImpl() }
     single<SelfVerificationWizardView> { SelfVerificationWizardViewImpl() }
