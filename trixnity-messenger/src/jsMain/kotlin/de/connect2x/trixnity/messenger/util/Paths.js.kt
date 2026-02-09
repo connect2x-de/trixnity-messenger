@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import js.objects.Object
 import okio.Path
 import okio.Path.Companion.toPath
@@ -16,7 +19,7 @@ import web.navigator.navigator
 import web.storage.getDirectory
 import web.storage.localStorage
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.PathsKt")
 
 actual fun platformPathsModule(): Module = module {
     single<RootPath> {

@@ -11,9 +11,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent.Code
 import org.koin.core.component.get
 import kotlin.reflect.KClass
 

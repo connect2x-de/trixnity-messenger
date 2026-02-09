@@ -62,7 +62,8 @@ interface ApplicationDelegateProtocol {
     fun didDiscardSceneSessions(
         application: UIApplication,
         sceneSessions: Set<UISceneSession>,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -70,21 +71,24 @@ interface ApplicationDelegateProtocol {
      */
     fun willTerminate(
         application: UIApplication,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatadidbecomeavailable(_:))
      */
     fun protectedDataDidBecomeAvailable(
         application: UIApplication,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatawillbecomeunavailable(_:))
      */
     fun protectedDataWillBecomeUnavailable(
         application: UIApplication,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -92,7 +96,8 @@ interface ApplicationDelegateProtocol {
      */
     fun didReceiveMemoryWarning(
         application: UIApplication,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -100,7 +105,8 @@ interface ApplicationDelegateProtocol {
      */
     fun significantTimeChange(
         application: UIApplication
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -137,7 +143,8 @@ interface ApplicationDelegateProtocol {
     fun willEncodeRestorableState(
         application: UIApplication,
         coder: NSCoder,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -146,7 +153,8 @@ interface ApplicationDelegateProtocol {
     fun didDecodeRestorableState(
         application: UIApplication,
         coder: NSCoder,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -155,7 +163,8 @@ interface ApplicationDelegateProtocol {
     suspend fun handleEventsForBackgroundURLSession(
         application: UIApplication,
         identifier: String,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -164,7 +173,8 @@ interface ApplicationDelegateProtocol {
     fun didRegisterForRemoteNotifications(
         application: UIApplication,
         deviceToken: NSData,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -173,7 +183,8 @@ interface ApplicationDelegateProtocol {
     fun didFailToRegisterForRemoteNotifications(
         application: UIApplication,
         error: NSError,
-    ) { }
+    ) {
+    }
 
 
     /**
@@ -199,7 +210,8 @@ interface ApplicationDelegateProtocol {
      */
     fun shouldRequestHealthAuthorization(
         application: UIApplication,
-    ) { }
+    ) {
+    }
 
     /**
      * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldallowextensionpointidentifier:))

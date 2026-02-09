@@ -1,4 +1,6 @@
 import de.connect2x.conventions.configureJava
+import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.withJvm
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -8,14 +10,16 @@ plugins {
 configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
+    defaultCompilerOptions()
+    withJvm {
+        testRuns.named("test") {
+            executionTask.configure {
+                useJUnitPlatform()
+            }
         }
     }
-
     sourceSets {
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
                 implementation(projects.trixnityMessenger)
@@ -26,9 +30,9 @@ kotlin {
                 implementation(sharedLibs.kotlinx.datetime)
                 implementation(sharedLibs.ktor.client.java)
                 implementation(libs.bundles.testcontainers)
-                implementation(libs.logback.classic)
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.debug)
+                implementation(sharedLibs.lognity.test)
             }
         }
     }

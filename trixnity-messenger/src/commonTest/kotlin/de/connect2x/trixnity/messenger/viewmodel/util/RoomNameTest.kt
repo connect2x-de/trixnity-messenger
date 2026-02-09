@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
@@ -15,21 +16,22 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomDisplayName
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.JoinedRoom.RoomSummary
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomDisplayName
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.model.sync.Sync.Response.Rooms.JoinedRoom.RoomSummary
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RoomNameTest {
@@ -62,6 +64,11 @@ class RoomNameTest {
                 })
         }.koin
         every { matrixClientMock.userId } returns user1Id
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

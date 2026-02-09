@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
@@ -17,23 +18,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
@@ -74,6 +75,7 @@ class GetEventReadersTest {
 
     @BeforeTest
     fun beforeTest() {
+        configureTestLogging()
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock, initialsMock)
         every { matrixClientMock.di } returns koinApplication {
             modules(

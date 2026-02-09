@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -20,7 +20,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.messenger.CreateRoomsKt")
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 suspend fun MatrixMessengerWithRoot.createChatWithUser(username: String) = with(root) {

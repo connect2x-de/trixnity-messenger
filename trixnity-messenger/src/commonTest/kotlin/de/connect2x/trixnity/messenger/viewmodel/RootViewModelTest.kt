@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
@@ -24,14 +25,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RootViewModelTest {
@@ -61,6 +63,11 @@ class RootViewModelTest {
     val roomListViewModelMock = mock<RoomListViewModel>()
     val mainViewModelMock = mock<MainViewModel> {
         every { start() } returns Unit
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

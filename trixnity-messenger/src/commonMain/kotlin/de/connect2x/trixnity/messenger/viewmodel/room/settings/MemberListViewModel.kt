@@ -12,17 +12,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.flattenNotNull
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.client.flattenNotNull
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.core.component.get
 
 interface MemberListViewModelFactory {
@@ -119,7 +119,7 @@ open class MemberListViewModelImpl(
                         lifecycle.start()
                         get<MemberListElementViewModelFactory>()
                             .create(
-                                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                                viewModelContext = childContextWithOwnLifecycle(roomUser.userId.full, lifecycle),
                                 roomUser,
                                 selectedRoomId = selectedRoomId,
                                 onOpenUserProfile = onOpenUserProfile

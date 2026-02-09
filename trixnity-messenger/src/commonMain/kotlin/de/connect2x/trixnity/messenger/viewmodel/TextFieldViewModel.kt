@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -15,8 +15,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-private val log = KotlinLogging.logger { }
 
 /**
  * Interface for a backing text field, managing the state of text and its selection.
@@ -109,6 +107,10 @@ open class TextFieldViewModelImpl private constructor(
     private val delegate: MutableStateFlow<TextFieldViewModel.State>,
     maxLength: Int,
 ) : TextFieldViewModel, StateFlow<TextFieldViewModel.State> by delegate.asStateFlow() {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl")
+    }
+
     constructor(
         maxLength: Int,
         initialText: String = "",
@@ -159,6 +161,10 @@ class ApprovableTextFieldViewModelImpl(
     private val coroutineScope: CoroutineScope,
     private val onApplyChange: suspend (String) -> Result<*>,
 ) : TextFieldViewModelImpl(maxLength), ApprovableTextFieldViewModel {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl")
+    }
+
     private val serverStateValue = serverValue
         .map { it ?: "" }
         .stateIn(coroutineScope, Eagerly, "")

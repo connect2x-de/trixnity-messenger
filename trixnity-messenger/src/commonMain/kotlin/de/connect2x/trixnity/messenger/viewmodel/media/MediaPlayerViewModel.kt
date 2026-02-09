@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.media
 
 import com.arkivanov.essenty.lifecycle.Lifecycle
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,8 +19,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
-
-private val log = KotlinLogging.logger { }
 
 interface MediaPlayerViewModelFactory {
     fun create(

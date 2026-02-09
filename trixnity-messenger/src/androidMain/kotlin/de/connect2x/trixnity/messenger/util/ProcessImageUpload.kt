@@ -6,14 +6,14 @@ import android.graphics.Matrix
 import com.ashampoo.kim.Kim
 import com.ashampoo.kim.format.tiff.constant.TiffTag
 import com.ashampoo.kim.model.TiffOrientation
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import io.ktor.http.*
 import io.ktor.http.ContentType.*
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.io.ByteArrayOutputStream
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.ProcessImageUploadKt")
 
 actual fun platformProcessImageUploadModule(): Module = module {
     single<ProcessImageUpload> {
@@ -27,7 +27,7 @@ actual fun platformProcessImageUploadModule(): Module = module {
  * Rotates the data of an image to its Metadata orientation to prevent issues caused by missing interpretation
  * of Exif Data
  */
-suspend fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: ContentType): ByteArray {
+fun rotateImageToMetadataOrientation(imageBytes: ByteArray, mimeType: ContentType): ByteArray {
     val metadata = Kim.readMetadata(imageBytes)
     val degrees = when (metadata?.findShortValue(TiffTag.TIFF_TAG_ORIENTATION)) {
         TiffOrientation.ROTATE_RIGHT.value.toShort() -> 90

@@ -12,12 +12,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import kotlin.reflect.KClass
 
 interface PowerLevelsTimelineElementViewModelFactory : TimelineElementViewModelFactory<PowerLevelsEventContent> {

@@ -1,16 +1,17 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMultiMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.collections.shouldHaveSize
 import io.ktor.http.*
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -21,18 +22,23 @@ import kotlinx.coroutines.debug.DebugProbes
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import kotlinx.coroutines.delay
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-
-private val log = KotlinLogging.logger {}
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class MultiMessengerIT {
+    init {
+        configureTestLogging()
+    }
+
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.MultiMessengerIT")
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger: MatrixMessengerWithRoot
@@ -102,6 +108,7 @@ class MultiMessengerIT {
         messenger.verifyAccountsArePresent("user1", "user2")
         multiMessenger.closeSuspending()
 
+        delay(100.milliseconds )
         DebugProbes.dumpCoroutinesInfo() shouldHaveSize 1 // only the coroutine of this test should still be active
     }
 }

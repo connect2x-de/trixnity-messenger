@@ -7,7 +7,8 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
 import android.os.IBinder
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +26,7 @@ open class SingletonService<I : AutoCloseable>(
     val factory: suspend (Context) -> I,
 ) : Service() {
 
-    private val log = KotlinLogging.logger { }
+    private val log = Logger("de.connect2x.trixnity.messenger.SingletonService")
     private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
         log.error(exception) { "Exception in ${this::class.simpleName} coroutine" }
     })
@@ -80,7 +81,7 @@ open class SingletonService<I : AutoCloseable>(
 open class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
     private val singletonServiceClass: Class<S>,
 ) : ServiceConnection {
-    private val log = KotlinLogging.logger { }
+    private val log = Logger("de.connect2x.trixnity.messenger.SingletonServiceConnection")
     private var coroutineScope: CoroutineScope? = null
 
     private val _instance = MutableStateFlow<I?>(null)

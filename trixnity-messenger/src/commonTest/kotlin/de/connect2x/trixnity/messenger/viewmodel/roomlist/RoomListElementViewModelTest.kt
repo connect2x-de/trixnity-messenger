@@ -1,7 +1,39 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.notification.NotificationService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.keys.KeyValue
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -31,37 +63,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.notification.NotificationService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.core.MegolmMessageValue
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
-import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
-import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.keys.KeyValue
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
@@ -107,6 +111,8 @@ class RoomListElementViewModelTest {
     private val user2 = UserId("user2", "server")
     private val user3 = UserId("user3", "server")
 
+    val profile = Profile(ProfileField.DisplayName(""))
+
     private val user2Flow = MutableStateFlow(
         RoomUser(
             roomId, userId = user2, name = "User 2", event = memberEvent()
@@ -139,8 +145,7 @@ class RoomListElementViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns me
         every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.RUNNING)
-        every { matrixClientMock.displayName } returns MutableStateFlow("")
-        every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
@@ -170,6 +175,22 @@ class RoomListElementViewModelTest {
                 me,
                 roomId,
                 0L,
+                stateKey = "",
+            )
+        )
+        every {
+            roomServiceMock.getState(
+                any(), HistoryVisibilityEventContent::class, any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
                 stateKey = "",
             )
         )
@@ -209,7 +230,7 @@ class RoomListElementViewModelTest {
                 any(), AvatarEventContent::class, any()
             )
         } returns MutableStateFlow(null)
-        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } returns Result.success(Unit)
         every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
 
         roomByIdMocker = every { roomServiceMock.getById(roomId) }
@@ -228,6 +249,12 @@ class RoomListElementViewModelTest {
         every { roomNameMock.getRoomName(any<RoomId>(), matrixClientMock, any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
         every { notificationService.getCount(any()) } returns flowOf(0)
+        every { notificationService.isUnread(any()) } returns flowOf(false)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -591,7 +618,7 @@ class RoomListElementViewModelTest {
 
         everySuspend {
             usersApiClientMock.setAccountData(
-                content = any(), userId = any(), key = any(), asUserId = any()
+                content = any(), userId = any(), key = any(),
             )
         } returns Result.success(Unit)
 
@@ -606,7 +633,6 @@ class RoomListElementViewModelTest {
             usersApiClientMock.setAccountData(
                 IgnoredUserListEventContent(newIgnored),
                 me,
-                any(),
                 any(),
             )
         }
@@ -644,7 +670,7 @@ class RoomListElementViewModelTest {
 
         everySuspend {
             usersApiClientMock.setAccountData(
-                content = any(), userId = any(), key = any(), asUserId = any()
+                content = any(), userId = any(), key = any(),
             )
         } returns Result.success(Unit)
 
@@ -692,12 +718,12 @@ class RoomListElementViewModelTest {
 
         everySuspend {
             usersApiClientMock.setAccountData(
-                content = any(), userId = any(), key = any(), asUserId = any()
+                content = any(), userId = any(), key = any(),
             )
         } returns Result.success(Unit)
 
         everySuspend { roomInviter.getInviter(any(), any()) } returns user2
-        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable())
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } returns Result.failure(Throwable())
 
         val cut = roomListElementViewModel(roomId)
 
@@ -712,7 +738,7 @@ class RoomListElementViewModelTest {
     @Test
     fun `knocking - should unknock successfully`() = runTest {
         var left = false
-        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } calls {
             left = true
             Result.success(Unit)
         }
@@ -728,7 +754,7 @@ class RoomListElementViewModelTest {
 
     @Test
     fun `knocking - should handle unknock failure`() = runTest {
-        everySuspend { roomsApiClientMock.leaveRoom(any(), any(), any()) } returns Result.failure(Throwable())
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } returns Result.failure(Throwable())
 
         val cut = roomListElementViewModel(roomId)
         delay(500.milliseconds)
@@ -740,14 +766,68 @@ class RoomListElementViewModelTest {
 
 
     @Test
-    fun `provide correct information on whether the room is public and whether it is encrypted or not`() = runTest {
+    fun `encryption being turned on should lead to encryption being turned on`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
+            Room(
+                roomId,
+                isDirect = false,
+                encrypted = true,
+                membership = Membership.INVITE,
+                membersLoaded = false,
+            )
+        )
+
         val cut = roomListElementViewModel(roomId)
 
-        eventually(100.milliseconds) {
-            cut.isPublic.value shouldBe false
-            cut.isEncrypted.value shouldBe true
-        }
+        delay(10)
+
+        cut.isEncrypted.value shouldBe true
     }
+
+    @Test
+    fun `JoinRule Public should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any()) } returns MutableStateFlow(
+            StateEvent(
+                content = JoinRulesEventContent(
+                    joinRule = JoinRulesEventContent.JoinRule.Public
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomListElementViewModel(roomId)
+
+        delay(10)
+
+        cut.isPublic.value shouldBe true
+    }
+
+    @Test
+    fun `HistoryVisibility World_Readable should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any()) } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomListElementViewModel(roomId)
+
+        delay(10)
+
+        cut.isPublic.value shouldBe true
+    }
+
 
     private fun TestScope.roomListElementViewModel(
         roomId: RoomId

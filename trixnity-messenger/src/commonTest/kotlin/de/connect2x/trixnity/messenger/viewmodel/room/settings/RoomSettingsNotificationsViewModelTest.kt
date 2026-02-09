@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -7,24 +8,24 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushCondition
-import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleSet
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.push.PushAction
+import de.connect2x.trixnity.core.model.push.PushCondition
+import de.connect2x.trixnity.core.model.push.PushRule
+import de.connect2x.trixnity.core.model.push.PushRuleSet
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -46,6 +47,11 @@ class RoomSettingsNotificationsViewModelTest {
                 })
         }.koin
         every { matrixClientMock.userId } returns me
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

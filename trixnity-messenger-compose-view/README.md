@@ -77,7 +77,7 @@ Theming allows to change colors and icons.
 
 ### Colors
 
-Have a look into the [theme](src/commonMain/kotlin/de/connect2x/messenger/compose/view/theme) folder, and look out for
+Have a look into the [theme](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/theme) folder, and look out for
 everything that starts with `Theme...`. Those are the hooks where customization can be applied.
 
 An example would be a changed light color scheme.
@@ -136,7 +136,7 @@ Instead of viewmodels, here we need to extend `View`s. Each `View` comes with 3 
   `class [Name]ViewImpl: [Name]View {  @Composable override fun create(vm: [Name]ViewModel) { ... } }`
 
 In the module for the UI layer, every `View` gets wired to its standard implementation (
-see [DI.kt](src/commonMain/kotlin/de/connect2x/messenger/compose/view/DI.kt)).
+see [DI.kt](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/DI.kt)).
 
 In your application, you can include the standard module and afterward override some views with custom views like this:
 
@@ -170,6 +170,6 @@ the [Trixnity Messenger README](../README.md).
 ### Previews (Android)
 
 * previews for certain views can be found
-  in [src/androidMain/kotlin/de/connect2x/messenger/previews](src/androidMain/kotlin/de/connect2x/messenger/previews)
+  in [src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews](src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews)
 * IntelliJ might not recognize the previews, but opening the project in Android Studio should show the previews
   correctly

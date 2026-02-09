@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -9,7 +9,7 @@ import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.PathsKt")
 
 actual fun platformPathsModule(): Module = module {
     single { FileSystem.SYSTEM }

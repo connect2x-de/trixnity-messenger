@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
@@ -7,6 +8,7 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccou
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
@@ -14,7 +16,6 @@ import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.retry
 import io.kotest.assertions.withClue
 import io.kotest.matchers.shouldBe
@@ -27,10 +28,10 @@ import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import okio.FileSystem
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -39,11 +40,14 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
-private val log = KotlinLogging.logger { }
-
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class AccountsIT {
+    init {
+        configureTestLogging()
+    }
+
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.AccountsIT")
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger: MatrixMessengerWithRoot

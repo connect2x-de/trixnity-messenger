@@ -3,8 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
-import net.folivo.trixnity.client.store.TimelineEvent.TimelineEventContentError
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.client.store.TimelineEvent.TimelineEventContentError
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 import org.koin.core.component.get
 
 interface EncryptedErrorTimelineElementViewModel : Message<EncryptedMessageEventContent> {

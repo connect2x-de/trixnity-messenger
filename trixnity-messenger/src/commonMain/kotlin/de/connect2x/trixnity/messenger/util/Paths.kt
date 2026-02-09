@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import okio.ByteString.Companion.toByteString
 import okio.Path
 import org.koin.core.module.Module

@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 
 @Serializable
 @NestedSettingsView("notification", "provider", "noop")
@@ -32,7 +32,7 @@ class NoOpNotificationProvider(
     private val settings: MatrixMessengerSettingsHolder,
     coroutineScope: CoroutineScope,
 ) : NotificationProvider {
-    override val id: String = "de.connect2x.trixnity.messenger.notification.noop"
+    override val id = "de.connect2x.trixnity.messenger.notification.noop"
     override val displayName: String = "no op"
     override val canBeEnabled: Boolean = true
 

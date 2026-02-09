@@ -1,5 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
+import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -9,7 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,15 +27,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.model.server.setAvatarUrl
-import net.folivo.trixnity.clientserverapi.model.server.setDisplayName
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface AccountsViewModelFactory {
     fun create(
@@ -108,14 +106,14 @@ class AccountsViewModelImpl(
         accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
                 this@AccountsViewModelImpl.get<ProfileSingleViewModelFactory>().create(
-                    viewModelContext.childContext(this@AccountsViewModelImpl),
+                    viewModelContext.childContext(userId.full, this@AccountsViewModelImpl),
                     userId,
                     error,
                     showAccountSetup = { onShowAccountSetup(userId) },
                     removeAccount = { onRemoveAccount(userId) }
                 )
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+        }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
 
         openAvatarCutter = accountSingleViewModels.flatMapLatest { profilesOfAccounts ->
             combine(profilesOfAccounts.map { profileOfAccount -> profileOfAccount.openAvatarCutter.map { profileOfAccount.userId to it } }) { list ->
@@ -146,7 +144,7 @@ class AccountsViewModelImpl(
                 val matrixClient = getMatrixClient(userId)
                 if (matrixClient.serverData.value?.capabilities?.capabilities?.setDisplayName?.enabled ?: true) {
                     log.debug { "set new display name in account $userId: $newDisplayName" }
-                    matrixClient.setDisplayName(newDisplayName)
+                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName))
                         .onFailure {
                             log.error(it) { "Cannot set display name." }
                             if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {

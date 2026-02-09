@@ -1,16 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.core.MatrixServerException
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.core.MatrixServerException
 
 interface AuthorizeUia {
     val onRequestFlow: Flow<AuthorizeUiaParams>
@@ -22,6 +20,10 @@ interface AuthorizeUia {
 }
 
 class AuthorizeUiaImpl : AuthorizeUia {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl")
+    }
+
     private val _onRequestFlow = MutableSharedFlow<AuthorizeUiaParams>()
     override val onRequestFlow = _onRequestFlow.asSharedFlow()
 

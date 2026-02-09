@@ -17,8 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.User
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,28 +42,25 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.flattenValues
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.flattenValues
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent.RoomType
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-
-
-private val log = KotlinLogging.logger {}
 
 interface RoomListViewModelFactory {
     fun create(
@@ -352,6 +348,7 @@ class RoomListViewModelImpl(
                                 viewModelContext = childContextWithOwnLifecycle(
                                     lifecycle = lifecycleRegistry,
                                     userId = userId,
+                                    name = roomId.full
                                 ),
                                 roomId,
                                 onRoomSelected = { onRoomSelected(userId, roomId) },

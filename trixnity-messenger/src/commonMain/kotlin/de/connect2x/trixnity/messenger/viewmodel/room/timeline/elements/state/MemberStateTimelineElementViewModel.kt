@@ -20,14 +20,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import kotlin.reflect.KClass
 
 interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<MemberEventContent> {
@@ -88,10 +88,12 @@ class MemberStateTimelineElementViewModelImpl(
                             if (content.displayName == null) {
                                 flowOf(i18n.eventRemoveDisplayName(previousContent.displayName ?: event.sender.full))
                             } else {
-                                flowOf(i18n.eventChangeDisplayName(
-                                    previousContent.displayName ?: event.sender.full,
-                                    content.displayName
-                                ))
+                                flowOf(
+                                    i18n.eventChangeDisplayName(
+                                        previousContent.displayName ?: event.sender.full,
+                                        content.displayName
+                                    )
+                                )
                             }
                         } else {
                             // This message is not very precise because it is also triggered when there is no change at all.
@@ -132,13 +134,24 @@ class MemberStateTimelineElementViewModelImpl(
                 when (stateTransition) {
                     MembershipChange.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
                     MembershipChange.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
-                    MembershipChange.BAN -> i18n.eventChangeBan(thisUsername, username, groupOrChatDative, content.reason)
+                    MembershipChange.BAN -> i18n.eventChangeBan(
+                        thisUsername,
+                        username,
+                        groupOrChatDative,
+                        content.reason
+                    )
+
                     MembershipChange.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
                     MembershipChange.UNBAN -> i18n.eventChangeUnban(thisUsername, username, content.reason)
                     MembershipChange.INVITE_REJECT -> i18n.eventChangeRejected(thisUsername, content.reason)
                     MembershipChange.INVITE_REVOKE -> i18n.eventChangeRevoked(thisUsername, username, content.reason)
                     MembershipChange.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
-                    MembershipChange.KICK -> i18n.eventChangeKick(thisUsername, username, groupOrChatDative, content.reason)
+                    MembershipChange.KICK -> i18n.eventChangeKick(
+                        thisUsername,
+                        username,
+                        groupOrChatDative,
+                        content.reason
+                    )
                 }
             }
     }

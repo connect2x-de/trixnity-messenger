@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
@@ -10,16 +11,15 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.nondeterministic.eventually
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.messenger.AccountsKt")
 
 suspend fun MatrixMessengerWithRoot.createNewAccount(
     serverUrl: String,
@@ -132,7 +132,7 @@ private suspend fun RootViewModel.viewAccounts(): AccountsViewModel {
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.List::class).viewModel
         .accountViewModel.openUserSettings()
     mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.UserSettings::class).viewModel
-        .showProfile()
+        .showAccounts()
     return mainViewModel.roomListRouterStack.waitFor(RoomListRouter.Wrapper.Accounts::class).viewModel
 }
 

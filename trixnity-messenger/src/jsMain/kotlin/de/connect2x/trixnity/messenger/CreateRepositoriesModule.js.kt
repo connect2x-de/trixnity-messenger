@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.util.RootPath
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.client.store.repository.indexeddb.indexedDB
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.repository.indexeddb.indexedDB
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

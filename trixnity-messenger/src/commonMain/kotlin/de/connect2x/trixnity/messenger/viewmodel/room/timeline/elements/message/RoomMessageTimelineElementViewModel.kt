@@ -20,12 +20,12 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.core.MSC2448
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.core.MSC2448
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
+import de.connect2x.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import org.koin.core.component.get
 import kotlin.time.Duration
 

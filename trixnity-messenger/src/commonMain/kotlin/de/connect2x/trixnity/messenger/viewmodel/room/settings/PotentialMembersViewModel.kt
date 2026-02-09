@@ -10,12 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
-import net.folivo.trixnity.client.flatten
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
 
 interface PotentialMembersViewModelFactory {

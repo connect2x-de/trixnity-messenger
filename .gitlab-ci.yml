@@ -19,9 +19,9 @@ variables:
   GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
   KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
   KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
-  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-base:latest
-  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
-  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
+  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-base:latest
+  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
+  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
   FF_USE_FASTZIP: "true"
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
   CACHE_COMPRESSION_LEVEL: "fastest"
@@ -42,7 +42,7 @@ variables:
 .artifact-reports: &artifact-reports
   name: reports
   when: always
-  paths: [ "**/build/reports" ]
+  paths: [ "**/build/reports", "**/build/**/yarn.lock" ]
   reports:
     junit: "**/build/test-results/**/TEST-*.xml"
     coverage_report:
@@ -156,7 +156,7 @@ test:smoketest-desktop-linux:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      :trixnity-messenger-compose-view:desktopTest
+      :trixnity-messenger-compose-view:jvmTest
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
@@ -177,7 +177,7 @@ test:smoketest-web:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      :trixnity-messenger-compose-view:jsBrowserFirefoxTest
+      :trixnity-messenger-compose-view:jsBrowserTest
       --stacktrace
 
 test:smoketest-android:
@@ -296,34 +296,21 @@ publish:linux-dev:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop}PublicationToGitlabRepository
+      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
 
-publish:mac:
+publish:release:
   stage: publish
   tags: [ "connect2x-mac" ]
+  timeout: 2h
   cache:
     - *cache
   rules:
     - *if-release
   script:
     - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
-      --stacktrace
-
-publish:linux:
-  stage: publish
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
-  rules:
-    - *if-release
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-  script:
-    - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop}PublicationToGitlabRepository
+      publishAllPublicationsToGitLabRepository
+      publishAndReleaseToMavenCentral
       --stacktrace
 
 staging:web:
@@ -360,6 +347,6 @@ kmmPublish:mac:
   rules:
     - *if-release
   timeout: 2h
-  needs: [ "publish:mac" ]
+  needs: [ "publish:release" ]
   script:
     - ./kmmPublish.sh

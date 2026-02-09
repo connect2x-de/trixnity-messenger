@@ -1,6 +1,19 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
@@ -29,19 +42,9 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.store.UserPresence
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.GetProfile
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 
@@ -105,6 +108,11 @@ class SearchTest {
         setupMatrixClient()
         setupApiMocks()
         search = SearchImpl(InitialsImpl(testGraphemeIterableProvider()), i18n, MatrixMessengerConfiguration())
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -314,9 +322,9 @@ class SearchTest {
 
     private fun setupGetProfile(userId: UserId, displayName: String, avatarUrl: String? = null) {
         everySuspend { usersApiClientMock.getProfile(userId) } returns Result.success(
-            GetProfile.Response(
-                displayName = displayName,
-                avatarUrl = avatarUrl,
+            Profile(
+                ProfileField.DisplayName(displayName),
+                ProfileField.AvatarUrl(avatarUrl),
             )
         )
     }
@@ -324,13 +332,13 @@ class SearchTest {
     private fun setupGetPresence(userId: UserId, presence: StateFlow<Presence?>) {
         when (val p = presence.value) {
             null -> {
-                everySuspend { usersApiClientMock.getPresence(userId, any()) } returns Result.failure(
+                everySuspend { usersApiClientMock.getPresence(userId) } returns Result.failure(
                     Exception("presence not available")
                 )
             }
 
             else -> {
-                everySuspend { usersApiClientMock.getPresence(userId, any()) } returns Result.success(
+                everySuspend { usersApiClientMock.getPresence(userId) } returns Result.success(
                     PresenceEventContent(p)
                 )
             }

@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
+import de.connect2x.trixnity.clientserverapi.model.room.DirectoryVisibility
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,16 +20,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PRIVATE
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom.Request.Preset.PUBLIC
-import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface CreateNewGroupViewModelFactory {
     fun create(
@@ -42,7 +39,10 @@ interface CreateNewGroupViewModelFactory {
 interface CreateNewGroupViewModel {
     val createNewRoomViewModel: CreateNewRoomViewModel
     val groupUsers: StateFlow<List<SearchUserElement>>
-    val isPrivate: MutableStateFlow<Boolean>
+    val isPrivate: StateFlow<Boolean>
+    fun setIsPrivate(isPrivate: Boolean)
+    val directoryVisibilityIsPublic: StateFlow<Boolean>
+    fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean)
     val isEncrypted: MutableStateFlow<Boolean>
     val isCreating: StateFlow<Boolean>
     val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility>
@@ -74,9 +74,26 @@ open class CreateNewGroupViewModelImpl(
     private val onBack: () -> Unit,
 ) : CreateNewGroupViewModel,
     MatrixClientViewModelContext by viewModelContext {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelImpl")
+    }
+
     private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
+    override val directoryVisibilityIsPublic = MutableStateFlow(false)
     override val isPrivate = MutableStateFlow(true)
+
+    override fun setIsPrivate(isPrivate: Boolean) {
+        this.isPrivate.value = isPrivate
+        if (isPrivate)
+            directoryVisibilityIsPublic.value = false
+    }
+
+    override fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean) {
+        if (!isPrivate.value) this.directoryVisibilityIsPublic.value = setDirectoryVisibilityIsPublic
+    }
+
     override val isEncrypted = MutableStateFlow(true)
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
@@ -118,8 +135,8 @@ open class CreateNewGroupViewModelImpl(
         }
         log.info { "create new group with ${groupUsers.value.joinToString { it.displayName }}" }
         val preset = when (isPrivate.value) {
-            true -> PRIVATE
-            false -> PUBLIC
+            true -> CreateRoom.Request.Preset.PRIVATE
+            false -> CreateRoom.Request.Preset.PUBLIC
         }
         val encryption = when (isEncrypted.value) {
             true -> listOf(InitialStateEvent(content = EncryptionEventContent(), ""))
@@ -130,7 +147,8 @@ open class CreateNewGroupViewModelImpl(
         } ?: emptyList()
         val optionalName = optionalRoomName.value.text.ifBlank { null }
         val optionalTopic = optionalGroupTopic.value.text.ifBlank { null }
-        val directoryVisibility = if (isPrivate.value) DirectoryVisibility.PRIVATE else DirectoryVisibility.PUBLIC
+        val directoryVisibility =
+            if (directoryVisibilityIsPublic.value) DirectoryVisibility.PUBLIC else DirectoryVisibility.PRIVATE
         coroutineScope.launch {
             matrixClient.api.room.createRoom(
                 name = optionalName,
@@ -203,9 +221,17 @@ open class CreateNewGroupViewModelImpl(
 }
 
 class PreviewCreateNewGroupViewModel : CreateNewGroupViewModel {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewCreateNewGroupViewModel")
+    }
+
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
     override val groupUsers: MutableStateFlow<List<SearchUserElement>> = MutableStateFlow(emptyList())
     override val isPrivate: MutableStateFlow<Boolean> = MutableStateFlow(true)
+    override fun setIsPrivate(isPrivate: Boolean) {}
+    override val directoryVisibilityIsPublic: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean) {}
     override val isEncrypted: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =

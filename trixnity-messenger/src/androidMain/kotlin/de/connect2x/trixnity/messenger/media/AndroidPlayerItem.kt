@@ -5,7 +5,8 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -14,11 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-
-private val log = KotlinLogging.logger { }
 
 @OptIn(UnstableApi::class)
 internal class AndroidPlayerItem(
@@ -29,6 +27,8 @@ internal class AndroidPlayerItem(
     private val coroutineScope: CoroutineScope,
     private val player: AndroidMediaPlayer
 ) : MediaPlayer.Item {
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidPlayerItem")
+
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
     override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
 

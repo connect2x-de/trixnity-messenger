@@ -2,15 +2,11 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-private val log = KotlinLogging.logger { }
-
 sealed interface SharedData {
-
     data class SingleFile(val file: FileDescriptor) : SharedData
     data class MultipleFiles(val files: List<FileDescriptor>) : SharedData
     data class PlainText(val text: String) : SharedData

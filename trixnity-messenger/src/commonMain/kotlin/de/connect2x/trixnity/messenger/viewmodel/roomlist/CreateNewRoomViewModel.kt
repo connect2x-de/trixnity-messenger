@@ -6,8 +6,8 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {

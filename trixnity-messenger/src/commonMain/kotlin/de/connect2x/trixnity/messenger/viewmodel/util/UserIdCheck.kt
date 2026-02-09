@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
 import io.ktor.http.*
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 
 fun UserId.isValid(): Boolean {
     val hasDomain = full.contains(":")

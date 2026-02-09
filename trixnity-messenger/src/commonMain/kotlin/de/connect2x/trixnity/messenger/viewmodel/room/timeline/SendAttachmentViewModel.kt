@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
@@ -10,8 +10,7 @@ import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.ContentType.*
+import io.ktor.http.ContentType.Image
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,20 +19,18 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.message.audio
-import net.folivo.trixnity.client.room.message.file
-import net.folivo.trixnity.client.room.message.image
-import net.folivo.trixnity.client.room.message.video
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.byteArrayFlowFromSource
-import net.folivo.trixnity.utils.toByteArray
-import net.folivo.trixnity.utils.toByteArrayFlow
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.client.room.message.file
+import de.connect2x.trixnity.client.room.message.image
+import de.connect2x.trixnity.client.room.message.video
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.byteArrayFlowFromSource
+import de.connect2x.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import okio.Buffer
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger { }
 
 interface SendAttachmentViewModelFactory {
     fun create(
@@ -133,7 +130,7 @@ class SendAttachmentViewModelImpl(
                 matrixClient.room.sendMessage(selectedRoomId) {
                     val byteArrayFlow = fileContent.value ?: file.content
                     when {
-                        isImage ?: false -> {
+                        isImage -> {
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) = if (size == null || size <= maxMediaSizeInMemory)
@@ -199,7 +196,7 @@ class SendAttachmentViewModelImpl(
 
 }
 
-class PreviewSendAttachmentViewModel() : SendAttachmentViewModel {
+class PreviewSendAttachmentViewModel : SendAttachmentViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val file: FileDescriptor = BasicFileDescriptor(

@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.trixnity.client.media.PlatformMedia
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.client.media.PlatformMedia
 import kotlin.time.Duration
 
 interface MediaPlayer : AutoCloseable {

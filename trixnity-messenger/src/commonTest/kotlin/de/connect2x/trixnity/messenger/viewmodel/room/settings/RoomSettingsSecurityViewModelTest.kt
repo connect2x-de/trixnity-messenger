@@ -1,5 +1,18 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomDisplayName
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.StateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -18,20 +31,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomDisplayName
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.StateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -71,6 +73,11 @@ class RoomSettingsSecurityViewModelTest {
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `enable encryption in unencrypted room while be able to`() = runTest {
         canSendEventMock returns flowOf(true)
@@ -108,7 +115,7 @@ class RoomSettingsSecurityViewModelTest {
 
     private fun mockSendStateEvent(expectedEvent: StateEventContent, callCounter: MutableStateFlow<Int>) {
         everySuspend {
-            roomsApiClientMock.sendStateEvent(roomId, expectedEvent, any(), any())
+            roomsApiClientMock.sendStateEvent(roomId, expectedEvent, any())
         } calls {
             callCounter.value += 1
             Result.success(EventId("1"))

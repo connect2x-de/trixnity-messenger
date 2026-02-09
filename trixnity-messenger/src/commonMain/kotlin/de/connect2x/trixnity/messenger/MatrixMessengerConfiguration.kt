@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import net.folivo.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.client.ModuleFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -37,6 +37,8 @@ data class MatrixMessengerConfiguration(
     var defaultPresenceIsPublic: Boolean = true,
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
+
+    var defaultRedactionWarningIsEnabled: Boolean = true,
 
     var databaseEncryptionEnabled: Boolean = true,
 
@@ -75,7 +77,7 @@ data class MatrixMessengerConfiguration(
     var defaultHomeServer: String? = null,
 
     /**
-     * Whether the [de.connect2x.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
+     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
      *
      * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel]
      * and others can be used to manually guide the user through the setup process.
@@ -95,9 +97,6 @@ data class MatrixMessengerConfiguration(
      */
     override var imprint: String? = null,
     override var licenses: String? = null,
-
-    var pushUrl: String? = null,
-    var pushAppId: String? = null,
 
     var downloadsDisabled: Boolean = false,
 

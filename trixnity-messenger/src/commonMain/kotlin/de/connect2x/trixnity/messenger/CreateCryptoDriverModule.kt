@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration.CryptoDriver.LIBOLM
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration.CryptoDriver.VODOZEMAC
-import net.folivo.trixnity.client.CryptoDriverModule
-import net.folivo.trixnity.client.cryptodriver.libolm.libOlm
-import net.folivo.trixnity.client.cryptodriver.vodozemac.vodozemac
+import de.connect2x.trixnity.client.CryptoDriverModule
+import de.connect2x.trixnity.client.cryptodriver.libolm.libOlm
+import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
 import org.koin.dsl.module
 
 fun interface CreateCryptoDriverModule {

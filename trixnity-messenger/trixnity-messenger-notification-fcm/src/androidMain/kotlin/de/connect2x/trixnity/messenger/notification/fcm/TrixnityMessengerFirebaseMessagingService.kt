@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger.notification.fcm
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 
-private val log = KotlinLogging.logger { }
+private val log = Logger("de.connect2x.trixnity.messenger.notification.fcm")
 
 class TrixnityMessengerFirebaseMessagingService : FirebaseMessagingService() {
 

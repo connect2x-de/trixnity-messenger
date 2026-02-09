@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.util
 
 import android.graphics.BitmapFactory
 import io.ktor.http.*
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArray
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

@@ -58,6 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
@@ -72,6 +73,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecur
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
@@ -117,6 +119,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
@@ -128,7 +131,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
@@ -177,11 +180,11 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.ModuleFactory
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
-import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
-import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -221,7 +224,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                             module {
                                 single<EventContentSerializerMappings> {
                                     eventContentSerializerMappings
-                                        .fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
+                                        .fold(EventContentSerializerMappings.default) { a, b -> a + b }
                                 }
                             }
                         }
@@ -233,7 +236,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             }
 
             single<MatrixClientFactory> { MatrixClientFactory }
-            single<MatrixClientsImpl> {
+            single<MatrixClients> {
                 MatrixClientsImpl(
                     matrixClientFactory = get(),
                     deleteAccountData = get(),
@@ -248,7 +251,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     configurer = getAll()
                 )
             }.apply {
-                bind<MatrixClients>()
                 bind<AutoCloseable>()
                 bind<Worker>()
             }
@@ -373,6 +375,7 @@ private fun settingsViewModels() = module {
     single<DeviceSettingsAllAccountsViewModelFactory> { DeviceSettingsAllAccountsViewModelFactory }
     single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
     single<AccountsViewModelFactory> { AccountsViewModelFactory }
+    single<ProfilesSettingsViewModelFactory> { ProfilesSettingsViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
@@ -450,8 +453,10 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
     single<TimelineElementMetadataViewModelFactory> { TimelineElementMetadataViewModelFactory }
+    single<TimelineElementDevInfoViewModelFactory> { TimelineElementDevInfoViewModelFactory }
     single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<RoomDevInfoViewModelFactory> { RoomDevInfoViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
 }

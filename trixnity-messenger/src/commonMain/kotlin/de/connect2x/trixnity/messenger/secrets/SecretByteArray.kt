@@ -1,11 +1,8 @@
 package de.connect2x.trixnity.messenger.secrets
 
 import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-
-private val log = KotlinLogging.logger {}
 
 @Serializable
 sealed interface SecretByteArray {

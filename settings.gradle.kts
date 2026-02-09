@@ -1,55 +1,11 @@
 rootProject.name = "trixnity-messenger-root"
 
-include(
-    "trixnity-messenger",
-    "trixnity-messenger:trixnity-messenger-notification-fcm",
-    "trixnity-messenger:trixnity-messenger-notification-apns",
-    "integrationtests",
-    "emojis",
-    "wrappers-zipjs",
-    "wrappers-pdfjs",
-    "trixnity-messenger-compose-view",
-    "trixnity-messenger-compose-app",
-)
-
-buildCache {
-    val buildCacheUrl = System.getenv("GRADLE_BUILD_CACHE_URL")
-    local {
-        isEnabled = buildCacheUrl == null
-        directory = File(rootDir, ".gradle").resolve("build-cache")
-    }
-    remote<HttpBuildCache> {
-        isEnabled = buildCacheUrl != null
-        if (buildCacheUrl != null) {
-            url = uri(buildCacheUrl)
-            isPush = true
-            credentials {
-                username = System.getenv("GRADLE_BUILD_CACHE_USERNAME")
-                password = System.getenv("GRADLE_BUILD_CACHE_PASSWORD")
-            }
-        }
-    }
-}
-
 pluginManagement {
     repositories {
-        val dependencyCacheUrl = System.getenv("GRADLE_DEPENDENCY_CACHE_URL")
-        if (dependencyCacheUrl != null)
-            maven {
-                url = uri(dependencyCacheUrl)
-                authentication {
-                    credentials {
-                        username = System.getenv("GRADLE_DEPENDENCY_CACHE_USERNAME")
-                        password = System.getenv("GRADLE_DEPENDENCY_CACHE_PASSWORD")
-                    }
-                }
-            }
         gradlePluginPortal()
-        mavenCentral()
         mavenLocal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // compose multiplatform a11y
-        google()
+        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // Compose Multiplatform A11y
     }
 }
 
@@ -57,40 +13,32 @@ pluginManagement {
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositories {
-        val dependencyCacheUrl = System.getenv("GRADLE_DEPENDENCY_CACHE_URL")
-        if (dependencyCacheUrl != null)
-            maven {
-                url = uri(dependencyCacheUrl)
-                authentication {
-                    credentials {
-                        username = System.getenv("GRADLE_DEPENDENCY_CACHE_USERNAME")
-                        password = System.getenv("GRADLE_DEPENDENCY_CACHE_PASSWORD")
-                    }
-                }
-            }
-        mavenCentral()
         mavenLocal()
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
-        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // trixnity
-        maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // sysnotify
-        maven("https://gitlab.com/api/v4/projects/65998892/packages/maven") // androidx
-        maven("https://gitlab.com/api/v4/projects/65231927/packages/maven") // kmp-jni
-        maven("https://gitlab.com/api/v4/projects/72850047/packages/maven") // sqlitenity
-        maven("https://oss.sonatype.org/content/repositories/snapshots")
-        maven("https://gitlab.com/api/v4/projects/75787860/packages/maven") // compose multiplatform core a11y
-        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // compose multiplatform a11y
-        google()
-    }
-
-    versionCatalogs {
-        create("sharedLibs") {
-            from("de.connect2x.conventions:c2x-shared-catalog:20251219.132625")
-        }
+        maven("https://gitlab.com/api/v4/projects/75787860/packages/maven") // Compose Multiplatform Core A11y
+        maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // Compose Multiplatform A11y
+        maven("https://gitlab.com/api/v4/projects/72301746/packages/maven") // Lognity
+        maven("https://gitlab.com/api/v4/projects/58749664/packages/maven") // Sysnotify
+        maven("https://gitlab.com/api/v4/projects/26519650/packages/maven") // Trixnity
+        maven("https://gitlab.com/api/v4/projects/72850047/packages/maven") // SQLitenity
     }
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0" // https://github.com/gradle/foojay-toolchains/tags
+    id("de.connect2x.conventions.c2x-settings-plugin") version "20260129.102940"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+include(
+    "trixnity-messenger",
+    "trixnity-messenger:trixnity-messenger-notification-apns",
+    "trixnity-messenger:trixnity-messenger-notification-fcm",
+    "trixnity-messenger:trixnity-messenger-notification-unifiedpush",
+    "trixnity-messenger-compose-view",
+    "trixnity-messenger-compose-app",
+    "integrationtests",
+    "emojis",
+    "wrappers-zipjs",
+    "wrappers-pdfjs",
+)

@@ -3,16 +3,16 @@ package de.connect2x.trixnity.messenger
 import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
-import de.connect2x.sqlitenity.bundled.BundledSQLitenityDriver
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.sqlitenity.bundled.SQLitenityBundledDriver
 import de.connect2x.sqlitenity.compat.SQLitenityCompatDriver
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.store.repository.room.TrixnityRoomDatabase
+import de.connect2x.trixnity.client.store.repository.room.room
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException.DatabaseAccessException
 import de.connect2x.trixnity.messenger.util.RootPath
-import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.client.store.repository.room.TrixnityRoomDatabase
-import net.folivo.trixnity.client.store.repository.room.room
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.crypto.core.SecureRandom
 import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.core.scope.Scope
@@ -53,7 +53,7 @@ internal expect inline fun <reified T : RoomDatabase> Scope.roomDatabaseBuilder(
 private class EncryptedSQLiteDriver(
     key: ByteArray?
 ) : SQLiteDriver {
-    private val log = KotlinLogging.logger("de.connect2x.trixnity.messenger.EncryptedSQLiteDriver")
+    private val log = Logger("de.connect2x.trixnity.messenger.EncryptedSQLiteDriver")
 
     companion object {
         const val KEY_SIZE = 32
@@ -80,7 +80,7 @@ private class EncryptedSQLiteDriver(
     @ExperimentalStdlibApi
     private val rawKey = key?.toHexString()
 
-    private val driver = SQLitenityCompatDriver(BundledSQLitenityDriver())
+    private val driver = SQLitenityCompatDriver(SQLitenityBundledDriver())
 
     @ExperimentalStdlibApi
     override fun open(fileName: String): SQLiteConnection =

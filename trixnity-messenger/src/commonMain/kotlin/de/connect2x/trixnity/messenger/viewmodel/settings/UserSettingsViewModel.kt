@@ -10,6 +10,7 @@ interface UserSettingsViewModelFactory {
         onCloseUserSettings: () -> Unit,
         onShowDeviceSettings: () -> Unit,
         onShowAccounts: () -> Unit,
+        onShowProfilesSettings: () -> Unit,
         onShowNotificationsSettings: () -> Unit,
         onShowPrivacySettings: () -> Unit,
         onShowAppearanceSettings: () -> Unit,
@@ -19,6 +20,7 @@ interface UserSettingsViewModelFactory {
             onCloseUserSettings,
             onShowDeviceSettings,
             onShowAccounts,
+            onShowProfilesSettings,
             onShowNotificationsSettings,
             onShowPrivacySettings,
             onShowAppearanceSettings,
@@ -31,7 +33,8 @@ interface UserSettingsViewModelFactory {
 interface UserSettingsViewModel {
     fun closeUserSettings()
     fun showDeviceSettings()
-    fun showProfile()
+    fun showAccounts()
+    fun showProfilesSettings()
     fun showNotificationsSettings()
     fun showPrivacySettings()
     fun showAppearanceSettings()
@@ -41,7 +44,8 @@ open class UserSettingsViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onCloseUserSettings: () -> Unit,
     private val onShowDeviceSettings: () -> Unit,
-    private val onShowProfile: () -> Unit,
+    private val onShowAccounts: () -> Unit,
+    private val onShowProfilesSettings: () -> Unit,
     private val onShowNotificationsSettings: () -> Unit,
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
@@ -63,8 +67,12 @@ open class UserSettingsViewModelImpl(
         onShowDeviceSettings()
     }
 
-    override fun showProfile() {
-        onShowProfile()
+    override fun showAccounts() {
+        onShowAccounts()
+    }
+
+    override fun showProfilesSettings() {
+        onShowProfilesSettings()
     }
 
     override fun showNotificationsSettings() {

@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
@@ -38,19 +39,22 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.message.MessageBuilder
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -121,8 +125,8 @@ class ShareFilesViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-        every { matrixClientMock.displayName } returns MutableStateFlow("Me ^^")
-        every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+        val profile = Profile(ProfileField.DisplayName("Me ^^"))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
 
         every { roomServiceMock.getAll() } returns flowOf(
             mapOf(
@@ -143,6 +147,11 @@ class ShareFilesViewModelTest {
 
             ""
         }
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

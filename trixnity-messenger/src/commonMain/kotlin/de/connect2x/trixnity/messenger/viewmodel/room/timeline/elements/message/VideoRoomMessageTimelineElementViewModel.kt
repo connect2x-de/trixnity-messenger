@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.clientserverapi.model.media.FileTransferProgress
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import org.koin.core.component.get
 import kotlin.reflect.KClass
 

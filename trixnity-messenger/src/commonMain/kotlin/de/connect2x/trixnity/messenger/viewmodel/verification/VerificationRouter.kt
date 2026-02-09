@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.pushSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 class VerificationRouter(
@@ -31,7 +31,7 @@ class VerificationRouter(
         when (config) {
             is Config.DeviceVerification -> Wrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    viewModelContext = viewModelContext.childContext("DeviceVerification", componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
                     onRedoSelfVerification = { onRedoSelfVerification(config.userId) },
                     roomId = null,
@@ -41,7 +41,7 @@ class VerificationRouter(
 
             is Config.UserVerification -> Wrapper.Verification(
                 viewModelContext.get<VerificationViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext, config.userId),
+                    viewModelContext = viewModelContext.childContext("UserVerification", componentContext, config.userId),
                     onCloseVerification = ::closeVerification,
                     onRedoSelfVerification = { onRedoSelfVerification(config.userId) },
                     roomId = config.roomId,

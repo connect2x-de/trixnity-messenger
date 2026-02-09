@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.resetMocks
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -10,19 +11,19 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.UserPresence
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -86,6 +87,7 @@ class RoomPresenceTest {
 
     @BeforeTest
     fun beforeTest() {
+        configureTestLogging()
         resetMocks(matrixClientMock, userServiceMock)
         isDirect = false
         members = listOf()

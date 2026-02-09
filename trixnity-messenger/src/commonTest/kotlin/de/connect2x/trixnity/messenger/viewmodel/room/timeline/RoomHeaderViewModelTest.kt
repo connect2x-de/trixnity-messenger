@@ -1,5 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -9,6 +28,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomTopic
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -26,26 +46,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.crypto.key.UserTrustLevel
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -155,24 +158,6 @@ class RoomHeaderViewModelTest {
         every { initialsMock.compute(any()) } returns "MR"
         room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
         every { roomServiceMock.getById(roomId) } returns room
-        every {
-            roomServiceMock.getState(
-                any(),
-                JoinRulesEventContent::class,
-                any()
-            )
-        } returns MutableStateFlow(
-            StateEvent(
-                content = JoinRulesEventContent(
-                    joinRule = JoinRulesEventContent.JoinRule.Public
-                ),
-                EventId("1"),
-                me,
-                roomId,
-                0L,
-                stateKey = "",
-            )
-        )
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -186,6 +171,36 @@ class RoomHeaderViewModelTest {
         every { roomPresenceMock.invoke(any(), roomId) } returns flowOf(Presence.ONLINE)
 
         every { userBlockingMock.isUserBlocked(any(), any()) } returns MutableStateFlow(false)
+
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = JoinRulesEventContent(
+                    joinRule = JoinRulesEventContent.JoinRule.Private
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -204,7 +219,7 @@ class RoomHeaderViewModelTest {
             "image".encodeToByteArray(),
             Presence.ONLINE,
             isEncrypted = false,
-            isPublic = true,
+            isPublic = false,
             isLeave = false,
         )
 
@@ -218,7 +233,7 @@ class RoomHeaderViewModelTest {
             "image".encodeToByteArray(),
             Presence.ONLINE,
             isEncrypted = false,
-            isPublic = true,
+            isPublic = false,
             isLeave = false,
         )
     }
@@ -236,10 +251,12 @@ class RoomHeaderViewModelTest {
     @Test
     fun `react to changes in the user's trust level`() = runTest {
         val trustLevel = MutableStateFlow<UserTrustLevel>(UserTrustLevel.CrossSigned(verified = true))
-        val directRoom = MutableStateFlow(mapOf(
-            otherUser to flowOf(otherRoomUser),
-            me to flowOf(meRoomUser)
-        ))
+        val directRoom = MutableStateFlow(
+            mapOf(
+                otherUser to flowOf(otherRoomUser),
+                me to flowOf(meRoomUser)
+            )
+        )
         room.update { it?.copy(isDirect = true) }
         every { userServiceMock.getAll(roomId) } returns directRoom
         every { keyServiceMock.getTrustLevel(otherUser) } returns trustLevel
@@ -388,6 +405,64 @@ class RoomHeaderViewModelTest {
         val cut = roomHeaderViewModel()
         delay(500.milliseconds)
         cut.knockingMembersCount.value shouldBe 1
+    }
+
+    @Test
+    fun `encryption being turned on should lead to encryption being turned on`() = runTest {
+        room.value = room.value?.copy(encrypted = true)
+
+        val cut = roomHeaderViewModel()
+        subscribe(cut)
+
+        delay(10)
+
+        cut.roomHeaderInfo.value.isEncrypted shouldBe true
+    }
+
+    @Test
+    fun `JoinRule Public should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = JoinRulesEventContent(
+                    joinRule = JoinRulesEventContent.JoinRule.Public
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomHeaderViewModel()
+        subscribe(cut)
+
+        delay(10)
+
+        cut.roomHeaderInfo.value.isPublic shouldBe true
+    }
+
+    @Test
+    fun `HistoryVisibility World_Readable should lead to isPublic being true`() = runTest {
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any())} returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+                ),
+                id = EventId("1"),
+                sender = me,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            )
+        )
+
+        val cut = roomHeaderViewModel()
+        subscribe(cut)
+
+        delay(10)
+
+        cut.roomHeaderInfo.value.isPublic shouldBe true
     }
 
     private fun TestScope.roomHeaderViewModel(): RoomHeaderViewModelImpl {

@@ -1,26 +1,29 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.warn
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlin.time.Duration.Companion.seconds
-
-private val log = KotlinLogging.logger {}
 
 interface LeaveRoom {
     suspend operator fun invoke(client: MatrixClient, roomId: RoomId, forget: Boolean = true): Result<Unit>
 }
 
 class LeaveRoomImpl : LeaveRoom {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.LeaveRoomImpl")
+    }
+
     override suspend fun invoke(client: MatrixClient, roomId: RoomId, forget: Boolean): Result<Unit> = runCatching {
         withTimeout(30.seconds) {
             val roomsIds = buildList {

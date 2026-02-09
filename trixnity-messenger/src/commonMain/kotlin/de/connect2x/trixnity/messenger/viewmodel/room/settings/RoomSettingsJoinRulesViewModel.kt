@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,15 +12,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import kotlin.time.Duration.Companion.seconds
-
-private val log = KotlinLogging.logger {}
 
 interface RoomSettingsJoinRulesViewModelFactory {
     fun create(

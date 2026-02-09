@@ -35,7 +35,7 @@ class SharingRouter(
 
             is Config.ShareData -> Wrapper.ShareData(
                 viewModelContext.get<ShareDataViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("ShareData", componentContext),
                     sharedData = config.data,
                     onClose = ::close,
                 )

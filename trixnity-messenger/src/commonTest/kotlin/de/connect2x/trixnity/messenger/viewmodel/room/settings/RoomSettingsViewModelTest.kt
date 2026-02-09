@@ -1,5 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -21,26 +40,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RoomSettingsViewModelTest {
@@ -135,6 +137,11 @@ class RoomSettingsViewModelTest {
         } returns MutableStateFlow(PowerLevel.User(100))
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `go back to the room list view when leaving the room successfully`() = runTest {
         every {
@@ -142,7 +149,7 @@ class RoomSettingsViewModelTest {
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                roomId, any(), null
+                roomId, any()
             )
         } returns Result.success(Unit)
 
@@ -152,7 +159,7 @@ class RoomSettingsViewModelTest {
         yield()
 
         verifySuspend {
-            roomsApiClientMock.leaveRoom(roomId, any(), null)
+            roomsApiClientMock.leaveRoom(roomId, any())
         }
     }
 
@@ -177,7 +184,7 @@ class RoomSettingsViewModelTest {
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                roomId, any(), null
+                roomId, any(),
             )
         } returns Result.failure(RuntimeException("Oh no!"))
 
@@ -261,7 +268,8 @@ class RoomSettingsViewModelTest {
             onOpenAddMembers = mock(),
             onOpenExportRoom = mock(),
             onOpenUserProfile = mock(),
-            onOpenMention = { _, _  -> },
+            onOpenMention = { _, _ -> },
+            onOpenDevInfo = mock(),
             onOpenPowerLevel = mock(),
         )
     }

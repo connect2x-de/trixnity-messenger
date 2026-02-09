@@ -1,11 +1,26 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.store.ServerData
+import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
+import de.connect2x.trixnity.clientserverapi.model.server.Capabilities
+import de.connect2x.trixnity.clientserverapi.model.server.Capability
+import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
+import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -23,20 +38,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.store.ServerData
-import net.folivo.trixnity.clientserverapi.model.media.GetMediaConfig
-import net.folivo.trixnity.clientserverapi.model.server.Capabilities
-import net.folivo.trixnity.clientserverapi.model.server.Capability
-import net.folivo.trixnity.clientserverapi.model.server.GetCapabilities
-import net.folivo.trixnity.clientserverapi.model.server.GetVersions
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -44,7 +48,7 @@ import kotlin.time.Duration.Companion.seconds
 class AccountsViewModelTest {
     private val ownUserId = UserId("bob", "localhost")
     private val ownUserId2 = UserId("alice", "localhost")
-    private val displayNameFlow2 = MutableStateFlow("Alice")
+    private val displayName2 = "Alice"
 
     val matrixClientMock = mock<MatrixClient>()
 
@@ -64,7 +68,8 @@ class AccountsViewModelTest {
                     single { mediaServiceMock }
                 })
         }.koin
-        every { matrixClientMock.avatarUrl } returns MutableStateFlow("mxc://localhost/123456")
+        val profile = Profile(ProfileField.AvatarUrl("mxc://localhost/123456"))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientMock.userId } returns ownUserId
         every { matrixClientMock.serverData } returns MutableStateFlow(
             ServerData(
@@ -88,9 +93,10 @@ class AccountsViewModelTest {
                     single { mediaServiceMock2 }
                 })
         }.koin
-        every { matrixClientMock2.displayName } returns displayNameFlow2
-        everySuspend { matrixClientMock2.setDisplayName(any()) } returns Result.success(Unit)
-        every { matrixClientMock2.avatarUrl } returns MutableStateFlow("mxc://localhost/098765")
+
+        val profile2 = Profile(ProfileField.DisplayName(displayName2), ProfileField.AvatarUrl("mxc://localhost/098765"))
+        every { matrixClientMock2.profile } returns MutableStateFlow(profile2)
+        everySuspend { matrixClientMock2.setProfileField(ProfileField.DisplayName()) } returns Result.success(Unit)
         every { matrixClientMock2.userId } returns ownUserId2
         everySuspend {
             mediaServiceMock2.getThumbnail(
@@ -118,9 +124,18 @@ class AccountsViewModelTest {
         )
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `show profiles initially`() = runTest {
-        every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
+        val p = Profile(
+            ProfileField.DisplayName("Bob"),
+            ProfileField.AvatarUrl("mxc://localhost/123456"),
+        )
+        every { matrixClientMock.profile } returns MutableStateFlow(p)
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -156,11 +171,11 @@ class AccountsViewModelTest {
     @Test
     fun `set a new display name and reload profile`() = runTest {
         // do NOT move this block into the init block as it will break in iOS tests
-        val displayNameFlow = MutableStateFlow("Bob")
-        every { matrixClientMock.displayName } returns displayNameFlow
-        setDisplayNameMocker = everySuspend { matrixClientMock.setDisplayName(any()) }
+        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
+        every { matrixClientMock.profile } returns profile
+        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Bobby")) }
         setDisplayNameMocker calls {
-            displayNameFlow.value = it.args[0] as String
+            profile.value += ProfileField.DisplayName((it.args[0] as ProfileField.DisplayName).value)
             Result.success(Unit)
         }
         everySuspend {
@@ -186,18 +201,15 @@ class AccountsViewModelTest {
         cut.saveDisplayName(ownUserId)
         delay(200.milliseconds)
         // this leads to matrixClient.displayName to be set to "Bobby"
-        verifySuspend { matrixClientMock.setDisplayName("Bobby") }
+        verifySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName("Bobby")) }
     }
 
     @Test
     fun `show error when new display name cannot be set`() = runTest {
-        val displayNameFlow = MutableStateFlow("Bob")
-        every { matrixClientMock.displayName } returns displayNameFlow
-        setDisplayNameMocker = everySuspend { matrixClientMock.setDisplayName(any()) }
-        setDisplayNameMocker calls {
-            displayNameFlow.value = it.args[0] as String
-            Result.success(Unit)
-        }
+        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
+        every { matrixClientMock.profile } returns profile
+        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
+        setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -208,7 +220,6 @@ class AccountsViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
-        setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
 
         val cut = profileViewModel()
         val accounts = cut.accountSingleViewModels
@@ -225,13 +236,15 @@ class AccountsViewModelTest {
 
     @Test
     fun `display an error message when the user has not enough rights to change the display name`() = runTest {
-        val displayNameFlow = MutableStateFlow("Bob")
-        every { matrixClientMock.displayName } returns displayNameFlow
-        setDisplayNameMocker = everySuspend { matrixClientMock.setDisplayName(any()) }
-        setDisplayNameMocker calls {
-            displayNameFlow.value = it.args[0] as String
-            Result.success(Unit)
-        }
+        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
+        every { matrixClientMock.profile } returns profile
+        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
+        setDisplayNameMocker returns Result.failure(
+            MatrixServerException(
+                HttpStatusCode.Forbidden,
+                ErrorResponse.Forbidden("")
+            )
+        )
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -242,12 +255,6 @@ class AccountsViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
-        setDisplayNameMocker returns Result.failure(
-            MatrixServerException(
-                HttpStatusCode.Forbidden,
-                ErrorResponse.Forbidden("")
-            )
-        )
 
         val cut = profileViewModel()
         val accounts = cut.accountSingleViewModels
@@ -265,7 +272,8 @@ class AccountsViewModelTest {
 
     @Test
     fun `compute the open avatar cutter property`() = runTest {
-        every { matrixClientMock.displayName } returns MutableStateFlow("Bob")
+        val profile = Profile(ProfileField.DisplayName("Bob"))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -297,7 +305,7 @@ class AccountsViewModelTest {
 
     @Test
     fun `has empty display name when an explicit display name is not set`() = runTest {
-        every { matrixClientMock.displayName } returns MutableStateFlow(null)
+        every { matrixClientMock.profile } returns MutableStateFlow(Profile())
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",

@@ -7,8 +7,11 @@ import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.ContextGetter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,19 +22,16 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-private val log = KotlinLogging.logger { }
-
 internal class AndroidMediaPlayer(
     getContext: ContextGetter,
     private val coroutineScope: CoroutineScope
 ) : MediaPlayer {
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
     private val controller: ListenableFuture<MediaController>
 
     internal val currentItemPlaying: MutableStateFlow<AndroidPlayerItem?> = MutableStateFlow(null)

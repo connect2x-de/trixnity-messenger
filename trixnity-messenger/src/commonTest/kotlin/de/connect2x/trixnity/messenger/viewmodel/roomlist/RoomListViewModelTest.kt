@@ -3,8 +3,33 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.notification.NotificationService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent.RoomType
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.space.ChildEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.isNot
@@ -40,31 +65,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.notification.NotificationService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.MarkedUnreadEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent.RoomType
-import net.folivo.trixnity.core.model.events.m.room.JoinRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.space.ChildEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -230,6 +233,24 @@ class RoomListViewModelTest {
                 stateKey = "",
             )
         )
+        every {
+            roomServiceMock.getState(
+                any(),
+                HistoryVisibilityEventContent::class,
+                any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                EventId("1"),
+                user1,
+                roomId1,
+                0L,
+                stateKey = "",
+            )
+        )
         every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
         every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(null)
         every {
@@ -298,6 +319,12 @@ class RoomListViewModelTest {
         every { profileManagerMock.profiles } returns MutableStateFlow(emptyMap())
         everySuspend { profileManagerMock.closeProfile() } returns Unit
         every { notificationService.getCount(any()) } returns flowOf(0)
+        every { notificationService.isUnread(any()) } returns flowOf(false)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -423,7 +450,6 @@ class RoomListViewModelTest {
                 any(),
                 any(),
                 any(),
-                any()
             )
         } calls {
             joinedRoomWasCalled = true
@@ -819,6 +845,24 @@ class RoomListViewModelTest {
                 stateKey = ""
             )
         )
+        every {
+            roomServiceMock2.getState(
+                any(),
+                HistoryVisibilityEventContent::class,
+                any()
+            )
+        } returns MutableStateFlow(
+            StateEvent(
+                content = HistoryVisibilityEventContent(
+                    historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.JOINED
+                ),
+                EventId("1"),
+                user1,
+                roomId1,
+                0L,
+                stateKey = "",
+            )
+        )
 
         every {
             roomNameMock.getRoomName(any<Room>(), any(), any())
@@ -1125,9 +1169,10 @@ class RoomListViewModelTest {
 
                                     override fun selectActiveAccount(userId: UserId?) {
                                         backgroundScope.launch {
-                                            this@single.get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase> {
-                                                it.copy(selectedAccount = userId)
-                                            }
+                                            this@single.get<MatrixMessengerSettingsHolder>()
+                                                .update<MatrixMessengerSettingsBase> {
+                                                    it.copy(selectedAccount = userId)
+                                                }
                                         }
                                         onAccountSelected(userId) // needed to influence RoomListViewModel
                                     }
@@ -1146,7 +1191,8 @@ class RoomListViewModelTest {
             viewModelContext = ViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
                 di = koin,
-                coroutineContext = backgroundScope.coroutineContext
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "RoomList"
             ),
             selectedRoomId = MutableStateFlow(RoomId("!roomId")),
             onRoomSelected = onRoomSelectedMock,

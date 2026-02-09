@@ -2,13 +2,13 @@ package de.connect2x.trixnity.messenger.integrationtests.util
 
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CoroutineScope
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
-import net.folivo.trixnity.clientserverapi.model.authentication.Register
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
+import de.connect2x.trixnity.clientserverapi.model.authentication.Register
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.core.model.UserId
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network

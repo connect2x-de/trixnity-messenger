@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.i18n.I18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -9,20 +9,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomDisplayName
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-
-
-private val log = KotlinLogging.logger {}
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomDisplayName
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 interface RoomName {
     fun getRoomName(
@@ -47,6 +44,9 @@ open class RoomNameImpl(
     private val i18n: I18n,
     private val roomInviter: RoomInviter,
 ) : RoomName {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.util.RoomNameImpl")
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun getRoomName(

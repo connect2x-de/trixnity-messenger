@@ -10,14 +10,10 @@ import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger { }
 
 class AccountSetupRouter(
     private val viewModelContext: ViewModelContext,
@@ -44,7 +40,9 @@ class AccountSetupRouter(
             Wrapper.ShowAccountSetup(
                 get<AccountSetupViewModelFactory>().create(
                     viewModelContext.childContext(
-                        componentContext, userId = config.userId
+                        "ShowAccountSetup",
+                        componentContext,
+                        config.userId
                     ),
                     ::onSetupClose,
                     onStartVerification,

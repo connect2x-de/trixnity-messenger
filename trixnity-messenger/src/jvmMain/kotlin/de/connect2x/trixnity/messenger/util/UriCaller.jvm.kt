@@ -1,12 +1,13 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import java.awt.Desktop
 import java.net.URI
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriCallerKt")
 
 actual fun platformUriCallerModule(): Module = module {
     single<UriCaller> {

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.resetMocks
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -38,6 +39,8 @@ class NotificationHandlerTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
+
         resetMocks(notificationHandler)
         multiSettings = createTestMatrixMultiMessengerSettingsHolder()
         callbackParam = null
@@ -116,7 +119,7 @@ class NotificationHandlerTest {
     }
 
     class NotificationProviderMock : NotificationProvider {
-        override val id: String = "mock"
+        override val id = "mock"
         override val displayName: String = "mock"
         override val canBeEnabled: Boolean = true
         override val isEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)

@@ -14,8 +14,6 @@ import kotlin.time.Duration.Companion.minutes
 object SyncAndProcessPendingWorker {
     private const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.apns.SyncAndProcessPending"
 
-    var interval: Duration = 15.minutes
-
     fun registerUniquePeriodicWork() {
         BGTaskScheduler.sharedScheduler()
             .registerForTaskWithIdentifier(identifier = UNIQUE_WORK_NAME, usingQueue = null) { task: BGTask? ->
@@ -26,15 +24,16 @@ object SyncAndProcessPendingWorker {
                     task?.setTaskCompletedWithSuccess(true)
                 }
             }
+        enqueueUniquePeriodicWork(15.minutes)
     }
 
-    fun enqueueUniquePeriodicWork() {
+    fun enqueueUniquePeriodicWork(interval: Duration) {
         stopUniquePeriodicWork()
-        scheduleUniquePeriodicWork()
+        scheduleUniquePeriodicWork(interval)
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun scheduleUniquePeriodicWork() {
+    private fun scheduleUniquePeriodicWork(interval: Duration) {
         val taskRequest = BGProcessingTaskRequest(UNIQUE_WORK_NAME)
         taskRequest.setRequiresNetworkConnectivity(true)
         taskRequest.setRequiresExternalPower(false)
@@ -47,11 +46,15 @@ object SyncAndProcessPendingWorker {
     }
 
     private fun doWork(task: BGProcessingTask) {
-        scheduleUniquePeriodicWork()
         try {
             runBlocking {
                 withApnsPushNotificationProvider { provider ->
-                    provider.possiblySyncAndProcessPending()
+                    if (provider.isEnabled.value) {
+                        scheduleUniquePeriodicWork(provider.config.periodicSyncInterval)
+                        provider.possiblySyncAndProcessPending()
+                    } else {
+                        stopUniquePeriodicWork() // registerUniquePeriodicWork may not know that we are not active
+                    }
                 }
             }
             task.setTaskCompletedWithSuccess(true)

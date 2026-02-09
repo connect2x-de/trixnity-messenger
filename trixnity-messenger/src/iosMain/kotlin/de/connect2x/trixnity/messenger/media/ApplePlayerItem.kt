@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.messenger.media
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
 import platform.AVFoundation.AVURLAsset
@@ -25,8 +26,6 @@ import platform.darwin.NSObjectProtocol
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-private val log = KotlinLogging.logger {}
-
 @OptIn(ExperimentalForeignApi::class)
 internal class ApplePlayerItem(
     override val id: String,
@@ -36,6 +35,7 @@ internal class ApplePlayerItem(
     private val coroutineScope: CoroutineScope,
     private val player: AppleMediaPlayer,
 ) : MediaPlayer.Item {
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaItem")
     private var playEndObserver: NSObjectProtocol? = null
     private var timeObserver: Any? = null
     private var playerItem: AVPlayerItem? = null
@@ -83,7 +83,7 @@ internal class ApplePlayerItem(
                     }
 
                     player.currentItemPlaying.value = this
-                    state.value = MediaPlayer.State.Playing(null)
+                    state.value = MediaPlayer.State.Playing
                 } catch (ex: Exception) {
                     log.error(ex) { "Failed to play media item" }
                     state.value = MediaPlayer.State.Failed("Unable to play media item: ${ex.message}")
@@ -128,7 +128,6 @@ internal class ApplePlayerItem(
         seekTo0(Duration.ZERO)
         applePlayer.pause()
         player.currentItemPlaying.value = null
-        (state.value as MediaPlayer.State.Playing).updateJob?.cancel()
         state.value = MediaPlayer.State.Ready
         timeObserver?.let {
             applePlayer.removeTimeObserver(it)

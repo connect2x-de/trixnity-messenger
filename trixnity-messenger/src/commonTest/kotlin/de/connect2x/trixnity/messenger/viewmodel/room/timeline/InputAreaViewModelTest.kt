@@ -1,13 +1,34 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -30,29 +51,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.message.MessageBuilder
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -180,11 +182,15 @@ class InputAreaViewModelTest {
 
         everySuspend {
             roomsApiClientMock.setTyping(
-                any(), any(), any(), any(), any()
+                any(), any(), any(), any(),
             )
         } returns Result.success(Unit)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `not allow sending when message is empty`() = runTest {
@@ -296,7 +302,7 @@ class InputAreaViewModelTest {
     fun `set 'is typing' when message was changed and is not empty`() = runTest {
         var setTypingWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(roomId, ourUserId, true, any(), null)
+            roomsApiClientMock.setTyping(roomId, ourUserId, true, any())
         } calls {
             setTypingWasCalled = true
             Result.success(Unit)
@@ -316,13 +322,13 @@ class InputAreaViewModelTest {
     fun `keep 'is typing' when message changes at least once every 3 seconds`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -352,13 +358,13 @@ class InputAreaViewModelTest {
     fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -382,13 +388,13 @@ class InputAreaViewModelTest {
     fun `set 'is not typing' when the message has been sent`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any(), null)
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -673,7 +679,7 @@ class InputAreaViewModelTest {
     fun `convert markdown to HTML`() = runTest {
         val markdown = """
             # The train station and Sony
-           
+            
             ## Origins
             
             There once was an amazing train station. It was so amazing that people in Germany began to say
@@ -722,19 +728,19 @@ class InputAreaViewModelTest {
 
         val html = """
             <h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
-            the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
-            its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
-            This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
-            for example:</p><pre><code>fun main() {
+            <br />the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
+            <br />its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
+            <br />This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
+            <br />for example:</p><pre><code>fun main() {
                 println(&quot;Hello World 👋👋👋&quot;)
             }
             </code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-            The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
-            the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
-            infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
-            video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
-            Hope you had a good read? It's mostly non-sense
-            Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
+            <br />The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
+            <br />the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
+            <br />infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
+            <br />video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
+            <br />Hope you had a good read? It's mostly non-sense
+            <br />Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
         """.trimIndent()
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -787,9 +793,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
+            println(formattedBody)
             formattedBody shouldBe """
                 <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
-                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+                <br />und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
             """.trimIndent()
         }
     }

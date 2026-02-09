@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
-import net.folivo.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.ByteArrayFlow
 import org.koin.core.module.Module
 
 interface FileBasedExportRoomSinkWriterFactory {

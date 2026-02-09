@@ -1,15 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 
 interface ReportToMessageViewModelFactory {
     fun create(
@@ -43,14 +42,12 @@ open class ReportMessageViewModelImpl(
     eventId: EventId,
     private val onReportMessageFinished: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, ReportMessageViewModel {
-
-
     private val eventId: MutableStateFlow<EventId> = MutableStateFlow(eventId)
     override val messageReportReason: TextFieldViewModelImpl = TextFieldViewModelImpl(maxLength = 20_000)
 
     override fun submitReportToMessage() {
         coroutineScope.launch {
-            log.info { "Message report to roomId: ${roomId} eventId: ${eventId.value}" }
+            log.info { "Message report to roomId: $roomId eventId: ${eventId.value}" }
             matrixClient.api.room.reportEvent(
                 roomId = roomId,
                 eventId = eventId.value,
@@ -71,6 +68,11 @@ open class ReportMessageViewModelImpl(
 }
 
 class PreviewReportMessageViewModel : ReportMessageViewModel {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewReportMessageViewModel")
+    }
+
     override val messageReportReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     override fun submitReportToMessage() {

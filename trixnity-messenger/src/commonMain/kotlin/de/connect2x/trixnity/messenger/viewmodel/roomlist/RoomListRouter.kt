@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
@@ -14,6 +15,8 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
@@ -28,16 +31,12 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAcco
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 class RoomListRouter(
     private val viewModelContext: ViewModelContext,
@@ -52,6 +51,9 @@ class RoomListRouter(
     private val onStartVerification: (userId: UserId) -> Unit,
     private val onCloseRoom: () -> Unit
 ) {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter")
+    }
 
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -77,7 +79,7 @@ class RoomListRouter(
             is Config.None -> Wrapper.None
             is Config.RoomList -> Wrapper.List(
                 viewModelContext.get<RoomListViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("RoomList", componentContext),
                     selectedRoomId = selectedRoomId,
                     onRoomSelected = onRoomSelected,
                     onStartCreateNewRoom = ::onStartCreateNewRoom,
@@ -95,12 +97,14 @@ class RoomListRouter(
                 viewModelContext.get<CreateNewChatViewModelFactory>()
                     .create(
                         viewModelContext.childContext(
+                            "CreateNewChat",
                             componentContext,
                             roomListConfig.userId,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
                             .create(
                                 viewModelContext.childContext(
+                                    "CreateNewChatRoom",
                                     componentContext,
                                     roomListConfig.userId,
                                 ),
@@ -116,12 +120,14 @@ class RoomListRouter(
                 viewModelContext.get<CreateNewGroupViewModelFactory>()
                     .create(
                         viewModelContext.childContext(
+                            "CreateNewGroup",
                             componentContext,
                             roomListConfig.userId,
                         ),
                         viewModelContext.get<CreateNewRoomViewModelFactory>()
                             .create(
                                 viewModelContext.childContext(
+                                    "CreateNewGroupRoom",
                                     componentContext,
                                     roomListConfig.userId,
                                 ),
@@ -134,6 +140,7 @@ class RoomListRouter(
             is Config.SearchGroup -> Wrapper.SearchGroup(
                 viewModelContext.get<SearchGroupViewModelFactory>().create(
                     viewModelContext.childContext(
+                        "SearchGroup",
                         componentContext,
                         roomListConfig.userId,
                     ),
@@ -145,10 +152,11 @@ class RoomListRouter(
 
             is Config.UserSettings -> Wrapper.UserSettings(
                 viewModelContext.get<UserSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "UserSettings", componentContext),
                     onCloseUserSettings = ::onCloseUserSettings,
                     onShowDeviceSettings = ::onShowDeviceSettings,
                     onShowAccounts = ::onShowAccounts,
+                    onShowProfilesSettings = ::onShowProfilesSettings,
                     onShowNotificationsSettings = ::onShowNotificationsSettings,
                     onShowPrivacySettings = ::onShowPrivacySettings,
                     onShowAppearanceSettings = ::onShowAppearanceSettings,
@@ -158,14 +166,14 @@ class RoomListRouter(
             is Config.DeviceSettings -> Wrapper.DeviceSettings(
                 viewModelContext.get<DeviceSettingsAllAccountsViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext(componentContext),
+                        viewModelContext = viewModelContext.childContext(name = "DeviceSettings", componentContext),
                         onCloseDeviceSettings = ::onCloseDeviceSettings,
                     )
             )
 
             is Config.Accounts -> Wrapper.Accounts(
                 viewModelContext.get<AccountsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "Accounts", componentContext),
                     onCloseAccounts = ::onCloseAccounts,
                     onOpenAvatarCutter = onOpenAvatarCutter,
                     onShowAccountSetup = ::onShowAccountSetup,
@@ -174,17 +182,24 @@ class RoomListRouter(
                 )
             )
 
+            is Config.ProfilesSettings -> Wrapper.ProfilesSettings(
+                viewModelContext.get<ProfilesSettingsViewModelFactory>().create(
+                    viewModelContext = viewModelContext.childContext(name = "Profiles",componentContext),
+                    onCloseProfilesSettings = ::onCloseProfilesSettings,
+                )
+            )
+
             is Config.NotificationsSettings -> Wrapper.NotificationsSettings(
                 viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext(componentContext),
+                        viewModelContext = viewModelContext.childContext(name = "NotificationsSettings", componentContext),
                         onBack = ::onCloseNotificationsSettings,
                     )
             )
 
             is Config.PrivacySettings -> Wrapper.PrivacySettings(
                 viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "PrivacySettings", componentContext),
                     onClosePrivacySettings = ::onClosePrivacySettings,
                     onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
                 )
@@ -192,24 +207,21 @@ class RoomListRouter(
 
             is Config.AppearanceSettings -> Wrapper.AppearanceSettings(
                 viewModelContext.get<AppearanceSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "AppearanceSettings", componentContext),
                     onCloseAppearanceSettings = ::onCloseAppearanceSettings,
                 )
             )
 
             is Config.BlockedContactsSettings -> Wrapper.BlockedContactsSettings(
                 viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext).childContext(
-                        componentContext,
-                        roomListConfig.account,
-                    ),
+                    viewModelContext = viewModelContext.childContext("BlockedContactsSettings", componentContext, roomListConfig.account),
                     onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
             )
 
             is Config.AppInfo -> Wrapper.AppInfo(
                 viewModelContext.get<AppInfoViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "AppInfo", componentContext),
                     onCloseAppInfo = ::onCloseAppInfo,
                 )
             )
@@ -295,11 +307,19 @@ class RoomListRouter(
     }
 
     private fun onShowAccounts() {
-        log.debug { "show profile" }
+        log.debug { "show accounts" }
         navigation.launchPush(viewModelContext.coroutineScope, Config.Accounts)
     }
 
     private fun onCloseAccounts() {
+        log.debug { "close accounts" }
+        navigation.launchPop(viewModelContext.coroutineScope)
+    }
+    private fun onShowProfilesSettings() {
+        log.debug { "show profile" }
+        navigation.launchPush(viewModelContext.coroutineScope, Config.ProfilesSettings)
+    }
+    private fun onCloseProfilesSettings() {
         log.debug { "close profile" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
@@ -391,6 +411,9 @@ class RoomListRouter(
         data object Accounts : Config()
 
         @Serializable
+        data object ProfilesSettings : Config()
+
+        @Serializable
         data object NotificationsSettings : Config()
 
         @Serializable
@@ -417,6 +440,7 @@ class RoomListRouter(
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
         class DeviceSettings(val viewModel: DeviceSettingsAllAccountsViewModel) : Wrapper()
         class Accounts(val viewModel: AccountsViewModel) : Wrapper()
+        class ProfilesSettings(val viewModel: ProfilesSettingsViewModel) : Wrapper()
         class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
         class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()

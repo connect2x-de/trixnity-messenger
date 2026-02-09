@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 
@@ -21,6 +23,11 @@ class EditableTextFieldViewModelTest {
     }
     private val numCallsOnApplyValue: MutableStateFlow<Int> = MutableStateFlow(0)
     private val isHoldingUpOnApplyValue: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `initialize the view model in the correct state`() = runTest {

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -23,10 +24,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class PasswordLoginViewModelTest {
@@ -39,6 +41,11 @@ class PasswordLoginViewModelTest {
         resetMocks(matrixClientsMock, onBackMock, onLoginMock)
         every { onBackMock() } returns Unit
         every { onLoginMock() } returns Unit
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test

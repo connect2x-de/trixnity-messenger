@@ -1,12 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.client.DeviceApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.device.Device
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
-import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
@@ -18,15 +28,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.devices.Device
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -64,14 +67,20 @@ class VerificationStepRequestViewModelTest {
         every { matrixClientMock.di } returns koinApplication { modules() }.koin
         every { matrixClientMock.userId } returns ourUserId
         every { matrixClientMock.deviceId } returns ourDeviceId
-        every { matrixClientMock.displayName } returns MutableStateFlow(ourUserDisplayName)
+        val profile = Profile(ProfileField.DisplayName(ourUserDisplayName))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
-        every { matrixClientMock.displayName } returns MutableStateFlow(ourUserDisplayName)
-        everySuspend { usersApiClientMock.getDisplayName(theirUserId) } returns Result.success(theirUserDisplayName)
-        everySuspend { devicesApiClientMock.getDevice(ourDeviceId, any()) } returns Result.success(ourDevice)
-        everySuspend { devicesApiClientMock.getDevice(theirDeviceId, any()) } returns Result.success(theirDevice)
+        everySuspend { usersApiClientMock.getProfileField(theirUserId, ProfileField.DisplayName) } returns
+                Result.success(ProfileField.DisplayName(theirUserDisplayName))
+        everySuspend { devicesApiClientMock.getDevice(ourDeviceId) } returns Result.success(ourDevice)
+        everySuspend { devicesApiClientMock.getDevice(theirDeviceId) } returns Result.success(theirDevice)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -101,7 +110,12 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching external user display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { usersApiClientMock.getDisplayName(theirUserId) } returns responseForbidden()
+        everySuspend {
+            usersApiClientMock.getProfileField(
+                theirUserId,
+                ProfileField.DisplayName
+            )
+        } returns responseForbidden()
         backgroundScope.launch { cut.theirDisplayName.collect() }
         eventually(1.seconds) {
             cut.theirDisplayName.value shouldBe theirUserId.full
@@ -111,7 +125,7 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching own device display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { devicesApiClientMock.getDevice(ourDeviceId, any()) } returns responseForbidden()
+        everySuspend { devicesApiClientMock.getDevice(ourDeviceId) } returns responseForbidden()
         backgroundScope.launch { cut.ourDeviceDisplayName.collect() }
         eventually(1.seconds) {
             cut.ourDeviceDisplayName.value shouldBe ourDeviceId
@@ -121,7 +135,7 @@ class VerificationStepRequestViewModelTest {
     @Test
     fun `return default when fetching external device display name on denied access`() = runTest {
         val cut = verificationStepRequestViewModel()
-        everySuspend { devicesApiClientMock.getDevice(theirDeviceId, any()) } returns responseForbidden()
+        everySuspend { devicesApiClientMock.getDevice(theirDeviceId) } returns responseForbidden()
         backgroundScope.launch { cut.theirDeviceDisplayName.collect() }
         eventually(1.seconds) {
             cut.theirDeviceDisplayName.value shouldBe theirDeviceId
@@ -130,7 +144,7 @@ class VerificationStepRequestViewModelTest {
 
     @Test
     fun `recognize if request is from the same account`() = runTest {
-        val senderId = ourUserId.copy()
+        val senderId = ourUserId
         val senderDeviceId = ourDevice.copy().deviceId
         val cut = verificationStepRequestViewModel(senderId, senderDeviceId)
         eventually(1.seconds) {
@@ -140,7 +154,7 @@ class VerificationStepRequestViewModelTest {
 
     @Test
     fun `recognize if request is from a different account`() = runTest {
-        val senderId = theirUserId.copy()
+        val senderId = theirUserId
         val senderDeviceId = theirDevice.copy().deviceId
         val cut = verificationStepRequestViewModel(senderId, senderDeviceId)
         eventually(1.seconds) {

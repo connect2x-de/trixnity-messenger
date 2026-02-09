@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.trixnity.messenger.i18n.I18n
 import kotlinx.coroutines.CancellationException
-import net.folivo.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 
 inline fun Result<ClassicMatrixClientAuthProviderData>.onClassicLoginFailure(
     i18n: I18n,

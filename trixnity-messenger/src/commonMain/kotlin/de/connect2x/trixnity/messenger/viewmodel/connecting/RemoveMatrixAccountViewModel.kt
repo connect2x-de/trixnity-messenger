@@ -1,18 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.folivo.trixnity.core.model.UserId
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.core.model.UserId
 
 interface RemoveMatrixAccountViewModelFactory {
     fun create(
@@ -57,6 +55,7 @@ class RemoveMatrixAccountViewModelImpl(
     override fun close() {
         onRemoveCompleted()
     }
+
     private suspend fun logout(force: Boolean = false) {
         if (logoutMutex.isLocked) return
         logoutMutex.withLock {

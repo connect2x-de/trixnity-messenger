@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.MatrixClients.CreateResult.Failure
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -8,8 +11,7 @@ import de.connect2x.trixnity.messenger.secrets.deleteDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.ResponseException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
@@ -27,19 +29,17 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.RepositoriesModule
-import net.folivo.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import net.folivo.trixnity.clientserverapi.client.useApi
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.useApi
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.coroutines.CoroutineContext
 
-private val log = KotlinLogging.logger { }
-
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable {
+interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, Worker {
     data class InitFromStoreResult(
         val success: Set<UserId>,
         val failures: Map<UserId, MatrixClientInitializationException>,
@@ -90,7 +90,11 @@ class MatrixClientsImpl(
     private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
     private val onCreate: suspend (MatrixClientAuthProviderData, UserId) -> Unit = { _, _ -> },
-) : Worker, MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
+) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixClientsImpl")
+    }
+
     override suspend fun doWork() {
         initFromStore()
 

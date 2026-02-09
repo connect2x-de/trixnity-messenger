@@ -1,14 +1,23 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import com.arkivanov.essenty.lifecycle.doOnStart
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction
+import de.connect2x.trixnity.clientserverapi.model.device.Device
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.MSC4191
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.URLBuilder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,19 +29,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction
-import net.folivo.trixnity.clientserverapi.model.devices.Device
-import net.folivo.trixnity.core.MSC3814
-import net.folivo.trixnity.core.MSC4191
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.core.component.get
 import kotlin.time.Instant
-
-
-private val log = KotlinLogging.logger {}
 
 interface DeviceSettingsSingleAccountViewModelFactory {
     fun create(

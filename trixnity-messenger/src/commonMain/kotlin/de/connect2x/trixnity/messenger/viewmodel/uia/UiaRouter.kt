@@ -3,10 +3,10 @@ package de.connect2x.trixnity.messenger.viewmodel.uia
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.replaceAllSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -14,18 +14,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.clientserverapi.client.UIA
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import net.folivo.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.core.MatrixServerException
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
-
-
-private val log = KotlinLogging.logger {}
 
 class UiaRouter(
     private val viewModelContext: ViewModelContext,
 ) {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter")
+    }
+
     private val i18n = viewModelContext.get<I18n>()
     private val navigation = StackNavigation<Config>()
     val stack = viewModelContext.childStack(
@@ -46,7 +47,7 @@ class UiaRouter(
 
             is Config.UiaActionConfirmation -> Wrapper.UiaActionConfirmation(
                 viewModelContext.get<UiaActionConfirmationViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaActionConfirmation", componentContext),
                     message = config.message,
                     action = config.action,
                     onNext = ::next,
@@ -57,7 +58,7 @@ class UiaRouter(
 
             is Config.UiaStepDummy -> Wrapper.UiaStepDummy(
                 viewModelContext.get<UiaStepDummyViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepDummy", componentContext),
                     uiaStep = config.uiaStep,
                     onNext = ::next,
                     onCancel = ::cancel,
@@ -67,7 +68,7 @@ class UiaRouter(
 
             is Config.UiaStepPassword -> Wrapper.UiaStepPassword(
                 viewModelContext.get<UiaStepPasswordViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepPassword", componentContext),
                     uiaStep = config.uiaStep,
                     onNext = ::next,
                     onCancel = ::cancel,
@@ -77,7 +78,7 @@ class UiaRouter(
 
             is Config.UiaStepRegistrationToken -> Wrapper.UiaStepRegistrationToken(
                 viewModelContext.get<UiaStepRegistrationTokenViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepRegistrationToken", componentContext),
                     uiaStep = config.uiaStep,
                     onNext = ::next,
                     onCancel = ::cancel,
@@ -87,21 +88,21 @@ class UiaRouter(
 
             is Config.UiaStepEmailIdentity -> Wrapper.UiaStepEmailIdentity(
                 viewModelContext.get<UiaStepEmailIdentityViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepEmailIdentity", componentContext),
                     onCancel = ::cancel,
                 )
             )
 
             is Config.UiaStepMsisdn -> Wrapper.UiaStepMsisdn(
                 viewModelContext.get<UiaStepMsisdnViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepMsisdn", componentContext),
                     onCancel = ::cancel,
                 )
             )
 
             is Config.UiaStepFallback -> Wrapper.UiaStepFallback(
                 viewModelContext.get<UiaStepFallbackViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("UiaStepFallback", componentContext),
                     uiaStep = config.uiaStep,
                     authenticationType = config.authenticationType,
                     onNext = ::next,
@@ -117,8 +118,8 @@ class UiaRouter(
         class UiaStepDummy(val viewModel: UiaStepDummyViewModel) : Wrapper()
         class UiaStepPassword(val viewModel: UiaStepPasswordViewModel) : Wrapper()
         class UiaStepRegistrationToken(val viewModel: UiaStepRegistrationTokenViewModel) : Wrapper()
-        class UiaStepEmailIdentity(val viewModel: UiaStepEmailIdentityViewModel): Wrapper()
-        class UiaStepMsisdn(val viewModel: UiaStepMsisdnViewModel): Wrapper()
+        class UiaStepEmailIdentity(val viewModel: UiaStepEmailIdentityViewModel) : Wrapper()
+        class UiaStepMsisdn(val viewModel: UiaStepMsisdnViewModel) : Wrapper()
         class UiaStepFallback(val viewModel: UiaStepFallbackViewModel) : Wrapper()
     }
 
@@ -143,7 +144,12 @@ class UiaRouter(
                     val result = async(start = CoroutineStart.UNDISPATCHED) {
                         onResult.first()
                     }
-                    navigation.replaceAllSuspending(Config.UiaActionConfirmation(params.confirmationMessage, params.action))
+                    navigation.replaceAllSuspending(
+                        Config.UiaActionConfirmation(
+                            params.confirmationMessage,
+                            params.action
+                        )
+                    )
                     params.onResult(result.await())
                     navigation.replaceAllSuspending(Config.None)
                 }

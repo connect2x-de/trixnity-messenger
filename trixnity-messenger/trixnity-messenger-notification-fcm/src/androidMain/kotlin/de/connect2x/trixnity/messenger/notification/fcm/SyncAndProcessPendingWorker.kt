@@ -10,7 +10,8 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import kotlin.time.Duration.Companion.minutes
+import androidx.work.workDataOf
+import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
 class SyncAndProcessPendingWorker(
@@ -18,11 +19,9 @@ class SyncAndProcessPendingWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
     companion object {
-        const val UNIQUE_WORK_NAME = "syncAndProcessPending"
-        const val INTERVAL_SETTINGS_KEY =
-            "de.connect2x.trixnity.messenger.notification.fcm.SyncAndProcessPendingInterval"
+        const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.fcm.SyncAndProcessPendingWorker"
 
-        fun enqueueUniquePeriodicWork(context: Context) {
+        fun enqueueUniquePeriodicWork(context: Context, interval: Duration) {
             val serviceEnabled =
                 try {
                     context.packageManager.getServiceInfo(
@@ -35,10 +34,6 @@ class SyncAndProcessPendingWorker(
                     false
                 }
             if (serviceEnabled.not()) return
-            val interval = context.packageManager.getServiceInfo(
-                ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
-                PackageManager.GET_META_DATA
-            ).metaData?.getInt(INTERVAL_SETTINGS_KEY)?.minutes ?: 15.minutes
             val workRequest = PeriodicWorkRequestBuilder<SyncAndProcessPendingWorker>(interval.toJavaDuration())
                 .setConstraints(
                     Constraints.Builder()
@@ -46,9 +41,10 @@ class SyncAndProcessPendingWorker(
                         .setRequiresBatteryNotLow(true)
                         .build()
                 )
+                .setInputData(workDataOf("interval" to interval.inWholeSeconds))
                 .build()
             WorkManager.getInstance(context)
-                .enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, workRequest)
+                .enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, workRequest)
         }
 
         fun stopUniquePeriodicWork(context: Context) {
@@ -57,9 +53,14 @@ class SyncAndProcessPendingWorker(
     }
 
     override suspend fun doWork(): Result {
+        val currentInterval = inputData.getLong("interval", -1)
         withFcmPushNotificationProvider(context) {
-            if (it.isEnabled.value) it.possiblySyncAndProcessPending()
-            else stopUniquePeriodicWork(context) // BroadcastReceiver may not know that we are not active
+            if (it.isEnabled.value) {
+                if (currentInterval != it.config.periodicSyncInterval.inWholeSeconds) {
+                    enqueueUniquePeriodicWork(context, interval = it.config.periodicSyncInterval)
+                }
+                it.possiblySyncAndProcessPending()
+            } else stopUniquePeriodicWork(context) // BroadcastReceiver may not know that we are not active
         }
 
         return Result.success()

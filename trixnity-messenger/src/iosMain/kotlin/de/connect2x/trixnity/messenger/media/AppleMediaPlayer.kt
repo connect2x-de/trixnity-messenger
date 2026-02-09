@@ -1,7 +1,10 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.toNSUrl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
@@ -13,8 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVURLAsset
@@ -31,9 +32,8 @@ import kotlin.Any
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
-
 internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
     private var player: AVPlayer? = null
     internal val currentItemPlaying: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
