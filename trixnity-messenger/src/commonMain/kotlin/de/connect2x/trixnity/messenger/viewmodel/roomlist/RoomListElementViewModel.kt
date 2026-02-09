@@ -267,18 +267,8 @@ open class RoomListElementViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isUnread: StateFlow<Boolean?> =
-        matrixClient.room.getAccountData<MarkedUnreadEventContent>(roomId).flatMapLatest {
-            if (it?.unread == true) flowOf(true)
-            else combine(
-                matrixClient.user.getReceiptsById(roomId, userId).map {
-                    val receipts = it?.receipts?.takeIf { it.isNotEmpty() } ?: return@map emptySet()
-                    setOfNotNull(receipts[ReceiptType.PrivateRead]?.eventId, receipts[ReceiptType.Read]?.eventId)
-                },
-                roomFlow.map { it.lastEventId }
-            ) { receipts, lastEventId ->
-                receipts.contains(lastEventId).not()
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        matrixClient.notification.isUnread(roomId)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val notificationCount: StateFlow<String?> =
         matrixClient.notification.getCount(roomId).map { count ->

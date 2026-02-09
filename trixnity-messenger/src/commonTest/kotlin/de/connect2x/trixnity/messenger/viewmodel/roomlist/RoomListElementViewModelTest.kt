@@ -249,6 +249,7 @@ class RoomListElementViewModelTest {
         every { roomNameMock.getRoomName(any<RoomId>(), matrixClientMock, any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
         every { notificationService.getCount(any()) } returns flowOf(0)
+        every { notificationService.isUnread(any()) } returns flowOf(false)
     }
 
     @BeforeTest
@@ -785,7 +786,7 @@ class RoomListElementViewModelTest {
 
     @Test
     fun `JoinRule Public should lead to isPublic being true`() = runTest {
-        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any())} returns MutableStateFlow(
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any()) } returns MutableStateFlow(
             StateEvent(
                 content = JoinRulesEventContent(
                     joinRule = JoinRulesEventContent.JoinRule.Public
@@ -807,7 +808,7 @@ class RoomListElementViewModelTest {
 
     @Test
     fun `HistoryVisibility World_Readable should lead to isPublic being true`() = runTest {
-        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any())} returns MutableStateFlow(
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any()) } returns MutableStateFlow(
             StateEvent(
                 content = HistoryVisibilityEventContent(
                     historyVisibility = HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
@@ -826,7 +827,6 @@ class RoomListElementViewModelTest {
 
         cut.isPublic.value shouldBe true
     }
-
 
 
     private fun TestScope.roomListElementViewModel(
