@@ -23,12 +23,12 @@ import de.connect2x.messenger.compose.view.common.FileInfo
 import de.connect2x.messenger.compose.view.common.FileName
 import de.connect2x.messenger.compose.view.get
 import de.connect2x.messenger.compose.view.i18n.I18nView
+import de.connect2x.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.messenger.compose.view.theme.messengerIcons
 import de.connect2x.messenger.compose.view.util.ifNotNull
 import de.connect2x.messenger.compose.view.util.toClipEntry
-import de.connect2x.messenger.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio

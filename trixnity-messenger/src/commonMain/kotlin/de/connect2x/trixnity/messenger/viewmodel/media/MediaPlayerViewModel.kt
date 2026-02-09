@@ -80,16 +80,6 @@ class MediaPlayerViewModelImpl(
         MutableStateFlow(if (player != null) MediaPlayerViewModel.State.Ready else MediaPlayerViewModel.State.NotReady)
 
     init {
-        lifecycle.subscribe(object : Lifecycle.Callbacks {
-            override fun onDestroy() {
-                if (state.value !is MediaPlayerViewModel.State.Playing) {
-                    coroutineScope.launch {
-                        item.value?.close()
-                    }
-                }
-            }
-        })
-
         coroutineScope.launch {
             mutex.withLock {
                 player?.playingItem?.let { item ->
@@ -170,7 +160,7 @@ class MediaPlayerViewModelImpl(
                     continuation.resume(Result.failure(Exception("Download was cancelled"))) { _, _, _ -> }
                 },
                 processFile = { downloadedMedia ->
-                    val item = player?.open(id, downloadedMedia, mimeType) ?: Result.success(null)
+                    val item = player?.open(id, downloadedMedia, mimeType, coroutineScope) ?: Result.success(null)
                     if (item.isSuccess) {
                         listenForItemState(requireNotNull(item.getOrNull()))
                     }

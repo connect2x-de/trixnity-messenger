@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -67,7 +68,12 @@ internal class AndroidMediaPlayer(
         )
     }
 
-    override suspend fun open(id: String, media: PlatformMedia, mimeType: String): Result<MediaPlayer.Item> {
+    override suspend fun open(
+        id: String,
+        media: PlatformMedia,
+        mimeType: String,
+        lifecycleScope: CoroutineScope
+    ): Result<MediaPlayer.Item> {
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
         media.getTemporaryFile().fold(
             onFailure = {
@@ -86,16 +92,31 @@ internal class AndroidMediaPlayer(
                         return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                     }
 
-                    return Result.success(
-                        AndroidPlayerItem(
-                            id = id,
-                            mimeType = mimeType,
-                            tempFile = tempFile,
-                            coroutineScope = CoroutineScope(coroutineScope.coroutineContext + SupervisorJob()),
-                            player = this@AndroidMediaPlayer,
-                            duration = duration.milliseconds
-                        )
+                    val mediaItem = AndroidPlayerItem(
+                        id = id,
+                        mimeType = mimeType,
+                        tempFile = tempFile,
+                        coroutineScope = CoroutineScope(coroutineScope.coroutineContext + SupervisorJob()),
+                        player = this@AndroidMediaPlayer,
+                        duration = duration.milliseconds
                     )
+
+                    lifecycleScope.coroutineContext.job.invokeOnCompletion {
+                        if (mediaItem.state.value is MediaPlayer.State.Ready) {
+                            mediaItem.close()
+                            return@invokeOnCompletion
+                        }
+
+                        coroutineScope.launch {
+                            mediaItem.state.collect {
+                                if (it !is MediaPlayer.State.Ready)
+                                    return@collect
+                                mediaItem.close()
+                            }
+                        }
+                    }
+
+                    return Result.success(mediaItem)
                 } catch (ex: Exception) {
                     return Result.failure(IllegalArgumentException("Illegal media specified", ex))
                 } finally {

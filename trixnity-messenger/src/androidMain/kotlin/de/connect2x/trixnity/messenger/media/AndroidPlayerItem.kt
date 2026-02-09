@@ -7,6 +7,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +31,8 @@ internal class AndroidPlayerItem(
 ) : MediaPlayer.Item {
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
     override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+
+    internal var updateJob: Job? = null
 
     override suspend fun play(): Unit = player.playingItemMutex.withLock {
         if (state.value !is MediaPlayer.State.Ready) {
@@ -56,14 +59,15 @@ internal class AndroidPlayerItem(
             controller.prepare()
             controller.play()
             player.currentItemPlaying.value = this
-            state.value = MediaPlayer.State.Playing(coroutineScope.launch {
+            state.value = MediaPlayer.State.Playing
+            updateJob = coroutineScope.launch {
                 while (isActive) {
                     delay(150)
                     player.withMediaController { controller ->
                         elapsedTime.value = controller.currentPosition.coerceAtLeast(0).milliseconds
                     }
                 }
-            })
+            }
         }
     }
 
@@ -100,7 +104,8 @@ internal class AndroidPlayerItem(
             player.currentItemPlaying.value = null
             controller.pause()
             controller.clearMediaItems()
-            (state.value as MediaPlayer.State.Playing).updateJob?.cancel()
+            updateJob?.cancel()
+            updateJob = null
             state.value = MediaPlayer.State.Ready
         }
     }

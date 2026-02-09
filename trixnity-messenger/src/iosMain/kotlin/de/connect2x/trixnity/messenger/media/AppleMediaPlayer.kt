@@ -10,6 +10,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import net.folivo.trixnity.client.media.PlatformMedia
 import net.folivo.trixnity.client.media.okio.OkioPlatformMedia
@@ -31,7 +33,7 @@ import kotlin.time.Duration.Companion.seconds
 
 private val log = KotlinLogging.logger { }
 
-internal class AppleMediaPlayer : MediaPlayer {
+internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private var player: AVPlayer? = null
     internal val currentItemPlaying: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
@@ -42,7 +44,8 @@ internal class AppleMediaPlayer : MediaPlayer {
     override suspend fun open(
         id: String,
         media: PlatformMedia,
-        mimeType: String
+        mimeType: String,
+        lifecycleScope: CoroutineScope,
     ): Result<MediaPlayer.Item> {
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
         media.getTemporaryFile().fold(
@@ -60,16 +63,31 @@ internal class AppleMediaPlayer : MediaPlayer {
                         return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                     }
 
-                    return Result.success(
-                        ApplePlayerItem(
-                            id = id,
-                            asset = asset,
-                            duration = duration.seconds,
-                            tempFile = tempFile,
-                            coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob()),
-                            player = this
-                        )
+                    val mediaItem = ApplePlayerItem(
+                        id = id,
+                        asset = asset,
+                        duration = duration.seconds,
+                        tempFile = tempFile,
+                        coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob()),
+                        player = this
                     )
+
+                    lifecycleScope.coroutineContext.job.invokeOnCompletion {
+                        if (mediaItem.state.value is MediaPlayer.State.Ready) {
+                            mediaItem.close()
+                            return@invokeOnCompletion
+                        }
+
+                        coroutineScope.launch {
+                            mediaItem.state.collect {
+                                if (it !is MediaPlayer.State.Ready)
+                                    return@collect
+                                mediaItem.close()
+                            }
+                        }
+                    }
+
+                    return Result.success(mediaItem)
                 } catch (ex: Exception) {
                     return Result.failure(IllegalArgumentException("Illegal media specified", ex))
                 }
