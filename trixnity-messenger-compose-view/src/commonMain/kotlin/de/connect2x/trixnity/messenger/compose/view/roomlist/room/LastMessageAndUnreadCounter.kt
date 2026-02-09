@@ -60,7 +60,8 @@ fun LastMessageAndUnreadMessagesCounter(roomListElementViewModel: RoomListElemen
                     Surface(
                         shape = CircleShape,
                         modifier = Modifier
-                            .size(size)
+                            .padding(size/2)
+                            .size(size/2)
                             .alignByBaseline(),
                         color = MaterialTheme.colorScheme.primary,
                     ) {}

@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import de.connect2x.trixnity.core.model.UserId
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import org.koin.core.component.get
 
 interface PrivacySettingsSingleAccountViewModelFactory {
@@ -40,10 +41,12 @@ interface PrivacySettingsSingleAccountViewModel {
     val presenceIsPublic: StateFlow<Boolean>
     val readMarkerIsPublic: StateFlow<Boolean>
     val typingIsPublic: StateFlow<Boolean>
+    val redactionWarningIsEnabled: StateFlow<Boolean>
 
     fun togglePresenceIsPublic()
     fun toggleReadMarkerIsPublic()
     fun toggleTypingIsPublic()
+    fun toggleRedactionWarningIsEnabled()
 
     val blockedContactsCount: StateFlow<Int>
     fun showBlockedContactsSettings()
@@ -65,17 +68,23 @@ open class PrivacySettingsSingleAccountViewModelImpl(
 
     final override val account = userId
 
-    override val presenceIsPublic = messengerSettings[account]
+    private val accountSettings = messengerSettings[account]
+
+    override val presenceIsPublic = accountSettings
         .filterNotNull().map { it.base.presenceIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val readMarkerIsPublic = messengerSettings[account]
+    override val readMarkerIsPublic = accountSettings
         .filterNotNull().map { it.base.readMarkerIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val typingIsPublic = messengerSettings[account]
+    override val typingIsPublic = accountSettings
         .filterNotNull().map { it.base.typingIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val redactionWarningIsEnabled: StateFlow<Boolean> =
+        accountSettings.filterNotNull().map { it.base.redactionWarningIsEnabled }
+            .stateIn(coroutineScope, WhileSubscribed(), true)
 
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
@@ -89,6 +98,14 @@ open class PrivacySettingsSingleAccountViewModelImpl(
         coroutineScope.launch {
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
+            }
+        }
+    }
+
+    override fun toggleRedactionWarningIsEnabled() {
+        coroutineScope.launch {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
+                it.copy(redactionWarningIsEnabled = !it.redactionWarningIsEnabled)
             }
         }
     }

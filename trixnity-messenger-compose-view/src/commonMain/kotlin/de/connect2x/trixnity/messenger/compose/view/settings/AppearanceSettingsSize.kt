@@ -238,6 +238,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -247,6 +248,8 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}
@@ -292,6 +295,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -301,6 +305,8 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}

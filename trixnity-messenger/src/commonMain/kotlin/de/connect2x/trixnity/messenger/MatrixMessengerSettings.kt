@@ -3,6 +3,8 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
@@ -26,8 +28,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
 @Serializable
@@ -105,6 +105,7 @@ data class MatrixMessengerAccountSettingsBase(
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
     val accountSetupFinished: Boolean = false,
+    val redactionWarningIsEnabled: Boolean = true
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -116,6 +117,7 @@ data class MatrixMessengerAccountSettingsBase(
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
             accountSetupFinished = config.useAccountSetupWizard.not(),
+            redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled
         )
     }
 }

@@ -9,14 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI: Dev info panel to room setttings and message information panel
+- UI,SDK: Add option to disable redaction warning
 - SDK,UI Introduced profiles settings
 
 ### Changed
-
-- UI: Adjusted which rooms are shows as public
-- UI: Show application version in About Panel
-- UI: Fix typo in "Change Power Levels" for event type
 
 ### Deprecated
 
@@ -24,9 +20,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- IOS: Fix initialization of APNS notification provider
+- UI: "Show message history" no longer causes a crash
+- WEB,A11Y: Fix keyboard navigation not working due js interop error
 
 ### Security
+
+## 4.0.3
+
+### Added
+
+- UI: Dev info panel to room settings and message information panel
+
+### Changed
+
+- UI: Adjusted which rooms are shown as public
+- UI: Show application version in About Panel of dev app
+- UI: Fix typo in "Change Power Levels" for event type
+- SDK: Use unread marker calculation from Trixnity
+
+### Fixed
+
+- IOS: Fix initialization of APNS notification provider
 
 ## 4.0.2
 
@@ -49,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support UnifiedPush
+- SDK: Support UnifiedPush
 
 ### Changed
 
