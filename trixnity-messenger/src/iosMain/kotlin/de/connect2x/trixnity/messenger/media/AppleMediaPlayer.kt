@@ -6,33 +6,23 @@ import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.useContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVURLAsset
 import platform.AVFoundation.AVURLAssetOverrideMIMETypeKey
-import platform.AVFoundation.AVURLAssetPreferPreciseDurationAndTimingKey
-import platform.AVFoundation.addPeriodicTimeObserverForInterval
-import platform.AVFoundation.removeTimeObserver
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.CoreMedia.CMTimeGetSeconds
-import platform.CoreMedia.CMTimeMakeWithSeconds
-import platform.Foundation.NSURL
-import platform.darwin.NSEC_PER_SEC
 import kotlin.Any
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
+internal class AppleMediaPlayer : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
     private var player: AVPlayer? = null
     internal val currentItemPlaying: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
@@ -50,6 +40,7 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
         val playingItem = playingItem.value
         if (playingItem != null && playingItem.id == id) {
+            playingItem.updateLifecycle(lifecycleScope)
             return Result.success(playingItem)
         }
 

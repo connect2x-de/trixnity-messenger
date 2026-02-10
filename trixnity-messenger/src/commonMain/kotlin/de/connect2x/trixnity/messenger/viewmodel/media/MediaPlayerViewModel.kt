@@ -123,9 +123,6 @@ class MediaPlayerViewModelImpl(
                         onSuccess = {
                             log.debug { "Successfully downloaded media" }
                             item.value = it
-                            it?.duration?.let { value ->
-                                duration.value = value
-                            }
                         }
                     )
                 }
@@ -182,6 +179,7 @@ class MediaPlayerViewModelImpl(
     }
 
     private fun listenForItemState(item: MediaPlayer.Item) {
+        duration.value = item.duration
         coroutineScope.launch {
             item.state.collect { itemState ->
                 when (itemState) {

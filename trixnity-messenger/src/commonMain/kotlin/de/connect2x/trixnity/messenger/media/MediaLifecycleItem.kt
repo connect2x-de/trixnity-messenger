@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
@@ -21,6 +22,7 @@ abstract class MediaLifecycleItemImpl(
     private val coroutineScope: CoroutineScope,
     private val state: MutableStateFlow<MediaPlayer.State>
 ) : MediaLifecycleItem {
+    private val logger: Logger = Logger()
     private var lifecycleCompletionAwaitJob: Job? = null
     private var lifecycleCompletionJob: DisposableHandle? = null
 
@@ -33,16 +35,21 @@ abstract class MediaLifecycleItemImpl(
             return
         }
 
+        logger.debug { "Updating lifecycle of media item" }
         lifecycleCompletionJob = lifecycleScope.coroutineContext.job.invokeOnCompletion {
             if (state.value is MediaPlayer.State.Ready) {
+                logger.trace { "Media player item is ready on completion of lifecycle, closing item..." }
                 close()
                 return@invokeOnCompletion
             }
 
+            logger.trace { "Media player item is still playing on completion of lifecycle, awaiting end..." }
             lifecycleCompletionAwaitJob = coroutineScope.launch {
                 state.collect {
                     if (it !is MediaPlayer.State.Ready)
                         return@collect
+
+                    logger.trace { "Media player item is ready after waiting, closing item..." }
                     close()
                 }
             }

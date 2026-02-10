@@ -77,6 +77,7 @@ internal class AndroidMediaPlayer(
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
         val playingItem = playingItem.value
         if (playingItem != null && playingItem.id == id) {
+            playingItem.updateLifecycle(lifecycleScope)
             return Result.success(playingItem)
         }
 
