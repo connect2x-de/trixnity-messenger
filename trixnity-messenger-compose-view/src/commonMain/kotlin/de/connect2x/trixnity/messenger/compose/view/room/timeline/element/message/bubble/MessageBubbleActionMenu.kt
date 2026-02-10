@@ -3,8 +3,12 @@ package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messa
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.Color
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -28,6 +32,9 @@ fun BoxScope.MessageBubbleActionMenu(
         hoverInteractionSource,
         showActionMenu,
         holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage, onRedact),
-        additionalContextActions
+        additionalContextActions,
+        {
+            Icon(Icons.Default.ExpandMore, null, tint = Color.White)
+        }
     )
 }

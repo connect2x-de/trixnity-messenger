@@ -5,12 +5,14 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.calculateZoom
-import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,25 +20,26 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerType
-import androidx.compose.ui.input.pointer.isPrimaryPressed
 import androidx.compose.ui.input.pointer.isSecondaryPressed
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 
 interface RoomListElementContainerView {
     @Composable
@@ -112,11 +115,23 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
             ) {
                 RoomListElement(roomListViewModel, roomListElementViewModel, index)
-                ThemedActionMenu(
-                    MutableInteractionSource(),
-                    showActionMenu,
-                    listOf(ThemedActionMenuItem(i18n.markRoomAsUnread(), action = { roomListElementViewModel.markUnread() }))
-                ) {}
+                if (hoverable) {
+                    Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                        ThemedActionMenu(
+                            interactionSource,
+                            showActionMenu,
+                            listOf(
+                                ThemedActionMenuItem(
+                                    i18n.markRoomAsUnread(),
+                                    action = { roomListElementViewModel.markUnread() })
+                            ),
+                            additionalContextActions = {},
+                            openActionMenuIcon = {
+                                Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
+                            }
+                        )
+                    }
+                }
             }
         }
         if (index < elementsSize) {

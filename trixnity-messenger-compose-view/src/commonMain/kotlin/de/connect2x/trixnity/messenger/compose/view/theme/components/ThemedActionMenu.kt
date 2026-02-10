@@ -64,15 +64,16 @@ fun BoxScope.ThemedActionMenu(
     showActionMenu: MutableState<Boolean>,
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+    openActionMenuIcon: @Composable () -> Unit,
 ) {
-
     when {
         Platform.current.isMobile -> ThemedActionMenuMobile(showActionMenu, actions, additionalContextActions)
         else -> ThemedActionMenuDefault(
             hoverInteractionSource,
             showActionMenu,
             actions,
-            additionalContextActions
+            additionalContextActions,
+            openActionMenuIcon
         )
     }
 }
@@ -83,6 +84,7 @@ private fun BoxScope.ThemedActionMenuDefault(
     showActionMenu: MutableState<Boolean>,
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
+    openActionMenuIcon: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focus = interactionSource.collectIsFocusedAsState()
@@ -133,7 +135,7 @@ private fun BoxScope.ThemedActionMenuDefault(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                Icon(Icons.Default.ExpandMore, null, tint = Color.White)
+                openActionMenuIcon()
             }
         }
         ThemedDropdownMenu(
