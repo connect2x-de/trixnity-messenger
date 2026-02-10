@@ -168,8 +168,9 @@ polling would be also a szenario. There are a few default implementations:
 - `PushNotificationProvider` can be inherited to implement a push based notification provider.
     - `FcmPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-fcm`)
     - `ApnPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-apn`)
+    - `UnifiedPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-unifiedpush`)
 
-To set a notification provider, a DSL in `MatrixMessengerConfiguration` can be used. For example:
+To set a notification provider, a DSL in `MatrixMultiMessengerConfiguration` can be used. For example:
 
 ```kotlin
 addFcmPushNotificationProvider()
