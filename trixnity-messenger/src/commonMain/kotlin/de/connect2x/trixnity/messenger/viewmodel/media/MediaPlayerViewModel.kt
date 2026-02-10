@@ -82,9 +82,21 @@ class MediaPlayerViewModelImpl(
             mutex.withLock {
                 player?.playingItem?.let { item ->
                     val itemValue = item.value
+
+                    // In this case, we acquire the media only when the currently played media's id is equal to the id
+                    // of the viewmodel. So this only calls open, which in this case returns the media being currently
+                    // played.
                     if (itemValue != null && id == itemValue.id) {
-                        this@MediaPlayerViewModelImpl.item.value = itemValue
-                        listenForItemState(itemValue)
+                        acquireMedia().fold(
+                            onFailure = {
+                                log.error(it) { "Unable to download media" }
+                                val message = it.message ?: "Unable to download media"
+                                state.value = MediaPlayerViewModel.State.Failure(message)
+                            },
+                            onSuccess = {
+                                this@MediaPlayerViewModelImpl.item.value = it
+                            }
+                        )
                     }
                 }
             }

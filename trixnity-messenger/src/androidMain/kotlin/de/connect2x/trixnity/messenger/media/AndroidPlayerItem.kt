@@ -25,14 +25,18 @@ internal class AndroidPlayerItem(
     private val mimeType: String,
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
-    private val player: AndroidMediaPlayer
-) : MediaPlayer.Item {
+    lifecycleScope: CoroutineScope?,
+    private val player: AndroidMediaPlayer,
+    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+) : MediaLifecycleItemImpl(coroutineScope, state), MediaPlayer.Item {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidPlayerItem")
 
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
-    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
-
     internal var updateJob: Job? = null
+
+    init {
+        updateLifecycle(lifecycleScope)
+    }
 
     override suspend fun play(): Unit = player.playingItemMutex.withLock {
         if (state.value !is MediaPlayer.State.Ready) {

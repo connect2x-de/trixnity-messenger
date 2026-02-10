@@ -72,9 +72,14 @@ internal class AndroidMediaPlayer(
         id: String,
         media: PlatformMedia,
         mimeType: String,
-        lifecycleScope: CoroutineScope
+        lifecycleScope: CoroutineScope?
     ): Result<MediaPlayer.Item> {
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
+        val playingItem = playingItem.value
+        if (playingItem != null && playingItem.id == id) {
+            return Result.success(playingItem)
+        }
+
         media.getTemporaryFile().fold(
             onFailure = {
                 log.error(it) { "Unable to open media as temporary file" }
@@ -92,31 +97,15 @@ internal class AndroidMediaPlayer(
                         return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                     }
 
-                    val mediaItem = AndroidPlayerItem(
+                    return Result.success(AndroidPlayerItem(
                         id = id,
                         mimeType = mimeType,
                         tempFile = tempFile,
                         coroutineScope = CoroutineScope(coroutineScope.coroutineContext + SupervisorJob()),
+                        lifecycleScope = lifecycleScope,
                         player = this@AndroidMediaPlayer,
                         duration = duration.milliseconds
-                    )
-
-                    lifecycleScope.coroutineContext.job.invokeOnCompletion {
-                        if (mediaItem.state.value is MediaPlayer.State.Ready) {
-                            mediaItem.close()
-                            return@invokeOnCompletion
-                        }
-
-                        coroutineScope.launch {
-                            mediaItem.state.collect {
-                                if (it !is MediaPlayer.State.Ready)
-                                    return@collect
-                                mediaItem.close()
-                            }
-                        }
-                    }
-
-                    return Result.success(mediaItem)
+                    ))
                 } catch (ex: Exception) {
                     return Result.failure(IllegalArgumentException("Illegal media specified", ex))
                 } finally {

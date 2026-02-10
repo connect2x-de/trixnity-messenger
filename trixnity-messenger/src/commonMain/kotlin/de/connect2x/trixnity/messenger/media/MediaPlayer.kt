@@ -9,13 +9,24 @@ interface MediaPlayer : AutoCloseable {
     val playingItem: StateFlow<Item?>
 
     /**
+     * This function tries to the open a new media item by the specified media and media's mime type. When a lifecycle
+     * coroutine scope is specified, it awaits to media item to end playback until it closes the item automatically.
+     *
+     *
+     *
+     * @param id             the unique identifier for the media created
      * @param media          the platform media containing a file
      * @param mimeType       the mime type of the platform media
      * @return               the created media item or an error
      */
-    suspend fun open(id: String, media: PlatformMedia, mimeType: String, lifecycleScope: CoroutineScope): Result<Item>
+    suspend fun open(
+        id: String,
+        media: PlatformMedia,
+        mimeType: String,
+        lifecycleScope: CoroutineScope? = null
+    ): Result<Item>
 
-    interface Item : AutoCloseable {
+    interface Item : MediaLifecycleItem {
         val id: String
         val duration: Duration
         val elapsedTime: StateFlow<Duration?>

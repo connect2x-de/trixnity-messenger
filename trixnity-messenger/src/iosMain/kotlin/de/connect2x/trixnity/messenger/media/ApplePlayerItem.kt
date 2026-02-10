@@ -33,17 +33,19 @@ internal class ApplePlayerItem(
     asset: AVURLAsset,
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
+    lifecycleScope: CoroutineScope?,
     private val player: AppleMediaPlayer,
-) : MediaPlayer.Item {
+    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+) : MediaLifecycleItemImpl(coroutineScope, state), MediaPlayer.Item {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaItem")
     private var playEndObserver: NSObjectProtocol? = null
     private var timeObserver: Any? = null
     private var playerItem: AVPlayerItem? = null
 
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
-    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
 
     init {
+        updateLifecycle(lifecycleScope)
         playerItem = AVPlayerItem.playerItemWithAsset(asset)
         playEndObserver = NSNotificationCenter.defaultCenter.addObserverForName(
             name = AVPlayerItemDidPlayToEndTimeNotification,
