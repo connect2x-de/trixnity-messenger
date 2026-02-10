@@ -5,6 +5,8 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
@@ -14,8 +16,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.isPrimaryPressed
+import androidx.compose.ui.input.pointer.isSecondaryPressed
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
@@ -26,6 +34,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurfa
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 
 interface RoomListElementContainerView {
     @Composable
@@ -63,7 +74,8 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val hoverable = roomName != null && isInvite != true && !isKnock
         val elementsSize = roomListViewModel.elements.collectAsState().value.size
-
+        val showActionMenu = remember { mutableStateOf(false) }
+        val i18n = DI.current.get<I18nView>()
         Box(
             Modifier.animateItem(
                 fadeInSpec = null,
@@ -80,7 +92,16 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     )
                     else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
                 )
-                .clickable(interactionSource, LocalIndication.current) {
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
+                                showActionMenu.value = true
+                            }
+                        }
+                    }
+                }.clickable(interactionSource, LocalIndication.current) {
                     if (hoverable) {
                         roomListViewModel.selectRoom(roomId)
                     }
@@ -91,6 +112,11 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
             ) {
                 RoomListElement(roomListViewModel, roomListElementViewModel, index)
+                ThemedActionMenu(
+                    MutableInteractionSource(),
+                    showActionMenu,
+                    listOf(ThemedActionMenuItem(i18n.markRoomAsUnread(), action = { roomListElementViewModel.markUnread() }))
+                ) {}
             }
         }
         if (index < elementsSize) {

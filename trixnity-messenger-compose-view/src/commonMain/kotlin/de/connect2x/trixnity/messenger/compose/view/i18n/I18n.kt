@@ -3404,6 +3404,11 @@ open class I18nView(
         DE - "Zeige vor dem Löschen von Nachrichten eine Warnung an."
     }
 
+    open fun markRoomAsUnread() = translate {
+        EN - "Mark room as unread"
+        DE - "Raum als ungelesen markieren"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

@@ -236,6 +236,11 @@ class TimelineViewModelImpl(
 
     init {
         log.debug { "::: init timelineViewModel: $viewModelContext" }
+        coroutineScope.launch {
+            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).first()?.unread ?: true) {
+                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
+            }
+        }
     }
 
     internal data class TimelineElementWrapper(

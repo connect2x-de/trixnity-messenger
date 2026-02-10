@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
@@ -117,63 +118,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
 }
 
 class BaseTimelineElementHolderContextMenuAction(
-    val label: String,
-    val isEnabled: Boolean = true,
-    internal val action: () -> Unit,
-) {
-    operator fun invoke() = action()
-
-    @Composable
-    internal fun render(onClose: () -> Unit) {
-        when {
-            Platform.current.isMobile -> bottomSheetItem(onClose)
-            else -> dropDownMenuItem(onClose)
-        }
-    }
-
-    @Composable
-    internal fun dropDownMenuItem(
-        onClose: () -> Unit,
-    ) {
-        val i18n = DI.get<I18nView>()
-        Tooltip(
-            enabled = !isEnabled,
-            tooltip = { Text(i18n.commonButtonDisabled()) },
-        ) {
-            ThemedDropdownMenuItem(
-                enabled = isEnabled,
-                text = { Text(label) },
-                onClick = {
-                    onClose()
-                    action()
-                },
-            )
-        }
-    }
-
-    @Composable
-    internal fun bottomSheetItem(
-        onClose: () -> Unit,
-    ) {
-        val i18n = DI.get<I18nView>()
-        Tooltip(
-            enabled = !isEnabled,
-            tooltip = { Text(i18n.commonButtonDisabled()) }
-        ) {
-            Text(
-                label,
-                color = if (isEnabled)
-                    MaterialTheme.colorScheme.onBackground
-                else
-                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        action()
-                        onClose()
-                    },
-            )
-        }
-    }
-}
+    override val label: String,
+    override val isEnabled: Boolean = true,
+    override val action: () -> Unit,
+) : ThemedActionMenuItem(label, isEnabled, action)
