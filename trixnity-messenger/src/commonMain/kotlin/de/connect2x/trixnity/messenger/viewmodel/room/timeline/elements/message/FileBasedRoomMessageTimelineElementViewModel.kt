@@ -116,43 +116,55 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
+        coroutineScope.launch {
+            val result = downloadMediaInternal()
+            if (result.isFailure) {
+                onDownloadCancelled()
+                return@launch
+            }
+
+            processFile(requireNotNull(result.getOrNull()))
+        }
+    }
+
+    override fun cancelDownloadMedia() {
+        activeDownloadMedia.value?.cancel("Cancelled by user.")
+    }
+
+    protected suspend fun downloadMediaInternal(): Result<PlatformMedia> {
         activeDownloadMedia.value?.cancel("new download started")
 
         _downloadMedia.value = null
         _downloadMediaProgress.value = null
         _downloadMediaError.value = null
 
-        coroutineScope.launch {
+        try {
             val resultAsync = downloadManager.startDownloadAsync(
                 viewModelContext.matrixClient,
                 content,
                 name,
                 _downloadMediaProgress,
             )
+
             activeDownloadMedia.value = resultAsync
             try {
-                resultAsync.await()
-                    .mapCatching {
-                        log.debug { "process file" }
-                        processFile(it)
-                        it
-                    }
-                    .onSuccess {
+                resultAsync.await().fold(
+                    onSuccess = {
                         _downloadMedia.value = it
-                    }.onFailure {
+                        return Result.success(it)
+                    },
+                    onFailure = {
                         _downloadMediaError.value = i18n.downloadFailed(it.message)
+                        return Result.failure(it)
                     }
+                )
             } catch (exc: CancellationException) {
                 log.error(exc) { "media download was cancelled" }
-                onDownloadCancelled()
+                return Result.failure(exc)
             }
-        }.invokeOnCompletion {
+        } finally {
             activeDownloadMedia.value = null
             _downloadMediaProgress.value = null
         }
-    }
-
-    override fun cancelDownloadMedia() {
-        activeDownloadMedia.value?.cancel("Cancelled by user.")
     }
 }
