@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Archived rooms can now be opened in the timeline again
+
 ### Security
 
 ## 4.1.0

@@ -458,7 +458,7 @@ class RoomListViewModelImpl(
             val membership = matrixClient.room.getById(roomId).first()?.membership
             log.debug { "switch to room $roomId" }
             when (membership) {
-                Membership.JOIN -> {
+                Membership.JOIN, Membership.LEAVE -> {
                     onRoomSelected(matrixClient.userId, roomId)
                 }
 
