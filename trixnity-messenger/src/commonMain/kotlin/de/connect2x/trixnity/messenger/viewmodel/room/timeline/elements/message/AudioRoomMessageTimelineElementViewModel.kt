@@ -9,6 +9,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import de.connect2x.trixnity.messenger.util.DownloadManager
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.koin.core.component.get
 import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -48,7 +52,12 @@ class AudioRoomMessageTimelineElementViewModelImpl(
     eventIdOrTransactionId,
     onOpenMention
 ) {
+    private val downloadManager: DownloadManager = get<DownloadManager>()
+
     override val duration: Duration? = content.info?.duration?.milliseconds
     override val audioPlayer: MediaPlayerViewModel? = getOrNull<MediaPlayerViewModelFactory>()
-        ?.create(eventIdOrTransactionId.toString(), viewModelContext, this, duration)
+        ?.create(eventIdOrTransactionId.toString(), viewModelContext, mimeType ?: "audio/raw", duration) {
+            val progressElement: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
+            downloadManager.startDownloadAsync(matrixClient, content, name, progressElement).await()
+        }
 }

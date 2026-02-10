@@ -1,11 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.media
 
-import com.arkivanov.essenty.lifecycle.Lifecycle
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +14,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
@@ -24,13 +22,15 @@ interface MediaPlayerViewModelFactory {
     fun create(
         id: String,
         viewModelContext: MatrixClientViewModelContext,
-        media: RoomMessageTimelineElementViewModel.FileBased<*>,
-        initialDuration: Duration?
+        mimeType: String,
+        initialDuration: Duration?,
+        acquireFile: suspend () -> Result<PlatformMedia>
     ) : MediaPlayerViewModel = MediaPlayerViewModelImpl(
         id = id,
         viewModelContext = viewModelContext,
-        media = media,
-        initialDurationOptional = initialDuration
+        mimeType = mimeType,
+        initialDurationOptional = initialDuration,
+        acquireFile = acquireFile
     )
 
     companion object : MediaPlayerViewModelFactory
@@ -56,12 +56,10 @@ interface MediaPlayerViewModel {
 class MediaPlayerViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val id: String,
-    private val media: RoomMessageTimelineElementViewModel.FileBased<*>,
-    initialDurationOptional: Duration?
+    private val mimeType: String,
+    initialDurationOptional: Duration?,
+    private val acquireFile: suspend () -> Result<PlatformMedia>
 ) : MediaPlayerViewModel, MatrixClientViewModelContext by viewModelContext {
-    private val isAudio = media is RoomMessageTimelineElementViewModel.FileBased.Audio
-    private val mimeType = media.mimeType ?: if (isAudio) "audio/raw" else "video/raw"
-
     private val player: MediaPlayer? = getOrNull()
     private val item: MutableStateFlow<MediaPlayer.Item?> = MutableStateFlow(null)
     private val mutex: Mutex = Mutex()
@@ -160,23 +158,17 @@ class MediaPlayerViewModelImpl(
         }
     }
 
-    private suspend fun acquireMedia(): Result<MediaPlayer.Item?> {
-        return suspendCancellableCoroutine { continuation ->
-            media.downloadMedia(
-                onDownloadCancelled = {
-                    continuation.resume(Result.failure(Exception("Download was cancelled"))) { _, _, _ -> }
-                },
-                processFile = { downloadedMedia ->
-                    val item = player?.open(id, downloadedMedia, mimeType, coroutineScope) ?: Result.success(null)
-                    if (item.isSuccess) {
-                        listenForItemState(requireNotNull(item.getOrNull()))
-                    }
+    private suspend fun acquireMedia(): Result<MediaPlayer.Item?> = acquireFile().fold(
+        onFailure = { Result.failure(it) },
+        onSuccess = {
+            val item = player?.open(id, it, mimeType, coroutineScope) ?: Result.success(null)
+            if (item.isSuccess) {
+                listenForItemState(requireNotNull(item.getOrNull()))
+            }
 
-                    continuation.resume(item) { _, _, _ -> }
-                }
-            )
+            return item
         }
-    }
+    )
 
     private fun listenForItemState(item: MediaPlayer.Item) {
         duration.value = item.duration
