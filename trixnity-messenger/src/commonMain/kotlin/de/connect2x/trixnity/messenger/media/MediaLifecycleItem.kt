@@ -22,7 +22,7 @@ abstract class MediaLifecycleItemImpl(
     private val coroutineScope: CoroutineScope,
     private val state: MutableStateFlow<MediaPlayer.State>
 ) : MediaLifecycleItem {
-    private val logger: Logger = Logger()
+    private val logger: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaLifecycleItem")
     private var lifecycleCompletionAwaitJob: Job? = null
     private var lifecycleCompletionJob: DisposableHandle? = null
 
