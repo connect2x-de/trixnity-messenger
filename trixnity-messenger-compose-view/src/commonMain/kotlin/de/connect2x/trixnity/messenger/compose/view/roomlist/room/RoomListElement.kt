@@ -4,9 +4,13 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
@@ -30,13 +34,17 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
+import de.connect2x.trixnity.messenger.compose.view.theme.components.isNotClosed
 import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurface
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
@@ -73,11 +81,14 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val interactionSource = remember { MutableInteractionSource() }
+        val actionMenuFocusSource = remember { MutableInteractionSource() }
+        val actionMenuHasFocus = actionMenuFocusSource.collectIsFocusedAsState().value
         val hasFocus = interactionSource.collectIsFocusedAsState().value
+        val hasHover = interactionSource.collectIsHoveredAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val hoverable = roomName != null && isInvite != true && !isKnock
         val elementsSize = roomListViewModel.elements.collectAsState().value.size
-        val showActionMenu = remember { mutableStateOf(false) }
+        val showActionMenu = remember { mutableStateOf(ThemedActionMenuState.CLOSED) }
         val i18n = DI.current.get<I18nView>()
         Box(
             Modifier.animateItem(
@@ -100,11 +111,17 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         while (true) {
                             val event = awaitPointerEvent()
                             if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
-                                showActionMenu.value = true
+                                showActionMenu.value =
+                                    if (showActionMenu.value.isNotClosed()) ThemedActionMenuState.CLOSED else ThemedActionMenuState.POPUP
                             }
                         }
                     }
-                }.clickable(interactionSource, LocalIndication.current) {
+                    detectTapGestures(onLongPress = { showActionMenu.value = ThemedActionMenuState.ANCHORED })
+
+                }.combinedClickable(
+                    interactionSource,
+                    LocalIndication.current,
+                    onLongClick = { showActionMenu.value = ThemedActionMenuState.ANCHORED }) {
                     if (hoverable) {
                         roomListViewModel.selectRoom(roomId)
                     }
@@ -114,11 +131,17 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
             CompositionLocalProvider(
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
             ) {
-                RoomListElement(roomListViewModel, roomListElementViewModel, index)
+                RoomListElement(
+                    roomListViewModel,
+                    roomListElementViewModel,
+                    index,
+                    (!hasHover && showActionMenu.value == ThemedActionMenuState.CLOSED && !actionMenuHasFocus) || Platform.current.isMobile
+                )
                 if (hoverable) {
                     Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                         ThemedActionMenu(
                             interactionSource,
+                            actionMenuFocusSource,
                             showActionMenu,
                             listOf(
                                 ThemedActionMenuItem(

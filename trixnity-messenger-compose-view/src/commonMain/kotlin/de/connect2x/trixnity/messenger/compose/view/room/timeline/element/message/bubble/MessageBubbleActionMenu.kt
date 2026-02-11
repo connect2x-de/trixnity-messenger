@@ -14,22 +14,25 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.contextMenuActions
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
 
 @Composable
 fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
-    showActionMenu: MutableState<Boolean>,
+    showActionMenu: MutableState<ThemedActionMenuState>,
     onOpenMetadata: () -> Unit,
     onReactToMessage: () -> Unit,
     hoverInteractionSource: MutableInteractionSource,
+    focusInteractionSource: MutableInteractionSource,
     onRedact: () -> Unit,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     ThemedActionMenu(
         hoverInteractionSource,
+        focusInteractionSource,
         showActionMenu,
         holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage, onRedact),
         additionalContextActions,

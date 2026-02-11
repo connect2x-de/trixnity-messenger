@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -48,16 +49,20 @@ fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifi
 }
 
 @Composable
-fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
+fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel, showDate: Boolean) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(Modifier.fillMaxWidth().weight(1.0f, false), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth(0.8f), verticalAlignment = Alignment.CenterVertically) {
             RoomName(roomName = roomName)
         }
 
-        RoomTime(roomListElementViewModel)
+        if (showDate) {
+            RoomTime(roomListElementViewModel)
+        }
     }
 }

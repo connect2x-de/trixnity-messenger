@@ -54,7 +54,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
 interface RoomListElementView {
     @Composable
-    fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel, index: Int)
+    fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel, index: Int, showDate: Boolean)
 }
 
 @Composable
@@ -80,8 +80,9 @@ fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
     index: Int,
+    showDate: Boolean
 ) {
-    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index)
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showDate)
 }
 
 class RoomListElementViewImpl : RoomListElementView {
@@ -89,7 +90,8 @@ class RoomListElementViewImpl : RoomListElementView {
     override fun create(
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
-        index: Int
+        index: Int,
+        showDate: Boolean
     ) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value
@@ -134,7 +136,7 @@ class RoomListElementViewImpl : RoomListElementView {
                     else -> Column(
                         Modifier.align(Alignment.CenterVertically)
                     ) {
-                        RoomNameAndTime(roomListElementViewModel)
+                        RoomNameAndTime(roomListElementViewModel, showDate)
                         LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
                     }
                 }
