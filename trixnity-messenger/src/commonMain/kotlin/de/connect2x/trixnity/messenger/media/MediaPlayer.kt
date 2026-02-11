@@ -30,7 +30,6 @@ interface MediaPlayer : AutoCloseable {
         val id: String
         val duration: Duration
         val elapsedTime: StateFlow<Duration?>
-        val state: StateFlow<State>
 
         /**
          * This function stops the currently played media (if there is one playing) and starts this media at the

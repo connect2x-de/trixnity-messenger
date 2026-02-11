@@ -77,9 +77,9 @@ private fun PlayableAudioMessage(
         ThemedIconButton(
             onClick = {
                 if (isPlaying) {
-                    viewModel.stop()
+                    viewModel.pause()
                 } else {
-                    viewModel.start()
+                    viewModel.play()
                 }
             }
         ) {

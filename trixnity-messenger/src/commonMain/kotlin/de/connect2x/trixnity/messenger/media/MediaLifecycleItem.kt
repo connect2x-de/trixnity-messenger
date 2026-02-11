@@ -4,11 +4,13 @@ import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
 interface MediaLifecycleItem : AutoCloseable {
+    val state: StateFlow<MediaPlayer.State>
+
     /**
      * This function updates the lifecycle scope specified when opening the media item. When the lifecycle scope is
      * set to null, it removes the lifecycle completely.
@@ -18,10 +20,7 @@ interface MediaLifecycleItem : AutoCloseable {
     fun updateLifecycle(lifecycleScope: CoroutineScope?)
 }
 
-abstract class MediaLifecycleItemImpl(
-    private val coroutineScope: CoroutineScope,
-    private val state: MutableStateFlow<MediaPlayer.State>
-) : MediaLifecycleItem {
+abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope) : MediaLifecycleItem {
     private val logger: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaLifecycleItem")
     private var lifecycleCompletionAwaitJob: Job? = null
     private var lifecycleCompletionJob: DisposableHandle? = null

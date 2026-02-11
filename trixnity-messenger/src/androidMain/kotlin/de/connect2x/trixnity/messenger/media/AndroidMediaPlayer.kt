@@ -29,12 +29,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 internal class AndroidMediaPlayer(
     getContext: ContextGetter,
-    private val coroutineScope: CoroutineScope
+    internal val coroutineScope: CoroutineScope
 ) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
     private val controller: ListenableFuture<MediaController>
 
-    internal val currentItemPlaying: MutableStateFlow<AndroidPlayerItem?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playingItemMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -98,15 +98,17 @@ internal class AndroidMediaPlayer(
                         return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                     }
 
-                    return Result.success(AndroidPlayerItem(
+                    val playerItem = AndroidPlayerItem(
                         id = id,
                         mimeType = mimeType,
                         tempFile = tempFile,
                         coroutineScope = CoroutineScope(coroutineScope.coroutineContext + SupervisorJob()),
-                        lifecycleScope = lifecycleScope,
                         player = this@AndroidMediaPlayer,
                         duration = duration.milliseconds
-                    ))
+                    )
+
+                    playerItem.updateLifecycle(lifecycleScope)
+                    return Result.success(playerItem)
                 } catch (ex: Exception) {
                     return Result.failure(IllegalArgumentException("Illegal media specified", ex))
                 } finally {
@@ -124,14 +126,8 @@ internal class AndroidMediaPlayer(
         }
     }
 
-    internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit = try {
-        val controller = withContext(Dispatchers.IO) {
-            controller.get(10, TimeUnit.SECONDS)
-        }
-
-        withContext(Dispatchers.Main) {
-            closure(controller)
-        }
+    internal fun withMediaController(closure: (MediaController) -> Unit): Unit = try {
+        closure(controller.get(10, TimeUnit.SECONDS))
     } catch (ex: TimeoutException) {
         log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
     }

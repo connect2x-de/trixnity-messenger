@@ -41,8 +41,8 @@ interface MediaPlayerViewModel {
     val duration: StateFlow<Duration>
     val state: StateFlow<State>
 
-    fun start()
-    fun stop()
+    fun play()
+    fun pause()
     fun seekTo(position: Duration)
 
     sealed class State {
@@ -101,7 +101,7 @@ class MediaPlayerViewModelImpl(
         }
     }
 
-    override fun start() {
+    override fun play() {
         coroutineScope.launch {
             mutex.withLock {
                 if (state.value !is MediaPlayerViewModel.State.Ready) {
@@ -131,7 +131,7 @@ class MediaPlayerViewModelImpl(
         }
     }
 
-    override fun stop() {
+    override fun pause() {
         if (item.value == null) {
             log.error { "Unable to start playback of media file because the media player is not present" }
             return

@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class AppleMediaPlayer : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
     private var player: AVPlayer? = null
-    internal val currentItemPlaying: MutableStateFlow<ApplePlayerItem?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -65,10 +65,10 @@ internal class AppleMediaPlayer : MediaPlayer {
                         duration = duration.seconds,
                         tempFile = tempFile,
                         coroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob()),
-                        lifecycleScope = lifecycleScope,
                         player = this
                     )
 
+                    mediaItem.updateLifecycle(lifecycleScope)
                     return Result.success(mediaItem)
                 } catch (ex: Exception) {
                     return Result.failure(IllegalArgumentException("Illegal media specified", ex))
@@ -77,11 +77,10 @@ internal class AppleMediaPlayer : MediaPlayer {
         )
     }
 
-    override fun close() {
-    }
+    override fun close() {}
 
     @OptIn(ExperimentalForeignApi::class)
-    internal fun withPlayer(item: AVPlayerItem?, closure: (AVPlayer) -> Unit) {
+    internal fun <R> withPlayer(item: AVPlayerItem?, closure: (AVPlayer) -> R): R? {
         if (item != null) {
             try {
                 player?.replaceCurrentItemWithPlayerItem(item)
@@ -90,12 +89,14 @@ internal class AppleMediaPlayer : MediaPlayer {
                 }
             } catch (ex: Exception) {
                 log.error(ex) { "Unable to prepare media player" }
-                return
+                return null
             }
         }
 
         if (player != null) {
-            closure(requireNotNull(player))
+            return closure(requireNotNull(player))
         }
+
+        return null
     }
 }
