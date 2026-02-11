@@ -53,14 +53,14 @@ internal class AndroidPlayerItem(
         controller.seekTo(index, position.inWholeMilliseconds)
     }
 
-    override fun onClose() = player.withMediaController { controller ->
+    override fun onPause() = player.withMediaController { controller ->
         controller.pause()
         controller.clearMediaItems()
         updateJob?.cancel()
         updateJob = null
     }
 
-    override suspend fun close0() {
+    override suspend fun onClose() {
         tempFile.delete()
         coroutineScope.cancel()
     }

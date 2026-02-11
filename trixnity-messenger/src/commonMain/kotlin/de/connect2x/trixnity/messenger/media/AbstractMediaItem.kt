@@ -41,13 +41,13 @@ abstract class AbstractMediaItem(
      * This function pauses the media player without locking a mutex. In order to get a full-featured media player, you
      * MUST implement this.
      */
-    protected abstract fun onClose()
+    protected abstract fun onPause()
 
     /**
      * This function allows the implementation to close resources specific to the platform on which the player is
      * implemented.
      */
-    protected open suspend fun close0() {}
+    protected open suspend fun onClose() {}
 
     override suspend fun play(): Unit = operationMutex.withLock {
         if (state.value !is MediaPlayer.State.Ready) {
@@ -57,7 +57,7 @@ abstract class AbstractMediaItem(
 
         currentItemPlaying.value?.let { prevItem ->
             log.debug { "Stop previously played media file before starting to play new media file" }
-            prevItem.onClose()
+            prevItem.pause0()
         }
 
         log.debug { "Starting playback of media item" }
@@ -79,7 +79,7 @@ abstract class AbstractMediaItem(
             return@withLock
         }
 
-        onClose()
+        onPause()
         currentItemPlaying.value = null
         state.value = MediaPlayer.State.Ready
     }
@@ -95,8 +95,14 @@ abstract class AbstractMediaItem(
 
     override fun close() {
         coroutineScope.launch {
+            pause0()
             onClose()
-            close0()
         }
+    }
+
+    protected fun pause0() {
+        onPause()
+        currentItemPlaying.value = null
+        state.value = MediaPlayer.State.Ready
     }
 }

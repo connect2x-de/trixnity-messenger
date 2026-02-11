@@ -43,7 +43,7 @@ internal class ApplePlayerItem(
             `object` = playerItem
         ) {
             elapsedTime.value = Duration.ZERO
-            onClose()
+            onPause()
         }
     }
 
@@ -71,7 +71,7 @@ internal class ApplePlayerItem(
         }
     } ?: Result.success(Unit)
 
-    override fun onClose() {
+    override fun onPause() {
         onSeekTo(Duration.ZERO)
         player.withPlayer(null) { applePlayer ->
             applePlayer.pause()
@@ -91,7 +91,7 @@ internal class ApplePlayerItem(
 
     override fun close() {
         if (state.value is MediaPlayer.State.Playing) {
-            onClose()
+            pause0()
         }
 
         playEndObserver?.let { observer ->

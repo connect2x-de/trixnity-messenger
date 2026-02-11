@@ -39,7 +39,8 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
 
         override fun onPlay(duration: Duration): Result<Unit> = Result.success(Unit)
         override fun onSeekTo(position: Duration) = Unit
-        override fun onClose() = Unit
+        override fun onPause() = Unit
+        override suspend fun onClose() = Unit
 
     }
 
