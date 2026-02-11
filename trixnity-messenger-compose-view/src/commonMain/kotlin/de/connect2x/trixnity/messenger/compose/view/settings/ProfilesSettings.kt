@@ -130,6 +130,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                             if(multiProfileEnabled){
                                 CloseProfile(true) { profilesSettingsViewModel.closeProfile() }
                             }
+                            DeleteProfileButton { profilesSettingsViewModel.openDeleteDialogue(it.key) }
                         }
                     } else {
                         DeleteProfileButton { profilesSettingsViewModel.openDeleteDialogue(it.key) }
@@ -179,7 +180,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                     profileName
                     )
 
-                ProfileDialogue.CREATE -> ProfileCreation(profileCreationViewModel){closeD()}
+                ProfileDialogue.CREATE -> ProfileCreation(profileCreationViewModel, false){closeD()}
 
                 null -> {}
             }

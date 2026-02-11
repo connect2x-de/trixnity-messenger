@@ -29,6 +29,7 @@ interface ProfileCreationViewModel {
 
     val profileName: TextFieldViewModel
     fun createProfile()
+    fun selectCreatedProfile()
 }
 
 /**
@@ -57,16 +58,26 @@ class ProfileCreationViewModelImpl(
     override val canCreateProfile: StateFlow<Boolean> = error.map { it == null }
         .stateIn(coroutineScope, SharingStarted.Eagerly, false) // used in createProfile()
 
+    private var id: String? = null
+
     override fun createProfile() {
         if (canCreateProfile.value) {
             coroutineScope.launch {
-                val id = profileManager.createProfile(
+                id = profileManager.createProfile(
                     settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value.text)
                 )
-                profileManager.selectProfile(id)
             }
         } else {
             log.warn { "cannot create a profile" }
+        }
+    }
+
+    override fun selectCreatedProfile() {
+        val i: String? = id
+        if(i != null){
+            coroutineScope.launch {
+                profileManager.selectProfile(i)
+            }
         }
     }
 
