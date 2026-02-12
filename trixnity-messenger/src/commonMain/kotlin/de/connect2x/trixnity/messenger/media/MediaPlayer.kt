@@ -27,7 +27,7 @@ interface MediaPlayer : AutoCloseable {
         lifecycleScope: CoroutineScope? = null
     ): Result<Item>
 
-    interface Item : MediaLifecycleItem {
+    interface Item : MediaItemLifecycle {
         val id: String
         val duration: Duration
         val elapsedTime: StateFlow<Duration?>

@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
-interface MediaLifecycleItem : AutoCloseable {
+interface MediaItemLifecycle : AutoCloseable {
     val state: StateFlow<MediaPlayer.State>
 
     /**
@@ -20,7 +20,7 @@ interface MediaLifecycleItem : AutoCloseable {
     fun updateLifecycle(lifecycleScope: CoroutineScope?)
 }
 
-abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope) : MediaLifecycleItem {
+abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope) : MediaItemLifecycle {
     protected open val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaLifecycleItem")
 
     private var lifecycleCompletionAwaitJob: Job? = null
@@ -38,7 +38,7 @@ abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope
 
         log.debug { "Updating lifecycle of media item" }
         lifecycleCompletionJob = lifecycleScope.coroutineContext.job.invokeOnCompletion {
-            if (state.value is MediaPlayer.State.Ready) {
+            if (state.value !is MediaPlayer.State.Playing) {
                 log.debug { "Media player item is ready on completion of lifecycle, closing item..." }
                 close()
                 return@invokeOnCompletion

@@ -20,7 +20,7 @@ internal class AndroidPlayerItem(
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
     private val player: AndroidMediaPlayer
-) : AbstractMediaItem(coroutineScope, player.playingItemMutex, player.currentItemPlaying) {
+) : AbstractMediaItemLifecycle(coroutineScope, player.playingItemMutex, player.currentItemPlaying) {
     private val item = MediaItem.Builder().setMediaId(tempFile.path.toString()).setMimeType(mimeType).build()
     private var updateJob: Job? = null
 

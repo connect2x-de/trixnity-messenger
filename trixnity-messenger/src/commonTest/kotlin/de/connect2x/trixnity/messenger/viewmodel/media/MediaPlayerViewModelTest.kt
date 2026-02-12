@@ -110,6 +110,44 @@ class MediaPlayerViewModelTest {
     }
 
     @Test
+    fun `should successfully transition between view models when updating lifecycle`() = runTest {
+        val mediaPlayer = MediaPlayerMock(backgroundScope.coroutineContext)
+        val cut1Context = viewModelContext(mediaPlayer, coroutineContext)
+        val cut1 = mediaPlayerViewModel("a", "", mediaPlayer, cut1Context)
+
+        // Start playback of media item and validate
+        cut1.play()
+        delay(100.milliseconds)
+        mediaPlayer.playingItem.value?.id shouldBe "a"
+        cut1.state.value shouldBe MediaPlayerViewModel.State.Playing
+        val playingItem = mediaPlayer.playingItem.value as MediaPlayerMock.MediaItemMock
+
+        // First viewmodel dies and playback still continues
+        cut1Context.coroutineScope.cancel() // TODO: Problem: Das stoppen der Coroutine erlaubt es der anderen nicht zu funktionieren
+        delay(100.milliseconds)
+        mediaPlayer.playingItem.value?.id shouldBe "a"
+        cut1.state.value shouldBe MediaPlayerViewModel.State.Playing
+
+        // Initialize second view model
+        val cut2Context = viewModelContext(mediaPlayer, coroutineContext)
+        val cut2 = mediaPlayerViewModel("a", "", mediaPlayer, cut2Context)
+        delay(100.milliseconds)
+
+        playingItem.isClosed.load() shouldBe false
+        cut2.state.value shouldBe MediaPlayerViewModel.State.Playing
+
+        // Pause the playback and validate (with close test)
+        cut2.pause()
+        delay(100.milliseconds)
+        mediaPlayer.playingItem.value shouldNotBe playingItem
+        cut2.state.value shouldBe MediaPlayerViewModel.State.Ready
+
+        cut2Context.coroutineScope.cancel()
+        delay(100.milliseconds)
+        playingItem.isClosed.load() shouldBe true
+    }
+
+    @Test
     fun `should go into NotReady state when media player is not present`() = runTest {
         val cut = mediaPlayerViewModel("a", "", null)
         cut.state.value shouldBe MediaPlayerViewModel.State.NotReady

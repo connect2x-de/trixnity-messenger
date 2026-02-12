@@ -13,10 +13,10 @@ import kotlin.time.Duration
  * This class is the implementation of the part of the media item which handles and helps to commonise the state
  * transitioning and reduces code duplication amongst multiple item implementations.
  */
-abstract class AbstractMediaItem(
+abstract class AbstractMediaItemLifecycle(
     private val coroutineScope: CoroutineScope,
     private val operationMutex: Mutex,
-    private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
+    private val currentItemPlaying: MutableStateFlow<AbstractMediaItemLifecycle?>
 ) : MediaLifecycleItemImpl(coroutineScope), MediaPlayer.Item {
     override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
 

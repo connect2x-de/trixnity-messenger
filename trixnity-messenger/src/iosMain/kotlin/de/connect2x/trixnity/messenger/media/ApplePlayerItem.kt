@@ -31,7 +31,7 @@ internal class ApplePlayerItem(
     private val tempFile: OkioPlatformMedia.TemporaryFile,
     private val coroutineScope: CoroutineScope,
     private val player: AppleMediaPlayer,
-) : AbstractMediaItem(coroutineScope, player.playerMutex, player.currentItemPlaying) {
+) : AbstractMediaItemLifecycle(coroutineScope, player.playerMutex, player.currentItemPlaying) {
     private var playerItem: AVPlayerItem = AVPlayerItem.playerItemWithAsset(asset)
     private var playEndObserver: NSObjectProtocol? = null
     private var timeObserver: Any? = null
