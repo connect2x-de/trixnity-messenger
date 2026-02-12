@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
 import kotlinx.coroutines.CompletableDeferred
@@ -12,11 +13,17 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class MediaLifecycleItemTest {
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `should close when old lifecycle scope is cancelling and media player is ready`() = runTest {

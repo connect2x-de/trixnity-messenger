@@ -21,11 +21,13 @@ interface MediaLifecycleItem : AutoCloseable {
 }
 
 abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope) : MediaLifecycleItem {
-    private val logger: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaLifecycleItem")
+    protected open val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaLifecycleItem")
+
     private var lifecycleCompletionAwaitJob: Job? = null
     private var lifecycleCompletionJob: DisposableHandle? = null
 
     override fun updateLifecycle(lifecycleScope: CoroutineScope?) {
+        log.debug { "Cancelling lifecycle jobs" }
         lifecycleCompletionAwaitJob?.cancel()
         lifecycleCompletionJob?.dispose()
         if (lifecycleScope == null) {
@@ -34,21 +36,21 @@ abstract class MediaLifecycleItemImpl(private val coroutineScope: CoroutineScope
             return
         }
 
-        logger.debug { "Updating lifecycle of media item" }
+        log.debug { "Updating lifecycle of media item" }
         lifecycleCompletionJob = lifecycleScope.coroutineContext.job.invokeOnCompletion {
             if (state.value is MediaPlayer.State.Ready) {
-                logger.trace { "Media player item is ready on completion of lifecycle, closing item..." }
+                log.debug { "Media player item is ready on completion of lifecycle, closing item..." }
                 close()
                 return@invokeOnCompletion
             }
 
-            logger.trace { "Media player item is still playing on completion of lifecycle, awaiting end..." }
+            log.debug { "Media player item is still playing on completion of lifecycle, awaiting end..." }
             lifecycleCompletionAwaitJob = coroutineScope.launch {
                 state.collect {
                     if (it !is MediaPlayer.State.Ready)
                         return@collect
 
-                    logger.trace { "Media player item is ready after waiting, closing item..." }
+                    log.debug { "Media player item is ready after waiting, closing item..." }
                     close()
                 }
             }

@@ -123,12 +123,16 @@ fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by View
 }
 
 
-fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) =
+fun TestScope.testMatrixClientViewModelContext(
+    di: Koin,
+    userId: UserId,
+    coroutineContext: CoroutineContext = backgroundScope.coroutineContext
+) =
     object : MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
         di = di,
         componentContext = DefaultComponentContext(LifecycleRegistry()),
         userId = userId,
-        coroutineContext = backgroundScope.coroutineContext,
+        coroutineContext = coroutineContext,
         "TestMatrixClient"
     ) {
         override val coroutineScope = backgroundScope

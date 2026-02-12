@@ -24,7 +24,7 @@ internal class AndroidPlayerItem(
     private val item = MediaItem.Builder().setMediaId(tempFile.path.toString()).setMimeType(mimeType).build()
     private var updateJob: Job? = null
 
-    override fun onPlay(duration: Duration): Result<Unit> {
+    override suspend fun onPlay(duration: Duration): Result<Unit> {
         player.withMediaController { controller ->
             controller.setMediaItem(item, duration.inWholeMilliseconds)
             controller.prepare()
@@ -42,7 +42,7 @@ internal class AndroidPlayerItem(
         return Result.success(Unit)
     }
 
-    override fun onSeekTo(position: Duration) = player.withMediaController { controller ->
+    override suspend fun onSeekTo(position: Duration) = player.withMediaController { controller ->
         if (!controller.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)) {
             log.error { "Unable to seek media playback because seek is not available" }
             return@withMediaController
@@ -53,7 +53,7 @@ internal class AndroidPlayerItem(
         controller.seekTo(index, position.inWholeMilliseconds)
     }
 
-    override fun onPause() = player.withMediaController { controller ->
+    override suspend fun onPause() = player.withMediaController { controller ->
         controller.pause()
         controller.clearMediaItems()
         updateJob?.cancel()

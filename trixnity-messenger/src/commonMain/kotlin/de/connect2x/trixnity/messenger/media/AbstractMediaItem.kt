@@ -18,7 +18,7 @@ abstract class AbstractMediaItem(
     private val operationMutex: Mutex,
     private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
 ) : MediaLifecycleItemImpl(coroutineScope), MediaPlayer.Item {
-    protected val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
+    override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
 
     override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
@@ -29,19 +29,19 @@ abstract class AbstractMediaItem(
      *
      * @param duration the start duration determined by the abstract item based on the elapsed time value
      */
-    protected abstract fun onPlay(duration: Duration): Result<Unit>
+    protected abstract suspend fun onPlay(duration: Duration): Result<Unit>
 
     /**
      * This function seeks the currently-running playback of the media item and is only called when the item is in the
      * playing state. In order to get a full-featured media player, you MUST implement this.
      */
-    protected abstract fun onSeekTo(position: Duration)
+    protected abstract suspend fun onSeekTo(position: Duration)
 
     /**
      * This function pauses the media player without locking a mutex. In order to get a full-featured media player, you
      * MUST implement this.
      */
-    protected abstract fun onPause()
+    protected abstract suspend fun onPause()
 
     /**
      * This function allows the implementation to close resources specific to the platform on which the player is
@@ -57,7 +57,7 @@ abstract class AbstractMediaItem(
 
         currentItemPlaying.value?.let { prevItem ->
             log.debug { "Stop previously played media file before starting to play new media file" }
-            prevItem.pause0()
+            prevItem.pauseWithoutLock()
         }
 
         log.debug { "Starting playback of media item" }
@@ -79,6 +79,7 @@ abstract class AbstractMediaItem(
             return@withLock
         }
 
+        log.debug { "Pausing playback of media file" }
         onPause()
         currentItemPlaying.value = null
         state.value = MediaPlayer.State.Ready
@@ -94,13 +95,14 @@ abstract class AbstractMediaItem(
     }
 
     override fun close() {
+        log.debug { "Closing media item" }
         coroutineScope.launch {
-            pause0()
+            pauseWithoutLock()
             onClose()
         }
     }
 
-    protected fun pause0() {
+    protected suspend fun pauseWithoutLock() {
         onPause()
         currentItemPlaying.value = null
         state.value = MediaPlayer.State.Ready

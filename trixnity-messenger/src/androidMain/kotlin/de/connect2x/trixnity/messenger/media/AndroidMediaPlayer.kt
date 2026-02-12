@@ -126,9 +126,16 @@ internal class AndroidMediaPlayer(
         }
     }
 
-    internal fun withMediaController(closure: (MediaController) -> Unit): Unit = try {
-        closure(controller.get(10, TimeUnit.SECONDS))
+    internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit = try {
+        val controller = withContext(Dispatchers.IO) {
+            controller.get(10, TimeUnit.SECONDS)
+        }
+
+        withContext(Dispatchers.Main) {
+            closure(controller)
+        }
     } catch (ex: TimeoutException) {
         log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
     }
+
 }

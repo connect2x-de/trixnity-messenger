@@ -1,22 +1,33 @@
 package de.connect2x.trixnity.messenger.viewmodel.media
 
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.media.MediaPlayer
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.collections.plus
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -26,10 +37,15 @@ class MediaPlayerViewModelTest {
     private val me: UserId = UserId("alice", "server")
     private val matrixClientMock: MatrixClient = mock()
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `should correctly transition states when play and pause`() = runTest {
         val mediaPlayer = MediaPlayerMock(coroutineContext)
-        val cut = mediaPlayerViewModel("a", "audio/mp4", mediaPlayer)
+        val cut = mediaPlayerViewModel("a", "", mediaPlayer)
 
         cut.state.value shouldBe MediaPlayerViewModel.State.Ready
         mediaPlayer.playingItem.value shouldBe null
@@ -48,8 +64,8 @@ class MediaPlayerViewModelTest {
     @Test
     fun `should correctly transition states when playing another item`() = runTest {
         val mediaPlayer = MediaPlayerMock(coroutineContext)
-        val cut1 = mediaPlayerViewModel("a", "audio/mp4", mediaPlayer)
-        val cut2 = mediaPlayerViewModel("b", "audio/mp4", mediaPlayer)
+        val cut1 = mediaPlayerViewModel("a", "", mediaPlayer)
+        val cut2 = mediaPlayerViewModel("b", "", mediaPlayer)
 
         // Start first item and check state of item and view models
         cut1.play()
@@ -65,46 +81,77 @@ class MediaPlayerViewModelTest {
         cut1.state.value shouldBe MediaPlayerViewModel.State.Ready
         cut2.state.value shouldBe MediaPlayerViewModel.State.Playing
     }
-    
+
     @Test
     fun `should stop media playback when closing item while playing`() = runTest {
         val mediaPlayer = MediaPlayerMock(coroutineContext)
-        val cut = mediaPlayerViewModel("a", "audio/mp4", mediaPlayer)
-        
+        val cut = mediaPlayerViewModel("a", "", mediaPlayer)
+
         cut.play()
         delay(100.milliseconds)
         mediaPlayer.playingItem.value?.id shouldBe "a"
         cut.state.value shouldBe MediaPlayerViewModel.State.Playing
-        
+
         mediaPlayer.playingItem.value?.close()
         delay(100.seconds)
         mediaPlayer.playingItem.value?.id shouldBe null
         cut.state.value shouldBe MediaPlayerViewModel.State.Ready
     }
 
-    private fun TestScope.mediaPlayerViewModel(
-        id: String,
-        mimeType: String,
-        mediaPlayer: MediaPlayer
-    ): MediaPlayerViewModel = MediaPlayerViewModelImpl(
-        viewModelContext = testMatrixClientViewModelContext(
+    @Test
+    fun `should not start playing media when failed to acquire file`() = runTest {
+        val mediaPlayer = MediaPlayerMock(coroutineContext)
+        val cut = mediaPlayerViewModel("a", "", mediaPlayer) { Result.failure(Exception("Failure")) }
+
+        cut.play()
+        delay(100.milliseconds)
+        mediaPlayer.playingItem.value shouldBe null
+        cut.state.value::class shouldBe MediaPlayerViewModel.State.Failure::class
+    }
+
+    @Test
+    fun `should go into NotReady state when media player is not present`() = runTest {
+        val cut = mediaPlayerViewModel("a", "", null)
+        cut.state.value shouldBe MediaPlayerViewModel.State.NotReady
+    }
+
+    private fun TestScope.viewModelContext(
+        mediaPlayer: MediaPlayer?,
+        coroutineContext: CoroutineContext
+    ): MatrixClientViewModelContext =
+        testMatrixClientViewModelContext(
+            coroutineContext = coroutineContext,
             userId = me,
             di = koinApplication {
                 modules(
                     createTestDefaultTrixnityMessengerModules(
                         mapOf(me to matrixClientMock)
                     ) + module {
-                        single<MediaPlayer> { mediaPlayer }
+                        mediaPlayer?.let { player ->
+                            single<MediaPlayer> { player }
+                        }
                     }
                 )
             }.koin
+        )
+
+    private fun TestScope.mediaPlayerViewModel(
+        id: String,
+        mimeType: String,
+        mediaPlayer: MediaPlayer?,
+        viewModelContext: MatrixClientViewModelContext = viewModelContext(
+            mediaPlayer,
+            backgroundScope.coroutineContext
         ),
+        acquireFile: suspend () -> Result<PlatformMedia> = {
+            Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
+        }
+    ): MediaPlayerViewModel = MediaPlayerViewModelImpl(
+        viewModelContext = viewModelContext,
         id = id,
         mimeType = mimeType,
         initialDurationOptional = null,
-        acquireFile = {
-            Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
-        }
+        acquireFile = acquireFile
     )
 
 }

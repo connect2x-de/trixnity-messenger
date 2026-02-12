@@ -43,11 +43,11 @@ internal class ApplePlayerItem(
             `object` = playerItem
         ) {
             elapsedTime.value = Duration.ZERO
-            onPause()
+            onPauseNotBlocking()
         }
     }
 
-    override fun onPlay(duration: Duration): Result<Unit> = player.withPlayer(playerItem) { applePlayer ->
+    override suspend fun onPlay(duration: Duration): Result<Unit> = player.withPlayer(playerItem) { applePlayer ->
         try {
             applePlayer.seekToTime(CMTimeMake(duration.inWholeMilliseconds, 1000))
             applePlayer.play()
@@ -71,8 +71,25 @@ internal class ApplePlayerItem(
         }
     } ?: Result.success(Unit)
 
-    override fun onPause() {
-        onSeekTo(Duration.ZERO)
+    override suspend fun onPause() = onPauseNotBlocking()
+    override suspend fun onSeekTo(position: Duration) = onSeekToNotBlocking(position)
+
+    override fun close() {
+        playEndObserver?.let { observer ->
+            NSNotificationCenter.defaultCenter.removeObserver(observer)
+        }
+
+        coroutineScope.launch {
+            if (state.value is MediaPlayer.State.Playing) {
+                pauseWithoutLock()
+            }
+
+            tempFile.delete()
+        }
+    }
+
+    private fun onPauseNotBlocking() {
+        onSeekToNotBlocking(Duration.ZERO)
         player.withPlayer(null) { applePlayer ->
             applePlayer.pause()
             timeObserver?.let {
@@ -82,24 +99,10 @@ internal class ApplePlayerItem(
         }
     }
 
-    override fun onSeekTo(position: Duration) {
+    private fun onSeekToNotBlocking(position: Duration) {
         player.withPlayer(null) { player ->
             val time = CMTimeMake(position.inWholeMilliseconds, 1000)
             player.seekToTime(time)
-        }
-    }
-
-    override fun close() {
-        if (state.value is MediaPlayer.State.Playing) {
-            pause0()
-        }
-
-        playEndObserver?.let { observer ->
-            NSNotificationCenter.defaultCenter.removeObserver(observer)
-        }
-
-        coroutineScope.launch {
-            tempFile.delete()
         }
     }
 }

@@ -12,7 +12,8 @@ interface MediaPlayer : AutoCloseable {
      * This function tries to the open a new media item by the specified media and media's mime type. When a lifecycle
      * coroutine scope is specified, it awaits to media item to end playback until it closes the item automatically.
      *
-     *
+     * When the item trying to be opened is the same item as being currently played, this function returns the item
+     * currently playing.
      *
      * @param id             the unique identifier for the media created
      * @param media          the platform media containing a file

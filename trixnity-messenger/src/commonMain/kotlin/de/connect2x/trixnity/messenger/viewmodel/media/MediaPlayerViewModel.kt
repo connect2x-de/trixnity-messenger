@@ -163,7 +163,9 @@ class MediaPlayerViewModelImpl(
         onSuccess = {
             val item = player?.open(id, it, mimeType, coroutineScope) ?: Result.success(null)
             if (item.isSuccess) {
-                listenForItemState(requireNotNull(item.getOrNull()))
+                item.getOrNull()?.let { item ->
+                    listenForItemState(item)
+                }
             }
 
             return item
@@ -174,10 +176,10 @@ class MediaPlayerViewModelImpl(
         duration.value = item.duration
         coroutineScope.launch {
             item.state.collect { itemState ->
-                when (itemState) {
-                    is MediaPlayer.State.Ready -> state.value = MediaPlayerViewModel.State.Ready
-                    is MediaPlayer.State.Playing -> state.value = MediaPlayerViewModel.State.Playing
-                    is MediaPlayer.State.Failed -> state.value = MediaPlayerViewModel.State.Failure(itemState.message)
+                state.value = when (itemState) {
+                    is MediaPlayer.State.Ready -> MediaPlayerViewModel.State.Ready
+                    is MediaPlayer.State.Playing -> MediaPlayerViewModel.State.Playing
+                    is MediaPlayer.State.Failed -> MediaPlayerViewModel.State.Failure(itemState.message)
                 }
             }
         }
