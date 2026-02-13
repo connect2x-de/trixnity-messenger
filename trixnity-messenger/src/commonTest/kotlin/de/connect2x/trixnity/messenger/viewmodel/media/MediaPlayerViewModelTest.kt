@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.media
 
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.start
+import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.model.UserId
@@ -112,8 +116,10 @@ class MediaPlayerViewModelTest {
     @Test
     fun `should successfully transition between view models when updating lifecycle`() = runTest {
         val mediaPlayer = MediaPlayerMock(backgroundScope.coroutineContext)
-        val cut1Context = viewModelContext(mediaPlayer, coroutineContext)
-        val cut1 = mediaPlayerViewModel("a", "", mediaPlayer, cut1Context)
+        val viewModelContext = viewModelContext(mediaPlayer, coroutineContext + Job())
+        val firstLifecycle = LifecycleRegistry().also { it.start() }
+        val firstViewModelContext = viewModelContext.childContextWithOwnLifecycle("alpha", firstLifecycle)
+        val cut1 = mediaPlayerViewModel("a", "", mediaPlayer, firstViewModelContext)
 
         // Start playback of media item and validate
         cut1.play()
@@ -123,13 +129,14 @@ class MediaPlayerViewModelTest {
         val playingItem = mediaPlayer.playingItem.value as MediaPlayerMock.MediaItemMock
 
         // First viewmodel dies and playback still continues
-        cut1Context.coroutineScope.cancel() // TODO: Problem: Das stoppen der Coroutine erlaubt es der anderen nicht zu funktionieren
+        firstLifecycle.destroy()
         delay(100.milliseconds)
         mediaPlayer.playingItem.value?.id shouldBe "a"
         cut1.state.value shouldBe MediaPlayerViewModel.State.Playing
 
         // Initialize second view model
-        val cut2Context = viewModelContext(mediaPlayer, coroutineContext)
+        val secondLifecycle = LifecycleRegistry().also { it.start() }
+        val cut2Context = viewModelContext.childContextWithOwnLifecycle("beta", secondLifecycle)
         val cut2 = mediaPlayerViewModel("a", "", mediaPlayer, cut2Context)
         delay(100.milliseconds)
 
@@ -142,7 +149,7 @@ class MediaPlayerViewModelTest {
         mediaPlayer.playingItem.value shouldNotBe playingItem
         cut2.state.value shouldBe MediaPlayerViewModel.State.Ready
 
-        cut2Context.coroutineScope.cancel()
+        secondLifecycle.destroy()
         delay(100.milliseconds)
         playingItem.isClosed.load() shouldBe true
     }
