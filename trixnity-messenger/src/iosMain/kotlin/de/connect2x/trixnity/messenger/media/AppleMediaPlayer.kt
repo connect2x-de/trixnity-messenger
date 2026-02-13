@@ -65,13 +65,13 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
                         log.error(throwable) { "Unexpected error while running media player" }
                     }
 
-                    val coroutineScope = CoroutineScope(SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
+                    val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
                     val mediaItem = ApplePlayerItem(
                         id = id,
                         asset = asset,
                         duration = duration.seconds,
                         tempFile = tempFile,
-                        coroutineScope = coroutineScope,
+                        coroutineScope = scope,
                         player = this
                     )
 

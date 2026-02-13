@@ -104,12 +104,12 @@ internal class AndroidMediaPlayer(
                         log.error(throwable) { "Unexpected error while running media player" }
                     }
 
-                    val coroutineScope = CoroutineScope(SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
+                    val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
                     val playerItem = AndroidPlayerItem(
                         id = id,
                         mimeType = mimeType,
                         tempFile = tempFile,
-                        coroutineScope = coroutineScope,
+                        coroutineScope = scope,
                         player = this@AndroidMediaPlayer,
                         duration = duration.milliseconds
                     )
