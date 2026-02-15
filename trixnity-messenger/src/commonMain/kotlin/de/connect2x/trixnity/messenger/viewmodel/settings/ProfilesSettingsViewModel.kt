@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -27,17 +26,10 @@ interface ProfilesSettingsViewModelFactory {
 }
 
 interface ProfilesSettingsViewModel {
-    val profilesSingleViewModels: StateFlow<Map<String, ProfilesSingleViewModel>>
+    val profilesSingleViewModels: StateFlow<Map<String, ProfilesSettingsSingleViewModel>>
     val activeProfile: StateFlow<String?>
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
-    val openedDialogueType: StateFlow<ProfileDialogue?>
-    val openedDialogueProfileId: StateFlow<String?>
-    fun openRenameDialogue(profileId: String)
-    fun openSelectDialogue(profileId: String)
-    fun openDeleteDialogue(profileId: String)
-    fun openCreateDialogue()
-    fun closeOpenedDialogue()
     fun setMultiProfileEnabled(enabled: Boolean)
     fun closeProfile()
     fun close()
@@ -51,9 +43,9 @@ class ProfilesSettingsViewModelImpl(
 
     override val activeProfile: StateFlow<String?> = profileManager.activeProfile
 
-    override val profilesSingleViewModels: StateFlow<Map<String, ProfilesSingleViewModel>> = profileManager.profiles.map {
+    override val profilesSingleViewModels: StateFlow<Map<String, ProfilesSettingsSingleViewModel>> = profileManager.profiles.map {
         it.mapValues { (profileId, _) ->
-            this@ProfilesSettingsViewModelImpl.get<ProfilesSingleViewModelFactory>()
+            this@ProfilesSettingsViewModelImpl.get<ProfilesSettingsSingleViewModelFactory>()
                 .create(
                     viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl),
                     profileId
@@ -74,29 +66,6 @@ class ProfilesSettingsViewModelImpl(
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
 
-    override val openedDialogueType: MutableStateFlow<ProfileDialogue?> = MutableStateFlow(null)
-    override val openedDialogueProfileId: MutableStateFlow<String?> = MutableStateFlow(null)
-    override fun openRenameDialogue(profileId: String){
-        openedDialogueType.value = ProfileDialogue.RENAME
-        openedDialogueProfileId.value = profileId
-    }
-    override fun openSelectDialogue(profileId: String) {
-        openedDialogueType.value = ProfileDialogue.SELECT
-        openedDialogueProfileId.value = profileId
-    }
-    override fun openDeleteDialogue(profileId: String) {
-        openedDialogueType.value = ProfileDialogue.DELETE
-        openedDialogueProfileId.value = profileId
-    }
-    override fun openCreateDialogue(){
-        openedDialogueType.value = ProfileDialogue.CREATE
-        openedDialogueProfileId.value = activeProfile.value
-    }
-    override fun closeOpenedDialogue() {
-        openedDialogueType.value = null
-        openedDialogueProfileId.value = null
-    }
-
     override fun closeProfile() {
         log.debug { "close profile" }
         coroutineScope.launch {
@@ -111,9 +80,5 @@ class ProfilesSettingsViewModelImpl(
     override fun close() {
         onCloseProfilesSettings()
     }
-}
-
-enum class ProfileDialogue{
-    RENAME, DELETE, SELECT, CREATE
 }
 

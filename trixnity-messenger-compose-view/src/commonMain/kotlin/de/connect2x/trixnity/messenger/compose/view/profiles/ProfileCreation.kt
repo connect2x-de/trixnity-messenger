@@ -27,17 +27,17 @@ import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
 
 interface ProfileCreationView {
     @Composable
-    fun create(profileCreationViewModel: ProfileCreationViewModel, selectAfterCreation: Boolean, onFinish: () -> Unit)
+    fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit)
 }
 
 @Composable
-fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel, selectAfterCreation: Boolean = true, onFinish: () -> Unit) {
-    DI.get<ProfileCreationView>().create(profileCreationViewModel, selectAfterCreation, onFinish)
+fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
+    DI.get<ProfileCreationView>().create(profileCreationViewModel, onFinish)
 }
 
 class ProfileCreationViewImpl : ProfileCreationView {
     @Composable
-    override fun create(profileCreationViewModel: ProfileCreationViewModel, selectAfterCreation: Boolean, onFinish: () -> Unit) {
+    override fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
         val i18n = DI.get<I18nView>()
         var profileName by profileCreationViewModel.profileName.collectAsTextFieldValueState()
         val error = profileCreationViewModel.error.collectAsState().value
@@ -76,9 +76,6 @@ class ProfileCreationViewImpl : ProfileCreationView {
                     style = MaterialTheme.components.primaryButton,
                     onClick = {
                         profileCreationViewModel.createProfile()
-                        if(selectAfterCreation){
-                            profileCreationViewModel.selectCreatedProfile()
-                        }
                         onFinish()
                     },
                     enabled = canCreateProfile,

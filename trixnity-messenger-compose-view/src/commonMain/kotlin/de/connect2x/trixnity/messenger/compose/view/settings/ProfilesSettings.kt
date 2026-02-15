@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileDialogue
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
 
 interface ProfilesSettingsView {
@@ -93,7 +94,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                                 ThemedButton(
                                     style = MaterialTheme.components.primaryButton,
                                     onClick = {
-                                        profilesSettingsViewModel.openCreateDialogue()
+                                        openCreateDialogue(profilesSettingsViewModel.activeProfile.value)
                                     },
                                 ) {
                                     Text(i18n.selectProfileCreateInstead())
@@ -108,7 +109,6 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                 }
             }
         }
-        ProfileDialogues(profilesSettingsViewModel)
     }
 
     @Composable
@@ -121,69 +121,64 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
             val activeProfileIsCurrent = (it.key == activeProfile)
             ThemedListItemButton(
                 headlineContent = { Text(it.value.profileName.value) },
-                onClick = { profilesSettingsViewModel.openSelectDialogue(it.key) },
+                onClick = { openSelectDialogue(it.key) },
                 enabled = !activeProfileIsCurrent,
                 trailingContent = {
                     if (activeProfileIsCurrent) {
                         Row {
-                            RenameProfileButton { profilesSettingsViewModel.openRenameDialogue(it.key) }
+                            RenameProfileButton { openRenameDialogue(it.key) }
                             if(multiProfileEnabled){
-                                CloseProfile(true) { profilesSettingsViewModel.closeProfile() }
+                                CloseProfile { profilesSettingsViewModel.closeProfile() }
                             }
-                            DeleteProfileButton { profilesSettingsViewModel.openDeleteDialogue(it.key) }
+                            DeleteProfileButton { openDeleteDialogue(it.key) }
                         }
                     } else {
-                        DeleteProfileButton { profilesSettingsViewModel.openDeleteDialogue(it.key) }
+                        DeleteProfileButton { openDeleteDialogue(it.key) }
                     }
                 }
             )
+            if(openedDialogueProfileId.value == it.key){
+                ProfileDialogues(profilesSettingsViewModel, it.value)
+            }
         }
     }
 
     @Composable
-    private fun ProfileDialogues(profilesSettingsViewModel: ProfilesSettingsViewModel){
-        val openedDialogueType = profilesSettingsViewModel.openedDialogueType.collectAsState().value
-        val openedDialogueProfileId = profilesSettingsViewModel.openedDialogueProfileId.collectAsState().value
-        val profilesSingleViewModels = profilesSettingsViewModel.profilesSingleViewModels.collectAsState().value
-        val profilesSingleViewModel = profilesSingleViewModels[openedDialogueProfileId]
-
+    private fun ProfileDialogues(profilesSettingsViewModel: ProfilesSettingsViewModel, profilesSettingsSingleViewModel: ProfilesSettingsSingleViewModel){
         val di = DI.current
         val coroutineScope = rememberCoroutineScope()
+        val openedDialogueType = openedDialogueType.value
         val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
+        val profilesSingleViewModels = profilesSettingsViewModel.profilesSingleViewModels.collectAsState().value
 
-        if(profilesSingleViewModel != null){
-            val profileName = profilesSingleViewModel.profileName.collectAsState().value
-            fun closeD() {
-                profilesSettingsViewModel.closeOpenedDialogue()
+        val profileName = profilesSettingsSingleViewModel.profileName.collectAsState().value
+        when (openedDialogueType) {
+            ProfileDialogue.RENAME -> RenameProfileDialogue(
+                profilesSettingsSingleViewModel.profileName.value,
+                { newName -> profilesSettingsSingleViewModel.renameProfile(newName); closeOpenedDialogue() },
+                { closeOpenedDialogue() },
+                profileName)
+
+            ProfileDialogue.SELECT -> {
+                val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
+                val activeProfileName = profilesSingleViewModels[activeProfile]?.profileName?.collectAsState()?.value ?: ""
+                SelectProfileDialogue(
+                    { profilesSettingsSingleViewModel.selectProfile(); closeOpenedDialogue() },
+                    { closeOpenedDialogue() },
+                    profileName,
+                    activeProfileName
+                )
             }
-            when (openedDialogueType) {
-                ProfileDialogue.RENAME -> RenameProfileDialogue(
-                    profilesSingleViewModel.profileName.value,
-                    { newName -> profilesSingleViewModel.renameProfile(newName); closeD() },
-                    { closeD() },
-                    profileName)
 
-                ProfileDialogue.SELECT -> {
-                    val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
-                    val activeProfileName = profilesSingleViewModels[activeProfile]?.profileName?.collectAsState()?.value ?: ""
-                    SelectProfileDialogue(
-                        { profilesSingleViewModel.selectProfile(); closeD() },
-                        { closeD() },
-                        profileName,
-                        activeProfileName
-                    )
-                }
+            ProfileDialogue.DELETE -> DeleteProfileDialogue(
+                { profilesSettingsSingleViewModel.deleteProfile(); closeOpenedDialogue() },
+                { closeOpenedDialogue() },
+                profileName
+            )
 
-                ProfileDialogue.DELETE -> DeleteProfileDialogue(
-                    { profilesSingleViewModel.deleteProfile(); closeD() },
-                    { closeD() },
-                    profileName
-                    )
+            ProfileDialogue.CREATE -> ProfileCreation(profileCreationViewModel){closeOpenedDialogue()}
 
-                ProfileDialogue.CREATE -> ProfileCreation(profileCreationViewModel, false){closeD()}
-
-                null -> {}
-            }
+            null -> {}
         }
     }
 
@@ -285,5 +280,33 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                 Text(confirmText)
             }
         }
+    }
+
+    var openedDialogueType: MutableState<ProfileDialogue?> = mutableStateOf(null)
+    var openedDialogueProfileId: MutableState<String?> = mutableStateOf(null)
+    fun openRenameDialogue(profileId: String){
+        openedDialogueType.value = ProfileDialogue.RENAME
+        openedDialogueProfileId.value = profileId
+    }
+    fun openSelectDialogue(profileId: String) {
+        openedDialogueType.value = ProfileDialogue.SELECT
+        openedDialogueProfileId.value = profileId
+    }
+    fun openDeleteDialogue(profileId: String) {
+        openedDialogueType.value = ProfileDialogue.DELETE
+        openedDialogueProfileId.value = profileId
+    }
+    //The profile Id is not acctually used inside the create Profile Dialogue, but makes the code simpler
+    fun openCreateDialogue(profileId: String?){
+        openedDialogueType.value = ProfileDialogue.CREATE
+        openedDialogueProfileId.value = profileId
+    }
+    fun closeOpenedDialogue() {
+        openedDialogueType.value = null
+        openedDialogueProfileId.value = null
+    }
+
+    enum class ProfileDialogue{
+        RENAME, DELETE, SELECT, CREATE
     }
 }

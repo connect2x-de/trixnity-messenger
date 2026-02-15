@@ -12,18 +12,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
-interface ProfilesSingleViewModelFactory {
+interface ProfilesSettingsSingleViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         profileId: String
-    ): ProfilesSingleViewModel {
-        return ProfilesSingleViewModelImpl(viewModelContext, profileId)
+    ): ProfilesSettingsSingleViewModel {
+        return ProfilesSettingsSingleViewModelImpl(viewModelContext, profileId)
     }
 
-    companion object : ProfilesSingleViewModelFactory
+    companion object : ProfilesSettingsSingleViewModelFactory
 }
 
-interface ProfilesSingleViewModel {
+interface ProfilesSettingsSingleViewModel {
     val profileId: String
     val profileName: StateFlow<String>
     fun renameProfile(newName: String)
@@ -31,10 +31,10 @@ interface ProfilesSingleViewModel {
     fun deleteProfile()
 }
 
-class ProfilesSingleViewModelImpl(
+class ProfilesSettingsSingleViewModelImpl(
     viewModelContext: ViewModelContext,
     override val profileId: String,
-) : ProfilesSingleViewModel, ViewModelContext by viewModelContext {
+) : ProfilesSettingsSingleViewModel, ViewModelContext by viewModelContext {
     private val profileManager = get<ProfileManager>()
     private val settings = profileManager.profiles.map { it[profileId] }.shareIn(coroutineScope, Eagerly, replay = 1)
 

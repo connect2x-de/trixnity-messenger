@@ -16,28 +16,26 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 
 interface CloseProfileView {
     @Composable
-    fun create(closeProfileNeeded: Boolean, closeProfile: () -> Unit)
+    fun create(closeProfile: () -> Unit)
 }
 
 @Composable
-fun CloseProfile(closeProfileNeeded: Boolean, closeProfile: () -> Unit) {
-    DI.get<CloseProfileView>().create(closeProfileNeeded, closeProfile)
+fun CloseProfile(closeProfile: () -> Unit) {
+    DI.get<CloseProfileView>().create(closeProfile)
 }
 
 class CloseProfileViewImpl : CloseProfileView {
     @Composable
-    override fun create(closeProfileNeeded: Boolean, closeProfile: () -> Unit) {
+    override fun create(closeProfile: () -> Unit) {
         val i18n = DI.get<I18nView>()
 
-        if (closeProfileNeeded) {
-            Box {
-                Tooltip({ Text(i18n.accountCloseProfile()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.destructiveIconButton,
-                        onClick = { closeProfile() },
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, i18n.accountCloseProfile())
-                    }
+        Box {
+            Tooltip({ Text(i18n.accountCloseProfile()) }) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.destructiveIconButton,
+                    onClick = { closeProfile() },
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.Logout, i18n.accountCloseProfile())
                 }
             }
         }
