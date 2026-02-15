@@ -3,10 +3,12 @@ package de.connect2x.trixnity.messenger.compose.view.settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -116,9 +118,9 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
     fun ProfilesList(profilesSettingsViewModel: ProfilesSettingsViewModel) {
         val multiProfileEnabled = profilesSettingsViewModel.isMultiProfile.collectAsState().value
         val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
-        val profilesSingleViewModels = profilesSettingsViewModel.profilesSingleViewModels.collectAsState().value
+        val profilesSettingsSingleViewModels = profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
 
-        profilesSingleViewModels.forEach {
+        profilesSettingsSingleViewModels.forEach {
             val activeProfileIsCurrent = (it.key == activeProfile)
             ThemedListItemButton(
                 headlineContent = {
@@ -162,7 +164,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
         val coroutineScope = rememberCoroutineScope()
         val openedDialogueType = openedDialogueType.value
         val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
-        val profilesSingleViewModels = profilesSettingsViewModel.profilesSingleViewModels.collectAsState().value
+        val profilesSettingsSingleViewModels = profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
 
         val profileName = profilesSettingsSingleViewModel.profileName.collectAsState().value
         when (openedDialogueType) {
@@ -170,13 +172,19 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                 profilesSettingsSingleViewModel.profileName.value,
                 { newName -> profilesSettingsSingleViewModel.renameProfile(newName); closeOpenedDialogue() },
                 { closeOpenedDialogue() },
-                profileName
+                profileName,
+                { newName ->
+                    profilesSettingsSingleViewModels.any { (it.value.profileName.value == newName) && (it.key != profilesSettingsSingleViewModel.profileId) }
+                },
+                { newName ->
+                    profilesSettingsSingleViewModels.any { (it.value.profileName.value == newName) && (it.key == profilesSettingsSingleViewModel.profileId) }
+                }
             )
 
             ProfileDialogue.SELECT -> {
                 val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
                 val activeProfileName =
-                    profilesSingleViewModels[activeProfile]?.profileName?.collectAsState()?.value ?: ""
+                    profilesSettingsSingleViewModels[activeProfile]?.profileName?.collectAsState()?.value ?: ""
                 SelectProfileDialogue(
                     { profilesSettingsSingleViewModel.selectProfile(); closeOpenedDialogue() },
                     { closeOpenedDialogue() },
@@ -218,10 +226,13 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
         initialTextFieldValue: String,
         onConfirm: (String) -> Unit,
         onCancel: () -> Unit,
-        profileName: String
+        profileName: String,
+        otherProfileHasNewName: (newName: String) -> Boolean,
+        thisProfileHasNewName: (newName: String) -> Boolean
     ) {
         val i18n = DI.get<I18nView>()
         var newProfileName by remember { mutableStateOf(initialTextFieldValue) }
+
         ThemedModalDialog(onCancel) {
             ModalDialogHeader {
                 Text(i18n.profileRenameDialogueHeader())
@@ -234,8 +245,17 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 1,
                 )
+                if (otherProfileHasNewName(newProfileName)) {
+                    Spacer(Modifier.size(5.dp))
+                    Text(color = MaterialTheme.colorScheme.error, text = i18n.profileRenameDialogueError())
+                }
             }
-            DialogueFooter({ onConfirm(newProfileName) }, onCancel, i18n.profileRenameDialogueConfirm())
+            DialogueFooter(
+                { onConfirm(newProfileName) },
+                onCancel,
+                i18n.profileRenameDialogueConfirm(),
+                !(otherProfileHasNewName(newProfileName) || thisProfileHasNewName(newProfileName))
+            )
         }
     }
 
@@ -289,7 +309,12 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
     }
 
     @Composable
-    private fun DialogueFooter(onConfirm: () -> Unit, onCancel: () -> Unit, confirmText: String) {
+    private fun DialogueFooter(
+        onConfirm: () -> Unit,
+        onCancel: () -> Unit,
+        confirmText: String,
+        enableConfirm: Boolean = true
+    ) {
         val i18n = DI.get<I18nView>()
         ModalDialogFooter {
             ThemedButton(
@@ -300,6 +325,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
             }
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
+                enabled = enableConfirm,
                 onClick = onConfirm,
             ) {
                 Text(confirmText)

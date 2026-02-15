@@ -43,8 +43,12 @@ class ProfilesSettingsSingleViewModelImpl(
 
     override fun renameProfile(newName: String) {
         coroutineScope.launch {
-            profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(profileId) {
-                it.copy(displayName = newName)
+            if(!profileManager.profiles.value.any { (_, settings) ->  settings.base.displayName == newName}){
+                profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(profileId) {
+                    it.copy(displayName = newName)
+                }
+            }else{
+                log.warn {"Rename failed! A profile with the name $newName already exists" }
             }
         }
     }

@@ -3418,6 +3418,11 @@ open class I18nView(
         DE - "Bitte wählen Sie einen neuen Namen für das Profil „$profileName“."
     }
 
+    open fun profileRenameDialogueError() = translate {
+        EN - "This name is already in use!"
+        DE - "Dieser name wird schon verwendet!"
+    }
+
     open fun profileRenameDialogueConfirm() = translate {
         EN - "Rename"
         DE - "Umbenennen"
