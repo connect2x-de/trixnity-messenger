@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Desktop: automatic change from/to dark mode if OS preferences change
+
 ### Changed
 
 ### Deprecated
