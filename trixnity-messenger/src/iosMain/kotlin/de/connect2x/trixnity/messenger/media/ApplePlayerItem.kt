@@ -55,7 +55,7 @@ internal class ApplePlayerItem(
             val interval = CMTimeMakeWithSeconds(0.125, NSEC_PER_SEC.toInt()) // 125ms
             timeObserver = applePlayer.addPeriodicTimeObserverForInterval(interval, null) { time ->
                 time.useContents {
-                    if (timescale <= 0 || state.value !is MediaPlayer.State.Playing)
+                    if (timescale <= 0 || state.value !is MediaPlayer.Item.State.Playing)
                         return@useContents
 
                     elapsedTime.value = (this.value * 1000 / timescale).milliseconds
@@ -63,7 +63,7 @@ internal class ApplePlayerItem(
             }
 
             player.currentItemPlaying.value = this
-            state.value = MediaPlayer.State.Playing
+            state.value = MediaPlayer.Item.State.Playing
             Result.success(Unit)
         } catch (ex: Exception) {
             log.error(ex) { "Failed to play media item" }
@@ -80,7 +80,7 @@ internal class ApplePlayerItem(
         }
 
         coroutineScope.launch {
-            if (state.value is MediaPlayer.State.Playing) {
+            if (state.value is MediaPlayer.Item.State.Playing) {
                 pauseWithoutLock()
             }
 
