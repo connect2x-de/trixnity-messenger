@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 
 
@@ -31,6 +33,7 @@ interface UserSettingsViewModelFactory {
 }
 
 interface UserSettingsViewModel {
+    val canShowProfilesSettings: Boolean
     fun closeUserSettings()
     fun showDeviceSettings()
     fun showAccounts()
@@ -50,6 +53,8 @@ open class UserSettingsViewModelImpl(
     private val onShowPrivacySettings: () -> Unit,
     private val onShowAppearanceSettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, UserSettingsViewModel {
+
+    override val canShowProfilesSettings = (viewModelContext.getOrNull<ProfileManager>() != null)
 
     private val backCallback = BackCallback {
         closeUserSettings()
@@ -72,7 +77,9 @@ open class UserSettingsViewModelImpl(
     }
 
     override fun showProfilesSettings() {
-        onShowProfilesSettings()
+        if(canShowProfilesSettings) {
+            onShowProfilesSettings()
+        }
     }
 
     override fun showNotificationsSettings() {
