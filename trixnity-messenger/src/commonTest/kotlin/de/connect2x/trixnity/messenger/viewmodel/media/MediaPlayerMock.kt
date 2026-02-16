@@ -3,7 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.media
 import de.connect2x.lognity.api.logger.Level
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.messenger.media.AbstractMediaItemLifecycle
+import de.connect2x.trixnity.messenger.media.AbstractMediaItem
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -15,7 +15,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) : MediaPlayer {
-    override val playingItem: MutableStateFlow<AbstractMediaItemLifecycle?> = MutableStateFlow(null)
+    override val playingItem: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerMock")
     private val operationMutex: Mutex = Mutex()
 
@@ -47,8 +47,8 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         override val id: String,
         coroutineScope: CoroutineScope,
         operationMutex: Mutex,
-        currentItemPlaying: MutableStateFlow<AbstractMediaItemLifecycle?>
-    ) : AbstractMediaItemLifecycle(coroutineScope, operationMutex, currentItemPlaying) {
+        currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
+    ) : AbstractMediaItem(coroutineScope, operationMutex, currentItemPlaying) {
         internal val isClosed: AtomicBoolean = AtomicBoolean(false)
         override val duration: Duration = 10.seconds
 

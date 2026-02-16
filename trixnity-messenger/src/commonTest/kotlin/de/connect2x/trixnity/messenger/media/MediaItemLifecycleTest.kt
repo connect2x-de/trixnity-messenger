@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
@@ -63,7 +64,7 @@ class MediaItemLifecycleTest {
     @Test
     fun `should close later when lifecycle scope is expiring and media item is playing`() = runTest {
         val cut = MockItem(backgroundScope)
-        cut.state.value = MediaPlayer.State.Playing
+        cut.state.value = MediaPlayer.Item.State.Playing
 
         // Attach lifecycle scope and close
         val coroutineScope = CoroutineScope(EmptyCoroutineContext)
@@ -76,7 +77,7 @@ class MediaItemLifecycleTest {
             fail("MediaLifecycleItem was closed, but it shouldn't be")
 
         // Stop playing and validate again
-        cut.state.value = MediaPlayer.State.Ready
+        cut.state.value = MediaPlayer.Item.State.Ready
         delay(200.milliseconds)
         withClue({ "MediaLifecycleItem was not closed" }) {
             withContext(Dispatchers.Default.limitedParallelism(1)) {
@@ -87,8 +88,10 @@ class MediaItemLifecycleTest {
         }
     }
 
-    private class MockItem(backgroundScope: CoroutineScope) : MediaLifecycleItemImpl(backgroundScope) {
-        override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+    private class MockItem(backgroundScope: CoroutineScope) : MediaItemLifecycleImpl(backgroundScope) {
+        override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MockItem")
+
+        override val state: MutableStateFlow<MediaPlayer.Item.State> = MutableStateFlow(MediaPlayer.Item.State.Ready)
         val isClosed: CompletableDeferred<Unit> = CompletableDeferred()
 
         override fun close() {

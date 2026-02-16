@@ -45,16 +45,16 @@ interface MediaPlayer : AutoCloseable {
          */
         suspend fun pause()
         suspend fun seekTo(position: Duration)
-    }
 
-    sealed interface State {
-        /**
-         * Ready is the state of the media player item when the media is currently not being played and the item has no
-         * failure.
-         */
-        object Ready : State
-        object Playing : State
-        class Failed(val message: String) : State
+        sealed interface State {
+            /**
+             * Ready is the state of the media player item when the media is currently not being played and the item has no
+             * failure.
+             */
+            object Ready : State
+            object Playing : State
+            class Failed(val message: String) : State
+        }
     }
 
 }

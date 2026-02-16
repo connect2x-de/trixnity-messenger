@@ -13,14 +13,14 @@ import kotlin.time.Duration
  * This class is the implementation of the part of the media item which handles and helps to commonise the state
  * transitioning and reduces code duplication amongst multiple item implementations.
  */
-abstract class AbstractMediaItemLifecycle(
+abstract class AbstractMediaItem(
     private val coroutineScope: CoroutineScope,
     private val operationMutex: Mutex,
-    private val currentItemPlaying: MutableStateFlow<AbstractMediaItemLifecycle?>
-) : MediaLifecycleItemImpl(coroutineScope), MediaPlayer.Item {
+    private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
+) : MediaItemLifecycleImpl(coroutineScope), MediaPlayer.Item {
     override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
 
-    override val state: MutableStateFlow<MediaPlayer.State> = MutableStateFlow(MediaPlayer.State.Ready)
+    override val state: MutableStateFlow<MediaPlayer.Item.State> = MutableStateFlow(MediaPlayer.Item.State.Ready)
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
 
     /**
@@ -50,7 +50,7 @@ abstract class AbstractMediaItemLifecycle(
     protected open suspend fun onClose() {}
 
     override suspend fun play(): Unit = operationMutex.withLock {
-        if (state.value !is MediaPlayer.State.Ready) {
+        if (state.value !is MediaPlayer.Item.State.Ready) {
             log.error { "Unable to start playback: Media file is not in the state to be played" }
             return@withLock
         }
@@ -64,29 +64,22 @@ abstract class AbstractMediaItemLifecycle(
         onPlay(elapsedTime.value ?: Duration.ZERO).fold(
             onFailure = {
                 log.error(it) { "Unable to start playback of media item" }
+                state.value = MediaPlayer.Item.State.Failed(it.message ?: "Unexpected error while starting playback")
             },
             onSuccess = {
                 log.debug { "Successfully started playback of media item" }
                 currentItemPlaying.value = this
-                state.value = MediaPlayer.State.Playing
+                state.value = MediaPlayer.Item.State.Playing
             }
         )
     }
 
     override suspend fun pause() = operationMutex.withLock {
-        if (state.value !is MediaPlayer.State.Playing) {
-            log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
-            return@withLock
-        }
-
-        log.debug { "Pausing playback of media file" }
-        onPause()
-        currentItemPlaying.value = null
-        state.value = MediaPlayer.State.Ready
+        pauseWithoutLock()
     }
 
     override suspend fun seekTo(position: Duration) = operationMutex.withLock {
-        if (state.value !is MediaPlayer.State.Playing) {
+        if (state.value !is MediaPlayer.Item.State.Playing) {
             elapsedTime.value = position
             return
         }
@@ -97,14 +90,20 @@ abstract class AbstractMediaItemLifecycle(
     override fun close() {
         log.debug { "Closing media item" }
         coroutineScope.launch {
-            pauseWithoutLock()
+            pause()
             onClose()
         }
     }
 
     protected suspend fun pauseWithoutLock() {
+        if (state.value !is MediaPlayer.Item.State.Playing) {
+            log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
+            return
+        }
+
+        log.debug { "Pausing playback of media file" }
         onPause()
         currentItemPlaying.value = null
-        state.value = MediaPlayer.State.Ready
+        state.value = MediaPlayer.Item.State.Ready
     }
 }

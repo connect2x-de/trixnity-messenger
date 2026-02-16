@@ -104,11 +104,6 @@ class MediaPlayerViewModelImpl(
     override fun play() {
         coroutineScope.launch {
             mutex.withLock {
-                if (state.value !is MediaPlayerViewModel.State.Ready) {
-                    log.error { "Unable to play media because its already playing" }
-                    return@withLock
-                }
-
                 if (item.value == null) {
                     log.debug { "Media item is not present, downloading item" }
                     acquireMedia().fold(
@@ -139,11 +134,6 @@ class MediaPlayerViewModelImpl(
 
         coroutineScope.launch {
             mutex.withLock {
-                if (state.value !is MediaPlayerViewModel.State.Playing) {
-                    log.error { "Unable to stop media because its not playing" }
-                    return@withLock
-                }
-
                 item.value?.pause()
                 state.value = MediaPlayerViewModel.State.Ready
             }
@@ -177,9 +167,9 @@ class MediaPlayerViewModelImpl(
         coroutineScope.launch {
             item.state.collect { itemState ->
                 state.value = when (itemState) {
-                    is MediaPlayer.State.Ready -> MediaPlayerViewModel.State.Ready
-                    is MediaPlayer.State.Playing -> MediaPlayerViewModel.State.Playing
-                    is MediaPlayer.State.Failed -> MediaPlayerViewModel.State.Failure(itemState.message)
+                    is MediaPlayer.Item.State.Ready -> MediaPlayerViewModel.State.Ready
+                    is MediaPlayer.Item.State.Playing -> MediaPlayerViewModel.State.Playing
+                    is MediaPlayer.Item.State.Failed -> MediaPlayerViewModel.State.Failure(itemState.message)
                 }
             }
         }

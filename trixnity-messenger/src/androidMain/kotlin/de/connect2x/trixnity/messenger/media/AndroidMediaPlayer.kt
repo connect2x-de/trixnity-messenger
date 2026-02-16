@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,17 +26,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class AndroidMediaPlayer(
-    getContext: ContextGetter,
-    internal val coroutineScope: CoroutineScope
-) : MediaPlayer {
+internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
+    private val coroutineCtx: CoroutineContext = parentScope.coroutineContext
+    private val coroutineScope: CoroutineScope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]))
     private val controller: ListenableFuture<MediaController>
 
-    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItemLifecycle?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playingItemMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
@@ -104,7 +105,7 @@ internal class AndroidMediaPlayer(
                         log.error(throwable) { "Unexpected error while running media player" }
                     }
 
-                    val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
+                    val scope = CoroutineScope(coroutineCtx + Job(coroutineCtx[Job]) + exceptionHandler)
                     val playerItem = AndroidPlayerItem(
                         id = id,
                         mimeType = mimeType,
@@ -131,6 +132,7 @@ internal class AndroidMediaPlayer(
                 controller.clearMediaItems()
             }
         }
+        coroutineScope.cancel()
     }
 
     internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit = try {

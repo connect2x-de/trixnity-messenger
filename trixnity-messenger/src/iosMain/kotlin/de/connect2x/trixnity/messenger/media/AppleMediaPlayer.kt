@@ -26,7 +26,7 @@ import kotlin.time.Duration.Companion.seconds
 internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
     private var player: AVPlayer? = null
-    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItemLifecycle?> = MutableStateFlow(null)
+    internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
