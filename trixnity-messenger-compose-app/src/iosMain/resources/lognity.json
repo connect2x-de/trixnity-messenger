@@ -5,7 +5,7 @@
     "enabled": true,
     "appenders": [
         {
-            "type": "console",
+            "type": "system_console",
             "name": "console",
             "pattern": "{{levelColor}}>>  {{levelSymbol}}\t{{hh}}:{{mm}}:{{ss}}.{{SSS}} ({{name}} @ {{threadId}}) {{message}}{{r}}",
             "formatter": "default"

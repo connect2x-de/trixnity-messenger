@@ -467,6 +467,23 @@ class RoomListViewModelTest {
     }
 
     @Test
+    fun `open a room with membership leave on selection`() = runTest {
+        val room = Room(roomId1, createEventContent = roomCreateEventContent, membership = Membership.LEAVE)
+        every { roomServiceMock.getById(roomId1) } returns flowOf(room)
+        every { roomServiceMock.getAll() } returns MutableStateFlow(
+            mapOf(roomId1 to MutableStateFlow(Room(roomId1)))
+        )
+
+        val cut = roomListViewModel()
+        subscribe(cut)
+
+        cut.selectRoom(roomId1)
+        delay(10)
+
+        verify { onRoomSelectedMock.invoke(any(), roomId1) }
+    }
+
+    @Test
     fun `do nothing when selecting invited room`() = runTest {
         val room = Room(roomId1, membership = Membership.INVITE)
         every { roomServiceMock.getById(roomId1) } returns flowOf(room)
