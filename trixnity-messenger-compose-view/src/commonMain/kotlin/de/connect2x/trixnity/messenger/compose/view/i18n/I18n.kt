@@ -3398,6 +3398,11 @@ open class I18nView(
         DE - "Profile"
     }
 
+    open fun profilesSettingsListThisProfile() = translate {
+        EN - "This Profile: "
+        DE - "Dieses Profil: "
+    }
+
     open fun profileRenameButtonTooltip() = translate {
         EN - "Rename profile"
         DE - "Profil umbenennen"
@@ -3416,11 +3421,6 @@ open class I18nView(
     open fun profileRenameDialogueBody(profileName: String) = translate {
         EN - "Please select a new name for the profile \"$profileName\"."
         DE - "Bitte wählen Sie einen neuen Namen für das Profil „$profileName“."
-    }
-
-    open fun profileRenameDialogueError() = translate {
-        EN - "This name is already in use!"
-        DE - "Dieser name wird schon verwendet!"
     }
 
     open fun profileRenameDialogueConfirm() = translate {

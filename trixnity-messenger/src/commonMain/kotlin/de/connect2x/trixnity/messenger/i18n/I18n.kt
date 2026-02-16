@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -9,10 +13,6 @@ import de.connect2x.trixnity.messenger.util.mb
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
-import de.connect2x.trixnity.core.model.RoomAliasId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Instant
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
@@ -1046,6 +1046,11 @@ open class I18n(
     open fun profileCreationDuplicate() = translate {
         EN - "The profile name is already in use."
         DE - "Dieser Profilname wird bereits benutzt."
+    }
+
+    open fun profileRenameDialogueError() = translate {
+        EN - "This name is already in use!"
+        DE - "Dieser name wird schon verwendet!"
     }
 
     open fun exportRoomStateInit(total: Long) = translate {

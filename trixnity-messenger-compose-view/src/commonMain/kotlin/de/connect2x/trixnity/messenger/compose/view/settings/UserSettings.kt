@@ -49,7 +49,7 @@ class UserSettingsViewImpl : UserSettingsView {
                     AppearanceSettingsButton(userSettingsViewModel)
                     PrivacySettingsButton(userSettingsViewModel)
                     DeviceSettingsButton(userSettingsViewModel)
-                    if(userSettingsViewModel.canShowProfilesSettings){
+                    if (userSettingsViewModel.canShowProfilesSettings) {
                         ProfilesSettingsButton(userSettingsViewModel)
                     }
                 }

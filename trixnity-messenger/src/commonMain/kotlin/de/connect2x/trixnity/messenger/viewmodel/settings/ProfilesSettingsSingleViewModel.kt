@@ -1,13 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.updateProfile
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
@@ -26,7 +30,13 @@ interface ProfilesSettingsSingleViewModelFactory {
 interface ProfilesSettingsSingleViewModel {
     val profileId: String
     val profileName: StateFlow<String>
-    fun renameProfile(newName: String)
+    val profileNameTextField: TextFieldViewModel
+    val profileNameError: StateFlow<String?>
+
+    /**
+     *Change profile according to the value in [profileName]
+     */
+    fun changeProfileName()
     fun selectProfile()
     fun deleteProfile()
 }
@@ -36,19 +46,35 @@ class ProfilesSettingsSingleViewModelImpl(
     override val profileId: String,
 ) : ProfilesSettingsSingleViewModel, ViewModelContext by viewModelContext {
     private val profileManager = get<ProfileManager>()
-    private val settings = profileManager.profiles.map { it[profileId] }.shareIn(coroutineScope, Eagerly, replay = 1)
+    private val i18n = get<I18n>()
 
     override val profileName: StateFlow<String> =
-        settings.map { it?.base?.displayName ?: "unknown" }.stateIn(coroutineScope, Eagerly, "unknown")
+        profileManager.profiles.map {
+            it[profileId]?.base?.displayName ?: ""
+        }.stateIn(coroutineScope, WhileSubscribed(), "")
 
-    override fun renameProfile(newName: String) {
+    override val profileNameTextField: TextFieldViewModel = TextFieldViewModelImpl(
+        initialText = profileManager.profiles.value[profileId]?.base?.displayName ?: "",
+        maxLength = 1_000,
+    )
+
+    override val profileNameError: StateFlow<String?> =
+        combine(profileManager.profiles, profileNameTextField.text) { profiles, newName ->
+            if (profiles.any { settings -> (settings.value.base.displayName == newName) && (settings.key != profileId) }) {
+                i18n.profileRenameDialogueError()
+            } else {
+                null
+            }
+        }.stateIn(coroutineScope, Eagerly, null)
+
+    override fun changeProfileName() {
         coroutineScope.launch {
-            if(!profileManager.profiles.value.any { (_, settings) ->  settings.base.displayName == newName}){
+            if (profileNameError.value == null) {
                 profileManager.updateProfile<MatrixMultiMessengerProfileSettingsBase>(profileId) {
-                    it.copy(displayName = newName)
+                    it.copy(displayName = profileNameTextField.textValue)
                 }
-            }else{
-                log.warn {"Rename failed! A profile with the name $newName already exists" }
+            } else {
+                log.warn { "Rename failed! A profile with the name ${profileNameTextField.textValue} already exists" }
             }
         }
     }
