@@ -39,8 +39,8 @@ abstract class MediaItemLifecycleImpl(private val coroutineScope: CoroutineScope
         log.debug { "Updating lifecycle of media item" }
         lifecycleCompletionJob = lifecycleScope.coroutineContext.job.invokeOnCompletion {
             if (state.value !is MediaPlayer.Item.State.Playing) {
-                log.debug { "Media player item '${(this@MediaItemLifecycleImpl as MediaPlayer.Item).id}' is ready on completion of lifecycle, closing item..." }
-                close() // TODO
+                log.debug { "Media player item is ready on completion of lifecycle, closing item..." }
+                close()
                 return@invokeOnCompletion
             }
 
@@ -50,7 +50,7 @@ abstract class MediaItemLifecycleImpl(private val coroutineScope: CoroutineScope
                     if (it !is MediaPlayer.Item.State.Ready)
                         return@collect
 
-                    log.debug { "Media player item '${(this@MediaItemLifecycleImpl as MediaPlayer.Item).id}' is ready after waiting, closing item..." }
+                    log.debug { "Media player item is ready after waiting, closing item..." }
                     close()
                 }
             }
