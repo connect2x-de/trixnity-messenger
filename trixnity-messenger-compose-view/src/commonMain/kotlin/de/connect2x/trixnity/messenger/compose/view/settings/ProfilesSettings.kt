@@ -121,22 +121,13 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
         val profilesSettingsSingleViewModels = profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
 
         profilesSettingsSingleViewModels.forEach {
-            val activeProfileIsCurrent = (it.key == activeProfile)
-            ThemedListItemButton(
-                headlineContent = {
-                    Text(
-                        it.value.profileName.value,
-                        fontWeight = if (activeProfileIsCurrent) {
-                            FontWeight.Bold
-                        } else {
-                            FontWeight.Normal
-                        }
-                    )
-                },
-                onClick = { openSelectDialogue(it.key) },
-                enabled = !activeProfileIsCurrent,
-                trailingContent = {
-                    if (activeProfileIsCurrent) {
+            if (it.key == activeProfile) {
+                ThemedListItemButton(
+                    headlineContent = { Text(text = it.value.profileName.value, fontWeight = FontWeight.Bold) },
+                    overlineContent = { Text("This profile: ", fontWeight = FontWeight.Bold) },
+                    onClick = { openSelectDialogue(it.key) },
+                    enabled = false,
+                    trailingContent = {
                         Row {
                             RenameProfileButton { openRenameDialogue(it.key) }
                             if (multiProfileEnabled) {
@@ -144,11 +135,16 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                             }
                             DeleteProfileButton { openDeleteDialogue(it.key) }
                         }
-                    } else {
-                        DeleteProfileButton { openDeleteDialogue(it.key) }
                     }
-                }
-            )
+                )
+            } else {
+                ThemedListItemButton(
+                    headlineContent = { Text(text = it.value.profileName.value, fontWeight = FontWeight.Normal) },
+                    onClick = { openSelectDialogue(it.key) },
+                    enabled = true,
+                    trailingContent = { DeleteProfileButton { openDeleteDialogue(it.key) } }
+                )
+            }
             if (openedDialogueProfileId.value == it.key) {
                 ProfileDialogues(profilesSettingsViewModel, it.value)
             }
