@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Archived rooms can now be opened in the timeline again
 - SDK: Fix broken os_log logging on iOS
 - SDK: Fix mis-compilation in JavaScript resulting in the 'create profile' button not working
+- UI: Fix timeline not scrolling to / scrolling away from the unread marker
 
 ### Security
 
@@ -33,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - UI,SDK: Add option to disable redaction warning
-- SDK,UI Introduced profiles settings
+- SDK,UI: Introduced profiles settings
 
 ### Fixed
 
