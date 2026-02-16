@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-* Desktop: automatic change from/to dark mode if OS preferences change
+- Desktop: automatic change from/to dark mode if OS preferences change
+- WEB,SDK: The 'lang' attribute in the HTML body tag now reflects the language chosen by the user.
 
 ### Changed
 
