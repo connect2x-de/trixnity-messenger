@@ -24,7 +24,6 @@ plugins {
     alias(sharedLibs.plugins.mokkery)
     alias(sharedLibs.plugins.skie)
     alias(sharedLibs.plugins.kmmBridge)
-    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)

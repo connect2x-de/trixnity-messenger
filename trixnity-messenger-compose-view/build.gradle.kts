@@ -18,8 +18,6 @@ plugins {
     alias(sharedLibs.plugins.compose.multiplatform)
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.kotlin.parcelize)
-    alias(sharedLibs.plugins.kotlinx.kover)
-    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
