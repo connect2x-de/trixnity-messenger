@@ -10,6 +10,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.media.MediaPlayer
+import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
@@ -163,11 +164,12 @@ class MediaPlayerViewModelTest {
     private fun TestScope.viewModelContext(
         mediaPlayer: MediaPlayer?,
         coroutineContext: CoroutineContext
-    ): MatrixClientViewModelContext =
-        testMatrixClientViewModelContext(
+    ): MatrixClientViewModelContext {
+        return testMatrixClientViewModelContext(
             coroutineContext = coroutineContext,
             userId = me,
             di = koinApplication {
+                allowOverride(true)
                 modules(
                     createTestDefaultTrixnityMessengerModules(
                         mapOf(me to matrixClientMock)
@@ -177,8 +179,12 @@ class MediaPlayerViewModelTest {
                         }
                     }
                 )
-            }.koin
+            }.koin.also {
+                if (mediaPlayer == null)
+                    it.unloadModules(listOf(platformModule()))
+            }
         )
+    }
 
     private fun TestScope.mediaPlayerViewModel(
         id: String,
