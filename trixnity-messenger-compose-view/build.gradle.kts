@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalComposeLibrary::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
@@ -8,7 +8,6 @@ import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 
@@ -68,12 +67,12 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.trixnityMessenger)
-                api(compose.runtime)
-                api(compose.foundation)
-                api(compose.components.resources)
-                api(compose.material3)
-                api(compose.ui)
-                api(compose.materialIconsExtended)
+                api(sharedLibs.compose.runtime)
+                api(sharedLibs.compose.foundation)
+                api(sharedLibs.compose.resources)
+                api(sharedLibs.compose.material3)
+                api(sharedLibs.compose.ui)
+                api(sharedLibs.compose.materialIconsExtended)
                 api(sharedLibs.decompose)
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
@@ -81,7 +80,7 @@ kotlin {
                 implementation(sharedLibs.kotlinx.datetime)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
-                implementation(compose.uiUtil)
+                implementation(sharedLibs.compose.uiUtil)
                 implementation(libs.highlights)
 
                 // FileKit
@@ -97,11 +96,11 @@ kotlin {
         }
         androidMain {
             dependencies {
-                implementation(compose.uiTooling)
+                implementation(sharedLibs.compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.activity.compose)
-                implementation(compose.preview)
+                implementation(sharedLibs.compose.uiToolingPreview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
                 implementation(sharedLibs.firebase.messaging)
@@ -113,12 +112,15 @@ kotlin {
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)
+
+                implementation(sharedLibs.compose.a11y.ui)
+                implementation(sharedLibs.compose.a11y.uiUtil)
             }
         }
         commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
-                implementation(compose.uiTest)
+                implementation(sharedLibs.compose.uiTest)
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.test)
                 implementation(sharedLibs.lognity.test)
