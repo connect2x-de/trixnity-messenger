@@ -125,34 +125,6 @@ class TimelineViewImpl : TimelineView {
             }
         }
         val groupedSize = timelineElementViewModelGrouped.value.size
-        remember {
-            derivedStateOf {
-                buildList {
-                    for ((date, viewModel) in timelineElementViewModelGrouped.value) {
-                        add(viewModel.key)
-                        if (date != null) {
-                            add("date-$date-${viewModel.key}")
-                        }
-                    }
-                }
-            }
-        }
-        remember {
-            derivedStateOf {
-                buildList {
-                    for ((date, viewModel) in timelineElementViewModelGrouped.value) {
-                        val element = viewModel.element.value
-                        if (element != null && timelineElementViewSelector.isFocusable(element)) {
-                            add(viewModel.key)
-                        }
-                        if (date != null) {
-                            add("date-$date-${viewModel.key}")
-                        }
-                    }
-                }
-            }
-        }
-
         LaunchedEffect(Unit) {
             var elementsFromLastCollect = setOf<BaseTimelineElementHolderViewModel>()
             timelineViewModel.elements.collect { elements ->
@@ -183,7 +155,7 @@ class TimelineViewImpl : TimelineView {
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.value.indexOfLast {
-                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value
+                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value == true
                     })
                 }
 
