@@ -110,7 +110,7 @@ kotlin {
         commonMain {
             dependencies {
                 api(projects.trixnityMessengerComposeView) // api because of iOS
-                implementation(compose.components.resources)
+                implementation(sharedLibs.compose.resources)
                 implementation(sharedLibs.lognity.core)
                 implementation(sharedLibs.lognity.config)
                 implementation(sharedLibs.lognity.core.config)
@@ -122,11 +122,11 @@ kotlin {
             dependencies {
                 // this is needed to create lock files working on all machines
                 if (System.getProperty("bundleAll") == "true") {
-                    implementation(compose.desktop.linux_x64)
-                    implementation(compose.desktop.linux_arm64)
-                    implementation(compose.desktop.windows_x64)
-                    implementation(compose.desktop.macos_x64)
-                    implementation(compose.desktop.macos_arm64)
+                    implementation(sharedLibs.compose.desktop.linuxX64)
+                    implementation(sharedLibs.compose.desktop.linuxArm64)
+                    implementation(sharedLibs.compose.desktop.windowsX64)
+                    implementation(sharedLibs.compose.desktop.macosX64)
+                    implementation(sharedLibs.compose.desktop.macosArm64)
                 } else {
                     implementation(compose.desktop.currentOs)
                 }
@@ -137,7 +137,7 @@ kotlin {
             dependencies {
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationFcm)
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationUnifiedpush)
-                implementation(compose.uiTooling)
+                implementation(sharedLibs.compose.uiTooling)
                 implementation(sharedLibs.androidx.appcompat)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.activity.compose)

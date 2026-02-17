@@ -4,9 +4,7 @@ import de.connect2x.conventions.withJs
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
-    alias(sharedLibs.plugins.dokka)
     alias(libs.plugins.seskar)
-    `maven-publish`
 }
 
 kotlin {

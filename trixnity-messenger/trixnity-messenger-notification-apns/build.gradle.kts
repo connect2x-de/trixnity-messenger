@@ -5,8 +5,6 @@ import de.connect2x.conventions.withIos
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
-    alias(sharedLibs.plugins.dokka)
-    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)

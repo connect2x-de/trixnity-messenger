@@ -6,8 +6,6 @@ plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.kotlin.serialization)
     alias(sharedLibs.plugins.android.library)
-    alias(sharedLibs.plugins.dokka)
-    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
