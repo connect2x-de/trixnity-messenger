@@ -26,7 +26,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
+import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
@@ -39,12 +39,16 @@ fun ProfileDialogues(
 ) {
     val di = DI.current
     val coroutineScope = rememberCoroutineScope()
+
+    val profileCreationViewModel = remember {
+        di.get<ProfileCreationViewModelFactory>().create(di, coroutineScope)
+    }
+
     val openedDialogueType = profilesDialogueController.openedDialogueType.value
-    val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
     val profilesSettingsSingleViewModels =
         profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
     val profileName = profilesSettingsSingleViewModel.profileName.value
-    
+
     when (openedDialogueType) {
         ProfileDialogue.RENAME -> RenameProfileDialogue(
             onConfirm = { profilesSettingsSingleViewModel.changeProfileName(); profilesDialogueController.closeOpenedDialogue() },

@@ -13,6 +13,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 
+
+interface ProfileCreationViewModelFactory {
+    fun create(
+        di: Koin,
+        coroutineScope: CoroutineScope,
+    ): ProfileCreationViewModel = ProfileCreationViewModelImpl(
+        di = di,
+        coroutineScope = coroutineScope
+    )
+
+    companion object : ProfileCreationViewModelFactory
+}
+
 /**
  * In case of multiple profiles, this can create new profiles. Uses [ProfileManager] under the hood.
  */
