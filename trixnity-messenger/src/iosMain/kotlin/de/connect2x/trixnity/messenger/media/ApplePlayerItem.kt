@@ -43,7 +43,9 @@ internal class ApplePlayerItem(
             `object` = playerItem
         ) {
             elapsedTime.value = Duration.ZERO
-            onPauseNotBlocking()
+            coroutineScope.launch {
+                pauseWithoutLock()
+            }
         }
     }
 
