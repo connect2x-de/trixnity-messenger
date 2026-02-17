@@ -38,7 +38,7 @@ fun FileInfo(element: RoomMessageTimelineElementViewModel.FileBased<*>, modifier
                 }
 
                 is RoomMessageTimelineElementViewModel.FileBased.Audio -> {
-                    append(element.duration.ifNotNull { formatDuration(it.milliseconds) })
+                    append(element.duration.ifNotNull { formatDuration(it) })
                     append(element.size)
                 }
             }

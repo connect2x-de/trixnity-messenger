@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.media.AndroidMediaPlayer
+import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
@@ -15,5 +17,8 @@ actual fun platformModule(): Module = module {
             to.single<ContextGetter> { from.get() }
             to.single<ActivityGetter> { from.get() }
         }
+    }
+    single<MediaPlayer> {
+        AndroidMediaPlayer(get(), get())
     }
 }

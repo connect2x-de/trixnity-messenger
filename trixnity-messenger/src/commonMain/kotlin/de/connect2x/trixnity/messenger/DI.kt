@@ -53,6 +53,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -307,6 +308,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::verificationViewModels,
     ::roomViewModels,
     ::roomSettingsViewModels,
+    ::mediaViewModels,
     ::exportModule,
     ::notificationModule,
 
@@ -457,6 +459,10 @@ private fun roomSettingsViewModels() = module {
     single<RoomDevInfoViewModelFactory> { RoomDevInfoViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
+}
+
+private fun mediaViewModels() = module {
+    single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
 }
 
 private fun timelineViewModels() = module {

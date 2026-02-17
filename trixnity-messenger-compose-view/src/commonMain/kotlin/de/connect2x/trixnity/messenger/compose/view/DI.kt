@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view
 
+import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
+import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -30,6 +32,8 @@ import de.connect2x.trixnity.messenger.compose.view.connecting.ServerDiscoverySt
 import de.connect2x.trixnity.messenger.compose.view.connecting.ServerInputFieldView
 import de.connect2x.trixnity.messenger.compose.view.connecting.ServerInputFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.i18n.i18nViewModule
+import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
+import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileCreationView
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileCreationViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileSelectionView
@@ -137,8 +141,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.detail
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.TimelineElementDetailsView
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementView
-import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EmoteRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.EncryptedErrorTimelineElementView
@@ -355,6 +357,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         verificationViewModule(),
         uiaViewModule(),
         getPlatformNotificationIconModule(),
+        mediaViewModule()
     )
 }
 
@@ -402,6 +405,10 @@ fun connectingViewModule() = module {
 fun filesViewModule() = module {
     single<ShareDataView> { ShareDataViewImpl() }
     single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
+}
+
+fun mediaViewModule() = module {
+    single<AudioPlayerView> { AudioPlayerViewImpl() }
 }
 
 fun profileViewModule() = module {

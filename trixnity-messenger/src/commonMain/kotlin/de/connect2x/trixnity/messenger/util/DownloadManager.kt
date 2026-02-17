@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.util
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -15,11 +17,10 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.utils.KeyedMutex
 import kotlin.coroutines.CoroutineContext
 
 interface DownloadManager {
@@ -46,6 +47,7 @@ class DownloadManagerImpl(
                     + CoroutineExceptionHandler { _, throwable -> log.error(throwable) { "DownloadManager failed." } }
         )
     private val _downloads = MutableStateFlow(listOf<Download>())
+    private val downloadMutex: KeyedMutex<String> = KeyedMutex()
     // override val downloads: StateFlow<List<Download>> = _downloads.asStateFlow() // TODO for possible DownloadManagerViewModel
 
     override fun startDownloadAsync(
@@ -75,16 +77,20 @@ class DownloadManagerImpl(
             }
             val encryptedFile = content.file
             val url = content.url
-            val result =
-                when {
-                    encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
-                    url != null -> matrixClient.media.getMedia(url, trixnityProgress)
-                    else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
-                }.onSuccess {
-                    log.debug { "successfully downloaded $fileName" }
-                }.onFailure {
-                    log.warn(it) { "download for $fileName was not successful" }
+            val result = (encryptedFile?.url ?: url)?.let { key ->
+                downloadMutex.withLock(key) {
+                    when {
+                        encryptedFile != null -> matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
+                        url != null -> matrixClient.media.getMedia(url, trixnityProgress)
+                        else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
+                    }.onSuccess {
+                        log.debug { "successfully downloaded $fileName" }
+                    }.onFailure {
+                        log.warn(it) { "download for $fileName was not successful" }
+                    }
                 }
+            } ?: Result.failure(IllegalArgumentException("there was no url or file in content"))
+
             progressJob.cancelAndJoin()
             _downloads.value -= download // we remove Download history for now
             progress.value = null

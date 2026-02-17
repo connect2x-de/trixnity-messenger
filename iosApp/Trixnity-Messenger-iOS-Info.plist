@@ -26,6 +26,7 @@
 	<array>
 		<string>remote-notification</string>
 		<string>processing</string>
+		<string>audio</string>
 	</array>
 </dict>
 </plist>
