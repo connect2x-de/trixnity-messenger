@@ -406,14 +406,34 @@ open class I18nView(
         DE - "Entblockieren"
     }
 
-    open fun secure() = translate {
-        EN - "secure"
-        DE - "Sicher"
+    open fun userTrustSecureVerified() = translate {
+        EN - "secure (verified)"
+        DE - "sicher (verifiziert)"
     }
 
-    open fun insecure() = translate {
-        EN - "insecure"
-        DE - "Unsicher"
+    open fun userTrustSecureUnverified() = translate {
+        EN - "secure (unverified)"
+        DE - "sicher (nicht verifiziert)"
+    }
+
+    open fun userTrustInsecureUnverifiedDevices() = translate {
+        EN - "insecure (unverified devices)"
+        DE - "unsicher (nicht verifizierte Geräte)"
+    }
+
+    open fun userTrustInsecureBlocked() = translate {
+        EN - "insecure (blocked)"
+        DE - "unsicher (blockiert)"
+    }
+
+    open fun userTrustInsecureInvalid() = translate {
+        EN - "insecure (compromised)"
+        DE - "unsicher (kompromittiert)"
+    }
+
+    open fun userTrustInsecureUnknown() = translate {
+        EN - "insecure (unknown)"
+        DE - "unsicher (unbekannt)"
     }
 
     open fun contact() = translate {
@@ -969,6 +989,7 @@ open class I18nView(
         EN - "copy MXID"
         DE - "Kopiere MXID"
     }
+
     open fun userProfileRemoveUser() = translate {
         EN - "remove user"
         DE - "Teilnehmer entfernen"
@@ -1128,6 +1149,7 @@ open class I18nView(
         EN - "Event Id"
         DE - "Event Id"
     }
+
     open fun timelineJumpToEnd() = translate {
         EN - "Jump to the end"
         DE - "Ans Ende springen"
@@ -1147,6 +1169,7 @@ open class I18nView(
         EN - "Copy to clipboard"
         DE - "Zur Zwischenablage kopieren"
     }
+
     open fun roomSettingsRoomName() = translate {
         EN - "Name"
         DE - "Name"
@@ -1206,6 +1229,7 @@ open class I18nView(
         EN - "Developer Information"
         DE - "Entwickler Informationen"
     }
+
     open fun roomSettingsRoomId() = translate {
         EN - "Room Id"
         DE - "Raum Id"
@@ -2977,11 +3001,6 @@ open class I18nView(
     open fun filePreviewErrorTooBig(maxUploadSize: Long) = translate {
         DE - "Die ausgewählte Datei überschreitet die maximale Vorschaugröße von ${formatSize(maxUploadSize)}."
         EN - "The selected file exceeds the maximum preview size of ${formatSize(maxUploadSize)}."
-    }
-
-    open fun roomNoEncryptionFound() = translate {
-        EN - "No encryption found"
-        DE - "Keine Verschlüsselung gefunden"
     }
 
     open fun settingsRoomMemberListKickUserWarningMessageChat() = translate {
