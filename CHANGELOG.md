@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Don't use per-project cache directory for macOS CI
 - SDK: Bump compose to 1.10.1
+- SDK: Bump kotlin to 2.3.10
 
 ### Deprecated
 

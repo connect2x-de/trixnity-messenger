@@ -113,8 +113,8 @@ kotlin {
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)
 
-                implementation(sharedLibs.compose.a11y.ui)
-                implementation(sharedLibs.compose.a11y.uiUtil)
+                implementation(sharedLibs.compose.ui)
+                implementation(sharedLibs.compose.uiUtil)
             }
         }
         commonTest {
