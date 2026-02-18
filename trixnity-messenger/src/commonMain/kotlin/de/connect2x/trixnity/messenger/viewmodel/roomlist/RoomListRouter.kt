@@ -186,7 +186,7 @@ class RoomListRouter(
 
             is Config.ProfilesSettings -> Wrapper.ProfilesSettings(
                 viewModelContext.get<ProfilesSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "Profiles",componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "Profiles", componentContext),
                     onCloseProfilesSettings = ::onCloseProfilesSettings,
                 )
             )
@@ -194,7 +194,10 @@ class RoomListRouter(
             is Config.NotificationsSettings -> Wrapper.NotificationsSettings(
                 viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext(name = "NotificationsSettings", componentContext),
+                        viewModelContext = viewModelContext.childContext(
+                            name = "NotificationsSettings",
+                            componentContext
+                        ),
                         onBack = ::onCloseNotificationsSettings,
                     )
             )
@@ -216,7 +219,11 @@ class RoomListRouter(
 
             is Config.BlockedContactsSettings -> Wrapper.BlockedContactsSettings(
                 viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("BlockedContactsSettings", componentContext, roomListConfig.account),
+                    viewModelContext = viewModelContext.childContext(
+                        "BlockedContactsSettings",
+                        componentContext,
+                        roomListConfig.account
+                    ),
                     onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
             )
@@ -317,14 +324,16 @@ class RoomListRouter(
         log.debug { "close accounts" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
+
     private fun onShowProfilesSettings() {
-        if(viewModelContext.getOrNull<ProfileManager>() != null){
+        if (viewModelContext.getOrNull<ProfileManager>() != null) {
             log.debug { "show profile" }
             navigation.launchPush(viewModelContext.coroutineScope, Config.ProfilesSettings)
-        }else{
+        } else {
             log.debug { "There was no profile manager available" }
         }
     }
+
     private fun onCloseProfilesSettings() {
         log.debug { "close profile" }
         navigation.launchPop(viewModelContext.coroutineScope)

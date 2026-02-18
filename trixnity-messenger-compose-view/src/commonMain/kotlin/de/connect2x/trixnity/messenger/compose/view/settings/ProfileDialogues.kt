@@ -10,7 +10,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,7 +25,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
@@ -39,10 +37,6 @@ fun ProfileDialogues(
 ) {
     val di = DI.current
     val coroutineScope = rememberCoroutineScope()
-
-    val profileCreationViewModel = remember {
-        di.get<ProfileCreationViewModelFactory>().create(di, coroutineScope)
-    }
 
     val openedDialogueType = profilesDialogueController.openedDialogueType.value
     val profiles =
@@ -76,7 +70,7 @@ fun ProfileDialogues(
             profileName = profileName
         )
 
-        ProfileDialogue.CREATE -> ProfileCreation(profileCreationViewModel) { profilesDialogueController.closeOpenedDialogue() }
+        ProfileDialogue.CREATE -> ProfileCreation(profilesSettingsViewModel) { profilesDialogueController.closeOpenedDialogue() }
 
         null -> {}
     }

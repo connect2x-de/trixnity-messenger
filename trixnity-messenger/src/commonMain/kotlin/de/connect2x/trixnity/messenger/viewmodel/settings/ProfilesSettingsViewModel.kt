@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
+import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,7 +27,7 @@ interface ProfilesSettingsViewModelFactory {
     companion object : ProfilesSettingsViewModelFactory
 }
 
-interface ProfilesSettingsViewModel {
+interface ProfilesSettingsViewModel : ProfileCreationViewModel {
     val profiles: StateFlow<Map<String, ProfilesSettingsSingleViewModel>>
     val activeProfile: StateFlow<String?>
     val isMultiProfile: StateFlow<Boolean>
@@ -38,7 +40,10 @@ interface ProfilesSettingsViewModel {
 class ProfilesSettingsViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val onCloseProfilesSettings: () -> Unit,
-) : ProfilesSettingsViewModel, ViewModelContext by viewModelContext {
+) : ProfilesSettingsViewModel,
+    ViewModelContext by viewModelContext,
+    ProfileCreationViewModel by viewModelContext.getKoin().get<ProfileCreationViewModelFactory>()
+        .create(viewModelContext.getKoin(), viewModelContext.coroutineScope) {
     private val profileManager = get<ProfileManager>()
 
     override val activeProfile: StateFlow<String?> = profileManager.activeProfile
