@@ -17,6 +17,8 @@ import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
 
 interface TimelineElementViewModelFactorySelector {
@@ -109,15 +111,19 @@ class TimelineElementViewModelFactorySelectorImpl(
                 ) ?: TimelineElementViewModel.Empty
             },
             onSuccess = { decryptedContent ->
-                findFactory(decryptedContent, ignoreReplacedEvents)
-                    ?.create(
+                val factory = findFactory(decryptedContent, ignoreReplacedEvents)
+
+                // This has to run on the Main Thread as ViewModels can create routers or stacks which have to be
+                // created on the Main Thread to prevent com.arkivanov.decompose.mainthread.NotOnMainThreadException
+                withContext(Dispatchers.Main.immediate) {
+                    factory?.create(
                         viewModelContext = viewModelContext,
                         content = decryptedContent,
                         roomId = roomId,
                         eventIdOrTransactionId = eventIdOrTransactionId,
                         onOpenMention = onOpenMention,
                     )
-                    ?: TimelineElementViewModel.Empty
+                } ?: TimelineElementViewModel.Empty
             },
         )
     }
