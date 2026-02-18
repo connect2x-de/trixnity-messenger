@@ -26,7 +26,7 @@ interface ProfilesSettingsViewModelFactory {
 }
 
 interface ProfilesSettingsViewModel {
-    val profilesSettingsSingleViewModels: StateFlow<Map<String, ProfilesSettingsSingleViewModel>>
+    val profiles: StateFlow<Map<String, ProfilesSettingsSingleViewModel>>
     val activeProfile: StateFlow<String?>
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
@@ -43,15 +43,16 @@ class ProfilesSettingsViewModelImpl(
 
     override val activeProfile: StateFlow<String?> = profileManager.activeProfile
 
-    override val profilesSettingsSingleViewModels: StateFlow<Map<String, ProfilesSettingsSingleViewModel>> = profileManager.profiles.map {
-        it.mapValues { (profileId, _) ->
-            this@ProfilesSettingsViewModelImpl.get<ProfilesSettingsSingleViewModelFactory>()
-                .create(
-                    viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl),
-                    profileId
-                )
-        }
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+    override val profiles: StateFlow<Map<String, ProfilesSettingsSingleViewModel>> =
+        profileManager.profiles.map {
+            it.mapValues { (profileId, _) ->
+                this@ProfilesSettingsViewModelImpl.get<ProfilesSettingsSingleViewModelFactory>()
+                    .create(
+                        viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl),
+                        profileId
+                    )
+            }
+        }.stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val isMultiProfile: StateFlow<Boolean> =
         (profileManager.isMultiProfileEnabled.map { it == true })

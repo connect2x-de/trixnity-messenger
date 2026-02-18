@@ -30,10 +30,10 @@ fun ProfileList(
     val i18n = DI.get<I18nView>()
     val multiProfileEnabled = profilesSettingsViewModel.isMultiProfile.collectAsState().value
     val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
-    val profilesSettingsSingleViewModels =
-        profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
+    val profiles =
+        profilesSettingsViewModel.profiles.collectAsState().value
 
-    profilesSettingsSingleViewModels.forEach {
+    profiles.forEach {
         val profileName = it.value.profileName.collectAsState().value
 
         if (it.key == activeProfile) {

@@ -45,8 +45,8 @@ fun ProfileDialogues(
     }
 
     val openedDialogueType = profilesDialogueController.openedDialogueType.value
-    val profilesSettingsSingleViewModels =
-        profilesSettingsViewModel.profilesSettingsSingleViewModels.collectAsState().value
+    val profiles =
+        profilesSettingsViewModel.profiles.collectAsState().value
     val profileName = profilesSettingsSingleViewModel.profileName.value
 
     when (openedDialogueType) {
@@ -61,7 +61,7 @@ fun ProfileDialogues(
         ProfileDialogue.SELECT -> {
             val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
             val activeProfileName =
-                profilesSettingsSingleViewModels[activeProfile]?.profileName?.collectAsState()?.value ?: ""
+                profiles[activeProfile]?.profileName?.collectAsState()?.value ?: ""
             SelectProfileDialogue(
                 onConfirm = { profilesSettingsSingleViewModel.selectProfile(); profilesDialogueController.closeOpenedDialogue() },
                 onCancel = { profilesDialogueController.closeOpenedDialogue() },
