@@ -70,7 +70,12 @@ fun ProfileDialogues(
             profileName = profileName
         )
 
-        ProfileDialogue.CREATE -> ProfileCreation(profilesSettingsViewModel) { profilesDialogueController.closeOpenedDialogue() }
+        ProfileDialogue.CREATE -> ProfileCreation(
+            textFieldViewModel = profilesSettingsViewModel.profileCreationTextField,
+            error = profilesSettingsViewModel.profileCreationError.collectAsState().value,
+            onFinish = { profilesDialogueController.closeOpenedDialogue() },
+            onCreate = { profilesSettingsViewModel.createProfile() }
+        )
 
         null -> {}
     }

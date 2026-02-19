@@ -52,7 +52,13 @@ fun createOrSelectManualUserProfile() {
     val showProfileCreation = ShowProfileCreation.current
     val existingProfiles = profileManager.profiles.collectAsState().value
     if (existingProfiles.isEmpty() || showProfileCreation.value) {
-        ProfileCreation(profileCreationViewModel) { showProfileCreation.value = false }
+        ProfileCreation(
+            textFieldViewModel = profileCreationViewModel.profileName,
+            error = profileCreationViewModel.error.collectAsState().value,
+            onFinish = { showProfileCreation.value = false },
+            onCreate = { profileCreationViewModel.createProfile() },
+            canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
+        )
     } else {
         ProfileSelection(profileManager)
     }

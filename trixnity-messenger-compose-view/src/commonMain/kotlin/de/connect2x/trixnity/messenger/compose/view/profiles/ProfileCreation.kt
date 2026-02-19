@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,25 +22,43 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 
 interface ProfileCreationView {
     @Composable
-    fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit)
+    fun create(
+        textFieldViewModel: TextFieldViewModel,
+        error: String?,
+        onFinish: () -> Unit,
+        onCreate: () -> Unit,
+        canCreateProfile: Boolean,
+    )
 }
 
 @Composable
-fun ProfileCreation(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
-    DI.get<ProfileCreationView>().create(profileCreationViewModel, onFinish)
+fun ProfileCreation(
+    textFieldViewModel: TextFieldViewModel,
+    error: String?,
+    onFinish: () -> Unit,
+    onCreate: () -> Unit,
+    canCreateProfile: Boolean = (error == null),
+) {
+    DI.get<ProfileCreationView>().create(textFieldViewModel, error, onFinish, onCreate, canCreateProfile)
 }
 
 class ProfileCreationViewImpl : ProfileCreationView {
     @Composable
-    override fun create(profileCreationViewModel: ProfileCreationViewModel, onFinish: () -> Unit) {
+    override fun create(
+        textFieldViewModel: TextFieldViewModel,
+        error: String?,
+        onFinish: () -> Unit,
+        onCreate: () -> Unit,
+        canCreateProfile: Boolean,
+    ) {
         val i18n = DI.get<I18nView>()
-        var profileName by profileCreationViewModel.profileName.collectAsTextFieldValueState()
-        val error = profileCreationViewModel.error.collectAsState().value
-        val canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
+        var profileName by textFieldViewModel.collectAsTextFieldValueState()
+        val error = error
+        val canCreateProfile = canCreateProfile
 
         ThemedModalDialog(onFinish) {
             ModalDialogHeader {
@@ -75,7 +92,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     onClick = {
-                        profileCreationViewModel.createProfile()
+                        onCreate()
                         onFinish()
                     },
                     enabled = canCreateProfile,

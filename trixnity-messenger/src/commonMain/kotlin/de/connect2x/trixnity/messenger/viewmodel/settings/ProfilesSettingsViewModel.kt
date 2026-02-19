@@ -1,8 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModel
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerProfileSettingsBase
 import de.connect2x.trixnity.messenger.multi.ProfileManager
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
+import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -27,11 +29,14 @@ interface ProfilesSettingsViewModelFactory {
     companion object : ProfilesSettingsViewModelFactory
 }
 
-interface ProfilesSettingsViewModel : ProfileCreationViewModel {
+interface ProfilesSettingsViewModel {
     val profiles: StateFlow<Map<String, ProfilesSettingsSingleViewModel>>
     val activeProfile: StateFlow<String?>
     val isMultiProfile: StateFlow<Boolean>
     val canChangeMultiProfileMode: StateFlow<Boolean>
+    val profileCreationTextField: TextFieldViewModel
+    val profileCreationError: StateFlow<String?>
+    fun createProfile()
     fun setMultiProfileEnabled(enabled: Boolean)
     fun closeProfile()
     fun close()
@@ -40,10 +45,9 @@ interface ProfilesSettingsViewModel : ProfileCreationViewModel {
 class ProfilesSettingsViewModelImpl(
     private val viewModelContext: ViewModelContext,
     private val onCloseProfilesSettings: () -> Unit,
-) : ProfilesSettingsViewModel,
-    ViewModelContext by viewModelContext,
-    ProfileCreationViewModel by viewModelContext.getKoin().get<ProfileCreationViewModelFactory>()
-        .create(viewModelContext.getKoin(), viewModelContext.coroutineScope) {
+) : ProfilesSettingsViewModel, ViewModelContext by viewModelContext {
+    private val di = viewModelContext.getKoin()
+    private val i18n = di.get<I18n>()
     private val profileManager = get<ProfileManager>()
 
     override val activeProfile: StateFlow<String?> = profileManager.activeProfile
@@ -71,6 +75,27 @@ class ProfilesSettingsViewModelImpl(
             // one profiles. In this case, we should still allow the user to enable it.
             !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
         }.stateIn(coroutineScope, WhileSubscribed(), true)
+
+    override val profileCreationTextField: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 1_000)
+    override val profileCreationError: StateFlow<String?> =
+        combine(profileManager.profiles, profileCreationTextField) { existingProfiles, currentProfileName ->
+            when {
+                existingProfiles.any { (_, settings) -> settings.base.displayName == currentProfileName.text } -> i18n.profileCreationDuplicate()
+                else -> null
+            }
+        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override fun createProfile() {
+        if (profileCreationError.value == null) {
+            coroutineScope.launch {
+                profileManager.createProfile(
+                    settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileCreationTextField.value.text)
+                )
+            }
+        } else {
+            log.warn { "cannot create a profile" }
+        }
+    }
 
     override fun closeProfile() {
         log.debug { "close profile" }
