@@ -7,7 +7,6 @@ import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -22,10 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -44,7 +40,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.Platform
@@ -55,6 +54,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.theme.IsFocusHighlighting
+import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerFocusIndicator
 import kotlinx.coroutines.launch
 
@@ -80,6 +80,7 @@ fun BoxScope.ThemedActionMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.ThemedActionMenuDefault(
     hoverInteractionSource: MutableInteractionSource,
@@ -92,9 +93,9 @@ private fun BoxScope.ThemedActionMenuDefault(
     val focus = focusInteractionSource.collectIsFocusedAsState()
     val hover = hoverInteractionSource.collectIsHoveredAsState()
     val isVisible =
-        remember { MutableTransitionState(showActionMenu.value != ThemedActionMenuState.CLOSED || focus.value || hover.value) }
+        remember { MutableTransitionState(showActionMenu.value != ThemedActionMenuState.Closed || focus.value || hover.value) }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
-        isVisible.targetState = showActionMenu.value != ThemedActionMenuState.CLOSED || focus.value || hover.value
+        isVisible.targetState = showActionMenu.value != ThemedActionMenuState.Closed || focus.value || hover.value
     }
 
     val transition = rememberTransition(isVisible)
@@ -102,7 +103,7 @@ private fun BoxScope.ThemedActionMenuDefault(
 
     val i18n = DI.get<I18nView>()
     val onClose = {
-        showActionMenu.value = ThemedActionMenuState.CLOSED
+        showActionMenu.value = ThemedActionMenuState.Closed
     }
     Box(
         modifier = Modifier
@@ -122,7 +123,7 @@ private fun BoxScope.ThemedActionMenuDefault(
             interactionSource = focusInteractionSource,
             onClick = {
                 showActionMenu.value =
-                    if (showActionMenu.value == ThemedActionMenuState.CLOSED) ThemedActionMenuState.ANCHORED else ThemedActionMenuState.CLOSED
+                    if (showActionMenu.value == ThemedActionMenuState.Closed) ThemedActionMenuState.Anchored else ThemedActionMenuState.Closed
             },
             modifier = Modifier
                 .size(28.dp)
@@ -142,14 +143,31 @@ private fun BoxScope.ThemedActionMenuDefault(
             }
         }
         ThemedDropdownMenu(
-            expanded = showActionMenu.value.isNotClosed(),
-            onDismissRequest = { showActionMenu.value = ThemedActionMenuState.CLOSED },
+            expanded = showActionMenu.value == ThemedActionMenuState.Anchored,
+            onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
             offset = DpOffset(0.dp, 0.dp),
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
-                .sizeIn(maxWidth = 300.dp),
+            modifier = Modifier.sizeIn(maxWidth = 300.dp),
+            style = MaterialTheme.components.contextMenu
         ) {
             additionalContextActions(onClose)
             actions.forEach { action -> action.render { onClose() } }
+        }
+    }
+    if (showActionMenu.value is ThemedActionMenuState.Popup) {
+        Popup(
+            offset = (showActionMenu.value as ThemedActionMenuState.Popup).offset,
+            onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
+            properties = PopupProperties(focusable = true)
+        ) {
+            ThemedSurface(
+                modifier = Modifier.sizeIn(maxWidth = 300.dp),
+                style = MaterialTheme.components.contextMenu,
+            ) {
+                Column {
+                    additionalContextActions(onClose)
+                    actions.forEach { action -> action.render { onClose() } }
+                }
+            }
         }
     }
 }
@@ -168,14 +186,14 @@ private fun ThemedActionMenuMobile(
             bottomSheetState.hide()
         }.invokeOnCompletion {
             if (!bottomSheetState.isVisible)
-                showActionMenu.value = ThemedActionMenuState.CLOSED
+                showActionMenu.value = ThemedActionMenuState.Closed
         }
         Unit
     }
     //Since there is no distinction between an anchored or a popup based ActionMenu on mobile, only the not closed state is relevant here
     if (showActionMenu.value.isNotClosed()) ModalBottomSheet(
         sheetState = bottomSheetState,
-        onDismissRequest = { showActionMenu.value = ThemedActionMenuState.CLOSED },
+        onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
     ) {
         Column(
             Modifier
@@ -251,8 +269,10 @@ open class ThemedActionMenuItem(
     }
 }
 
-enum class ThemedActionMenuState {
-    ANCHORED, POPUP, CLOSED
+interface ThemedActionMenuState {
+    data object Anchored : ThemedActionMenuState
+    data class Popup(val offset: IntOffset) : ThemedActionMenuState
+    data object Closed : ThemedActionMenuState
 }
 
-fun ThemedActionMenuState.isNotClosed() = this != ThemedActionMenuState.CLOSED
+fun ThemedActionMenuState.isNotClosed() = this != ThemedActionMenuState.Closed

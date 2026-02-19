@@ -54,7 +54,7 @@ fun MessageBubbleContainer(
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
-    val showActionMenu = remember { mutableStateOf(ThemedActionMenuState.CLOSED) }
+    val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
     val hoverMessage = remember { mutableStateOf(false) }
     val i18n = DI.get<I18nView>()
     val element = holder.element.collectAsState().value
@@ -82,7 +82,7 @@ fun MessageBubbleContainer(
                 })
             .pointerInput(holder) { // key is important to react to changes
                 detectTapGestures(onLongPress = {
-                    showActionMenu.value = ThemedActionMenuState.ANCHORED
+                    showActionMenu.value = ThemedActionMenuState.Anchored
                 }) // in case the child element has no tap / click detection, we can use this
                 size
             }
@@ -126,7 +126,7 @@ fun MessageBubbleContainer(
                 )
             }
 
-            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = ThemedActionMenuState.ANCHORED }, content)
+            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = ThemedActionMenuState.Anchored }, content)
         }
     }
 }
