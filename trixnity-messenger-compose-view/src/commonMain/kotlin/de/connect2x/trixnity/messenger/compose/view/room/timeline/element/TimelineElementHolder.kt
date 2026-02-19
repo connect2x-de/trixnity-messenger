@@ -39,7 +39,7 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
         Column {
             when (timelineElementHolderViewModel) {
                 is TimelineElementHolderViewModel -> {
-                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value
+                    val showUnreadMarker = timelineElementHolderViewModel.showUnreadMarker.collectAsState().value == true
                     val showLoadingIndicatorBefore =
                         timelineElementHolderViewModel.showLoadingIndicatorBefore.collectAsState().value
                     val showLoadingIndicatorAfter =

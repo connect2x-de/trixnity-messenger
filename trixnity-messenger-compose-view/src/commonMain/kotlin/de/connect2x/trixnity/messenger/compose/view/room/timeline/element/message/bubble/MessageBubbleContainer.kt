@@ -25,8 +25,9 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionItemInfo
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -107,8 +108,9 @@ fun MessageBubbleContainer(
                 .hoverable(hoverInteractionSource)
                 .semantics {
                     collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
-                    contentDescription = "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
-                            (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: "")
+                    this.text = AnnotatedString(
+                        "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
+                            (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: ""))
                 },
         ) {
             if (!isPreview) {

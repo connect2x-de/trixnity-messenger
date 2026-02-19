@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message
+package de.connect2x.messenger.compose.view.room.timeline.element.message
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.FileInfo
@@ -24,6 +25,8 @@ import de.connect2x.trixnity.messenger.compose.view.common.FileName
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElement
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextReply
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
@@ -33,7 +36,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Audio
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
 import kotlin.reflect.KClass
-import kotlin.time.Duration.Companion.milliseconds
 
 interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
 
@@ -105,12 +107,26 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     ): ClipEntry? = element.toClipEntry()
 
     override fun a11yLabel(element: Audio, i18n: I18nView): String {
-        return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
+        return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it) }}"
     }
 }
 
 @Composable
-internal fun MessageAudio(
+internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
+    if (element.audioPlayer == null) {
+        NonPlayableAudioMessage(element, showActionMenu, onSave)
+        return
+    }
+
+    DI.current.get<AudioPlayerView>().Create(
+        audio = element,
+        viewModel = requireNotNull(element.audioPlayer),
+        fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) }
+    )
+}
+
+@Composable
+internal fun NonPlayableAudioMessage(
     element: Audio,
     showActionMenu: () -> Unit,
     onSave: () -> Unit,

@@ -19,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.Wysiwyg
-import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.filled.DoorSliding
 import androidx.compose.material.icons.filled.PersonOff
@@ -37,8 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -46,8 +43,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
@@ -79,11 +81,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModel
-import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.crypto.key.UserTrustLevel
-import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 
 
 @Composable
@@ -174,13 +171,13 @@ class UserProfileViewImpl : UserProfileView {
                                 ThemedInfoChip(
                                     style = MaterialTheme.components.primaryChip,
                                     icon = { VerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.secure()) },
+                                    label = { Text(i18n.userTrustSecureVerified()) },
                                 )
                             } else {
                                 ThemedInfoChip(
                                     style = MaterialTheme.components.destructiveChip,
                                     icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
-                                    label = { Text(i18n.insecure()) }
+                                    label = { Text(i18n.userTrustSecureUnverified()) }
                                 )
                             }
                         }
@@ -189,15 +186,31 @@ class UserProfileViewImpl : UserProfileView {
                             ThemedInfoChip(
                                 style = MaterialTheme.components.destructiveChip,
                                 icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.insecure()) },
+                                label = { Text(i18n.userTrustInsecureUnverifiedDevices()) },
                             )
                         }
 
-                        UserTrustLevel.Blocked, is UserTrustLevel.Invalid, UserTrustLevel.Unknown, null -> {
+                        UserTrustLevel.Blocked -> {
                             ThemedInfoChip(
                                 style = MaterialTheme.components.destructiveChip,
                                 icon = { NotVerifiedIcon(VerificationLevel.USER) },
-                                label = { Text(i18n.roomNoEncryptionFound()) },
+                                label = { Text(i18n.userTrustInsecureBlocked()) },
+                            )
+                        }
+
+                        is UserTrustLevel.Invalid -> {
+                            ThemedInfoChip(
+                                style = MaterialTheme.components.destructiveChip,
+                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                label = { Text(i18n.userTrustInsecureInvalid()) },
+                            )
+                        }
+
+                        UserTrustLevel.Unknown, null -> {
+                            ThemedInfoChip(
+                                style = MaterialTheme.components.destructiveChip,
+                                icon = { NotVerifiedIcon(VerificationLevel.USER) },
+                                label = { Text(i18n.userTrustInsecureUnknown()) },
                             )
                         }
                     }

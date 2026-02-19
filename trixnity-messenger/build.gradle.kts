@@ -24,7 +24,6 @@ plugins {
     alias(sharedLibs.plugins.mokkery)
     alias(sharedLibs.plugins.skie)
     alias(sharedLibs.plugins.kmmBridge)
-    alias(sharedLibs.plugins.mavenPublish)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -153,6 +152,9 @@ kotlin {
                 implementation(sharedLibs.androidx.browser)
                 implementation(sharedLibs.androidx.work.runtime.ktx)
                 implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
+                implementation(libs.media3.exoplayer)
+                implementation(libs.media3.session)
+                implementation(libs.media3.ui)
             }
         }
         iosMain {

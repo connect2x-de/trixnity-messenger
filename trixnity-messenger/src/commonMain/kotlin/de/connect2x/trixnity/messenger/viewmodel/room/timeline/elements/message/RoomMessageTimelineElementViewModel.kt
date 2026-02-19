@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -26,6 +27,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import org.koin.core.component.get
+import kotlin.time.Duration
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     /**
@@ -107,7 +109,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
-            val duration: Long?
+            val duration: Duration?
+            val audioPlayer: MediaPlayerViewModel?
         }
 
         interface Video : FileBased<RoomMessageEventContent.FileBased.Video> {

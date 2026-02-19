@@ -9,13 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Desktop: automatic change from/to dark mode if OS preferences change
+- WEB,SDK: The 'lang' attribute in the HTML body tag now reflects the language chosen by the user.
+- API: Media playback API (currently only supporting audio on Android and iOS)
+- UI, IOS, ANDROID: Add support for playback of audio files
+
 ### Changed
+
+- SDK: Don't use per-project cache directory for macOS CI
+- SDK: Bump compose to 1.10.1
+- SDK: Bump kotlin to 2.3.10
+- SDK: Bump Gradle to 9.3.1
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- UI: Archived rooms can now be opened in the timeline again
+- SDK: Fix broken os_log logging on iOS
+- SDK: Fix mis-compilation in JavaScript resulting in the 'create profile' button not working
+- UI: Fix timeline not scrolling to / scrolling away from the unread marker
+- WEB,A11Y: Fix message bubbles not being read out in some browser/screeenreader combinations
+- UI: Fix naming of untrusted users
 
 ### Security
 
@@ -24,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - UI,SDK: Add option to disable redaction warning
-- SDK,UI Introduced profiles settings
+- SDK,UI: Introduced profiles settings
 
 ### Fixed
 

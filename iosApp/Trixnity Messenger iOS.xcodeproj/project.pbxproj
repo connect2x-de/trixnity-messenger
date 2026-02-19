@@ -286,6 +286,7 @@
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../trixnity-messenger-compose-app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Trixnity Messenger iOS photo use";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -321,6 +322,7 @@
 				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../trixnity-messenger-compose-app/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)\"";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Trixnity-Messenger-iOS-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "";
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Trixnity Messenger iOS photo use";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
