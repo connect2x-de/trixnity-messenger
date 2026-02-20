@@ -155,7 +155,7 @@ class TimelineViewImpl : TimelineView {
             } else {
                 val unreadMarkerOnFirstLoad = remember {
                     (timelineElementHolderViewModels.value.indexOfLast {
-                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value == true
+                        it is TimelineElementHolderViewModel && it.showUnreadMarker.value
                     })
                 }
 

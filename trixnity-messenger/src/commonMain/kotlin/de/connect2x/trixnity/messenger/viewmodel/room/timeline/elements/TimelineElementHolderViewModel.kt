@@ -134,7 +134,7 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val roomId: RoomId
     val eventId: EventId
 
-    val showUnreadMarker: StateFlow<Boolean?>
+    val showUnreadMarker: StateFlow<Boolean>
     val showLoadingIndicatorBefore: StateFlow<Boolean>
     val showLoadingIndicatorAfter: StateFlow<Boolean>
 
@@ -223,7 +223,7 @@ class TimelineElementHolderViewModelImpl(
                 .drop(1)
         ).shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    override val showUnreadMarker: StateFlow<Boolean?> =
+    override val showUnreadMarker: StateFlow<Boolean> =
         showUnreadMarker
             .flatMapLatest { showUnreadMarker ->
                 if (showUnreadMarker) {
@@ -233,7 +233,7 @@ class TimelineElementHolderViewModelImpl(
                     flowOf(false)
                 }
             }
-            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     @OptIn(FlowPreview::class)
     override val showLoadingIndicatorBefore =
