@@ -1,16 +1,18 @@
 package de.connect2x.trixnity.messenger.compose.view.common
 
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -24,18 +26,25 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.window.Popup
@@ -244,7 +253,23 @@ private fun WizardButtons(
     val nextStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) + 1)?.id
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val additionalButton = wizardStep.additionalButton
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Bottom) {
+
+    var currentOffsetPx by remember { mutableIntStateOf(0) }
+    val density = LocalDensity.current
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    val extraImeBottomPadding = if (imeBottom > 0) 10 else 0
+
+    Column(Modifier.fillMaxWidth().offset { IntOffset(0, -currentOffsetPx) }.onGloballyPositioned { coords ->
+        val screenHeight = coords.findRootCoordinates().size.height
+        val currentY = coords.positionInWindow().y
+        val height = coords.size.height
+        // Calculate where the bottom IS, then "undo" the current offset to find where it naturally wants to sit.
+        val restingBottom = currentY + height + currentOffsetPx
+        // The gap between the button and the bottom of the screen (Stuff below the button row is here)
+        val spaceBelowButtons = screenHeight - restingBottom
+        // We only need to move if the IME is taller than the space below
+        currentOffsetPx = (imeBottom - spaceBelowButtons + extraImeBottomPadding).toInt().coerceAtLeast(0)
+    }) {
         val buttonList = wizardStep.buttonOrder().toList().toMutableList()
         if (additionalButton == null) {
             buttonList.remove(WizardButtons.AdditionalButton)
