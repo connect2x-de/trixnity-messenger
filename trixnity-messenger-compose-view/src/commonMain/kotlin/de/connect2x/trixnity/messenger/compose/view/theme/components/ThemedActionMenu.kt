@@ -7,6 +7,7 @@ import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -66,6 +67,7 @@ fun BoxScope.ThemedActionMenu(
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     openActionMenuIcon: @Composable () -> Unit,
+    actionMenuAnchorModifier: Modifier
 ) {
     when {
         Platform.current.isMobile -> ThemedActionMenuMobile(showActionMenu, actions, additionalContextActions)
@@ -75,7 +77,8 @@ fun BoxScope.ThemedActionMenu(
             showActionMenu,
             actions,
             additionalContextActions,
-            openActionMenuIcon
+            openActionMenuIcon,
+            actionMenuAnchorModifier
         )
     }
 }
@@ -89,6 +92,7 @@ private fun BoxScope.ThemedActionMenuDefault(
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     openActionMenuIcon: @Composable () -> Unit,
+    actionMenuAnchorModifier: Modifier
 ) {
     val focus = focusInteractionSource.collectIsFocusedAsState()
     val hover = hoverInteractionSource.collectIsHoveredAsState()
@@ -108,11 +112,7 @@ private fun BoxScope.ThemedActionMenuDefault(
     Box(
         modifier = Modifier
             .zIndex(1f)
-            .align(Alignment.TopEnd)
-            .padding(
-                top = 4.dp,
-                end = 4.dp
-            )
+            .then(actionMenuAnchorModifier)
     ) {
         Surface(
             shape = CircleShape,

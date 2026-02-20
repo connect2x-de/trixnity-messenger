@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,36 +33,35 @@ fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modifier = Modifier) {
+fun RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modifier = Modifier) {
     val time = roomListElementViewModel.time.collectAsState().value
     val isEncrypted = roomListElementViewModel.isEncrypted.collectAsState().value
-    if (isEncrypted != null && isEncrypted.not()) {
-        Box(Modifier.padding(end = 5.dp), contentAlignment = Alignment.Center) {
-            UnencryptedIcon()
+    Row {
+        if (isEncrypted != null && isEncrypted.not()) {
+            Box(Modifier.padding(end = 5.dp), contentAlignment = Alignment.Center) {
+                UnencryptedIcon()
+            }
         }
+        Text(
+            time ?: " ",
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+        )
     }
-    Text(
-        time ?: " ",
-        style = MaterialTheme.typography.labelMedium,
-        maxLines = 1,
-    )
 }
 
 @Composable
-fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel, showDate: Boolean) {
+fun RowScope.RoomNameAndLastMessage(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
+    val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
+    val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth()
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier.weight(1f, true)
     ) {
-        Row(Modifier.fillMaxWidth(0.8f), verticalAlignment = Alignment.CenterVertically) {
-            RoomName(roomName = roomName)
-        }
-
-        if (showDate) {
-            RoomTime(roomListElementViewModel)
-        }
+        RoomName(roomName = roomName)
+        LastMessage(lastMessage, usersTyping)
     }
 }

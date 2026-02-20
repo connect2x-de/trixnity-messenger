@@ -55,7 +55,8 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.name)
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.userId.full)
                 }
-            }
+            },
+
         ) {
             Tooltip(tooltip = i18n.invitationAccept()) {
                 ThemedIconButton(

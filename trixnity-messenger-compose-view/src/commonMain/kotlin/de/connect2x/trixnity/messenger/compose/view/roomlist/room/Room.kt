@@ -133,12 +133,7 @@ class RoomListElementViewImpl : RoomListElementView {
                     isInvite == true -> Invite(roomListElementViewModel)
                     isLeave == true -> ArchivedRoom(roomListElementViewModel)
                     isKnock == true -> Knock(roomListElementViewModel)
-                    else -> Column(
-                        Modifier.align(Alignment.CenterVertically)
-                    ) {
-                        RoomNameAndTime(roomListElementViewModel, showDate)
-                        LastMessageAndUnreadMessagesCounter(roomListElementViewModel)
-                    }
+                    else -> JoinedRoom(roomListElementViewModel)
                 }
             }
         }

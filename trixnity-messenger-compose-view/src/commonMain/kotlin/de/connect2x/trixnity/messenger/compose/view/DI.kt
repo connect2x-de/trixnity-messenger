@@ -217,6 +217,8 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.room.ArchivedRoomLi
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.ArchivedRoomListElementImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.InviteRoomListElement
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.InviteRoomListElementImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.room.JoinedRoomListView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.room.JoinedRoomListViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.KnockRoomListElement
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainerView
@@ -425,6 +427,7 @@ fun roomListViewModule() = module {
     single<InviteRoomListElement> { InviteRoomListElementImpl() }
     single<ArchivedRoomListElement> { ArchivedRoomListElementImpl() }
     single<KnockRoomListElement> { KnockRoomListElementImpl() }
+    single<JoinedRoomListView> { JoinedRoomListViewImpl() }
     single<RoomView> { RoomViewImpl() }
 }
 
