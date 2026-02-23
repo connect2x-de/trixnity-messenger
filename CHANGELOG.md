@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Bump compose to 1.10.1
 - SDK: Bump kotlin to 2.3.10
 - SDK: Bump Gradle to 9.3.1
+- SDK: update sysnotify to 2.4.0
 
 ### Deprecated
 
