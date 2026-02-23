@@ -70,7 +70,8 @@ private class WindowConnectingScene(
     }
 }
 
-private fun MultiMessengerViewController(lifecycle: Lifecycle): UIViewController {
+@Suppress("FunctionName")
+fun MultiMessengerViewController(lifecycle: Lifecycle): UIViewController {
     log.info { "Starting iOS client" }
     val matrixMultiMessenger = MatrixMultiMessengerService.get()
         ?: throw IllegalStateException("MatrixMultiMessengerService must be initialized")
