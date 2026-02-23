@@ -10,7 +10,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,8 +34,6 @@ fun ProfileDialogues(
     profilesSettingsSingleViewModel: ProfilesSettingsSingleViewModel,
     profilesDialogueController: ProfilesDialogueController
 ) {
-    val di = DI.current
-    val coroutineScope = rememberCoroutineScope()
 
     val openedDialogueType = profilesDialogueController.openedDialogueType.value
     val profiles =

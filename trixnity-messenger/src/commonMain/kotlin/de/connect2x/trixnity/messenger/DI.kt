@@ -12,7 +12,6 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -389,7 +388,6 @@ private fun settingsViewModels() = module {
     single<ProfilesSettingsViewModelFactory> { ProfilesSettingsViewModelFactory }
     single<ProfilesSettingsSingleViewModelFactory> { ProfilesSettingsSingleViewModelFactory }
     single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
-    single<ProfileCreationViewModelFactory> { ProfileCreationViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }

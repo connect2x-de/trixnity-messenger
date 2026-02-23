@@ -45,10 +45,11 @@ class ProfilesViewImpl : ProfilesView {
 
 @Composable
 fun createOrSelectManualUserProfile() {
-    val di = DI.current
     val profileManager = DI.get<ProfileManager>()
+    val di = DI.current
     val coroutineScope = rememberCoroutineScope()
-    val profileCreationViewModel = remember { di.get<ProfileCreationViewModelFactory>().create(di, coroutineScope) }
+    val profileCreationViewModelFactory = di.get<ProfileCreationViewModelFactory>()
+    val profileCreationViewModel = remember { profileCreationViewModelFactory.create(di, coroutineScope) }
     val showProfileCreation = ShowProfileCreation.current
     val existingProfiles = profileManager.profiles.collectAsState().value
     if (existingProfiles.isEmpty() || showProfileCreation.value) {
