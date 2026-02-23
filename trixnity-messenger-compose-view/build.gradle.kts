@@ -17,6 +17,7 @@ plugins {
     alias(sharedLibs.plugins.compose.multiplatform)
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.kotlin.parcelize)
+    alias(sharedLibs.plugins.kotlinx.kover)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -56,10 +57,13 @@ kotlin {
     withIos()
     applyDefaultHierarchyTemplate {
         common {
+            group("ios") {
+                withIos()
+            }
             group("skia") {
                 withJvm()
                 withJs()
-                withIos()
+                group("ios")
             }
         }
     }

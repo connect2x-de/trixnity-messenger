@@ -27,8 +27,8 @@ actual fun platformNotificationHandlersModule(): Module = module {
                 name = name,
                 id = id,
                 appId = appId,
-            ).withContext { get<ContextGetter>().invoke() }
-                .withActivity { get<ActivityGetter>().invoke() }
+            ).withContext { get<ContextGetter>()() }
+                .withActivity { get<ActivityGetter>()() }
                 .withActivationFactory { _, notification ->
                     Intent(
                         Intent.ACTION_VIEW,

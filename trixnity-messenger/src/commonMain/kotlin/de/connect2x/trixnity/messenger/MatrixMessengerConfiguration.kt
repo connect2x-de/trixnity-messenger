@@ -23,6 +23,7 @@ data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
+    override var appIcon: String? = null,
 
     override var appUri: String = "$appId:",
     var appUriSsoRedirect: String = "sso",

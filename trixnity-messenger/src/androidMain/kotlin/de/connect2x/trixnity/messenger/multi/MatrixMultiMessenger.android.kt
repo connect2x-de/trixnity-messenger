@@ -11,6 +11,6 @@ suspend fun MatrixMultiMessenger.Companion.create(
     coroutineContext: CoroutineContext = Dispatchers.Default,
     configuration: MatrixMultiMessengerConfiguration.() -> Unit = {},
 ): MatrixMultiMessenger = MatrixMultiMessengerImpl(coroutineContext) {
-    modulesFactories += { module { single<ContextGetter> { ContextGetter(context) } } }
+    modulesFactories += { module { single<ContextGetter> { ContextGetter { context } } } }
     configuration()
 }
