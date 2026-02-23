@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fix timeline not scrolling to / scrolling away from the unread marker
 - WEB,A11Y: Fix message bubbles not being read out in some browser/screeenreader combinations
 - UI: Fix naming of untrusted users
+- UI,ANDROID,IOS: Login buttons aren't covered by the on-screen keyboard
 
 ### Security
 
