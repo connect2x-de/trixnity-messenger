@@ -123,6 +123,7 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.VideoReplyDefa
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.VideoReplyDefaultViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.VideoReplyView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.VideoReplyViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.EmptyTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactionsView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.ReadMarkerView
@@ -492,6 +493,7 @@ inline fun <reified F : TimelineElementDetailsView<*>> Module.timelineElementDet
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementDetailsView<*>>()
 
 fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    timelineElementView<EmptyTimelineElementView> { EmptyTimelineElementView }
     timelineElementView<EncryptedErrorTimelineElementView> { EncryptedErrorTimelineElementViewImpl() }
     timelineElementView<EncryptedWaitTimelineElementView> { EncryptedWaitTimelineElementViewImpl() }
     timelineElementView<RedactedTimelineElementView> { RedactedTimelineElementViewImpl() }

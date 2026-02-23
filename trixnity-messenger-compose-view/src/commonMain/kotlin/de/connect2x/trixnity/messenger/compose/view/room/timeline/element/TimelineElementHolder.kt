@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.UnreadMessages
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 
 
 interface TimelineElementHolderView {
@@ -64,11 +63,6 @@ fun TimelineElementHolderSwitch(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     index: Int,
 ) {
-    when (val element = timelineElementHolderViewModel.element.collectAsState().value) {
-        is TimelineElementViewModel.Message<*>, is TimelineElementViewModel.State<*> -> {
-            TimelineElementSelector(timelineElementHolderViewModel, element, index)
-        }
-
-        TimelineElementViewModel.Empty, null -> {}
-    }
+    val element = timelineElementHolderViewModel.element.collectAsState().value ?: return
+    TimelineElementSelector(timelineElementHolderViewModel, element, index)
 }
