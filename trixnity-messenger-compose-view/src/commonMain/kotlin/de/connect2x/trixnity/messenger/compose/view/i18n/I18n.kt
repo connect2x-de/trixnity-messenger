@@ -127,7 +127,7 @@ open class I18nView(
     }
 
     open fun commonCopy() = translate {
-        EN - "copy"
+        EN - "Copy"
         DE - "Kopieren"
     }
 

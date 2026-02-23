@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.DownloadProgress
@@ -34,7 +37,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.shortenFileName
 import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -129,6 +131,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             HorizontalDivider()
             // download action
             BaseTimelineElementHolderContextMenuAction(
+                icon = Icons.Default.Download,
                 label = i18n.downloadMessage(),
                 isEnabled = !configuration.downloadsDisabled,
                 action = onSave,
