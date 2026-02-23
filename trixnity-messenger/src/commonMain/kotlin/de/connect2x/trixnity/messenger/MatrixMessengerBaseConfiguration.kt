@@ -8,6 +8,7 @@ interface MatrixMessengerBaseConfiguration {
     var appName: String
     var appId: String
     var appVersion: String?
+    var appIcon: String?
 
     /**
      * The app uri used for callbacks and deep linking. Must be of form `app:` or `https://app.example.com`.
@@ -44,6 +45,7 @@ interface MatrixMessengerBaseConfiguration {
         other.appVersion = appVersion
         other.appName = appName
         other.appId = appId
+        other.appIcon = appIcon
         other.appUri = appUri
         other.oAuth2ClientUrl = oAuth2ClientUrl
         other.sendLogsEmailAddress = sendLogsEmailAddress

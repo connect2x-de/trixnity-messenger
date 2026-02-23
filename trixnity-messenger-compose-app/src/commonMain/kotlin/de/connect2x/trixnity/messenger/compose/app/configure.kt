@@ -11,11 +11,11 @@ import de.connect2x.trixnity.messenger.util.RootPath
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
 
-
 fun MatrixMultiMessengerConfiguration.configure() {
     appName = BuildConfig.appName
     appId = BuildConfig.appId
     appVersion = BuildConfig.version
+    appIcon = "status_icon.png"
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import androidx.lifecycle.asFlow
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -14,8 +15,12 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandle
+import de.connect2x.sysnotify.NotificationIcon
 import de.connect2x.sysnotify.create
+import de.connect2x.sysnotify.fromBitmap
 import de.connect2x.sysnotify.notification
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.InitialSyncWorker.Companion.UNIQUE_WORK_NAME
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
@@ -29,8 +34,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.job
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.module
 
 class InitialSyncWorker(
@@ -63,11 +66,18 @@ class InitialSyncWorker(
     override suspend fun getForegroundInfo(): ForegroundInfo =
         withMatrixMessengerFromService(applicationContext) { matrixMessenger ->
             val i18n = matrixMessenger.di.get<I18n>()
+            val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
+            // Load app icon for persistent notification if present
+            val icon = config.appIcon?.let(applicationContext.assets::open)?.use { stream ->
+                NotificationIcon.fromBitmap(BitmapFactory.decodeStream(stream))
+            }
             matrixMessenger.di.get<NotificationHandlers>().global.create(
                 Notification(
                     title = i18n.initialSyncNotificationTitle(),
                     description = i18n.initialSyncNotificationDescription(),
                     dismissible = false,
+                    statusIcon = icon,
+                    icon = icon
                 )
             ) {}.toForegroundInfo()
         }
