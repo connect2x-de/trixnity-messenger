@@ -16,9 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- SDL, IOS: Make `MultiMessengerViewController` a public API
 - SDK: Don't use per-project cache directory for macOS CI
 - SDK: Bump compose to 1.10.1
 - SDK: Bump kotlin to 2.3.10
+- SDK: Bump Gradle to 9.3.1
+- SDK: update sysnotify to 2.4.0
+- UI: Added icons to message context menu items
 
 ### Deprecated
 
@@ -32,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fix timeline not scrolling to / scrolling away from the unread marker
 - WEB,A11Y: Fix message bubbles not being read out in some browser/screeenreader combinations
 - SDK: Fix NotOnMainThreadException when verifying another user
+- UI: Fix naming of untrusted users
 
 ### Security
 
