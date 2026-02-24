@@ -25,7 +25,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-    id("de.connect2x.conventions.c2x-settings-plugin") version "20260218.080801"
+    id("de.connect2x.conventions.c2x-settings-plugin") version "20260224.165327"
 }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
