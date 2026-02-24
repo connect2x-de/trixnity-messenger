@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI: Added icons to message modal bottom sheet menu items
+
 ### Deprecated
 
 ### Removed

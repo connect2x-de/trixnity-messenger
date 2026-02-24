@@ -129,13 +129,13 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 )
             }
             HorizontalDivider()
-            // download action
-            BaseTimelineElementHolderContextMenuAction(
-                icon = Icons.Default.Download,
-                label = i18n.downloadMessage(),
-                isEnabled = !configuration.downloadsDisabled,
-                action = onSave,
-            ).render(onClose)
+            if (!configuration.downloadsDisabled) {
+                BaseTimelineElementHolderContextMenuAction(
+                    icon = Icons.Default.Download,
+                    label = i18n.downloadMessage(),
+                    action = onSave,
+                ).render(onClose)
+            }
         },
         isPreview = isPreview,
         index = index,
