@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+# 4.2.0
+
+### Added
+
 - Desktop: automatic change from/to dark mode if OS preferences change
 - WEB,SDK: The 'lang' attribute in the HTML body tag now reflects the language chosen by the user.
 - API: Media playback API (currently only supporting audio on Android and iOS)
@@ -24,10 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: update sysnotify to 2.4.0
 - UI: Added icons to message context menu items
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - UI: Archived rooms can now be opened in the timeline again
@@ -40,8 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Fix NotOnMainThreadException when verifying another user
 - UI: Fix naming of untrusted users
 - UI,ANDROID,IOS: Login buttons aren't covered by the on-screen keyboard
-
-### Security
 
 ## 4.1.0
 
