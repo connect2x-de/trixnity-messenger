@@ -15,7 +15,7 @@ fun notificationModule(): Module = module {
             settings = get(),
             roomName = get(),
             getNotificationIcon = getOrNull(),
-            i18n = get(),
+            i18n = get()
         )
     }.bind<Worker>()
     single<NotificationProviders> {

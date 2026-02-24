@@ -150,6 +150,9 @@ interface TimelineViewModel {
      */
     val viewState: MutableStateFlow<ViewState?>
 
+    val canLoadBefore: StateFlow<Boolean?>
+    val canLoadAfter: StateFlow<Boolean?>
+
     /**
      * Emits a unique String each time the view should scroll to the given key. String is the key from [elements].
      */
@@ -330,9 +333,15 @@ class TimelineViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override val scrollTo: MutableSharedFlow<String> =
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST, replay = 1)
 
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
+    override val canLoadBefore: StateFlow<Boolean?> =
+        timelineState.map { it.canLoadBefore }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+    override val canLoadAfter: StateFlow<Boolean?> =
+        timelineState.map { it.canLoadAfter }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isDirect: StateFlow<Boolean> =
         matrixClient.room.getById(roomId).map { it?.isDirect == true }
@@ -497,7 +506,7 @@ class TimelineViewModelImpl(
                 log.error { "could not load start point of timeline" }
             }
             timelineStartFrom.emit(initTimelineFrom)
-            scrollTo.emit(initTimelineFrom.asKey(roomId))
+            scrollTo.emit(matrixClient.room.getTimelineEvent(roomId, initTimelineFrom).filterNotNull().first().asKey())
         }
         coroutineScope.launch {
             timelineStartFrom.collect { startFrom ->
@@ -588,8 +597,7 @@ class TimelineViewModelImpl(
         val roomId = timelineEvent.roomId
         val eventId = timelineEvent.eventId
         val sender = timelineEvent.sender
-        val key = timelineEvent.event.unsigned?.transactionId?.asKey(timelineEvent.roomId)
-            ?: eventId.asKey(timelineEvent.roomId)
+        val key = timelineEvent.asKey()
 
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
@@ -597,7 +605,7 @@ class TimelineViewModelImpl(
 
         val showUnreadMarker = readEventMarker
             // prevent fast re-computations
-            .debounce(300.milliseconds)
+            .throttleFirst(300.milliseconds)
             .map { it?.first == roomId && it.second == eventId }
             .distinctUntilChanged()
 
@@ -820,6 +828,8 @@ class TimelineViewModelImpl(
             ) { elements, currentVisibleElements ->
                 val timelineElements = elements.filterIsInstance<TimelineElementHolderViewModel>()
                 val timelineSize = timelineElements.size
+                val visibleTimelineSize =
+                    timelineElements.count { it.element.filterNotNull().first() !is TimelineElementViewModel.Empty }
                 if (timelineSize == 0) return@combine
                 val timelineMaxSize = config.timelineMaxSize + 2 * config.timelineBuffer
 
@@ -846,7 +856,7 @@ class TimelineViewModelImpl(
                     continuouslyLoadAndScroll (check):
                     indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
                     indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
-                    timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
+                    timelineSize=$timelineSize visibleTimelineSize=$visibleTimelineSize (timelineElementViewModels=${elements.map { it.key }})
                     """.trimIndent()
                 }
 
@@ -854,7 +864,7 @@ class TimelineViewModelImpl(
                     log.debug { "load timeline events before" }
                     timeline.loadBefore(loadConfig)
 
-                    if (timelineSize > timelineMaxSize && !isInBufferAfter) {
+                    if (visibleTimelineSize > timelineMaxSize && !isInBufferAfter) {
                         log.debug { "drop timeline events after" }
                         val dropAfterElement = timelineElements[timelineSize - config.timelineBuffer - 1]
                         val change = timeline.dropAfter(
@@ -906,7 +916,7 @@ class TimelineViewModelImpl(
                             }
                         }
 
-                        if (timelineSize > timelineMaxSize && !isInBufferBefore) {
+                        if (visibleTimelineSize > timelineMaxSize && !isInBufferBefore) {
                             log.debug { "drop timeline events before" }
                             val dropBeforeElement = timelineElements[config.timelineBuffer]
                             val change = timeline.dropBefore(
@@ -928,9 +938,7 @@ class TimelineViewModelImpl(
             matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull()
                 .first()
         val lastTimelineEventKey =
-            matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull()
-                .first()
-                .run { event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId) }
+            matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull().first().asKey()
         val lastOutboxElementKey =
             (elements.value.lastOrNull() as? OutboxElementHolderViewModel)?.key
         if (elements.value.none { it.key == lastTimelineEventKey }) {
@@ -1094,6 +1102,9 @@ class TimelineViewModelImpl(
         }
     }
 
+    private fun TimelineEvent.asKey() =
+        event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId)
+
     private fun EventId.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + full
     private fun String.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + this
 }
@@ -1107,6 +1118,8 @@ class PreviewTimelineViewModel : TimelineViewModel {
             )
         )
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
+    override val canLoadBefore: StateFlow<Boolean?> = MutableStateFlow(null)
+    override val canLoadAfter: StateFlow<Boolean?> = MutableStateFlow(null)
     override val scrollTo: Flow<String> = MutableSharedFlow()
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)

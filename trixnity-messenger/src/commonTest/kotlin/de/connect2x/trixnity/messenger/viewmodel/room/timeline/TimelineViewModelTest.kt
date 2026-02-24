@@ -42,7 +42,6 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -677,7 +676,7 @@ class TimelineViewModelTest {
             delay(200) // give the viewmodel time to compute derived values
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
-            scrollToCalled.value.shouldBeEmpty()
+            scrollToCalled.value shouldBe listOf("!room1-0") // initial loading
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -686,7 +685,7 @@ class TimelineViewModelTest {
             }
 
             cut.elements waitForSize 2
-            scrollToCalled.firstWithClue(listOf("$roomId-1"))
+            scrollToCalled.firstWithClue(listOf("!room1-0", "$roomId-1"))
         }
 
     @Test
@@ -714,7 +713,7 @@ class TimelineViewModelTest {
             delay(500.milliseconds) // give scrollTo time to be cleared
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
-            scrollToCalled.value.shouldBeEmpty()
+            scrollToCalled.value shouldBe listOf("!room1-1") // initial loading
 
             // this will not trigger a creation of a viewmodel as we are not at the end of the timeline
             timelineMock.addEvents {
@@ -724,7 +723,7 @@ class TimelineViewModelTest {
             }
 
             continually(500.milliseconds) {
-                scrollToCalled.value.shouldBeEmpty()
+                scrollToCalled.value shouldBe listOf("!room1-1")
             }
         }
 

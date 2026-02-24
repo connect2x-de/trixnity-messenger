@@ -11,7 +11,7 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
-    single<ActivityGetter> { ActivityGetter() }
+    single<ActivityGetter> { ActivityGetter(null) }
     single<CopyMultiMessengerSingletons>(named("PlatformCopyMultiMessengerSingletons")) {
         CopyMultiMessengerSingletons { from: Scope, to: Module ->
             to.single<ContextGetter> { from.get() }

@@ -577,7 +577,7 @@ class TimelineElementHolderViewModelTest {
         timeline.fullyReadEventIndex.value = 0
         backgroundScope.launch { cut.showUnreadMarker.collect() }
         eventually(100.milliseconds) {
-            cut.showUnreadMarker.value shouldBe null
+            cut.showUnreadMarker.value shouldBe false
         }
         timeline.addEvents {
             +messageEvent(sender = bobId) {
@@ -601,7 +601,7 @@ class TimelineElementHolderViewModelTest {
         timeline.fullyReadEventIndex.value = 0
         backgroundScope.launch { cut.showUnreadMarker.collect() }
         eventually(100.milliseconds) {
-            cut.showUnreadMarker.value shouldBe null
+            cut.showUnreadMarker.value shouldBe false
         }
         timeline.addEvents {
             +messageEvent(sender = usId) {
@@ -648,7 +648,7 @@ class TimelineElementHolderViewModelTest {
         timeline.fullyReadEventIndex.value = 0
         backgroundScope.launch { cut.showUnreadMarker.collect() }
         eventually(100.milliseconds) {
-            cut.showUnreadMarker.value shouldBe null
+            cut.showUnreadMarker.value shouldBe false
         }
     }
 
@@ -664,7 +664,7 @@ class TimelineElementHolderViewModelTest {
         timeline.fullyReadEventIndex.value = 0
         backgroundScope.launch { cut.showUnreadMarker.collect() }
         eventually(100.milliseconds) {
-            cut.showUnreadMarker.value shouldBe null
+            cut.showUnreadMarker.value shouldBe false
         }
         timeline.addEvents {
             // should be ignored
@@ -681,7 +681,7 @@ class TimelineElementHolderViewModelTest {
             )
         }
         eventually(100.milliseconds) {
-            cut.showUnreadMarker.value shouldBe null
+            cut.showUnreadMarker.value shouldBe false
         }
     }
 

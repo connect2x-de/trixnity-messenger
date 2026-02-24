@@ -5,24 +5,6 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.sysnotify.Notification
 import de.connect2x.sysnotify.NotificationHandler
 import de.connect2x.sysnotify.NotificationIcon
-import de.connect2x.trixnity.messenger.MatrixClients
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
-import de.connect2x.trixnity.messenger.Worker
-import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.notification
@@ -34,7 +16,25 @@ import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.Worker
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.utils.toByteArray
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.milliseconds
 
 class NotificationSyncService(
@@ -45,10 +45,16 @@ class NotificationSyncService(
     private val settings: MatrixMessengerSettingsHolder,
     private val roomName: RoomName,
     private val getNotificationIcon: GetNotificationIcon?,
-    private val i18n: I18n,
+    private val i18n: I18n
 ) : Worker {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationService")
+    }
+
+    private val statusIcon: NotificationIcon? by lazy {
+        val path = config.appIcon
+        if (path == null || getNotificationIcon == null) return@lazy null
+        getNotificationIcon.fromResource(path)
     }
 
     override suspend fun doWork() {
@@ -151,6 +157,7 @@ class NotificationSyncService(
                             title = notificationData.title,
                             description = notificationData.description,
                             icon = notificationData.icon,
+                            statusIcon = statusIcon,
                             callbackData = notificationData.callbackData,
                             playSound = playSound,
                         )
@@ -170,6 +177,7 @@ class NotificationSyncService(
                             title = notificationData.title,
                             description = notificationData.description,
                             icon = notificationData.icon,
+                            statusIcon = statusIcon,
                             callbackData = notificationData.callbackData,
                             playSound = false,
                         )
@@ -231,7 +239,7 @@ class NotificationSyncService(
                     matrixClient.media.getThumbnail(it, avatarSize().toLong(), avatarSize().toLong())
                         .getOrNull()?.toByteArray(config.maxMediaSizeInMemory)
                 }
-            }?.let { getNotificationIcon?.invoke(it, avatarSize(), avatarSize()) }
+            }?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
         val callbackData =
             if (roomId != null)
                 buildString {

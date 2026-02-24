@@ -15,7 +15,6 @@ import kotlinx.browser.window
 @OptIn(ExperimentalComposeUiApi::class)
 fun ClipEntry.Companion.withFormattedText(htmlText: String, plainText: String): ClipEntry {
     if (window.asDynamic().isSecureContext == false) {
-        println("ClipboardItem is not available in insecure contexts.")
         return ClipEntry(emptyArray())
     }
 

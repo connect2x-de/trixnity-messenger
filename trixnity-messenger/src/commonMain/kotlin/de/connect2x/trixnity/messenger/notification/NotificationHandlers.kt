@@ -101,12 +101,10 @@ class NotificationHandlersImpl(
             name = name,
         )
 
-    private val _global = lazy {
+    private val _global: Lazy<NotificationHandler> = lazy {
         notificationHandler("global", config.appName)
     }
-    override val global: NotificationHandler by lazy {
-        notificationHandler("global", config.appName)
-    }
+    override val global: NotificationHandler get() = _global.value
 
     override operator fun get(account: UserId): NotificationHandler {
         val profile = multiSettings?.value?.base?.activeProfile
