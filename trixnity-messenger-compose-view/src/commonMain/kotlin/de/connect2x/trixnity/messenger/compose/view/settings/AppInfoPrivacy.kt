@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalUriHandler
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -14,9 +15,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDia
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAdaptiveDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 
 interface AppInfoPrivacyView {
     @Composable
@@ -40,8 +44,13 @@ internal fun Privacy(onClose: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val uriHandler = LocalUriHandler.current
     val privacyInfo = DI.get<MatrixMessengerBaseConfiguration>().privacyInfo ?: return
-    val content = AutoLinkifyVisitor.process(HtmlVisitor.process(privacyInfo))
-
+    val markdownFlavour = DI.current.get<MatrixMarkdownFlavour>()
+    val content = remember {
+        val parser = MarkdownParser(markdownFlavour)
+        val html =
+            HtmlGenerator(privacyInfo, parser.buildMarkdownTreeFromString(privacyInfo), markdownFlavour).generateHtml()
+        AutoLinkifyVisitor.process(HtmlVisitor.process(html))
+    }
     ThemedAdaptiveDialog(onClose) {
         AdaptiveDialogHeader(onClose = onClose) {
             Text(i18n.appInfoPrivacy())

@@ -86,6 +86,7 @@ kotlin {
                 implementation(libs.okio)
                 implementation(sharedLibs.compose.uiUtil)
                 implementation(libs.highlights)
+                implementation(libs.markdown)
 
                 // FileKit
                 implementation(libs.filekit.core)
