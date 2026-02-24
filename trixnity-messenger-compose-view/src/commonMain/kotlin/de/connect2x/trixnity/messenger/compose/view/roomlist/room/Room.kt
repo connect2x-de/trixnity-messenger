@@ -2,18 +2,11 @@ package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material3.MaterialTheme
@@ -21,20 +14,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.CollectionItemInfo
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.collectionItemInfo
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
-import de.connect2x.trixnity.messenger.compose.view.common.modifier.PlaceholderHighlight
-import de.connect2x.trixnity.messenger.compose.view.common.modifier.fade
 import de.connect2x.trixnity.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -58,7 +42,7 @@ interface RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showDate: Boolean
+        showActions: Boolean
     )
 }
 
@@ -85,9 +69,9 @@ fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
     index: Int,
-    showDate: Boolean
+    showActions: Boolean
 ) {
-    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showDate)
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showActions)
 }
 
 class RoomListElementViewImpl : RoomListElementView {
@@ -96,7 +80,7 @@ class RoomListElementViewImpl : RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showDate: Boolean
+        showActions: Boolean
     ) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
@@ -108,7 +92,7 @@ class RoomListElementViewImpl : RoomListElementView {
             isInvite -> Invite(roomListElementViewModel, index)
             isLeave -> ArchivedRoom(roomListElementViewModel, index)
             isKnock -> Knock(roomListElementViewModel, index)
-            else -> JoinedRoom(roomListElementViewModel, index)
+            else -> JoinedRoom(roomListElementViewModel, index, showActions)
         }
     }
 }

@@ -1,11 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,9 +20,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
-import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -43,35 +43,38 @@ fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementVi
             horizontalAlignment = Alignment.End
         ) {
             RoomTime(roomListElementViewModel)
+            VerySmallSpacer()
             val size = MaterialTheme.typography.labelSmall.dp
-            when {
-                notificationCount != null -> {
-                    Surface(
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .defaultMinSize(minWidth = size)
-                            .height(size),
-                        color = MaterialTheme.colorScheme.primary,
-                    ) {
-                        Text(
-                            notificationCount,
-                            Modifier.padding(horizontal = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 1,
-                        )
+            Box(Modifier.size(size)) {
+                when {
+                    notificationCount != null -> {
+                        Surface(
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .defaultMinSize(minWidth = size)
+                                .height(size),
+                            color = MaterialTheme.colorScheme.primary,
+                        ) {
+                            Text(
+                                notificationCount,
+                                Modifier.padding(horizontal = 4.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                            )
+                        }
                     }
-                }
 
-                isUnread == true -> {
-                    Surface(
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .padding(size / 2)
-                            .size(size / 2),
-                        color = MaterialTheme.colorScheme.primary,
-                    ) {}
+                    isUnread == true -> {
+                        Surface(
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(size / 4)
+                                .size(size / 2),
+                            color = MaterialTheme.colorScheme.primary,
+                        ) {}
+                    }
                 }
             }
         }

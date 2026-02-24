@@ -46,6 +46,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActio
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.trixnity.messenger.compose.view.theme.components.isNotClosed
 import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurface
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
@@ -156,7 +157,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         openActionMenuIcon = {
                             Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)
                         },
-                        Modifier.padding(top = 4.dp, end = 8.dp).align(Alignment.TopEnd)
+                        Modifier.padding(MaterialTheme.messengerDpConstants.small).align(Alignment.TopEnd)
                     )
                 }
             }
