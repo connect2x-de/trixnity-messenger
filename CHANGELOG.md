@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Fixed misleading translation for deprecated login methods
+
 ### Security
 
 ## 4.2.1
