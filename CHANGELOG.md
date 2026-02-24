@@ -11,17 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- SDK: Update Trixnity to 5.1.2
-
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
-- UI: Fix duplicate keys in timeline leading to application crash
-
 ### Security
+
+## 4.2.1
+
+### Changed
+
+- SDK: Update Trixnity to 5.1.2
+
+### Fixed
+
+- UI: Fix duplicate keys in timeline leading to application crash
 
 # 4.2.0
 
