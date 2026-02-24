@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Android: Remove dependency on Firebase in Android compose view
+
 ### Fixed
 
 - UI: Fixed misleading translation for deprecated login methods
