@@ -1,8 +1,11 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,12 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -29,10 +34,12 @@ fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementVi
     val isUnread = roomListElementViewModel.isUnread.collectAsState().value
     val notificationCount = roomListElementViewModel.notificationCount.collectAsState().value
 
-    Tooltip({ Text(usersTyping ?: lastMessage ?: " ") }) {
+    Tooltip(
+        { Text(usersTyping ?: lastMessage ?: " ") },
+        modifier = Modifier
+    ) {
         Column(
             modifier = Modifier,
-            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.End
         ) {
             RoomTime(roomListElementViewModel)

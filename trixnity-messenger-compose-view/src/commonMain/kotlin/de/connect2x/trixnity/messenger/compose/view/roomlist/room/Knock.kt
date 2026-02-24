@@ -12,29 +12,34 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 interface KnockRoomListElement {
     @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    fun create(roomListElementViewModel: RoomListElementViewModel, index: Int)
 }
 
 @Composable
 fun Knock(
     roomListElementViewModel: RoomListElementViewModel,
+    index: Int
 ) {
-    DI.get<KnockRoomListElement>().create(roomListElementViewModel)
+    DI.get<KnockRoomListElement>().create(roomListElementViewModel, index)
 }
 
 class KnockRoomListElementImpl : KnockRoomListElement {
     @Composable
-    override fun create(roomListElementViewModel: RoomListElementViewModel) {
+    override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int) {
         val i18n = DI.get<I18nView>()
+        val roomName = roomListElementViewModel.roomName.value
 
-        SpecialRoomComponent(
+        RoomComponent(
             roomListElementViewModel = roomListElementViewModel,
-        ) {
-            ThemedIconButton(
-                onClick = { roomListElementViewModel.unknock() },
-            ) {
-                Icon(Icons.Default.Close, i18n.unknock())
-            }
-        }
+            roomDetails = {
+                RoomName(roomName)
+            },
+            roomActions = {
+                ThemedIconButton(
+                    onClick = { roomListElementViewModel.unknock() },
+                ) {
+                    Icon(Icons.Default.Close, i18n.unknock())
+                }
+            }, index = index)
     }
 }

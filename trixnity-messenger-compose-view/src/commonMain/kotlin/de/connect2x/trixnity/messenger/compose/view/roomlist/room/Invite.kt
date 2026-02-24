@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -12,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.style.TextOverflow
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
@@ -30,51 +33,57 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 interface InviteRoomListElement {
     @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    fun create(roomListElementViewModel: RoomListElementViewModel, index: Int)
 }
 
 @Composable
 fun Invite(
     roomListElementViewModel: RoomListElementViewModel,
+    index: Int,
 ) {
-    DI.get<InviteRoomListElement>().create(roomListElementViewModel)
+    DI.get<InviteRoomListElement>().create(roomListElementViewModel, index)
 }
 
 class InviteRoomListElementImpl : InviteRoomListElement {
     @Composable
-    override fun create(roomListElementViewModel: RoomListElementViewModel) {
+    override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int) {
         val i18n = DI.get<I18nView>()
         var showReject by remember { mutableStateOf(false) }
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val inviterUserInfo = roomListElementViewModel.inviterUserInfo.collectAsState().value
 
-        SpecialRoomComponent(
-            roomListElementViewModel = roomListElementViewModel,
-            extraInfo = {
+        RoomComponent(
+            roomListElementViewModel,
+            roomDetails = {
+                RoomName(roomName)
                 inviterUserInfo?.let { inviterUserInfo ->
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.name)
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.userId.full)
                 }
-            },
 
-        ) {
-            Tooltip(tooltip = i18n.invitationAccept()) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.commonIconButton,
-                    onClick = { roomListElementViewModel.acceptInvitation() },
-                ) {
-                    Icon(Icons.Default.Check, i18n.invitationAccept())
+            },
+            roomActions = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Tooltip(tooltip = i18n.invitationAccept()) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = { roomListElementViewModel.acceptInvitation() },
+                        ) {
+                            Icon(Icons.Default.Check, i18n.invitationAccept())
+                        }
+                    }
+                    Tooltip(tooltip = i18n.invitationReject()) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.commonIconButton,
+                            onClick = { showReject = true },
+                        ) {
+                            Icon(Icons.Default.Close, i18n.invitationReject())
+                        }
+                    }
                 }
-            }
-            Tooltip(tooltip = i18n.invitationReject()) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.commonIconButton,
-                    onClick = { showReject = true },
-                ) {
-                    Icon(Icons.Default.Close, i18n.invitationReject())
-                }
-            }
-        }
+            },
+            index
+        )
 
         if (showReject) {
             val rejectionInProgress = roomListElementViewModel.rejectInvitationInProgress.collectAsState().value

@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
@@ -51,17 +52,11 @@ fun RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modif
 }
 
 @Composable
-fun RowScope.RoomNameAndLastMessage(roomListElementViewModel: RoomListElementViewModel) {
+fun ColumnScope.RoomNameAndLastMessage(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
     val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
     val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
 
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.weight(1f, true)
-    ) {
-        RoomName(roomName = roomName)
-        LastMessage(lastMessage, usersTyping)
-    }
+    RoomName(roomName)
+    LastMessage(lastMessage, usersTyping)
 }

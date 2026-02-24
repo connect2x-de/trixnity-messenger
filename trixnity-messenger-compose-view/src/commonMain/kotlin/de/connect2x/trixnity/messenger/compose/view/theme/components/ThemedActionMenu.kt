@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -36,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -208,6 +210,7 @@ private fun ThemedActionMenuMobile(
 }
 
 open class ThemedActionMenuItem(
+    open val icon: ImageVector,
     open val label: String,
     open val isEnabled: Boolean = true,
     internal open val action: () -> Unit,
@@ -234,6 +237,7 @@ open class ThemedActionMenuItem(
             ThemedDropdownMenuItem(
                 enabled = isEnabled,
                 text = { Text(label) },
+                leadingIcon = { Icon(icon, contentDescription = null) },
                 onClick = {
                     onClose()
                     action()

@@ -134,8 +134,8 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
 }
 
 class BaseTimelineElementHolderContextMenuAction(
-    val icon: ImageVector,
+    override val icon: ImageVector,
     override val label: String,
     override val isEnabled: Boolean = true,
     override val action: () -> Unit,
-) : ThemedActionMenuItem(label, isEnabled, action)
+) : ThemedActionMenuItem(icon, label, isEnabled, action)

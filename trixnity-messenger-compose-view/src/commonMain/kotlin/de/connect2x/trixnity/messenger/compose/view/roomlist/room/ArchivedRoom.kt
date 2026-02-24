@@ -32,38 +32,42 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 interface ArchivedRoomListElement {
     @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    fun create(roomListElementViewModel: RoomListElementViewModel, index: Int)
 }
 
 @Composable
-fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel) {
-    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel)
+fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel, index: Int) {
+    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel, index)
 }
 
 class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     @Composable
-    override fun create(roomListElementViewModel: RoomListElementViewModel) {
+    override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int) {
         val i18n = DI.get<I18nView>()
         var showWarning by remember { mutableStateOf(false) }
+        val roomName = roomListElementViewModel.roomName.collectAsState().value
 
-        SpecialRoomComponent(
+        RoomComponent(
             roomListElementViewModel = roomListElementViewModel,
-            extraInfo = {
+            roomDetails = {
+                RoomName(roomName)
                 Spacer(Modifier.size(5.dp))
                 ThemedLabel(i18n.commonArchived())
-            }
-        ) {
-            Tooltip(
-                tooltip = { Text(i18n.commonDelete()) }
-            ) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.commonIconButton,
-                    onClick = { showWarning = true },
+            },
+            roomActions = {
+                Tooltip(
+                    tooltip = { Text(i18n.commonDelete()) }
                 ) {
-                    Icon(Icons.Default.Delete, i18n.commonDelete())
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { showWarning = true },
+                    ) {
+                        Icon(Icons.Default.Delete, i18n.commonDelete())
+                    }
                 }
-            }
-        }
+            },
+            index = index
+        )
 
         if (showWarning) {
             val roomName = roomListElementViewModel.roomName.collectAsState().value

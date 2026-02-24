@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MarkAsUnread
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -78,14 +79,16 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
     ) {
         val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
         val roomName = roomListElementViewModel.roomName.collectAsState().value
-        val isInvite = roomListElementViewModel.isInvite.collectAsState().value
+        val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
         val interactionSource = remember { MutableInteractionSource() }
         val actionMenuFocusSource = remember { MutableInteractionSource() }
         val actionMenuHasFocus = actionMenuFocusSource.collectIsFocusedAsState().value
         val hasFocus = interactionSource.collectIsFocusedAsState().value
         val hasHover = interactionSource.collectIsHoveredAsState().value
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
-        val hoverable = roomName != null && isInvite != true && !isKnock
+        val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
+        val isJoined = roomName != null && !isInvite && !isKnock && !isLeave
+        val hoverable = roomName != null && !isInvite && !isKnock
         val elementsSize = roomListViewModel.elements.collectAsState().value.size
         val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
         val i18n = DI.current.get<I18nView>()
@@ -127,7 +130,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         roomListViewModel.selectRoom(roomId)
                     }
                 }
-                .buttonPointerModifier(enabled = isInvite != true)
+                .buttonPointerModifier(enabled = !isInvite)
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
@@ -138,21 +141,22 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                     index,
                     (!hasHover && showActionMenu.value == ThemedActionMenuState.Closed && !actionMenuHasFocus) || Platform.current.isMobile
                 )
-                if (hoverable) {
+                if (isJoined) {
                     ThemedActionMenu(
                         interactionSource,
                         actionMenuFocusSource,
                         showActionMenu,
                         listOf(
                             ThemedActionMenuItem(
+                                Icons.Default.MarkAsUnread,
                                 i18n.markRoomAsUnread(),
                                 action = { roomListElementViewModel.markUnread() })
                         ),
                         additionalContextActions = {},
                         openActionMenuIcon = {
-                            Icon(Icons.Default.MoreHoriz, null, tint = Color.White)
+                            Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)
                         },
-                        Modifier.padding(4.dp).align(Alignment.CenterEnd)
+                        Modifier.padding(top = 4.dp, end = 8.dp).align(Alignment.TopEnd)
                     )
                 }
             }

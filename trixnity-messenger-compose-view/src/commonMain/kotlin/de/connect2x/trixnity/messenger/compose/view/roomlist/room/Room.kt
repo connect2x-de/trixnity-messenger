@@ -54,7 +54,12 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
 interface RoomListElementView {
     @Composable
-    fun create(roomListViewModel: RoomListViewModel, roomListElementViewModel: RoomListElementViewModel, index: Int, showDate: Boolean)
+    fun create(
+        roomListViewModel: RoomListViewModel,
+        roomListElementViewModel: RoomListElementViewModel,
+        index: Int,
+        showDate: Boolean
+    )
 }
 
 @Composable
@@ -93,49 +98,17 @@ class RoomListElementViewImpl : RoomListElementView {
         index: Int,
         showDate: Boolean
     ) {
-        val isInvite = roomListElementViewModel.isInvite.collectAsState().value
-        val isLeave = roomListElementViewModel.isLeave.collectAsState().value
-        val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
+        val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
+        val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
         val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val error by roomListElementViewModel.error.collectAsState()
         roomListElementViewModel.roomName.collectAsState().value
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
-
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
-            MatrixClientColor(roomListElementViewModel)
-            Row(
-                Modifier
-                    .heightIn(min = 72.dp)
-                    .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
-                    .placeholder(
-                        visible = !isLoaded,
-                        color = Color.LightGray,
-                        shape = RoundedCornerShape(8.dp),
-                        highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
-                    )
-                    .semantics {
-                        role = Role.Button
-                        collectionItemInfo = CollectionItemInfo(
-                            rowIndex = index,
-                            rowSpan = 1,
-                            columnIndex = 0,
-                            columnSpan = 1,
-                        )
-                    },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(Modifier.clearAndSetSemantics {}) {
-                    RoomImage(roomListElementViewModel)
-                }
-                Spacer(Modifier.size(10.dp))
-
-                when {
-                    isInvite == true -> Invite(roomListElementViewModel)
-                    isLeave == true -> ArchivedRoom(roomListElementViewModel)
-                    isKnock == true -> Knock(roomListElementViewModel)
-                    else -> JoinedRoom(roomListElementViewModel)
-                }
-            }
+        when {
+            isInvite -> Invite(roomListElementViewModel, index)
+            isLeave -> ArchivedRoom(roomListElementViewModel, index)
+            isKnock -> Knock(roomListElementViewModel, index)
+            else -> JoinedRoom(roomListElementViewModel, index)
         }
     }
 }
