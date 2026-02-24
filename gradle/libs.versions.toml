@@ -7,7 +7,7 @@ minSdkVersion = "28"
 seskar = "4.30.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
 trixnity = "5.1.2" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.4.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sysnotify = "2.5.0" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.6" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.2.0" # https://codeberg.org/UnifiedPush/android-connector/releases
@@ -39,7 +39,7 @@ trixnity-client-media-indexeddb = { module = "de.connect2x.trixnity:trixnity-cli
 trixnity-client-cryptodriver-libolm = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-libolm", version.ref = "trixnity" }
 trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
-sysnotify = { module = "de.connect2x.sysnotify:sysnotify", version.ref = "sysnotify" }
+sysnotify = { module = "de.connect2x.sysnotify:sysnotify-core", version.ref = "sysnotify" }
 sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
 sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
 
