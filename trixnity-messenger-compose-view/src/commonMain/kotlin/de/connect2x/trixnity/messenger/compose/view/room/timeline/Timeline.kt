@@ -95,9 +95,13 @@ private const val additionalEndPadding = 8
 sealed interface TimelineViewElement {
     val key: String
 
-    data class Date(override val key: String, val formattedDate: String) : TimelineViewElement
+    data class Date(val viewModel: BaseTimelineElementHolderViewModel) : TimelineViewElement {
+        val formattedDate = viewModel.formattedDate
+        override val key = "date-${viewModel.key}"
+    }
+
     data class Element(val viewModel: BaseTimelineElementHolderViewModel) : TimelineViewElement {
-        override val key: String = viewModel.key
+        override val key = viewModel.key
     }
 }
 
@@ -334,7 +338,7 @@ fun rememberTimelineViewElements(timelineViewModel: TimelineViewModel): State<Li
                         lastDate == vm.formattedDate -> add(TimelineViewElement.Element(vm))
                         vm.element.value is TimelineElementViewModel.Empty -> add(TimelineViewElement.Element(vm))
                         else -> {
-                            add(TimelineViewElement.Date("date-${vm.formattedDate}", vm.formattedDate))
+                            add(TimelineViewElement.Date(vm))
                             add(TimelineViewElement.Element(vm))
                             lastDate = vm.formattedDate
                         }
