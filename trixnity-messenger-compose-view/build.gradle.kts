@@ -108,7 +108,6 @@ kotlin {
                 implementation(sharedLibs.compose.uiToolingPreview)
                 implementation(sharedLibs.androidx.security.crypto)
                 implementation(sharedLibs.ktor.client.okhttp)
-                implementation(sharedLibs.firebase.messaging)
             }
         }
         webMain {
