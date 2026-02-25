@@ -11,11 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.2.2
+
+### Changed
+
 - UI: Added icons to message modal bottom sheet menu items
 - SDK: Update Lognity to 1.4.1
 - SDK: Update SysNotify to 2.5.0
-
-### Deprecated
 
 ### Removed
 
@@ -24,8 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UI: Fixed misleading translation for deprecated login methods
-
-### Security
 
 ## 4.2.1
 
