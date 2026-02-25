@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -212,7 +213,6 @@ private fun ThemedActionMenuMobile(
 open class ThemedActionMenuItem(
     open val icon: ImageVector,
     open val label: String,
-    open val isEnabled: Boolean = true,
     internal open val action: () -> Unit,
 ) {
     operator fun invoke() = action()
@@ -229,47 +229,35 @@ open class ThemedActionMenuItem(
     internal fun dropDownMenuItem(
         onClose: () -> Unit,
     ) {
-        val i18n = DI.get<I18nView>()
-        Tooltip(
-            enabled = !isEnabled,
-            tooltip = { Text(i18n.commonButtonDisabled()) },
-        ) {
-            ThemedDropdownMenuItem(
-                enabled = isEnabled,
-                text = { Text(label) },
-                leadingIcon = { Icon(icon, contentDescription = null) },
-                onClick = {
-                    onClose()
-                    action()
-                },
-            )
-        }
+        ThemedDropdownMenuItem(
+            leadingIcon = { Icon(icon, contentDescription = null) },
+            text = { Text(label) },
+            onClick = {
+                onClose()
+                action()
+            },
+        )
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     internal fun bottomSheetItem(
         onClose: () -> Unit,
     ) {
-        val i18n = DI.get<I18nView>()
-        Tooltip(
-            enabled = !isEnabled,
-            tooltip = { Text(i18n.commonButtonDisabled()) }
-        ) {
-            Text(
-                label,
-                color = if (isEnabled)
-                    MaterialTheme.colorScheme.onBackground
-                else
-                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.38f),
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        action()
-                        onClose()
-                    },
-            )
-        }
+        ThemedListItem(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    action()
+                    onClose()
+                },
+            style = MaterialTheme.components.listItem.copy(
+                colors =
+                    ListItemDefaults.colors(containerColor = Color.Transparent)
+            ),
+            leadingContent = { Icon(icon, contentDescription = null) },
+            headlineContent = { Text(label) },
+        )
     }
 }
 

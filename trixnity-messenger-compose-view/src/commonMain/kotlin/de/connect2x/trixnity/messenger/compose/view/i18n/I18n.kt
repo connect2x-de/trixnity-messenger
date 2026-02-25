@@ -717,8 +717,8 @@ open class I18nView(
     }
 
     open fun loginWithMoreClassic() = translate {
-        EN - "More deprecated login methods"
-        DE - "Weitere veraltete Anmelde-Methoden"
+        EN - "Show deprecated login methods"
+        DE - "Zeige veraltete Anmelde-Methoden"
     }
 
     open fun loginWithSSO(name: String) = translate {
