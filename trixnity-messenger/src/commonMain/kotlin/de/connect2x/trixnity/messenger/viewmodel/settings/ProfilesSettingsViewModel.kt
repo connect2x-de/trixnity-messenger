@@ -78,9 +78,9 @@ class ProfilesSettingsViewModelImpl(
 
     override val profileCreationTextField: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 1_000)
     override val profileCreationError: StateFlow<String?> =
-        combine(profileManager.profiles, profileCreationTextField) { existingProfiles, currentProfileName ->
+        combine(profileManager.profiles, profileCreationTextField) { existingProfiles, currentNewProfileName ->
             when {
-                existingProfiles.any { (_, settings) -> settings.base.displayName == currentProfileName.text } -> i18n.profileCreationDuplicate()
+                existingProfiles.any { (_, settings) -> settings.base.displayName == currentNewProfileName.text } -> i18n.profileCreationDuplicate()
                 else -> null
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
