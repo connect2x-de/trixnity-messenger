@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI: Context menu for room list which currently includes the option to mark as unread
+
 ### Changed
 
 ### Deprecated
