@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- WEB/SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
+
 ### Security
 
 ## 4.2.2
