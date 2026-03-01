@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -52,7 +51,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
         val roomName = roomListElementViewModel.roomName.collectAsState().value
         val inviterUserInfo = roomListElementViewModel.inviterUserInfo.collectAsState().value
 
-        RoomComponent(
+        RoomListElementBase(
             roomListElementViewModel,
             roomDetails = {
                 RoomName(roomName)

@@ -29,7 +29,7 @@ class KnockRoomListElementImpl : KnockRoomListElement {
         val i18n = DI.get<I18nView>()
         val roomName = roomListElementViewModel.roomName.value
 
-        RoomComponent(
+        RoomListElementBase(
             roomListElementViewModel = roomListElementViewModel,
             roomDetails = {
                 RoomName(roomName)

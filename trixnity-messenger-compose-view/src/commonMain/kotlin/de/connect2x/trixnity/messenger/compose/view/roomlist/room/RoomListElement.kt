@@ -1,171 +1,146 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.LocalIndication
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MarkAsUnread
-import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.material.icons.filled.MapsUgc
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.isSecondaryPressed
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.round
-import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.Platform
-import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
+import de.connect2x.trixnity.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
-import de.connect2x.trixnity.messenger.compose.view.theme.components.isNotClosed
-import de.connect2x.trixnity.messenger.compose.view.theme.components.themedSurface
-import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
+import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarContentIcon
+import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAvatar
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
-interface RoomListElementContainerView {
+interface RoomListElementView {
     @Composable
-    fun LazyItemScope.create(
-        roomId: RoomId,
+    fun create(
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
-        index: Int
+        index: Int,
+        showActions: Boolean
     )
 }
 
 @Composable
-fun LazyItemScope.RoomListElementContainer(
-    roomId: RoomId,
+private fun ErrorModalDialog(error: String, onDismiss: () -> Unit) {
+    val i18n = DI.get<I18nView>()
+    ThemedModalDialog(onDismissRequest = onDismiss) {
+        ModalDialogHeader {
+            Text(i18n.commonError())
+        }
+        ModalDialogContent {
+            Text(error)
+        }
+        ModalDialogFooter {
+            ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onDismiss) {
+                Text(i18n.commonClose())
+            }
+        }
+    }
+}
+
+@Composable
+fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
     index: Int,
+    showActions: Boolean
 ) {
-    with(DI.get<RoomListElementContainerView>()) { create(roomId, roomListViewModel, roomListElementViewModel, index) }
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showActions)
 }
 
-class RoomListElementContainerViewImpl : RoomListElementContainerView {
+class RoomListElementViewImpl : RoomListElementView {
     @Composable
-    override fun LazyItemScope.create(
-        roomId: RoomId,
+    override fun create(
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
+        showActions: Boolean
     ) {
-        val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
-        val roomName = roomListElementViewModel.roomName.collectAsState().value
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
-        val interactionSource = remember { MutableInteractionSource() }
-        val actionMenuFocusSource = remember { MutableInteractionSource() }
-        val actionMenuHasFocus = actionMenuFocusSource.collectIsFocusedAsState().value
-        val hasFocus = interactionSource.collectIsFocusedAsState().value
-        val hasHover = interactionSource.collectIsHoveredAsState().value
-        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
-        val isJoined = roomName != null && !isInvite && !isKnock && !isLeave
-        val hoverable = roomName != null && !isInvite && !isKnock
-        val elementsSize = roomListViewModel.elements.collectAsState().value.size
-        val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
-        val i18n = DI.current.get<I18nView>()
-        Box(
-            Modifier.animateItem(
-                fadeInSpec = null,
-                fadeOutSpec = null,
-                placementSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
-                )
-            )
-                .then(
-                    if (roomId == selectedRoomId) Modifier.themedSurface(
-                        MaterialTheme.components.roomListSelection,
-                        focused = hasFocus
-                    )
-                    else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
-                )
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
-                                showActionMenu.value =
-                                    if (showActionMenu.value.isNotClosed()) ThemedActionMenuState.Closed else ThemedActionMenuState.Popup(
-                                        event.changes.first().position.round()
-                                    )
-                            }
-                        }
-                    }
-                    detectTapGestures(onLongPress = { showActionMenu.value = ThemedActionMenuState.Anchored })
-
-                }.combinedClickable(
-                    interactionSource,
-                    LocalIndication.current,
-                    onLongClick = { showActionMenu.value = ThemedActionMenuState.Anchored }) {
-                    if (hoverable) {
-                        roomListViewModel.selectRoom(roomId)
-                    }
-                }
-                .buttonPointerModifier(enabled = !isInvite)
-        ) {
-            CompositionLocalProvider(
-                LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
-            ) {
-                RoomListElement(
-                    roomListViewModel,
-                    roomListElementViewModel,
-                    index,
-                    (!hasHover && showActionMenu.value == ThemedActionMenuState.Closed && !actionMenuHasFocus) || Platform.current.isMobile
-                )
-                if (isJoined) {
-                    ThemedActionMenu(
-                        interactionSource,
-                        actionMenuFocusSource,
-                        showActionMenu,
-                        listOf(
-                            ThemedActionMenuItem(
-                                Icons.Default.MarkAsUnread,
-                                i18n.markRoomAsUnread(),
-                                action = { roomListElementViewModel.markUnread() })
-                        ),
-                        additionalContextActions = {},
-                        openActionMenuIcon = {
-                            Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)
-                        },
-                        Modifier.padding(MaterialTheme.messengerDpConstants.small).align(Alignment.TopEnd)
-                    )
-                }
-            }
+        val isKnock = roomListElementViewModel.isKnock.collectAsState().value == true
+        val error by roomListElementViewModel.error.collectAsState()
+        roomListElementViewModel.roomName.collectAsState().value
+        error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
+        when {
+            isInvite -> Invite(roomListElementViewModel, index)
+            isLeave -> ArchivedRoom(roomListElementViewModel, index)
+            isKnock -> Knock(roomListElementViewModel, index)
+            else -> JoinedRoom(roomListElementViewModel, index, showActions)
         }
-        if (index < elementsSize) {
-            ThemedHorizontalDivider(
-                style = MaterialTheme.components.roomListDivider
-            )
+    }
+}
+
+@Composable
+fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
+    val accountColor = roomElementViewModel.accountColor.collectAsState().value
+    Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 0.dp)) {
+        Box(
+            Modifier
+                .width(if (accountColor != null) 6.dp else 0.dp)
+                .fillMaxHeight()
+                .background(if (accountColor != null) Color(accountColor) else Color.Transparent)
+        )
+    }
+}
+
+@Composable
+fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
+    DI.get<I18nView>()
+    val isInvite = roomElementViewModel.isInvite.collectAsState().value
+    val roomImage = roomElementViewModel.roomImage.collectAsState().value
+    val roomImageInitials = roomElementViewModel.roomImageInitials.collectAsState().value
+    val presence = roomElementViewModel.presence.collectAsState().value
+    val isPublic = roomElementViewModel.isPublic.collectAsState().value ?: false
+    if (isInvite == null || roomImageInitials == null) {
+        Box(
+            Modifier
+                .width(avatarSize().dp)
+                .height(avatarSize().dp)
+                .placeholder(
+                    visible = true,
+                    color = Color.LightGray,
+                    shape = CircleShape,
+                )
+        )
+    } else {
+        if (isInvite) {
+            ThemedAvatar(avatarSize().dp) {
+                AvatarContentIcon(Icons.Default.MapsUgc, avatarSize().dp)
+            }
+        } else {
+            Box {
+                ThemedUserAvatar(roomImageInitials, roomImage, presence) {
+                    AvatarPresenceBadge(presence)
+                }
+                if (isPublic) PublicIcon()
+            }
         }
     }
 }

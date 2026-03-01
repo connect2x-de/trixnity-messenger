@@ -31,7 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.placeholder
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
-fun RoomComponent(
+fun RoomListElementBase(
     roomListElementViewModel: RoomListElementViewModel,
     roomDetails: @Composable ColumnScope.() -> Unit,
     roomActions: @Composable ColumnScope.() -> Unit,

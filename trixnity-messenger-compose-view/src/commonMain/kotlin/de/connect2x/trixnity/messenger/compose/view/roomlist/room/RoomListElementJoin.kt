@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,7 +23,7 @@ class JoinedRoomListViewImpl : JoinedRoomListView {
     override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int, showActions: Boolean) {
 
         val actionVisibility = animateFloatAsState(targetValue = if (showActions) 1f else 0f).value
-        RoomComponent(
+        RoomListElementBase(
             roomListElementViewModel,
             roomDetails = { RoomNameAndLastMessage(roomListElementViewModel) },
             roomActions = {

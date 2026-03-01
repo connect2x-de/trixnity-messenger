@@ -47,7 +47,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
         var showWarning by remember { mutableStateOf(false) }
         val roomName = roomListElementViewModel.roomName.collectAsState().value
 
-        RoomComponent(
+        RoomListElementBase(
             roomListElementViewModel = roomListElementViewModel,
             roomDetails = {
                 RoomName(roomName)
