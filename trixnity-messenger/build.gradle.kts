@@ -13,8 +13,8 @@ import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.withAndroidLibrary
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
-import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
+import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -43,7 +43,7 @@ kotlin {
             }
         }
     }
-    withJs {
+    withWeb {
         withBrowser {
             commonWebpackConfig {
                 showProgress = true

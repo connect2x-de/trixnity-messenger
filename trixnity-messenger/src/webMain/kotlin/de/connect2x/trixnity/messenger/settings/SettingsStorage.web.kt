@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.settings
 
-import kotlinx.browser.window
+import web.storage.localStorage
 
 class LocalStorageSettingsStorage(
     private val name: String,
 ) : SettingsStorage {
-    override suspend fun write(settings: String) = window.localStorage.setItem(name, settings)
-    override suspend fun read(): String? = window.localStorage.getItem(name)
+    override suspend fun write(settings: String) = localStorage.setItem(name, settings)
+    override suspend fun read(): String? = localStorage.getItem(name)
 }

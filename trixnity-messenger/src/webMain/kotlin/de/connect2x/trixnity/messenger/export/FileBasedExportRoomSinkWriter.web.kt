@@ -1,19 +1,18 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.export
 
-import js.typedarrays.asInt8Array
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import de.connect2x.trixnity.utils.ByteArrayFlow
+import js.objects.unsafeJso
+import js.typedarrays.toInt8Array
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.dom.document
-import web.fs.FileSystemCreateWritableOptions
 import web.fs.FileSystemDirectoryHandle
 import web.fs.FileSystemFileHandle
-import web.fs.FileSystemGetDirectoryOptions
-import web.fs.FileSystemGetFileOptions
-import web.fs.FileSystemRemoveOptions
 import web.fs.FileSystemWritableFileStream
 import web.fs.createWritable
 import web.fs.getDirectoryHandle
@@ -31,7 +30,9 @@ import web.window.WindowTarget
 import web.window._self
 import zipjs.BlobReader
 import zipjs.ZipWriter
-import zipjs.ZipWriterConstructorOptions
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.toJsString
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -61,21 +62,21 @@ class WebZipFileBasedExportRoomSinkWriter(
 
     private lateinit var mediaFile: FileSystemFileHandle
 
-    private lateinit var zipWriter: ZipWriter<dynamic>
+    private lateinit var zipWriter: ZipWriter<JsAny>
 
     override suspend fun start() {
         outputDirectory = navigator.storage.getDirectory()
-            .getDirectoryHandle("room-export", FileSystemGetDirectoryOptions(create = true))
+            .getDirectoryHandle("room-export", unsafeJso { create = true })
 
-        zipFile = outputDirectory.getFileHandle("archive.tmp", FileSystemGetFileOptions(create = true))
-        zipStream = zipFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+        zipFile = outputDirectory.getFileHandle("archive.tmp", unsafeJso { create = true })
+        zipStream = zipFile.createWritable(unsafeJso { keepExistingData = false })
 
-        textFile = outputDirectory.getFileHandle("events.tmp", FileSystemGetFileOptions(create = true))
-        textStream = textFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+        textFile = outputDirectory.getFileHandle("events.tmp", unsafeJso { create = true })
+        textStream = textFile.createWritable(unsafeJso { keepExistingData = false })
 
-        mediaFile = outputDirectory.getFileHandle("media.tmp", FileSystemGetFileOptions(create = true))
+        mediaFile = outputDirectory.getFileHandle("media.tmp", unsafeJso { create = true })
 
-        zipWriter = ZipWriter(zipStream, ZipWriterConstructorOptions {
+        zipWriter = ZipWriter(zipStream, unsafeJso {
             bufferedWrite = true
             dataDescriptor = true
             dataDescriptorSignature = true
@@ -85,15 +86,15 @@ class WebZipFileBasedExportRoomSinkWriter(
     }
 
     override suspend fun addContent(content: String) {
-        textStream.write(content)
+        textStream.write(content.toJsString())
     }
 
     override suspend fun addMedia(content: ByteArrayFlow, filename: String) {
-        val mediaStream = mediaFile.createWritable(FileSystemCreateWritableOptions(keepExistingData = false))
+        val mediaStream = mediaFile.createWritable(unsafeJso { keepExistingData = false })
 
         content.collect {
             @OptIn(ExperimentalStdlibApi::class)
-            mediaStream.write(it.asInt8Array())
+            mediaStream.write(it.toInt8Array())
         }
 
         mediaStream.close()
@@ -120,7 +121,7 @@ class WebZipFileBasedExportRoomSinkWriter(
             GlobalScope.launch {
                 URL.revokeObjectURL(blobUrl)
                 navigator.storage.getDirectory()
-                    .removeEntry(outputDirectory.name, FileSystemRemoveOptions(recursive = true))
+                    .removeEntry(outputDirectory.name, unsafeJso { recursive = true })
             }
         }
     }

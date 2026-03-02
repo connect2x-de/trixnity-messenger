@@ -2,13 +2,17 @@ package de.connect2x.trixnity.messenger.util
 
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.await
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
+import js.promise.Promise
+import js.promise.await
+import js.promise.invoke
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import org.w3c.dom.Image
-import kotlin.js.Promise
+import web.events.EventHandler
+import web.events.EventType
+import web.events.addEventListener
+import web.html.Image
 
 actual fun platformGetImageDimensionsModule(): Module = module {
     single<GetImageDimensions> {
@@ -27,7 +31,14 @@ suspend fun getImageDimensions(
     return base64String?.let {
         val image = Image()
         image.src = "data:$mimeType;base64,${byteArrayFlow.toByteArray().encodeBase64()}"
-        Promise(executor = { resolve, reject -> image.addEventListener("load", resolve) }).await()
+        Promise(
+            executor = { resolve, _ ->
+                image.addEventListener(
+                    type = EventType("load"),
+                    handler = EventHandler { resolve(null) }
+                )
+            }
+        ).await()
         image.width to image.height
     } ?: (null to null)
 }

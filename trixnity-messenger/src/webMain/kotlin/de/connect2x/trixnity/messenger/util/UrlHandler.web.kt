@@ -1,15 +1,18 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
-import kotlinx.browser.document
-import kotlinx.browser.window
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import org.w3c.dom.events.Event
+import web.dom.document
+import web.events.EventHandler
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
+import web.window.window
 
 class UriHandlerImpl private constructor(
     urlHandlerFlow: Flow<String>
@@ -17,15 +20,15 @@ class UriHandlerImpl private constructor(
 
     constructor(config: MatrixMessengerBaseConfiguration) : this(
         callbackFlow {
-            val eventListener: (Event?) -> Unit = {
+            val eventListener = EventHandler {
                 trySend(document.URL)
             }
-            window.addEventListener("locationchange", eventListener)
-            window.addEventListener("load", eventListener)
-            eventListener(null)
+            window.addEventListener(EventType("locationchange"), eventListener)
+            window.addEventListener(EventType("load"), eventListener)
+            trySend(document.URL)
             awaitClose {
-                window.removeEventListener("locationchange", eventListener)
-                window.removeEventListener("load", eventListener)
+                window.removeEventListener(EventType("locationchange"), eventListener)
+                window.removeEventListener(EventType("load"), eventListener)
             }
         }.filter(uriFilter(config))
     )
