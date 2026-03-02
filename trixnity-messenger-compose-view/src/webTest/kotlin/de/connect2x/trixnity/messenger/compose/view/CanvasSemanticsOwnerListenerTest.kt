@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.compose.view
 
 import androidx.compose.foundation.layout.Box
@@ -46,12 +48,20 @@ import androidx.compose.ui.test.SkikoComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import kotlinx.browser.document
+import js.array.asList
+import js.core.JsPrimitives.toKotlinString
 import kotlinx.coroutines.delay
-import org.w3c.dom.Element
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.asList
+import web.dom.Element
+import web.dom.ElementId
+import web.dom.document
+import web.html.HtmlTagName
+import web.html.asStringOrNull
+import kotlin.contracts.contract
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsString
 import kotlin.js.Promise
+import kotlin.js.unsafeCast
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -254,7 +264,7 @@ class CanvasSemanticsOwnerListenerTest {
     }) { a11yRoot ->
         val cb = a11yRoot.byTestTag("cb")
         assertElem(cb, "input", mapOf("type" to "checkbox"))
-        assertTrue(cb.asDynamic().checked, "checkbox not checked")
+        assertTrue(cb.checked, "checkbox not checked")
     }
 
     @Test
@@ -344,7 +354,7 @@ class CanvasSemanticsOwnerListenerTest {
             tag = "input",
             attrs = mapOf("type" to "radio"),
         )
-        assertTrue(rb.asDynamic().checked, "radio button not checked")
+        assertTrue(rb.checked, "radio button not checked")
     }
 
     @Test
@@ -432,6 +442,7 @@ class CanvasSemanticsOwnerListenerTest {
                 "value" to "0.5",
                 "max" to "1",
             ),
+            attrAsserter = ProgressAttrAsserter
         )
     }
 
@@ -454,6 +465,7 @@ class CanvasSemanticsOwnerListenerTest {
                 "value" to "0.5",
                 "max" to "1",
             ),
+            attrAsserter = ProgressAttrAsserter
         )
     }
 
@@ -475,6 +487,10 @@ class CanvasSemanticsOwnerListenerTest {
                 "max" to "1",
                 "aria-label" to "lorem ipsum",
             ),
+            attrAsserter = { attrs, actualAttrs ->
+                ProgressAttrAsserter(attrs, actualAttrs)
+                assertEquals(attrs?.get("aria-label"), actualAttrs?.get("aria-label"))
+            }
         )
     }
 
@@ -573,7 +589,7 @@ class CanvasSemanticsOwnerListenerTest {
         assertElem(
             elem = lbl.parentElement,
             tag = "div",
-            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id),
+            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id.value),
         )
     }
 
@@ -595,7 +611,7 @@ class CanvasSemanticsOwnerListenerTest {
         assertElem(
             elem = lbl.parentElement,
             tag = "div",
-            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id, "aria-describedby" to inner.id),
+            attrs = mapOf("role" to "dialog", "aria-labelledby" to lbl.id.value, "aria-describedby" to inner.id.value),
         )
     }
 
@@ -654,11 +670,24 @@ class CanvasSemanticsOwnerListenerTest {
     }
 }
 
+private typealias AttrAsserter = (attrs: Map<String, String>?, actualAttrs: Map<String, String>?) -> Unit
+
+private val DefaultAttrAsserter: AttrAsserter = { attrs, actualAttrs ->
+    assertEquals(attrs, actualAttrs, "wrong attributes")
+}
+
+private val ProgressAttrAsserter: AttrAsserter = { attrs, actualAttrs ->
+    assertNotNull(attrs)
+    assertNotNull(actualAttrs)
+
+    assertEquals(attrs["value"]?.toFloat(),  actualAttrs["value"]?.toFloat())
+    assertEquals(attrs["max"]?.toFloat(), actualAttrs["max"]?.toFloat())
+}
 
 @OptIn(ExperimentalTestApi::class, InternalComposeUiApi::class, InternalTestApi::class)
-private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit): Promise<Unit> {
-    val a11yRoot = document.createElement("div") as HTMLDivElement
-    document.body!!.appendChild(a11yRoot)
+private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit) : Promise<JsAny?> {
+    val a11yRoot = document.createElement(HtmlTagName.div)
+    document.body.appendChild(a11yRoot)
     return SkikoComposeUiTest(semanticsOwnerListener = CanvasSemanticsOwnerListener(a11yRoot)).runTest {
         setContent(content)
 
@@ -667,17 +696,17 @@ private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Eleme
         println(a11yRoot.innerHTML)
         assertions(a11yRoot)
 
-        document.body?.removeChild(a11yRoot)
+        document.body.removeChild(a11yRoot)
     }
 }
 
 private fun Element.byTestTag(tag: String): Element? = this.querySelector("[data-test-tag='$tag']")
 
-private fun assertAttrs(el: Element?, attrs: Map<String, String>?) {
+private fun assertAttrs(el: Element?, attrs: Map<String, String>?, attrAsserter: AttrAsserter) {
     val actualAttrs = el?.attributes?.asList()?.associate { Pair(it.name, it.value) }?.toMutableMap()
     for (key in listOf("id", "style", "data-test-tag"))
         actualAttrs?.remove(key)
-    assertEquals(attrs, actualAttrs, "wrong attributes")
+    attrAsserter(attrs, actualAttrs)
 }
 
 private fun assertElem(
@@ -685,12 +714,25 @@ private fun assertElem(
     tag: String? = null,
     attrs: Map<String, String>? = null,
     innerHTML: String? = null,
+    attrAsserter: AttrAsserter = DefaultAttrAsserter,
 ) {
+    contract { returns() implies (elem != null) }
+
     assertNotNull(elem)
     if (tag != null)
         assertEquals(tag.lowercase(), elem.tagName.lowercase(), "wrong tag")
     if (attrs != null)
-        assertAttrs(elem, attrs)
+        assertAttrs(elem, attrs, attrAsserter)
     if (innerHTML != null)
-        assertEquals(innerHTML, elem.innerHTML, "wrong inner html")
+        assertEquals(innerHTML, elem.innerHTML.asStringOrNull(), "wrong inner html")
 }
+
+private external interface ElementWithChecked : JsAny {
+    val checked: Boolean?
+}
+
+private val Element.checked: Boolean
+    get() = unsafeCast<ElementWithChecked>().checked == true
+
+private val ElementId.value: String
+    get() = unsafeCast<JsString>().toKotlinString()

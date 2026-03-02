@@ -6,8 +6,8 @@ import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.withAndroidLibrary
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
-import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
+import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 
@@ -39,7 +39,7 @@ kotlin {
             maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
         }
     }
-    withJs {
+    withWeb {
         withBrowser {
             commonWebpackConfig {
                 showProgress = true

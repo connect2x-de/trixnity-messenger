@@ -19,6 +19,9 @@ import web.dom.document
 import web.html.HTMLCanvasElement
 import web.html.toBlob
 import web.url.URL
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toInt
+import kotlin.js.toJsNumber
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.PdfReaderKt")
 

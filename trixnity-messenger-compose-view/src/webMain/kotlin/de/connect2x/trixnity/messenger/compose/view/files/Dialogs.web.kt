@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.compose.view.files
 
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +30,7 @@ import io.github.vinceglb.filekit.dialogs.openFilePicker
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
+import io.github.vinceglb.filekit.PlatformFile
 import web.dom.document
 import web.file.File
 import web.html.HtmlTagName
@@ -35,9 +38,13 @@ import web.timers.setTimeout
 import web.url.URL
 import web.window.WindowTarget
 import web.window._self
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.time.Duration.Companion.seconds
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.DialogsKt")
+
+
+internal expect fun realFile(platformFile: PlatformFile) : File
 
 /**
  * This component invokes a file picker by which the user can select
@@ -67,7 +74,7 @@ actual fun LoadFileDialog(
             title = i18n.fileDialogTitleLoad()
         )?.let { file ->
             try {
-                val descriptor = JsFileDescriptor(file.file.unsafeCast<File>())
+                val descriptor = JsFileDescriptor(realFile(file))
                 onFileSelect(descriptor)
             } catch (e: Throwable) {
                 log.error(e) { "unable to upload file!" }
