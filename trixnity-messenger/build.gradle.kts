@@ -84,7 +84,7 @@ kotlin {
             group("nonAndroid") {
                 withJvm()
                 group("ios")
-                withJs()
+                group("web")
             }
         }
     }
@@ -163,7 +163,7 @@ kotlin {
                 implementation(sharedLibs.ktor.client.darwin)
             }
         }
-        jsMain {
+        webMain {
             dependencies {
                 implementation(libs.trixnity.client.repository.indexeddb)
                 api(libs.trixnity.client.media.opfs)
