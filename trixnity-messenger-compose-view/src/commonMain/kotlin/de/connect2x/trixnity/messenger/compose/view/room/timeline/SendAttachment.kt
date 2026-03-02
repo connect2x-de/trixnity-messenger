@@ -56,7 +56,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
     override fun create(sendAttachmentViewModel: SendAttachmentViewModel) {
         val i18n = DI.get<I18nView>()
         val error = sendAttachmentViewModel.error.collectAsState().value
-        val fileSize = "(" + (sendAttachmentViewModel.file.fileSize?.let { size -> formatSize(size.toLong()) }
+        val fileSize = "(" + (sendAttachmentViewModel.file.fileSize?.let { size -> formatSize(size) }
             ?: i18n.commonUnknown()) + ")"
         val isImage = sendAttachmentViewModel.isImage
         val isVideo = sendAttachmentViewModel.isVideo

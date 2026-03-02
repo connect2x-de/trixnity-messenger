@@ -128,7 +128,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         cut.loadMedia()
         delay(500.milliseconds)
 
-        cut.loadMediaResult.value shouldBe file
+        cut.loadMediaResultBytes.value shouldBe file
         cut.loadMediaError.value shouldBe null
     }
 

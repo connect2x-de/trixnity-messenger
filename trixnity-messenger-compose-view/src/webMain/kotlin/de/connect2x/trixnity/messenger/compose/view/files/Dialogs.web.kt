@@ -67,7 +67,7 @@ actual fun LoadFileDialog(
             title = i18n.fileDialogTitleLoad()
         )?.let { file ->
             try {
-                val descriptor = JsFileDescriptor(file.file as File)
+                val descriptor = JsFileDescriptor(file.file.unsafeCast<File>())
                 onFileSelect(descriptor)
             } catch (e: Throwable) {
                 log.error(e) { "unable to upload file!" }

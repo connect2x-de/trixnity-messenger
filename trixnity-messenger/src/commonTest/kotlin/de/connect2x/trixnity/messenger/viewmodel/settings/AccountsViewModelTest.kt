@@ -78,8 +78,7 @@ class AccountsViewModelTest {
                 capabilities = GetCapabilities.Response(
                     capabilities = Capabilities(
                         setOf(
-                            Capability.SetDisplayName(enabled = true),
-                            Capability.SetAvatarUrl(enabled = true),
+                            Capability.ProfileFields(enabled = true),
                         )
                     )
                 ),
@@ -115,8 +114,7 @@ class AccountsViewModelTest {
                 capabilities = GetCapabilities.Response(
                     capabilities = Capabilities(
                         setOf(
-                            Capability.SetDisplayName(enabled = true),
-                            Capability.SetAvatarUrl(enabled = true),
+                            Capability.ProfileFields(enabled = true),
                         )
                     )
                 ),
