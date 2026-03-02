@@ -7,6 +7,7 @@ import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
+import de.connect2x.conventions.withWeb
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
@@ -81,7 +82,7 @@ kotlin {
     defaultCompilerOptions()
     withAndroid("$group.compose.app", minSdk = libs.versions.minSdkVersion)
     withJvm()
-    withJs {
+    withWeb {
         withBrowser {
             commonWebpackConfig {
                 showProgress = true
