@@ -35,7 +35,7 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
                 .apply { bind<Worker>() }
         }
     },
-    ::profileViewModules,
+    ::profileViewModule,
     ::platformModule,
     ::platformPathsModule,
     ::platformMatrixMultiMessengerSettingsHolderModule,
@@ -47,6 +47,6 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
     ::platformDeleteProfileDataModule,
 )
 
-private fun profileViewModules() = module {
+private fun profileViewModule() = module {
     single<ProfileCreationViewModelFactory> { ProfileCreationViewModelFactory }
 }
