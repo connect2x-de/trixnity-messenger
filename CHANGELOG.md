@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- WEB/SDK: Support Kotlin/WasmJs
+- WEB,SDK: Support Kotlin/WasmJs
+- SDK: TextFieldViewModel: allow for input validation
 
 ### Changed
 
@@ -26,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UI: Fix some scrolling offsets
-- WEB/SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
+- WEB,SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
 
 ## 4.2.2
 
