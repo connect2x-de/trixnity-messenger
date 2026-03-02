@@ -14,8 +14,7 @@
  */
 
 @file:JsModule("pdfjs-dist")
-@file:JsNonModule
-@file:OptIn(ExperimentalJsExport::class, ExperimentalJsStatic::class)
+@file:OptIn(ExperimentalWasmJsInterop::class, ExperimentalJsStatic::class)
 @file:Suppress(
     "PropertyName", "LocalVariableName", "FunctionName",
     "unused", "NOTHING_TO_INLINE", "DuplicatedCode", "KDocUnresolvedReference",
@@ -26,6 +25,7 @@ package pdfjs
 import js.array.Tuple2
 import js.buffer.ArrayBufferLike
 import js.buffer.BufferSource
+import js.collections.JsMap
 import js.collections.JsSet
 import js.core.Void
 import js.errors.JsError
@@ -33,7 +33,6 @@ import js.iterable.JsIterable
 import js.promise.Promise
 import js.typedarrays.Uint8Array
 import js.typedarrays.Uint8ClampedArray
-import seskar.js.JsAsync
 import web.canvas.CanvasRenderingContext2D
 import web.html.HTMLCanvasElement
 import web.html.HTMLDivElement
@@ -41,21 +40,30 @@ import web.html.HTMLDocument
 import web.streams.ReadableStream
 import web.url.URL
 import web.workers.Worker
-import kotlin.js.Json
+import kotlin.js.ExperimentalJsStatic
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsArray
+import kotlin.js.JsBoolean
+import kotlin.js.JsModule
+import kotlin.js.JsNumber
+import kotlin.js.JsStatic
+import kotlin.js.JsString
+import kotlin.js.definedExternally
 
-external interface RefProxy {
-    var num: Number
-    var gen: Number
+external interface RefProxy : JsAny {
+    var num: JsNumber
+    var gen: JsNumber
 }
 
 /**
  * Document initialization / loading parameters object.
  */
-external interface DocumentInitParameters {
+external interface DocumentInitParameters : JsAny {
     /**
      * The URL of the PDF.
      */
-    var url: Any?
+    var url: JsAny?
 
     /**
      * Binary PDF data.
@@ -71,7 +79,7 @@ external interface DocumentInitParameters {
     /**
      * Basic authentication headers.
      */
-    var httpHeaders: Json
+    var httpHeaders: JsAny?
 
     /**
      * Indicates whether or not cross-site Access-Control requests should be
@@ -90,7 +98,7 @@ external interface DocumentInitParameters {
      * The PDF file length. It's used for progress reports and range requests
      * operations.
      */
-    var length: Number
+    var length: JsNumber
 
     /**
      * Allows for using a custom range transport implementation.
@@ -101,7 +109,7 @@ external interface DocumentInitParameters {
      * Specify maximum number of bytes fetched per range request.
      * The default value is [DEFAULT_RANGE_CHUNK_SIZE].
      */
-    var rangeChunkSize: Number
+    var rangeChunkSize: JsNumber
 
     /**
      * The worker that will be used for loading and parsing the PDF data.
@@ -112,7 +120,7 @@ external interface DocumentInitParameters {
      * Controls the logging level; the constants from [VerbosityLevel]
      * should be used.
      */
-    var verbosity: Number
+    var verbosity: JsNumber
 
     /**
      * The base URL of the document, used when attempting to recover valid
@@ -139,7 +147,7 @@ external interface DocumentInitParameters {
      *
      * The default value is [DOMCMapReaderFactory].
      */
-    var CMapReaderFactory: Any?
+    var CMapReaderFactory: JsAny?
 
     /**
      * The URL where the predefined ICC profiles are located.
@@ -168,7 +176,7 @@ external interface DocumentInitParameters {
      *
      * The default value is [DOMStandardFontDataFactory].
      */
-    var StandardFontDataFactory: Any?
+    var StandardFontDataFactory: JsAny?
 
     /**
      * The URL where the wasm files are located.
@@ -181,7 +189,7 @@ external interface DocumentInitParameters {
      *
      * The default value is [DOMWasmFactory].
      */
-    var WasmFactory: Any?
+    var WasmFactory: JsAny?
 
     /**
      * Enable using the Fetch API in the worker-thread when reading CMap and
@@ -215,7 +223,7 @@ external interface DocumentInitParameters {
      *
      * Use -1 for no limit, which is also the default value.
      */
-    var maxImageSize: Number
+    var maxImageSize: JsNumber
 
     /**
      * Determines if we can evaluate strings as JavaScript. Primarily used to
@@ -256,7 +264,7 @@ external interface DocumentInitParameters {
      * `OffscreenCanvas` in the worker). If it's -1 then a possibly slow
      * algorithm is used to guess the max value.
      */
-    var canvasMaxAreaInBytes: Number?
+    var canvasMaxAreaInBytes: JsNumber?
 
     /**
      * By default fonts are converted to OpenType fonts and loaded via the
@@ -327,14 +335,14 @@ external interface DocumentInitParameters {
      *
      * The default value is `false`.
      */
-    var pdfBug: Any?
+    var pdfBug: JsAny?
 
     /**
      * The factory that will be used when creating canvases.
      *
      * The default value is [DOMCanvasFactory].
      */
-    var CanvasFactory: Any?
+    var CanvasFactory: JsAny?
 
     /**
      * The factory that will be used to create SVG filters when rendering some
@@ -342,7 +350,7 @@ external interface DocumentInitParameters {
      *
      * The default value is [DOMFilterFactory].
      */
-    var FilterFactory: Any?
+    var FilterFactory: JsAny?
 
     /**
      * Enables hardware acceleration for rendering.
@@ -363,16 +371,16 @@ external fun getDocument(src: String): PDFDocumentLoadingTask
 external fun getDocument(src: URL): PDFDocumentLoadingTask
 external fun getDocument(src: BufferSource): PDFDocumentLoadingTask
 external fun getDocument(src: DocumentInitParameters): PDFDocumentLoadingTask
-external interface OnProgressParameters {
+external interface OnProgressParameters : JsAny {
     /**
      * Currently loaded number of bytes.
      */
-    var loaded: Number
+    var loaded: JsNumber
 
     /**
      * Total number of bytes in the PDF file.
      */
-    var total: Number
+    var total: JsNumber
 }
 
 /**
@@ -396,7 +404,7 @@ open external class PDFDocumentLoadingTask {
      * The callback receives two parameters: a function that should be called
      * with the new password, and a reason (see [PasswordResponses]).
      */
-    var onPassword: (updatePassword: (String) -> Unit, reason: Number) -> Unit
+    var onPassword: (updatePassword: (String) -> Unit, reason: JsNumber) -> Unit
 
     /**
      * Callback to be able to monitor the loading progress of the PDF file
@@ -413,22 +421,14 @@ open external class PDFDocumentLoadingTask {
     /**
      * Abort all network requests and destroy the worker.
      */
-    @JsAsync
-    suspend fun destroy()
-
-    @JsName("destroy")
-    fun destroyAsync(): Promise<Void>
+    fun destroy(): Promise<Void>
 
     /**
      * Attempt to fetch the raw data of the PDF document, when e.g.
      *  - An exception was thrown during document initialization.
      *  - An `onPassword` callback is delaying initialization.
      */
-    @JsAsync
-    suspend fun getData(): Uint8Array<out ArrayBufferLike>
-
-    @JsName("getData")
-    fun getDataAsync(): Promise<Uint8Array<out ArrayBufferLike>>
+    fun getData(): Promise<Uint8Array<out ArrayBufferLike>>
 }
 
 /**
@@ -440,26 +440,26 @@ open external class PDFDocumentLoadingTask {
  */
 open external class PDFDataRangeTransport {
     constructor(
-        length: Number,
+        length: JsNumber,
         initialData: BufferSource?,
         progressiveDone: Boolean = definedExternally,
         contentDispositionFilename: String? = definedExternally
     )
 
-    fun addRangeListener(listener: (begin: Number, chunk: BufferSource?) -> Unit)
-    fun addProgressListener(listener: (loaded: Number, total: Number?) -> Unit)
+    fun addRangeListener(listener: (begin: JsNumber, chunk: BufferSource?) -> Unit)
+    fun addProgressListener(listener: (loaded: JsNumber, total: JsNumber?) -> Unit)
     fun addProgressiveReadListener(listener: (chunk: BufferSource?) -> Unit)
     fun addProgressiveDoneListener(listener: () -> Unit)
-    fun onDataRange(begin: Number, chunk: BufferSource?)
-    fun onDataProgress(loaded: Number, total: Number?)
+    fun onDataRange(begin: JsNumber, chunk: BufferSource?)
+    fun onDataProgress(loaded: JsNumber, total: JsNumber?)
     fun onDataProgressiveRead(chunk: BufferSource?)
     fun onDataProgressiveDone()
     fun transportReady()
-    fun requestDataRange(begin: Number, end: Number)
+    fun requestDataRange(begin: JsNumber, end: JsNumber)
     fun abort()
 }
 
-open external class AnnotationStorage : JsIterable<Any?> {
+open external class AnnotationStorage : JsIterable<JsAny?> {
     val onSetModified: () -> Unit
     val onResetModified: () -> Unit
     val onAnnotationEditor: (String?) -> Unit
@@ -470,14 +470,14 @@ open external class AnnotationStorage : JsIterable<Any?> {
      * @param {Object} defaultValue
      * @returns {Object}
      */
-    fun getValue(key: String, defaultValue: Any?): Any?
+    fun getValue(key: String, defaultValue: JsAny?): JsAny?
 
     /**
      * Get the value for a given key.
      * @param {string} key
      * @returns {Object}
      */
-    fun getRawValue(key: String): Any?
+    fun getRawValue(key: String): JsAny?
 
     /**
      * Remove a value from the storage.
@@ -490,7 +490,7 @@ open external class AnnotationStorage : JsIterable<Any?> {
      * @param {string} key
      * @param {Object} value
      */
-    fun setValue(key: String, value: Any?)
+    fun setValue(key: String, value: JsAny?)
 
     /**
      * Check if the storage contains the given key.
@@ -498,7 +498,7 @@ open external class AnnotationStorage : JsIterable<Any?> {
      * @returns {boolean}
      */
     fun has(key: String): Boolean
-    val size: Number
+    val size: JsNumber
 
     /**
      * @returns {PrintAnnotationStorage}
@@ -506,7 +506,7 @@ open external class AnnotationStorage : JsIterable<Any?> {
     val print: PrintAnnotationStorage
     fun resetModifiedIds()
     interface ModifiedIds {
-        var ids: JsSet<String>
+        var ids: JsSet<JsString>
         var hash: String
     }
 
@@ -522,7 +522,7 @@ open external class AnnotationStorage : JsIterable<Any?> {
  * contents. (Necessary since printing is triggered synchronously in browsers.)
  */
 external class PrintAnnotationStorage : AnnotationStorage
-external interface GetOptionalContentConfigParameters {
+external interface GetOptionalContentConfigParameters : JsAny {
     /**
      * Determines the optional content groups that are visible by default;
      * valid values are:
@@ -538,7 +538,7 @@ external interface GetOptionalContentConfigParameters {
 /**
  * Proxy to a `PDFDocument` in the worker thread.
  */
-open external class PDFDocumentProxy {
+open external class PDFDocumentProxy: JsAny {
     /**
      * @type {AnnotationStorage} Storage for annotation data in forms.
      */
@@ -547,24 +547,24 @@ open external class PDFDocumentProxy {
     /**
      * @type {Object} The canvas factory instance.
      */
-    val canvasFactory: Any?
+    val canvasFactory: JsAny?
 
     /**
      * @type {Object} The filter factory instance.
      */
-    val filterFactory: Any?
+    val filterFactory: JsAny?
 
     /**
      * Total number of pages in the PDF file.
      */
-    val numPages: Number
+    val numPages: JsNumber
 
     /**
      * A (not guaranteed to be) unique ID to identify the PDF document.
      * NOTE: The first element will always be defined for all PDF documents,
      * whereas the second element is only defined for *modified* PDF documents.
      */
-    val fingerprints: Array<String?>
+    val fingerprints: JsArray<JsString?>
 
     /**
      * True if only XFA form.
@@ -577,95 +577,57 @@ open external class PDFDocumentProxy {
      * An object representing a HTML tree structure to render the XFA,
      * or `null` when no XFA form exists.
      */
-    val allXfaHtml: Any?
+    val allXfaHtml: JsAny?
 
-    @JsAsync
-    suspend fun getPage(pageNumber: Number): PDFPageProxy
+    fun getPage(pageNumber: JsNumber): Promise<PDFPageProxy>
 
-    @JsName("getPage")
-    fun getPageAsync(pageNumber: Number): Promise<PDFPageProxy>
-
-    @JsAsync
-    suspend fun getPageIndex(ref: RefProxy): Number
-
-    @JsName("getPageIndex")
-    fun getPageIndexAsync(ref: RefProxy): Promise<Number>
+    fun getPageIndex(ref: RefProxy): Promise<JsNumber>
 
     /**
      * Returns a mapping from named destinations to references.
      *
      * This can be slow for large documents. Use `getDestination` instead.
      */
-    @JsAsync
-    suspend fun getDestinations(): Json
-
-    @JsName("getDestinations")
-    fun getDestinationsAsync(): Promise<Json>
+    fun getDestinations(): Promise<JsAny?>
 
     /**
      * Returns all information of the given named destination,
      * or `null` when the named destination is not present in the PDF file.
      */
-    @JsAsync
-    suspend fun getDestination(id: String): Array<Any?>?
-    fun getDestinationAsync(id: String): Array<Any?>?
+    fun getDestination(id: String): Promise<JsArray<JsAny?>?>
 
     /**
      * Returns an {Array} containing the page labels that correspond to the page
      * indexes, or `null` when no page labels are present in the PDF file.
      */
-    @JsAsync
-    suspend fun getPageLabels(): Array<String>?
-
-    @JsName("getPageLabels")
-    fun getPageLabelsAsync(): Promise<Array<String>?>
+    fun getPageLabels(): Promise<JsArray<JsString>?>
 
     /**
      * Returns the page layout name.
      */
-    @JsAsync
-    suspend fun getPageLayout(): String
-
-    @JsName("getPageLayout")
-    fun getPageLayoutAsync(): Promise<String>
+    fun getPageLayout(): Promise<JsString>
 
     /**
      * Returns the page mode name
      */
-    @JsAsync
-    suspend fun getPageMode(): String
-
-    @JsName("getPageMode")
-    fun getPageModeAsync(): Promise<String>
+    fun getPageMode(): Promise<JsString>
 
     /**
      * Returns an {Object} containing the viewer preferences,
      * or `null` when no viewer preferences are present in the PDF file.
      */
-    @JsAsync
-    suspend fun getViewerPreferences(): Json?
-
-    @JsName("getViewerPreferences")
-    fun getViewerPreferencesAsync(): Promise<Json?>
+    fun getViewerPreferences(): Promise<JsAny?>
 
     /**
      * Returns an {Array} containing the destination,
      * or `null` when no open action is present in the PDF.
      */
-    @JsAsync
-    suspend fun getOpenAction(): Array<Any?>?
-
-    @JsName("getOpenAction")
-    fun getOpenActionAsync(): Promise<Array<Any?>?>
+    fun getOpenAction(): Promise<JsArray<JsAny?>?>
 
     /**
      * Returns a lookup table for mapping named attachments to their content.
      */
-    @JsAsync
-    suspend fun getAttachments(): Json
-
-    @JsName("getAttachments")
-    fun getAttachmentsAsync(): Promise<Json>
+    fun getAttachments(): Promise<JsAny?>
 
     /**
      * Returns an {Object} with the JavaScript actions:
@@ -673,12 +635,8 @@ open external class PDFDocumentProxy {
      *   - from A or AA entries in the catalog dictionary.
      * or `null` if no JavaScript exists.
      */
-    @JsAsync
-    suspend fun getJSActions(): Json?
-
-    @JsName("getJSActions")
-    fun getJSActionsAsync(): Promise<Json?>
-    interface OutlineNode {
+    fun getJSActions(): Promise<JsAny?>
+    interface OutlineNode : JsAny {
         var title: String
         var bold: Boolean
         var italic: Boolean
@@ -691,29 +649,19 @@ open external class PDFDocumentProxy {
         var url: String?
         var unsafeUrl: String?
         var newWindow: Boolean?
-        var count: Number?
-        var items: Array<OutlineNode>
+        var count: JsNumber?
+        var items: JsArray<OutlineNode>
     }
 
     /**
      * Returns a tree outline (if it has one) of the PDF file.
      */
-    @JsAsync
-    suspend fun getOutline(): Array<OutlineNode>
-
-    @JsName("getOutline")
-    fun getOutlineAsync(): Promise<Array<OutlineNode>>
+    fun getOutline(): Promise<JsArray<OutlineNode>>
 
     /**
      * Returns all the optional content groups (assuming that the document has any).
      */
-    @JsAsync
-    suspend fun getOptionalContentConfig(
-        params: GetOptionalContentConfigParameters = definedExternally
-    ): OptionalContentConfig
-
-    @JsName("getOptionalContentConfig")
-    fun getOptionalContentConfigAsync(
+    fun getOptionalContentConfig(
         params: GetOptionalContentConfigParameters = definedExternally
     ): Promise<OptionalContentConfig>
 
@@ -721,16 +669,12 @@ open external class PDFDocumentProxy {
      * Returns the permission flags for the PDF document,
      * or `null` when no permissions are present in the PDF file.
      */
-    @JsAsync
-    suspend fun getPermissions(): Array<Number>?
-
-    @JsName("getPermissions")
-    fun getPermissionsAsync(): Promise<Array<Number>?>
-    interface MetadataInfo {
+    fun getPermissions(): Promise<JsArray<JsNumber>?>
+    interface MetadataInfo : JsAny {
         /**
          * information dictionary
          */
-        val info: Json
+        val info: JsAny?
 
         /**
          * information from the metadata section of the PDF.
@@ -738,16 +682,12 @@ open external class PDFDocumentProxy {
         val metadata: Metadata
     }
 
-    @JsAsync
-    suspend fun getMetadata(): MetadataInfo
-
-    @JsName("getMetadata")
-    fun getMetadataAsync(): Promise<MetadataInfo>
+    fun getMetadata(): Promise<MetadataInfo>
 
     /**
      * Properties correspond to Table 321 of the PDF 32000-1:2008 spec.
      */
-    interface MarkInfo {
+    interface MarkInfo : JsAny {
         var Marked: Boolean
         var UserProperties: Boolean
         var Suspects: Boolean
@@ -757,44 +697,28 @@ open external class PDFDocumentProxy {
      * Returns the MarkInfo flags for the PDF document,
      * or `null` when no MarkInfo values are present in the PDF file.
      */
-    @JsAsync
-    suspend fun getMarkInfo(): MarkInfo?
-
-    @JsName("getMarkInfo")
-    fun getMarkInfoAsync(): Promise<MarkInfo?>
+    fun getMarkInfo(): Promise<MarkInfo?>
 
     /**
      * Returns the raw data of the PDF document.
      */
-    @JsAsync
-    suspend fun getData(): Uint8ClampedArray<out ArrayBufferLike>
-
-    @JsName("getData")
-    fun getDataAsync(): Promise<Uint8ClampedArray<out ArrayBufferLike>>
+    fun getData(): Promise<Uint8ClampedArray<out ArrayBufferLike>>
 
     /**
      * Returns the full data of the saved document.
      */
-    @JsAsync
-    suspend fun saveDocument(): Uint8ClampedArray<out ArrayBufferLike>
-
-    @JsName("saveDocument")
-    fun saveDocumentAsync(): Promise<Uint8ClampedArray<out ArrayBufferLike>>
-    interface DownloadInfo {
+    fun saveDocument(): Promise<Uint8ClampedArray<out ArrayBufferLike>>
+    interface DownloadInfo : JsAny {
         /**
          * Indicates size of the PDF data in bytes.
          */
-        val length: Number
+        val length: JsNumber
     }
 
     /**
      * Returns when the document's data is loaded.
      */
-    @JsAsync
-    suspend fun getDownloadInfo(): DownloadInfo
-
-    @JsName("getDownloadInfo")
-    fun getDownloadInfoAsync(): Promise<DownloadInfo>
+    fun getDownloadInfo(): Promise<DownloadInfo>
 
     /**
      * Cleans up resources allocated by the document on both the main and worker
@@ -803,17 +727,13 @@ open external class PDFDocumentProxy {
      * NOTE: Do not, under any circumstances, call this method when rendering is
      * currently ongoing since that may lead to rendering errors.
      */
-    @JsAsync
-    suspend fun cleanup(keepLoadedFonts: Boolean = definedExternally)
-
-    @JsName("cleanup")
-    fun cleanupAsync(keepLoadedFonts: Boolean = definedExternally): Promise<Void>
+    fun cleanup(keepLoadedFonts: Boolean = definedExternally): Promise<Void>
 
     /**
      * Destroys the current document instance and terminates the worker.
      */
     fun destroy()
-    fun cachedPageNumber(ref: RefProxy): Number?
+    fun cachedPageNumber(ref: RefProxy): JsNumber?
 
     /**
      * A subset of the current [DocumentInitParameters], which are needed in the viewer.
@@ -829,61 +749,49 @@ open external class PDFDocumentProxy {
      * Returns an {Object} containing /AcroForm field data for the JS sandbox,
      * or `null` when no field data is present in the PDF file.
      */
-    @JsAsync
-    suspend fun getFieldObjects(): Json
-
-    @JsName("getFieldObjects")
-    fun getFieldObjectsAsync(): Promise<Json>
+    fun getFieldObjects(): Promise<JsAny?>
 
     /**
      * Returns `true` if some /AcroForm fields have JavaScript actions.
      */
-    @JsAsync
-    suspend fun hasJSActions(): Boolean
-
-    @JsName("hasJSActions")
-    fun hasJSActionsAsync(): Promise<Boolean>
+    fun hasJSActions(): Promise<JsBoolean>
 
     /**
      * Returns IDs of annotations that have a calculation action,
      * or `null` when no such annotations are present in the PDF file.
      */
-    @JsAsync
-    suspend fun getCalculationOrderIds(): Array<String>?
-
-    @JsName("getCalculationOrderIds")
-    fun getCalculationOrderIdsAsync(): Promise<Array<String>?>
+    fun getCalculationOrderIds(): Promise<JsArray<JsString>?>
 }
 
 /**
  * Page getViewport parameters.
  */
-external interface GetViewportParameters {
+external interface GetViewportParameters : JsAny {
     /**
      * The desired scale of the viewport.
      */
-    var scale: Number
+    var scale: JsNumber
 
     /**
      * The desired rotation, in degrees, of the viewport.
      *
      * If omitted it defaults to the page rotation.
      */
-    var rotation: Number
+    var rotation: JsNumber
 
     /**
      * The horizontal, i.e. x-axis, offset.
      *
      * The default value is `0`.
      */
-    var offsetX: Number
+    var offsetX: JsNumber
 
     /**
      * The vertical, i.e. y-axis, offset.
      *
      * The default value is `0`.
      */
-    var offsetY: Number
+    var offsetY: JsNumber
 
     /**
      * If true, the y-axis will not be flipped.
@@ -896,7 +804,7 @@ external interface GetViewportParameters {
 /**
  * Page getTextContent parameters.
  */
-external interface GetTextContentParameters {
+external interface GetTextContentParameters : JsAny {
     /**
      * When true include marked content items in the items array of TextContent.
      *
@@ -915,17 +823,17 @@ external interface GetTextContentParameters {
 /**
  * Page text content.
  */
-external interface TextContent {
+external interface TextContent : JsAny {
     /**
      * Array of [TextItem] and [TextMarkedContent] objects.
      * TextMarkedContent items are included when includeMarkedContent is true.
      */
-    var items: Array<Any?>
+    var items: JsArray<JsAny?>
 
     /**
      * [TextStyle] objects, indexed by font name.
      */
-    var styles: Json
+    var styles: JsAny?
 
     /**
      * The document /Lang attribute.
@@ -936,7 +844,7 @@ external interface TextContent {
 /**
  * Page text content part.
  */
-external interface TextItem {
+external interface TextItem : JsAny {
     /**
      * Text content.
      */
@@ -950,17 +858,17 @@ external interface TextItem {
     /**
      * Transformation matrix.
      */
-    var transform: Array<Number>
+    var transform: JsArray<JsNumber>
 
     /**
      * Width in device space.
      */
-    var width: Number
+    var width: JsNumber
 
     /**
      * Height in device space.
      */
-    var height: Number
+    var height: JsNumber
 
     /**
      * Font name used by PDF.js for converted font.
@@ -976,7 +884,7 @@ external interface TextItem {
 /**
  * Page text marked content part.
  */
-external interface TextMarkedContent {
+external interface TextMarkedContent : JsAny {
     /**
      * Either 'beginMarkedContent', 'beginMarkedContentProps', or 'endMarkedContent'.
      */
@@ -991,16 +899,16 @@ external interface TextMarkedContent {
 /**
  * Text style.
  */
-external interface TextStyle {
+external interface TextStyle : JsAny {
     /**
      * Font ascent.
      */
-    var ascent: Number
+    var ascent: JsNumber
 
     /**
      * Font descent.
      */
-    var descent: Number
+    var descent: JsNumber
 
     /**
      * Whether or not the text is in vertical mode.
@@ -1016,7 +924,7 @@ external interface TextStyle {
 /**
  * Page annotation parameters.
  */
-external interface GetAnnotationsParameters {
+external interface GetAnnotationsParameters : JsAny {
     /**
      * Determines the annotations that are fetched, can be 'display'
      * (viewable annotations), 'print' (printable annotations), or 'any'
@@ -1028,7 +936,7 @@ external interface GetAnnotationsParameters {
 /**
  * Page render parameters.
  */
-external interface RenderParameters {
+external interface RenderParameters : JsAny {
     /**
      * A 2D context of a DOM Canvas object.
      */
@@ -1060,12 +968,12 @@ external interface RenderParameters {
      *     from the [AnnotationStorage]-instance; useful e.g. for printing.
      * The default value is `AnnotationMode.ENABLE`.
      */
-    var annotationMode: Number
+    var annotationMode: JsNumber
 
     /**
      * Additional transform, applied just before viewport transform.
      */
-    var transform: Array<Number>
+    var transform: JsArray<JsNumber>
 
     /**
      * @property {CanvasGradient | CanvasPattern | string} [background] - Background
@@ -1078,13 +986,13 @@ external interface RenderParameters {
      *   NOTE: This option may be partially, or completely, ignored when the
      *   `pageColors`-option is used.
      */
-    var background: Any?
+    var background: JsAny?
 
     /**
      * Overwrites background and foreground colors with user defined ones in
      * order to improve readability in high contrast mode.
      */
-    var pageColors: Any?
+    var pageColors: JsAny?
 
     /**
      * A promise that should resolve with an [OptionalContentConfig]
@@ -1097,7 +1005,7 @@ external interface RenderParameters {
     /**
      * Map some annotation ids with canvases used to render them.
      */
-    var annotationCanvasMap: Map<String, HTMLCanvasElement>
+    var annotationCanvasMap: JsMap<JsString, HTMLCanvasElement>
     var printAnnotationStorage: AnnotationStorage
 
     /**
@@ -1109,7 +1017,7 @@ external interface RenderParameters {
 /**
  * Page GetOperatorList parameters.
  */
-external interface GetOperatorListParameters {
+external interface GetOperatorListParameters : JsAny {
     /**
      * @property {string} [intent] - Rendering intent, can be 'display', 'print',
      *   or 'any'. The default value is 'display'.
@@ -1130,7 +1038,7 @@ external interface GetOperatorListParameters {
      *      from the [AnnotationStorage]-instance; useful e.g. for printing.
      *   The default value is `AnnotationMode.ENABLE`.
      */
-    var annotationMode: Number
+    var annotationMode: JsNumber
 
     /**
      * @property {PrintAnnotationStorage} [printAnnotationStorage]
@@ -1143,7 +1051,7 @@ external interface GetOperatorListParameters {
     var isEditing: Boolean
 }
 
-external interface StructTreeElement
+external interface StructTreeElement : JsAny
 
 /**
  * Structure tree node. The root node will have a role "Root".
@@ -1152,7 +1060,7 @@ external interface StructTreeNode : StructTreeElement {
     /**
      * Array of [StructTreeNode] and [StructTreeContent] objects.
      */
-    var children: Array<StructTreeElement>
+    var children: JsArray<StructTreeElement>
 
     /**
      * @property {string} role - element's role, already mapped if a role map exists
@@ -1180,31 +1088,31 @@ external interface StructTreeContent : StructTreeElement {
 /**
  * PDF page operator list.
  */
-external interface PDFOperatorList {
+external interface PDFOperatorList : JsAny {
     /**
      * Array containing the operator functions.
      */
-    var fnArray: Array<Number>
+    var fnArray: JsArray<JsNumber>
 
     /**
      * Array containing the arguments of the functions.
      */
-    var argsArray: Array<Any?>
+    var argsArray: JsArray<JsAny?>
 }
 
 /**
  * Proxy to a `PDFPage` in the worker thread.
  */
-open external class PDFPageProxy {
+open external class PDFPageProxy : JsAny {
     /**
      * Page number of the page. First page is 1.
      */
-    val pageNumber: Number
+    val pageNumber: JsNumber
 
     /**
      * The number of degrees the page is rotated clockwise.
      */
-    val rotate: Number
+    val rotate: JsNumber
 
     /**
      * The reference that points to this page.
@@ -1214,13 +1122,13 @@ open external class PDFPageProxy {
     /**
      * The default size of units in 1/72nds of an inch.
      */
-    val userUnit: Number
+    val userUnit: JsNumber
 
     /**
      * An array of the visible portion of the PDF page
      * in user space units [x1, y1, x2, y2].
      */
-    val view: Array<Number>
+    val view: JsArray<JsNumber>
 
     /**
      * @param {GetViewportParameters} params - Viewport parameters.
@@ -1234,26 +1142,18 @@ open external class PDFPageProxy {
      * @returns {Promise<Array<any>>} A promise that is resolved with an
      *   {Array} of the annotation objects.
      */
-    @JsAsync
-    suspend fun getAnnotations(params: GetAnnotationsParameters = definedExternally): Array<Any?>
-
-    @JsName("getAnnotations")
-    fun getAnnotationsAsync(params: GetAnnotationsParameters = definedExternally): Promise<Array<Any?>>
+    fun getAnnotations(params: GetAnnotationsParameters = definedExternally): Promise<JsArray<JsAny?>>
 
     /**
      * @returns {Promise<Object>} A promise that is resolved with an
      *   {Object} with JS actions.
      */
-    @JsAsync
-    suspend fun getJSActions(): Any?
-
-    @JsName("getJSActions")
-    fun getJSActionsAsync(): Promise<Any?>
+    fun getJSActions(): Promise<JsAny?>
 
     /**
      * @type {Object} The filter factory instance.
      */
-    val filterFactory: Any?
+    val filterFactory: JsAny?
 
     /**
      * @type {boolean} True if only XFA form.
@@ -1266,11 +1166,7 @@ open external class PDFPageProxy {
      *   value and children, very similar to a HTML DOM tree),
      *   or `null` if no XFA exists.
      */
-    @JsAsync
-    suspend fun getXfa(): Any?
-
-    @JsName("getXfa")
-    fun getXfaAsync(): Promise<Any?>
+    fun getXfa(): Promise<JsAny?>
 
     /**
      * Begins the process of rendering a page to the desired context.
@@ -1287,11 +1183,7 @@ open external class PDFPageProxy {
      * @returns an [PDFOperatorList] object that represents the
      *   page's operator list.
      */
-    @JsAsync
-    suspend fun getOperatorList(params: GetOperatorListParameters): PDFOperatorList
-
-    @JsName("getOperatorList")
-    fun getOperatorListAsync(params: GetOperatorListParameters): Promise<PDFOperatorList>
+    fun getOperatorList(params: GetOperatorListParameters): Promise<PDFOperatorList>
 
     /**
      * NOTE: All occurrences of whitespace will be replaced by
@@ -1300,7 +1192,7 @@ open external class PDFPageProxy {
      * @param [GetTextContentParameters] params - getTextContent parameters.
      * @returns [ReadableStream] Stream for reading text content chunks.
      */
-    fun streamTextContent(params: GetTextContentParameters): ReadableStream<String>
+    fun streamTextContent(params: GetTextContentParameters): ReadableStream<JsString>
 
     /**
      * NOTE: All occurrences of whitespace will be replaced by
@@ -1309,21 +1201,13 @@ open external class PDFPageProxy {
      * @param [GetTextContentParameters] params - getTextContent parameters.
      * @returns a [TextContent] object that represents the page's text content.
      */
-    @JsAsync
-    suspend fun getTextContent(params: GetTextContentParameters): TextContent
-
-    @JsName("getTextContent")
-    fun getTextContentAsync(params: GetTextContentParameters): Promise<TextContent>
+    fun getTextContent(params: GetTextContentParameters): Promise<TextContent>
 
     /**
      * @returns a [StructTreeNode] object that represents the page's structure
      * tree, or `null` when no structure tree is present for the current page.
      */
-    @JsAsync
-    suspend fun getStructTree(): StructTreeNode
-
-    @JsName("getStructTree")
-    fun getStructTreeAsync(): Promise<StructTreeNode>
+    fun getStructTree(): Promise<StructTreeNode>
 
     /**
      * Cleans up resources allocated by the page.
@@ -1335,7 +1219,7 @@ open external class PDFPageProxy {
     fun cleanup(resetStats: Boolean = definedExternally): Boolean
 }
 
-external interface PDFWorkerParameters {
+external interface PDFWorkerParameters : JsAny {
     /**
      * The name of the worker.
      */
@@ -1350,7 +1234,7 @@ external interface PDFWorkerParameters {
      * Controls the logging level;
      * the constants from [VerbosityLevel] should be used.
      */
-    var verbosity: Number
+    var verbosity: JsNumber
 }
 
 /**
@@ -1422,7 +1306,7 @@ open external class RenderTask {
      * not be cancelled until graphics pauses with a timeout. The promise that
      * this object extends will be rejected when cancelled.
      */
-    fun cancel(extraDelay: Number = definedExternally)
+    fun cancel(extraDelay: JsNumber = definedExternally)
 
     /**
      * Whether form fields are rendered separately from the main operatorList.
@@ -1430,44 +1314,44 @@ open external class RenderTask {
     val separateAnnots: Boolean
 }
 
-external interface PageViewportParameters {
+external interface PageViewportParameters : JsAny {
     /**
      * The xMin, yMin, xMax and yMax coordinates.
      */
-    var viewBox: Array<Number>
+    var viewBox: JsArray<JsNumber>
 
     /**
      * The size of units.
      */
-    var userUnit: Number
+    var userUnit: JsNumber
 
     /**
      * The scale, overriding the one in the cloned viewport.
      *
      * The default value is `this.scale`.
      */
-    var scale: Number
+    var scale: JsNumber
 
     /**
      * The rotation, in degrees, overriding the one in the cloned viewport.
      *
      * The default value is `this.rotation`.
      */
-    var rotation: Number
+    var rotation: JsNumber
 
     /**
      * The horizontal, i.e. x-axis, offset.
      *
      * The default value is `this.offsetX`.
      */
-    var offsetX: Number
+    var offsetX: JsNumber
 
     /**
      * The vertical, i.e. y-axis, offset.
      *
      * The default value is `this.offsetY`.
      */
-    var offsetY: Number
+    var offsetY: JsNumber
 
     /**
      * If true, the x-axis will not be flipped.
@@ -1477,34 +1361,34 @@ external interface PageViewportParameters {
     var dontFlip: Boolean
 }
 
-external interface PageViewportCloneParameters {
+external interface PageViewportCloneParameters : JsAny {
     /**
      * The scale, overriding the one in the cloned viewport.
      *
      * The default value is `this.scale`.
      */
-    var scale: Number
+    var scale: JsNumber
 
     /**
      * The rotation, in degrees, overriding the one in the cloned viewport.
      *
      * The default value is `this.rotation`.
      */
-    var rotation: Number
+    var rotation: JsNumber
 
     /**
      * The horizontal, i.e. x-axis, offset.
      *
      * The default value is `this.offsetX`.
      */
-    var offsetX: Number
+    var offsetX: JsNumber
 
     /**
      * The vertical, i.e. y-axis, offset.
      *
      * The default value is `this.offsetY`.
      */
-    var offsetY: Number
+    var offsetY: JsNumber
 
     /**
      * If true, the x-axis will not be flipped.
@@ -1521,50 +1405,50 @@ open external class PageViewport {
     /**
      * The xMin, yMin, xMax and yMax coordinates.
      */
-    val viewBox: Array<Number>
+    val viewBox: JsArray<JsNumber>
 
     /**
      * The size of units.
      */
-    val userUnit: Number
+    val userUnit: JsNumber
 
     /**
      * The scale, overriding the one in the cloned viewport.
      *
      * The default value is `this.scale`.
      */
-    var scale: Number
+    var scale: JsNumber
 
     /**
      * The rotation, in degrees, overriding the one in the cloned viewport.
      *
      * The default value is `this.rotation`.
      */
-    var rotation: Number
+    var rotation: JsNumber
 
     /**
      * The horizontal, i.e. x-axis, offset.
      *
      * The default value is `this.offsetX`.
      */
-    var offsetX: Number
+    var offsetX: JsNumber
 
     /**
      * The vertical, i.e. y-axis, offset.
      *
      * The default value is `this.offsetY`.
      */
-    var offsetY: Number
-    var width: Number
-    var height: Number
+    var offsetY: JsNumber
+    var width: JsNumber
+    var height: JsNumber
 
     constructor(params: PageViewportParameters)
 
     interface Dimensions {
-        var pageWidth: Number
-        var pageHeight: Number
-        var pageX: Number
-        var pageY: Number
+        var pageWidth: JsNumber
+        var pageHeight: JsNumber
+        var pageX: JsNumber
+        var pageY: JsNumber
     }
 
     /**
@@ -1580,14 +1464,14 @@ open external class PageViewport {
     /**
      * Converts PDF point to the viewport coordinates. For examples, useful for
      * converting PDF location into canvas pixel coordinates.
-     * @param [Number] x - The x-coordinate.
-     * @param [Number] y - The y-coordinate.
+     * @param [JsNumber] x - The x-coordinate.
+     * @param [JsNumber] y - The y-coordinate.
      * @returns [Array] Array containing `x`- and `y`-coordinates of the
      *   point in the viewport coordinate space.
      * @see [convertToPdfPoint]
      * @see [convertToViewportRectangle]
      */
-    fun convertToViewportPoint(x: Number, y: Number): Array<Number>
+    fun convertToViewportPoint(x: JsNumber, y: JsNumber): JsArray<JsNumber>
 
     /**
      * Converts PDF rectangle to the viewport coordinates.
@@ -1596,18 +1480,18 @@ open external class PageViewport {
      *   rectangle in the viewport coordinate space.
      * @see [convertToViewportPoint]
      */
-    fun convertToViewportRectangle(rect: Array<Number>): Array<Number>
+    fun convertToViewportRectangle(rect: JsArray<JsNumber>): JsArray<JsNumber>
 
     /**
      * Converts viewport coordinates to the PDF location. For examples, useful
      * for converting canvas pixel location into PDF one.
-     * @param [Number] x - The x-coordinate.
-     * @param [Number] y - The y-coordinate.
+     * @param [JsNumber] x - The x-coordinate.
+     * @param [JsNumber] y - The y-coordinate.
      * @returns [Array] Array containing `x`- and `y`-coordinates of the
      *   point in the PDF coordinate space.
      * @see [convertToViewportPoint]
      */
-    fun convertToPdfPoint(x: Number, y: Number): Array<Number>
+    fun convertToPdfPoint(x: JsNumber, y: JsNumber): JsArray<JsNumber>
 }
 
 /**
@@ -1624,21 +1508,21 @@ external fun setLayerDimensions(
 )
 
 external object AnnotationMode {
-    val DISABLE: Number
-    val ENABLE: Number
-    val ENABLE_FORMS: Number
-    val ENABLE_STORAGE: Number
+    val DISABLE: JsNumber
+    val ENABLE: JsNumber
+    val ENABLE_FORMS: JsNumber
+    val ENABLE_STORAGE: JsNumber
 }
 
 external object VerbosityLevel {
-    val ERRORS: Number
-    val WARNINGS: Number
-    val INFOS: Number
+    val ERRORS: JsNumber
+    val WARNINGS: JsNumber
+    val INFOS: JsNumber
 }
 
 external object PasswordResponses {
-    val NEED_PASSWORD: Number
-    val INCORRECT_PASSWORD: Number
+    val NEED_PASSWORD: JsNumber
+    val INCORRECT_PASSWORD: JsNumber
 }
 
 external object GlobalWorkerOptions {
@@ -1657,11 +1541,11 @@ external object GlobalWorkerOptions {
     var workerSrc: String
 }
 
-external class OptionalContentGroup {
+external class OptionalContentGroup : JsAny {
     val name: String
     val intent: String
     val usage: String
-    val rbGroups: Array<Any?>
+    val rbGroups: JsArray<JsAny?>
     val visible: Boolean
 }
 
@@ -1669,17 +1553,17 @@ external class OptionalContentConfig : JsIterable<OptionalContentGroup> {
     val renderingIntent: String
     val name: String?
     val creator: String?
-    fun isVisible(group: Any?): Boolean
+    fun isVisible(group: JsAny?): Boolean
     fun setVisibility(id: String, visible: Boolean = definedExternally, preserveRB: Boolean = definedExternally)
-    fun setOCGState(params: Any?)
+    fun setOCGState(params: JsAny?)
     val hasInitialVisibility: Boolean
-    fun getOrder(): Array<String>?
+    fun getOrder(): JsArray<JsString>?
     fun getGroup(id: String): OptionalContentGroup?
     fun getHash(): String
 }
 
 external class MessageHandler {
-    fun on(actionName: String, handler: (data: Any?) -> Any?)
+    fun on(actionName: String, handler: (data: JsAny?) -> JsAny?)
 
     /**
      * Sends a message to the comObj to invoke the action with the supplied data.
@@ -1687,18 +1571,7 @@ external class MessageHandler {
      * @param {JSON} data - JSON data to send.
      * @param {Array} [transfers] - List of transfers/ArrayBuffers.
      */
-    fun send(actionName: String, data: Json, transfers: Array<ArrayBufferLike>)
-
-    /**
-     * Sends a message to the comObj to invoke the action with the supplied data.
-     * Expects that the other side will callback with the response.
-     * @param {string} actionName - Action to call.
-     * @param {JSON} data - JSON data to send.
-     * @param {Array} [transfers] - List of transfers/ArrayBuffers.
-     * @returns {Promise} Promise to be resolved with response data.
-     */
-    @JsAsync
-    suspend fun sendWithPromise(actionName: String, data: Json, transfers: Array<ArrayBufferLike>): Any?
+    fun send(actionName: String, data: JsAny?, transfers: JsArray<ArrayBufferLike>)
 
     /**
      * Sends a message to the comObj to invoke the action with the supplied data.
@@ -1708,8 +1581,7 @@ external class MessageHandler {
      * @param {Array} [transfers] - List of transfers/ArrayBuffers.
      * @returns {Promise} Promise to be resolved with response data.
      */
-    @JsName("sendWithPromise")
-    fun sendWithPromiseAsync(actionName: String, data: Json, transfers: Array<ArrayBufferLike>): Promise<Any?>
+    fun sendWithPromise(actionName: String, data: JsAny?, transfers: JsArray<ArrayBufferLike>): Promise<JsAny?>
 
     /**
      * Sends a message to the comObj to invoke the action with the supplied data.
@@ -1723,17 +1595,17 @@ external class MessageHandler {
      */
     fun sendWithStream(
         actionName: String,
-        data: Json,
-        queueingStrategy: Any?,
-        transfers: Array<ArrayBufferLike>
-    ): ReadableStream<Any?>
+        data: JsAny?,
+        queueingStrategy: JsAny?,
+        transfers: JsArray<ArrayBufferLike>
+    ): ReadableStream<JsAny?>
 
     fun destroy()
 }
 
-external class Metadata : JsIterable<Tuple2<String, Json>> {
-    fun getRaw(): Json
-    fun get(name: String): Json?
+external class Metadata : JsIterable<Tuple2<JsString, JsAny?>> {
+    fun getRaw(): JsAny?
+    fun get(name: String): JsAny?
 }
 
 open external class BaseException : JsError {

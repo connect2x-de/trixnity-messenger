@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalJsExport::class)
+@file:OptIn(ExperimentalJsExport::class, ExperimentalWasmJsInterop::class)
 @file:Suppress(
     "PropertyName", "LocalVariableName", "FunctionName",
     "unused", "NOTHING_TO_INLINE", "DuplicatedCode",
@@ -7,18 +7,25 @@
 package pdfjs
 
 import js.buffer.BufferSource
+import js.collections.JsMap
 import js.objects.unsafeJso
 import js.promise.Promise
 import web.canvas.CanvasRenderingContext2D
 import web.html.HTMLCanvasElement
 import web.html.HTMLDocument
 import web.workers.Worker
-import kotlin.js.Json
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsArray
+import kotlin.js.JsExport
+import kotlin.js.JsNumber
+import kotlin.js.JsString
 
 @JsExport.Ignore
 inline fun RefProxy(
-    num: Number? = null,
-    gen: Number? = null,
+    num: JsNumber? = null,
+    gen: JsNumber? = null,
 ) = unsafeJso<RefProxy> {
     num?.let { this.num = it }
     gen?.let { this.gen = it }
@@ -26,34 +33,34 @@ inline fun RefProxy(
 
 @JsExport.Ignore
 inline fun DocumentInitParameters(
-    url: Any? = null,
+    url: JsAny? = null,
     data: BufferSource? = null,
-    httpHeaders: Json? = null,
+    httpHeaders: JsAny? = null,
     withCredentials: Boolean? = null,
     password: String? = null,
-    length: Number? = null,
+    length: JsNumber? = null,
     range: PDFDataRangeTransport? = null,
-    rangeChunkSize: Number? = null,
+    rangeChunkSize: JsNumber? = null,
     worker: PDFWorker? = null,
-    verbosity: Number? = null,
+    verbosity: JsNumber? = null,
     docBaseUrl: String? = null,
     cMapUrl: String? = null,
     cMapPacked: Boolean? = null,
-    CMapReaderFactory: Any? = null,
+    CMapReaderFactory: JsAny? = null,
     iccUrl: String? = null,
     useSystemFonts: Boolean? = null,
     standardFontDataUrl: String? = null,
-    StandardFontDataFactory: Any? = null,
+    StandardFontDataFactory: JsAny? = null,
     wasmUrl: String? = null,
-    WasmFactory: Any? = null,
+    WasmFactory: JsAny? = null,
     useWorkerFetch: Boolean? = null,
     useWasm: Boolean? = null,
     stopAtErrors: Boolean? = null,
-    maxImageSize: Number? = null,
+    maxImageSize: JsNumber? = null,
     isEvalSupported: Boolean? = null,
     isOffscreenCanvasSupported: Boolean? = null,
     isImageDecoderSupported: Boolean? = null,
-    canvasMaxAreaInBytes: Number? = null,
+    canvasMaxAreaInBytes: JsNumber? = null,
     disableFontFace: Boolean? = null,
     fontExtraProperties: Boolean? = null,
     enableXfa: Boolean? = null,
@@ -61,9 +68,9 @@ inline fun DocumentInitParameters(
     disableRange: Boolean? = null,
     disableStream: Boolean? = null,
     disableAutoFetch: Boolean? = null,
-    pdfBug: Any? = null,
-    CanvasFactory: Any? = null,
-    FilterFactory: Any? = null,
+    pdfBug: JsAny? = null,
+    CanvasFactory: JsAny? = null,
+    FilterFactory: JsAny? = null,
     enableHWA: Boolean? = null,
 ) = unsafeJso<DocumentInitParameters> {
     url?.let { this.url = it }
@@ -109,8 +116,8 @@ inline fun DocumentInitParameters(
 
 @JsExport.Ignore
 inline fun OnProgressParameters(
-    loaded: Number? = null,
-    total: Number? = null,
+    loaded: JsNumber? = null,
+    total: JsNumber? = null,
 ) = unsafeJso<OnProgressParameters> {
     loaded?.let { this.loaded = it }
     total?.let { this.total = it }
@@ -118,10 +125,10 @@ inline fun OnProgressParameters(
 
 @JsExport.Ignore
 inline fun GetViewportParameters(
-    scale: Number? = null,
-    rotation: Number? = null,
-    offsetX: Number? = null,
-    offsetY: Number? = null,
+    scale: JsNumber? = null,
+    rotation: JsNumber? = null,
+    offsetX: JsNumber? = null,
+    offsetY: JsNumber? = null,
     dontFlip: Boolean? = null,
 ) = unsafeJso<GetViewportParameters> {
     scale?.let { this.scale = it }
@@ -142,8 +149,8 @@ inline fun GetTextContentParameters(
 
 @JsExport.Ignore
 inline fun TextContent(
-    items: Array<Any?>? = null,
-    styles: Json? = null,
+    items: JsArray<JsAny?>? = null,
+    styles: JsAny? = null,
     lang: String? = null,
 ) = unsafeJso<TextContent> {
     items?.let { this.items = it }
@@ -155,9 +162,9 @@ inline fun TextContent(
 inline fun TextItem(
     str: String? = null,
     dir: String? = null,
-    transform: Array<Number>? = null,
-    width: Number? = null,
-    height: Number? = null,
+    transform: JsArray<JsNumber>? = null,
+    width: JsNumber? = null,
+    height: JsNumber? = null,
     fontName: String? = null,
     hasEOL: Boolean? = null,
 ) = unsafeJso<TextItem> {
@@ -181,8 +188,8 @@ inline fun TextMarkedContent(
 
 @JsExport.Ignore
 inline fun TextStyle(
-    ascent: Number? = null,
-    descent: Number? = null,
+    ascent: JsNumber? = null,
+    descent: JsNumber? = null,
     vertical: Boolean? = null,
     fontFamily: String? = null,
 ) = unsafeJso<TextStyle> {
@@ -204,12 +211,12 @@ inline fun RenderParameters(
     canvasContext: CanvasRenderingContext2D? = null,
     viewport: PageViewport? = null,
     intent: String? = null,
-    annotationMode: Number? = null,
-    transform: Array<Number>? = null,
-    background: Any? = null,
-    pageColors: Any? = null,
+    annotationMode: JsNumber? = null,
+    transform: JsArray<JsNumber>? = null,
+    background: JsAny? = null,
+    pageColors: JsAny? = null,
     optionalContentConfigPromise: Promise<OptionalContentConfig>? = null,
-    annotationCanvasMap: Map<String, HTMLCanvasElement>? = null,
+    annotationCanvasMap: JsMap<JsString, HTMLCanvasElement>? = null,
     printAnnotationStorage: AnnotationStorage? = null,
     isEditing: Boolean? = null,
 ) = unsafeJso<RenderParameters> {
@@ -229,7 +236,7 @@ inline fun RenderParameters(
 @JsExport.Ignore
 inline fun GetOperatorListParameters(
     intent: String? = null,
-    annotationMode: Number? = null,
+    annotationMode: JsNumber? = null,
     printAnnotationStorage: PrintAnnotationStorage? = null,
     isEditing: Boolean? = null,
 ) = unsafeJso<GetOperatorListParameters> {
@@ -241,7 +248,7 @@ inline fun GetOperatorListParameters(
 
 @JsExport.Ignore
 inline fun StructTreeNode(
-    children: Array<StructTreeElement>? = null,
+    children: JsArray<StructTreeElement>? = null,
     role: String? = null,
 ) = unsafeJso<StructTreeNode> {
     children?.let { this.children = it }
@@ -259,8 +266,8 @@ inline fun StructTreeContent(
 
 @JsExport.Ignore
 inline fun PDFOperatorList(
-    fnArray: Array<Number>? = null,
-    argsArray: Array<dynamic>? = null,
+    fnArray: JsArray<JsNumber>? = null,
+    argsArray: JsArray<JsAny?>? = null,
 ) = unsafeJso<PDFOperatorList> {
     fnArray?.let { this.fnArray = it }
     argsArray?.let { this.argsArray = it }
@@ -270,7 +277,7 @@ inline fun PDFOperatorList(
 inline fun PDFWorkerParameters(
     name: String? = null,
     port: Worker? = null,
-    verbosity: Number? = null,
+    verbosity: JsNumber? = null,
 ) = unsafeJso<PDFWorkerParameters> {
     name?.let { this.name = it }
     port?.let { this.port = it }
@@ -279,12 +286,12 @@ inline fun PDFWorkerParameters(
 
 @JsExport.Ignore
 inline fun PageViewportParameters(
-    viewBox: Array<Number>? = null,
-    userUnit: Number? = null,
-    scale: Number? = null,
-    rotation: Number? = null,
-    offsetX: Number? = null,
-    offsetY: Number? = null,
+    viewBox: JsArray<JsNumber>? = null,
+    userUnit: JsNumber? = null,
+    scale: JsNumber? = null,
+    rotation: JsNumber? = null,
+    offsetX: JsNumber? = null,
+    offsetY: JsNumber? = null,
     dontFlip: Boolean? = null,
 ) = unsafeJso<PageViewportParameters> {
     viewBox?.let { this.viewBox = it }
@@ -298,10 +305,10 @@ inline fun PageViewportParameters(
 
 @JsExport.Ignore
 inline fun PageViewportCloneParameters(
-    scale: Number? = null,
-    rotation: Number? = null,
-    offsetX: Number? = null,
-    offsetY: Number? = null,
+    scale: JsNumber? = null,
+    rotation: JsNumber? = null,
+    offsetX: JsNumber? = null,
+    offsetY: JsNumber? = null,
     dontFlip: Boolean? = null,
 ) = unsafeJso<PageViewportCloneParameters> {
     scale?.let { this.scale = it }
