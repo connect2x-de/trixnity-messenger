@@ -15,6 +15,8 @@
 package zipjs
 
 import js.objects.unsafeJso
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
 
 @JsExport.Ignore
 inline fun Configuration(
