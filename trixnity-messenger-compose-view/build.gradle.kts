@@ -62,7 +62,7 @@ kotlin {
             }
             group("skia") {
                 withJvm()
-                withJs()
+                group("web")
                 group("ios")
             }
         }
