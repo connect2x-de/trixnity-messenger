@@ -76,9 +76,9 @@ build:linux:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      compileKotlin{Jvm,Js}
+      compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
-      compileTestKotlin{Jvm,Js}
+      compileTestKotlin{Jvm,Js,WasmJs}
       compileReleaseUnitTestKotlinAndroid
       --stacktrace
 
@@ -110,7 +110,7 @@ test:linux:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      :trixnity-messenger:{jvm,js}Test
+      :trixnity-messenger:{jvm,js,wasmJs}Test
       :trixnity-messenger:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
@@ -149,6 +149,7 @@ test:smoketest-web:
   script:
     - ./gradlew
       :trixnity-messenger-compose-view:jsBrowserTest
+      :trixnity-messenger-compose-view:wasmJsBrowserTest
       --stacktrace
 
 test:smoketest-android:
@@ -251,7 +252,7 @@ publish:linux-dev:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease}PublicationToGitlabRepository
+      publish{KotlinMultiplatform,Jvm,Js,WasmJs,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
 
 publish:release:

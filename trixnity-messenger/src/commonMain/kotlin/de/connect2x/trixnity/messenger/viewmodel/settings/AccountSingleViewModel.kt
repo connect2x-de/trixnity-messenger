@@ -2,8 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
-import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
+import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.model.UserId
@@ -62,7 +61,7 @@ class AccountSingleViewModelImpl(
     override val displayName = matrixClient.profile.map { it?.get(ProfileField.DisplayName)?.value ?: "" }
         .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.setDisplayName?.enabled ?: true }
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -86,7 +85,7 @@ class AccountSingleViewModelImpl(
     }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     override val canChangeAvatar =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: true }
+        matrixClient.serverData.map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
     override val initials = matrixClient.profile.map {

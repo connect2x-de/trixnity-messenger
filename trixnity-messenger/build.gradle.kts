@@ -13,8 +13,8 @@ import de.connect2x.conventions.registerCoverageTask
 import de.connect2x.conventions.withAndroidLibrary
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
-import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
+import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
@@ -43,7 +43,7 @@ kotlin {
             }
         }
     }
-    withJs {
+    withWeb {
         withBrowser {
             commonWebpackConfig {
                 showProgress = true
@@ -84,7 +84,7 @@ kotlin {
             group("nonAndroid") {
                 withJvm()
                 group("ios")
-                withJs()
+                group("web")
             }
         }
     }
@@ -163,7 +163,7 @@ kotlin {
                 implementation(sharedLibs.ktor.client.darwin)
             }
         }
-        jsMain {
+        webMain {
             dependencies {
                 implementation(libs.trixnity.client.repository.indexeddb)
                 api(libs.trixnity.client.media.opfs)

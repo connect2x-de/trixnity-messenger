@@ -25,7 +25,7 @@ import kotlin.test.Test
 class MessengerClientTest {
 
     init {
-        Backend.setOnce(TestBackend)
+        Backend.set(TestBackend)
     }
 
     @Test

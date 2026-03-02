@@ -17,6 +17,7 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.coroutineDispatcher
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -28,6 +29,8 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -36,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.koin.dsl.koinApplication
@@ -49,6 +53,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("NonAsciiCharacters")
 class OutboxElementHolderViewModelTest {
 
@@ -89,6 +94,7 @@ class OutboxElementHolderViewModelTest {
 
 
     init {
+        Dispatchers.setMain(scope.coroutineDispatcher)
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
         every { matrixClientMock.di } returns koinApplication {
             modules(
