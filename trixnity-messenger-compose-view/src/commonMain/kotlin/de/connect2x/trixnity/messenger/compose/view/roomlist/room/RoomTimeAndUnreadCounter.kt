@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -15,24 +15,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
-import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
-fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementViewModel) {
+fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementViewModel, showRoomTime: Boolean = true) {
     val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
     val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
     val isUnread = roomListElementViewModel.isUnread.collectAsState().value
     val notificationCount = roomListElementViewModel.notificationCount.collectAsState().value
+    val actionVisibility = animateFloatAsState(targetValue = if (showRoomTime) 1f else 0f).value
 
     Tooltip(
         { Text(usersTyping ?: lastMessage ?: " ") },
@@ -42,7 +41,9 @@ fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementVi
             modifier = Modifier,
             horizontalAlignment = Alignment.End
         ) {
-            RoomTime(roomListElementViewModel)
+            Box(Modifier.alpha(actionVisibility)) {
+                RoomTime(roomListElementViewModel)
+            }
             VerySmallSpacer()
             val size = MaterialTheme.typography.labelSmall.dp
             Box(Modifier.size(size)) {
