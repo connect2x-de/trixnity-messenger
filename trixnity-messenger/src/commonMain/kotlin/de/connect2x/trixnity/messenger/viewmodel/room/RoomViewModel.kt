@@ -4,7 +4,6 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
@@ -17,9 +16,6 @@ import kotlinx.coroutines.launch
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.None as ExtrasWrapperNone
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config.None as TimelineNone
@@ -130,13 +126,6 @@ open class RoomViewModelImpl(
 
     init {
         log.debug { "create RoomViewModel for: ${roomId.full} " }
-        coroutineScope.launch {
-            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).firstOrNull()?.unread
-                    ?: true
-            ) {
-                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
-            }
-        }
         coroutineScope.launch { timelineRouter.openTimeline(roomId) }
     }
 

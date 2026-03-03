@@ -49,17 +49,14 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.key.KeyService
-import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.TimelineStateChange
-import de.connect2x.trixnity.client.room.getAccountData
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.client.verification.VerificationService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.EventId
@@ -69,15 +66,11 @@ import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
-import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
-import de.connect2x.trixnity.messenger.eventually
-import dev.mokkery.answering.calls
-import io.kotest.matchers.shouldBe
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
@@ -86,7 +79,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 
 class RoomViewModelTest {
@@ -102,7 +94,6 @@ class RoomViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
-    val roomApiClient = mock<RoomApiClient>()
     private val keyServiceMock = mock<KeyService>()
     private val verificationServiceMock = mock<VerificationService>()
     private val syncApiClientMock = mock<SyncApiClient>()
@@ -127,7 +118,6 @@ class RoomViewModelTest {
             isNetworkAvailable,
             runInitialSyncMock,
             minimizeMessengerMock,
-            roomApiClient
         )
         lifecycle = LifecycleRegistry()
         lifecycle.resume()
@@ -147,7 +137,6 @@ class RoomViewModelTest {
         everySuspend { matrixClientMock.startSync() } returns Unit
         everySuspend { matrixClientMock.cancelSync() } returns Unit
         every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
-        every { matrixClientServerApiClientMock.room } returns roomApiClient
         every { roomServiceMock.getAll() } returns roomsFlow
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
         every {
@@ -362,28 +351,6 @@ class RoomViewModelTest {
         cut.extrasAs<RoomSettings>().viewModel.close()
         cut shouldShowTimeline true
         cut shouldShowExtras false
-    }
-
-    @Test
-    fun `mark room as read when opening`() = runTest {
-        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
-            MarkedUnreadEventContent(true)
-        )
-        var setRoomAsReadCalled = false
-        everySuspend {
-            roomApiClient.setAccountData(
-                MarkedUnreadEventContent(false),
-                any(),
-                any(),
-            )
-        } calls {
-            setRoomAsReadCalled = true
-            Result.success(Unit)
-        }
-        val cut = cutRoomViewModel()
-        eventually(2.seconds) {
-            setRoomAsReadCalled shouldBe true
-        }
     }
 
 

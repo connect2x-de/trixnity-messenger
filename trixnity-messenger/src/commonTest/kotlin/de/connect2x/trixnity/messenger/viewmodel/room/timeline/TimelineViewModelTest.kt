@@ -19,6 +19,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -38,6 +39,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
@@ -905,6 +907,32 @@ class TimelineViewModelTest {
         }
     }
 
+    @Test
+    fun `mark room as read when opening`() = runTest {
+        val timelineMock = timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = alice) { text("Text message") }
+        }
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(true)
+        )
+        var setRoomAsReadCalled = false
+        everySuspend {
+            roomsApiClientMock.setAccountData(
+                MarkedUnreadEventContent(false),
+                any(),
+                any(),
+            )
+        } calls {
+            setRoomAsReadCalled = true
+            Result.success(Unit)
+        }
+        timelineViewModel()
+        eventually(2.seconds) {
+            setRoomAsReadCalled shouldBe true
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.timelineViewModel(
         onBackMock: () -> Unit = mock(),
     ): TimelineViewModel {
