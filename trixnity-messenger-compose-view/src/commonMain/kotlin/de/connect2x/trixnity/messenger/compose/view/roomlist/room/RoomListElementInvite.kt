@@ -32,20 +32,19 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 interface InviteRoomListElement {
     @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel, index: Int)
+    fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
 fun Invite(
     roomListElementViewModel: RoomListElementViewModel,
-    index: Int,
 ) {
-    DI.get<InviteRoomListElement>().create(roomListElementViewModel, index)
+    DI.get<InviteRoomListElement>().create(roomListElementViewModel)
 }
 
 class InviteRoomListElementImpl : InviteRoomListElement {
     @Composable
-    override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int) {
+    override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
         var showReject by remember { mutableStateOf(false) }
         val roomName = roomListElementViewModel.roomName.collectAsState().value
@@ -80,8 +79,7 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                         }
                     }
                 }
-            },
-            index
+            }
         )
 
         if (showReject) {

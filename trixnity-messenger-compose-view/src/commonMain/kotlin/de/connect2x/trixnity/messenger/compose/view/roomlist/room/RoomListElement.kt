@@ -16,6 +16,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
@@ -42,7 +47,7 @@ interface RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showActions: Boolean
+        showRoomTime: Boolean
     )
 }
 
@@ -69,9 +74,9 @@ fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
     index: Int,
-    showActions: Boolean
+    showRoomTime: Boolean
 ) {
-    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showActions)
+    DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showRoomTime)
 }
 
 class RoomListElementViewImpl : RoomListElementView {
@@ -80,7 +85,7 @@ class RoomListElementViewImpl : RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showActions: Boolean
+        showRoomTime: Boolean
     ) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
@@ -88,11 +93,21 @@ class RoomListElementViewImpl : RoomListElementView {
         val error by roomListElementViewModel.error.collectAsState()
         roomListElementViewModel.roomName.collectAsState().value
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
-        when {
-            isInvite -> Invite(roomListElementViewModel, index)
-            isLeave -> ArchivedRoom(roomListElementViewModel, index)
-            isKnock -> Knock(roomListElementViewModel, index)
-            else -> JoinedRoom(roomListElementViewModel, index, showActions)
+        Box(Modifier.semantics {
+            role = Role.Button
+            collectionItemInfo = CollectionItemInfo(
+                rowIndex = index,
+                rowSpan = 1,
+                columnIndex = 0,
+                columnSpan = 1,
+            )
+        }) {
+            when {
+                isInvite -> Invite(roomListElementViewModel)
+                isLeave -> ArchivedRoom(roomListElementViewModel)
+                isKnock -> Knock(roomListElementViewModel)
+                else -> JoinedRoom(roomListElementViewModel, showRoomTime)
+            }
         }
     }
 }

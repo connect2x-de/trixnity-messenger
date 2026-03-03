@@ -18,12 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.CollectionItemInfo
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.collectionItemInfo
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.PlaceholderHighlight
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.fade
@@ -34,8 +29,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 fun RoomListElementBase(
     roomListElementViewModel: RoomListElementViewModel,
     roomDetails: @Composable ColumnScope.() -> Unit,
-    roomActions: @Composable ColumnScope.() -> Unit,
-    index: Int
+    roomActions: @Composable ColumnScope.() -> Unit
 ) {
     val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
 
@@ -50,16 +44,7 @@ fun RoomListElementBase(
                     color = Color.LightGray,
                     shape = RoundedCornerShape(8.dp),
                     highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
-                )
-                .semantics {
-                    role = Role.Button
-                    collectionItemInfo = CollectionItemInfo(
-                        rowIndex = index,
-                        rowSpan = 1,
-                        columnIndex = 0,
-                        columnSpan = 1,
-                    )
-                }.fillMaxWidth(),
+                ).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(Modifier.clearAndSetSemantics {}) {

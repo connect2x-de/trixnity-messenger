@@ -32,17 +32,17 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 
 interface ArchivedRoomListElement {
     @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel, index: Int)
+    fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
-fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel, index: Int) {
-    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel, index)
+fun ArchivedRoom(roomListElementViewModel: RoomListElementViewModel) {
+    DI.get<ArchivedRoomListElement>().create(roomListElementViewModel)
 }
 
 class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     @Composable
-    override fun create(roomListElementViewModel: RoomListElementViewModel, index: Int) {
+    override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
         var showWarning by remember { mutableStateOf(false) }
         val roomName = roomListElementViewModel.roomName.collectAsState().value
@@ -65,8 +65,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                         Icon(Icons.Default.Delete, i18n.commonDelete())
                     }
                 }
-            },
-            index = index
+            }
         )
 
         if (showWarning) {
