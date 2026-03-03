@@ -53,7 +53,12 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
 }
 
 interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
-    val changeMessage: StateFlow<String?>
+    val changeMessage: StateFlow<ChangeMessage?>
+}
+
+sealed interface ChangeMessage {
+    data class Simple(val message: String) : ChangeMessage
+    data class WithDivider(val main: String, val divider: String) : ChangeMessage
 }
 
 class MemberStateTimelineElementViewModelImpl(
@@ -80,25 +85,32 @@ class MemberStateTimelineElementViewModelImpl(
                     val name = userInfo?.name ?: timelineEventSnapshot.sender.full
                     val previousContent = event.unsigned?.previousContent
                     if (previousContent is MemberEventContent) {
-                        if (content.membership != previousContent.membership) {
-                            membershipChanged(event, content, name, isDirect, previousContent)
-                        } else if (content.avatarUrl != previousContent.avatarUrl) {
-                            flowOf(i18n.eventChangeAvatar(name))
-                        } else if (content.displayName != previousContent.displayName) {
-                            if (content.displayName == null) {
-                                flowOf(i18n.eventRemoveDisplayName(previousContent.displayName ?: event.sender.full))
-                            } else {
-                                flowOf(
-                                    i18n.eventChangeDisplayName(
-                                        previousContent.displayName ?: event.sender.full,
-                                        content.displayName
-                                    )
-                                )
+                        when {
+                            content.membership != previousContent.membership -> {
+                                membershipChanged(event, content, name, isDirect, previousContent)
                             }
-                        } else {
-                            // This message is not very precise because it is also triggered when there is no change at all.
-                            // Emitting null would lead to the UI waiting for a value.
-                            membershipChanged(event, content, name, isDirect, previousContent)
+                            content.avatarUrl != previousContent.avatarUrl -> {
+                                flowOf(ChangeMessage.Simple(i18n.eventChangeAvatar(name)))
+                            }
+                            content.displayName != previousContent.displayName -> {
+                                if (content.displayName == null) {
+                                    flowOf(ChangeMessage.Simple(i18n.eventRemoveDisplayName(previousContent.displayName ?: event.sender.full)))
+                                } else {
+                                    flowOf(
+                                        ChangeMessage.Simple(
+                                            i18n.eventChangeDisplayName(
+                                                previousContent.displayName ?: event.sender.full,
+                                                content.displayName
+                                            )
+                                        )
+                                    )
+                                }
+                            }
+                            else -> {
+                                // This message is not very precise because it is also triggered when there is no change at all.
+                                // Emitting null would lead to the UI waiting for a value.
+                                membershipChanged(event, content, name, isDirect, previousContent)
+                            }
                         }
                     } else {
                         membershipChanged(event, content, name, isDirect)
@@ -113,7 +125,7 @@ class MemberStateTimelineElementViewModelImpl(
         username: String,
         isDirect: Boolean,
         previousContent: MemberEventContent? = null,
-    ): Flow<String> {
+    ): Flow<ChangeMessage> {
         val groupOrChatDative =
             if (isDirect) i18n.eventChangeChatDative()
             else i18n.eventChangeGroupDative()
@@ -121,39 +133,59 @@ class MemberStateTimelineElementViewModelImpl(
             if (isDirect) i18n.eventChangeChatAccusative()
             else i18n.eventChangeGroupAccusative()
 
+        val affectedUser = UserId(event.stateKey)
         val stateTransition = MembershipChange.of(
             from = previousContent?.membership,
             to = content.membership,
-            self = event.stateKey == event.sender.full,
+            appliedToSelf = affectedUser == event.sender,
         )
-
-        val thisUserId = UserId(event.stateKey)
-        return matrixClient.user.getById(event.roomId, thisUserId)
-            .map { user -> user?.name ?: thisUserId.full }
-            .map { thisUsername ->
-                when (stateTransition) {
-                    MembershipChange.INVITE -> i18n.eventChangeInvite(thisUsername, username, content.reason)
-                    MembershipChange.JOIN -> i18n.eventChangeJoin(thisUsername, groupOrChatDative)
-                    MembershipChange.BAN -> i18n.eventChangeBan(
-                        thisUsername,
-                        username,
-                        groupOrChatDative,
-                        content.reason
-                    )
-
-                    MembershipChange.KNOCK -> i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason)
-                    MembershipChange.UNBAN -> i18n.eventChangeUnban(thisUsername, username, content.reason)
-                    MembershipChange.INVITE_REJECT -> i18n.eventChangeRejected(thisUsername, content.reason)
-                    MembershipChange.INVITE_REVOKE -> i18n.eventChangeRevoked(thisUsername, username, content.reason)
-                    MembershipChange.LEAVE -> i18n.eventChangeLeave(thisUsername, groupOrChatAccusative)
-                    MembershipChange.KICK -> i18n.eventChangeKick(
-                        thisUsername,
-                        username,
-                        groupOrChatDative,
-                        content.reason
-                    )
-                }
+        val usernameFlow = 
+            matrixClient.user.getById(event.roomId, affectedUser)
+                .map { user -> user?.name ?: affectedUser.full }
+        val roomFlow = matrixClient.room.getById(event.roomId).filterNotNull()
+        return combine(usernameFlow, roomFlow) { thisUsername, room ->
+            when (stateTransition) {
+                MembershipChange.INVITE -> 
+                    ChangeMessage.Simple(i18n.eventChangeInvite(thisUsername, username, content.reason))
+                MembershipChange.JOIN -> {
+                        val currentUserJoined = matrixClient.userId == affectedUser
+                        val preJoinHistoryNotAvailable = room.encrypted && currentUserJoined 
+                        if (preJoinHistoryNotAvailable) {
+                            ChangeMessage.WithDivider(
+                                i18n.eventChangeJoin(thisUsername, groupOrChatDative),
+                                i18n.eventChangePreJoinHistoryNotAvailable()
+                            )
+                        } else {
+                            ChangeMessage.Simple(
+                                i18n.eventChangeJoin(thisUsername, groupOrChatDative),
+                            )
+                        }
+                    }
+                MembershipChange.BAN -> ChangeMessage.Simple(i18n.eventChangeBan(
+                    thisUsername,
+                    username,
+                    groupOrChatDative,
+                    content.reason
+                ))
+                MembershipChange.KNOCK -> 
+                    ChangeMessage.Simple(i18n.eventChangeKnock(thisUsername, groupOrChatDative, content.reason))
+                MembershipChange.UNBAN -> 
+                    ChangeMessage.Simple(i18n.eventChangeUnban(thisUsername, username, content.reason))
+                MembershipChange.INVITE_REJECT -> 
+                    ChangeMessage.Simple(i18n.eventChangeRejected(thisUsername, content.reason))
+                MembershipChange.INVITE_REVOKE -> 
+                    ChangeMessage.Simple(i18n.eventChangeRevoked(thisUsername, username, content.reason))
+                MembershipChange.LEAVE -> 
+                    ChangeMessage.Simple(i18n.eventChangeLeave(thisUsername, groupOrChatAccusative))
+                MembershipChange.KICK -> 
+                    ChangeMessage.Simple(i18n.eventChangeKick(
+                    thisUsername,
+                    username,
+                    groupOrChatDative,
+                    content.reason
+                ))
             }
+        }
     }
 }
 

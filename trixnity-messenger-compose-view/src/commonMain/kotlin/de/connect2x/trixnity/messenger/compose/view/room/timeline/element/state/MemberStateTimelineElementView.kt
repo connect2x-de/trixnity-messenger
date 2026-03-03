@@ -6,12 +6,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.HorizontalDividerWithText
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.ChangeMessage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -90,9 +92,22 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
     private fun StateElement(element: MemberStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
-                IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
+            when (changeMessage) {
+                is ChangeMessage.Simple ->
+                    SimpleIndicator(changeMessage.message)
+                is ChangeMessage.WithDivider -> {
+                    SimpleIndicator(changeMessage.main)
+                    HorizontalDividerWithText(changeMessage.divider)
+                }
             }
+            
+        }
+    }
+
+    @Composable 
+    private fun SimpleIndicator(message: String) {
+        Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
+            IndicatorText(message, MaterialTheme.colorScheme.onTertiary)
         }
     }
 }

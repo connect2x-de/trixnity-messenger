@@ -127,7 +127,7 @@ class MemberStateTimelineElementViewModelTest {
         backgroundScope.launch { cut.changeMessage.collect {} }
 
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("'I am the original' has changed their name to 'I have changed!'")
         }
     }
 
@@ -143,13 +143,55 @@ class MemberStateTimelineElementViewModelTest {
         backgroundScope.launch { cut.changeMessage.collect {} }
 
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Sender has changed the avatar image"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Sender has changed the avatar image")
         }
     }
 
     @Test
-    fun `joining user » should show an indicator for user joining a room`() = runTest {
+    fun `joining user » should show a simple indicator when someone else joins an unencrypted room`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = false) }
+        
+        val joiningUser = UserId("@bob:localhost")
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.JOIN,
+                previousMemberEventContent = null,
+                stateKey = joiningUser.full,
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has joined the group")
+        }
+    }
+    
+    @Test
+    fun `joining user » should show a simple indicator when I join an unencrypted room`() = runTest {
+        val joiningUser = UserId("@bob:localhost")
+        every { matrixClientMock.userId } returns joiningUser
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = false) }
+        
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.JOIN,
+                previousMemberEventContent = null,
+                stateKey = joiningUser.full,
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has joined the group")
+        }
+    }
 
+    @Test
+    fun `joining user » should show a simple indicator when someone else joins an encrypted room`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
+        
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.JOIN,
@@ -159,8 +201,28 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has joined the group")
         }
+    }
+
+    @Test
+    fun `joining user » should show an indicator with divider when I join an encrypted room`() = runTest {
+        val currentUser = UserId("@bob:localhost")
+        every { matrixClientMock.userId } returns currentUser
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
+        
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.JOIN,
+                previousMemberEventContent = null,
+                stateKey = currentUser.full,
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe ChangeMessage.WithDivider("Bob has joined the group", "Messages from before you joined are unavailable")
+        }
+        
     }
 
     @Test
@@ -175,7 +237,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has left the group"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has left the group")
         }
     }
 
@@ -190,7 +252,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was banned from the group by Sender")
         }
     }
 
@@ -206,7 +268,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was banned from the group by Sender because \"he spammed our chat :(\"")
         }
     }
 
@@ -221,7 +283,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was unbanned by Sender")
         }
     }
 
@@ -237,7 +299,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was unbanned by Sender because \"he spammed our chat :(\"")
         }
     }
 
@@ -252,7 +314,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was removed from the group by Sender")
         }
     }
 
@@ -268,7 +330,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Mallory was removed from the group by Sender because \"he spammed our chat :(\"")
         }
     }
 
@@ -283,7 +345,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob was invited by Sender")
         }
     }
 
@@ -299,7 +361,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob was invited by Sender because \"I want him to play Stardew Valley with us\"")
         }
     }
 
@@ -316,7 +378,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\"")
         }
     }
 
@@ -332,7 +394,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\"")
         }
     }
 
@@ -347,7 +409,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob requested to join the group. Check the room settings to manage the Request")
         }
     }
 
@@ -363,7 +425,7 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request")
         }
     }
 
@@ -378,17 +440,20 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob was invited by Sender")
         }
 
         senderName.value = "Sender2"
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender2"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob was invited by Sender2")
         }
     }
 
     @Test
-    fun `changed room » update indicator on room changing 'direct' state`() = runTest {
+    fun `changed room » update simple indicator on room changing 'direct' state`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.JOIN,
@@ -398,15 +463,45 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has joined the group")
         }
 
         isDirect.value = true
         eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the chat"
+            cut.changeMessage.value shouldBe ChangeMessage.Simple("Bob has joined the chat")
         }
     }
+    
+    @Test
+    fun `changed room » update indicator with divider on room changing 'direct' state`() = runTest {
+        val currentUser = UserId("@bob:localhost")
+        every { matrixClientMock.userId } returns currentUser
+        every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
 
+        val cut = memberStatusViewModel(
+            mockTimelineEvent(
+                membership = Membership.JOIN,
+                previousMemberEventContent = null,
+                stateKey = currentUser.full,
+            ),
+        )
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe
+                    ChangeMessage.WithDivider(
+                        "Bob has joined the group",
+                        "Messages from before you joined are unavailable")
+        }
+
+        isDirect.value = true
+        eventually(100.milliseconds) {
+            cut.changeMessage.value shouldBe
+                    ChangeMessage.WithDivider(
+                        "Bob has joined the chat",
+                        "Messages from before you joined are unavailable")
+        }
+    }
+    
     private fun TestScope.memberStatusViewModel(
         timelineEvent: TimelineEvent,
     ): MemberStateTimelineElementViewModelImpl {
