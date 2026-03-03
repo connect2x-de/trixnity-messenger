@@ -96,6 +96,9 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
      */
     val maxLength: Int
 
+    /** null means if there is no error, otherwise String contains the error message */
+    val error: Flow<String?>
+
     /**
      * Update the state.
      */
@@ -106,6 +109,7 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
 open class TextFieldViewModelImpl private constructor(
     private val delegate: MutableStateFlow<TextFieldViewModel.State>,
     maxLength: Int,
+    isValid: (String) -> String?,
 ) : TextFieldViewModel, StateFlow<TextFieldViewModel.State> by delegate.asStateFlow() {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl")
@@ -115,7 +119,8 @@ open class TextFieldViewModelImpl private constructor(
         maxLength: Int,
         initialText: String = "",
         initialSelection: IntRange? = null,
-    ) : this(MutableStateFlow(TextFieldViewModel.State(initialText, initialSelection, 1UL)), maxLength)
+        isValid: (String) -> String? = { null },
+    ) : this(MutableStateFlow(TextFieldViewModel.State(initialText, initialSelection, 1UL)), maxLength, isValid)
 
     override val text: Flow<String>
         get() = map { it.text }.distinctUntilChanged()
@@ -126,6 +131,7 @@ open class TextFieldViewModelImpl private constructor(
     override val selectionValue: IntRange?
         get() = value.selection
     override val maxLength: Int = maxLength
+    override val error: Flow<String?> = text.map { isValid(it) }
 
     override fun update(text: String, selection: IntRange?, epoch: ULong?) {
         delegate.update {
@@ -148,7 +154,7 @@ open class TextFieldViewModelImpl private constructor(
 interface ApprovableTextFieldViewModel : TextFieldViewModel {
     val isEdit: StateFlow<Boolean>
     val isLoading: StateFlow<Boolean>
-    val error: StateFlow<String?>
+    override val error: StateFlow<String?>
     fun startEdit()
     fun cancelEdit()
     fun approveEdit()

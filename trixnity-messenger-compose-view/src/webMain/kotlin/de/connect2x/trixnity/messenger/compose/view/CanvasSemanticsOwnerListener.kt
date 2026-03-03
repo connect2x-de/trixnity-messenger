@@ -1,4 +1,9 @@
-@file:OptIn(ExperimentalComposeUiApi::class, InternalComposeUiApi::class, Connect2xComposeUiApi::class)
+@file:OptIn(
+    ExperimentalComposeUiApi::class,
+    InternalComposeUiApi::class,
+    Connect2xComposeUiApi::class,
+    ExperimentalWasmJsInterop::class,
+)
 
 package de.connect2x.trixnity.messenger.compose.view
 
@@ -8,6 +13,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.PlatformContext
+import androidx.compose.ui.platform.PlatformContext.SemanticsOwnerListener
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
@@ -17,9 +23,9 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
-import androidx.compose.ui.window.ComposeViewport
-import kotlinx.browser.document
-import kotlinx.browser.window
+import androidx.compose.ui.window.ComposeViewportConfiguration
+import js.core.JsPrimitives.toKotlinString
+import js.objects.unsafeJso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -27,31 +33,50 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
-import org.jetbrains.skiko.wasm.onWasmReady
-import org.w3c.dom.DocumentReadyState
-import org.w3c.dom.HTMLButtonElement
-import org.w3c.dom.HTMLCanvasElement
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLInputElement
-import org.w3c.dom.HTMLProgressElement
-import org.w3c.dom.ItemArrayLike
-import org.w3c.dom.LOADING
-import org.w3c.dom.events.Event
-import org.w3c.dom.events.EventListener
-import org.w3c.dom.events.KeyboardEvent
+import web.dom.DocumentReadyState
+import web.dom.Node
+import web.dom.NodeList
+import web.dom.document
+import web.dom.loading
+import web.events.AddEventListenerOptions
+import web.events.Event
+import web.events.EventHandler
+import web.events.EventTarget
+import web.events.EventType
+import web.events.addEventListener
+import web.events.removeEventListener
+import web.html.HTMLButtonElement
+import web.html.HTMLCanvasElement
+import web.html.HTMLDivElement
+import web.html.HTMLElement
+import web.html.HTMLInputElement
+import web.html.HTMLProgressElement
+import web.keyboard.KeyboardEvent
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsString
+import kotlin.js.definedExternally
+import kotlin.js.js
+import kotlin.js.undefined
+import kotlin.js.unsafeCast
 import kotlin.time.Duration.Companion.seconds
 
+internal expect fun onWasmReady(onReady: () -> Unit)
+
+@Suppress("FunctionName")
+internal expect fun ComposeViewport(
+    viewportContainer: HTMLElement,
+    semanticsListener: (a11yContainer: HTMLDivElement) -> SemanticsOwnerListener,
+    configure: ComposeViewportConfiguration.() -> Unit = {},
+    content: @Composable () -> Unit = { }
+)
 
 @Suppress("FunctionName")
 fun AccessibleComposeViewport(content: @Composable () -> Unit = {}) {
     onDomReady {
         onWasmReady {
-
-            val body = document.body ?: error("failed to find <body> element")
-
             ComposeViewport(
-                viewportContainer = body,
+                viewportContainer = document.body,
                 semanticsListener = { CanvasSemanticsOwnerListener(it) },
                 configure = { },
                 content = content,
@@ -76,20 +101,27 @@ class CanvasSemanticsOwnerListener(
     init {
         // every browser other than Chrome needs this attribute in order for copy/paste events to be sendable to the
         // canvas. In Chrome however setting this results in copy/paste no longer working.
-        if (window.asDynamic().chrome == undefined)
+        if (!isChrome())
             canvas?.setAttribute("contenteditable", "true")
 
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
-        for (event in listOf("keydown", "keyup", "copy", "paste", "cut"))
-            a11yContainer.addEventListener(event, EventListener {
+        for (type in listOf("keydown", "keyup", "copy", "paste", "cut")) a11yContainer.addEventListener(
+            EventType(type),
+            EventHandler { event ->
                 // we need to prevent the default (moving focus) on these keys because we handle it ourselves
-                if (it is KeyboardEvent && event == "keydown"
-                    && listOf("ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Tab").contains(it.key)
-                ) it.preventDefault()
+                if (event is KeyboardEvent && type == "keydown" && listOf(
+                        "ArrowLeft",
+                        "ArrowRight",
+                        "ArrowDown",
+                        "ArrowUp",
+                        "Tab"
+                    ).contains(event.key)
+                ) event.preventDefault()
 
-                eventHandlerCaller?.callWithEvent(it)
-            }, true)
+                eventHandlerCaller?.callWithEvent(event)
+            },
+            unsafeJso { capture = true })
 
         coroutineScope.launch {
             syncFlow
@@ -242,7 +274,7 @@ class CanvasSemanticsOwnerListener(
                     }
                 }
             }
-        ) as HTMLElement
+        )
     }
 
     private fun setAttrs(el: HTMLElement, node: SemanticsNode) {
@@ -396,7 +428,7 @@ class CanvasSemanticsOwnerListener(
         val clickable = node.config.getOrNull(SemanticsActions.OnClick) != null
         if (clickable) {
             if (el.clickListener == null) {
-                el.clickListener = EventListener {
+                el.clickListener = EventHandler {
                     doIf(SemanticsActions.OnClick) { it.action?.invoke() }
                 }
             }
@@ -413,7 +445,7 @@ class CanvasSemanticsOwnerListener(
                 || node.config.getOrNull(SemanticsActions.RequestFocus) != null
         if (focusable) {
             if (el.focusListener == null) {
-                val focusListener = EventListener {
+                val focusListener = EventHandler {
                     doIf(SemanticsActions.RequestFocus) { it.action?.invoke() }
                 }
 
@@ -456,19 +488,19 @@ class CanvasSemanticsOwnerListener(
     }
 }
 
-private fun <T> ItemArrayLike<T>.asSequence(): Sequence<T> = object : Sequence<T> {
+private fun <T : Node> NodeList<T>.asSequence(): Sequence<T> = object : Sequence<T> {
     override fun iterator(): Iterator<T> = object : Iterator<T> {
         var index = 0
 
-        override fun next(): T = item(index).unsafeCast<T>().also { index++ }
+        override fun next(): T = checkNotNull(item(index)).unsafeCast<T>().also { index++ }
         override fun hasNext(): Boolean = index < length
 
     }
 }
 
 fun onDomReady(block: () -> Unit) {
-    if (document.readyState == DocumentReadyState.LOADING) {
-        document.addEventListener("DOMContentLoaded", {
+    if (document.readyState == DocumentReadyState.loading) {
+        document.addEventListener(EventType("DOMContentLoaded"), EventHandler {
             block()
         })
     } else {
@@ -476,47 +508,47 @@ fun onDomReady(block: () -> Unit) {
     }
 }
 
-private external interface FocusListenerElement {
-    var focusListener: EventListener?
+private external interface FocusListenerElement : JsAny {
+    var focusListener: AnyEventHandler?
 }
 
-private var HTMLElement.focusListener: EventListener?
+private var HTMLElement.focusListener: AnyEventHandler?
     get() = unsafeCast<FocusListenerElement>().focusListener.takeIf { it != undefined }
     set(value) {
         val self = unsafeCast<FocusListenerElement>()
 
         self.focusListener?.also {
             self.focusListener = undefined
-            removeEventListener("focus", it)
+            removeEventListener(EventType("focus"), it)
         }
 
         value?.also {
             self.focusListener = it
-            addEventListener("focus", it)
+            addEventListener(EventType("focus"), it)
         }
     }
 
-private external interface ClickListenerElement {
-    var clickListener: EventListener?
+private external interface ClickListenerElement : JsAny {
+    var clickListener: AnyEventHandler?
 }
 
-private var HTMLElement.clickListener: EventListener?
+private var HTMLElement.clickListener: AnyEventHandler?
     get() = unsafeCast<ClickListenerElement>().clickListener.takeIf { it != undefined }
     set(value) {
         val self = unsafeCast<ClickListenerElement>()
 
         self.clickListener?.also {
             self.clickListener = undefined
-            removeEventListener("click", it)
+            removeEventListener(EventType("click"), it)
         }
 
         value?.also {
             self.clickListener = it
-            addEventListener("click", it)
+            addEventListener(EventType("click"), it)
         }
     }
 
-private external interface Checked {
+private external interface Checked : JsAny {
     var checked: Boolean
 }
 
@@ -526,15 +558,26 @@ private var HTMLElement.checked: Boolean
         unsafeCast<Checked>().checked = value
     }
 
-private external interface EventTargetExt {
-    var addEventListener: (type: String, listener: EventListener, options: dynamic) -> Unit
-    var removeEventListener: (type: String, listener: EventListener, options: dynamic) -> Unit
+typealias AnyEventHandler = EventHandler<*, *, *>
+
+private external interface EventTargetExtWrite : JsAny {
+    var addEventListener: (type: String, listener: AnyEventHandler, options: AddEventListenerOptions?) -> Unit
+    var removeEventListener: (type: String, listener: AnyEventHandler, options: AddEventListenerOptions?) -> Unit
+}
+
+private external interface EventTargetExtRead<T : EventTarget> : JsAny {
+    var addEventListener: EventTargetCallback<T>
+    var removeEventListener: EventTargetCallback<T>
+}
+
+private external interface EventTargetCallback<T : EventTarget> {
+    fun call(self: T, type: String, listener: AnyEventHandler, options: AddEventListenerOptions? = definedExternally)
 }
 
 private data class EventListenerInfo(
     val type: String,
-    val listener: EventListener,
-    val options: dynamic,
+    val listener: AnyEventHandler,
+    val options: AddEventListenerOptions?,
 )
 
 private fun interface EventHandlerCaller {
@@ -547,36 +590,38 @@ private fun EventHandlerCaller(canvas: HTMLCanvasElement): EventHandlerCaller {
     // As a workaround, we intercept calls to addEventListener and removeEventListener on the canvas,
     // maintain our own collection of listeners, and invoke them directly so the original trusted events remain intact.
 
-    val map: MutableMap<EventListener, EventListenerInfo> = mutableMapOf()
-    val eventTarget = canvas.unsafeCast<EventTargetExt>()
+    val map: MutableMap<AnyEventHandler, EventListenerInfo> = mutableMapOf()
+    val eventTarget = canvas.unsafeCast<EventTargetExtRead<HTMLCanvasElement>>()
+    val eventTargetWrite = canvas.unsafeCast<EventTargetExtWrite>()
 
-    val originalAddEventListener = js("""eventTarget.addEventListener.bind(eventTarget)""")
-    eventTarget.addEventListener = { type, listener, options ->
+    val originalAddEventListener = eventTarget.addEventListener
+    eventTargetWrite.addEventListener = { type, listener, options ->
         map[listener] = EventListenerInfo(type, listener, options)
-        originalAddEventListener(type, listener, options)
+        originalAddEventListener.call(canvas, type, listener, options)
     }
 
-    val originalRemoveEventHandler = js("""eventTarget.removeEventListener.bind(eventTarget)""")
-    eventTarget.removeEventListener = { type, listener, options ->
+    val originalRemoveEventHandler = eventTarget.removeEventListener
+    eventTargetWrite.removeEventListener = { type, listener, options ->
         map.remove(listener)
-        originalRemoveEventHandler(type, listener, options)
+        originalRemoveEventHandler.call(canvas, type, listener, options)
     }
 
     return EventHandlerCaller { event ->
         for (info in map.values) {
-            if (info.type == event.type) {
-                // DO NOT REMOVE! This is not unused. Look at the js below.
-                val listener = info.listener
-                js(
-                    """
-                    if ("handleEvent" in listener) {
-                        listener.handleEvent(event)
-                    } else {
-                        listener(event)
-                    }
-                """
-                )
+            if (info.type == event.type.unsafeCast<JsString>().toKotlinString()) {
+                if (handleEventInListener(info.listener)) {
+                    callHandleEvent(info.listener, event)
+                } else {
+                    call(info.listener, event)
+                }
             }
         }
     }
 }
+
+private fun handleEventInListener(listener: AnyEventHandler): Boolean = js(""""handleEvent" in listener""")
+private fun callHandleEvent(listener: AnyEventHandler, event: Event): Unit = js("""listener.handleEvent(event)""")
+private fun call(listener: AnyEventHandler, event: Event): Unit = js("""listener(event)""")
+
+
+private fun isChrome(): Boolean = js("""typeof window.chrome !== "undefined"""")

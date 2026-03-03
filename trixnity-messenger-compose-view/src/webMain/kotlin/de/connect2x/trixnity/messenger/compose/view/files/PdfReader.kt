@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.compose.view.files
 
 import androidx.compose.ui.graphics.ImageBitmap
@@ -17,12 +19,15 @@ import web.dom.document
 import web.html.HTMLCanvasElement
 import web.html.toBlob
 import web.url.URL
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toInt
+import kotlin.js.toJsNumber
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.PdfReaderKt")
 
 suspend fun PdfReaderWeb(blob: Blob): PdfReaderWeb {
     val doc = getDocument(URL(URL.createObjectURL(blob))).promise.await()
-    val documentWidth = doc.getPageAsync(1).await().getViewport(GetViewportParameters(1f)).width.toInt()
+    val documentWidth = doc.getPage(1.toJsNumber()).await().getViewport(GetViewportParameters(1.toJsNumber())).width.toInt()
     return PdfReaderWeb(doc, documentWidth)
 }
 
@@ -35,8 +40,8 @@ class PdfReaderWeb internal constructor(
         if (pageIndex > pageSize) throw IllegalArgumentException("Page index must be smaller or equal to Page size ($pageSize)")
         val scale = dpi.div(72f)
 
-        val page = pdfDocument.getPageAsync(pageIndex).await()
-        val scaledViewport = page.getViewport(GetViewportParameters(scale = scale))
+        val page = pdfDocument.getPage(pageIndex.toJsNumber()).await()
+        val scaledViewport = page.getViewport(GetViewportParameters(scale = scale.toDouble().toJsNumber()))
         log.debug {
             "render pdf page $pageIndex " +
                     "to viewport (${scaledViewport.width}x${scaledViewport.height}) " +

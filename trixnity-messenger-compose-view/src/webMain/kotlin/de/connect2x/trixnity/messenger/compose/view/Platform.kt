@@ -15,9 +15,9 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import kotlinx.browser.window
-import kotlinx.coroutines.await
 import org.koin.core.Koin
+import web.clipboard.writeText
+import web.navigator.navigator
 
 @Composable
 actual fun VerticalScrollbar(
@@ -86,5 +86,5 @@ actual fun Modifier.pointerEventWrapper(
 )
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
-    window.navigator.clipboard.writeText(value).await()
+    navigator.clipboard.writeText(value)
 }

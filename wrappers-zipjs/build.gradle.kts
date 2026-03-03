@@ -1,6 +1,6 @@
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.withBrowser
-import de.connect2x.conventions.withJs
+import de.connect2x.conventions.withWeb
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -10,7 +10,7 @@ plugins {
 kotlin {
     withSourcesJar()
     defaultCompilerOptions()
-    withJs {
+    withWeb {
         withBrowser {
             commonWebpackConfig {
                 showProgress = true

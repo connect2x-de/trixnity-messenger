@@ -1,12 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
-import de.connect2x.trixnity.clientserverapi.model.server.setDisplayName
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -142,7 +141,7 @@ class AccountsViewModelImpl(
         if (newDisplayName != getDisplayNameFlow(userId)?.value) {
             coroutineScope.launch {
                 val matrixClient = getMatrixClient(userId)
-                if (matrixClient.serverData.value?.capabilities?.capabilities?.setDisplayName?.enabled ?: true) {
+                if (matrixClient.serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
                     log.debug { "set new display name in account $userId: $newDisplayName" }
                     matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName))
                         .onFailure {
@@ -161,7 +160,7 @@ class AccountsViewModelImpl(
     }
 
     override fun openAvatarCutter(userId: UserId, file: FileDescriptor) {
-        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.setAvatarUrl?.enabled ?: true) {
+        if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
             onOpenAvatarCutter(userId, file)
         } else {
             log.warn { "Missing server capability to change the user avatar." }

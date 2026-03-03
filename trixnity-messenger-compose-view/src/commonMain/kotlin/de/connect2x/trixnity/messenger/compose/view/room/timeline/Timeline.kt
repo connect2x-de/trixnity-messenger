@@ -121,8 +121,12 @@ class TimelineViewImpl : TimelineView {
 
         val focusManager = LocalFocusManager.current
 
+        val showTypingIndicator =
+            remember { timelineViewModel.canLoadAfter.throttleFirst(300.milliseconds) }
+                .collectAsState(false).value == false
+
         val initialFirstVisibleItemIndex =
-            getInitialFirstVisibleItemIndex(timelineViewModel, timelineViewElements.value)
+            getInitialFirstVisibleItemIndex(timelineViewModel, timelineViewElements.value, showTypingIndicator)
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
             if (isTimelineLoading || initialFirstVisibleItemIndex == null) {
                 Box(Modifier.fillMaxSize()) {
@@ -131,9 +135,6 @@ class TimelineViewImpl : TimelineView {
             } else {
                 val listState =
                     rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
-                val showTypingIndicator =
-                    remember { timelineViewModel.canLoadAfter.throttleFirst(300.milliseconds) }
-                        .collectAsState(false).value == false
 
                 LaunchedEffect(scrollTo, timelineViewElements.value, showTypingIndicator) {
                     if (scrollTo != null) {
@@ -142,7 +143,13 @@ class TimelineViewImpl : TimelineView {
                         } ?: -1
                         if (index >= 0) {
                             log.debug { "scrolling to $scrollTo (index=$index)" }
-                            listState.animateScrollToItem(if (showTypingIndicator) index + 1 else index)
+                            listState.animateScrollToItem(
+                                when {
+                                    index == 0 && showTypingIndicator -> 0
+                                    showTypingIndicator -> index + 1
+                                    else -> index
+                                }
+                            )
                             scrollTo = null
                         }
                     }
@@ -400,17 +407,25 @@ fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?>
 fun getInitialFirstVisibleItemIndex(
     timelineViewModel: TimelineViewModel,
     timelineViewElements: List<TimelineViewElement>,
+    showTypingIndicator: Boolean
 ): Int? {
     var initialFirstVisibleItemIndex by remember { mutableStateOf<Int?>(null) }
     var initialScrollTo by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         initialScrollTo = timelineViewModel.scrollTo.first()
     }
-    LaunchedEffect(initialScrollTo, timelineViewElements) {
+    LaunchedEffect(initialScrollTo, timelineViewElements, showTypingIndicator) {
         if (initialFirstVisibleItemIndex != null || initialScrollTo == null) return@LaunchedEffect
         initialFirstVisibleItemIndex = timelineViewElements.indexOfLast { element ->
             element is TimelineViewElement.Element && element.viewModel.key == initialScrollTo
         }.takeIf { it >= 0 }
+            ?.let { index ->
+                when {
+                    index == 0 && showTypingIndicator -> 0
+                    showTypingIndicator -> index + 1
+                    else -> index
+                }
+            }
     }
     return initialFirstVisibleItemIndex
 }

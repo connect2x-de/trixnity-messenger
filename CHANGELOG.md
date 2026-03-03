@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- WEB,SDK: Support Kotlin/WasmJs
+- SDK: TextFieldViewModel: allow for input validation
 - UI: Context menu for room list which currently includes the option to mark as unread
 
 ### Changed
@@ -19,9 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- WEB/SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
-
 ### Security
+
+## 4.2.3
+
+### Fixed
+
+- UI: Fix some scrolling offsets
+- WEB,SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
 
 ## 4.2.2
 

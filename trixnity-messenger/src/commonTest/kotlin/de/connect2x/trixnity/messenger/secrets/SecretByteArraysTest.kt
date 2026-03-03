@@ -94,7 +94,7 @@ class SecretByteArraysTest {
             SecretByteArraySettings(mapOf(), mapOf(), null)
         }
         cut.set("secret", "***".encodeToByteArray())
-        settings.value.secretByteArrays?.secrets?.get("secret") shouldBe
+        settings.value.secretByteArrays.secrets?.get("secret") shouldBe
                 SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
@@ -105,7 +105,7 @@ class SecretByteArraysTest {
                 SecretByteArrayKeyProvider.RotateResult(null, null, null)
 
         cut.set("secret", "***".encodeToByteArray())
-        settings.value.secretByteArrays?.secrets?.get("secret") shouldBe
+        settings.value.secretByteArrays.secrets?.get("secret") shouldBe
                 SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
