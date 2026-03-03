@@ -185,6 +185,9 @@ import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
+import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -279,6 +282,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
             single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
+            single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }
