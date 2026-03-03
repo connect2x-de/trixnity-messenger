@@ -30,7 +30,8 @@ debug(`karma rootPath: ${rootPath}`);
 
 // This enables running tests on a custom html page without iframe
 const staticFilesDir =  path.resolve(configPath, "static");
-config.customContextFile = path.resolve(staticFilesDir, "compose_context.html");
+if (!config.customContextFile)
+    config.customContextFile = path.resolve(staticFilesDir, "compose_context.html");
 
 // https://github.com/JetBrains/compose-multiplatform-core/pull/1008#issuecomment-1956354231
 config.client.mocha = config.client.mocha || {};

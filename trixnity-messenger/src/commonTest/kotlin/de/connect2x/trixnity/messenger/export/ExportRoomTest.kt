@@ -137,17 +137,23 @@ class ExportRoomTest {
             timelineEventWithMedia(it.toLong()).first()
         }
 
+        // WARNING: These loops have to stay while loops because kotlin miscompiles wasm otherwise
+        var index: Int
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
             sinkMock.start()
-            for (timelineEvent in timelineEvents) {
-                sinkMock.processTimelineEvent(timelineEvent, null)
+            index = 0
+            while (index < timelineEvents.size) {
+                sinkMock.processTimelineEvent(timelineEvents[index], null)
+                index += 1
             }
 
-            for (timelineEventWithMedia in timelineEventsWithMedia) {
+            index = 0
+            while (index < timelineEventsWithMedia.size) {
                 mediaServiceMock.getMedia(any(), any(), false)
-                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
+                sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
+                index += 1
             }
             sinkMock.finish()
         }
@@ -173,17 +179,23 @@ class ExportRoomTest {
             timelineEventWithMedia(it.toLong()).first()
         }
 
+        // WARNING: These loops have to stay while loops because kotlin miscompiles wasm otherwise
+        var index: Int
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
             sinkMock.start()
-            for (timelineEvent in timelineEvents) {
-                sinkMock.processTimelineEvent(timelineEvent, null)
+            index = 0
+            while (index < timelineEvents.size) {
+                sinkMock.processTimelineEvent(timelineEvents[index], null)
+                index += 1
             }
 
-            for (timelineEventWithMedia in timelineEventsWithMedia) {
+            index = 0
+            while (index < timelineEventsWithMedia.size) {
                 mediaServiceMock.getMedia(any(), any(), false)
-                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
+                sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
+                index += 1
             }
             sinkMock.finish()
         }
@@ -245,6 +257,8 @@ class ExportRoomTest {
             timelineEventWithMedia(it.toLong()).first()
         }
 
+        // WARNING: These loops have to stay while loops because kotlin miscompiles wasm otherwise
+        var index: Int
         verifySuspend(VerifyMode.order) {
             sinkFactoryMock.create(roomId, fakeProperties)
 
@@ -252,13 +266,17 @@ class ExportRoomTest {
 
             roomServiceMock.getTimelineEvents(any(), any(), any(), any())
 
-            for (timelineEvent in timelineEvents) {
-                sinkMock.processTimelineEvent(timelineEvent, null)
+            index = 0
+            while (index < timelineEvents.size) {
+                sinkMock.processTimelineEvent(timelineEvents[index], null)
+                index += 1
             }
-            for (timelineEventWithMedia in timelineEventsWithMedia) {
+            index = 0
+            while (index < timelineEventsWithMedia.size) {
                 matrixClientMock.di
                 mediaServiceMock.getMedia(any(), any(), false)
-                sinkMock.processTimelineEvent(timelineEventWithMedia, notNull())
+                sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
+                index += 1
             }
             sinkMock.finish()
         }

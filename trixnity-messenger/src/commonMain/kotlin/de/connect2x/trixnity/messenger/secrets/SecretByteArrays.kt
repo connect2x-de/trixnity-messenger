@@ -142,7 +142,7 @@ class SecretByteArraysImpl(
     ): SecretByteArraySettings = rotateKeysLock.withLock {
         log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
         val secretByteArraySettings = settings.value.secretByteArrays
-        val oldSecretByteArrayKeyInfos = secretByteArraySettings?.keyInfo.orEmpty()
+        val oldSecretByteArrayKeyInfos = secretByteArraySettings.keyInfo.orEmpty()
         val newSecretByteArrayKeyInfos = mutableMapOf<String, SecretByteArrayKeyInfo>()
         val newKey =
             secretByteArrayKeyProviders.fold((null to null) as Pair<String?, SecretByteArrayKeyProvider.RotateResult?>) { (inputProviderId, inputRotateResult), secretByteArrayKeyProvider ->
@@ -172,7 +172,7 @@ class SecretByteArraysImpl(
                 }
             }.second?.let { it.getNewKey?.invoke(keySize) }
 
-        val newSecretByteArrays = secretByteArraySettings?.secrets.orEmpty()
+        val newSecretByteArrays = secretByteArraySettings.secrets.orEmpty()
             .mapValues { (id, secretByteArray) ->
                 val byteArray = get(id, secretByteArray, oldKey)
                 get(id, byteArray, newKey)

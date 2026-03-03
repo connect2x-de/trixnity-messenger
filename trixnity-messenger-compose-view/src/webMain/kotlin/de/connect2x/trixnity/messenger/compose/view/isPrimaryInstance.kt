@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalWasmJsInterop::class)
+
 package de.connect2x.trixnity.messenger.compose.view
 
 import de.connect2x.lognity.api.logger.Logger
@@ -7,6 +9,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.broadcast.BroadcastChannel
 import web.events.EventHandler
 import web.window.window
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val BROADCAST_PING: String = "ping!"

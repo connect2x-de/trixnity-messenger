@@ -33,7 +33,7 @@ interface MessageBubbleView {
     fun create(
         holder: BaseTimelineElementHolderViewModel,
         needsMaxWidth: Boolean,
-        additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
+        additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,

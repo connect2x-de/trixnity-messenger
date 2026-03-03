@@ -78,7 +78,7 @@ abstract class AbstractMediaItem(
         pauseWithoutLock()
     }
 
-    override suspend fun seekTo(position: Duration) = operationMutex.withLock {
+    override suspend fun seekTo(position: Duration): Unit = operationMutex.withLock {
         if (state.value !is MediaPlayer.Item.State.Playing) {
             elapsedTime.value = position
             return

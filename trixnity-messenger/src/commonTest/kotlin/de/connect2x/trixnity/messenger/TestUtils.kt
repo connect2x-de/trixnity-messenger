@@ -40,7 +40,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 fun configureTestLogging() {
-    Backend.setOnce(TestBackend)
+    Backend.set(TestBackend)
 }
 
 @OptIn(FlowPreview::class)
