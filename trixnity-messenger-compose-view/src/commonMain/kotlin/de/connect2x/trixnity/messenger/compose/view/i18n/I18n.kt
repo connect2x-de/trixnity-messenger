@@ -3448,12 +3448,6 @@ open class I18nView(
         DE - "Profil „$profileName“ benutzen?"
     }
 
-    open fun profileSelectDialogueBody(activeProfileName: String) = translate {
-        EN - "This might lock you out off the active profile \"$activeProfileName\"."
-        DE - "Das könnte dich aus dem aktiven Profil „$activeProfileName“ aussperren."
-    }
-
-
     open fun redactionWarningInfoTitle() = translate {
         EN - "Deletion confirmation"
         DE - "Löschvorgang bestätigen"

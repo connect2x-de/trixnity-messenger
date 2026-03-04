@@ -56,8 +56,7 @@ fun ProfileDialogues(
             SelectProfileDialogue(
                 onConfirm = { profilesSettingsSingleViewModel.selectProfile(); profilesDialogueController.closeOpenedDialogue() },
                 onCancel = { profilesDialogueController.closeOpenedDialogue() },
-                profileName = profileName,
-                activeProfileName = activeProfileName
+                profileName = profileName
             )
         }
 
@@ -119,16 +118,12 @@ fun RenameProfileDialogue(
 fun SelectProfileDialogue(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
-    profileName: String,
-    activeProfileName: String
+    profileName: String
 ) {
     val i18n = DI.get<I18nView>()
     ThemedModalDialog(onCancel) {
         ModalDialogHeader {
             Text(i18n.profileSelectDialogueHeader(profileName))
-        }
-        ModalDialogContent {
-            Text(i18n.profileSelectDialogueBody(activeProfileName), style = MaterialTheme.typography.titleMedium)
         }
         DialogueFooter(onConfirm, onCancel, i18n.commonConfirm())
     }
