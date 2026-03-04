@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.Timeli
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble.ReferencedMessagePill
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.ChangeMessage
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModel
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -37,6 +36,9 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
         index: Int,
     ) {
         StateElement(element)
+        element.preJoinHistoryWarning.collectAsState().value?.let { 
+            HorizontalDividerWithText(it) 
+        }
     }
 
     @Composable
@@ -92,22 +94,9 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
     private fun StateElement(element: MemberStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
         changeMessage?.let {
-            when (changeMessage) {
-                is ChangeMessage.Simple ->
-                    SimpleIndicator(changeMessage.message)
-                is ChangeMessage.WithDivider -> {
-                    SimpleIndicator(changeMessage.main)
-                    HorizontalDividerWithText(changeMessage.divider)
-                }
+            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
+                IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
             }
-            
-        }
-    }
-
-    @Composable 
-    private fun SimpleIndicator(message: String) {
-        Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
-            IndicatorText(message, MaterialTheme.colorScheme.onTertiary)
         }
     }
 }
