@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UI: Correctly format markdown based privacy and imprint
+- UI: Correctly render chat bubble edge for own messages
 
 ### Security
 
