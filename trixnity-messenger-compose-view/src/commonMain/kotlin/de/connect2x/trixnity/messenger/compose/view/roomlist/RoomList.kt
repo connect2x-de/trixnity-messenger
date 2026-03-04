@@ -45,7 +45,6 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElemen
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenu
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListKt")
@@ -161,17 +160,13 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
     val selectActiveAccount = remember { mutableStateOf(false) }
 
     Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
-        ThemedFloatingActionButton(
-            onClick = {
-                if (canCreateNewRoomWithAccount) {
-                    roomListViewModel.createNewRoom()
-                } else {
-                    selectActiveAccount.value = true
-                }
-            },
-            text = { Text(i18n.accountCreateNewRoom()) },
-            icon = { Icon(Icons.AutoMirrored.Filled.Chat, i18n.accountCreateNewRoom()) },
-        )
+        CreateNewChatOrGroupFloatingActionButton {
+            if (canCreateNewRoomWithAccount) {
+                roomListViewModel.createNewRoom()
+            } else {
+                selectActiveAccount.value = true
+            }
+        }
 
         ThemedDropdownMenu(
             expanded = selectActiveAccount.value,
