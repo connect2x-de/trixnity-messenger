@@ -62,7 +62,7 @@ fun MessageBubbleContainer(
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
 
     val messagePadding = remember(holder.isByMe) {
-        if (holder.isByMe) Modifier else Modifier.padding(start = 8.dp)
+        if (holder.isByMe) Modifier.padding(end = 8.dp) else Modifier.padding(start = 8.dp)
     }
     val messageBubbleStyle = when {
         sendError != null -> MaterialTheme.components.messageBubbleError
