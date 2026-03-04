@@ -192,6 +192,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.TombstoneStateTimelineElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.state.TopicStateTimelineElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.CreateNewChatOrGroupFloatingActionButton
+import de.connect2x.trixnity.messenger.compose.view.roomlist.CreateNewChatOrGroupFloatingActionButtonImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListView
@@ -427,6 +429,7 @@ fun roomListViewModule() = module {
     single<ArchivedRoomListElement> { ArchivedRoomListElementImpl() }
     single<KnockRoomListElement> { KnockRoomListElementImpl() }
     single<RoomView> { RoomViewImpl() }
+    single<CreateNewChatOrGroupFloatingActionButton> { CreateNewChatOrGroupFloatingActionButtonImpl() }
 }
 
 fun roomListHeaderViewModule() = module {
