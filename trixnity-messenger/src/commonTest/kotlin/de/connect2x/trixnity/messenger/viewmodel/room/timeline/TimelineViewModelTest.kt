@@ -909,6 +909,9 @@ class TimelineViewModelTest {
 
     @Test
     fun `mark room as read when opening`() = runTest {
+        timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = alice) { text("Text message") }
+        }
         every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
             MarkedUnreadEventContent(true)
         )
