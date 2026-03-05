@@ -3,18 +3,23 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.client.getRelationsByType
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -44,6 +49,7 @@ import org.koin.dsl.module
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class AddMembersViewModelTest {
     private val roomId = RoomId("!room")
@@ -62,6 +68,8 @@ class AddMembersViewModelTest {
     val roomsApiClientMock = mock<RoomApiClient>()
 
     val userServiceMock = mock<UserService>()
+    
+    val roomServiceMock = mock<RoomService>()
 
     private val onBackMock = mock<Function0<Unit>>()
 
@@ -78,6 +86,9 @@ class AddMembersViewModelTest {
             modules(
                 module {
                     single { userServiceMock }
+                }, 
+                module {
+                    single { roomServiceMock }
                 })
         }.koin
         every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STARTED)
@@ -87,6 +98,7 @@ class AddMembersViewModelTest {
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
+        every { roomServiceMock.getById(roomId) } returns flowOf(null)
     }
 
     @BeforeTest
@@ -239,6 +251,37 @@ class AddMembersViewModelTest {
 
         cut.error.value shouldNotBe null
         onBackWasCalled shouldBe false
+    }
+
+    @Test
+    fun `history warning - should show history warning when room is encrypted`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
+        eventually(1.seconds) {
+            cut.showPreJoinHistoryWarning.value shouldBe true
+        }
+        continually(1.seconds) {
+            cut.showPreJoinHistoryWarning.value shouldBe true
+        }
+        
+    }
+
+    @Test
+    fun `history warning - should not show history warning when room is unencrypted`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = false)
+        )
+
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
+        continually(1.seconds) {
+            cut.showPreJoinHistoryWarning.value shouldBe false
+        }
+
     }
 
     private fun TestScope.createAddMembersViewModel(): AddMembersViewModel {
