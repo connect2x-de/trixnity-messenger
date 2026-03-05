@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WEB,SDK: Support Kotlin/WasmJs
 - SDK: TextFieldViewModel: allow for input validation
 - SDK: The floating 'create new chat or group' button is now part of the DI
+- UI: Info that pre-join history is unavailable. That is in the timeline for the joined user and for the inviter when adding a member
 
 ### Changed
 
