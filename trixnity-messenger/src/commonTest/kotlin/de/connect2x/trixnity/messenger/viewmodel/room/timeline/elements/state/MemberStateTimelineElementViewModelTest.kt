@@ -219,7 +219,7 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `joining user » should show an indicator without history warning when I join an encrypted room but there is no previous content, eg on room creation`() = runTest {
+    fun `joining user » should show an indicator without history warning when I join an encrypted room but there is no previous content eg on room creation`() = runTest {
         val currentUser = UserId("@bob:localhost")
         every { matrixClientMock.userId } returns currentUser
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
