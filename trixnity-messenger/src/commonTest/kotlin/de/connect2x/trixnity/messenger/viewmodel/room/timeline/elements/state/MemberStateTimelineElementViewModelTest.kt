@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -29,7 +28,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.messenger.continually
+import kotlinx.coroutines.delay
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -126,10 +125,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
     }
 
     @Test
@@ -142,10 +140,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Sender has changed the avatar image"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Sender has changed the avatar image"
+        
     }
 
     @Test
@@ -163,13 +161,11 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        continually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe null
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe null
     }
     
     @Test
@@ -186,13 +182,11 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        continually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe null
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe null
     }
 
     @Test
@@ -209,13 +203,11 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        continually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe null
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe null
     }
 
     @Test
@@ -232,13 +224,12 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        continually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe null
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe null
+        
     }
 
     @Test
@@ -255,13 +246,11 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        eventually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
     }
 
     @Test
@@ -279,9 +268,9 @@ class MemberStateTimelineElementViewModelTest {
                 ),
             )
             backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-            continually(1.seconds) {
-                cut.preJoinHistoryWarning.value shouldBe null
-            }
+            delay(1.seconds)
+            
+            cut.preJoinHistoryWarning.value shouldBe null
         }
         val noJoin = listOf(Membership.INVITE, Membership.LEAVE, Membership.BAN, Membership.KNOCK)
         noJoin.forEach { testNoHistoryWarning(it) }
@@ -298,9 +287,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has left the group"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has left the group"
+        
     }
 
     @Test
@@ -313,9 +303,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
     }
 
     @Test
@@ -329,9 +319,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
     }
 
     @Test
@@ -344,9 +334,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
+    
     }
 
     @Test
@@ -360,9 +351,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
+        
     }
 
     @Test
@@ -375,9 +367,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
+        
     }
 
     @Test
@@ -391,9 +384,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
     }
 
     @Test
@@ -406,9 +399,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob was invited by Sender"
     }
 
     @Test
@@ -422,9 +415,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
     }
 
     @Test
@@ -439,9 +432,9 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
     }
 
     @Test
@@ -455,9 +448,8 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
     }
 
     @Test
@@ -470,9 +462,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
     }
 
     @Test
@@ -486,9 +478,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
-        }
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
     }
 
     @Test
@@ -501,14 +493,12 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
-        }
-
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob was invited by Sender"
         senderName.value = "Sender2"
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender2"
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Bob was invited by Sender2"
     }
 
     @Test
@@ -524,14 +514,12 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
-
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
         isDirect.value = true
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the chat"
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Bob has joined the chat"
     }
     
     @Test
@@ -549,18 +537,14 @@ class MemberStateTimelineElementViewModelTest {
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
         backgroundScope.launch { cut.preJoinHistoryWarning.collect {} }
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-            cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
-        }
-
+        delay(1.seconds)
+        
+        cut.changeMessage.value shouldBe "Bob has joined the group"
+        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
         isDirect.value = true
-        eventually(1.seconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the chat"
-        }
-        continually(1.seconds) {
-            cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Bob has joined the chat"
+        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
     }
     
     private fun TestScope.memberStatusViewModel(

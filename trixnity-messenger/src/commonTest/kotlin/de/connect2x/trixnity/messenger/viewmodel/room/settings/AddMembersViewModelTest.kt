@@ -10,16 +10,13 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
-import de.connect2x.trixnity.clientserverapi.client.getRelationsByType
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
-import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -261,13 +258,9 @@ class AddMembersViewModelTest {
         
         val cut = createAddMembersViewModel()
         backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
-        eventually(1.seconds) {
-            cut.showPreJoinHistoryWarning.value shouldBe true
-        }
-        continually(1.seconds) {
-            cut.showPreJoinHistoryWarning.value shouldBe true
-        }
+        delay(1.seconds)
         
+        cut.showPreJoinHistoryWarning.value shouldBe true
     }
 
     @Test
@@ -275,13 +268,12 @@ class AddMembersViewModelTest {
         every { roomServiceMock.getById(roomId) } returns flowOf(
             Room(RoomId(""), encrypted = false)
         )
-
+        
         val cut = createAddMembersViewModel()
         backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
-        continually(1.seconds) {
-            cut.showPreJoinHistoryWarning.value shouldBe false
-        }
-
+        delay(1.seconds)
+        
+        cut.showPreJoinHistoryWarning.value shouldBe false
     }
 
     private fun TestScope.createAddMembersViewModel(): AddMembersViewModel {
