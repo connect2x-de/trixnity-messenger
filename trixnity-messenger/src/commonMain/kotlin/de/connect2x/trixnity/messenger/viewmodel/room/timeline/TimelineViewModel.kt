@@ -302,7 +302,7 @@ class TimelineViewModelImpl(
                 .filter(timelineElementViewModelFactorySelector::supports)
                 .take(100)
                 .scan(0) { count, _ -> count + 1 }
-                .debounce(100)
+                .debounce(100.milliseconds)
                 .map {
                     when {
                         it in 1..99 -> it.toString()
@@ -988,6 +988,14 @@ class TimelineViewModelImpl(
         }
         if (nextReadUntil == alreadyReadUntil && nextReadUntilRoomId == alreadyReadUntilRoomId) {
             log.trace { "ignore event marked as read, because already marked as read" }
+            // It is possible that the room is marked as unread even though there are no unread messages
+            outerScope.launch {
+                launch {
+                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
+                        .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
+                        .onSuccess { log.debug { "successfully reset unread in $roomId" } }
+                }
+            }
             return
         }
 

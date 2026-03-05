@@ -246,7 +246,7 @@ class TimelineViewModelTest {
                 lastLoadedElement = "notRelevant",
                 timelineIsFocused = true
             )
-            delay(200) // give the viewmodel time to compute derived values
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -684,7 +684,7 @@ class TimelineViewModelTest {
                 lastLoadedElement = "notRelevant",
                 timelineIsFocused = true,
             )
-            delay(200) // give the viewmodel time to compute derived values
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
             scrollToCalled.value shouldBe listOf("!room1-0") // initial loading
@@ -909,9 +909,6 @@ class TimelineViewModelTest {
 
     @Test
     fun `mark room as read when opening`() = runTest {
-        val timelineMock = timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = alice) { text("Text message") }
-        }
         every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
             MarkedUnreadEventContent(true)
         )
@@ -926,7 +923,16 @@ class TimelineViewModelTest {
             setRoomAsReadCalled = true
             Result.success(Unit)
         }
-        timelineViewModel()
+        val cut = timelineViewModel()
+        cut.elements waitForSize 1
+
+        cut.viewState.value = TimelineViewModel.ViewState(
+            firstVisibleElement = "notRelevant",
+            lastVisibleElement = "$roomId-0",
+            firstLoadedElement = "notRelevant",
+            lastLoadedElement = "notRelevant",
+            timelineIsFocused = true
+        )
         eventually(2.seconds) {
             setRoomAsReadCalled shouldBe true
         }
