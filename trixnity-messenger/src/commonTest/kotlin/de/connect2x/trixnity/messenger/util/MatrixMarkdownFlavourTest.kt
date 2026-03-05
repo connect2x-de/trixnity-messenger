@@ -9,7 +9,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-private class HtmlTagRenderer : TagRenderer {
+internal class TestHtmlTagRenderer : TagRenderer {
     override fun openTag(
         node: ASTNode,
         tagName: CharSequence,
@@ -63,7 +63,7 @@ class MatrixMarkdownFlavourTest {
             input,
             markdownParser.buildMarkdownTreeFromString(input),
             markdownFlavourDescriptor
-        ).generateHtml(HtmlTagRenderer())
+        ).generateHtml(TestHtmlTagRenderer())
 
         assertEquals("<p>test\n<br />test</p>", output)
     }
@@ -78,7 +78,7 @@ class MatrixMarkdownFlavourTest {
             input,
             markdownParser.buildMarkdownTreeFromString(input),
             markdownFlavourDescriptor
-        ).generateHtml(HtmlTagRenderer())
+        ).generateHtml(TestHtmlTagRenderer())
 
         assertEquals("<p>test</p><p>test</p>", output)
     }
@@ -93,7 +93,7 @@ class MatrixMarkdownFlavourTest {
             input,
             markdownParser.buildMarkdownTreeFromString(input),
             markdownFlavourDescriptor
-        ).generateHtml(HtmlTagRenderer())
+        ).generateHtml(TestHtmlTagRenderer())
 
         assertEquals("<p>test</p><p>test</p>", output)
     }

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - WEB,SDK: Support Kotlin/WasmJs
 - SDK: TextFieldViewModel: allow for input validation
+- SDK: The floating 'create new chat or group' button is now part of the DI
 - UI: Context menu for room list which currently includes the option to mark as unread
 
 ### Changed
@@ -20,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- UI: Correctly format markdown based privacy and imprint
+- UI: Correctly render chat bubble edge for own messages
+- SDK: Mark rooms as read when they are marked as unread without having unread events
 
 ### Security
 
