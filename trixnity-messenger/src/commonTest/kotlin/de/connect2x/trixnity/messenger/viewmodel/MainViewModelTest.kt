@@ -213,6 +213,9 @@ class MainViewModelTest {
         everySuspend { matrixClientMock2.startSync() } returns Unit
         everySuspend { matrixClientMock2.cancelSync() } returns Unit
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(false)
+        )
     }
 
     @BeforeTest
