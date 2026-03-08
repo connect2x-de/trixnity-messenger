@@ -411,6 +411,7 @@ class TimelineViewModelImpl(
     }
 
     init {
+        outerScope.markRoomAsRead()
         updateReadEventAndMarker()
 
         initTimeline()
@@ -988,14 +989,6 @@ class TimelineViewModelImpl(
         }
         if (nextReadUntil == alreadyReadUntil && nextReadUntilRoomId == alreadyReadUntilRoomId) {
             log.trace { "ignore event marked as read, because already marked as read" }
-            // It is possible that the room is marked as unread even though there are no unread messages
-            outerScope.launch {
-                launch {
-                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
-                        .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
-                        .onSuccess { log.debug { "successfully reset unread in $roomId" } }
-                }
-            }
             return
         }
 
@@ -1068,13 +1061,20 @@ class TimelineViewModelImpl(
                     .onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
                     .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
             }
-            launch {
+            markRoomAsRead()
+
+        }.join()
+    }
+
+    private fun CoroutineScope.markRoomAsRead() {
+        this.launch {
+            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).map { it?.unread }
+                    .firstOrNull() ?: true) {
                 matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
                     .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
                     .onSuccess { log.debug { "successfully reset unread in $roomId" } }
             }
-
-        }.join()
+        }
     }
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()

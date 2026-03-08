@@ -91,6 +91,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val hoverable = roomName != null && !isInvite && !isKnock
         val elementsSize = roomListViewModel.elements.collectAsState().value.size
         val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
+        val isUnread = roomListElementViewModel.isUnread.collectAsState().value ?: false
         val i18n = DI.current.get<I18nView>()
         Box(
             Modifier.animateItem(
@@ -146,12 +147,14 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         interactionSource,
                         actionMenuFocusSource,
                         showActionMenu,
-                        listOf(
-                            ThemedActionMenuItem(
-                                Icons.Default.MarkAsUnread,
-                                i18n.markRoomAsUnread(),
-                                action = { roomListElementViewModel.markUnread() })
-                        ),
+                        buildList {
+                            if (!isUnread) add(
+                                ThemedActionMenuItem(
+                                    Icons.Default.MarkAsUnread,
+                                    i18n.markRoomAsUnread(),
+                                    action = { roomListElementViewModel.markUnread() })
+                            )
+                        },
                         additionalContextActions = {},
                         openActionMenuIcon = {
                             Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)
