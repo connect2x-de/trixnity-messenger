@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.HorizontalDividerWithText
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.Indicator
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.IndicatorText
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
@@ -35,6 +36,9 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
         index: Int,
     ) {
         StateElement(element)
+        element.preJoinHistoryWarning.collectAsState().value?.let { 
+            HorizontalDividerWithText(it) 
+        }
     }
 
     @Composable

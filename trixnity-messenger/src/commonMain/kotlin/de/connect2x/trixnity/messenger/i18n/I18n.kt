@@ -175,6 +175,11 @@ open class I18n(
         DE - "$username ist $groupOrChat beigetreten"
     }
 
+    open fun eventChangePreJoinHistoryNotAvailable() = translate {
+        EN - "Messages from before you joined are unavailable"
+        DE - "Nachrichten vor Ihrem Beitritt sind nicht verfügbar"
+    }
+
     open fun eventChangeLeave(username: String, groupOrChat: String) = translate {
         EN - "$username has left $groupOrChat"
         DE - "$username hat $groupOrChat verlassen"

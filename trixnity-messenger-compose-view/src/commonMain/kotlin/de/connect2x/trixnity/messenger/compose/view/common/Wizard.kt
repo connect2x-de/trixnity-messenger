@@ -140,7 +140,12 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
         properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         CompositionLocalProvider(LocalDensity provides density) {
-            key(wizardStep) {
+            // TODO: For some reason having a key here, or anywhere else inside the Popup for that matter
+            //       leads to the imePadding being persisted between wizard routes, meaning that when i have clicked
+            //       inside a TextField in step 2, navigate back to step one, all content in step 1 is shifted
+            //       upwards until navigating again.
+            //
+            // key(wizardStep) {
                 if (wizardStep != null) {
                     // this is necessary to have a scroll position saved on every step,
                     // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
@@ -165,7 +170,7 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
                         }
                     }
                 }
-            }
+            // }
         }
     }
 }

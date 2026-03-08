@@ -32,8 +32,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyl
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 
 @Composable
-fun UnreadMessagesIndicator() {
-    val i18n = DI.get<I18nView>()
+fun HorizontalDividerWithText(text: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
         HorizontalDivider(
             Modifier.weight(1.0f).padding(end = 20.dp),
@@ -41,7 +40,7 @@ fun UnreadMessagesIndicator() {
             thickness = 3.dp
         )
         Text(
-            text = i18n.indicatorUnreadMessages(),
+            text = text,
             color = MaterialTheme.colorScheme.tertiary,
             style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.Bold,
@@ -52,6 +51,12 @@ fun UnreadMessagesIndicator() {
             thickness = 3.dp
         )
     }
+}
+
+@Composable
+fun UnreadMessagesIndicator() {
+    val i18n = DI.get<I18nView>()
+    HorizontalDividerWithText(i18n.indicatorUnreadMessages())
 }
 
 @Composable

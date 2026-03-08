@@ -2,12 +2,14 @@ package de.connect2x.trixnity.messenger.compose.view.room.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Header
+import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroup
@@ -28,6 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
 
@@ -60,8 +64,9 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
         val canAddMembers = addMembersViewModel.canAddMembers.collectAsState()
         val error = addMembersViewModel.error.collectAsState().value
         val errorCause = addMembersViewModel.errorCause.collectAsState().value
+        val showPreJoinHistoryWarning = addMembersViewModel.showPreJoinHistoryWarning.collectAsState()
         val i18n = DI.get<I18nView>()
-
+        
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 Column {
@@ -85,6 +90,17 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                                     Text(i18n.actionOk())
                                 }
                             }
+                        }
+                    }
+                    if (showPreJoinHistoryWarning.value) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 15.dp)) {
+                            Icon(
+                                Icons.Default.Warning,
+                                i18n.commonWarning(),
+                                tint = MaterialTheme.messengerColors.warning
+                            )
+                            MiddleSpacer()
+                            Text(i18n.addMembersPreJoinHistoryWarning())
                         }
                     }
                     UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)
