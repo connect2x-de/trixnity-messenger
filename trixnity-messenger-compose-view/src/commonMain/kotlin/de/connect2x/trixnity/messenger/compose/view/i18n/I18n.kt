@@ -3433,6 +3433,11 @@ open class I18nView(
         DE - "Raum als ungelesen markieren"
     }
 
+    open fun unreadMessageCount(count: String) = translate {
+        EN - "$count unread messages"
+        DE - "$count ungelesene Nachrichten"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

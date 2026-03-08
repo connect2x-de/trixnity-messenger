@@ -20,22 +20,28 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
 fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementViewModel, showRoomTime: Boolean = true) {
-    val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
-    val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
     val isUnread = roomListElementViewModel.isUnread.collectAsState().value
     val notificationCount = roomListElementViewModel.notificationCount.collectAsState().value
     val actionVisibility = animateFloatAsState(targetValue = if (showRoomTime) 1f else 0f).value
-
+    val i18n = DI.current.get<I18nView>()
     Tooltip(
-        { Text(usersTyping ?: lastMessage ?: " ") },
-        modifier = Modifier
+        {
+            when {
+                notificationCount != null -> Text(i18n.unreadMessageCount(notificationCount))
+                isUnread == true -> Text(i18n.indicatorUnreadMessages())
+            }
+        },
+        modifier = Modifier,
+        enabled = notificationCount != null || isUnread == true,
     ) {
         Column(
             modifier = Modifier,
