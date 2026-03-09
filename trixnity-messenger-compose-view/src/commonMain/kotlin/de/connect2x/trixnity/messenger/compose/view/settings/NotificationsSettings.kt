@@ -124,8 +124,8 @@ fun ColumnScope.DeviceNotificationSettings(
         }
     }
     PlatformDeviceNotificationSettings(viewModel)
-
     SmallSpacer()
+
     if (availableProviders.size > 1 && selectedProvider != null) {
         RadioSetting(
             text = i18n.notificationsSettingsProvider(),
@@ -137,9 +137,9 @@ fun ColumnScope.DeviceNotificationSettings(
             set = { viewModel.selectProvider(it) },
             enabled = enabledForThisDevice
         )
+        SmallSpacer()
     }
 
-    SmallSpacer()
     CollapsableOptionSetting(
         text = i18n.notificationsSettingsPlatform(),
         icon = Icons.Default.Devices,
@@ -203,7 +203,7 @@ fun ColumnScope.AccountNotificationSettings(
         set = { viewModel.updateAccountSettings(accountSettings.copy(defaultLevel = it)) },
     )
 
-    MiddleSpacer()
+    SmallSpacer()
 
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
@@ -247,7 +247,7 @@ fun ColumnScope.AccountNotificationSettings(
         )
     }
 
-    MiddleSpacer()
+    SmallSpacer()
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
         icon = Icons.Default.Notifications
