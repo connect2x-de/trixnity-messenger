@@ -24,6 +24,8 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
@@ -186,14 +188,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.MatrixClientConfiguration
-import de.connect2x.trixnity.client.ModuleFactory
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
-import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
-import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
