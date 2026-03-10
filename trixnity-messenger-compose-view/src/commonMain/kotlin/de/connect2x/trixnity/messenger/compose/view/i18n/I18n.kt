@@ -1245,6 +1245,11 @@ open class I18nView(
         DE - "suche Personen"
     }
 
+    open fun userSearchUserDoesNotExist() = translate {
+        EN - "This user does not exist"
+        DE - "Dieser Nutzer existiert nicht"
+    }
+
     open fun messageInfoReadBy() = translate {
         EN - "Read by"
         DE - "Gelesen von"

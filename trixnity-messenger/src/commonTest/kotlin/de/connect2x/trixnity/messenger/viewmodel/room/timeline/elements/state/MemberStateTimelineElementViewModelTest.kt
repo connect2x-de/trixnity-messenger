@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -26,6 +27,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlinx.coroutines.delay
@@ -73,6 +75,14 @@ class MemberStateTimelineElementViewModelTest {
         }
         isDirect.value = false
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(),any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
 
         every {
             userServiceMock.getById(any(), UserId("bob", "localhost"))

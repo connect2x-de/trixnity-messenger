@@ -9,6 +9,8 @@ import de.connect2x.trixnity.clientserverapi.client.UserApiClient
 import de.connect2x.trixnity.clientserverapi.model.user.Profile
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
@@ -29,6 +31,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -245,6 +248,87 @@ class SearchTest {
         res.first() shouldBeEqual user
     }
 
+    @Test
+    fun `doesNotExist - should not exist on NotFound - ignore HTTP error code`() = runTest {
+        val user = UserId("not_existing", "localhost")
+        val searchTerm = user.full
+        
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.NotFound("unused")))        
+        
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe true
+    }
+
+    @Test
+    fun `doesNotExist - should not exist on Unknown and HTTP 404 - do not ignore HTTP error code`() = runTest {
+        val user = UserId("not_existing", "localhost")
+        val searchTerm = user.full
+        
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.Unknown("unused")))
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe true
+    }
+
+    @Test
+    fun `doesNotExist - should be false on other error response - ignore HTTP error code`() = runTest {
+        val user = UserId("maybe_not_existing", "localhost")
+        val searchTerm = user.full
+
+        // Forbidden means that we are not allowed to fetch profiles and therefore cannot say if the user does not exist
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.Forbidden("unused")))
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe false
+    }
+
+    @Test
+    fun `doesNotExist - should be false on success`() = runTest {
+        val user = UserId("exists", "localhost")
+        val searchTerm = user.full
+
+        // Forbidden means that we are not allowed to fetch profiles and therefore cannot say if the user does not exist
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.success(Profile())
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe false
+    }
 
     @Test
     fun `cancel presence when cancelling searchUsersScope`() = runTest {
