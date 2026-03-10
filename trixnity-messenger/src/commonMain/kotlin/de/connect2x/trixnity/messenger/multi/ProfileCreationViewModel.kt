@@ -13,6 +13,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 
+
+interface ProfileCreationViewModelFactory {
+    fun create(
+        di: Koin,
+        coroutineScope: CoroutineScope,
+    ): ProfileCreationViewModel = ProfileCreationViewModelImpl(
+        di = di,
+        coroutineScope = coroutineScope
+    )
+
+    companion object : ProfileCreationViewModelFactory
+}
+
 /**
  * In case of multiple profiles, this can create new profiles. Uses [ProfileManager] under the hood.
  */
@@ -60,10 +73,9 @@ class ProfileCreationViewModelImpl(
     override fun createProfile() {
         if (canCreateProfile.value) {
             coroutineScope.launch {
-                val id = profileManager.createProfile(
+                profileManager.createProfile(
                     settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value.text)
                 )
-                profileManager.selectProfile(id)
             }
         } else {
             log.warn { "cannot create a profile" }

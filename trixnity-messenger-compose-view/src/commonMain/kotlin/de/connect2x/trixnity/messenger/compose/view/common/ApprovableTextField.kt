@@ -43,7 +43,7 @@ fun ApprovableTextField(
     viewModel: ApprovableTextFieldViewModel,
     isEditable: Boolean,
     modifier: Modifier = Modifier,
-    textCaption: String = "",
+    textCaption: String? = "",
     textPlaceholder: String = "",
     textInfoCannotChange: String = "",
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -62,8 +62,10 @@ fun ApprovableTextField(
     }
 
     Column {
-        Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.size(10.dp))
+        if(textCaption != null){
+            Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.size(10.dp))
+        }
         when {
             isLoading -> LoadingSpinner()
 

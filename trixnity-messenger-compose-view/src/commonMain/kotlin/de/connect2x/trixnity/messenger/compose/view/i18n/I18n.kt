@@ -3393,19 +3393,59 @@ open class I18nView(
         DE - "Multi-Profil-Modus aktivieren"
     }
 
-    open fun profileNameSettings() = translate {
-        EN - "Profile name"
-        DE - "Profilname"
+    open fun profilesSettingsList() = translate {
+        EN - "Profiles"
+        DE - "Profile"
     }
 
-    open fun profileNameTextfield() = translate {
-        EN - "Change current profile name"
-        DE - "Ändere den aktuellen Profilname"
+    open fun profilesSettingsListThisProfile() = translate {
+        EN - "This Profile: "
+        DE - "Dieses Profil: "
     }
 
-    open fun profileNamePlaceholder() = translate {
-        EN - "Profile name"
-        DE - "Profilname"
+    open fun profileRenameButtonTooltip() = translate {
+        EN - "Rename profile"
+        DE - "Profil umbenennen"
+    }
+
+    open fun profileDeleteButtonTooltip() = translate {
+        EN - "Delete profile"
+        DE - "Profil löschen"
+    }
+
+    open fun profileRenameDialogueHeader() = translate {
+        EN - "Rename active Profile?"
+        DE - "Aktives Profil umbenennen?"
+    }
+
+    open fun profileRenameDialogueBody(profileName: String) = translate {
+        EN - "Please select a new name for the profile \"$profileName\"."
+        DE - "Bitte wählen Sie einen neuen Namen für das Profil „$profileName“."
+    }
+
+    open fun profileRenameDialogueConfirm() = translate {
+        EN - "Rename"
+        DE - "Umbenennen"
+    }
+
+    open fun profileDeleteDialogueHeader(profileName: String) = translate {
+        EN - "Delete profile \"$profileName\"?"
+        DE - "Profil „$profileName“ löschen?"
+    }
+
+    open fun profileDeleteDialogueBody() = translate {
+        EN - "Accounts logged in to with this profile will be logged out."
+        DE - "Konten, die mit diesem Profil angemeldet sind, werden abgemeldet."
+    }
+
+    open fun profileDeleteDialogueConfirm() = translate {
+        EN - "Delete"
+        DE - "Löschen"
+    }
+
+    open fun profileSelectDialogueHeader(profileName: String) = translate {
+        EN - "Use profile \"$profileName\"?"
+        DE - "Profil „$profileName“ benutzen?"
     }
 
     open fun redactionWarningInfoTitle() = translate {

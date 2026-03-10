@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI,SDK: Add option to disable redaction warning
 - SDK,UI: Introduced profiles settings
+- SDK,UI: Ability to manage profiles via profile settings
 
 ### Fixed
 

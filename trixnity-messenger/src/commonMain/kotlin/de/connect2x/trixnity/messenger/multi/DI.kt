@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.platformModule
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -12,7 +13,6 @@ import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.ModuleFactory
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -35,6 +35,7 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
                 .apply { bind<Worker>() }
         }
     },
+    ::profileViewModule,
     ::platformModule,
     ::platformPathsModule,
     ::platformMatrixMultiMessengerSettingsHolderModule,
@@ -45,3 +46,7 @@ fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = 
     ::platformSendLogToDevsModule,
     ::platformDeleteProfileDataModule,
 )
+
+private fun profileViewModule() = module {
+    single<ProfileCreationViewModelFactory> { ProfileCreationViewModelFactory }
+}

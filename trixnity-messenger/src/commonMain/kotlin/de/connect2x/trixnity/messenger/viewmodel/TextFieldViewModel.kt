@@ -166,6 +166,7 @@ class ApprovableTextFieldViewModelImpl(
     maxLength: Int,
     private val coroutineScope: CoroutineScope,
     private val onApplyChange: suspend (String) -> Result<*>,
+    private val onCancelEdit: () -> Unit = {}
 ) : TextFieldViewModelImpl(maxLength), ApprovableTextFieldViewModel {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl")
@@ -205,6 +206,7 @@ class ApprovableTextFieldViewModelImpl(
         _isEditing.value = false
         _error.value = null
         forceSetText(serverStateValue.value)
+        onCancelEdit()
     }
 
     override fun approveEdit() {
