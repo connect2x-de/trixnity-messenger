@@ -15,6 +15,8 @@ import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
@@ -148,7 +150,7 @@ class NotificationSyncService(
     ) {
         when (this) {
             is NotificationUpdate.New -> {
-                val notificationData = content.toNotificationData(matrixClient)
+                val notificationData = content.toNotificationData(matrixClient) ?: return
                 log.debug { "push new notification in system (tag=$id)" }
                 try {
                     notificationHandler.push(
@@ -168,7 +170,7 @@ class NotificationSyncService(
             }
 
             is NotificationUpdate.Update -> {
-                val notificationData = content.toNotificationData(matrixClient)
+                val notificationData = content.toNotificationData(matrixClient) ?: return
                 log.debug { "update notification in system (tag=$id)" }
                 try {
                     notificationHandler.update(
@@ -205,31 +207,44 @@ class NotificationSyncService(
         val callbackData: String?,
     )
 
-    private suspend fun NotificationUpdate.Content.toNotificationData(matrixClient: MatrixClient): NotificationData {
+    private suspend fun NotificationUpdate.Content.toNotificationData(matrixClient: MatrixClient): NotificationData? {
         val title: String
         val description: String?
         val senderAvatar: String?
         val roomId: RoomId?
         when (this) {
             is NotificationUpdate.Content.Message -> {
+                val timelineEventContent = timelineEvent.content?.getOrNull() ?: timelineEvent.event.content
+                val messageBody = (timelineEventContent as? RoomMessageEventContent)?.body
+                if (messageBody == null) {
+                    log.debug { "notification message content ${timelineEventContent::class.simpleName} is not supported" }
+                    return null
+                }
                 val sender = matrixClient.user.getById(timelineEvent.roomId, timelineEvent.sender).first()
                 val senderName = sender?.name ?: timelineEvent.sender.full
+
                 senderAvatar = sender?.avatarUrl?.takeIf { getNotificationIcon != null }
                 title = roomName.getRoomName(timelineEvent.roomId, matrixClient).first()
-                description = "$senderName: " + ((timelineEvent.content?.getOrNull() as? RoomMessageEventContent)?.body
-                    ?: i18n.commonUnknown())
-
+                description = "$senderName: $messageBody"
                 roomId = timelineEvent.roomId
             }
 
             is NotificationUpdate.Content.State -> {
+                val stateEventContent = stateEvent.content
+                if (stateEventContent !is MemberEventContent) {
+                    log.debug { "state message content ${(stateEventContent)::class.simpleName} is not supported" }
+                    return null
+                }
+                if (stateEventContent.membership != Membership.INVITE || stateEvent.stateKey != matrixClient.userId.full) {
+                    log.debug { "state message content ${(stateEventContent)::class.simpleName} is not supported (when not own invite)" }
+                    return null
+                }
+                val roomName = stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first()
                 senderAvatar = stateEvent.roomId.takeIf { getNotificationIcon != null }?.let { roomId ->
                     matrixClient.user.getById(roomId, stateEvent.sender).first()?.avatarUrl
                 }
-                title =
-                    stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first()
-                        ?: i18n.newMessageTitle()
-                description = null
+                title = roomName ?: i18n.newInvite()
+                description = if (roomName != null) i18n.newInvite() else null
                 roomId = stateEvent.roomId
             }
         }
