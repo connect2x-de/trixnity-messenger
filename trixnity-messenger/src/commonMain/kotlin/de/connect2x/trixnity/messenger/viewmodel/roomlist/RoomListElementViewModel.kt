@@ -1,6 +1,30 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.notification
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.LeaveRoom
@@ -31,32 +55,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.client.notification
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getAccountData
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.store.TimelineEvent
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
-import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.ReceiptType
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
-import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
-import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
-import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import org.koin.core.component.get
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -102,6 +100,7 @@ interface RoomListElementViewModel {
     fun rejectInvitationAndBlockInviter()
     fun forgetRoom()
     fun clearError()
+    fun markUnread()
 }
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -185,7 +184,7 @@ open class RoomListElementViewModelImpl(
             matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
                 it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
             }
-        ){a,b -> a || b }.stateIn(coroutineScope, WhileSubscribed(), null)
+        ) { a, b -> a || b }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomName: StateFlow<String?> =
         roomNameCalculations.getRoomName(roomId, matrixClient).map { it }
@@ -384,6 +383,19 @@ open class RoomListElementViewModelImpl(
         error.value = null
     }
 
+    override fun markUnread() {
+        coroutineScope.launch {
+            matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
+                onSuccess = {
+                    log.info { "Marked room $roomId as unread" }
+                },
+                onFailure = {
+                    log.error(it) { "Couldn't mark room $roomId as unread" }
+                }
+            )
+        }
+    }
+
     private suspend fun rejectInvitationSuspend(
         onSuccess: suspend () -> Unit = {},
         onFailure: (Throwable) -> Unit = {}
@@ -457,6 +469,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
+    override fun markUnread() {}
 }
 
 class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
@@ -492,6 +505,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
+    override fun markUnread() {}
 }
 
 class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
@@ -527,6 +541,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
+    override fun markUnread() {}
 }
 
 class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
@@ -562,4 +577,5 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override fun forgetRoom() {}
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
+    override fun markUnread() {}
 }

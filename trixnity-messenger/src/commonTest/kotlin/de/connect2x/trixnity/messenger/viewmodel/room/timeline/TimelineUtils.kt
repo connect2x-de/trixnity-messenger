@@ -28,6 +28,7 @@ import de.connect2x.trixnity.core.model.events.UnknownEventContent
 import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
 import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
@@ -141,6 +142,11 @@ fun timeline(
             timelineMock.eventsInStore.map { it.lastOrNull() }
     every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
             timelineMock.eventsInStore.map { it.reversed().asFlow() }
+    every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
+        MarkedUnreadEventContent(false)
+    )
+
+
     every {
         roomServiceMock.getTimeline(
             any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),

@@ -36,6 +36,7 @@ import de.connect2x.trixnity.messenger.compose.view.pointerMoveFilter
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -54,7 +55,7 @@ fun MessageBubbleContainer(
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
     val isFirstInUserSequence = holder.isFirstInUserSequence.collectAsState().value == true
-    val showActionMenu = remember { mutableStateOf(false) }
+    val showActionMenu = remember { mutableStateOf<ThemedActionMenuState>(ThemedActionMenuState.Closed) }
     val hoverMessage = remember { mutableStateOf(false) }
     val i18n = DI.get<I18nView>()
     val element = holder.element.collectAsState().value
@@ -82,13 +83,14 @@ fun MessageBubbleContainer(
                 })
             .pointerInput(holder) { // key is important to react to changes
                 detectTapGestures(onLongPress = {
-                    showActionMenu.value = true
+                    showActionMenu.value = ThemedActionMenuState.Anchored
                 }) // in case the child element has no tap / click detection, we can use this
                 size
             }
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val hoverInteractionSource = remember { MutableInteractionSource() }
+        val actionMenuFocusState = remember { MutableInteractionSource() }
         val hasFocus = interactionSource.collectIsFocusedAsState().value
         ThemedSurface(
             style = messageBubbleStyle,
@@ -120,12 +122,13 @@ fun MessageBubbleContainer(
                     },
                     onReactToMessage = { reactionsOpen.value = true },
                     hoverInteractionSource = hoverInteractionSource,
+                    focusInteractionSource = actionMenuFocusState,
                     additionalContextActions = additionalContextActions,
                     onRedact = onRedact
                 )
             }
 
-            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = true }, content)
+            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = ThemedActionMenuState.Anchored }, content)
         }
     }
 }

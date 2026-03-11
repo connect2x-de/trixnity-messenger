@@ -1,10 +1,15 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +20,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.icons.UnencryptedIcon
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.dp
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 @Composable
@@ -32,32 +40,39 @@ fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RowScope.RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modifier = Modifier) {
+fun RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modifier = Modifier) {
     val time = roomListElementViewModel.time.collectAsState().value
     val isEncrypted = roomListElementViewModel.isEncrypted.collectAsState().value
-    if (isEncrypted != null && isEncrypted.not()) {
-        Box(Modifier.padding(end = 5.dp), contentAlignment = Alignment.Center) {
-            UnencryptedIcon()
+    Row {
+        if (isEncrypted != null && isEncrypted.not()) {
+            Box(Modifier.padding(end = 5.dp), contentAlignment = Alignment.Center) {
+                UnencryptedIcon()
+            }
         }
+        Text(
+            time ?: " ",
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+        )
     }
-    Text(
-        time ?: " ",
-        style = MaterialTheme.typography.labelMedium,
-        maxLines = 1,
-    )
 }
 
 @Composable
-fun RoomNameAndTime(roomListElementViewModel: RoomListElementViewModel) {
+fun ColumnScope.RoomNameAndLastMessage(roomListElementViewModel: RoomListElementViewModel) {
     val roomName = roomListElementViewModel.roomName.collectAsState().value
+    val lastMessage = roomListElementViewModel.lastMessage.collectAsState().value
+    val usersTyping = roomListElementViewModel.usersTyping.collectAsState().value
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(Modifier.fillMaxWidth().weight(1.0f, false), verticalAlignment = Alignment.CenterVertically) {
-            RoomName(roomName = roomName)
+    RoomName(roomName)
+    Tooltip({
+        Box(Modifier.widthIn(0.dp, 300.dp)) {
+            Text(
+                usersTyping ?: lastMessage ?: " ",
+                maxLines = 5,
+                overflow = TextOverflow.Ellipsis
+            )
         }
-
-        RoomTime(roomListElementViewModel)
+    }) {
+        LastMessage(lastMessage, usersTyping)
     }
 }

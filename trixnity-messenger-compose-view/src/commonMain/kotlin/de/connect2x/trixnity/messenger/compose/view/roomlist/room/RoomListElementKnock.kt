@@ -17,7 +17,7 @@ interface KnockRoomListElement {
 
 @Composable
 fun Knock(
-    roomListElementViewModel: RoomListElementViewModel,
+    roomListElementViewModel: RoomListElementViewModel
 ) {
     DI.get<KnockRoomListElement>().create(roomListElementViewModel)
 }
@@ -26,15 +26,19 @@ class KnockRoomListElementImpl : KnockRoomListElement {
     @Composable
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
+        val roomName = roomListElementViewModel.roomName.value
 
-        SpecialRoomComponent(
+        RoomListElementBase(
             roomListElementViewModel = roomListElementViewModel,
-        ) {
-            ThemedIconButton(
-                onClick = { roomListElementViewModel.unknock() },
-            ) {
-                Icon(Icons.Default.Close, i18n.unknock())
-            }
-        }
+            roomDetails = {
+                RoomName(roomName)
+            },
+            roomActions = {
+                ThemedIconButton(
+                    onClick = { roomListElementViewModel.unknock() },
+                ) {
+                    Icon(Icons.Default.Close, i18n.unknock())
+                }
+            })
     }
 }
