@@ -411,7 +411,7 @@ class TimelineViewModelImpl(
     }
 
     init {
-        outerScope.markRoomAsRead()
+        outerScope.removeMarkAsUnread()
         updateReadEventAndMarker()
 
         initTimeline()
@@ -1061,15 +1061,15 @@ class TimelineViewModelImpl(
                     .onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
                     .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
             }
-            markRoomAsRead()
+            removeMarkAsUnread()
 
         }.join()
     }
 
-    private fun CoroutineScope.markRoomAsRead() {
+    private fun CoroutineScope.removeMarkAsUnread() {
         this.launch {
             if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).map { it?.unread }
-                    .firstOrNull() ?: true) {
+                    .firstOrNull() ?: false) {
                 matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
                     .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
                     .onSuccess { log.debug { "successfully reset unread in $roomId" } }
