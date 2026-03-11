@@ -78,9 +78,15 @@ build:linux:
     - ./gradlew
       compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
+      :trixnity-messenger-compose-app:assembleRelease
       compileTestKotlin{Jvm,Js,WasmJs}
       compileReleaseUnitTestKotlinAndroid
       --stacktrace
+  artifacts:
+    paths:
+      - trixnity-messenger-compose-app/build/outputs/apk/release/trixnity-messenger-compose-app-release.apk
+    expire_in: 1 day
+    expose_as: 'Android App APK'
 
 test:mac:
   stage: test
