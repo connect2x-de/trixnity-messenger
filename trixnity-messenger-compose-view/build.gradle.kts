@@ -10,6 +10,7 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import java.io.ByteArrayOutputStream
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -163,5 +164,19 @@ android {
         release {
             isMinifyEnabled = false
         }
+    }
+}
+
+val infraServiceProvider = gradle.sharedServices.registerIfAbsent(
+    "infraService",
+    InfraService::class
+) {
+    parameters.projectDir.set(layout.projectDirectory)
+}
+
+tasks.withType<Test>().named("jvmTest") {
+    usesService(infraServiceProvider)
+    doFirst {
+        infraServiceProvider.get().startInfra(logger)
     }
 }
