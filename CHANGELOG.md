@@ -13,10 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: TextFieldViewModel: allow for input validation
 - SDK: The floating 'create new chat or group' button is now part of the DI
 - UI: Info that pre-join history is unavailable. That is in the timeline for the joined user and for the inviter when adding a member
+- UI: Context menu for room list which currently includes the option to mark as unread
 
 ### Changed
 
 - UI: Notification settings spacing
+- UI: Don't show the "deprecated login methods" section unless there are some
 
 ### Deprecated
 
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Correctly format markdown based privacy and imprint
 - UI: Correctly render chat bubble edge for own messages
 - UI,Android: Keep Wizard fullscreen after keyboard popup
+- SDK: Mark rooms as read when they are marked as unread without having unread events
 
 ### Security
 
@@ -101,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI,SDK: Add option to disable redaction warning
 - SDK,UI: Introduced profiles settings
+- SDK,UI: Ability to manage profiles via profile settings
 
 ### Fixed
 

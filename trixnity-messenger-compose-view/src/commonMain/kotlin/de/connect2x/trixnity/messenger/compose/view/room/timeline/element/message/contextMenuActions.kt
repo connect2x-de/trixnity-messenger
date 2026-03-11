@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
@@ -12,29 +10,18 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Report
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboard
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asOutboxElementHolder
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
-import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenuItem
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
@@ -140,52 +127,7 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
 }
 
 class BaseTimelineElementHolderContextMenuAction(
-    val icon: ImageVector,
-    val label: String,
-    internal val action: () -> Unit,
-) {
-    operator fun invoke() = action()
-
-    @Composable
-    internal fun render(onClose: () -> Unit) {
-        when {
-            Platform.current.isMobile -> bottomSheetItem(onClose)
-            else -> dropDownMenuItem(onClose)
-        }
-    }
-
-    @Composable
-    internal fun dropDownMenuItem(
-        onClose: () -> Unit,
-    ) {
-        ThemedDropdownMenuItem(
-            leadingIcon = { Icon(icon, contentDescription = null) },
-            text = { Text(label) },
-            onClick = {
-                onClose()
-                action()
-            },
-        )
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    internal fun bottomSheetItem(
-        onClose: () -> Unit,
-    ) {
-        ThemedListItem(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    action()
-                    onClose()
-                },
-            style = MaterialTheme.components.listItem.copy(
-                colors =
-                    ListItemDefaults.colors(containerColor = Color.Transparent)
-            ),
-            leadingContent = { Icon(icon, contentDescription = null) },
-            headlineContent = { Text(label) },
-        )
-    }
-}
+    override val icon: ImageVector,
+    override val label: String,
+    override val action: () -> Unit,
+) : ThemedActionMenuItem(icon, label, action)

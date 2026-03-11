@@ -4,10 +4,14 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.util.launchPop
 import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.util.popSuspending
@@ -15,8 +19,6 @@ import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
@@ -29,13 +31,13 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAl
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 class RoomListRouter(
@@ -184,7 +186,7 @@ class RoomListRouter(
 
             is Config.ProfilesSettings -> Wrapper.ProfilesSettings(
                 viewModelContext.get<ProfilesSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "Profiles",componentContext),
+                    viewModelContext = viewModelContext.childContext(name = "Profiles", componentContext),
                     onCloseProfilesSettings = ::onCloseProfilesSettings,
                 )
             )
@@ -192,7 +194,10 @@ class RoomListRouter(
             is Config.NotificationsSettings -> Wrapper.NotificationsSettings(
                 viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext(name = "NotificationsSettings", componentContext),
+                        viewModelContext = viewModelContext.childContext(
+                            name = "NotificationsSettings",
+                            componentContext
+                        ),
                         onBack = ::onCloseNotificationsSettings,
                     )
             )
@@ -214,7 +219,11 @@ class RoomListRouter(
 
             is Config.BlockedContactsSettings -> Wrapper.BlockedContactsSettings(
                 viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("BlockedContactsSettings", componentContext, roomListConfig.account),
+                    viewModelContext = viewModelContext.childContext(
+                        "BlockedContactsSettings",
+                        componentContext,
+                        roomListConfig.account
+                    ),
                     onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
                 )
             )
@@ -315,10 +324,16 @@ class RoomListRouter(
         log.debug { "close accounts" }
         navigation.launchPop(viewModelContext.coroutineScope)
     }
+
     private fun onShowProfilesSettings() {
-        log.debug { "show profile" }
-        navigation.launchPush(viewModelContext.coroutineScope, Config.ProfilesSettings)
+        if (viewModelContext.getOrNull<ProfileManager>() != null) {
+            log.debug { "show profile" }
+            navigation.launchPush(viewModelContext.coroutineScope, Config.ProfilesSettings)
+        } else {
+            log.debug { "There was no profile manager available" }
+        }
     }
+
     private fun onCloseProfilesSettings() {
         log.debug { "close profile" }
         navigation.launchPop(viewModelContext.coroutineScope)

@@ -4,6 +4,8 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -35,14 +37,12 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountV
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 import kotlin.uuid.Uuid
 
@@ -73,7 +73,10 @@ class RootRouter(
             is Config.MatrixClientInitialization -> Wrapper.MatrixClientInitialization(
                 viewModelContext.get<MatrixClientInitializationViewModelFactory>()
                     .create(
-                        viewModelContext = viewModelContext.childContext("MatrixClientInitialization", componentContext),
+                        viewModelContext = viewModelContext.childContext(
+                            "MatrixClientInitialization",
+                            componentContext
+                        ),
                         onNoAccounts = ::showAddMatrixAccount,
                         onInitializationSuccess = ::showMain,
                         onInitializationFailure = ::onInitializationFailure,
@@ -151,7 +154,10 @@ class RootRouter(
 
             is Config.MatrixClientInitializationFailure -> Wrapper.MatrixClientInitializationFailure(
                 viewModelContext.get<MatrixClientInitializationFailureViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("MatrixClientInitializationFailure", componentContext),
+                    viewModelContext = viewModelContext.childContext(
+                        "MatrixClientInitializationFailure",
+                        componentContext
+                    ),
                     userId = config.userId,
                     exception = config.exception,
                     onDeletionFinished = ::showInitialization,

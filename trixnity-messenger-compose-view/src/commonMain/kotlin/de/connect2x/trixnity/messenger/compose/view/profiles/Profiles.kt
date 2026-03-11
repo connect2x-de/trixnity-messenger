@@ -11,7 +11,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl
+import de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelFactory
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import kotlinx.coroutines.flow.first
@@ -45,14 +45,21 @@ class ProfilesViewImpl : ProfilesView {
 
 @Composable
 fun createOrSelectManualUserProfile() {
-    val di = DI.current
     val profileManager = DI.get<ProfileManager>()
+    val di = DI.current
     val coroutineScope = rememberCoroutineScope()
-    val profileCreationViewModel = remember { ProfileCreationViewModelImpl(di, coroutineScope) }
+    val profileCreationViewModelFactory = di.get<ProfileCreationViewModelFactory>()
+    val profileCreationViewModel = remember { profileCreationViewModelFactory.create(di, coroutineScope) }
     val showProfileCreation = ShowProfileCreation.current
     val existingProfiles = profileManager.profiles.collectAsState().value
     if (existingProfiles.isEmpty() || showProfileCreation.value) {
-        ProfileCreation(profileCreationViewModel) { showProfileCreation.value = false }
+        ProfileCreation(
+            textFieldViewModel = profileCreationViewModel.profileName,
+            error = profileCreationViewModel.error.collectAsState().value,
+            onFinish = { showProfileCreation.value = false },
+            onCreate = { profileCreationViewModel.createProfile() },
+            canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
+        )
     } else {
         ProfileSelection(profileManager)
     }

@@ -68,7 +68,9 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
                 OAuth2LoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
                 val hasOAuth2Login = addMatrixAccountMethods.any { it is AddMatrixAccountMethod.OAuth2 }
                 if (hasOAuth2Login) {
-                    ExpandableSection(
+                    val nonOauth2AddMatrixAccountMethods =
+                        addMatrixAccountMethods.filter { it !is AddMatrixAccountMethod.OAuth2 }
+                    if (nonOauth2AddMatrixAccountMethods.isNotEmpty()) ExpandableSection(
                         heading = i18n.loginWithMoreClassic(),
                         icon = Icons.Outlined.AlternateEmail,
                     ) {

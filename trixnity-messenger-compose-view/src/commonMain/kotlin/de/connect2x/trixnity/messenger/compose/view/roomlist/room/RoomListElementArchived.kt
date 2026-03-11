@@ -45,25 +45,28 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
     override fun create(roomListElementViewModel: RoomListElementViewModel) {
         val i18n = DI.get<I18nView>()
         var showWarning by remember { mutableStateOf(false) }
+        val roomName = roomListElementViewModel.roomName.collectAsState().value
 
-        SpecialRoomComponent(
+        RoomListElementBase(
             roomListElementViewModel = roomListElementViewModel,
-            extraInfo = {
+            roomDetails = {
+                RoomName(roomName)
                 Spacer(Modifier.size(5.dp))
                 ThemedLabel(i18n.commonArchived())
-            }
-        ) {
-            Tooltip(
-                tooltip = { Text(i18n.commonDelete()) }
-            ) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.commonIconButton,
-                    onClick = { showWarning = true },
+            },
+            roomActions = {
+                Tooltip(
+                    tooltip = { Text(i18n.commonDelete()) }
                 ) {
-                    Icon(Icons.Default.Delete, i18n.commonDelete())
+                    ThemedIconButton(
+                        style = MaterialTheme.components.commonIconButton,
+                        onClick = { showWarning = true },
+                    ) {
+                        Icon(Icons.Default.Delete, i18n.commonDelete())
+                    }
                 }
             }
-        }
+        )
 
         if (showWarning) {
             val roomName = roomListElementViewModel.roomName.collectAsState().value
