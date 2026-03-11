@@ -22,6 +22,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.m3.chipColors
@@ -79,15 +80,15 @@ interface ThemeComponents {
 
 class ThemeComponentsImpl : ThemeComponents {
     @Composable
-    private fun focusedBorder(color: Color): BorderStroke? =
+    private fun focusedBorder(color: Color, defaultBorder: BorderStroke? = null): BorderStroke? =
         if (IsFocusHighlighting.current) {
             BorderStroke(
                 width = MaterialTheme.messengerFocusIndicator.borderWidth,
                 color = color,
             )
-        } else null
+        } else defaultBorder
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalThemingApi::class)
     @Composable
     // This configuration tries to be as faithful as possible to our old design.
     // Even in places where our old design has low contrast or uneven spacing.
@@ -433,6 +434,19 @@ class ThemeComponentsImpl : ThemeComponents {
         dropdownMenuItem = DropdownMenuItemStyle.default(
             contentPadding = PaddingValues(horizontal = 10.dp),
             focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSurface),
+        ),
+        contextMenu = SurfaceStyle.default(
+            color = MenuDefaults.containerColor,
+            tonalElevation = MenuDefaults.TonalElevation,
+            shadowElevation = MenuDefaults.ShadowElevation,
+            shape = MenuDefaults.shape,
+            border = focusedBorder(
+                MaterialTheme.colorScheme.onSurface,
+                BorderStroke(
+                    Dp.Hairline,
+                    if (CurrentThemeSettings.isDarkMode()) Color.DarkGray else Color.LightGray
+                ),
+            ),
         ),
         // select, like HTML <select>
         select = SelectStyle.default(),

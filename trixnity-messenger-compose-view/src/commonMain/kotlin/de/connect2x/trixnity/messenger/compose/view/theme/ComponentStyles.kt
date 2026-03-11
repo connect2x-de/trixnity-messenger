@@ -104,6 +104,7 @@ data class ComponentStyles(
     // dropdown
     val dropdownMenu: SurfaceStyle,
     val dropdownMenuItem: DropdownMenuItemStyle,
+    val contextMenu: SurfaceStyle,
     // select, like HTML <select>
     val select: SelectStyle,
     // selection

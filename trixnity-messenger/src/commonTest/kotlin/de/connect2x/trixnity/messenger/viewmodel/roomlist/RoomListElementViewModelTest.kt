@@ -34,6 +34,7 @@ import de.connect2x.trixnity.core.model.keys.KeyValue
 import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -53,10 +54,12 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -120,6 +123,8 @@ class RoomListElementViewModelTest {
     )
 
     var roomByIdMocker: BlockingAnsweringScope<Flow<Room?>>
+
+    private val isUnreadFlow = MutableSharedFlow<Boolean>(1).also { it.tryEmit(false) }
 
     init {
         resetMocks(
@@ -249,7 +254,7 @@ class RoomListElementViewModelTest {
         every { roomNameMock.getRoomName(any<RoomId>(), matrixClientMock, any()) } returns flowOf("RoomName")
         every { clock.now() } returns Instant.parse("2021-11-03T15:00:00Z")
         every { notificationService.getCount(any()) } returns flowOf(0)
-        every { notificationService.isUnread(any()) } returns flowOf(false)
+        every { notificationService.isUnread(any()) } returns isUnreadFlow
     }
 
     @BeforeTest
@@ -779,7 +784,7 @@ class RoomListElementViewModelTest {
 
         val cut = roomListElementViewModel(roomId)
 
-        delay(10)
+        delay(10.milliseconds)
 
         cut.isEncrypted.value shouldBe true
     }
@@ -801,7 +806,7 @@ class RoomListElementViewModelTest {
 
         val cut = roomListElementViewModel(roomId)
 
-        delay(10)
+        delay(10.milliseconds)
 
         cut.isPublic.value shouldBe true
     }
@@ -823,9 +828,27 @@ class RoomListElementViewModelTest {
 
         val cut = roomListElementViewModel(roomId)
 
-        delay(10)
+        delay(10.milliseconds)
 
         cut.isPublic.value shouldBe true
+    }
+
+    @Test
+    fun `mark rooms as unread`() = runTest {
+        val cut = roomListElementViewModel(roomId)
+        val job = cut.isUnread.launchIn(this)
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe false
+        }
+        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(true), any(), any(), any()) } calls {
+            isUnreadFlow.emit(true)
+            Result.success(Unit)
+        }
+        cut.markUnread()
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe true
+        }
+        job.cancel()
     }
 
 
