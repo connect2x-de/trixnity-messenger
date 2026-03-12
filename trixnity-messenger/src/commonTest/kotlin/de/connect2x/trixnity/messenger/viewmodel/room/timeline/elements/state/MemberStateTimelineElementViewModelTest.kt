@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -75,7 +74,7 @@ class MemberStateTimelineElementViewModelTest {
         }
         isDirect.value = false
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
-        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(),any()) } returns
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
                 flowOf(
                     ClientEvent.StrippedStateEvent(
                         HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
@@ -204,6 +203,14 @@ class MemberStateTimelineElementViewModelTest {
         val currentUser = UserId("@alice:localhost")
         every { matrixClientMock.userId } returns currentUser
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
         
         val cut = memberStatusViewModel(
             mockTimelineEvent(
@@ -243,10 +250,18 @@ class MemberStateTimelineElementViewModelTest {
     }
 
     @Test
-    fun `joining user » should show an indicator with history warning when I join an encrypted room`() = runTest {
+    fun `joining user » should show undecryptable history info near my join event when history visibility is JOINED`() = runTest {
         val currentUser = UserId("@bob:localhost")
         every { matrixClientMock.userId } returns currentUser
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
         
         val cut = memberStatusViewModel(
             mockTimelineEvent(
@@ -260,14 +275,22 @@ class MemberStateTimelineElementViewModelTest {
         delay(1.seconds)
         
         cut.changeMessage.value shouldBe "Bob has joined the group"
-        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
+        cut.preJoinHistoryWarning.value shouldBe "Previous messages cannot be decrypted"
     }
 
     @Test
-    fun `history warning » should not show history warning on any other event than join`() = runTest {
+    fun `joining user » should show undecryptable history info near my invite event when history visibility is INVITED`() = runTest {
         val currentUser = UserId("@bob:localhost")
         every { matrixClientMock.userId } returns currentUser
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
 
         suspend fun testNoHistoryWarning(membership: Membership) {
             val cut = memberStatusViewModel(
@@ -537,7 +560,15 @@ class MemberStateTimelineElementViewModelTest {
         val currentUser = UserId("@bob:localhost")
         every { matrixClientMock.userId } returns currentUser
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it, encrypted = true) }
-
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+        
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.JOIN,
@@ -550,11 +581,11 @@ class MemberStateTimelineElementViewModelTest {
         delay(1.seconds)
         
         cut.changeMessage.value shouldBe "Bob has joined the group"
-        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
+        cut.preJoinHistoryWarning.value shouldBe "Previous messages cannot be decrypted"
         isDirect.value = true
         delay(1.seconds)
         cut.changeMessage.value shouldBe "Bob has joined the chat"
-        cut.preJoinHistoryWarning.value shouldBe "Messages from before you joined are unavailable"
+        cut.preJoinHistoryWarning.value shouldBe "Previous messages cannot be decrypted"
     }
     
     private fun TestScope.memberStatusViewModel(

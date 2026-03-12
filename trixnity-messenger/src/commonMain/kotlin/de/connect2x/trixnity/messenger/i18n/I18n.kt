@@ -176,8 +176,8 @@ open class I18n(
     }
 
     open fun eventChangePreJoinHistoryNotAvailable() = translate {
-        EN - "Messages from before you joined are unavailable"
-        DE - "Nachrichten vor Ihrem Beitritt sind nicht verfügbar"
+        EN - "Previous messages cannot be decrypted"
+        DE - "Vorherige Nachrichten können nicht entschlüsselt werden"
     }
 
     open fun eventChangeLeave(username: String, groupOrChat: String) = translate {
