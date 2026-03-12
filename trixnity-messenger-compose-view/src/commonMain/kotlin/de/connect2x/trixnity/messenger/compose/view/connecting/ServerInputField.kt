@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedOutlinedTextFieldWithToolbar
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
 interface ServerInputFieldView {
@@ -32,7 +33,7 @@ class ServerInputFieldViewImpl : ServerInputFieldView {
         var serverUrl by addMatrixAccountViewModel.serverUrl.collectAsTextFieldValueState()
         val i18n = DI.get<I18nView>()
 
-        OutlinedTextField(
+        ThemedOutlinedTextFieldWithToolbar(
             value = serverUrl,
             singleLine = true,
             onValueChange = { serverUrl = it },

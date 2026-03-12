@@ -29,6 +29,7 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
     LaunchedEffect(uiStateValue) {
         uiEpoch.value++
         if (uiEpoch.value > value.epoch) {
+            println("TextField: Update (UI ->) ViewModel TextField to $uiStateValue")
             update(uiStateValue.text, uiStateValue.selection.run { IntRange(start, end) }, uiEpoch.value)
         }
     }
@@ -43,6 +44,7 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
                     // If the state has changed, the UI -> VM sync will increment the epoch, so we need to compensate for that
                     uiEpoch.value = vmState.epoch - 1u
                     uiState.value = newState
+                    println("TextField: Update (ViewModel ->) UI TextField to $newState")
                 } else {
                     // If the state is the same, the UI -> VM sync won't run, so we must set the epoch directly
                     uiEpoch.value = vmState.epoch
