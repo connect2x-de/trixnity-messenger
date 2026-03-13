@@ -231,20 +231,21 @@ class NotificationSyncService(
 
             is NotificationUpdate.Content.State -> {
                 val stateEventContent = stateEvent.content
-                if (stateEventContent !is MemberEventContent) {
-                    log.debug { "state message content ${(stateEventContent)::class.simpleName} is not supported" }
-                    return null
-                }
-                if (stateEventContent.membership != Membership.INVITE || stateEvent.stateKey != matrixClient.userId.full) {
-                    log.debug { "state message content ${(stateEventContent)::class.simpleName} is not supported (when not own invite)" }
-                    return null
-                }
                 val roomName = stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first()
+                when (stateEventContent) {
+                    is MemberEventContent if stateEventContent.membership == Membership.INVITE && stateEvent.stateKey == matrixClient.userId.full -> {
+                        title = roomName ?: i18n.newInvite()
+                        description = if (roomName != null) i18n.newInvite() else null
+                    }
+
+                    else -> {
+                        title = roomName ?: i18n.newActivity()
+                        description = if (roomName != null) i18n.newActivity() else null
+                    }
+                }
                 senderAvatar = stateEvent.roomId.takeIf { getNotificationIcon != null }?.let { roomId ->
                     matrixClient.user.getById(roomId, stateEvent.sender).first()?.avatarUrl
                 }
-                title = roomName ?: i18n.newInvite()
-                description = if (roomName != null) i18n.newInvite() else null
                 roomId = stateEvent.roomId
             }
         }

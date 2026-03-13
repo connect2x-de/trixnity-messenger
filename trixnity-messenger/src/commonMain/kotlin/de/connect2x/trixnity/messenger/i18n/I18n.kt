@@ -1394,6 +1394,11 @@ open class I18n(
         DE - "neue Einladung"
     }
 
+    open fun newActivity() = translate {
+        EN - "new activity"
+        DE - "neue Aktivität"
+    }
+
     open fun powerLevelUpdateBan(powerLevel: Long) = translate {
         EN - when (powerLevel) {
             0L -> "Users can now ban users"
