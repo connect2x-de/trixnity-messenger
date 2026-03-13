@@ -59,7 +59,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
         )
     }
 
-    return Wizard(wizardStep)
+    return Wizard(wizardStep, wizardId = "ConnectingWizard")
 }
 
 fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {

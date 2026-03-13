@@ -3,8 +3,10 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import java.io.File
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.deleteExisting
+import kotlin.io.path.deleteRecursively
 
 interface UITestInfraServiceParams : BuildServiceParameters {
     val projectDir: DirectoryProperty
@@ -21,7 +23,7 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
 
         startSynapse(dir)
         createAdmin(dir)
-
+        deleteOldScreenshots(dir)
     }
 
     override fun close() {
@@ -51,17 +53,23 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
     }
 
     private fun createAdmin(dir: File) {
-        val addUsers = ProcessBuilder(
+        val addUsersBuilder = ProcessBuilder(
             "bash",
             "$dir/src/commonTest/resources/localInfra/createAdmin.sh"
         )
             .redirectErrorStream(true)
-            .start()
+        addUsersBuilder.directory(File("$dir/src/commonTest/resources/localInfra"))
+        val addUsers = addUsersBuilder.start()
         streamLogs(addUsers)
         val exitCodeAddUsers = addUsers.waitFor()
         if (exitCodeAddUsers != 0) {
             logger?.warn("Admin user was not created (maybe already exists?).")
         }
+    }
+
+    @OptIn(ExperimentalPathApi::class)
+    private fun deleteOldScreenshots(dir: File) {
+        Path("$dir/screenshots").deleteRecursively()
     }
 
     private fun stopSynapse(dir: File) {

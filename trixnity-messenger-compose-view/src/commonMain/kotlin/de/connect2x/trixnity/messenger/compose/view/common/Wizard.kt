@@ -27,11 +27,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +41,7 @@ import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -109,7 +110,7 @@ data class WizardStep(
 )
 
 @Composable
-fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false) {
+fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false, wizardId: String = "Wizard") {
     val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
     val savableStateHolder = rememberSaveableStateHolder()
 
@@ -137,7 +138,7 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
     //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
     Popup(
         onDismissRequest = { backHandler.goBack() },
-        properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
+        properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false),
     ) {
         CompositionLocalProvider(LocalDensity provides density) {
             // TODO: For some reason having a key here, or anywhere else inside the Popup for that matter
@@ -152,7 +153,9 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
                     savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
                         val scrollState = rememberScrollState()
                         Surface(
-                            Modifier.fillMaxSize(),
+                            Modifier
+                                .fillMaxSize()
+                                .testTag(wizardId),
                             color = MaterialTheme.colorScheme.background,
                         ) {
                             Column(
@@ -332,6 +335,7 @@ private fun NextButtonImpl(
         style = MaterialTheme.components.primaryButton,
         onClick = { currentStep.value = nextStep },
         enabled = nextButton.enabled(),
+        modifier = Modifier.testTag("next"),
     ) {
         if (nextButton.content != null) {
             nextButton.content()

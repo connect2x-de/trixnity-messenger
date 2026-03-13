@@ -172,7 +172,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             }
         }
 
-        Wizard(steps)
+        Wizard(steps, wizardId = "SelfVerificationWizard")
     }
 
     private fun selfVerificationWizardHelpStep(

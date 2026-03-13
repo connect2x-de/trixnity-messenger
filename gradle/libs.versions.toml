@@ -25,7 +25,6 @@ highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases
 androidxMedia3 = "1.8.0" # https://github.com/androidx/media/releases
-ktor = "3.4.1" # https://ktor.io/changelog/
 
 [libraries]
 
@@ -61,15 +60,9 @@ media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", versi
 media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
 media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 
-ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
-ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
-ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
-
 [bundles]
 
 testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
-ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-serialization-kotlinx-json"]
 
 [plugins]
 

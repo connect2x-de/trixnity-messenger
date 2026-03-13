@@ -82,7 +82,7 @@ class RedoSelfVerificationWizardViewImpl : RedoSelfVerificationWizardView {
                 }
             }
         )
-        Wizard(listOf(step))
+        Wizard(listOf(step), wizardId = "RedoSelfVerificationWizard")
 
     }
 }

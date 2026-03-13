@@ -129,14 +129,15 @@ kotlin {
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.test)
                 implementation(sharedLibs.lognity.test)
-                implementation(libs.bundles.ktor.client)
+                implementation(sharedLibs.ktor.client.core)
+                implementation(sharedLibs.ktor.client.contentNegotiation)
+                implementation(sharedLibs.ktor.serialization.kotlinx.json)
             }
         }
         jvmTest {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(sharedLibs.kotlinx.coroutines.swing)
-                implementation(libs.ktor.client.okhttp)
             }
         }
     }
