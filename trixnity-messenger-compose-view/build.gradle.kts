@@ -10,7 +10,6 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import java.io.ByteArrayOutputStream
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -19,6 +18,7 @@ plugins {
     alias(sharedLibs.plugins.compose.compiler)
     alias(sharedLibs.plugins.kotlin.parcelize)
     alias(sharedLibs.plugins.kotlinx.kover)
+    alias(sharedLibs.plugins.kotlin.serialization)
 }
 
 configureJava(sharedLibs.versions.targetJvm)
@@ -129,12 +129,14 @@ kotlin {
                 implementation(libs.okio.fakefilesystem)
                 implementation(sharedLibs.kotlinx.coroutines.test)
                 implementation(sharedLibs.lognity.test)
+                implementation(libs.bundles.ktor.client)
             }
         }
         jvmTest {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(sharedLibs.kotlinx.coroutines.swing)
+                implementation(libs.ktor.client.okhttp)
             }
         }
     }
@@ -167,16 +169,16 @@ android {
     }
 }
 
-val infraServiceProvider = gradle.sharedServices.registerIfAbsent(
-    "infraService",
-    InfraService::class
+val uiTestInfraServiceProvider = gradle.sharedServices.registerIfAbsent(
+    "uiTestInfraService",
+    UITestInfraService::class
 ) {
     parameters.projectDir.set(layout.projectDirectory)
 }
 
 tasks.withType<Test>().named("jvmTest") {
-    usesService(infraServiceProvider)
+    usesService(uiTestInfraServiceProvider)
     doFirst {
-        infraServiceProvider.get().startInfra(logger)
+        uiTestInfraServiceProvider.get().startInfra(logger)
     }
 }
