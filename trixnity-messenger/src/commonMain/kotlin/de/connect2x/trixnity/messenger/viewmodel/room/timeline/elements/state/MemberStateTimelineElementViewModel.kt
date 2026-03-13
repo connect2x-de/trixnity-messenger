@@ -54,7 +54,7 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
 
 interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
     val changeMessage: StateFlow<String?>
-    val preJoinHistoryWarning: StateFlow<String?>
+    val undecryptableHistoryInfo: StateFlow<String?>
 }
 
 private enum class UserInfoChangeEvent {
@@ -153,7 +153,7 @@ class MemberStateTimelineElementViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
     
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val preJoinHistoryWarning =
+    override val undecryptableHistoryInfo =
         combine(
             changeEvent.filterNotNull(),
             matrixClient.room.getById(roomId).filterNotNull(),
@@ -175,7 +175,7 @@ class MemberStateTimelineElementViewModelImpl(
                                     changeEvent is ChangeEvent.NoPreviousContent && changeEvent.kind == MembershipChange.INVITE
                                 if (invited) {
                                     flowOf(
-                                        i18n.eventChangePreJoinHistoryNotAvailable()
+                                        i18n.eventChangeUndecryptableHistoryInfo()
                                     )
                                 } else {
                                     flowOf()
@@ -188,7 +188,7 @@ class MemberStateTimelineElementViewModelImpl(
                                     changeEvent is ChangeEvent.Membership && changeEvent.kind == MembershipChange.JOIN
                                 if (joined) {
                                     flowOf(
-                                        i18n.eventChangePreJoinHistoryNotAvailable()
+                                        i18n.eventChangeUndecryptableHistoryInfo()
                                     )
                                 } else {
                                     flowOf()

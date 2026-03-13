@@ -63,7 +63,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
         val canAddMembers = addMembersViewModel.canAddMembers.collectAsState()
         val error = addMembersViewModel.error.collectAsState().value
         val errorCause = addMembersViewModel.errorCause.collectAsState().value
-        val showPreJoinHistoryWarning = addMembersViewModel.showPreJoinHistoryWarning.collectAsState().value
+        val undecryptableHistoryInfo = addMembersViewModel.undecryptableHistoryInfo.collectAsState().value
         val i18n = DI.get<I18nView>()
         
         Box(Modifier.fillMaxSize()) {
@@ -91,14 +91,14 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                             }
                         }
                     }
-                    if (showPreJoinHistoryWarning != null) {
+                    if (undecryptableHistoryInfo != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 15.dp)) {
                             Icon(
                                 Icons.Default.Info,
                                 i18n.commonInformation(),
                             )
                             MiddleSpacer()
-                            Text(showPreJoinHistoryWarning)
+                            Text(undecryptableHistoryInfo)
                         }
                     }
                     UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)

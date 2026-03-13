@@ -175,7 +175,7 @@ open class I18n(
         DE - "$username ist $groupOrChat beigetreten"
     }
 
-    open fun eventChangePreJoinHistoryNotAvailable() = translate {
+    open fun eventChangeUndecryptableHistoryInfo() = translate {
         EN - "Previous messages cannot be decrypted"
         DE - "Vorherige Nachrichten können nicht entschlüsselt werden"
     }
