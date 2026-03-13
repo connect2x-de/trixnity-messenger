@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Correctly render chat bubble edge for own messages
 - UI,Android: Keep Wizard fullscreen after keyboard popup
 - SDK: Mark rooms as read when they are marked as unread without having unread events
+- SDK: Fix empty notifications
 
 ### Security
 
