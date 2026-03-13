@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,7 +31,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
-import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
 
@@ -95,9 +94,8 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                     if (showPreJoinHistoryWarning.value) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 15.dp)) {
                             Icon(
-                                Icons.Default.Warning,
-                                i18n.commonWarning(),
-                                tint = MaterialTheme.messengerColors.warning
+                                Icons.Default.Info,
+                                i18n.commonInformation(),
                             )
                             MiddleSpacer()
                             Text(i18n.addMembersPreJoinHistoryWarning())
