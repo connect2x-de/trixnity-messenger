@@ -668,6 +668,16 @@ open class I18n(
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
     }
 
+    open fun addMembersUndecryptableHistoryBeforeJoin() = translate {
+        EN - "Added members cannot see messages from before they joined"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrem Beitritt nicht sehen"
+    }
+
+    open fun addMembersUndecryptableHistoryBeforeInvite() = translate {
+        EN - "Added members cannot see messages from before you invited them"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrer Einladung nicht sehen"
+    }
+
     open fun forgetRoomError(groupOrChat: String) = translate {
         EN - "There has been an error forgetting $groupOrChat."
         DE - "Fehler beim Vergessen $groupOrChat."
