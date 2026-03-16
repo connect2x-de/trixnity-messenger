@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Fix empty notifications
 - UI: Tooltips no longer render off-screen
 - UI: Fix color used for the verification badge of secure, but unverified room members
+- UI: Dev info for rooms and timeline events is scrollable again
 
 ### Security
 
