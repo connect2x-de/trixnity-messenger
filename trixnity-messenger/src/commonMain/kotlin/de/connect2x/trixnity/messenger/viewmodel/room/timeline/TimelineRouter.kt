@@ -6,6 +6,9 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -13,9 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Co
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface TimelineRouter {
