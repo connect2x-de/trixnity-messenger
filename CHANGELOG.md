@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,Android: Keep Wizard fullscreen after keyboard popup
 - SDK: Mark rooms as read when they are marked as unread without having unread events
 - SDK: Fix empty notifications
+- UI: Tooltips no longer render off-screen
 - UI: Fix color used for the verification badge of secure, but unverified room members
 
 ### Security
