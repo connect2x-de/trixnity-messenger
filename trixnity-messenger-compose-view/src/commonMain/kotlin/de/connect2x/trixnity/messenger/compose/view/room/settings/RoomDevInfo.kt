@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.CopyToClipboardButton
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
@@ -62,28 +63,27 @@ class RoomDevInfoViewImpl : RoomDevInfoView {
     override fun create(roomDevInfoViewModel: RoomDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
         val scrollState = rememberScrollState()
-        Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            Header(roomDevInfoViewModel::back, i18n.devInfo())
+            SmallSpacer()
             Box(Modifier.fillMaxSize()) {
-                Column {
-                    Header(roomDevInfoViewModel::back, i18n.devInfo())
-                    SmallSpacer()
-                    Column(Modifier.padding(start = 8.dp, end = 8.dp).verticalScroll(scrollState)) {
-                        DevInfoCard(
-                            i18n.roomSettingsRoomId(),
-                            Icons.Default.Numbers,
-                            additionalButtons = {
-                                CopyToClipboardButton(
-                                    roomDevInfoViewModel.roomId.full,
-                                    i18n.copyToClipboardButton()
-                                )
-                            }) {
-                            ThemedSelectableText(
+                Column(Modifier.padding(start = 8.dp, end = 8.dp).verticalScroll(scrollState)) {
+                    DevInfoCard(
+                        i18n.roomSettingsRoomId(),
+                        Icons.Default.Numbers,
+                        additionalButtons = {
+                            CopyToClipboardButton(
                                 roomDevInfoViewModel.roomId.full,
-                                MaterialTheme.components.selectionOnSurface
+                                i18n.copyToClipboardButton()
                             )
-                        }
+                        }) {
+                        ThemedSelectableText(
+                            roomDevInfoViewModel.roomId.full,
+                            MaterialTheme.components.selectionOnSurface
+                        )
                     }
                 }
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scrollState)
             }
         }
     }
