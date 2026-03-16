@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -66,6 +65,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationMethodsListEntries.SelectSelfVerificationMethod
@@ -89,7 +89,7 @@ open class SelfVerificationMethodsListEntries {
 
 class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     companion object {
-        private val stepList = listOf<SelfVerificationWizardStep>(
+        private val stepList = listOf(
             SelfVerificationWizardStep.SelfVerificationWizardHelp,
             SelfVerificationWizardStep.SelfVerificationWizardMethods,
             SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
@@ -460,7 +460,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
         step: SelfVerificationWizardStep,
         i18n: I18nView
     ): WizardStep {
-        val recoveryKey = mutableStateOf("")
+        val recoveryKey = mutableStateOf(TextFieldValue(""))
         return WizardStep(
             id = step.stepId,
             title = { i18n.deviceVerification() },
@@ -472,7 +472,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     Spacer(Modifier.size(10.dp))
 
                     Row(Modifier.fillMaxWidth()) {
-                        OutlinedTextField(
+                        OutlinedTextFieldWithToolbar(
                             value = recoveryKey.value,
                             onValueChange = { recoveryKey.value = it },
                             modifier = Modifier.weight(1.0f, fill = true),
@@ -505,7 +505,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
                         onClick = {
-                            selfVerificationViewModel.verifyWithRecoveryKey(recoveryKey.value)
+                            selfVerificationViewModel.verifyWithRecoveryKey(recoveryKey.value.text)
                         },
                     ) {
                         Text(i18n.commonNext())
@@ -761,6 +761,4 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             }
         }
     }
-
-
 }

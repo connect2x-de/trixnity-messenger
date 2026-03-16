@@ -13,8 +13,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 
-expect @Composable
-fun ThemedOutlinedTextFieldWithToolbar(
+/**
+ * Custom element wrapping the regular OutlinedTexField with an explicit handling of the toolbar logic to assure it is shown when necessary (like in Popups)
+ */
+@Composable
+expect fun OutlinedTextFieldWithToolbar(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
