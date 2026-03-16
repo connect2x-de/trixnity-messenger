@@ -267,12 +267,10 @@ open class InputAreaViewModelImpl(
             }
         }
         coroutineScope.launch {
+            loadDraftIntoTextField()
             textField.collect {
                 saveAsDraft()
             }
-        }
-        coroutineScope.launch {
-            loadDraftIntoTextField()
         }
     }
 
@@ -287,6 +285,7 @@ open class InputAreaViewModelImpl(
                 currentReply.value = content.relatesTo?.let { roomId to it.eventId }
             } else if (content.relatesTo?.relationType is RelationType.Replace) {
                 currentReplace.value = content.relatesTo?.let { roomId to it.eventId }
+                textField.update(content.body.removePrefix("* "))
             }
         }
     }

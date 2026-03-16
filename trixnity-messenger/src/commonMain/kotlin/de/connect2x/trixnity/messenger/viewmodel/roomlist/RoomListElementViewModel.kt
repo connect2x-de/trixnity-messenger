@@ -12,6 +12,7 @@ import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -446,7 +447,15 @@ open class RoomListElementViewModelImpl(
 
     private fun getDraftMessageContent(draft: RoomOutboxMessage<*>?): String? {
         return when (draft?.content) {
-            is TextBased.Text -> (draft.content as TextBased.Text).body.ifEmpty { null }
+            is TextBased.Text -> {
+                val content = (draft.content as TextBased.Text).body
+                if (draft.content.relatesTo?.relationType is RelationType.Replace) {
+                    content.removePrefix("* ").ifEmpty { null }
+                } else {
+                    content.ifEmpty { null }
+                }
+            }
+
             else -> null
         }
     }
