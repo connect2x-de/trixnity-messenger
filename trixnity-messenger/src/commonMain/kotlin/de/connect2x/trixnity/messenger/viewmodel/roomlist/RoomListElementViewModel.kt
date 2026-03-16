@@ -251,7 +251,9 @@ open class RoomListElementViewModelImpl(
                         matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
                         matrixClient.room.getById(roomId).map { it?.isDirect == true }
                             .distinctUntilChanged(),
-                    ) { lastTimelineEventSender, isDirect ->
+                        matrixClient.room.getDraftMessage(roomId)
+                    ) { lastTimelineEventSender, isDirect, draftMessage ->
+                        val draftMessageContent = getDraftMessageContent(draftMessage)
                         val message = timelineEventTypeDescription(lastTimelineEvent)
                         val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
                         val sender = if (isByMe) {
@@ -259,7 +261,8 @@ open class RoomListElementViewModelImpl(
                         } else {
                             lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
                         }
-                        if (isDirect && isByMe.not()) message
+                        if (draftMessageContent != null) "${i18n.roomListDraft()}: $draftMessageContent"
+                        else if (isDirect && isByMe.not()) message
                         else "${sender}: $message"
                     }
                 } else flowOf("")
@@ -439,6 +442,13 @@ open class RoomListElementViewModelImpl(
                 log.error(it) { "Failed to reject invitation" }
                 onFailure(it)
             }
+    }
+
+    private fun getDraftMessageContent(draft: RoomOutboxMessage<*>?): String? {
+        return when (draft?.content) {
+            is TextBased.Text -> (draft.content as TextBased.Text).body.ifEmpty { null }
+            else -> null
+        }
     }
 
     private fun timelineEventTypeDescription(event: TimelineEvent): String =

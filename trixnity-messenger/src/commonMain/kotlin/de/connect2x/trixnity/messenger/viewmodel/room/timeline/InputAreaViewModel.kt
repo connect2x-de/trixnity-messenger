@@ -252,6 +252,8 @@ open class InputAreaViewModelImpl(
             } else null
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
+
     init {
         coroutineScope.launch {
             isStillTyping.debounce(3.seconds).collect {
@@ -264,10 +266,87 @@ open class InputAreaViewModelImpl(
                 else typing()
             }
         }
+        coroutineScope.launch {
+            textField.collect {
+                saveAsDraft()
+            }
+        }
+        coroutineScope.launch {
+            loadDraftIntoTextField()
+        }
     }
 
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
+
+    private suspend fun loadDraftIntoTextField() {
+        val content = draftMessage.first()?.content
+        if (content is TextBased.Text) {
+            textField.update(content.body)
+            if (content.relatesTo?.relationType is RelationType.Reply) {
+                currentReply.value = content.relatesTo?.let { roomId to it.eventId }
+            } else if (content.relatesTo?.relationType is RelationType.Replace) {
+                currentReplace.value = content.relatesTo?.let { roomId to it.eventId }
+            }
+        }
+    }
+
+    suspend fun saveAsDraft() {
+        val text = textField.value.text
+        val references = TrixnityReference.findReferences(text)
+        val userReferences =
+            references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+        val formattedReferences = references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
+            .windowed(
+                size = 2,
+                partialWindows = true
+            ) { mentionWindow ->
+                val first = mentionWindow[0]
+                val second = mentionWindow.getOrNull(1)
+
+                listOfNotNull(
+                    if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
+                    else null,
+                    SubstringType.Reference(first.value.value),
+                    if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
+                    else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
+                )
+            }.flatten()
+            .map { substring ->
+                substring.format(matrixClient, roomId)
+            }.joinToString("")
+            .ifBlank { text }
+
+        val formattedBody =
+            when (useMarkdown.value) {
+                true ->
+                    HtmlGenerator(
+                        formattedReferences,
+                        markdownParser.buildMarkdownTreeFromString(formattedReferences),
+                        markdownFlavourDescriptor
+                    ).generateHtml(HtmlTagRenderer())
+
+                false -> formattedReferences
+            }
+
+        val replacedEvent = currentReplace.value
+        val repliedEvent = currentReply.value
+        matrixClient.room.setDraftMessage(roomId) {
+            when {
+                replacedEvent != null -> replace(replacedEvent.second)
+                repliedEvent != null -> {
+                    val event =
+                        matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
+                            .filterNotNull()
+                            .first()
+                    reply(event)
+                }
+            }
+            mentions(userReferences)
+            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+        }
+    }
+
 
     override fun selectMention(userId: UserId) {
         if (listOfMentions.value?.any { it.userId == userId } != true) return
@@ -297,70 +376,21 @@ open class InputAreaViewModelImpl(
 
     override fun sendMessage() {
         log.trace { "try to send message" }
-        if (isSendEnabled.value == true) {
-            val text = textField.value.text
-            textField.update("")
+        if (isSendEnabled.value) {
             coroutineScope.launch {
-                val references = TrixnityReference.findReferences(text)
-                val userReferences =
-                    references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
-                val formattedReferences =
-                    references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
-                        .windowed(
-                            size = 2,
-                            partialWindows = true
-                        ) { mentionWindow ->
-                            val first = mentionWindow[0]
-                            val second = mentionWindow.getOrNull(1)
-
-                            listOfNotNull(
-                                if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
-                                else null,
-                                SubstringType.Reference(first.value.value),
-                                if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
-                                else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
-                            )
-                        }.flatten()
-                        .map { substring ->
-                            substring.format(matrixClient, roomId)
-                        }.joinToString("")
-                        .ifBlank { text }
-
-                val formattedBody =
-                    when (useMarkdown.value) {
-                        true ->
-                            HtmlGenerator(
-                                formattedReferences,
-                                markdownParser.buildMarkdownTreeFromString(formattedReferences),
-                                markdownFlavourDescriptor
-                            ).generateHtml(HtmlTagRenderer())
-
-                        false -> formattedReferences
-                    }
-
-                val replacedEvent = currentReplace.value
-                val repliedEvent = currentReply.value
+                saveAsDraft()
                 log.debug { "send message" }
-                matrixClient.room.sendMessage(roomId) {
-                    when {
-                        replacedEvent != null -> replace(replacedEvent.second)
-                        repliedEvent != null -> {
-                            val event =
-                                matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-                                    .filterNotNull()
-                                    .first()
-                            reply(event)
-                        }
-                    }
-                    mentions(userReferences)
-                    text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+                matrixClient.room.sendDraftMessage(roomId)
+                matrixClient.room.deleteDraftMessage(roomId)
+                currentReplace.value?.also {
+                    currentReplace.value = null
+                    onMessageReplaceFinished(it.first, it.second)
                 }
-                currentReplace.value = null
-                replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
-                repliedEvent?.also {
+                currentReply.value?.also {
                     currentReply.value = null
                     onMessageReplyFinished(it.first, it.second)
                 }
+                textField.update("")
             }
         }
     }

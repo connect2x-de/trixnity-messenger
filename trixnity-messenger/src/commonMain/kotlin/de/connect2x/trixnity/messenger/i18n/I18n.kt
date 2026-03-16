@@ -395,6 +395,11 @@ open class I18n(
         DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: die Raumversion ist veraltet."
     }
 
+    open fun roomListDraft() = translate {
+        EN - "draft"
+        DE - "draft"
+    }
+
     open fun roomListYou() = translate {
         EN - "you"
         DE - "ich"

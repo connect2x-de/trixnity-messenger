@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Show a warning if an invited user does not exist (server must support this)
 - CI, Android: Add Android APK download link to merge requests
 - UI: Context menu for room list which currently includes the option to mark as unread
+- UI: Message Drafts
 
 ### Changed
 
