@@ -906,11 +906,6 @@ open class I18nView(
         DE - "Teilnehmer hinzufügen"
     }
 
-    open fun addMembersPreJoinHistoryWarning() = translate {
-        EN - "Added members cannot see messages from before they joined"
-        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrem Beitritt nicht sehen"
-    }
-
     open fun memberListChangeRole(username: String, oldRole: String, newRole: String) = translate {
         EN - "Change the role of $username from \"$oldRole\" to \"$newRole\"?"
         DE - "Rolle von $username von \"$oldRole\" zu \"$newRole\" ändern?"

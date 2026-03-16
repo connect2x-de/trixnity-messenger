@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -13,7 +14,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.mapNotNull
 
 interface AddMembersViewModelFactory {
     fun create(
@@ -40,7 +44,7 @@ interface AddMembersViewModel {
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
     val isAddingMembers: StateFlow<Boolean>
-    val showPreJoinHistoryWarning: StateFlow<Boolean>
+    val undecryptableHistoryInfo: StateFlow<String?>
 
     fun onUserClick(user: Search.SearchUserElement)
     fun addMembers()
@@ -82,10 +86,26 @@ class AddMembersViewModelImpl(
 
     override val isAddingMembers = MutableStateFlow(false)
 
-    override val showPreJoinHistoryWarning = 
-        matrixClient.room.getById(roomId).filterNotNull().map { room -> 
-            room.encrypted
-        }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
+    override val undecryptableHistoryInfo =
+        combine(
+        matrixClient.room.getById(roomId).filterNotNull(),
+        matrixClient.room.getState<HistoryVisibilityEventContent>(roomId)
+            .mapNotNull { it?.content?.historyVisibility }
+        ) { room, historyVisibility -> 
+            if (room.encrypted) {
+                when (historyVisibility) {
+                    HistoryVisibilityEventContent.HistoryVisibility.INVITED,
+                    HistoryVisibilityEventContent.HistoryVisibility.SHARED,
+                    HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE->
+                        i18n.addMembersUndecryptableHistoryBeforeInvite()
+
+                    HistoryVisibilityEventContent.HistoryVisibility.JOINED ->
+                        i18n.addMembersUndecryptableHistoryBeforeJoin()
+                }
+            } else {
+                null
+            }
+        }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), null)
 
     override fun addMembers() {
         isAddingMembers.value = true

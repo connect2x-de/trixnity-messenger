@@ -62,6 +62,7 @@ import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
@@ -69,6 +70,7 @@ import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.crypto.key.UserTrustLevel
@@ -167,6 +169,14 @@ class RoomViewModelTest {
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
                 MutableStateFlow(emptyMap())
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(any(), any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("unused", "unused"),
+                        stateKey = "unused",
+                    )
+                )
         every { verificationServiceMock.activeDeviceVerification } returns
                 MutableStateFlow(null)
         every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
