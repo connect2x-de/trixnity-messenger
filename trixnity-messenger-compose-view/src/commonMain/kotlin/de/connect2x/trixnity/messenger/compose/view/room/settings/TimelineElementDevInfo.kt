@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Numbers
@@ -45,7 +47,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
     @Composable
     override fun create(timelineElementDevInfoViewModel: TimelineElementDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
-
+        val scrollState = rememberScrollState()
         val decryptedEventJson = timelineElementDevInfoViewModel.decryptedEventJson.collectAsState().value
 
         Box(Modifier.fillMaxSize()) {
@@ -53,8 +55,7 @@ class TimelineElementDevInfoViewImpl : TimelineElementDevInfoView {
                 Column {
                     Header(timelineElementDevInfoViewModel::back, i18n.devInfo())
                     SmallSpacer()
-                    Column(Modifier.padding(start = 8.dp, end = 8.dp)) {
-
+                    Column(Modifier.padding(start = 8.dp, end = 8.dp).verticalScroll(scrollState)) {
                         decryptedEventJson?.let { content ->
                             DevInfoCard(
                                 i18n.timelineElementMetadataEvent(),

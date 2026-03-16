@@ -1,11 +1,16 @@
 package de.connect2x.trixnity.messenger.compose.view.room.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -55,13 +61,13 @@ class RoomDevInfoViewImpl : RoomDevInfoView {
     @Composable
     override fun create(roomDevInfoViewModel: RoomDevInfoViewModel) {
         val i18n = DI.get<I18nView>()
-
+        val scrollState = rememberScrollState()
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     Header(roomDevInfoViewModel::back, i18n.devInfo())
                     SmallSpacer()
-                    Column(Modifier.padding(start = 8.dp, end = 8.dp)) {
+                    Column(Modifier.padding(start = 8.dp, end = 8.dp).verticalScroll(scrollState)) {
                         DevInfoCard(
                             i18n.roomSettingsRoomId(),
                             Icons.Default.Numbers,
