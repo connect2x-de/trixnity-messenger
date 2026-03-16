@@ -17,14 +17,17 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
 import kotlin.reflect.KClass
 
 interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<MemberEventContent> {
@@ -51,7 +54,7 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
 
 interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
     val changeMessage: StateFlow<String?>
-    val preJoinHistoryWarning: StateFlow<String?>
+    val undecryptableHistoryInfo: StateFlow<String?>
 }
 
 private enum class UserInfoChangeEvent {
@@ -150,25 +153,52 @@ class MemberStateTimelineElementViewModelImpl(
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
     
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val preJoinHistoryWarning =
+    override val undecryptableHistoryInfo =
         combine(
             changeEvent.filterNotNull(),
-            matrixClient.room.getById(roomId).filterNotNull()) { 
-            changeEvent, room -> 
-                Pair(changeEvent, room)
+            matrixClient.room.getById(roomId).filterNotNull(),
+            matrixClient.room.getState<HistoryVisibilityEventContent>(roomId)
+                .mapNotNull { it?.content?.historyVisibility }
+        ) { 
+            changeEvent, room, historyVisibility -> 
+                Triple(changeEvent, room, historyVisibility)
         }
-                .flatMapLatest { (changeEvent, room) ->
+                .flatMapLatest { (changeEvent, room, historyVisibility) ->
                     val affectedUser = UserId(changeEvent.event.stateKey)
-                    val currentUserJoined = matrixClient.userId == affectedUser
-                    val preJoinHistoryNotAvailable = room.encrypted && currentUserJoined
-                    // Don't show on events without previous content like when creating a room  
-                    // because the room creator does not need this warning 
-                    val isMemberEventJoin =
-                        changeEvent is ChangeEvent.Membership && changeEvent.kind == MembershipChange.JOIN
-                    if (isMemberEventJoin && preJoinHistoryNotAvailable)
-                        flowOf(i18n.eventChangePreJoinHistoryNotAvailable())
-                    else
+                    val currentUserAffected = matrixClient.userId == affectedUser
+                    if (room.encrypted && currentUserAffected) {
+                        when (historyVisibility) {
+                            HistoryVisibilityEventContent.HistoryVisibility.INVITED,
+                            HistoryVisibilityEventContent.HistoryVisibility.SHARED,
+                            HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE-> {
+                                val invited =
+                                    changeEvent is ChangeEvent.NoPreviousContent && changeEvent.kind == MembershipChange.INVITE
+                                if (invited) {
+                                    flowOf(
+                                        i18n.eventChangeUndecryptableHistoryInfo()
+                                    )
+                                } else {
+                                    flowOf()
+                                }
+
+                            }
+
+                            HistoryVisibilityEventContent.HistoryVisibility.JOINED -> {
+                                val joined =
+                                    changeEvent is ChangeEvent.Membership && changeEvent.kind == MembershipChange.JOIN
+                                if (joined) {
+                                    flowOf(
+                                        i18n.eventChangeUndecryptableHistoryInfo()
+                                    )
+                                } else {
+                                    flowOf()
+                                }
+                            }
+                        }
+                    }
+                    else {
                         flowOf()
+                    }
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
     
     private fun membershipChangedEvent(

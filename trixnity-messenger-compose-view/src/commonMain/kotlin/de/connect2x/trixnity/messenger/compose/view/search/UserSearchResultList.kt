@@ -1,13 +1,17 @@
 package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,12 +25,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
+import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusItem
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -114,6 +120,7 @@ private fun UserElement(
     modifier: Modifier,
     onClick: () -> Unit
 ) {
+    val i18n = DI.get<I18nView>()
     val presence by user.presence.collectAsState()
 
     ThemedListItemButton(
@@ -131,12 +138,24 @@ private fun UserElement(
             )
         },
         supportingContent = {
-            Text(
-                user.userId.full,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelMedium,
-            )
+            if (user.doesNotExist) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Warning,
+                        "warning",
+                        tint = MaterialTheme.messengerColors.warning
+                    )
+                    VerySmallSpacer()
+                    Text(i18n.userSearchUserDoesNotExist())
+                }
+            } else {
+                Text(
+                    user.userId.full,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelMedium,
+                )
+            }
         },
         modifier = modifier,
         onClick = onClick,

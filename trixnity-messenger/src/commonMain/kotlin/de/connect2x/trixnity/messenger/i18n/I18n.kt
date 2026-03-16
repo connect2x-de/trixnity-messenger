@@ -175,9 +175,9 @@ open class I18n(
         DE - "$username ist $groupOrChat beigetreten"
     }
 
-    open fun eventChangePreJoinHistoryNotAvailable() = translate {
-        EN - "Messages from before you joined are unavailable"
-        DE - "Nachrichten vor Ihrem Beitritt sind nicht verfügbar"
+    open fun eventChangeUndecryptableHistoryInfo() = translate {
+        EN - "Previous messages cannot be decrypted"
+        DE - "Vorherige Nachrichten können nicht entschlüsselt werden"
     }
 
     open fun eventChangeLeave(username: String, groupOrChat: String) = translate {
@@ -666,6 +666,16 @@ open class I18n(
     open fun settingsRoomAddMembersErrorOffline() = translate {
         EN - "You cannot invite users when you are offline."
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
+    }
+
+    open fun addMembersUndecryptableHistoryBeforeJoin() = translate {
+        EN - "Added members cannot see messages from before they joined"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrem Beitritt nicht sehen"
+    }
+
+    open fun addMembersUndecryptableHistoryBeforeInvite() = translate {
+        EN - "Added members cannot see messages from before you invited them"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrer Einladung nicht sehen"
     }
 
     open fun forgetRoomError(groupOrChat: String) = translate {
@@ -1387,6 +1397,16 @@ open class I18n(
     open fun newMessageDescription() = translate {
         EN - "You have new messages."
         DE - "Sie haben neue Nachrichten."
+    }
+
+    open fun newInvite() = translate {
+        EN - "new invite"
+        DE - "neue Einladung"
+    }
+
+    open fun newActivity() = translate {
+        EN - "new activity"
+        DE - "neue Aktivität"
     }
 
     open fun powerLevelUpdateBan(powerLevel: Long) = translate {

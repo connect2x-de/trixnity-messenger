@@ -15,6 +15,8 @@ import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
@@ -96,6 +98,14 @@ class AddMembersViewModelTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { roomServiceMock.getById(roomId) } returns flowOf(null)
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
     }
 
     @BeforeTest
@@ -251,29 +261,79 @@ class AddMembersViewModelTest {
     }
 
     @Test
-    fun `history warning - should show history warning when room is encrypted`() = runTest {
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility INVITED`() = runTest {
         every { roomServiceMock.getById(roomId) } returns flowOf(
             Room(RoomId(""), encrypted = true)
         )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
         
         val cut = createAddMembersViewModel()
-        backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
         delay(1.seconds)
         
-        cut.showPreJoinHistoryWarning.value shouldBe true
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before you invited them"
     }
 
     @Test
-    fun `history warning - should not show history warning when room is unencrypted`() = runTest {
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility JOINED`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before they joined"
+    }
+
+    @Test
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility SHARED`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.SHARED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before you invited them"
+    }
+
+    @Test
+    fun `undecryptable history info - should not show undecryptable history info when room is unencrypted`() = runTest {
         every { roomServiceMock.getById(roomId) } returns flowOf(
             Room(RoomId(""), encrypted = false)
         )
         
         val cut = createAddMembersViewModel()
-        backgroundScope.launch { cut.showPreJoinHistoryWarning.collect {} }
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
         delay(1.seconds)
         
-        cut.showPreJoinHistoryWarning.value shouldBe false
+        cut.undecryptableHistoryInfo.value shouldBe null
     }
 
     private fun TestScope.createAddMembersViewModel(): AddMembersViewModel {

@@ -35,10 +35,10 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
         element: MemberStateTimelineElementViewModel,
         index: Int,
     ) {
-        StateElement(element)
-        element.preJoinHistoryWarning.collectAsState().value?.let { 
-            HorizontalDividerWithText(it) 
+        element.undecryptableHistoryInfo.collectAsState().value?.let {
+            HorizontalDividerWithText(it)
         }
+        StateElement(element)
     }
 
     @Composable

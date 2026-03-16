@@ -175,7 +175,7 @@ class UserProfileViewImpl : UserProfileView {
                                 )
                             } else {
                                 ThemedInfoChip(
-                                    style = MaterialTheme.components.destructiveChip,
+                                    style = MaterialTheme.components.secondaryChip,
                                     icon = { NeutralVerifiedIcon(VerificationLevel.USER) },
                                     label = { Text(i18n.userTrustSecureUnverified()) }
                                 )

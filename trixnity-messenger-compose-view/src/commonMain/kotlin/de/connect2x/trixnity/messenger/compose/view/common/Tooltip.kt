@@ -10,6 +10,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -135,8 +136,7 @@ fun Tooltip(
                 hideTooltip = hideTooltip,
             )
             .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
-        // TODO: Tooltips should be adaptive (top, bottom, etc. depending on location)
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = {
             TooltipSurface(
                 showTooltip = showTooltip,
