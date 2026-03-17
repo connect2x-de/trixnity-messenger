@@ -4,6 +4,9 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.backend.Backend
 import de.connect2x.lognity.test.TestBackend
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -12,8 +15,8 @@ import dev.mokkery.matcher.MokkeryMatcherScope
 import dev.mokkery.matcher.matches
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
+import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
-import io.kotest.matchers.errorCollector
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -29,9 +32,6 @@ import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.client.store.Room
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.Koin
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext

@@ -4,7 +4,6 @@ package de.connect2x.trixnity.messenger.compose.view.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -18,6 +17,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.autofill
 import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 
 interface MatrixUsernameView {
     @Composable
@@ -51,7 +51,7 @@ class MatrixUsernameViewImpl : MatrixUsernameView {
         modifier: Modifier,
         trailingIcon: @Composable (() -> Unit)?,
     ) {
-        OutlinedTextField(
+        OutlinedTextFieldWithToolbar(
             enabled = enabled,
             value = username.value,
             singleLine = true,

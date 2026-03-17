@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -130,8 +131,8 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
             onBack = { viewModel.back() },
             backButtonType = if (isSinglePane || isBottomOfStack.not()) BACK else CLOSE,
             {
-                Tooltip(i18n.devInfoButtonTooltip()){
-                    IconButton({viewModel.openDevInfo()}){
+                Tooltip(i18n.devInfoButtonTooltip()) {
+                    IconButton({ viewModel.openDevInfo() }, Modifier.buttonPointerModifier()) {
                         Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
                     }
                 }

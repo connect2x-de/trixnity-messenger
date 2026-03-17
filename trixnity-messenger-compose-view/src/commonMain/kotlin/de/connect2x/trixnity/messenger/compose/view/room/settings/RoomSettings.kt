@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.BACK
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType.CLOSE
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
@@ -70,8 +71,8 @@ class RoomSettingsViewImpl : RoomSettingsView {
             { roomSettingsViewModel.close() },
             if (isSinglePane) BACK else CLOSE,
             {
-                Tooltip(i18n.devInfoButtonTooltip()){
-                    IconButton({roomSettingsViewModel.openDevInfoView()}){
+                Tooltip(i18n.devInfoButtonTooltip()) {
+                    IconButton({ roomSettingsViewModel.openDevInfoView() }, Modifier.buttonPointerModifier()) {
                         Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
                     }
                 }
