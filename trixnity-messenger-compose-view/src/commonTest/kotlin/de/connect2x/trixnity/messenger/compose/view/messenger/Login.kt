@@ -32,7 +32,7 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
 private suspend fun ComposeUiTest.serverLogin(
     testName: String,
     username: String,
-    password: String
+    password: String,
 ) {
     screenshot(testName, "Login - Login - Before Server Discovery")
     onNodeWithText("Your Matrix Server", ignoreCase = true).assertExists()

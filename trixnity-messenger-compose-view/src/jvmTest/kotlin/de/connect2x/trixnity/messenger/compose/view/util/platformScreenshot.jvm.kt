@@ -10,7 +10,7 @@ import kotlin.io.path.writeBytes
 
 actual suspend fun SemanticsNodeInteraction.screenshot(path: String) {
     val image = captureToImage()
-    val bytes = image.encodeToByteArray(ImageFormat.PNG, quality = 1)
+    val bytes = image.encodeToByteArray(ImageFormat.PNG, quality = 60)
     Path(path).parent?.createDirectories()
     Path(path).writeBytes(bytes)
 }
