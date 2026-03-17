@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.ktor.http.*
-import io.ktor.util.*
 import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.encodeBase64
 import de.connect2x.trixnity.utils.toByteArray
+import io.ktor.http.*
 import js.promise.Promise
 import js.promise.await
 import js.promise.invoke

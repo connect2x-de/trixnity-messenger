@@ -4,9 +4,9 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import js.core.JsPrimitives.toKotlinString
 import js.objects.Object
 import js.objects.unsafeJso
+import js.string.JsStrings.toKotlinString
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module

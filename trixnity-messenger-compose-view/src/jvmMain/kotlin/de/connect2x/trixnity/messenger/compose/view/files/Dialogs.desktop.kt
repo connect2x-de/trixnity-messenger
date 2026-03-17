@@ -5,6 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -20,14 +21,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
+import de.connect2x.trixnity.utils.write
 import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import io.github.vinceglb.filekit.path
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.utils.write
 import okio.FileSystem
 import okio.Path.Companion.toPath
 
@@ -94,7 +95,9 @@ actual fun LoadFileDialog(
             else -> FileKitType.File()
         },
         mode = FileKitMode.Single,
-        title = i18n.fileDialogTitleLoad(),
+        dialogSettings = FileKitDialogSettings(
+            title = i18n.fileDialogTitleLoad(),
+        ),
         // TODO: set initialDirectory to OS dependent default pictures directory
     ) { file ->
         log.debug { "selected file: $file" }
