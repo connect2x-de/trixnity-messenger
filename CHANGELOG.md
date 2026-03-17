@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.3.0
+
+### Added
+
 - WEB,SDK: Support Kotlin/WasmJs
 - SDK: TextFieldViewModel: allow for input validation
 - SDK: The floating 'create new chat or group' button is now part of the DI
@@ -25,11 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Notification settings spacing
 - UI: Don't show the "deprecated login methods" section unless there are some
 - SDK: Enable dehydrated devices by default
-- SDK: Upgrade dependencies
-
-### Deprecated
-
-### Removed
+- SDK: Update Trixnity to 5.3.0
+- SDK: Update kotlin-wrappers to 2026.3.10
 
 ### Fixed
 
@@ -42,8 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fix color used for the verification badge of secure, but unverified room members
 - UI: Dev info for rooms and timeline events is scrollable again
 - UI,ANDROID: Show text toolbar for text fields in Wizards
-
-### Security
 
 ## 4.2.3
 
