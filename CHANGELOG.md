@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Self verification is no longer shown twice during the setup wizard
+
 ### Security
 
 ## 4.3.0
