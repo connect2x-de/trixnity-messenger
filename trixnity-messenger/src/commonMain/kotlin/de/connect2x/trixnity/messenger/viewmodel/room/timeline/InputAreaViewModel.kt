@@ -278,13 +278,14 @@ open class InputAreaViewModelImpl(
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
 
     private suspend fun loadDraftIntoTextField() {
-        val content = draftMessage.first()?.content
+        val draftMessage = draftMessage.first()
+        val content = draftMessage?.content
         if (content is TextBased.Text) {
             textField.update(content.body)
             if (content.relatesTo?.relationType is RelationType.Reply) {
-                currentReply.value = content.relatesTo?.let { roomId to it.eventId }
+                currentReply.value = content.relatesTo?.let { draftMessage.roomId to it.eventId }
             } else if (content.relatesTo?.relationType is RelationType.Replace) {
-                currentReplace.value = content.relatesTo?.let { roomId to it.eventId }
+                currentReplace.value = content.relatesTo?.let { draftMessage.roomId to it.eventId }
                 textField.update(content.body.removePrefix("* "))
             }
         }
