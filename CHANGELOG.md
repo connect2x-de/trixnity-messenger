@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Notification settings spacing
 - UI: Don't show the "deprecated login methods" section unless there are some
+- SDK: Enable dehydrated devices by default
 
 ### Deprecated
 
