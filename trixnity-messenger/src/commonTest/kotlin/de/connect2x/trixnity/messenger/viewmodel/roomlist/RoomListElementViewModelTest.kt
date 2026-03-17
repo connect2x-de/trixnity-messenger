@@ -20,6 +20,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
@@ -834,9 +835,8 @@ class RoomListElementViewModelTest {
     }
 
     @Test
-    fun `mark rooms as unread`() = runTest {
+    fun `MarkUnread should correctly update the read data of the room`() = runTest {
         val cut = roomListElementViewModel(roomId)
-        val job = cut.isUnread.launchIn(this)
         eventually(2.seconds) {
             cut.isUnread.value shouldBe false
         }
@@ -848,7 +848,42 @@ class RoomListElementViewModelTest {
         eventually(2.seconds) {
             cut.isUnread.value shouldBe true
         }
-        job.cancel()
+    }
+
+    @Test
+    fun `MarkRead should correctly update the read data of the room`() = runTest {
+        val cut = roomListElementViewModel(roomId)
+        val lastTimelineEvent = timelineEvent(EventId("Event"), sentAt = Clock.System.now())
+
+        var markedLastEventAsRead = false
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe false
+        }
+        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(false), any(), any(), any()) } calls {
+            isUnreadFlow.emit(false)
+            Result.success(Unit)
+        }
+        every { roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any()) } returns flowOf(
+            FullyReadEventContent(EventId("ReadEvent"))
+        )
+        every { roomServiceMock.getLastTimelineEvent(any(), any()) } returns flowOf(flowOf(lastTimelineEvent))
+        everySuspend {
+            roomsApiClientMock.setReadMarkers(
+                roomId,
+                read = any(),
+                fullyRead = lastTimelineEvent.eventId,
+                privateRead = lastTimelineEvent.eventId
+            )
+        } calls {
+            markedLastEventAsRead = true
+            Result.success(Unit)
+        }
+
+        cut.markRead()
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe false
+            markedLastEventAsRead shouldBe true
+        }
     }
 
 

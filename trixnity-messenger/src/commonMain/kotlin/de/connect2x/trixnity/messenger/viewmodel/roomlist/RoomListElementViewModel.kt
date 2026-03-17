@@ -7,6 +7,7 @@ import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
@@ -44,6 +45,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -421,24 +423,24 @@ open class RoomListElementViewModelImpl(
             }
             launch {
                 val lastTimelineEvent =
-                    matrixClient.room.getLastTimelineEvent(roomId).firstOrNull()?.firstOrNull()?.eventId
+                    matrixClient.room.getLastTimelineEvent(roomId).firstOrNull()?.firstOrNull()
+                val lastTimelineEventId = lastTimelineEvent?.eventId
                 val lastReadEvent =
                     matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
-                if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
+                if (lastTimelineEvent != null && lastTimelineEventId != lastReadEvent) {
                     val readMarkerIsPublic =
                         get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
                     matrixClient.api.room.setReadMarkers(
-                        roomId = roomId,
-                        read = if (readMarkerIsPublic) lastTimelineEvent else null,
-                        fullyRead = lastTimelineEvent,
-                        privateRead = lastTimelineEvent,
+                        roomId = lastTimelineEvent.roomId,
+                        read = if (readMarkerIsPublic) lastTimelineEventId else null,
+                        fullyRead = lastTimelineEventId,
+                        privateRead = lastTimelineEventId,
                     )
                         .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
                         .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
                 }
             }
         }
-
     }
 
     private suspend fun rejectInvitationSuspend(
