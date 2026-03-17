@@ -147,14 +147,7 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         interactionSource,
                         actionMenuFocusSource,
                         showActionMenu,
-                        buildList {
-                            if (!isUnread) add(
-                                ThemedActionMenuItem(
-                                    Icons.Default.MarkAsUnread,
-                                    i18n.markRoomAsUnread(),
-                                    action = { roomListElementViewModel.markUnread() })
-                            )
-                        },
+                        roomListElementViewModel.RoomListElementContextMenuActions(i18n),
                         additionalContextActions = {},
                         openActionMenuIcon = {
                             Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)

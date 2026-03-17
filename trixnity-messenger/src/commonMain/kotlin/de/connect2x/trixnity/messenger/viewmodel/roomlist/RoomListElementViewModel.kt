@@ -6,10 +6,12 @@ import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
@@ -26,6 +28,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Un
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -42,12 +45,14 @@ import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -101,6 +106,7 @@ interface RoomListElementViewModel {
     fun forgetRoom()
     fun clearError()
     fun markUnread()
+    fun markRead()
 }
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -267,7 +273,7 @@ open class RoomListElementViewModelImpl(
 
     override val isUnread: StateFlow<Boolean?> =
         matrixClient.notification.isUnread(roomId)
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, Eagerly, null)
 
     override val notificationCount: StateFlow<String?> =
         matrixClient.notification.getCount(roomId).map { count ->
@@ -384,16 +390,55 @@ open class RoomListElementViewModelImpl(
     }
 
     override fun markUnread() {
-        coroutineScope.launch {
-            matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
-                onSuccess = {
-                    log.info { "Marked room $roomId as unread" }
-                },
-                onFailure = {
-                    log.error(it) { "Couldn't mark room $roomId as unread" }
-                }
-            )
+        if (isUnread.value != true) {
+            coroutineScope.launch {
+                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
+                    onSuccess = {
+                        log.info { "Marked room $roomId as unread" }
+                    },
+                    onFailure = {
+                        log.error(it) { "Couldn't mark room $roomId as unread" }
+                    }
+                )
+            }
         }
+    }
+
+    override fun markRead() {
+        val markRoomAsNotUnread = isUnread.value != false
+        coroutineScope.launch {
+            launch {
+                if (markRoomAsNotUnread) {
+                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId).fold(
+                        onSuccess = {
+                            log.info { "Marked room $roomId as read" }
+                        },
+                        onFailure = {
+                            log.error(it) { "Couldn't mark room $roomId as read" }
+                        }
+                    )
+                }
+            }
+            launch {
+                val lastTimelineEvent =
+                    matrixClient.room.getLastTimelineEvent(roomId).firstOrNull()?.firstOrNull()?.eventId
+                val lastReadEvent =
+                    matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
+                if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
+                    val readMarkerIsPublic =
+                        get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
+                    matrixClient.api.room.setReadMarkers(
+                        roomId = roomId,
+                        read = if (readMarkerIsPublic) lastTimelineEvent else null,
+                        fullyRead = lastTimelineEvent,
+                        privateRead = lastTimelineEvent,
+                    )
+                        .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
+                        .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
+                }
+            }
+        }
+
     }
 
     private suspend fun rejectInvitationSuspend(
@@ -470,6 +515,7 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
     override fun markUnread() {}
+    override fun markRead() {}
 }
 
 class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
@@ -506,6 +552,7 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
     override fun markUnread() {}
+    override fun markRead() {}
 }
 
 class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
@@ -542,6 +589,7 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
     override fun markUnread() {}
+    override fun markRead() {}
 }
 
 class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
@@ -578,4 +626,5 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override fun rejectInvitationAndBlockInviter() {}
     override fun clearError() {}
     override fun markUnread() {}
+    override fun markRead() {}
 }

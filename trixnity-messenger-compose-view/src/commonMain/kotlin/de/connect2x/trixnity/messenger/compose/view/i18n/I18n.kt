@@ -3473,6 +3473,11 @@ open class I18nView(
         DE - "Raum als ungelesen markieren"
     }
 
+    open fun markRoomAsRead() = translate {
+        EN - "Mark room as read"
+        DE - "Raum als gelesen markieren"
+    }
+
     open fun unreadMessageCount(count: String) = translate {
         EN - "$count unread messages"
         DE - "$count ungelesene Nachrichten"
