@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Tooltips no longer render off-screen
 - UI: Fix color used for the verification badge of secure, but unverified room members
 - UI: Dev info for rooms and timeline events is scrollable again
+- UI,ANDROID: Show text toolbar for text fields in Wizards
 
 ### Security
 

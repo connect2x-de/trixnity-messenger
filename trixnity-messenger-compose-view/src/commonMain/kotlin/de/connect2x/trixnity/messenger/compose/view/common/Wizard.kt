@@ -58,6 +58,7 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.settings.LegalFooter
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedPopup
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -133,43 +134,40 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
         }
     }
 
-    val density = LocalDensity.current
     //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
-    Popup(
+    ThemedPopup(
         onDismissRequest = { backHandler.goBack() },
         properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
-        CompositionLocalProvider(LocalDensity provides density) {
-            // TODO: For some reason having a key here, or anywhere else inside the Popup for that matter
-            //       leads to the imePadding being persisted between wizard routes, meaning that when i have clicked
-            //       inside a TextField in step 2, navigate back to step one, all content in step 1 is shifted
-            //       upwards until navigating again.
-            //
-            // key(wizardStep) {
-                if (wizardStep != null) {
-                    // this is necessary to have a scroll position saved on every step,
-                    // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
-                    savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
-                        val scrollState = rememberScrollState()
-                        Surface(
-                            Modifier.fillMaxSize(),
-                            color = MaterialTheme.colorScheme.background,
+        // TODO: For some reason having a key here, or anywhere else inside the Popup for that matter
+        //       leads to the imePadding being persisted between wizard routes, meaning that when i have clicked
+        //       inside a TextField in step 2, navigate back to step one, all content in step 1 is shifted
+        //       upwards until navigating again.
+        //
+        // key(wizardStep) {
+        if (wizardStep != null) {
+            // this is necessary to have a scroll position saved on every step,
+            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+            savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
+                val scrollState = rememberScrollState()
+                Surface(
+                    Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
+                    ) {
+                        BoxWithConstraints(
+                            Modifier.fillMaxWidth().weight(1f),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
-                            ) {
-                                BoxWithConstraints(
-                                    Modifier.fillMaxWidth().weight(1f),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
-                                }
-                                LegalFooter()
-                            }
+                            WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
                         }
+                        LegalFooter()
                     }
                 }
+            }
             // }
         }
     }
