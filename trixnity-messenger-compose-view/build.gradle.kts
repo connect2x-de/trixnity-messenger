@@ -1,5 +1,6 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
+import co.touchlab.skie.util.cache.readTextOrNull
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerCoverageTask
@@ -10,6 +11,10 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
+import org.jetbrains.kotlin.gradle.plugin.KotlinTargetTestRun
+import org.jetbrains.kotlin.gradle.plugin.KotlinTargetWithTests
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
+import org.jetbrains.kotlin.gradle.testing.KotlinTaskTestRun
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -177,9 +182,57 @@ val uiTestInfraServiceProvider = gradle.sharedServices.registerIfAbsent(
     parameters.projectDir.set(layout.projectDirectory)
 }
 
-tasks.withType<Test>().named("jvmTest") {
-    usesService(uiTestInfraServiceProvider)
-    doFirst {
-        uiTestInfraServiceProvider.get().startInfra(logger)
+kotlin {
+    targets.withType<KotlinTargetWithTests<*, KotlinTargetTestRun<*>>>().configureEach {
+        testRuns.withType<KotlinTaskTestRun<*, *>>().configureEach {
+            executionTask.configure {
+                usesService(uiTestInfraServiceProvider)
+                doFirst {
+                    uiTestInfraServiceProvider.get().startInfra(logger)
+                }
+            }
+        }
     }
+}
+
+tasks.named("iosSimulatorArm64Test") {
+     finalizedBy(exportIosScreenshots)
+}
+
+val resolveIosSimulatorContainer by tasks.registering {
+    group = "verification"
+    outputs.upToDateWhen { false }
+    outputs.cacheIf { false }
+
+    val resultFile = layout.buildDirectory.file("ios-container-path.txt")
+
+    outputs.file(resultFile)
+
+    doLast {
+        val devicesDir = File(
+            "${System.getProperty("user.home")}/Library/Developer/CoreSimulator/Devices"
+        )
+
+        // 1. find most recently modified device
+        val appsDir = devicesDir.listFiles()
+            ?.filter { File(it, "data").resolve("Documents").resolve("screenshots").exists() }
+            ?.map { File(it, "data").resolve("Documents").resolve("screenshots") }
+            ?.onEach { println("${it.absolutePath} (${it.lastModified()}") }
+            ?.maxByOrNull { it.lastModified() }
+            ?: error("No simulator devices found")
+
+        resultFile.get().asFile.writeText(appsDir.absolutePath)
+
+        println("Resolved iOS container: ${appsDir.absolutePath}")
+    }
+}
+
+val exportIosScreenshots by tasks.registering(Copy::class) {
+    group = "verification"
+    dependsOn(resolveIosSimulatorContainer)
+
+    val resultFile = layout.buildDirectory.file("ios-container-path.txt")
+
+    from(resultFile.get().asFile.readTextOrNull())
+    into(layout.projectDirectory.dir("screenshots"))
 }

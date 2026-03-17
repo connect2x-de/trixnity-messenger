@@ -11,6 +11,7 @@ import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import de.connect2x.trixnity.messenger.compose.view.util.screenshot
 import de.connect2x.trixnity.messenger.compose.view.util.waitUntilExactlyOneExists
 
 suspend fun ComposeUiTest.login(testName: String, username: String, password: String) {

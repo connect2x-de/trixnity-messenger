@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view
+package de.connect2x.trixnity.messenger.compose.view.util
 
 import androidx.compose.ui.test.SemanticsNodeInteraction
 
