@@ -397,7 +397,7 @@ open class I18n(
 
     open fun roomListDraft() = translate {
         EN - "draft"
-        DE - "draft"
+        DE - "Entwurf"
     }
 
     open fun roomListYou() = translate {
