@@ -49,7 +49,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import js.array.asList
-import js.core.JsPrimitives.toKotlinString
+import js.string.JsStrings.toKotlinString
 import kotlinx.coroutines.delay
 import web.dom.Element
 import web.dom.ElementId
@@ -60,7 +60,6 @@ import kotlin.contracts.contract
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
 import kotlin.js.JsString
-import kotlin.js.Promise
 import kotlin.js.unsafeCast
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -680,24 +679,25 @@ private val ProgressAttrAsserter: AttrAsserter = { attrs, actualAttrs ->
     assertNotNull(attrs)
     assertNotNull(actualAttrs)
 
-    assertEquals(attrs["value"]?.toFloat(),  actualAttrs["value"]?.toFloat())
+    assertEquals(attrs["value"]?.toFloat(), actualAttrs["value"]?.toFloat())
     assertEquals(attrs["max"]?.toFloat(), actualAttrs["max"]?.toFloat())
 }
 
 @OptIn(ExperimentalTestApi::class, InternalComposeUiApi::class, InternalTestApi::class)
-private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit) : Promise<JsAny?> {
+private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit) = run {
     val a11yRoot = document.createElement(HtmlTagName.div)
     document.body.appendChild(a11yRoot)
-    return SkikoComposeUiTest(semanticsOwnerListener = CanvasSemanticsOwnerListener(a11yRoot)).runTest {
-        setContent(content)
+    SkikoComposeUiTest(semanticsOwnerListener = CanvasSemanticsOwnerListener(a11yRoot))
+        .runTest {
+            setContent(content)
 
-        delay(10.seconds)// This is virtual time
+            delay(10.seconds)// This is virtual time
 
-        println(a11yRoot.innerHTML)
-        assertions(a11yRoot)
+            println(a11yRoot.innerHTML)
+            assertions(a11yRoot)
 
-        document.body.removeChild(a11yRoot)
-    }
+            document.body.removeChild(a11yRoot)
+        }
 }
 
 private fun Element.byTestTag(tag: String): Element? = this.querySelector("[data-test-tag='$tag']")

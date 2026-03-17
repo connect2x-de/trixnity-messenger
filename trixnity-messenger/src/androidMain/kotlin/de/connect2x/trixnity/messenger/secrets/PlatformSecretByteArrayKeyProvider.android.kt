@@ -7,10 +7,11 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import de.connect2x.trixnity.messenger.util.ContextGetter
-import io.ktor.util.*
-import kotlinx.serialization.json.JsonObject
 import de.connect2x.trixnity.crypto.core.SecureRandom
+import de.connect2x.trixnity.messenger.util.ContextGetter
+import de.connect2x.trixnity.utils.decodeBase64
+import de.connect2x.trixnity.utils.encodeBase64
+import kotlinx.serialization.json.JsonObject
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -26,7 +27,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                 return GetKey { size ->
                     try {
                         val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
-                        val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64Bytes()
+                        val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64()
                         val key = when {
                             existingKey == null -> {
                                 val newKey = SecureRandom.nextBytes(size)
@@ -69,7 +70,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun getLegacy(): ByteArray? {
                 val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
                 return encryptedSharedPreferences
-                    .getString("secret_byte_array_key_key", null)?.decodeBase64Bytes()
+                    .getString("secret_byte_array_key_key", null)?.decodeBase64()
             }
         }
     }
