@@ -159,7 +159,6 @@ test:smoketest-ios:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./scripts/start_emulator.sh
     - ./gradlew
       :trixnity-messenger-compose-view:iosSimulatorArm64Test
       :trixnity-messenger-compose-view:testCoverage
