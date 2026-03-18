@@ -10,5 +10,7 @@ services:
       VIRTUAL_PORT: 8008
       SYNAPSE_SERVER_NAME: "localhost"
       SYNAPSE_REPORT_STATS: "no"
+      UID: "1000"
+      GID: "1000"
     ports:
       - 8008:8008
