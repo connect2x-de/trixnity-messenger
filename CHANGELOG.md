@@ -17,9 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Self verification is no longer shown twice during the setup wizard
-
 ### Security
+
+## 4.3.1
+
+### Fixed
+
+- SDK: Downgrade lognity due to performance regression and bugs
+- UI: Self verification is no longer shown twice during the setup wizard
 
 ## 4.3.0
 
