@@ -402,7 +402,6 @@ open class InputAreaViewModelImpl(
                 saveAsDraft()
                 log.debug { "send message" }
                 matrixClient.room.sendDraftMessage(roomId)
-                matrixClient.room.deleteDraftMessage(roomId)
                 currentReplace.value?.also {
                     currentReplace.value = null
                     onMessageReplaceFinished(it.first, it.second)
