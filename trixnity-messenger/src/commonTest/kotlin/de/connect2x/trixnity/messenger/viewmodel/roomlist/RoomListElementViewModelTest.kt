@@ -60,7 +60,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -853,7 +852,7 @@ class RoomListElementViewModelTest {
     @Test
     fun `MarkRead should correctly update the read data of the room`() = runTest {
         val cut = roomListElementViewModel(roomId)
-        val lastTimelineEvent = timelineEvent(EventId("Event"), sentAt = Clock.System.now())
+        val lastTimelineEvent = timelineEvent(EventId("Event"), sentAt = Clock.System.now(), roomId = roomId)
 
         var markedLastEventAsRead = false
         eventually(2.seconds) {
@@ -919,13 +918,13 @@ class RoomListElementViewModelTest {
         return cut
     }
 
-    private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2) =
+    private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2, roomId: RoomId = roomId1) =
         TimelineEvent(
             event = MessageEvent(
                 content = RoomMessageEventContent.TextBased.Text(body),
                 id = eventId,
                 sender = sender,
-                roomId = roomId1,
+                roomId = roomId,
                 originTimestamp = sentAt.toEpochMilliseconds(),
                 unsigned = null
             ),
