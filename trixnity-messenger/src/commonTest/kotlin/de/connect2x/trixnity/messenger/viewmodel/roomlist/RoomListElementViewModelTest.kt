@@ -858,14 +858,14 @@ class RoomListElementViewModelTest {
         eventually(2.seconds) {
             cut.isUnread.value shouldBe false
         }
-        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(false), any(), any(), any()) } calls {
+        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(false), roomId, any(), any()) } calls {
             isUnreadFlow.emit(false)
             Result.success(Unit)
         }
-        every { roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any()) } returns flowOf(
+        every { roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any()) } returns flowOf(
             FullyReadEventContent(EventId("ReadEvent"))
         )
-        every { roomServiceMock.getLastTimelineEvent(any(), any()) } returns flowOf(flowOf(lastTimelineEvent))
+        every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns flowOf(flowOf(lastTimelineEvent))
         everySuspend {
             roomsApiClientMock.setReadMarkers(
                 roomId,
