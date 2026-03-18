@@ -268,9 +268,13 @@ open class InputAreaViewModelImpl(
         }
         coroutineScope.launch {
             loadDraftIntoTextField()
-            textField.collect {
-                saveAsDraft()
-            }
+        }
+        coroutineScope.launch {
+            textField
+                .debounce(250)
+                .collect {
+                    saveAsDraft()
+                }
         }
     }
 
