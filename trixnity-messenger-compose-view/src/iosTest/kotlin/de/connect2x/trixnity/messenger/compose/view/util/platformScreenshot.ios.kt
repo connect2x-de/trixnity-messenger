@@ -5,6 +5,7 @@ import androidx.compose.ui.test.captureToImage
 import de.connect2x.trixnity.messenger.util.toNSData
 import io.github.vinceglb.filekit.ImageFormat
 import io.github.vinceglb.filekit.dialogs.compose.util.encodeToByteArray
+import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.ObjCObjectVar
 import kotlinx.cinterop.alloc
@@ -18,7 +19,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 import platform.Foundation.writeToURL
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual suspend fun SemanticsNodeInteraction.screenshot(path: String) {
     val image = captureToImage()
     val bytes = image.encodeToByteArray(ImageFormat.PNG, quality = 60)

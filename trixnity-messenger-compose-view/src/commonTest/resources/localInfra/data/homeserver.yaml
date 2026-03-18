@@ -29,3 +29,37 @@ user_directory:
   enabled: true
   search_all_users: true
 max_upload_size: 2000M
+
+rc_message:
+  per_second: 10
+  burst_count: 1000
+rc_login:
+  address:
+    per_second: 10
+    burst_count: 1000
+  account:
+    per_second: 10
+    burst_count: 1000
+  failed_attempts:
+    per_second: 10
+    burst_count: 1000
+rc_joins:
+  local:
+    per_second: 10
+    burst_count: 1000
+  remote:
+    per_second: 10
+    burst_count: 1000
+rc_joins_per_room:
+  per_second: 10
+  burst_count: 1000
+rc_invites:
+  per_room:
+    per_second: 10
+    burst_count: 1000
+  per_user:
+    per_second: 10
+    burst_count: 1000
+  per_issuer:
+    per_second: 10
+    burst_count: 1000

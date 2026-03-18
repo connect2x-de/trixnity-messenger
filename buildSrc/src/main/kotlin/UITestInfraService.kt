@@ -2,7 +2,9 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logger
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.nio.charset.StandardCharsets
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.deleteExisting
@@ -21,9 +23,11 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
         this.logger = logger
         val dir = parameters.projectDir.get().asFile
 
-        startSynapse(dir)
-        createAdmin(dir)
-        deleteOldScreenshots(dir)
+        if (synapseNotRunning()) {
+            startSynapse(dir)
+            createAdmin(dir)
+            deleteOldScreenshots(dir)
+        }
     }
 
     override fun close() {
@@ -32,6 +36,27 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
 
         stopSynapse(dir)
         cleanupDb(dir)
+    }
+
+    private fun synapseNotRunning(): Boolean {
+        val startDocker = ProcessBuilder(
+            "docker",
+            "ps",
+        )
+            .redirectErrorStream(true)
+            .start()
+        val output: String?
+        startDocker.inputStream.use { `is` ->
+            ByteArrayOutputStream().use { baos ->
+                val buffer = ByteArray(1024)
+                var length: Int
+                while ((`is`.read(buffer).also { length = it }) != -1) {
+                    baos.write(buffer, 0, length)
+                }
+                output = baos.toString(StandardCharsets.UTF_8)
+            }
+        }
+        return (output != null && output.contains("synapse")).not()
     }
 
     private fun startSynapse(dir: File) {
