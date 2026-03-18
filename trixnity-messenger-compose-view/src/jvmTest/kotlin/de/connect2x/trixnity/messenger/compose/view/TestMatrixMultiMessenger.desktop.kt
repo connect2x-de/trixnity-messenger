@@ -5,4 +5,4 @@ import de.connect2x.trixnity.messenger.multi.create
 import kotlin.coroutines.CoroutineContext
 
 actual suspend fun createTestMatrixMultiMessenger(coroutineContext: CoroutineContext): MatrixMultiMessenger =
-    MatrixMultiMessenger.create(configuration = messengerTestConfiguration)
+    MatrixMultiMessenger.create(coroutineContext = coroutineContext, configuration = messengerTestConfiguration)

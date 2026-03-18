@@ -7,7 +7,7 @@ import kotlin.coroutines.CoroutineContext
 
 actual suspend fun createTestMatrixMultiMessenger(coroutineContext: CoroutineContext): MatrixMultiMessenger {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
-    return MatrixMultiMessenger.create(context) {
+    return MatrixMultiMessenger.create(context, coroutineContext = coroutineContext) {
         messengerTestConfiguration()
     }
 }
