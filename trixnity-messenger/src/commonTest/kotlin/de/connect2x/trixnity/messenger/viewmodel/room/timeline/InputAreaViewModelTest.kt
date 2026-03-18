@@ -4,7 +4,9 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.user.UserService
@@ -39,7 +41,7 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -56,6 +58,7 @@ import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -105,6 +108,7 @@ class InputAreaViewModelTest {
     var formattedBody: String? = null
     var body = ""
 
+    var draftMessage: MutableStateFlow<RoomOutboxMessage<*>?> = MutableStateFlow(null)
 
     init {
         resetMocks(
@@ -162,6 +166,26 @@ class InputAreaViewModelTest {
         every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
         every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
+        every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any()) } calls {
+            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(1)
+            val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+            requireNotNull(content) { "you must add some sort of content for set a draft" }
+            draftMessage.value = RoomOutboxMessage(
+                roomId = roomId,
+                transactionId = "0",
+                content = content,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        }
+        everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
+
         everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
             val roomId = it.arg<RoomId>(0)
             val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
@@ -174,6 +198,17 @@ class InputAreaViewModelTest {
             }
 
             ""
+        }
+
+        everySuspend { roomServiceMock.sendDraftMessage(any()) } calls {
+            val content = draftMessage.value?.content
+            if (content != null) {
+                if (content is RoomMessageEventContent.TextBased) {
+                    body = content.body
+                    formattedBody = content.formattedBody
+                }
+                draftMessage.value = null
+            }
         }
 
         everySuspend {
@@ -888,6 +923,38 @@ class InputAreaViewModelTest {
 
         eventually(300.milliseconds) {
             cut.listOfMentions.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `draft Message is loaded into text field on creation`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("champagner")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        eventually(300.milliseconds) {
+            cut.textField.textValue shouldBe "champagner"
+        }
+    }
+
+    @Test
+    fun `draft Message is updated automatically with text field`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        delay(20)
+
+        cut.textField.update("bye")
+
+        eventually(3.seconds) {
+            (draftMessage.value?.content as? RoomMessageEventContent.TextBased)?.body shouldBe "bye"
         }
     }
 
