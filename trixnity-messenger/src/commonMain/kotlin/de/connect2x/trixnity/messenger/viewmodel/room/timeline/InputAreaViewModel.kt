@@ -19,7 +19,7 @@ import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -285,12 +285,20 @@ open class InputAreaViewModelImpl(
         val draftMessage = draftMessage.first()
         val content = draftMessage?.content
         if (content is TextBased.Text) {
-            textField.update(content.body)
-            if (content.relatesTo?.relationType is RelationType.Reply) {
-                currentReply.value = content.relatesTo?.let { draftMessage.roomId to it.eventId }
-            } else if (content.relatesTo?.relationType is RelationType.Replace) {
-                currentReplace.value = content.relatesTo?.let { draftMessage.roomId to it.eventId }
-                textField.update(content.body.removePrefix("* "))
+            when (val relatesTo = content.relatesTo) {
+                is RelatesTo.Reply -> {
+                    currentReply.value = draftMessage.roomId to relatesTo.eventId
+                    textField.update(content.body)
+                }
+
+                is RelatesTo.Replace -> {
+                    currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                    (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
+                }
+
+                else -> {
+                    textField.update(content.body)
+                }
             }
         }
     }

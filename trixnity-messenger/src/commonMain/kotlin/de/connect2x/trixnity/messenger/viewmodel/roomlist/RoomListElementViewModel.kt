@@ -13,7 +13,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -426,8 +426,9 @@ open class RoomListElementViewModelImpl(
         return when (draft?.content) {
             is TextBased.Text -> {
                 val content = (draft.content as TextBased.Text).body
-                if (draft.content.relatesTo?.relationType is RelationType.Replace) {
-                    content.removePrefix("* ").ifEmpty { null }
+                val relatesTo = draft.content.relatesTo
+                if (relatesTo is RelatesTo.Replace) {
+                    (relatesTo.newContent as? TextBased.Text)?.body?.ifEmpty { null }
                 } else {
                     content.ifEmpty { null }
                 }
