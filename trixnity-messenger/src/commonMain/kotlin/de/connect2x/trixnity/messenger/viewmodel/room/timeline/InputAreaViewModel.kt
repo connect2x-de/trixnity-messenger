@@ -314,6 +314,9 @@ open class InputAreaViewModelImpl(
 
     suspend fun saveAsDraft() {
         val text = textField.value.text
+        if (text.isEmpty()) {
+            return
+        }
         val references = TrixnityReference.findReferences(text)
         val userReferences =
             references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
@@ -398,6 +401,7 @@ open class InputAreaViewModelImpl(
     override fun sendMessage() {
         log.trace { "try to send message" }
         if (isSendEnabled.value) {
+            textField.update("")
             coroutineScope.launch {
                 saveAsDraft()
                 log.debug { "send message" }
@@ -410,7 +414,6 @@ open class InputAreaViewModelImpl(
                     currentReply.value = null
                     onMessageReplyFinished(it.first, it.second)
                 }
-                textField.update("")
             }
         }
     }
