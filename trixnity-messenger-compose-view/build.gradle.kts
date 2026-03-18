@@ -11,10 +11,7 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetTestRun
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetWithTests
-import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
-import org.jetbrains.kotlin.gradle.testing.KotlinTaskTestRun
+import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -158,7 +155,11 @@ android {
         compose = true
     }
     defaultConfig {
+        testApplicationId = "de.connect2x.trixnity.messenger.compose.view"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    testOptions {
+        execution = "HOST" // instead of ORCHESTRATOR, to not uninstall the app after tests (screenshots)
     }
     sourceSets {
         named("main") {
@@ -182,21 +183,32 @@ val uiTestInfraServiceProvider = gradle.sharedServices.registerIfAbsent(
     parameters.projectDir.set(layout.projectDirectory)
 }
 
-kotlin {
-    targets.withType<KotlinTargetWithTests<*, KotlinTargetTestRun<*>>>().configureEach {
-        testRuns.withType<KotlinTaskTestRun<*, *>>().configureEach {
-            executionTask.configure {
-                usesService(uiTestInfraServiceProvider)
-                doFirst {
-                    uiTestInfraServiceProvider.get().startInfra(logger)
-                }
-            }
-        }
+fun Task.configureTestInfra() {
+    usesService(uiTestInfraServiceProvider)
+    doFirst {
+        uiTestInfraServiceProvider.get().startInfra(logger)
     }
 }
 
+// native + web
+tasks.withType(KotlinTest::class).configureEach {
+    configureTestInfra()
+}
+
+// JVM (Desktop)
+tasks.withType(Test::class) {
+    configureTestInfra()
+}
+
+// Android Instrumented
+tasks.matching { it.name == "connectedDebugAndroidTest" }
+    .configureEach {
+        configureTestInfra()
+        finalizedBy(exportAndroidScreenshots)
+    }
+
 tasks.named("iosSimulatorArm64Test") {
-     finalizedBy(exportIosScreenshots)
+    finalizedBy(exportIosScreenshots)
 }
 
 val resolveIosSimulatorContainer by tasks.registering {
@@ -235,4 +247,20 @@ val exportIosScreenshots by tasks.registering(Copy::class) {
 
     from(resultFile.get().asFile.readTextOrNull())
     into(layout.projectDirectory.dir("screenshots"))
+}
+
+val exportAndroidScreenshots by tasks.registering(Exec::class) {
+    val packageName = "de.connect2x.trixnity.messenger.compose.view"
+    val localPath = layout.projectDirectory.dir("screenshots").asFile
+
+    doFirst {
+        localPath.mkdirs()
+    }
+
+    commandLine(
+        "bash", "-c",
+        """
+        adb exec-out run-as $packageName sh -c 'cd files/screenshots && tar -cf - "Android instrumented"' | tar -xf - -C ${localPath.absolutePath}
+        """.trimIndent()
+    )
 }

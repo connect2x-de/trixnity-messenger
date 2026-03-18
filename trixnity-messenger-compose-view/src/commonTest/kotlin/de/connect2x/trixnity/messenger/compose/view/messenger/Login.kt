@@ -11,6 +11,9 @@ import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.compose.view.PlatformType
+import de.connect2x.trixnity.messenger.compose.view.platformType
 import de.connect2x.trixnity.messenger.compose.view.util.screenshot
 import de.connect2x.trixnity.messenger.compose.view.util.waitUntilExactlyOneExists
 
@@ -29,14 +32,19 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
     screenshot(testName, "Login - AccountSetup - After Step 5")
 }
 
+private fun getUrl(): String {
+    return if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008"
+    else "http://localhost:8008"
+}
+
 private suspend fun ComposeUiTest.serverLogin(
     testName: String,
     username: String,
     password: String,
 ) {
     screenshot(testName, "Login - Login - Before Server Discovery")
-    onNodeWithText("Your Matrix Server", ignoreCase = true).assertExists()
-        .performTextInput("http://localhost:8008")
+    waitUntilExactlyOneExists(testName, hasText("Your Matrix Server", ignoreCase = true)).assertExists()
+        .performTextInput(getUrl())
 
     waitUntilExactlyOneExists(testName, hasText("Login With Password", ignoreCase = true))
         .performClick()

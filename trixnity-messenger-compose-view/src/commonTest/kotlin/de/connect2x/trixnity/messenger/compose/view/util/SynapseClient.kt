@@ -2,6 +2,8 @@ package de.connect2x.trixnity.messenger.compose.view.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.messenger.compose.view.PlatformType
+import de.connect2x.trixnity.messenger.compose.view.platformType
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
@@ -23,7 +25,7 @@ fun synapseClient(engine: HttpClientEngine) =
             )
         }
         defaultRequest {
-            url("http://localhost:8008")
+            url(if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008" else "http://localhost:8008")
         }
 
         install(HttpTimeout) {

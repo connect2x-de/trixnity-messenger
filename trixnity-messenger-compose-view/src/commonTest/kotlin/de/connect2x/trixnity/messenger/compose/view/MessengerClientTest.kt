@@ -23,8 +23,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.MessengerTheme
 import de.connect2x.trixnity.messenger.compose.view.util.generateUsername
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.update
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.test.Test
 import kotlin.uuid.Uuid
 
@@ -37,64 +36,55 @@ class MessengerClientTest {
     }
 
     @Test
-    fun messengerClientComposableLoadsSuccessfully() = runTestWithLogging {
-        val matrixMultiMessenger = createTestMatrixMultiMessenger()
-        runComposeUiTest {
-            val lifecycle = LifecycleRegistry()
-            setContent {
-                WithProfileSelection(
-                    matrixMultiMessenger = matrixMultiMessenger,
-                    componentContext = DefaultComponentContext(lifecycle),
-                    activeMessengerOnce = { _, _ -> },
-                    nonActiveMessenger = {
-                        val showProfileCreation = remember { mutableStateOf(false) }
-                        CompositionLocalProvider(
-                            Platform provides platformType(),
-                            DI provides matrixMultiMessenger.di,
-                            ShowProfileCreation provides showProfileCreation,
-                            IsFocusHighlighting provides false,
-                        ) {
-                            MessengerTheme {
-                                Profiles()
+    fun messengerClientComposableLoadsSuccessfully() = runComposeUiTest {
+        val matrixMultiMessenger = createTestMatrixMultiMessenger(currentCoroutineContext())
+        val lifecycle = LifecycleRegistry()
+        setContent {
+            WithProfileSelection(
+                matrixMultiMessenger = matrixMultiMessenger,
+                componentContext = DefaultComponentContext(lifecycle),
+                activeMessengerOnce = { _, _ -> },
+                nonActiveMessenger = {
+                    val showProfileCreation = remember { mutableStateOf(false) }
+                    CompositionLocalProvider(
+                        Platform provides platformType(),
+                        DI provides matrixMultiMessenger.di,
+                        ShowProfileCreation provides showProfileCreation,
+                        IsFocusHighlighting provides false,
+                    ) {
+                        MessengerTheme {
+                            Profiles()
+                        }
+                    }
+                },
+                activeMessenger = { matrixMessenger, rootViewModel ->
+                    LaunchedEffect(Unit) {
+                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
+                            .update<MatrixMessengerSettingsBase> {
+                                it.copy(preferredLang = "EN")
                             }
+                    }
+                    CompositionLocalProvider(
+                        Platform provides platformType(),
+                        DI provides matrixMessenger.di,
+                        IsFocusHighlighting provides false,
+                    ) {
+                        MessengerTheme {
+                            Client(rootViewModel)
                         }
-                    },
-                    activeMessenger = { matrixMessenger, rootViewModel ->
-                        LaunchedEffect(Unit) {
-                            matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                                .update<MatrixMessengerSettingsBase> {
-                                    it.copy(preferredLang = "EN")
-                                }
-                        }
-                        CompositionLocalProvider(
-                            Platform provides platformType(),
-                            DI provides matrixMessenger.di,
-                            IsFocusHighlighting provides false,
-                        ) {
-                            MessengerTheme {
-                                Client(rootViewModel)
-                            }
-                        }
-                    })
-            }
-
-            waitForIdle()
-            matrixMultiMessenger.di.get<I18nView>()
-            matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>()
-
-            val testName = "messengerClientComposableLoadsSuccessfully"
-            val username = generateUsername()
-            val password = Uuid.generateV4().toString()
-
-            createUser(username, password)
-            login(testName, username, password)
-
+                    }
+                })
         }
-    }
 
-    private fun runTestWithLogging(block: suspend TestScope.() -> Unit) = runTest {
-        TestBackend.withTestScope {
-            block()
-        }
+        waitForIdle()
+        matrixMultiMessenger.di.get<I18nView>()
+        matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>()
+
+        val testName = "messengerClientComposableLoadsSuccessfully"
+        val username = generateUsername()
+        val password = Uuid.generateV4().toString()
+
+        createUser(username, password)
+        login(testName, username, password)
     }
 }
