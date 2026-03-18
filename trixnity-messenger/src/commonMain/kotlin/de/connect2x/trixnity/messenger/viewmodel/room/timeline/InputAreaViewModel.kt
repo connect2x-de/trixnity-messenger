@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
@@ -42,7 +43,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +68,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.intellij.markdown.ast.ASTNode
@@ -268,13 +272,18 @@ open class InputAreaViewModelImpl(
         }
         coroutineScope.launch {
             loadDraftIntoTextField()
-        }
-        coroutineScope.launch {
             textField
-                .debounce(250)
+                .debounce(2.seconds)
                 .collect {
                     saveAsDraft()
                 }
+        }
+        lifecycle.doOnDestroy {
+            get<CoroutineScope>().launch {
+                withContext(NonCancellable) {
+                    saveAsDraft()
+                }
+            }
         }
     }
 
