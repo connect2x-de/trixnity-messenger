@@ -162,7 +162,7 @@ test:smoketest-ios:
     - open -a Simulator
     - xcrun simctl boot "iPhone 16"
     - ./gradlew
-      :trixnity-messenger-compose-view:iosSimulatorArm64Test
+      :trixnity-messenger-compose-view:iosX64Test # still Intel Mac machine
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
