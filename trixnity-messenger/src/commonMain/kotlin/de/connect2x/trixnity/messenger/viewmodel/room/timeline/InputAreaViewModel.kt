@@ -401,9 +401,9 @@ open class InputAreaViewModelImpl(
     override fun sendMessage() {
         log.trace { "try to send message" }
         if (isSendEnabled.value) {
-            textField.update("")
             coroutineScope.launch {
                 saveAsDraft()
+                textField.update("")
                 log.debug { "send message" }
                 matrixClient.room.sendDraftMessage(roomId)
                 currentReplace.value?.also {
