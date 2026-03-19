@@ -121,7 +121,7 @@ test:smoketest-no-ios:
   timeout: 1h
   needs: [ "build:linux" ]
   tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
+  image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   artifacts:
     when: always
     paths: [ "screenshots", "**/build/reports" ]
@@ -159,6 +159,8 @@ test:smoketest-ios:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
+    - open -a Simulator
+    - xcrun simctl boot "iPhone 16"
     - ./gradlew
       :trixnity-messenger-compose-view:iosSimulatorArm64Test
       :trixnity-messenger-compose-view:testCoverage
