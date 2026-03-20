@@ -165,8 +165,7 @@ test:smoketest-ios:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - open -a Simulator
-    - xcrun simctl boot "iPhone 16"
+    - ./scripts/start_simulator.sh
     - ./gradlew
       :trixnity-messenger-compose-view:iosX64Test
       :trixnity-messenger-compose-view:testCoverage
