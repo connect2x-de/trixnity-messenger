@@ -497,7 +497,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/WizardIma
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/WizardKt {
-	public static final fun Wizard (Ljava/util/List;ZLandroidx/compose/runtime/Composer;II)V
+	public static final fun Wizard (Ljava/util/List;ZLjava/lang/String;Landroidx/compose/runtime/Composer;II)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/common/WizardNavigationButton {

@@ -9899,7 +9899,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementV
 
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListRouter$Companion;
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
 	public final fun close (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getStack ()Lcom/arkivanov/decompose/value/Value;
 	public final fun openRoom-v-LioYY (Ljava/lang/String;Ljava/lang/String;)Lkotlinx/coroutines/Job;
