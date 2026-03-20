@@ -19,12 +19,6 @@ import org.intellij.lang.annotations.Language
 @OptIn(DelicateCoroutinesApi::class)
 object SynapseAdmin {
     private val logger = Logger("de.connect2x.trixnity.messenger.compose.view.util.SynapseAdmin")
-    private val coroutineScope: CoroutineScope = CoroutineScope(
-        SupervisorJob()
-                + CoroutineName("synapse-admin-token-invalidation")
-                + CoroutineExceptionHandler { _, error ->
-            println("Token invalidation coroutine could not complete: $error")
-        })
 
     private val synapseClient = synapseClient(engine = platformHttpEngine())
     private var accessToken: String? = null

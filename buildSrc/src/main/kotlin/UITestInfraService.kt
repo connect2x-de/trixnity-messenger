@@ -56,7 +56,7 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
                 output = baos.toString(StandardCharsets.UTF_8)
             }
         }
-        return (output != null && output.contains("synapse")).not()
+        return (output != null && output.contains("uitest-synapse")).not()
     }
 
     private fun startSynapse(dir: File) {

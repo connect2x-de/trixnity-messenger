@@ -158,9 +158,6 @@ android {
         testApplicationId = "de.connect2x.trixnity.messenger.compose.view"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    testOptions {
-        execution = "HOST" // instead of ORCHESTRATOR, to not uninstall the app after tests (screenshots)
-    }
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")

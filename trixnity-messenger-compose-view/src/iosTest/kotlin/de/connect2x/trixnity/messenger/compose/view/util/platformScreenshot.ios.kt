@@ -22,7 +22,7 @@ import platform.Foundation.writeToURL
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 actual suspend fun SemanticsNodeInteraction.screenshot(path: String) {
     val image = captureToImage()
-    val bytes = image.encodeToByteArray(ImageFormat.PNG, quality = 60)
+    val bytes = image.encodeToByteArray(ImageFormat.JPEG, quality = 20)
 
     val fileManager = NSFileManager.defaultManager
     val documentsUrl = fileManager.URLsForDirectory(

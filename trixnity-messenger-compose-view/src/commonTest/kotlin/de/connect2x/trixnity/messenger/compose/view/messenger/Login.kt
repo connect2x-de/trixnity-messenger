@@ -55,7 +55,7 @@ private suspend fun ComposeUiTest.serverLogin(
     onNodeWithText("Your password", ignoreCase = true)
         .performTextInput(password)
     waitForIdle()
-    onNodeWithText("Login", ignoreCase = true)
+    waitUntilExactlyOneExists(testName, hasText("Login", ignoreCase = true))
         .performClick()
     waitForIdle()
     screenshot(testName, "Login - Login - After Login")
@@ -127,13 +127,5 @@ private suspend fun ComposeUiTest.selfVerification(testName: String) {
     )
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - SelfVerification - Step 1")
-
-    waitUntilExactlyOneExists(
-        testName, hasText("next", ignoreCase = true)
-                and hasAnyAncestor(hasTestTag("SelfVerificationWizard"))
-    )
-        .performClick()
-    waitForIdle()
-    screenshot(testName, "Login - SelfVerification - Step 2")
+    screenshot(testName, "Login - SelfVerification") // should be done here
 }

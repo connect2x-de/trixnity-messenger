@@ -11,7 +11,7 @@ import kotlin.io.path.pathString
 
 actual suspend fun SemanticsNodeInteraction.screenshot(path: String) {
     val image = captureToImage()
-    val bytes = image.encodeToByteArray(ImageFormat.PNG, quality = 60)
+    val bytes = image.encodeToByteArray(ImageFormat.JPEG, quality = 20)
 
     val context = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext
 
