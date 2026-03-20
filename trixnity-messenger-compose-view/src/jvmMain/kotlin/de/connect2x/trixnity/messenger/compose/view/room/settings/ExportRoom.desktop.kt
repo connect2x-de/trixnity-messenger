@@ -15,16 +15,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
 import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
 import okio.Path.Companion.toPath
@@ -43,7 +44,9 @@ internal actual fun SelectExportDestination(
     }
     // Due to compose life cycles the launcher needs to be set up even if launch() is skipped.
     val launcher = rememberDirectoryPickerLauncher(
-        title = i18n.fileDialogTitleLoad(),
+        dialogSettings = FileKitDialogSettings(
+            title = i18n.fileDialogTitleLoad(),
+        ),
         directory = PlatformFile(initialDirectory(appName).toString())
     ) { file ->
         log.debug { "selected file: $file" }

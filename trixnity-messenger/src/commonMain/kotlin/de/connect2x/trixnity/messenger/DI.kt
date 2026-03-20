@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
+import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
@@ -220,6 +221,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     enableExternalNotifications = true
                     httpClientEngine = config.httpClientEngine
                     httpClientConfig = config.httpClientConfig
+                    @OptIn(MSC3814::class)
+                    experimentalFeatures.enableMSC3814 = true
                     lastRelevantEventFilter =
                         { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
                     if (eventContentSerializerMappings.isNotEmpty()) {

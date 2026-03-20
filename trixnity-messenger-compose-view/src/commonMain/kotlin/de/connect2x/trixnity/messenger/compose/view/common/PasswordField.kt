@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -30,6 +29,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -43,7 +43,7 @@ fun PasswordField(
     val passwordVisible = remember { mutableStateOf(false) }
     val i18n = DI.get<I18nView>()
 
-    OutlinedTextField(
+    OutlinedTextFieldWithToolbar(
         value = password.value,
         onValueChange = { password.value = it },
         label = label,

@@ -24,8 +24,8 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.window.ComposeViewportConfiguration
-import js.core.JsPrimitives.toKotlinString
 import js.objects.unsafeJso
+import js.string.JsStrings.toKotlinString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow

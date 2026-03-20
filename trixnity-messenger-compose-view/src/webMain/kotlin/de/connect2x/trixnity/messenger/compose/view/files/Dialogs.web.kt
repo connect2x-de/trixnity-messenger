@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -24,13 +27,11 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.JsFileDescriptor
 import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.PlatformFile
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
-import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
-import io.github.vinceglb.filekit.PlatformFile
 import web.dom.document
 import web.file.File
 import web.html.HtmlTagName
@@ -44,7 +45,7 @@ import kotlin.time.Duration.Companion.seconds
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.DialogsKt")
 
 
-internal expect fun realFile(platformFile: PlatformFile) : File
+internal expect fun realFile(platformFile: PlatformFile): File
 
 /**
  * This component invokes a file picker by which the user can select
@@ -71,7 +72,7 @@ actual fun LoadFileDialog(
                 else -> FileKitType.File()
             },
             mode = FileKitMode.Single,
-            title = i18n.fileDialogTitleLoad()
+            dialogSettings = FileKitDialogSettings.createDefault(),
         )?.let { file ->
             try {
                 val descriptor = JsFileDescriptor(realFile(file))

@@ -1,0 +1,151 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, iosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <de.connect2x.trixnity.messenger:trixnity-messenger-notification-apns>
+final class de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider : de.connect2x.trixnity.messenger.notification/PushNotificationProvider { // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig, de.connect2x.trixnity.messenger/MatrixMessengerConfiguration, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerSettingsHolder?, de.connect2x.trixnity.messenger/MatrixMessengerSettingsHolder, de.connect2x.trixnity.messenger.util/GetDefaultDeviceDisplayName, de.connect2x.trixnity.messenger/MatrixClients, kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.<init>|<init>(de.connect2x.trixnity.messenger.notification.apns.ApnsPushNotificationProviderConfig;de.connect2x.trixnity.messenger.MatrixMessengerConfiguration;de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder?;de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder;de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName;de.connect2x.trixnity.messenger.MatrixClients;kotlinx.coroutines.CoroutineScope){}[0]
+
+    final val config // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.config|{}config[0]
+        final fun <get-config>(): de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.config.<get-config>|<get-config>(){}[0]
+    final val currentPusherSettings // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.currentPusherSettings|{}currentPusherSettings[0]
+        final fun <get-currentPusherSettings>(): kotlinx.coroutines.flow/SharedFlow<de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings?> // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.currentPusherSettings.<get-currentPusherSettings>|<get-currentPusherSettings>(){}[0]
+    final val displayName // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.displayName|{}displayName[0]
+        final fun <get-displayName>(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.displayName.<get-displayName>|<get-displayName>(){}[0]
+    final val id // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.id|{}id[0]
+        final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.id.<get-id>|<get-id>(){}[0]
+    final val pusherSettings // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.pusherSettings|@de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings{}pusherSettings[0]
+        final fun (de.connect2x.trixnity.messenger/MatrixMessengerAccountSettings).<get-pusherSettings>(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherAccountSettings // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.pusherSettings.<get-pusherSettings>|<get-pusherSettings>@de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings(){}[0]
+
+    final suspend fun (de.connect2x.trixnity.messenger/MatrixMessengerSettingsHolder).updatePusherSettings(de.connect2x.trixnity.core.model/UserId, kotlin/Function1<de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherAccountSettings, de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherAccountSettings>) // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.updatePusherSettings|updatePusherSettings@de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder(de.connect2x.trixnity.core.model.UserId;kotlin.Function1<de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherAccountSettings,de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherAccountSettings>){}[0]
+    final suspend fun disableService() // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.disableService|disableService(){}[0]
+    final suspend fun enableService() // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.enableService|enableService(){}[0]
+    final suspend fun getPusherCustomFields(kotlin/String?, de.connect2x.trixnity.core.model/UserId): kotlinx.serialization.json/JsonObject // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.getPusherCustomFields|getPusherCustomFields(kotlin.String?;de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final class UIApplicationDelegate : de.connect2x.trixnity.messenger.uikit/ApplicationDelegateProtocol { // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.UIApplicationDelegate|null[0]
+        constructor <init>(de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerSettingsHolder?, de.connect2x.trixnity.messenger/MatrixMessengerSettingsHolder) // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.UIApplicationDelegate.<init>|<init>(de.connect2x.trixnity.messenger.notification.apns.ApnsPushNotificationProviderConfig;de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder?;de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder){}[0]
+
+        final fun didFinishLaunching(platform.UIKit/UIApplication, kotlin.collections/Map<kotlin/String?, *>?): de.connect2x.trixnity.messenger.uikit/WithDefault<kotlin/Boolean> // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.UIApplicationDelegate.didFinishLaunching|didFinishLaunching(platform.UIKit.UIApplication;kotlin.collections.Map<kotlin.String?,*>?){}[0]
+        final fun didRegisterForRemoteNotifications(platform.UIKit/UIApplication, platform.Foundation/NSData) // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.UIApplicationDelegate.didRegisterForRemoteNotifications|didRegisterForRemoteNotifications(platform.UIKit.UIApplication;platform.Foundation.NSData){}[0]
+        final suspend fun didReceiveRemoteNotification(platform.UIKit/UIApplication, kotlin.collections/Map<kotlin/Any?, *>): de.connect2x.trixnity.messenger.uikit/WithDefault<platform.UIKit/UIBackgroundFetchResult> // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProvider.UIApplicationDelegate.didReceiveRemoteNotification|didReceiveRemoteNotification(platform.UIKit.UIApplication;kotlin.collections.Map<kotlin.Any?,*>){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig { // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin.time/Duration) // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.<init>|<init>(kotlin.String;kotlin.String;kotlin.time.Duration){}[0]
+
+    final val periodicSyncInterval // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.periodicSyncInterval|{}periodicSyncInterval[0]
+        final fun <get-periodicSyncInterval>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.periodicSyncInterval.<get-periodicSyncInterval>|<get-periodicSyncInterval>(){}[0]
+    final val pushAppId // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.pushAppId|{}pushAppId[0]
+        final fun <get-pushAppId>(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.pushAppId.<get-pushAppId>|<get-pushAppId>(){}[0]
+    final val pushUrl // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.pushUrl|{}pushUrl[0]
+        final fun <get-pushUrl>(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.pushUrl.<get-pushUrl>|<get-pushUrl>(){}[0]
+
+    final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.component1|component1(){}[0]
+    final fun component2(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.component2|component2(){}[0]
+    final fun component3(): kotlin.time/Duration // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.component3|component3(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin.time/Duration = ...): de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.copy|copy(kotlin.String;kotlin.String;kotlin.time.Duration){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/ApnsPushNotificationProviderConfig.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings : de.connect2x.trixnity.messenger.settings/SettingsView<de.connect2x.trixnity.messenger/MatrixMessengerAccountSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings|null[0]
+    constructor <init>(kotlin/Boolean = ..., de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...) // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.<init>|<init>(kotlin.Boolean;de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+
+    final val deliveredPusher // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.deliveredPusher|{}deliveredPusher[0]
+        final fun <get-deliveredPusher>(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.deliveredPusher.<get-deliveredPusher>|<get-deliveredPusher>(){}[0]
+    final val enabled // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.enabled|{}enabled[0]
+        final fun <get-enabled>(): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.enabled.<get-enabled>|<get-enabled>(){}[0]
+
+    final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.component1|component1(){}[0]
+    final fun component2(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.component2|component2(){}[0]
+    final fun copy(kotlin/Boolean = ..., de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.copy|copy(kotlin.Boolean;de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings) // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.notification.apns.MatrixMessengerAccountNotificationProviderApnsSettings){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings> // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings : de.connect2x.trixnity.messenger.settings/SettingsView<de.connect2x.trixnity.messenger/MatrixMessengerSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...) // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.<init>|<init>(de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+
+    final val pusher // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.pusher|{}pusher[0]
+        final fun <get-pusher>(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.pusher.<get-pusher>|<get-pusher>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.copy|copy(de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings) // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.notification.apns.MatrixMessengerNotificationProviderApnsSettings){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings> // de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final class de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings : de.connect2x.trixnity.messenger.settings/SettingsView<de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...) // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.<init>|<init>(de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+
+    final val pusher // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.pusher|{}pusher[0]
+        final fun <get-pusher>(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.pusher.<get-pusher>|<get-pusher>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.messenger.notification/PushNotificationProvider.PusherSettings? = ...): de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.copy|copy(de.connect2x.trixnity.messenger.notification.PushNotificationProvider.PusherSettings?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings> { // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer|null[0]
+        final val descriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings) // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.notification.apns.MatrixMultiMessengerNotificationProviderApnsSettings){}[0]
+    }
+
+    final object Companion { // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings> // de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings.Companion.serializer|serializer(){}[0]
+    }
+}
+
+final object de.connect2x.trixnity.messenger.notification.apns/SyncAndProcessPendingWorker { // de.connect2x.trixnity.messenger.notification.apns/SyncAndProcessPendingWorker|null[0]
+    final fun enqueueUniquePeriodicWork(kotlin.time/Duration) // de.connect2x.trixnity.messenger.notification.apns/SyncAndProcessPendingWorker.enqueueUniquePeriodicWork|enqueueUniquePeriodicWork(kotlin.time.Duration){}[0]
+    final fun registerUniquePeriodicWork() // de.connect2x.trixnity.messenger.notification.apns/SyncAndProcessPendingWorker.registerUniquePeriodicWork|registerUniquePeriodicWork(){}[0]
+    final fun stopUniquePeriodicWork() // de.connect2x.trixnity.messenger.notification.apns/SyncAndProcessPendingWorker.stopUniquePeriodicWork|stopUniquePeriodicWork(){}[0]
+}
+
+final val de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns|@de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings{}notificationProviderApns[0]
+    final fun (de.connect2x.trixnity.messenger/MatrixMessengerAccountSettings).<get-notificationProviderApns>(): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerAccountNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns.<get-notificationProviderApns>|<get-notificationProviderApns>@de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings(){}[0]
+final val de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns|@de.connect2x.trixnity.messenger.MatrixMessengerSettings{}notificationProviderApns[0]
+    final fun (de.connect2x.trixnity.messenger/MatrixMessengerSettings).<get-notificationProviderApns>(): de.connect2x.trixnity.messenger.notification.apns/MatrixMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns.<get-notificationProviderApns>|<get-notificationProviderApns>@de.connect2x.trixnity.messenger.MatrixMessengerSettings(){}[0]
+final val de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns|@de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings{}notificationProviderApns[0]
+    final fun (de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerSettings).<get-notificationProviderApns>(): de.connect2x.trixnity.messenger.notification.apns/MatrixMultiMessengerNotificationProviderApnsSettings // de.connect2x.trixnity.messenger.notification.apns/notificationProviderApns.<get-notificationProviderApns>|<get-notificationProviderApns>@de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettings(){}[0]
+
+final fun (de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration).de.connect2x.trixnity.messenger.notification.apns/addApnsPushNotificationProvider(kotlin/String, kotlin/String, kotlin.time/Duration = ...) // de.connect2x.trixnity.messenger.notification.apns/addApnsPushNotificationProvider|addApnsPushNotificationProvider@de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration(kotlin.String;kotlin.String;kotlin.time.Duration){}[0]
+final fun (de.connect2x.trixnity.messenger/MatrixMessengerConfiguration).de.connect2x.trixnity.messenger.notification.apns/addApnsPushNotificationProvider(kotlin/String, kotlin/String, kotlin.time/Duration = ...) // de.connect2x.trixnity.messenger.notification.apns/addApnsPushNotificationProvider|addApnsPushNotificationProvider@de.connect2x.trixnity.messenger.MatrixMessengerConfiguration(kotlin.String;kotlin.String;kotlin.time.Duration){}[0]

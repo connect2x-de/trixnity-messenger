@@ -9,17 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- WEB,SDK: Support Kotlin/WasmJs
-- SDK: TextFieldViewModel: allow for input validation
-- SDK: The floating 'create new chat or group' button is now part of the DI
-- UI: Info that pre-join history is unavailable. That is in the timeline for the joined user and for the inviter when adding a member
-- UI: Context menu for room list which currently includes the option to mark as unread
+- SDK: add an abi checker to the CI
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM) and iOS
 
 ### Changed
-
-- UI: Notification settings spacing
-- UI: Don't show the "deprecated login methods" section unless there are some
 
 ### Deprecated
 
@@ -27,12 +20,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+### Security
+
+## 4.3.1
+
+### Fixed
+
+- SDK: Downgrade lognity due to performance regression and bugs
+- UI: Self verification is no longer shown twice during the setup wizard
+
+## 4.3.0
+
+### Added
+
+- WEB,SDK: Support Kotlin/WasmJs
+- SDK: TextFieldViewModel: allow for input validation
+- SDK: The floating 'create new chat or group' button is now part of the DI
+- UI: Info when history is undecryptable. Shown in the timeline for the joined user (either before their invite or their
+  join event dependent on room history visibility setting) and for the inviter when adding a member
+- UI: Info that pre-join history is unavailable. That is in the timeline for the joined user and for the inviter when
+  adding a member
+- UI: Show a warning if an invited user does not exist (server must support this)
+- CI, Android: Add Android APK download link to merge requests
+- UI: Context menu for room list which currently includes the option to mark as unread
+
+### Changed
+
+- UI: Notification settings spacing
+- UI: Don't show the "deprecated login methods" section unless there are some
+- SDK: Enable dehydrated devices by default
+- SDK: Update Trixnity to 5.3.0
+- SDK: Update kotlin-wrappers to 2026.3.10
+
+### Fixed
+
 - UI: Correctly format markdown based privacy and imprint
 - UI: Correctly render chat bubble edge for own messages
 - UI,Android: Keep Wizard fullscreen after keyboard popup
 - SDK: Mark rooms as read when they are marked as unread without having unread events
-
-### Security
+- SDK: Fix empty notifications
+- UI: Tooltips no longer render off-screen
+- UI: Fix color used for the verification badge of secure, but unverified room members
+- UI: Dev info for rooms and timeline events is scrollable again
+- UI,ANDROID: Show text toolbar for text fields in Wizards
 
 ## 4.2.3
 

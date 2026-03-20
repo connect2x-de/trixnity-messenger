@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelection
@@ -22,6 +23,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -32,7 +34,6 @@ import io.github.vinceglb.filekit.sink
 import io.github.vinceglb.filekit.utils.toPath
 import kotlinx.coroutines.flow.map
 import kotlinx.io.Buffer
-import de.connect2x.trixnity.client.media.PlatformMedia
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.DialogsKt")
 
@@ -116,8 +117,10 @@ actual fun LoadFileDialog(
                     FilePickerType.IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
                     else -> FileKitType.File()
                 },
+                dialogSettings = FileKitDialogSettings(
+                    title = i18n.fileDialogTitleLoad(),
+                ),
                 mode = FileKitMode.Single,
-                title = i18n.fileDialogTitleLoad(),
                 onResult = {
                     it?.let {
                         onFileSelect(FileKitFileDescriptor(it))

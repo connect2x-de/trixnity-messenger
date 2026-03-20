@@ -8,6 +8,8 @@ import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -16,6 +18,7 @@ import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -41,6 +44,7 @@ interface Search {
         val image: ByteArray?
         val userId: UserId
         val presence: StateFlow<Presence?>
+        val doesNotExist: Boolean
     }
 
     data class SearchUserElementImpl(
@@ -48,7 +52,8 @@ interface Search {
         override val initials: String,
         override val image: ByteArray? = null,
         override val userId: UserId,
-        override val presence: StateFlow<Presence?> = MutableStateFlow(null)
+        override val presence: StateFlow<Presence?> = MutableStateFlow(null),
+        override val doesNotExist: Boolean = false
     ) : SearchUserElement {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -84,11 +89,11 @@ class SearchImpl(
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
-            val profile = matrixClient.api.user.getProfile(userId)
+            val profileResult = matrixClient.api.user.getProfile(userId)
                 .onFailure { exc ->
                     log.error(exc) { "Cannot access user profile for $userId." }
                 }
-                .getOrNull()
+            val profile = profileResult.getOrNull()
             val image = profile?.avatarUrl?.let { url ->
                 matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
                     onSuccess = {
@@ -103,6 +108,25 @@ class SearchImpl(
                 }
                 .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
+            val doesNotExist = profileResult.fold(
+                { false },
+                { error ->
+                    if (error is MatrixServerException) {
+                        // NotFound/404 means that profile fetching is allowed as per Matrix spec: https://spec.matrix.org/v1.17/client-server-api/#get_matrixclientv3profileuserid
+                        if (error.errorResponse is ErrorResponse.NotFound) {
+                            true
+                        } else {
+                            //  Also check HTTP error when Unknown as per Matrix spec: https://spec.matrix.org/v1.16/client-server-api/#:~:text=When%20encountering%20the%20error%20code%20M_UNKNOWN%2C%20clients%20should%20prefer%20the%20HTTP%20status%20code%20as%20a%20more%20reliable%20reference%20for%20what%20the%20issue%20was
+                            val preferHttpError = error.errorResponse is ErrorResponse.Unknown
+                            val httpNotFound = error.statusCode == HttpStatusCode.NotFound
+                            preferHttpError && httpNotFound 
+                        }
+                    } else {
+                        false
+                    }
+                }
+            )
+            
             listOf(
                 searchUserElement(
                     SearchUsers.Response.SearchUser(
@@ -111,7 +135,8 @@ class SearchImpl(
                         userId,
                     ),
                     image,
-                    presence
+                    presence,
+                    doesNotExist,
                 )
             )
         } else {
@@ -167,14 +192,16 @@ class SearchImpl(
     private fun searchUserElement(
         searchUser: SearchUsers.Response.SearchUser,
         image: ByteArray?,
-        presence: StateFlow<Presence?>
+        presence: StateFlow<Presence?>,
+        doesNotExist: Boolean = false
     ) = Search.SearchUserElementImpl(
         searchUser.displayName ?: searchUser.userId.full,
         searchUser.displayName?.let { name -> initials.compute(name) }
             ?: initials.compute(searchUser.userId.localpart),
         image,
         searchUser.userId,
-        presence
+        presence,
+        doesNotExist
     )
 
 }

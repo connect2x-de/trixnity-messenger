@@ -7,6 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -264,7 +265,9 @@ private fun wizardStepVerification(
         id = step.stepId,
         title = { i18n.deviceVerification() },
         content = {
-            viewModel.startVerification()
+            LaunchedEffect(Unit) {
+                viewModel.startVerification()
+            }
         },
         nextButton = {
             Custom {

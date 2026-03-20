@@ -1,11 +1,14 @@
-import com.vanniktech.maven.publish.MavenPublishPlugin
 import de.connect2x.conventions.CI
+import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.defaultDependencyLocking
 import de.connect2x.conventions.defaultPublishing
+import de.connect2x.conventions.enableAbiChecker
 import de.connect2x.conventions.setProjectInfo
+import de.connect2x.conventions.updateAbiFilesFromReportZip
 import de.connect2x.conventions.withVersionSuffix
 import org.jetbrains.dokka.gradle.DokkaPlugin
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
     alias(sharedLibs.plugins.c2xConventions)
@@ -27,6 +30,8 @@ plugins {
     alias(libs.plugins.seskar) apply false
     alias(sharedLibs.plugins.mavenPublish) apply false
 }
+
+updateAbiFilesFromReportZip()
 
 allprojects {
     group = "de.connect2x.trixnity.messenger"
@@ -62,6 +67,12 @@ subprojects {
                         }
                     }
                 }
+            }
+        }
+
+        plugins.withId(PluginIds.KOTLIN_MULTIPLATFORM) {
+            extensions.configure<KotlinMultiplatformExtension> {
+                enableAbiChecker("TrixnityMessengerPrivateApi", "de.connect2x.trixnity.messenger.abi")
             }
         }
     }
