@@ -1,7 +1,7 @@
 #!/bin/sh
 
 while true; do
-    curl -sf http://docker:8008/health && break
+    curl -sf http://localhost:8008/health && break
 
     echo "Failed healthcheck, retrying in 1 second"
     docker compose ps

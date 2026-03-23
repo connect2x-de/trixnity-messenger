@@ -146,7 +146,9 @@ test:smoketest-no-ios:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./scripts/start_emulator.sh
+#    - ./scripts/start_emulator.sh
+    - apt-get install --yes socat
+    - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - ./gradlew
       :trixnity-messenger-compose-view:jvmTest
       :trixnity-messenger-compose-view:testCoverage

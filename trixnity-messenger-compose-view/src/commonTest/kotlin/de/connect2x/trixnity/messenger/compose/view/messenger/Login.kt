@@ -34,7 +34,7 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
 
 private fun getUrl(): String {
     return if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008"
-    else "http://docker:8008"
+    else "http://localhost:8008"
 }
 
 private suspend fun ComposeUiTest.serverLogin(
