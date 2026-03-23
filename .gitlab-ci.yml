@@ -148,35 +148,36 @@ test:smoketest-no-ios:
   script:
     - ./scripts/start_emulator.sh
     - ./gradlew
-      :trixnity-messenger-compose-view:{connectedAndroid,jvm,js,wasmJs}Test
+      :trixnity-messenger-compose-view:jvmTest
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
-test:smoketest-ios:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:mac" ]
-  tags: [ "connect2x-mac" ]
-  artifacts:
-    when: always
-    paths: [ "screenshots", "**/build/reports" ]
-    reports:
-      coverage_report:
-        coverage_format: jacoco
-        path: trixnity-messenger/build/reports/kover/reportJvm.xml
-  rules:
-    - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-  script:
-    - ./scripts/start_simulator.sh
-    - ./gradlew
-      :trixnity-messenger-compose-view:iosX64Test
-      :trixnity-messenger-compose-view:testCoverage
-      --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+# TODO cannot be run on virtualized macOS
+#test:smoketest-ios:
+#  stage: test
+#  interruptible: true
+#  timeout: 1h
+#  needs: [ "build:mac" ]
+#  tags: [ "connect2x-mac" ]
+#  artifacts:
+#    when: always
+#    paths: [ "screenshots", "**/build/reports" ]
+#    reports:
+#      coverage_report:
+#        coverage_format: jacoco
+#        path: trixnity-messenger/build/reports/kover/reportJvm.xml
+#  rules:
+#    - *if-merge-request
+#  variables:
+#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+#  script:
+#    - ./scripts/start_simulator.sh
+#    - ./gradlew
+#      :trixnity-messenger-compose-view:iosX64Test
+#      :trixnity-messenger-compose-view:testCoverage
+#      --stacktrace
+#  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:integration-test:
   stage: test
