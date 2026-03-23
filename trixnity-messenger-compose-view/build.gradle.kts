@@ -222,7 +222,7 @@ val resolveIosSimulatorContainer by tasks.registering {
             "${System.getProperty("user.home")}/Library/Developer/CoreSimulator/Devices"
         )
 
-        // 1. find most recently modified device
+        // find most recently modified device
         val appsDir = devicesDir.listFiles()
             ?.filter { File(it, "data").resolve("Documents").resolve("screenshots").exists() }
             ?.map { File(it, "data").resolve("Documents").resolve("screenshots") }

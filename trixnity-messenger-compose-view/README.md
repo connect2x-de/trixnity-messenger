@@ -181,9 +181,9 @@ UI tests can be executed for the following platforms:
 
 * Desktop
     * `./gradlew :trixnity-messenger-compose-view:jvmTest`
-* Web
+* Web (js)
     * `./gradlew :trixnity-messenger-compose-view:jsTest`
-* Wasm
+* Web (Wasm)
     * `./gradlew :trixnity-messenger-compose-view:wasmJsTest`
 * Android (requires a running emulator!)
     * `./gradlew :trixnity-messenger-compose-view:connectedAndroidTest`
@@ -199,4 +199,4 @@ Especially in error scenarios, it might be helpful to "see" what the UI test is 
 platforms.
 
 * Desktop/Web/iOS: saved into [screenshots](screenshots) by the gradle task
-* Web/Wasm: open [build/reports/tests](build/reports/tests), go to `js/wasmJsBrowserTest/<testName>/<testName>.html`, there open `output`; there are images encoded as base64 which can be decoded to .png files again
+* Js/Wasm: open [build/reports/tests](build/reports/tests), go to `js/wasmJsBrowserTest/<testName>/<testName>.html`, there open `output`; there are images encoded as base64 which can be decoded to image files again
