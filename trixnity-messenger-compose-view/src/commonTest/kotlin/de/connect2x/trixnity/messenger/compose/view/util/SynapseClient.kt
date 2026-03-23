@@ -25,7 +25,7 @@ fun synapseClient(engine: HttpClientEngine) =
             )
         }
         defaultRequest {
-            url(if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008" else "http://localhost:8008")
+            url(if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008" else "http://docker:8008")
         }
 
         install(HttpTimeout) {
