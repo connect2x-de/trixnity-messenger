@@ -65,6 +65,7 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
             "compose",
             "-f",
             "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
+            *ciEnv(dir),
             "up",
             "-d"
         )
@@ -103,6 +104,7 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
             "compose",
             "-f",
             "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
+            *ciEnv(dir),
             "down"
         )
             .redirectErrorStream(true)
@@ -112,6 +114,12 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
         if (exitCodeDocker != 0) {
             logger?.warn("Could not shut down Synapse docker container.")
         }
+    }
+
+    private fun ciEnv(dir: File): Array<String> {
+        return if (System.getenv("CI")?.toBooleanStrictOrNull() == true) {
+            listOf("-f", "$dir/src/commonTest/resources/localInfra/docker-compose-ci.yml").toTypedArray()
+        } else emptyArray<String>()
     }
 
     private fun cleanupDb(dir: File) {

@@ -150,7 +150,7 @@ test:smoketest-no-ios:
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - ./gradlew
-      :trixnity-messenger-compose-view:{connectedAndroid,jvm,js,wasmJs}Test
+      :trixnity-messenger-compose-view:{connectedAndroid,jvm,jsBrowser,wasmJsBrowser}Test
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'

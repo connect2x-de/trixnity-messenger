@@ -70,7 +70,7 @@ private suspend fun ComposeUiTest.vault(testName: String) {
     waitUntilExactlyOneExists(
         testName,
         hasText("I have copied the recovery key", substring = true, ignoreCase = true),
-        timeoutMillis = 10_000, // on JS in the CI, this can take a while
+        timeoutMillis = 20_000, // on JS/WASM in the CI, this can take a while
     )
     screenshot(testName, "Login - Vault - Created")
 
