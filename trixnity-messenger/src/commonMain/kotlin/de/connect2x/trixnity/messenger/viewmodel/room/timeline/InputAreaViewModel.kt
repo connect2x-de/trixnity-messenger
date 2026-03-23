@@ -68,6 +68,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -257,6 +259,7 @@ open class InputAreaViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
+    private val draftMutex: Mutex = Mutex()
 
     init {
         coroutineScope.launch {
@@ -275,13 +278,17 @@ open class InputAreaViewModelImpl(
             textField
                 .debounce(2.seconds)
                 .collect {
-                    saveAsDraft()
+                    draftMutex.withLock {
+                        saveAsDraft()
+                    }
                 }
         }
         lifecycle.doOnDestroy {
             get<CoroutineScope>().launch {
                 withContext(NonCancellable) {
-                    saveAsDraft()
+                    draftMutex.withLock {
+                        saveAsDraft()
+                    }
                 }
             }
         }
@@ -312,11 +319,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    suspend fun saveAsDraft() {
-        val text = textField.value.text
-        if (text.isEmpty()) {
-            return
-        }
+    suspend fun saveAsDraft(text: String = textField.value.text) {
         val references = TrixnityReference.findReferences(text)
         val userReferences =
             references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
@@ -401,11 +404,14 @@ open class InputAreaViewModelImpl(
     override fun sendMessage() {
         log.trace { "try to send message" }
         if (isSendEnabled.value) {
+            val text = textField.value.text
+            textField.update("")
             coroutineScope.launch {
-                saveAsDraft()
-                textField.update("")
-                log.debug { "send message" }
-                matrixClient.room.sendDraftMessage(roomId)
+                draftMutex.withLock {
+                    saveAsDraft(text)
+                    log.debug { "send message" }
+                    matrixClient.room.sendDraftMessage(roomId)
+                }
                 currentReplace.value?.also {
                     currentReplace.value = null
                     onMessageReplaceFinished(it.first, it.second)
