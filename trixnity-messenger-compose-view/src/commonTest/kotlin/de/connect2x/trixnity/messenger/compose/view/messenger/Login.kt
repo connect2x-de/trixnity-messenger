@@ -67,7 +67,11 @@ private suspend fun ComposeUiTest.vault(testName: String) {
     onNodeWithText("create vault", ignoreCase = true).performClick()
     waitForIdle()
 
-    waitUntilExactlyOneExists(testName, hasText("I have copied the recovery key", substring = true, ignoreCase = true))
+    waitUntilExactlyOneExists(
+        testName,
+        hasText("I have copied the recovery key", substring = true, ignoreCase = true),
+        timeoutMillis = 10_000, // on JS in the CI, this can take a while
+    )
     screenshot(testName, "Login - Vault - Created")
 
     onNodeWithText("I have copied the recovery key", substring = true, ignoreCase = true)
