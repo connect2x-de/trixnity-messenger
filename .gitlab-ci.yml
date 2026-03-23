@@ -59,73 +59,73 @@ services:
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   - if: '$CI_COMMIT_BRANCH =~ /^v-\d+.\d+.\d+.*/'
 
-#build:mac:
-#  stage: build
-#  interruptible: true
-#  tags: [ "connect2x-mac" ]
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./gradlew
-#      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
-#      compileTestKotlin{IosSimulatorArm64,IosX64}
-#      --stacktrace
-#
-#build:linux:
-#  stage: build
-#  interruptible: true
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  rules:
-#    - *if-merge-request
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-#  script:
-#    - ./gradlew
-#      compileKotlin{Jvm,Js,WasmJs}
-#      compileReleaseKotlinAndroid
-#      :trixnity-messenger-compose-app:assembleRelease
-#      compileTestKotlin{Jvm,Js,WasmJs}
-#      compileReleaseUnitTestKotlinAndroid
-#      --stacktrace
-#  artifacts:
-#    paths:
-#      - trixnity-messenger-compose-app/build/outputs/apk/release/trixnity-messenger-compose-app-release.apk
-#    expire_in: 1 day
-#    expose_as: 'Android App APK'
-#
-#test:mac:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "build:mac" ]
-#  tags: [ "connect2x-mac" ]
-#  artifacts: *artifact-reports
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./gradlew
-#      :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
-#      --stacktrace
-#
-#test:linux:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "build:linux" ]
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  artifacts: *artifact-reports
-#  rules:
-#    - *if-merge-request
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-#  script:
-#    - ./gradlew
-#      :trixnity-messenger:{jvm,js,wasmJs}Test
-#      :trixnity-messenger:testCoverage
-#      --stacktrace
-#  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+build:mac:
+  stage: build
+  interruptible: true
+  tags: [ "connect2x-mac" ]
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
+      compileTestKotlin{IosSimulatorArm64,IosX64}
+      --stacktrace
+
+build:linux:
+  stage: build
+  interruptible: true
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  rules:
+    - *if-merge-request
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+  script:
+    - ./gradlew
+      compileKotlin{Jvm,Js,WasmJs}
+      compileReleaseKotlinAndroid
+      :trixnity-messenger-compose-app:assembleRelease
+      compileTestKotlin{Jvm,Js,WasmJs}
+      compileReleaseUnitTestKotlinAndroid
+      --stacktrace
+  artifacts:
+    paths:
+      - trixnity-messenger-compose-app/build/outputs/apk/release/trixnity-messenger-compose-app-release.apk
+    expire_in: 1 day
+    expose_as: 'Android App APK'
+
+test:mac:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:mac" ]
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
+      --stacktrace
+
+test:linux:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+  script:
+    - ./gradlew
+      :trixnity-messenger:{jvm,js,wasmJs}Test
+      :trixnity-messenger:testCoverage
+      --stacktrace
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:smoketest-no-ios:
   stage: test
@@ -181,147 +181,147 @@ test:smoketest-no-ios:
 #      --stacktrace
 #  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
-#test:integration-test:
-#  stage: test
-#  interruptible: true
-#  timeout: 30m
-#  needs: [ "build:linux" ]
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  services:
-#    - name: docker:dind
-#  variables: *docker-variables
-#  artifacts: *artifact-reports
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./gradlew
-#      :integrationtests:jvmTest
-#      --stacktrace
+test:integration-test:
+  stage: test
+  interruptible: true
+  timeout: 30m
+  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  services:
+    - name: docker:dind
+  variables: *docker-variables
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew
+      :integrationtests:jvmTest
+      --stacktrace
 
 # requires macOS since it can build/emulate all other targets
-#checkAbi:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "build:mac" ]
-#  tags: [ "connect2x-mac" ]
-#  artifacts: *artifact-reports
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./gradlew dumpLegacyAbi --stacktrace
-#    - ./gradlew checkLegacyAbi --stacktrace
+checkAbi:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs: [ "build:mac" ]
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew checkLegacyAbi --stacktrace
 
-#security:dependencies:
-#  stage: security
-#  interruptible: true
-#  timeout: 30m
-#  needs: [ ]
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME_TRIVY
-#  variables:
-#    TRIVY_CACHE_DIR: ".trivycache/"
-#    WITH_LOCK: true
-#  rules:
-#    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-#      allow_failure: true
-#    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
-#      allow_failure: false
-#    - if: $CI_PIPELINE_SOURCE == "schedule"
-#      allow_failure: false
-#  artifacts:
-#    when: always
-#    reports:
-#      dependency_scanning: report.json
-#  script:
-#    - ./gradlew dependenciesForAll --write-locks > dependencies.txt
-#    - trivy repo ./ --exit-code 0
-#    - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
-#    - trivy repo ./ --exit-code 1 --severity CRITICAL
-#
-#changelog:
-#  stage: changelog
-#  interruptible: true
-#  timeout: 5m
-#  tags: [ "saas-linux-small-amd64" ]
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - git fetch origin main
-#    - |
-#      if git diff --name-only HEAD origin/main | grep "CHANGELOG.md"; then
-#        echo "CHANGELOG.md has changed"
-#      else
-#        echo "CHANGELOG.md has not changed"
-#        exit 1
-#      fi
-#
-#publish:mac-dev:
-#  stage: publish
-#  tags: [ "connect2x-mac" ]
-#  rules:
-#    - *if-dev-release
-#  script:
-#    - ./gradlew
-#      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
-#      --stacktrace
-#
-#publish:linux-dev:
-#  stage: publish
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  rules:
-#    - *if-dev-release
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-#  script:
-#    - ./gradlew
-#      publish{KotlinMultiplatform,Jvm,Js,WasmJs,AndroidRelease}PublicationToGitlabRepository
-#      --stacktrace
-#
-#publish:release:
-#  stage: publish
-#  tags: [ "connect2x-mac" ]
-#  timeout: 2h
-#  rules:
-#    - *if-release
-#  script:
-#    - ./gradlew
-#      publishAllPublicationsToGitLabRepository
-#      publishAndReleaseToMavenCentral
-#      --stacktrace
-#
-#staging:web:
-#  stage: publish
-#  tags: [ "connect2x-linux" ]
-#  image: $BUILD_LINUX_IMAGE_NAME
-#  rules:
-#    - *if-merge-request
-#  needs: [ "build:linux" ]
-#  artifacts:
-#    name: web
-#    when: always
-#    paths:
-#      - public
-#    expire_in: 7d
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-#  script:
-#    - ./gradlew
-#      :trixnity-messenger-compose-app:jsBrowserDistribution
-#      --stacktrace
-#    - mv trixnity-messenger-compose-app/build/dist/js/productionExecutable public
-#  environment:
-#    name: review/${CI_MERGE_REQUEST_IID}
-#    url: https://connect2x.gitlab.io/-/trixnity-messenger/trixnity-messenger/-/jobs/${CI_JOB_ID}/artifacts/public/index.html
-#
-#kmmPublish:mac:
-#  stage: kmmPublish
-#  tags: [ "connect2x-mac" ]
-#  rules:
-#    - *if-release
-#  timeout: 2h
-#  needs: [ "publish:release" ]
-#  script:
-#    - ./kmmPublish.sh
+security:dependencies:
+  stage: security
+  interruptible: true
+  timeout: 30m
+  needs: [ ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME_TRIVY
+  variables:
+    TRIVY_CACHE_DIR: ".trivycache/"
+    WITH_LOCK: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      allow_failure: true
+    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+.*/'
+      allow_failure: false
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      allow_failure: false
+  artifacts:
+    when: always
+    reports:
+      dependency_scanning: report.json
+  script:
+    - ./gradlew dependenciesForAll --write-locks > dependencies.txt
+    - trivy repo ./ --exit-code 0
+    - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
+    - trivy repo ./ --exit-code 1 --severity CRITICAL
+
+changelog:
+  stage: changelog
+  interruptible: true
+  timeout: 5m
+  tags: [ "saas-linux-small-amd64" ]
+  rules:
+    - *if-merge-request
+  script:
+    - git fetch origin main
+    - |
+      if git diff --name-only HEAD origin/main | grep "CHANGELOG.md"; then
+        echo "CHANGELOG.md has changed"
+      else
+        echo "CHANGELOG.md has not changed"
+        exit 1
+      fi
+
+publish:mac-dev:
+  stage: publish
+  tags: [ "connect2x-mac" ]
+  rules:
+    - *if-dev-release
+  script:
+    - ./gradlew
+      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
+      --stacktrace
+
+publish:linux-dev:
+  stage: publish
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  rules:
+    - *if-dev-release
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+  script:
+    - ./gradlew
+      publish{KotlinMultiplatform,Jvm,Js,WasmJs,AndroidRelease}PublicationToGitlabRepository
+      --stacktrace
+
+publish:release:
+  stage: publish
+  tags: [ "connect2x-mac" ]
+  timeout: 2h
+  rules:
+    - *if-release
+  script:
+    - ./gradlew
+      publishAllPublicationsToGitLabRepository
+      publishAndReleaseToMavenCentral
+      --stacktrace
+
+staging:web:
+  stage: publish
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  rules:
+    - *if-merge-request
+  needs: [ "build:linux" ]
+  artifacts:
+    name: web
+    when: always
+    paths:
+      - public
+    expire_in: 7d
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+  script:
+    - ./gradlew
+      :trixnity-messenger-compose-app:jsBrowserDistribution
+      --stacktrace
+    - mv trixnity-messenger-compose-app/build/dist/js/productionExecutable public
+  environment:
+    name: review/${CI_MERGE_REQUEST_IID}
+    url: https://connect2x.gitlab.io/-/trixnity-messenger/trixnity-messenger/-/jobs/${CI_JOB_ID}/artifacts/public/index.html
+
+kmmPublish:mac:
+  stage: kmmPublish
+  tags: [ "connect2x-mac" ]
+  rules:
+    - *if-release
+  timeout: 2h
+  needs: [ "publish:release" ]
+  script:
+    - ./kmmPublish.sh
