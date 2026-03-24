@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - SDK: add an abi checker to the CI
+- UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
 - Room list context menu now includes option to mark a room as read
 
 ### Changed

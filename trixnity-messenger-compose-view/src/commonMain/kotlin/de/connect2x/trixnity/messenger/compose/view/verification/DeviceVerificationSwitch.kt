@@ -150,7 +150,7 @@ fun BoxScope.DeviceVerificationWizardStepSwitch(
             }
         }
     )
-    Wizard(listOf(step))
+    Wizard(listOf(step), wizardId = "DeviceVerificationWizardStep")
 }
 
 

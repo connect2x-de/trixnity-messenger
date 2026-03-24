@@ -77,7 +77,8 @@ Theming allows to change colors and icons.
 
 ### Colors
 
-Have a look into the [theme](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/theme) folder, and look out for
+Have a look into the [theme](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/theme) folder, and look
+out for
 everything that starts with `Theme...`. Those are the hooks where customization can be applied.
 
 An example would be a changed light color scheme.
@@ -173,3 +174,29 @@ the [Trixnity Messenger README](../README.md).
   in [src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews](src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews)
 * IntelliJ might not recognize the previews, but opening the project in Android Studio should show the previews
   correctly
+
+## UI Tests
+
+UI tests can be executed for the following platforms:
+
+* Desktop
+    * `./gradlew :trixnity-messenger-compose-view:jvmTest`
+* Web (js)
+    * `./gradlew :trixnity-messenger-compose-view:jsTest`
+* Web (Wasm)
+    * `./gradlew :trixnity-messenger-compose-view:wasmJsTest`
+* Android (requires a running emulator!)
+    * `./gradlew :trixnity-messenger-compose-view:connectedAndroidTest`
+* iOS (requires iOS simulator)
+    * `./gradlew :trixnity-messenger-compose-view:iosSimulatorArm64Test`
+
+All tests require a synapse server to be running on `http://localhost:8008`. The gradle tasks automatically start and
+stop this environment (see [../buildSrc/src/main/kotlin/UITestInfraService.kt](../buildSrc/src/main/kotlin/UITestInfraService.kt)).
+
+### Screenshots
+
+Especially in error scenarios, it might be helpful to "see" what the UI test is doing. Screenshots are saved for all
+platforms.
+
+* Desktop/Web/iOS: saved into [screenshots](screenshots) by the gradle task
+* Js/Wasm: open [build/reports/tests](build/reports/tests), go to `js/wasmJsBrowserTest/<testName>/<testName>.html`, there open `output`; there are images encoded as base64 which can be decoded to image files again

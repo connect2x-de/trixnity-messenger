@@ -9,6 +9,11 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.notification.NotificationHandlers
@@ -41,11 +46,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import de.connect2x.trixnity.client.verification
-import de.connect2x.trixnity.client.verification.ActiveVerificationState
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.Presence
 import org.koin.core.component.get
 import org.koin.core.component.inject
 

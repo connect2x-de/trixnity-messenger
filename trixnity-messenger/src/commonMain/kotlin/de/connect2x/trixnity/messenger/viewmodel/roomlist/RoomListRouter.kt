@@ -49,7 +49,7 @@ class RoomListRouter(
     private val onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (userId: UserId) -> Unit,
     private val onAccountSelected: () -> Unit,
-    private val onStartAccountSetup: (userId: UserId) -> Unit,
+    private val onStartAccountSetup: suspend (userId: UserId) -> Unit,
     private val onStartVerification: (userId: UserId) -> Unit,
     private val onCloseRoom: () -> Unit
 ) {
@@ -386,8 +386,8 @@ class RoomListRouter(
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(userId) {
                 it.copy(accountSetupFinished = false)
             }
+            onStartAccountSetup(userId)
         }
-        onStartAccountSetup(userId)
     }
 
     suspend fun show() {

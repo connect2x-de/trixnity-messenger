@@ -10,6 +10,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.testTag
 import de.connect2x.trixnity.messenger.compose.view.root.RootSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
@@ -68,6 +69,7 @@ class ClientViewImpl : ClientView {
         ThemedSurface(
             style = MaterialTheme.components.background,
             modifier = Modifier
+                .testTag("ClientSurface")
                 .fillMaxSize()
                 .drawBehind {
                     val top = insets.getTop(this)
