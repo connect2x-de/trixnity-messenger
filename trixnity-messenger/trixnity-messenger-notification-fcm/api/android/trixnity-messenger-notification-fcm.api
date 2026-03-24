@@ -1,0 +1,173 @@
+public final class de/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProvider : de/connect2x/trixnity/messenger/notification/PushNotificationProvider {
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/util/GetDefaultDeviceDisplayName;Lde/connect2x/trixnity/messenger/MatrixClients;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/util/ContextGetter;)V
+	public fun disableService (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun enableService (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getConfig ()Lde/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig;
+	public fun getCurrentPusherSettings ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getDisplayName ()Ljava/lang/String;
+	public fun getId ()Ljava/lang/String;
+	public fun getPusherCustomFields-2EL3Co0 (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getPusherSettings (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherAccountSettings;
+	public fun updatePusherSettings-PKisLvk (Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3-UwyO8pc ()J
+	public final fun copy-SxA4cEA (Ljava/lang/String;Ljava/lang/String;J)Lde/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig;
+	public static synthetic fun copy-SxA4cEA$default (Lde/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPeriodicSyncInterval-UwyO8pc ()J
+	public final fun getPushAppId ()Ljava/lang/String;
+	public final fun getPushUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/FcmPushNotificationProviderKt {
+	public static final fun addFcmPushNotificationProvider-Wn2Vu4Y (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;J)V
+	public static final fun addFcmPushNotificationProvider-Wn2Vu4Y (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;J)V
+	public static synthetic fun addFcmPushNotificationProvider-Wn2Vu4Y$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)V
+	public static synthetic fun addFcmPushNotificationProvider-Wn2Vu4Y$default (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)V
+	public static final fun getNotificationProviderFcm (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;
+	public static final fun getNotificationProviderFcm (Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;
+	public static final fun getNotificationProviderFcm (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeliveredPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun getEnabled ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerAccountNotificationProviderFcmSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMessengerNotificationProviderFcmSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/MatrixMultiMessengerNotificationProviderFcmSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/OnMessageReceivedWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/OnMessageReceivedWorker$Companion;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/OnMessageReceivedWorker$Companion {
+	public final fun enqueueWork (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/OnNewTokenWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/OnNewTokenWorker$Companion;
+	public static final field UNIQUE_WORK_NAME Ljava/lang/String;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/OnNewTokenWorker$Companion {
+	public final fun enqueueUniqueWork (Landroid/content/Context;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/SyncAndProcessPendingWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/fcm/SyncAndProcessPendingWorker$Companion;
+	public static final field UNIQUE_WORK_NAME Ljava/lang/String;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/SyncAndProcessPendingWorker$Companion {
+	public final fun enqueueUniquePeriodicWork-HG0u8IE (Landroid/content/Context;J)V
+	public final fun stopUniquePeriodicWork (Landroid/content/Context;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/SyncAndProcessPendingWorkerBroadcastReceiver : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/fcm/TrixnityMessengerFirebaseMessagingService : com/google/firebase/messaging/FirebaseMessagingService {
+	public fun <init> ()V
+	public fun onCreate ()V
+	public fun onDestroy ()V
+	public fun onMessageReceived (Lcom/google/firebase/messaging/RemoteMessage;)V
+	public fun onNewToken (Ljava/lang/String;)V
+}
+
