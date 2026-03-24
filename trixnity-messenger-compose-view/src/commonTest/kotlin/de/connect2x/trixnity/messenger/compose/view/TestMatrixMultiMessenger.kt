@@ -18,6 +18,7 @@ import de.connect2x.trixnity.core.model.UserId
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
+import kotlin.coroutines.CoroutineContext
 
 val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
     modulesFactories += listOf(
@@ -79,4 +80,4 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
 }
 
 
-expect suspend fun createTestMatrixMultiMessenger(): MatrixMultiMessenger
+expect suspend fun createTestMatrixMultiMessenger(coroutineContext: CoroutineContext): MatrixMultiMessenger

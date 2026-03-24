@@ -242,5 +242,5 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
         )
     )
 
-    Wizard(wizardSteps)
+    Wizard(wizardSteps, wizardId = "CrossSigningBootstrapWizard")
 }

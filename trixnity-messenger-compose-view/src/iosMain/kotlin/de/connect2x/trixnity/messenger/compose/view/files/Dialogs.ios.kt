@@ -117,9 +117,7 @@ actual fun LoadFileDialog(
                     FilePickerType.IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
                     else -> FileKitType.File()
                 },
-                dialogSettings = FileKitDialogSettings(
-                    title = i18n.fileDialogTitleLoad(),
-                ),
+                title = i18n.fileDialogTitleLoad(),
                 mode = FileKitMode.Single,
                 onResult = {
                     it?.let {

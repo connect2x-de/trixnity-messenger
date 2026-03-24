@@ -95,9 +95,7 @@ actual fun LoadFileDialog(
             else -> FileKitType.File()
         },
         mode = FileKitMode.Single,
-        dialogSettings = FileKitDialogSettings(
-            title = i18n.fileDialogTitleLoad(),
-        ),
+        title = i18n.fileDialogTitleLoad(),
         // TODO: set initialDirectory to OS dependent default pictures directory
     ) { file ->
         log.debug { "selected file: $file" }

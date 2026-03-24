@@ -44,9 +44,7 @@ internal actual fun SelectExportDestination(
     }
     // Due to compose life cycles the launcher needs to be set up even if launch() is skipped.
     val launcher = rememberDirectoryPickerLauncher(
-        dialogSettings = FileKitDialogSettings(
-            title = i18n.fileDialogTitleLoad(),
-        ),
+        title = i18n.fileDialogTitleLoad(),
         directory = PlatformFile(initialDirectory(appName).toString())
     ) { file ->
         log.debug { "selected file: $file" }
