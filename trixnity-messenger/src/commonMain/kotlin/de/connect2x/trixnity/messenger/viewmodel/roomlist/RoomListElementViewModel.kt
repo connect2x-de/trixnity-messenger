@@ -6,8 +6,6 @@ import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.store.TimelineEvent
-import de.connect2x.trixnity.client.store.eventId
-import de.connect2x.trixnity.client.store.roomId
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
@@ -29,7 +27,6 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Un
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -45,9 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -275,7 +270,7 @@ open class RoomListElementViewModelImpl(
 
     override val isUnread: StateFlow<Boolean?> =
         matrixClient.notification.isUnread(roomId)
-            .stateIn(coroutineScope, Eagerly, null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val notificationCount: StateFlow<String?> =
         matrixClient.notification.getCount(roomId).map { count ->
@@ -392,8 +387,10 @@ open class RoomListElementViewModelImpl(
     }
 
     override fun markUnread() {
-        if (isUnread.value != true) {
-            coroutineScope.launch {
+        coroutineScope.launch {
+            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
+                    .firstOrNull()?.unread == false
+            ) {
                 matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
                     onSuccess = {
                         log.info { "Marked room $roomId as unread" }
@@ -407,10 +404,11 @@ open class RoomListElementViewModelImpl(
     }
 
     override fun markRead() {
-        val markRoomAsNotUnread = isUnread.value != false
         coroutineScope.launch {
             launch {
-                if (markRoomAsNotUnread) {
+                if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
+                        .firstOrNull()?.unread == true
+                ) {
                     matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId).fold(
                         onSuccess = {
                             log.info { "Marked room $roomId as read" }
@@ -423,18 +421,17 @@ open class RoomListElementViewModelImpl(
             }
             launch {
                 val lastTimelineEvent =
-                    matrixClient.room.getLastTimelineEvent(roomId).firstOrNull()?.firstOrNull()
-                val lastTimelineEventId = lastTimelineEvent?.eventId
+                    matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
                 val lastReadEvent =
                     matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
-                if (lastTimelineEvent != null && lastTimelineEventId != lastReadEvent) {
+                if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
                     val readMarkerIsPublic =
                         get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
                     matrixClient.api.room.setReadMarkers(
-                        roomId = lastTimelineEvent.roomId,
-                        read = if (readMarkerIsPublic) lastTimelineEventId else null,
-                        fullyRead = lastTimelineEventId,
-                        privateRead = lastTimelineEventId,
+                        roomId = roomId,
+                        read = if (readMarkerIsPublic) lastTimelineEvent else null,
+                        fullyRead = lastTimelineEvent,
+                        privateRead = lastTimelineEvent,
                     )
                         .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
                         .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }

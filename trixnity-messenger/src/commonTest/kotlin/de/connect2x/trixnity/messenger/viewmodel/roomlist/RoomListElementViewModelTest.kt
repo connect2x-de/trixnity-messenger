@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -836,9 +837,13 @@ class RoomListElementViewModelTest {
     @Test
     fun `MarkUnread should correctly update the read data of the room`() = runTest {
         val cut = roomListElementViewModel(roomId)
+        val job = cut.isUnread.launchIn(this)
+
         eventually(2.seconds) {
             cut.isUnread.value shouldBe false
         }
+        every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(false))
         everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(true), any(), any(), any()) } calls {
             isUnreadFlow.emit(true)
             Result.success(Unit)
@@ -847,41 +852,143 @@ class RoomListElementViewModelTest {
         eventually(2.seconds) {
             cut.isUnread.value shouldBe true
         }
+        job.cancel()
     }
 
     @Test
-    fun `MarkRead should correctly update the read data of the room`() = runTest {
-        val cut = roomListElementViewModel(roomId)
-        val lastTimelineEvent = timelineEvent(EventId("Event"), sentAt = Clock.System.now(), roomId = roomId)
+    fun `MarkRead should correctly update the read data of the room when room is unread and last event isn't read`() =
+        runTest {
+            var markedLastEventAsRead = false
+            var markedRoomUnread = false
 
-        var markedLastEventAsRead = false
-        eventually(2.seconds) {
-            cut.isUnread.value shouldBe false
+            val cut = roomListElementViewModel(roomId)
+            val lastTimelineEventId = EventId("Event")
+            val lastReadEventId = EventId("ReadEvent")
+            mockReadState(
+                true,
+                lastReadEventId,
+                lastTimelineEventId,
+                { markedLastEventAsRead = true },
+                { markedRoomUnread = true },
+            )
+
+            cut.markRead()
+            eventually(2.seconds) {
+                markedRoomUnread shouldBe true
+                markedLastEventAsRead shouldBe true
+            }
         }
-        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(false), roomId, any(), any()) } calls {
-            isUnreadFlow.emit(false)
+
+    @Test
+    fun `MarkRead should correctly update the read data of the room when room is not unread and last event isn't read`() =
+        runTest {
+            var markedLastEventAsRead = false
+            var markedRoomUnread = false
+
+            val cut = roomListElementViewModel(roomId)
+            val lastTimelineEventId = EventId("Event")
+            val lastReadEventId = EventId("ReadEvent")
+            mockReadState(
+                false,
+                lastReadEventId,
+                lastTimelineEventId,
+                { markedLastEventAsRead = true },
+                { markedRoomUnread = true })
+
+            cut.markRead()
+            eventually(2.seconds) {
+                markedRoomUnread shouldBe false
+                markedLastEventAsRead shouldBe true
+            }
+        }
+
+    @Test
+    fun `MarkRead should correctly update the read data of the room when room is unread and last event is read`() =
+        runTest {
+            var markedLastEventAsRead = false
+            var markedRoomUnread = false
+
+            val cut = roomListElementViewModel(roomId)
+            val lastTimelineEventId = EventId("Event")
+            mockReadState(
+                true,
+                lastTimelineEventId,
+                lastTimelineEventId,
+                { markedLastEventAsRead = true },
+                { markedRoomUnread = true })
+
+            cut.markRead()
+            eventually(2.seconds) {
+                markedRoomUnread shouldBe true
+                markedLastEventAsRead shouldBe false
+            }
+        }
+    @Test
+    fun `MarkRead should not update the read data of the room when the last event is read and the room isn't marked as unread`() =
+        runTest {
+            var markedLastEventAsRead = false
+            var markedRoomUnread = false
+
+            val cut = roomListElementViewModel(roomId)
+            val lastTimelineEventId = EventId("Event")
+            mockReadState(
+                false,
+                lastTimelineEventId,
+                lastTimelineEventId,
+                { markedLastEventAsRead = true },
+                { markedRoomUnread = true })
+
+            cut.markRead()
+            eventually(2.seconds) {
+                markedRoomUnread shouldBe false
+                markedLastEventAsRead shouldBe false
+            }
+        }
+
+    private fun mockReadState(
+        isMarkedUnread: Boolean,
+        lastReadEventId: EventId,
+        lastEventId: EventId,
+        onSetReadMarkersCalled: () -> Unit,
+        onSetUnreadStateToFalse: () -> Unit,
+    ) {
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(isMarkedUnread)
+        )
+        everySuspend {
+            roomsApiClientMock.setAccountData(
+                MarkedUnreadEventContent(false),
+                roomId,
+                any(),
+                any()
+            )
+        } calls {
+            onSetUnreadStateToFalse()
             Result.success(Unit)
         }
         every { roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any()) } returns flowOf(
-            FullyReadEventContent(EventId("ReadEvent"))
+            FullyReadEventContent(lastReadEventId)
         )
-        every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns flowOf(flowOf(lastTimelineEvent))
+        roomByIdMocker returns MutableStateFlow(
+            Room(
+                roomId,
+                isDirect = false,
+                encrypted = true,
+                membership = Membership.INVITE,
+                membersLoaded = false,
+                lastEventId = lastEventId,
+            )
+        )
         everySuspend {
             roomsApiClientMock.setReadMarkers(
                 roomId,
                 read = any(),
-                fullyRead = lastTimelineEvent.eventId,
-                privateRead = lastTimelineEvent.eventId
+                fullyRead = lastEventId,
+                privateRead = lastEventId
             )
         } calls {
-            markedLastEventAsRead = true
+            onSetReadMarkersCalled()
             Result.success(Unit)
-        }
-
-        cut.markRead()
-        eventually(2.seconds) {
-            cut.isUnread.value shouldBe false
-            markedLastEventAsRead shouldBe true
         }
     }
 
@@ -918,7 +1025,13 @@ class RoomListElementViewModelTest {
         return cut
     }
 
-    private fun timelineEvent(eventId: EventId, sentAt: Instant, body: String = "", sender: UserId = user2, roomId: RoomId = roomId1) =
+    private fun timelineEvent(
+        eventId: EventId,
+        sentAt: Instant,
+        body: String = "",
+        sender: UserId = user2,
+        roomId: RoomId = roomId1
+    ) =
         TimelineEvent(
             event = MessageEvent(
                 content = RoomMessageEventContent.TextBased.Text(body),
