@@ -856,7 +856,7 @@ class RoomListElementViewModelTest {
     }
 
     @Test
-    fun `MarkRead should correctly update the read data of the room when room is unread and last event isn't read`() =
+    fun `MarkRead should correctly update the read data of the room when room is unread and last event is not read`() =
         runTest {
             var markedLastEventAsRead = false
             var markedRoomUnread = false
@@ -880,7 +880,7 @@ class RoomListElementViewModelTest {
         }
 
     @Test
-    fun `MarkRead should correctly update the read data of the room when room is not unread and last event isn't read`() =
+    fun `MarkRead should correctly update the read data of the room when room is not unread and last event is not read`() =
         runTest {
             var markedLastEventAsRead = false
             var markedRoomUnread = false
@@ -924,7 +924,7 @@ class RoomListElementViewModelTest {
             }
         }
     @Test
-    fun `MarkRead should not update the read data of the room when the last event is read and the room isn't marked as unread`() =
+    fun `MarkRead should not update the read data of the room when room is not unread and the last event is read`() =
         runTest {
             var markedLastEventAsRead = false
             var markedRoomUnread = false

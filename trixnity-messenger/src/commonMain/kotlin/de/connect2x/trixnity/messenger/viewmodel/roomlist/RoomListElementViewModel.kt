@@ -56,6 +56,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.TimeZone
 import org.koin.core.component.get
 import kotlin.time.Clock
@@ -386,6 +388,8 @@ open class RoomListElementViewModelImpl(
         error.value = null
     }
 
+    private val readStateUpdateMutex = Mutex()
+
     override fun markUnread() {
         coroutineScope.launch {
             if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
@@ -405,36 +409,38 @@ open class RoomListElementViewModelImpl(
 
     override fun markRead() {
         coroutineScope.launch {
-            launch {
-                if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
-                        .firstOrNull()?.unread == true
-                ) {
-                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId).fold(
-                        onSuccess = {
-                            log.info { "Marked room $roomId as read" }
-                        },
-                        onFailure = {
-                            log.error(it) { "Couldn't mark room $roomId as read" }
-                        }
-                    )
+            readStateUpdateMutex.withLock {
+                launch {
+                    if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
+                            .firstOrNull()?.unread == true
+                    ) {
+                        matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId).fold(
+                            onSuccess = {
+                                log.info { "Marked room $roomId as read" }
+                            },
+                            onFailure = {
+                                log.error(it) { "Couldn't mark room $roomId as read" }
+                            }
+                        )
+                    }
                 }
-            }
-            launch {
-                val lastTimelineEvent =
-                    matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
-                val lastReadEvent =
-                    matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
-                if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
-                    val readMarkerIsPublic =
-                        get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
-                    matrixClient.api.room.setReadMarkers(
-                        roomId = roomId,
-                        read = if (readMarkerIsPublic) lastTimelineEvent else null,
-                        fullyRead = lastTimelineEvent,
-                        privateRead = lastTimelineEvent,
-                    )
-                        .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
-                        .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
+                launch {
+                    val lastTimelineEvent =
+                        matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
+                    val lastReadEvent =
+                        matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
+                    if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
+                        val readMarkerIsPublic =
+                            get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
+                        matrixClient.api.room.setReadMarkers(
+                            roomId = roomId,
+                            read = if (readMarkerIsPublic) lastTimelineEvent else null,
+                            fullyRead = lastTimelineEvent,
+                            privateRead = lastTimelineEvent,
+                        )
+                            .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
+                            .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
+                    }
                 }
             }
         }
