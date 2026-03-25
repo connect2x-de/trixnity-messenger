@@ -192,6 +192,7 @@ class TimelineElementHolderViewModelTest {
             )
         }
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(null)
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomApiClientMock
         receipts.value = mapOf()

@@ -156,6 +156,7 @@ class RoomListElementViewModelTest {
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
         everySuspend { userBlockingMock.blockUser(any(), any(), any(), any()) } returns Unit
 
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every {
             roomServiceMock.getState(
                 roomId, CreateEventContent::class, any()
