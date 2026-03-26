@@ -1335,6 +1335,7 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun roomListContentVerificationInProgress ()Ljava/lang/String;
 	public fun roomListContentVerificationRequest (Ljava/lang/String;)Ljava/lang/String;
 	public fun roomListContentVideo ()Ljava/lang/String;
+	public fun roomListDraft ()Ljava/lang/String;
 	public fun roomListInvitationError ()Ljava/lang/String;
 	public fun roomListInvitationFrom (Ljava/lang/String;)Ljava/lang/String;
 	public fun roomListInvitationOffline ()Ljava/lang/String;
@@ -2676,12 +2677,12 @@ public final class de/connect2x/trixnity/messenger/util/DragAndDropHandlerKt {
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/EnterRoom {
-	public abstract fun invoke--h6rbJM (Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun invoke--h6rbJM$default (Lde/connect2x/trixnity/messenger/util/EnterRoom;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun invoke-47Upsrk (Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun invoke-47Upsrk$default (Lde/connect2x/trixnity/messenger/util/EnterRoom;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/util/EnterRoom$DefaultImpls {
-	public static synthetic fun invoke--h6rbJM$default (Lde/connect2x/trixnity/messenger/util/EnterRoom;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun invoke-47Upsrk$default (Lde/connect2x/trixnity/messenger/util/EnterRoom;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/EnterRoom$Result {
@@ -2736,7 +2737,7 @@ public final class de/connect2x/trixnity/messenger/util/EnterRoom$Result$Success
 
 public final class de/connect2x/trixnity/messenger/util/EnterRoomImpl : de/connect2x/trixnity/messenger/util/EnterRoom {
 	public fun <init> ()V
-	public fun invoke--h6rbJM (Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lde/connect2x/trixnity/core/model/keys/Signed;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke-47Upsrk (Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/FileDescriptor {
@@ -7007,6 +7008,8 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaVi
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun replaceMessage-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)V
 	public fun replyMessage-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)V
+	public final fun saveAsDraft (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun saveAsDraft$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModelImpl;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public fun selectAttachment ()V
 	public fun selectMention-dxpKhU0 (Ljava/lang/String;)V
 	public fun sendMessage ()V

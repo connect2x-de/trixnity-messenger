@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
@@ -12,6 +13,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
@@ -232,7 +234,9 @@ open class RoomListElementViewModelImpl(
                         matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
                         matrixClient.room.getById(roomId).map { it?.isDirect == true }
                             .distinctUntilChanged(),
-                    ) { lastTimelineEventSender, isDirect ->
+                        matrixClient.room.getDraftMessage(roomId)
+                    ) { lastTimelineEventSender, isDirect, draftMessage ->
+                        val draftMessageContent = getDraftMessageContent(draftMessage)
                         val message = timelineEventTypeDescription(lastTimelineEvent)
                         val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
                         val sender = if (isByMe) {
@@ -240,7 +244,8 @@ open class RoomListElementViewModelImpl(
                         } else {
                             lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
                         }
-                        if (isDirect && isByMe.not()) message
+                        if (draftMessageContent != null) "${i18n.roomListDraft()}: $draftMessageContent"
+                        else if (isDirect && isByMe.not()) message
                         else "${sender}: $message"
                     }
                 } else flowOf("")
@@ -474,6 +479,22 @@ open class RoomListElementViewModelImpl(
                 log.error(it) { "Failed to reject invitation" }
                 onFailure(it)
             }
+    }
+
+    private fun getDraftMessageContent(draft: RoomOutboxMessage<*>?): String? {
+        return when (draft?.content) {
+            is TextBased.Text -> {
+                val content = (draft.content as TextBased.Text).body
+                val relatesTo = draft.content.relatesTo
+                if (relatesTo is RelatesTo.Replace) {
+                    (relatesTo.newContent as? TextBased.Text)?.body?.ifEmpty { null }
+                } else {
+                    content.ifEmpty { null }
+                }
+            }
+
+            else -> null
+        }
     }
 
     private fun timelineEventTypeDescription(event: TimelineEvent): String =

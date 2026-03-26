@@ -18,8 +18,16 @@ import web.idb.indexedDB
 import web.navigator.navigator
 import web.storage.getDirectory
 import web.storage.localStorage
+import kotlin.OptIn
+import kotlin.Throwable
+import kotlin.collections.dropLast
+import kotlin.collections.forEach
+import kotlin.collections.last
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toList
+import kotlin.text.startsWith
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.PathsKt")
 

@@ -2,8 +2,29 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.room.message.mentions
+import de.connect2x.trixnity.client.room.message.replace
+import de.connect2x.trixnity.client.room.message.reply
+import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -21,7 +42,10 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
+import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,28 +68,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.room.message.mentions
-import de.connect2x.trixnity.client.room.message.replace
-import de.connect2x.trixnity.client.room.message.reply
-import de.connect2x.trixnity.client.room.message.text
-import de.connect2x.trixnity.client.store.originTimestamp
-import de.connect2x.trixnity.client.store.sender
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.canSendEvent
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
-import de.connect2x.trixnity.utils.concurrentMutableMap
-import org.intellij.markdown.IElementType
 import org.intellij.markdown.ast.ASTNode
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
@@ -251,6 +258,9 @@ open class InputAreaViewModelImpl(
             } else null
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
+    private val draftMutex: Mutex = Mutex()
+
     init {
         coroutineScope.launch {
             isStillTyping.debounce(3.seconds).collect {
@@ -263,10 +273,107 @@ open class InputAreaViewModelImpl(
                 else typing()
             }
         }
+        coroutineScope.launch {
+            loadDraftIntoTextField()
+            textField
+                .debounce(2.seconds)
+                .collect {
+                    draftMutex.withLock {
+                        saveAsDraft()
+                    }
+                }
+        }
+        lifecycle.doOnDestroy {
+            get<CoroutineScope>().launch {
+                withContext(NonCancellable) {
+                    draftMutex.withLock {
+                        saveAsDraft()
+                    }
+                }
+            }
+        }
     }
 
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
+
+    private suspend fun loadDraftIntoTextField() {
+        val draftMessage = draftMessage.first()
+        val content = draftMessage?.content
+        if (content is TextBased.Text) {
+            when (val relatesTo = content.relatesTo) {
+                is RelatesTo.Reply -> {
+                    currentReply.value = draftMessage.roomId to relatesTo.eventId
+                    textField.update(content.body)
+                }
+
+                is RelatesTo.Replace -> {
+                    currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                    (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
+                }
+
+                else -> {
+                    textField.update(content.body)
+                }
+            }
+        }
+    }
+
+    suspend fun saveAsDraft(text: String = textField.value.text) {
+        val references = TrixnityReference.findReferences(text)
+        val userReferences =
+            references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+        val formattedReferences = references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
+            .windowed(
+                size = 2,
+                partialWindows = true
+            ) { mentionWindow ->
+                val first = mentionWindow[0]
+                val second = mentionWindow.getOrNull(1)
+
+                listOfNotNull(
+                    if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
+                    else null,
+                    SubstringType.Reference(first.value.value),
+                    if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
+                    else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
+                )
+            }.flatten()
+            .map { substring ->
+                substring.format(matrixClient, roomId)
+            }.joinToString("")
+            .ifBlank { text }
+
+        val formattedBody =
+            when (useMarkdown.value) {
+                true ->
+                    HtmlGenerator(
+                        formattedReferences,
+                        markdownParser.buildMarkdownTreeFromString(formattedReferences),
+                        markdownFlavourDescriptor
+                    ).generateHtml(HtmlTagRenderer())
+
+                false -> formattedReferences
+            }
+
+        val replacedEvent = currentReplace.value
+        val repliedEvent = currentReply.value
+        matrixClient.room.setDraftMessage(roomId) {
+            when {
+                replacedEvent != null -> replace(replacedEvent.second)
+                repliedEvent != null -> {
+                    val event =
+                        matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
+                            .filterNotNull()
+                            .first()
+                    reply(event)
+                }
+            }
+            mentions(userReferences)
+            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+        }
+    }
+
 
     override fun selectMention(userId: UserId) {
         if (listOfMentions.value?.any { it.userId == userId } != true) return
@@ -296,67 +403,20 @@ open class InputAreaViewModelImpl(
 
     override fun sendMessage() {
         log.trace { "try to send message" }
-        if (isSendEnabled.value == true) {
+        if (isSendEnabled.value) {
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                val references = TrixnityReference.findReferences(text)
-                val userReferences =
-                    references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
-                val formattedReferences =
-                    references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
-                        .windowed(
-                            size = 2,
-                            partialWindows = true
-                        ) { mentionWindow ->
-                            val first = mentionWindow[0]
-                            val second = mentionWindow.getOrNull(1)
-
-                            listOfNotNull(
-                                if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
-                                else null,
-                                SubstringType.Reference(first.value.value),
-                                if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
-                                else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
-                            )
-                        }.flatten()
-                        .map { substring ->
-                            substring.format(matrixClient, roomId)
-                        }.joinToString("")
-                        .ifBlank { text }
-
-                val formattedBody =
-                    when (useMarkdown.value) {
-                        true ->
-                            HtmlGenerator(
-                                formattedReferences,
-                                markdownParser.buildMarkdownTreeFromString(formattedReferences),
-                                markdownFlavourDescriptor
-                            ).generateHtml(HtmlTagRenderer())
-
-                        false -> formattedReferences
-                    }
-
-                val replacedEvent = currentReplace.value
-                val repliedEvent = currentReply.value
-                log.debug { "send message" }
-                matrixClient.room.sendMessage(roomId) {
-                    when {
-                        replacedEvent != null -> replace(replacedEvent.second)
-                        repliedEvent != null -> {
-                            val event =
-                                matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-                                    .filterNotNull()
-                                    .first()
-                            reply(event)
-                        }
-                    }
-                    mentions(userReferences)
-                    text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+                draftMutex.withLock {
+                    saveAsDraft(text)
+                    log.debug { "send message" }
+                    matrixClient.room.sendDraftMessage(roomId)
                 }
-                currentReplace.value = null
-                replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
-                repliedEvent?.also {
+                currentReplace.value?.also {
+                    currentReplace.value = null
+                    onMessageReplaceFinished(it.first, it.second)
+                }
+                currentReply.value?.also {
                     currentReply.value = null
                     onMessageReplyFinished(it.first, it.second)
                 }
