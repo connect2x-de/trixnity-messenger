@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.createNewAccount
 import de.connect2x.trixnity.messenger.integrationtests.messenger.deleteAccount
@@ -19,11 +20,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import kotlinx.coroutines.delay
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -108,7 +108,7 @@ class MultiMessengerIT {
         messenger.verifyAccountsArePresent("user1", "user2")
         multiMessenger.closeSuspending()
 
-        delay(100.milliseconds )
+        delay(300.milliseconds)
         DebugProbes.dumpCoroutinesInfo() shouldHaveSize 1 // only the coroutine of this test should still be active
     }
 }
