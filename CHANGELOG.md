@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK: Don't show history is undecryptable warning when room is upgraded
+
 ### Security
 
 ## 4.3.1
