@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.4.0
+
+### Added
+
 - SDK: add an abi checker to the CI
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
 - SDK: Message Drafts
@@ -18,15 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Update Trixnity to 5.4.0
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - SDK: Don't show history is undecryptable warning when room is upgraded
-
-### Security
 
 ## 4.3.1
 
