@@ -3925,6 +3925,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun mainAlias(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.mainAlias|mainAlias(){}[0]
     open fun makeMainAlias(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.makeMainAlias|makeMainAlias(){}[0]
     open fun manageAliases(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.manageAliases|manageAliases(){}[0]
+    open fun markRoomAsRead(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.markRoomAsRead|markRoomAsRead(){}[0]
     open fun markRoomAsUnread(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.markRoomAsUnread|markRoomAsUnread(){}[0]
     open fun matrixClientLogout(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.matrixClientLogout|matrixClientLogout(kotlin.String){}[0]
     open fun memberListChangeRole(kotlin/String, kotlin/String, kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.memberListChangeRole|memberListChangeRole(kotlin.String;kotlin.String;kotlin.String){}[0]

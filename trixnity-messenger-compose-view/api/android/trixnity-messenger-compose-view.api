@@ -1326,6 +1326,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun mainAlias ()Ljava/lang/String;
 	public fun makeMainAlias ()Ljava/lang/String;
 	public fun manageAliases ()Ljava/lang/String;
+	public fun markRoomAsRead ()Ljava/lang/String;
 	public fun markRoomAsUnread ()Ljava/lang/String;
 	public fun matrixClientLogout (Ljava/lang/String;)Ljava/lang/String;
 	public fun memberListChangeRole (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
