@@ -26,6 +26,7 @@ import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -203,6 +204,20 @@ class TimelineElementHolderViewModelImpl(
     private val repliedElementCache: MutableStateFlow<RepliedTimelineElementViewModelWrapper?> = MutableStateFlow(null)
     private val editInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    init {
+        coroutineScope.launch {
+            val relatesTo = matrixClient.room.getDraftMessage(roomId).first()?.content?.relatesTo
+            if (relatesTo?.eventId == eventId) {
+                when (relatesTo.relationType) {
+                    is RelationType.Replace -> editInProgress.value = true
+                    is RelationType.Reply -> replyToInProgress.value = true
+                    else -> {}
+                }
+            }
+        }
+    }
+
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     private val redactionWarningEnabled =

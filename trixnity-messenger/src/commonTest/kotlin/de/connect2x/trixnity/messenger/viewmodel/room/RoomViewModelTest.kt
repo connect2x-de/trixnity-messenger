@@ -5,6 +5,33 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.TimelineStateChange
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
@@ -47,33 +74,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.key.KeyService
-import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.TimelineStateChange
-import de.connect2x.trixnity.client.store.Room
-import de.connect2x.trixnity.client.store.TimelineEvent
-import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.client.user.UserService
-import de.connect2x.trixnity.client.verification.VerificationService
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.ClientEvent
-import de.connect2x.trixnity.core.model.events.RoomEventContent
-import de.connect2x.trixnity.core.model.events.m.DirectEventContent
-import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
-import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
-import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
-import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
-import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
-import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
@@ -177,6 +177,7 @@ class RoomViewModelTest {
                         stateKey = "unused",
                     )
                 )
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every { verificationServiceMock.activeDeviceVerification } returns
                 MutableStateFlow(null)
         every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
