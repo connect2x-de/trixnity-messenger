@@ -983,8 +983,8 @@ class RoomListElementViewModelTest {
             roomsApiClientMock.setReadMarkers(
                 roomId,
                 read = any(),
-                fullyRead = lastEventId,
-                privateRead = lastEventId
+                fullyRead = any(),
+                privateRead = any()
             )
         } calls {
             onSetReadMarkersCalled()

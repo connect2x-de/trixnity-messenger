@@ -407,6 +407,9 @@ open class RoomListElementViewModelImpl(
         }
     }
 
+    private val readMarkerIsPublic =
+        get<MatrixMessengerSettingsHolder>()[userId].map { it?.base?.readMarkerIsPublic == true }
+
     override fun markRead() {
         coroutineScope.launch {
             readStateUpdateMutex.withLock {
@@ -423,6 +426,9 @@ open class RoomListElementViewModelImpl(
                             }
                         )
                     }
+                    else {
+                        log.debug { "Not setting room $roomId as not unread, since it already has that state" }
+                    }
                 }
                 launch {
                     val lastTimelineEvent =
@@ -430,16 +436,17 @@ open class RoomListElementViewModelImpl(
                     val lastReadEvent =
                         matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
                     if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
-                        val readMarkerIsPublic =
-                            get<MatrixMessengerSettingsHolder>()[userId].first()?.base?.readMarkerIsPublic == true
                         matrixClient.api.room.setReadMarkers(
                             roomId = roomId,
-                            read = if (readMarkerIsPublic) lastTimelineEvent else null,
+                            read = if (readMarkerIsPublic.firstOrNull() == true) lastTimelineEvent else null,
                             fullyRead = lastTimelineEvent,
                             privateRead = lastTimelineEvent,
                         )
                             .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
                             .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
+                    }
+                    else {
+                        log.debug { "Not setting last event of room $roomId as read since it already has that state" }
                     }
                 }
             }
