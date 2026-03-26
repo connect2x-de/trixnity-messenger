@@ -10,9 +10,9 @@ import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -388,21 +388,23 @@ open class RoomListElementViewModelImpl(
         error.value = null
     }
 
-    private val readStateUpdateMutex = Mutex()
+    private val markReadAndUnreadMock = Mutex()
 
     override fun markUnread() {
         coroutineScope.launch {
-            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
-                    .firstOrNull()?.unread == false
-            ) {
-                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
-                    onSuccess = {
-                        log.info { "Marked room $roomId as unread" }
-                    },
-                    onFailure = {
-                        log.error(it) { "Couldn't mark room $roomId as unread" }
-                    }
-                )
+            markReadAndUnreadMock.withLock {
+                if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
+                        .firstOrNull()?.unread != true
+                ) {
+                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
+                        onSuccess = {
+                            log.info { "Marked room $roomId as unread" }
+                        },
+                        onFailure = {
+                            log.error(it) { "Couldn't mark room $roomId as unread" }
+                        }
+                    )
+                }
             }
         }
     }
@@ -412,7 +414,7 @@ open class RoomListElementViewModelImpl(
 
     override fun markRead() {
         coroutineScope.launch {
-            readStateUpdateMutex.withLock {
+            markReadAndUnreadMock.withLock {
                 launch {
                     if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
                             .firstOrNull()?.unread == true
@@ -425,17 +427,18 @@ open class RoomListElementViewModelImpl(
                                 log.error(it) { "Couldn't mark room $roomId as read" }
                             }
                         )
-                    }
-                    else {
+                    } else {
                         log.debug { "Not setting room $roomId as not unread, since it already has that state" }
                     }
                 }
                 launch {
                     val lastTimelineEvent =
                         matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
-                    val lastReadEvent =
-                        matrixClient.room.getAccountData(roomId, FullyReadEventContent::class).firstOrNull()?.eventId
-                    if (lastTimelineEvent != null && lastTimelineEvent != lastReadEvent) {
+                    val ownReceipts =
+                        matrixClient.user.getReceiptsById(roomId, matrixClient.userId).first()?.receipts?.run {
+                            setOfNotNull(get(ReceiptType.Read)?.eventId, get(ReceiptType.PrivateRead)?.eventId)
+                        }.orEmpty()
+                    if (lastTimelineEvent != null && ownReceipts.contains(lastTimelineEvent).not()) {
                         matrixClient.api.room.setReadMarkers(
                             roomId = roomId,
                             read = if (readMarkerIsPublic.firstOrNull() == true) lastTimelineEvent else null,
@@ -444,8 +447,7 @@ open class RoomListElementViewModelImpl(
                         )
                             .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
                             .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
-                    }
-                    else {
+                    } else {
                         log.debug { "Not setting last event of room $roomId as read since it already has that state" }
                     }
                 }

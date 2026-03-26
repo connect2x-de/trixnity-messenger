@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.originTimestamp
@@ -20,9 +21,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
+import de.connect2x.trixnity.core.model.events.m.ReceiptType
 import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
@@ -843,7 +845,30 @@ class RoomListElementViewModelTest {
             cut.isUnread.value shouldBe false
         }
         every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
-            MarkedUnreadEventContent(false))
+            MarkedUnreadEventContent(false)
+        )
+        everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(true), any(), any(), any()) } calls {
+            isUnreadFlow.emit(true)
+            Result.success(Unit)
+        }
+        cut.markUnread()
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe true
+        }
+        job.cancel()
+    }
+
+    @Test
+    fun `MarkUnread should correctly update the read data of the room when null`() = runTest {
+        val cut = roomListElementViewModel(roomId)
+        val job = cut.isUnread.launchIn(this)
+
+        eventually(2.seconds) {
+            cut.isUnread.value shouldBe false
+        }
+        every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
+            null
+        )
         everySuspend { roomsApiClientMock.setAccountData(MarkedUnreadEventContent(true), any(), any(), any()) } calls {
             isUnreadFlow.emit(true)
             Result.success(Unit)
@@ -923,6 +948,7 @@ class RoomListElementViewModelTest {
                 markedLastEventAsRead shouldBe false
             }
         }
+
     @Test
     fun `MarkRead should not update the read data of the room when room is not unread and the last event is read`() =
         runTest {
@@ -946,14 +972,14 @@ class RoomListElementViewModelTest {
         }
 
     private fun mockReadState(
-        isMarkedUnread: Boolean,
+        isMarkedUnread: Boolean?,
         lastReadEventId: EventId,
         lastEventId: EventId,
         onSetReadMarkersCalled: () -> Unit,
         onSetUnreadStateToFalse: () -> Unit,
     ) {
         every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
-            MarkedUnreadEventContent(isMarkedUnread)
+            if (isMarkedUnread != null) MarkedUnreadEventContent(isMarkedUnread) else null
         )
         everySuspend {
             roomsApiClientMock.setAccountData(
@@ -966,8 +992,17 @@ class RoomListElementViewModelTest {
             onSetUnreadStateToFalse()
             Result.success(Unit)
         }
-        every { roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any()) } returns flowOf(
-            FullyReadEventContent(lastReadEventId)
+        every { userServiceMock.getReceiptsById(roomId, any()) } returns flowOf(
+            RoomUserReceipts(
+                roomId,
+                user2,
+                mapOf(
+                    ReceiptType.PrivateRead to RoomUserReceipts.Receipt(
+                        lastReadEventId,
+                        ReceiptEventContent.Receipt(1234)
+                    )
+                )
+            )
         )
         roomByIdMocker returns MutableStateFlow(
             Room(
