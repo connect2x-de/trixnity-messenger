@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.c2xOrganization
