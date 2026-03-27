@@ -174,7 +174,7 @@ fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {
         ) {
             SelectAccountHeader(i18n.accountSelectAccount())
             accounts.forEach { account ->
-                AccountMenuItem(account) { roomListViewModel.createNewRoomFor(account.userId) }
+                AccountMenuItem(account, selectAction = { roomListViewModel.createNewRoomFor(account.userId) })
             }
         }
     }

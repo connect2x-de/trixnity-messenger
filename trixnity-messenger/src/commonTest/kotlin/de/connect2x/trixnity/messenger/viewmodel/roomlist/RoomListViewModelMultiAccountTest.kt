@@ -889,6 +889,8 @@ class RoomListViewModelMultiAccountTest {
                                 override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
                                 override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
                                 override val accounts: StateFlow<List<AccountInfo>> = MutableStateFlow(listOf())
+                                override val globalNotificationCount: StateFlow<String?> = MutableStateFlow(null)
+                                override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = MutableStateFlow(emptyMap())
 
                                 override fun selectActiveAccount(userId: UserId?) {}
                                 override fun openUserSettings() {}

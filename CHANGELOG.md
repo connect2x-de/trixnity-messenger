@@ -9,8 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SDK: add an abi checker to the CI
+- UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
+- UI: Per-account notification counter bubbles in roomlist avatar area
+- UI,ANDROID,IOS,MACOS: First-class support for notification count app icon badges
+
 ### Changed
 
+- SDK: Update SysNotify to 2.6.1
 - SDK: Use builtin Gradle distribution for dockerized CI jobs
 
 ### Deprecated

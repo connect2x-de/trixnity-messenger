@@ -1935,7 +1935,7 @@ public final class de/connect2x/trixnity/messenger/notification/NoOpNotification
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/notification/NotificationHandlerFactory {
-	public abstract fun invoke (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/sysnotify/NotificationHandler;
+	public abstract fun invoke (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Lde/connect2x/sysnotify/NotificationHandler;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/notification/NotificationHandlers : de/connect2x/trixnity/messenger/Worker, java/lang/AutoCloseable {
@@ -9227,8 +9227,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel {
+	public abstract fun getAccountNotificationCounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getAccounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getActiveAccount ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getGlobalNotificationCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isSingleAccount ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun openAppInfo ()V
 	public abstract fun openUserAccounts ()V
@@ -9256,11 +9258,13 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getAccountNotificationCounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getAccounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getActiveAccount ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getGlobalNotificationCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
@@ -9494,10 +9498,12 @@ public class de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewRoomVie
 
 public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/PreviewAccountViewModel : de/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel {
 	public fun <init> ()V
+	public fun getAccountNotificationCounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getAccounts ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getAccounts ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getActiveAccount ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getActiveAccount ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getGlobalNotificationCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun isSingleAccount ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isSingleAccount ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun openAppInfo ()V

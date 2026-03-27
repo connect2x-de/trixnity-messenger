@@ -84,7 +84,7 @@ fun ThemedUserAvatar(
     size: Dp = avatarSize().dp,
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val bitmap = remember(image) { image?.toImageBitmap() }
 
@@ -113,7 +113,7 @@ fun ThemedAvatar(
     size: Dp,
     modifier: Modifier = Modifier,
     style: AvatarStyle = MaterialTheme.components.avatar,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {},
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(

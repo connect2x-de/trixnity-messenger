@@ -2,11 +2,13 @@ package de.connect2x.trixnity.messenger.compose.view.roomlist.header
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
@@ -26,7 +28,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.common.NotificationAndUnreadMarker
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.expandable
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -39,7 +43,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
-import de.connect2x.trixnity.core.model.UserId
 
 interface AccountAvatarView {
     @Composable
@@ -69,9 +72,13 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
     val isSingleAccount = accountViewModel.isSingleAccount.collectAsState().value
+
     val activeAccountInfo = remember(accounts, activeAccount) {
         accountViewModel.accounts.map { accounts -> accounts.find { it.userId == activeAccount } }
     }.collectAsState(null).value
+
+    val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
+    val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
 
     if (activeAccountInfo != null) {
         Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
@@ -83,12 +90,11 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                 },
                 modifier = Modifier.expandable(accountSelectionOpen),
             ) {
-                AvatarArea(activeAccountInfo)
+                AvatarArea(activeAccountInfo, accountNotificationCounts[activeAccount])
                 if (isSingleAccount.not()) {
                     ThemedDropdownMenu(
                         expanded = accountSelectionOpen.value,
                         onDismissRequest = { accountSelectionOpen.value = false },
-                        offset = DpOffset(0.dp, 0.dp),
                         modifier = Modifier.background(MaterialTheme.colorScheme.background),
                     ) {
                         SelectAccountHeader(i18n.accountChangeAccount())
@@ -96,6 +102,10 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                             selectAction = {
                                 accountViewModel.selectActiveAccount(null)
                                 accountSelectionOpen.value = false
+                            },
+                            iconOverlay = {
+                                if (globalNotificationCount == null) return@AllAccountsMenuItem
+                                AccountNotificationCount(globalNotificationCount)
                             }
                         )
                         accounts
@@ -103,9 +113,14 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                             .forEach { account ->
                                 AccountMenuItem(
                                     accountInfo = account,
-                                    selectAction = { user ->
-                                        accountViewModel.selectActiveAccount(user)
+                                    selectAction = { userId ->
+                                        accountViewModel.selectActiveAccount(userId)
                                         accountSelectionOpen.value = false
+                                    },
+                                    iconOverlay = {
+                                        AccountNotificationCount(
+                                            accountNotificationCounts[account.userId] ?: return@AccountMenuItem
+                                        )
                                     }
                                 )
                             }
@@ -119,6 +134,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 @Composable
 fun AvatarArea(
     accountInfo: AccountInfo,
+    notificationCount: String?
 ) {
     val i18n = DI.get<I18nView>()
     Row(
@@ -130,7 +146,9 @@ fun AvatarArea(
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ThemedUserAvatar(accountInfo.initials, accountInfo.avatar)
+        ThemedUserAvatar(accountInfo.initials, accountInfo.avatar, overlay = {
+            AccountNotificationCount(notificationCount ?: return@ThemedUserAvatar)
+        })
         Spacer(Modifier.size(10.dp))
         Column {
             Tooltip({ Text(accountInfo.displayName) }) {
@@ -159,6 +177,9 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     val accounts = accountViewModel.accounts.collectAsState().value
     val accountSelectionOpen = remember { mutableStateOf(false) }
 
+    val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
+    val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
+
     Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
         ThemedButton(
             style = MaterialTheme.components.accountSelector,
@@ -172,7 +193,9 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ThemedUserAvatar("*", null)
+                ThemedUserAvatar("*", null, overlay = {
+                    AccountNotificationCount(globalNotificationCount ?: return@ThemedUserAvatar)
+                })
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
@@ -196,7 +219,6 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
         ThemedDropdownMenu(
             expanded = accountSelectionOpen.value,
             onDismissRequest = { accountSelectionOpen.value = false },
-            offset = DpOffset(0.dp, 0.dp),
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         ) {
             SelectAccountHeader(i18n.accountChangeAccount())
@@ -206,6 +228,9 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
                     selectAction = { user ->
                         accountViewModel.selectActiveAccount(user)
                         accountSelectionOpen.value = false
+                    },
+                    iconOverlay = {
+                        AccountNotificationCount(accountNotificationCounts[account.userId] ?: return@AccountMenuItem)
                     }
                 )
             }
@@ -213,12 +238,24 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
     }
 }
 
+@Composable
+fun BoxScope.AccountNotificationCount(count: String) {
+    NotificationAndUnreadMarker(
+        count = count,
+        modifier = Modifier.align(Alignment.TopEnd).offset(2.dp, -(2.dp))
+    )
+}
 
 @Composable
-fun AllAccountsMenuItem(selectAction: () -> Unit) {
+fun AllAccountsMenuItem(
+    selectAction: () -> Unit,
+    iconOverlay: @Composable BoxScope.() -> Unit = {}
+) {
     val i18n = DI.get<I18nView>()
     ThemedDropdownMenuItem(
-        leadingIcon = { ThemedUserAvatar("*", null) },
+        leadingIcon = {
+            ThemedUserAvatar("*", null, overlay = iconOverlay)
+        },
         text = { Text(i18n.accountAllAccounts()) },
         onClick = selectAction,
     )
@@ -228,9 +265,12 @@ fun AllAccountsMenuItem(selectAction: () -> Unit) {
 fun AccountMenuItem(
     accountInfo: AccountInfo,
     selectAction: (UserId) -> Unit,
+    iconOverlay: @Composable BoxScope.() -> Unit = {}
 ) {
     ThemedDropdownMenuItem(
-        leadingIcon = { ThemedUserAvatar(accountInfo.initials, accountInfo.avatar) },
+        leadingIcon = {
+            ThemedUserAvatar(accountInfo.initials, accountInfo.avatar, overlay = iconOverlay)
+        },
         text = {
             Column {
                 Tooltip({ Text(accountInfo.displayName) }) {

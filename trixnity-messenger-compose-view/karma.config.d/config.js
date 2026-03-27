@@ -35,7 +35,7 @@ if (!config.customContextFile)
 
 // https://github.com/JetBrains/compose-multiplatform-core/pull/1008#issuecomment-1956354231
 config.client.mocha = config.client.mocha || {};
-config.client.mocha.timeout = 10000;
+config.client.mocha.timeout = 300000;
 
 function KarmaWebpackOutputFramework(config) {
     // This controller is instantiated and set during the preprocessor phase by the karma-webpack plugin

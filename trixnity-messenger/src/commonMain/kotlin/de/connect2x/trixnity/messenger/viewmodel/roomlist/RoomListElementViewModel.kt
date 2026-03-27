@@ -31,6 +31,7 @@ import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.LeaveRoom
+import de.connect2x.trixnity.messenger.util.getNotificationDisplayCount
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -279,14 +280,9 @@ open class RoomListElementViewModelImpl(
         matrixClient.notification.isUnread(roomId)
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val notificationCount: StateFlow<String?> =
-        matrixClient.notification.getCount(roomId).map { count ->
-            when {
-                count == 0 -> null
-                count > 99 -> "99+"
-                else -> count.toString()
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val notificationCount: StateFlow<String?> = matrixClient.notification.getCount(roomId)
+        .map(::getNotificationDisplayCount)
+        .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val presence: StateFlow<Presence?> =
         roomPresence.invoke(matrixClient, roomId)

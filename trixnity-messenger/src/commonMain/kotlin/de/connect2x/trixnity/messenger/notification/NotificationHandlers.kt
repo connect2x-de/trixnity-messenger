@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.updateAndGet
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.module.Module
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
@@ -31,8 +31,14 @@ fun interface NotificationHandlerFactory {
         name: String,
         id: String,
         appId: String,
+        contributesToCounter: Boolean
     ): NotificationHandler
 }
+
+private val defaultNotificationHandlerFactory: NotificationHandlerFactory =
+    NotificationHandlerFactory { name, id, appId, contributesToCounter ->
+        NotificationHandler(name = name, id = id, appId = appId, contributesToCounter = contributesToCounter)
+    }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 class NotificationHandlersImpl(
@@ -41,9 +47,7 @@ class NotificationHandlersImpl(
     private val multiSettings: MatrixMultiMessengerSettingsHolder?,
     private val matrixClients: MatrixClients,
     private val requestPermissionsCallback: (granted: Boolean) -> Unit = {},
-    private val notificationHandlerFactory: NotificationHandlerFactory = NotificationHandlerFactory { name, id, appId ->
-        NotificationHandler(name = name, id = id, appId = appId)
-    }
+    private val notificationHandlerFactory: NotificationHandlerFactory = defaultNotificationHandlerFactory
 ) : NotificationHandlers {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
@@ -94,16 +98,26 @@ class NotificationHandlersImpl(
         }
     }
 
-    private fun notificationHandler(idSuffix: String, name: String): NotificationHandler =
+    private fun notificationHandler(
+        idSuffix: String,
+        name: String,
+        contributesToCounter: Boolean
+    ): NotificationHandler =
         notificationHandlerFactory(
             id = "${config.appId}-$idSuffix",
             appId = config.appId,
             name = name,
+            contributesToCounter = contributesToCounter
         )
 
     private val _global: Lazy<NotificationHandler> = lazy {
-        notificationHandler("global", config.appName)
+        notificationHandler(
+            idSuffix = "global",
+            name = config.appName,
+            contributesToCounter = false
+        )
     }
+
     override val global: NotificationHandler get() = _global.value
 
     override operator fun get(account: UserId): NotificationHandler {
@@ -114,7 +128,8 @@ class NotificationHandlersImpl(
                 else it + (account to lazy {
                     notificationHandler(
                         idSuffix = notificationHandlerIdSuffix(profile, account),
-                        name = notificationHandlerName(profile, account)
+                        name = notificationHandlerName(profile, account),
+                        contributesToCounter = true
                     )
                 })
             }[account]

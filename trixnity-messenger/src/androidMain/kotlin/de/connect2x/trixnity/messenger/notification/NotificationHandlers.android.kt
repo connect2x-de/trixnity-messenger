@@ -3,8 +3,9 @@ package de.connect2x.trixnity.messenger.notification
 import android.content.Intent
 import androidx.core.net.toUri
 import de.connect2x.sysnotify.NotificationHandler
-import de.connect2x.sysnotify.withActivationFactory
+import de.connect2x.sysnotify.withActivationIntent
 import de.connect2x.sysnotify.withActivity
+import de.connect2x.sysnotify.withChannel
 import de.connect2x.sysnotify.withContext
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.Worker
@@ -22,19 +23,21 @@ actual fun platformNotificationHandlersModule(): Module = module {
             notificationProviders = get(),
             multiSettings = getOrNull(),
             matrixClients = get(),
-        ) { name, id, appId ->
+        ) { name, id, appId, contributesToCounter ->
             NotificationHandler(
                 name = name,
                 id = id,
                 appId = appId,
+                contributesToCounter = contributesToCounter
             ).withContext { get<ContextGetter>()() }
                 .withActivity { get<ActivityGetter>()() }
-                .withActivationFactory { _, notification ->
+                .withActivationIntent { _, notification ->
                     Intent(
                         Intent.ACTION_VIEW,
                         notification.callbackData?.toUri(),
                     )
                 }
+                .withChannel()
         }
     }.apply {
         bind<AutoCloseable>()

@@ -12,6 +12,7 @@ import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
+import java.time.Duration
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -50,6 +51,7 @@ kotlin {
             testTask {
                 useKarma {
                     useFirefoxHeadless()
+                    timeout = Duration.ofSeconds(300)
                 }
             }
         }

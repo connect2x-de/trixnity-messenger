@@ -129,7 +129,7 @@ abstract fun interface de.connect2x.trixnity.messenger.multi/MatrixMessengerFact
 }
 
 abstract fun interface de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory { // de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory|null[0]
-    abstract fun invoke(kotlin/String, kotlin/String, kotlin/String): de.connect2x.sysnotify/NotificationHandler // de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory.invoke|invoke(kotlin.String;kotlin.String;kotlin.String){}[0]
+    abstract fun invoke(kotlin/String, kotlin/String, kotlin/String, kotlin/Boolean): de.connect2x.sysnotify/NotificationHandler // de.connect2x.trixnity.messenger.notification/NotificationHandlerFactory.invoke|invoke(kotlin.String;kotlin.String;kotlin.String;kotlin.Boolean){}[0]
 }
 
 abstract fun interface de.connect2x.trixnity.messenger.secrets/GetKey { // de.connect2x.trixnity.messenger.secrets/GetKey|null[0]
@@ -2831,10 +2831,14 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room/RoomViewModelF
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel|null[0]
+    abstract val accountNotificationCounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.accountNotificationCounts|{}accountNotificationCounts[0]
+        abstract fun <get-accountNotificationCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin/String?>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.accountNotificationCounts.<get-accountNotificationCounts>|<get-accountNotificationCounts>(){}[0]
     abstract val accounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.accounts|{}accounts[0]
         abstract fun <get-accounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/AccountInfo>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.accounts.<get-accounts>|<get-accounts>(){}[0]
     abstract val activeAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.activeAccount|{}activeAccount[0]
         abstract fun <get-activeAccount>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model/UserId?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.activeAccount.<get-activeAccount>|<get-activeAccount>(){}[0]
+    abstract val globalNotificationCount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.globalNotificationCount|{}globalNotificationCount[0]
+        abstract fun <get-globalNotificationCount>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.globalNotificationCount.<get-globalNotificationCount>|<get-globalNotificationCount>(){}[0]
     abstract val isSingleAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.isSingleAccount|{}isSingleAccount[0]
         abstract fun <get-isSingleAccount>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel.isSingleAccount.<get-isSingleAccount>|<get-isSingleAccount>(){}[0]
 
@@ -9182,10 +9186,14 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomErro
 final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel : de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel|null[0]
     constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.<init>|<init>(){}[0]
 
+    final val accountNotificationCounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.accountNotificationCounts|{}accountNotificationCounts[0]
+        final fun <get-accountNotificationCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin/String?>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.accountNotificationCounts.<get-accountNotificationCounts>|<get-accountNotificationCounts>(){}[0]
     final val accounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.accounts|{}accounts[0]
         final fun <get-accounts>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/AccountInfo>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.accounts.<get-accounts>|<get-accounts>(){}[0]
     final val activeAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.activeAccount|{}activeAccount[0]
         final fun <get-activeAccount>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.core.model/UserId?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.activeAccount.<get-activeAccount>|<get-activeAccount>(){}[0]
+    final val globalNotificationCount // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.globalNotificationCount|{}globalNotificationCount[0]
+        final fun <get-globalNotificationCount>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.globalNotificationCount.<get-globalNotificationCount>|<get-globalNotificationCount>(){}[0]
     final val isSingleAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.isSingleAccount|{}isSingleAccount[0]
         final fun <get-isSingleAccount>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewAccountViewModel.isSingleAccount.<get-isSingleAccount>|<get-isSingleAccount>(){}[0]
 
@@ -13937,6 +13945,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.room/RoomViewModelImpl : de
 open class de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/Function1<de.connect2x.trixnity.core.model/UserId?, kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.Function1<de.connect2x.trixnity.core.model.UserId?,kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
+    open val accountNotificationCounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.accountNotificationCounts|{}accountNotificationCounts[0]
+        open fun <get-accountNotificationCounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.core.model/UserId, kotlin/String?>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.accountNotificationCounts.<get-accountNotificationCounts>|<get-accountNotificationCounts>(){}[0]
     open val accounts // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.accounts|{}accounts[0]
         open fun <get-accounts>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/AccountInfo>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.accounts.<get-accounts>|<get-accounts>(){}[0]
     open val activeAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.activeAccount|{}activeAccount[0]
@@ -13947,6 +13957,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelIm
         open fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
     open val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.coroutineScope|{}coroutineScope[0]
         open fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    open val globalNotificationCount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.globalNotificationCount|{}globalNotificationCount[0]
+        open fun <get-globalNotificationCount>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.globalNotificationCount.<get-globalNotificationCount>|<get-globalNotificationCount>(){}[0]
     open val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.instanceKeeper|{}instanceKeeper[0]
         open fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
     open val isSingleAccount // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelImpl.isSingleAccount|{}isSingleAccount[0]
