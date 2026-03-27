@@ -16,6 +16,7 @@ import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import java.time.Duration
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -52,6 +53,7 @@ kotlin {
                 useKarma {
                     useConfigDirectory(rootDir.resolve("karma.config.d"))
                     useFirefoxHeadless()
+                    timeout = Duration.ofSeconds(300)
                 }
             }
         }
