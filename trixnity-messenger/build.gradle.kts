@@ -236,7 +236,7 @@ skie {
 
 if (CI.isCI) {
     kmmbridge {
-        mavenPublishArtifacts()
+        mavenPublishArtifacts("GitLab")
         spm()
     }
 }
