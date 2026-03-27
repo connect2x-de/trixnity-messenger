@@ -81,7 +81,7 @@ build:linux:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
+    - gradle
       compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
       :trixnity-messenger-compose-app:assembleRelease
@@ -121,7 +121,7 @@ test:linux:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
+    - gradle
       :trixnity-messenger:{jvm,js,wasmJs}Test
       :trixnity-messenger:testCoverage
       --stacktrace
@@ -149,7 +149,7 @@ test:smoketest-no-ios:
     - ./scripts/start_emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
-    - ./gradlew
+    - gradle
       :trixnity-messenger-compose-view:{connectedAndroid,jvm,jsBrowser,wasmJsBrowser}Test
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
@@ -195,7 +195,7 @@ test:integration-test:
   rules:
     - *if-merge-request
   script:
-    - ./gradlew
+    - gradle
       :integrationtests:jvmTest
       --stacktrace
 
@@ -235,7 +235,7 @@ security:dependencies:
     reports:
       dependency_scanning: report.json
   script:
-    - ./gradlew dependenciesForAll --write-locks > dependencies.txt
+    - gradle dependenciesForAll --write-locks > dependencies.txt
     - trivy repo ./ --exit-code 0
     - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
@@ -276,7 +276,7 @@ publish:linux-dev:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
+    - gradle
       publish{KotlinMultiplatform,Jvm,Js,WasmJs,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
 
@@ -308,7 +308,7 @@ staging:web:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
+    - gradle
       :trixnity-messenger-compose-app:jsBrowserDistribution
       --stacktrace
     - mv trixnity-messenger-compose-app/build/dist/js/productionExecutable public
