@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK: Don't publish kmmBridge module to Maven Central
+
 ### Security
 
 ## 4.4.0
