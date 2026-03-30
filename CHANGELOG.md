@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Thin line appearing in room-list when in single pane mode
 - SDK: Don't publish kmmBridge module to Maven Central
 
 ### Security
