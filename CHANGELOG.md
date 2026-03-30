@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Empty Draft messages being saved
 - UI: Thin line appearing in room-list when in single pane mode
+- UI: Fast successive keyboard-inputs being misordered on web
 - UI: hovering over a room list element does not hide unencrypted symbol
 - SDK: Don't publish kmmBridge module to Maven Central
 
