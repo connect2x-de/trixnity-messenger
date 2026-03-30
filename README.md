@@ -45,19 +45,20 @@ This is an overview on how different UI technologies can be used on top of trixn
 
 ## Getting Started
 
-First you need to add the maven repository:
+Trixnity Messenger is published on Maven Central:
+
+```kotlin
+implementation("de.connect2x.trixnity.messenger:trixnity-messenger:<version>") // SDK
+implementation("de.connect2x.trixnity.messenger:trixnity-messenger-compose-view:<version>") // Compose View
+```
+
+If you want SNAPSHOT builds, you can inclide the following maven repository:
 
 ```kotlin
 maven("https://gitlab.com/api/v4/projects/47538655/packages/maven")
 ```
 
-Now you are able to add trixnity-messenger as dependency to your project:
-
-```kotlin
-implementation("de.connect2x:trixnity-messenger:<version>")
-```
-
-Just create `MatrixMessenger` including the view model tree that is used in your app.
+Create a `MatrixMessenger` including the view model tree that is used in your app.
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create()
@@ -77,6 +78,10 @@ application {
 where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel` as a parameter.
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
+
+You can always look into the [example Compose app](./trixnity-messenger-compose-app)
+or [Tammy](https://tammy.connect2x.de) as a reference for a Compose multiplatform messenger implementation of Trixnity
+Messenger.
 
 ### Multi profiles/tenancy
 
@@ -448,11 +453,11 @@ a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put
 
 ## Worker
 
-Doing work while the messenger is running can be a common use case. To do that, you can implement
-`MatrixMessengerWorker` or `MatrixMultiMessengerWorker` and put it into the DI:
+Doing work while the messenger is running can be a common use case. To do that, you can implement the
+`Worker` interface into the DI:
 
 ```kotlin
-single<MatrixMessengerWorker>(named("MyWorker")) { // don't forget to name the singleton
+single<Worker>(named("MyWorker")) { // don't forget to name the singleton
     MatrixMessengerWorker {
         longRunningTask()
     }
