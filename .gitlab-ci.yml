@@ -136,7 +136,7 @@ test:smoketest-no-ios:
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   artifacts:
     when: always
-    paths: [ "screenshots", "**/build/reports" ]
+    paths: [ "**/screenshots", "**/build/reports" ]
     reports:
       coverage_report:
         coverage_format: jacoco
@@ -149,6 +149,7 @@ test:smoketest-no-ios:
     - ./scripts/start_emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
+    - bash -c "adb logcat | grep System.out &"
     - gradle
       :trixnity-messenger-compose-view:{connectedAndroid,jvm,jsBrowser,wasmJsBrowser}Test
       :trixnity-messenger-compose-view:testCoverage
