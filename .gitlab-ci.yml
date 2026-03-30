@@ -127,7 +127,7 @@ test:linux:
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
-test:smoketest-no-ios:
+test:smoketest-jvm:
   stage: test
   interruptible: true
   timeout: 1h
@@ -149,9 +149,37 @@ test:smoketest-no-ios:
     - ./scripts/start_emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
-    - bash -c "adb logcat | grep System.out &"
+    - bash -c "adb logcat | stdbuf oL -eL grep System.out > logcat.txt &"
     - gradle
-      :trixnity-messenger-compose-view:{connectedAndroid,jvm,jsBrowser,wasmJsBrowser}Test
+      :trixnity-messenger-compose-view:{connectedAndroid,jvm}Test
+      :trixnity-messenger-compose-view:testCoverage
+      --stacktrace
+    - bash -c "cat logcat.txt"
+  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+
+test:smoketest-js:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  #  needs: [ "build:linux" ]
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
+  artifacts:
+    when: always
+    paths: [ "**/screenshots", "**/build/reports" ]
+    reports:
+      coverage_report:
+        coverage_format: jacoco
+        path: trixnity-messenger/build/reports/kover/reportJvm.xml
+  rules:
+    - *if-merge-request
+  variables:
+    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
+  script:
+    - apt-get install --yes socat
+    - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
+    - gradle
+      :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
       :trixnity-messenger-compose-view:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
