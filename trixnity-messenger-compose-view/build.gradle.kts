@@ -249,6 +249,8 @@ val exportIosScreenshots by tasks.registering(Copy::class) {
 }
 
 val exportAndroidScreenshots by tasks.registering(Exec::class) {
+    finalizedBy(removeAndroidScreenshots)
+
     val packageName = "de.connect2x.trixnity.messenger.compose.view"
     val localPath = layout.projectDirectory.dir("screenshots").asFile
 
@@ -260,6 +262,17 @@ val exportAndroidScreenshots by tasks.registering(Exec::class) {
         "bash", "-c",
         """
         adb exec-out run-as $packageName sh -c 'cd files/screenshots && tar -cf - "Android instrumented"' | tar -xf - -C ${localPath.absolutePath}
+        """.trimIndent()
+    )
+}
+
+val removeAndroidScreenshots by tasks.registering(Exec::class) {
+    val packageName = "de.connect2x.trixnity.messenger.compose.view"
+
+    commandLine(
+        "bash", "-c",
+        """
+        adb exec-out run-as $packageName sh -c 'rm -rf files/screenshots'
         """.trimIndent()
     )
 }

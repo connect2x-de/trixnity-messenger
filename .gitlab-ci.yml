@@ -149,7 +149,7 @@ test:smoketest-jvm:
     - ./scripts/start_emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
-    - bash -c "adb logcat | stdbuf oL -eL grep System.out > logcat.txt &"
+    - bash -c "adb logcat | grep System.out > logcat.txt &"
     - gradle
       :trixnity-messenger-compose-view:{connectedAndroid,jvm}Test
       :trixnity-messenger-compose-view:testCoverage
