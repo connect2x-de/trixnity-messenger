@@ -862,6 +862,9 @@ public abstract interface class de/connect2x/trixnity/messenger/Worker {
 	public abstract fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface annotation class de/connect2x/trixnity/messenger/abi/TrixnityMessengerPrivateApi : java/lang/annotation/Annotation {
+}
+
 public final class de/connect2x/trixnity/messenger/export/CSVFileBasedExportRoomProperties : de/connect2x/trixnity/messenger/export/FileBasedExportRoomProperties {
 	public fun <init> (Lokio/Path;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Lokio/Path;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V

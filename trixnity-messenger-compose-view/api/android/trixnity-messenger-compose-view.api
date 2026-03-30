@@ -46,9 +46,6 @@ public final class de/connect2x/messenger/compose/view/room/timeline/element/mes
 	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract interface annotation class de/connect2x/trixnity/messenger/abi/TrixnityMessengerPrivateApi : java/lang/annotation/Annotation {
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/ClientKt {
 	public static final field ROOM_LIST_WEIGHT F
 	public static final field ROOM_WEIGHT F
