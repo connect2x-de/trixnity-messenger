@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Update SysNotify to 2.6.1
 - SDK: Use builtin Gradle distribution for dockerized CI jobs
+- SDK: Update README
 
 ### Deprecated
 
