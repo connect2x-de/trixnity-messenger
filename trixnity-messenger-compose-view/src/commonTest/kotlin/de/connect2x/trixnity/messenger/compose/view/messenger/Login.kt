@@ -29,7 +29,7 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
     )
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 5")
+    screenshot(testName, "Login - AccountSetup - After Step 4")
 }
 
 private fun getUrl(): String {
@@ -58,7 +58,6 @@ private suspend fun ComposeUiTest.serverLogin(
     waitUntilExactlyOneExists(testName, hasText("Login", ignoreCase = true))
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - Login - After Login", surface = "ConnectingWizard")
 }
 
 private suspend fun ComposeUiTest.vault(testName: String) {
@@ -87,7 +86,6 @@ private suspend fun ComposeUiTest.vault(testName: String) {
     waitUntilExactlyOneExists(testName, hasText("confirm", ignoreCase = true))
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - Vault - Confirmed", surface = "CrossSigningBootstrapWizard")
 }
 
 private suspend fun ComposeUiTest.accountSetup(testName: String) {
@@ -121,7 +119,6 @@ private suspend fun ComposeUiTest.accountSetup(testName: String) {
     )
         .performClick()
     waitForIdle()
-    screenshot(testName, "Login - AccountSetup - After Step 4", surface = "AccountSetupWizard")
 }
 
 private suspend fun ComposeUiTest.selfVerification(testName: String) {
