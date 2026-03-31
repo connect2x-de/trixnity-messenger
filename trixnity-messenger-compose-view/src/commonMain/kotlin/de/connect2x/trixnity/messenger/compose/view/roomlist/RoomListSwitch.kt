@@ -1,12 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.stack.Children
 import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
@@ -22,7 +17,6 @@ import de.connect2x.trixnity.messenger.compose.view.settings.NotificationsSettin
 import de.connect2x.trixnity.messenger.compose.view.settings.PrivacySettings
 import de.connect2x.trixnity.messenger.compose.view.settings.ProfilesSettings
 import de.connect2x.trixnity.messenger.compose.view.settings.UserSettings
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedVerticalDivider
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 
@@ -51,12 +45,6 @@ fun RoomListSwitch(
                 is RoomListRouter.Wrapper.AppInfo -> AppInfo(child.viewModel)
                 is RoomListRouter.Wrapper.None -> Box {}
             }.let {}
-            ThemedVerticalDivider(
-                Modifier
-                    .fillMaxHeight()
-                    .width(1.dp)
-                    .align(Alignment.CenterEnd)
-            )
         }
     }
 }
