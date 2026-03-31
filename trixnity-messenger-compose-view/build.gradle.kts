@@ -50,8 +50,8 @@ kotlin {
             }
             testTask {
                 useKarma {
-                    useChromeHeadless()
-                    timeout = Duration.ofSeconds(300)
+                    useFirefoxHeadless()
+                    timeout = Duration.ofSeconds(600)
                 }
             }
         }
