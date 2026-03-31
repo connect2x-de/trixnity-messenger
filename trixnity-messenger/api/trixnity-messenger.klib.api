@@ -7,6 +7,10 @@
 // - Show declarations: true
 
 // Library unique name: <de.connect2x.trixnity.messenger:trixnity-messenger>
+open annotation class de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi : kotlin/Annotation { // de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.abi/TrixnityMessengerPrivateApi.<init>|<init>(){}[0]
+}
+
 open annotation class de.connect2x.trixnity.messenger.settings/NestedSettingsView : kotlin/Annotation { // de.connect2x.trixnity.messenger.settings/NestedSettingsView|null[0]
     constructor <init>(kotlin/String, kotlin/Array<out kotlin/String>...) // de.connect2x.trixnity.messenger.settings/NestedSettingsView.<init>|<init>(kotlin.String;kotlin.Array<out|kotlin.String>...){}[0]
 

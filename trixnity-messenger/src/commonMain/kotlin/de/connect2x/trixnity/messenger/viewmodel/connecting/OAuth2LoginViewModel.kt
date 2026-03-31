@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
@@ -96,7 +97,7 @@ open class OAuth2LoginViewModelImpl(
     viewModelContext: ViewModelContext,
     override val type: OAuth2LoginViewModel.Type,
     override val serverUrl: String,
-    initialState: OAuth2LoginFlow.AuthRequestData.State?,
+    private val initialState: OAuth2LoginFlow.AuthRequestData.State?,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, OAuth2LoginViewModel {
@@ -106,7 +107,8 @@ open class OAuth2LoginViewModelImpl(
     private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
 
-    private val flow = MatrixClientAuthProviderData.oAuth2Login(
+    private val flow: MutableStateFlow<OAuth2LoginFlow> = MutableStateFlow(makeLoginFlow())
+    private fun makeLoginFlow(loginHint: String? = null) = MatrixClientAuthProviderData.oAuth2Login(
         baseUrl = Url(serverUrl),
         applicationType = platformApplicationType,
         clientUri = config.oAuth2ClientUrl,
@@ -117,6 +119,7 @@ open class OAuth2LoginViewModelImpl(
         initialState = initialState,
         httpClientEngine = config.httpClientEngine,
         httpClientConfig = config.httpClientConfig,
+        loginHint = loginHint,
     )
 
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -128,7 +131,7 @@ open class OAuth2LoginViewModelImpl(
         if (checkState(State.None::class, requestedState = State.StartLogin)) {
             coroutineScope.launch {
                 log.debug { "start login" }
-                flow.createAuthRequest()
+                flow.updateAndGet { makeLoginFlow(loginHint.value) }.createAuthRequest()
                     .onSuccess { authRequestData ->
                         log.debug { "createAuthRequest successful" }
                         messengerSettings.update<MatrixMessengerSettingsBase> {
@@ -163,7 +166,7 @@ open class OAuth2LoginViewModelImpl(
                 messengerSettings.update<MatrixMessengerSettingsBase> {
                     it.copy(oAuth2LoginState = null)
                 }
-                flow.onCallback(Url(callbackUri))
+                flow.value.onCallback(Url(callbackUri))
                     .onFailure { exception ->
                         log.warn(exception) { "onCallback failed" }
                         state.value = State.Failure(i18n.oAuth2LoginFailure(exception.message))
@@ -200,6 +203,13 @@ open class OAuth2LoginViewModelImpl(
 
     val backCallback = BackCallback {
         back()
+    }
+
+    private val loginHint: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    @TrixnityMessengerPrivateApi
+    fun setLoginHint(hint: String?) {
+        loginHint.value = hint
     }
 
     init {

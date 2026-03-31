@@ -4,19 +4,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.ROOM_LIST_WEIGHT
 import de.connect2x.trixnity.messenger.compose.view.ROOM_WEIGHT
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.room.RoomSwitch
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListSwitch
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedVerticalDivider
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
@@ -50,11 +49,13 @@ class MessengerViewImpl : MessengerView {
             }
 
             // Pane Divider
-            if (isRoomShown && !isSinglePane) VerticalDivider(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(1.dp)
-            )
+            if (!isSinglePane) {
+                ThemedVerticalDivider(
+                    Modifier
+                        .fillMaxHeight()
+                        .align(Alignment.CenterVertically)
+                )
+            }
 
             // Room Pane
             if (isRoomShown || !isSinglePane) Box(

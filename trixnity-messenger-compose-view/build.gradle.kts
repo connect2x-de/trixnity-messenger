@@ -22,6 +22,7 @@ plugins {
     alias(sharedLibs.plugins.kotlin.parcelize)
     alias(sharedLibs.plugins.kotlinx.kover)
     alias(sharedLibs.plugins.kotlin.serialization)
+    id("de.connect2x.uitest-infra")
 }
 
 configureJava(sharedLibs.versions.targetJvm)
