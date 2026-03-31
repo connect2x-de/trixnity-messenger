@@ -7,6 +7,7 @@ pluginManagement {
         maven("https://gitlab.com/api/v4/projects/68438621/packages/maven") // c2x Conventions
         maven("https://gitlab.com/api/v4/projects/75787729/packages/maven") // Compose Multiplatform A11y
     }
+    includeBuild("build-logic")
 }
 
 // Suppress is okay because it is an incubating API, the suppression name just doesn't match
