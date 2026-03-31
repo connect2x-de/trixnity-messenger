@@ -78,8 +78,6 @@ build:linux:
   image: $BUILD_LINUX_IMAGE_NAME
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - gradle
       compileKotlin{Jvm,Js,WasmJs}
@@ -122,8 +120,6 @@ test:linux:
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - gradle
       :trixnity-messenger:{jvm,js,wasmJs}Test
@@ -145,8 +141,6 @@ test:smoketest-jvm:
     paths: [ "**/screenshots", "**/build/reports" ]
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - ./scripts/start_emulator.sh
     - apt-get install --yes socat
@@ -172,8 +166,6 @@ test:smoketest-js:
     paths: [ "**/screenshots", "**/build/reports" ]
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
@@ -197,8 +189,6 @@ test:smoketest-js:
 #        path: trixnity-messenger/build/reports/kover/reportJvm.xml
 #  rules:
 #    - *if-merge-request
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
 #  script:
 #    - ./scripts/start_simulator.sh
 #    - ./gradlew
