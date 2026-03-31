@@ -25,7 +25,6 @@ import de.connect2x.trixnity.messenger.update
 import kotlin.test.Test
 import kotlin.uuid.Uuid
 
-
 @OptIn(ExperimentalTestApi::class)
 class MessengerClientTest {
 
@@ -35,14 +34,17 @@ class MessengerClientTest {
 
     @Test
     fun messengerClientComposableLoadsSuccessfully() = runComposeUiTest {
+        println("1) runComposeUiTest")
         val matrixMultiMessenger = createTestMatrixMultiMessenger(backgroundScope.coroutineContext)
         val lifecycle = LifecycleRegistry()
+        println("2) created matrixMultiMessenger")
         composeUiTest.setContent {
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,
                 componentContext = DefaultComponentContext(lifecycle),
                 activeMessengerOnce = { _, _ -> },
                 nonActiveMessenger = {
+                    println("-- Profiles")
                     val showProfileCreation = remember { mutableStateOf(false) }
                     CompositionLocalProvider(
                         Platform provides platformType(),
@@ -56,6 +58,7 @@ class MessengerClientTest {
                     }
                 },
                 activeMessenger = { matrixMessenger, rootViewModel ->
+                    println("-- Client")
                     LaunchedEffect(Unit) {
                         matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
                             .update<MatrixMessengerSettingsBase> {
@@ -74,6 +77,7 @@ class MessengerClientTest {
                 })
         }
 
+        println("3) waitForIdle()")
         composeUiTest.waitForIdle()
         matrixMultiMessenger.di.get<I18nView>()
         matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>()
@@ -82,7 +86,9 @@ class MessengerClientTest {
         val username = generateUsername()
         val password = Uuid.generateV4().toString()
 
+        println("4) createUser()")
         createUser(username, password)
+        println("5) login()")
         composeUiTest.login(testName, username, password)
 
     }
