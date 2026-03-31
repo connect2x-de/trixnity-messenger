@@ -98,7 +98,9 @@ test:mac:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:mac" ]
+  needs:
+    - job: "build:mac"
+      artifacts: false
   tags: [ "connect2x-mac" ]
   artifacts: *artifact-reports
   rules:
@@ -112,7 +114,9 @@ test:linux:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   artifacts: *artifact-reports
@@ -131,7 +135,9 @@ test:smoketest-jvm:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   artifacts:
@@ -146,16 +152,19 @@ test:smoketest-jvm:
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - bash -c "adb logcat | grep System.out > logcat.txt &"
-    - gradle
+    - gradle --profile
       :trixnity-messenger-compose-view:{connectedAndroid,jvm}Test
       --stacktrace
+  after_script:
     - bash -c "cat logcat.txt"
 
 test:smoketest-js:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   artifacts:
@@ -168,7 +177,7 @@ test:smoketest-js:
   script:
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
-    - gradle
+    - gradle 
       :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
       --stacktrace
 
@@ -202,7 +211,9 @@ test:integration-test:
   stage: test
   interruptible: true
   timeout: 30m
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
@@ -221,7 +232,9 @@ checkAbi:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:mac" ]
+  needs:
+    - job: "build:mac"
+      artifacts: false
   tags: [ "connect2x-mac" ]
   artifacts: *artifact-reports
   rules:
