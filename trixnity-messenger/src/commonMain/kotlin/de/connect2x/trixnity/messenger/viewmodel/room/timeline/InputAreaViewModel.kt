@@ -68,6 +68,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -160,6 +162,7 @@ interface InputAreaViewModel {
     val listOfMentions: StateFlow<List<UserInfoElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
+    val audio: AudioRecordingAreaViewModel
 
     fun selectMention(userId: UserId)
     fun sendMessage()
@@ -202,6 +205,14 @@ open class InputAreaViewModelImpl(
     private val currentReplace: MutableStateFlow<Pair<RoomId, EventId>?> = MutableStateFlow(null)
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    @Suppress("unused")
+    private val completeAudioRecordingOnReplace =
+        isReplace
+            .filter { it }
+            .onEach { audio.recorder?.complete() }
+            .launchIn(coroutineScope)
+
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReply: StateFlow<Boolean> =
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
@@ -209,6 +220,11 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
+    override val audio: AudioRecordingAreaViewModel =
+        get<AudioRecordingAreaViewModelFactory>().create(
+            childContext("audioRecordingAreaViewModel"),
+            roomId,
+        )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -632,6 +648,7 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
+    override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 
     override fun selectMention(userId: UserId) {
     }

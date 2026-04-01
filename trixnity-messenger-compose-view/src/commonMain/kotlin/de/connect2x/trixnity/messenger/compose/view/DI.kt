@@ -86,6 +86,8 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElemen
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaView
+import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioReplyView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioReplyViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.FileReplyView
@@ -538,6 +540,7 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }
+    single<AudioRecordingAreaView> { AudioRecordingAreaViewImpl() }
     single<TimelineView> { TimelineViewImpl() }
     single<TimelineElementHolderView> { TimelineElementHolderViewImpl() }
     single<ScrollToEndButtonView> { ScrollToEndButtonViewImpl() }

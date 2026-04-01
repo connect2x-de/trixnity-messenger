@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK, UI: Toggle between bundled and system Font
 - SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow for customizing the `MatrixClient` via
   configuration
+- UI,SDK,ANDROID: Voice messages (experimental, disabled by default with feature flag)
 
 ### Changed
 

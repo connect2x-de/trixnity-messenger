@@ -37,7 +37,13 @@ import kotlin.time.Duration.Companion.milliseconds
 interface AudioPlayerView {
     @Composable
     fun Create(
-        audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
+        viewModel: MediaPlayerViewModel,
+        fallbackView: @Composable () -> Unit
+    )
+
+    @Composable
+    fun CreateWithViewModelDuration(
         viewModel: MediaPlayerViewModel,
         fallbackView: @Composable () -> Unit
     )
@@ -46,7 +52,7 @@ interface AudioPlayerView {
 class AudioPlayerViewImpl : AudioPlayerView {
     @Composable
     override fun Create(
-        audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+        audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
         viewModel: MediaPlayerViewModel,
         fallbackView: @Composable () -> Unit
     ) {
@@ -57,16 +63,24 @@ class AudioPlayerViewImpl : AudioPlayerView {
             is MediaPlayerViewModel.State.Failure -> Text(state.cause)
         }
     }
+
+    @Composable
+    override fun CreateWithViewModelDuration(
+        viewModel: MediaPlayerViewModel,
+        fallbackView: @Composable () -> Unit
+    ) {
+        Create(null, viewModel, fallbackView)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayableAudioMessage(
-    audio: RoomMessageTimelineElementViewModel.FileBased.Audio,
+    audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
     viewModel: MediaPlayerViewModel
 ) {
     val isPlaying = viewModel.state.collectAsState().value is MediaPlayerViewModel.State.Playing
-    val duration = audio.duration ?: viewModel.duration.collectAsState().value
+    val duration = audio?.duration ?: viewModel.duration.collectAsState().value
     val elapsedTime = viewModel.elapsedTime.collectAsState().value
 
     Row(
