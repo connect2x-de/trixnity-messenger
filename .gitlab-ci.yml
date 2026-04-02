@@ -26,7 +26,7 @@ variables:
 
 services:
   - name: docker:dind
-    command: ["--tls=false"]
+    command: [ "--tls=false" ]
 
 .artifact-reports: &artifact-reports
   name: reports
@@ -131,7 +131,7 @@ test:smoketest-no-ios:
   stage: test
   interruptible: true
   timeout: 1h
-#  needs: [ "build:linux" ]
+  #  needs: [ "build:linux" ]
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   artifacts:
@@ -146,7 +146,7 @@ test:smoketest-no-ios:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./scripts/start_emulator.sh
+    - /start-emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - gradle
