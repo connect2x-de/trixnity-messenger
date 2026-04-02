@@ -15,7 +15,6 @@ stages:
   - kmmPublish
 
 variables:
-  GRADLE_OPTS: "-Xmx8g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8 --illegal-access=permit --add-opens=java.base/java.io=ALL-UNNAMED"
   BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-base:latest
   BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
   BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
@@ -79,7 +78,7 @@ build:linux:
   rules:
     - *if-merge-request
   script:
-    - gradle
+    - ./gradlew
       compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
       :trixnity-messenger-compose-app:assembleRelease
