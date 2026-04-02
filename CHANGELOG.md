@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
- 
+
 ## [Unreleased]
 
 ### Added
@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Update README
 - SDK: smoke tests for Android with more logging
 - SDK: OAuth2 allow for setting the `login_hint` query-parameter
+- CI: Use new Android emulator docker image
 
 ### Deprecated
 

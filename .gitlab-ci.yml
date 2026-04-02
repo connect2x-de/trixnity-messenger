@@ -26,7 +26,7 @@ variables:
 
 services:
   - name: docker:dind
-    command: ["--tls=false"]
+    command: [ "--tls=false" ]
 
 .artifact-reports: &artifact-reports
   name: reports
@@ -142,7 +142,7 @@ test:smoketest-jvm:
   rules:
     - *if-merge-request
   script:
-    - ./scripts/start_emulator.sh
+    - /start-emulator.sh
     - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - bash -c "adb logcat | grep System.out > logcat.txt &"
