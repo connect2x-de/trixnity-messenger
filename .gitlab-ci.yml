@@ -143,7 +143,6 @@ test:smoketest-jvm:
     - *if-merge-request
   script:
     - /start-emulator.sh
-    - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - bash -c "adb logcat | grep System.out > logcat.txt &"
     - gradle --profile
@@ -167,7 +166,6 @@ test:smoketest-js:
   rules:
     - *if-merge-request
   script:
-    - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
     - gradle 
       :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
