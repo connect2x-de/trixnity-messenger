@@ -78,7 +78,7 @@ build:linux:
   rules:
     - *if-merge-request
   script:
-    - ./gradlew
+    - JAVA_HOME=/lib/jvm/temurin-25-jdk-amd64 ./gradlew
       compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
       :trixnity-messenger-compose-app:assembleRelease
