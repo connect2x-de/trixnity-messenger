@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Per-account notification counter bubbles in roomlist avatar area
 - UI,ANDROID,IOS,MACOS: First-class support for notification count app icon badges
 - SDK: A separate package which provides Nunito as Font for the application
+- SDK, UI: Toggle between bundled and system Font
 
 ### Changed
 

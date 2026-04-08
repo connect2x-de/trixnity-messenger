@@ -2866,6 +2866,16 @@ open class I18nView(
         DE - "Fokussierte Elemente werden stärker hervorgehoben."
     }
 
+    open fun appearanceSystemFontHeading() = translate {
+        EN - "System Font"
+        DE - "Systemschriftart"
+    }
+
+    open fun appearanceSystemFontExplanation() = translate {
+        EN - "Use the System Font"
+        DE - "Benutze die Systemschriftart"
+    }
+
     open fun appearanceAccentColorHeading() = translate {
         EN - "Accent Color"
         DE - "Akzentfarbe"

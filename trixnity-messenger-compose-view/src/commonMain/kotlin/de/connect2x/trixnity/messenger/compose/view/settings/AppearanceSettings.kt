@@ -52,6 +52,8 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
         val packedAccentColor by appearanceSettingsViewModel.accentColor.collectAsState()
         val isFocusHighlighting by appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
         val accentColor = packedAccentColor?.let { Color(it.toULong()) } ?: defaultAccentColor
+        val canToggleSystemFont by appearanceSettingsViewModel.canToggleSystemFont.collectAsState()
+        val isSystemFont by appearanceSettingsViewModel.isSystemFont.collectAsState()
 
         Box(Modifier.fillMaxSize()) {
             Column {
@@ -86,6 +88,16 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                                 selected = isFocusHighlighting,
                                 onChange = { appearanceSettingsViewModel.toggleFocusHighlighting() },
                             )
+
+                            if (canToggleSystemFont) {
+                                ThemedListItemSwitch(
+                                    style = MaterialTheme.components.settingsItem,
+                                    headlineContent = { Text(i18n.appearanceSystemFontHeading()) },
+                                    supportingContent = { Text(i18n.appearanceSystemFontExplanation()) },
+                                    selected = isSystemFont,
+                                    onChange = { appearanceSettingsViewModel.toggleSystemFont() },
+                                )
+                            }
                         }
                     }
                     VerticalScrollbar(

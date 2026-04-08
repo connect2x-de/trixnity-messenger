@@ -150,6 +150,8 @@ private fun wizardStepAccessibility(
         content = {
             val isHighContrast by viewModel.appearanceSettingsViewModel.isHighContrast.collectAsState()
             val isFocusHighlighting by viewModel.appearanceSettingsViewModel.isFocusHighlighting.collectAsState()
+            val canToggleSystemFont by viewModel.appearanceSettingsViewModel.canToggleSystemFont.collectAsState()
+            val isSystemFont by viewModel.appearanceSettingsViewModel.isSystemFont.collectAsState()
             Column {
                 AppearanceSettingsSize(viewModel.appearanceSettingsViewModel)
                 Spacer(Modifier.height(15.dp))
@@ -167,6 +169,15 @@ private fun wizardStepAccessibility(
                     selected = isFocusHighlighting,
                     onChange = { viewModel.appearanceSettingsViewModel.toggleFocusHighlighting() },
                 )
+                if (canToggleSystemFont) {
+                    ThemedListItemSwitch(
+                        style = MaterialTheme.components.settingsItem,
+                        headlineContent = { Text(i18n.appearanceSystemFontHeading()) },
+                        supportingContent = { Text(i18n.appearanceSystemFontExplanation()) },
+                        selected = isSystemFont,
+                        onChange = { viewModel.appearanceSettingsViewModel.toggleSystemFont() },
+                    )
+                }
             }
         }
     )

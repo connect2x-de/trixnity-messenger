@@ -6,6 +6,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import de.connect2x.trixnity.messenger.FontKind
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.theme.withFontFamily
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
@@ -28,9 +29,11 @@ import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view_typograph
 import org.jetbrains.compose.resources.Font
 import de.connect2x.trixnity.messenger.trixnity_messenger_compose_view_typography_nunito.generated.resources.Res
 import org.koin.core.module.Module
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 fun MatrixMultiMessengerConfiguration.addNunitoThemeTypography() {
+    enableBundledFont = true
     modulesFactories += ::nunitoThemeTypographyModule
     messengerConfiguration { addNunitoThemeTypography() }
 }
@@ -41,7 +44,7 @@ fun MatrixMessengerConfiguration.addNunitoThemeTypography() {
 
 fun nunitoThemeTypographyModule(): Module {
     return module {
-        single<ThemeTypography> { ThemeTypographyNunito() }
+        single<ThemeTypography>(named(FontKind.BUNDLED)) { ThemeTypographyNunito() }
     }
 }
 

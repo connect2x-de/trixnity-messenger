@@ -57,6 +57,8 @@ data class MatrixMultiMessengerConfiguration(
     /** This allows multiple profiles to be used simultaneously.
      * Null means undefined, so the user should be asked if they want to enable this. */
     var defaultIsMultiProfileEnabled: Boolean? = true,
+
+    var enableBundledFont: Boolean = false,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {

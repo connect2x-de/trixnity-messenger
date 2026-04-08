@@ -4,6 +4,7 @@ import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRo
 import de.connect2x.messenger.compose.view.room.timeline.element.message.AudioRoomMessageTimelineElementViewImpl
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.messenger.FontKind
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionView
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerTypeSelectionViewImpl
@@ -368,7 +369,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
 
 fun themeViewModule(): Module = module {
     single<Theme> { ThemeImpl() }
-    single<ThemeTypography> { ThemeTypographySystem() }
+    single<ThemeTypography>(named(FontKind.SYSTEM)) { ThemeTypographySystem() }
     single<ThemeComponents> { ThemeComponentsImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
     single<DefaultSizes> { DefaultSizesImpl() }
