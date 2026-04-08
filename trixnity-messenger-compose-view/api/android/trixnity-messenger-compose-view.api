@@ -1053,6 +1053,8 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun appearanceSizesApply ()Ljava/lang/String;
 	public fun appearanceSizesApplySystemExplanation ()Ljava/lang/String;
 	public fun appearanceSizesApplySystemHeading ()Ljava/lang/String;
+	public fun appearanceSystemFontExplanation ()Ljava/lang/String;
+	public fun appearanceSystemFontHeading ()Ljava/lang/String;
 	public fun appearanceThemeDarkExplanation ()Ljava/lang/String;
 	public fun appearanceThemeDarkHeading ()Ljava/lang/String;
 	public fun appearanceThemeDefaultExplanation ()Ljava/lang/String;
@@ -5064,6 +5066,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/MessengerI
 	public static final fun getMessengerIcons (Landroidx/compose/material3/MaterialTheme;Landroidx/compose/runtime/Composer;I)Lde/connect2x/trixnity/messenger/compose/view/theme/MessengerIcons;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/theme/MessengerTypographyKt {
+	public static final fun getDefaultMessengerTypography (Landroidx/compose/runtime/Composer;I)Landroidx/compose/material3/Typography;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/theme/SizeSettings {
 	public static final field $stable I
 	public fun <init> (Ljava/lang/Float;Ljava/lang/Float;)V
@@ -5193,10 +5199,14 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/ThemeSettu
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography {
+	public static final field Companion Lde/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography$Companion;
 	public abstract fun create (Landroidx/compose/runtime/Composer;I)Landroidx/compose/material3/Typography;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypographyImpl : de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography {
+public final class de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography$Companion {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypographySystem : de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography {
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Landroidx/compose/runtime/Composer;I)Landroidx/compose/material3/Typography;
