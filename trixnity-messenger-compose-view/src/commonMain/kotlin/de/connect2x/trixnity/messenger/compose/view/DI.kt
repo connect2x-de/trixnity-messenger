@@ -307,7 +307,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.ThemeLightColorSchemeI
 import de.connect2x.trixnity.messenger.compose.view.theme.ThemeLightMessengerColors
 import de.connect2x.trixnity.messenger.compose.view.theme.ThemeLightMessengerColorsImpl
 import de.connect2x.trixnity.messenger.compose.view.theme.ThemeTypography
-import de.connect2x.trixnity.messenger.compose.view.theme.ThemeTypographyImpl
+import de.connect2x.trixnity.messenger.compose.view.theme.ThemeTypographySystem
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaActionConfirmationView
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaActionConfirmationViewImpl
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaDummyStepView
@@ -368,7 +368,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
 
 fun themeViewModule(): Module = module {
     single<Theme> { ThemeImpl() }
-    single<ThemeTypography> { ThemeTypographyImpl() }
+    single<ThemeTypography> { ThemeTypographySystem() }
     single<ThemeComponents> { ThemeComponentsImpl() }
     single<DefaultAccentColor> { DefaultAccentColorImpl() }
     single<DefaultSizes> { DefaultSizesImpl() }

@@ -117,6 +117,7 @@ kotlin {
                 implementation(sharedLibs.lognity.core.config)
                 api(sharedLibs.decompose) // needed for export to iOS
                 api(sharedLibs.essenty.lifecycle) // needed for export to iOS
+                implementation(projects.trixnityMessengerComposeView.trixnityMessengerComposeViewTypographyNunito)
             }
         }
         jvmMain {

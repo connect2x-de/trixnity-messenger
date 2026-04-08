@@ -37,6 +37,7 @@ include(
     "trixnity-messenger:trixnity-messenger-notification-fcm",
     "trixnity-messenger:trixnity-messenger-notification-unifiedpush",
     "trixnity-messenger-compose-view",
+    "trixnity-messenger-compose-view:trixnity-messenger-compose-view-typography-nunito",
     "trixnity-messenger-compose-app",
     "integrationtests",
     "emojis",

@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
+import de.connect2x.trixnity.messenger.compose.view.typography.nunito.addNunitoThemeTypography
 import de.connect2x.trixnity.messenger.util.RootPath
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
@@ -55,6 +56,8 @@ fun MatrixMultiMessengerConfiguration.configure() {
         modulesFactories += { composeViewModule(this) }
         defaultHomeServer = "demo.timmy-messenger.de"
     }
+
+    addNunitoThemeTypography()
 }
 
 internal expect fun getDevRootPath(): RootPath?
