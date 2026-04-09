@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.time.Duration
 
 /**
@@ -18,8 +19,9 @@ abstract class AbstractMediaItem(
     private val operationMutex: Mutex,
     private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
 ) : MediaItemLifecycleImpl(coroutineScope), MediaPlayer.Item {
-    override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
+    private val isClosed: AtomicBoolean = AtomicBoolean(false)
 
+    override val log: Logger = Logger("de.connect2x.trixnity.messenger.media.MediaPlayer.Item")
     override val state: MutableStateFlow<MediaPlayer.Item.State> = MutableStateFlow(MediaPlayer.Item.State.Ready)
     override val elapsedTime: MutableStateFlow<Duration?> = MutableStateFlow(null)
 
@@ -88,6 +90,10 @@ abstract class AbstractMediaItem(
     }
 
     override fun close() {
+        if (!isClosed.compareAndSet(expectedValue = false, newValue = true)) {
+            return
+        }
+
         log.debug { "Closing media item" }
         coroutineScope.launch {
             pause()
