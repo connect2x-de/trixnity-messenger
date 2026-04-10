@@ -25,7 +25,6 @@ import de.connect2x.trixnity.messenger.update
 import kotlin.test.Test
 import kotlin.uuid.Uuid
 
-
 @OptIn(ExperimentalTestApi::class)
 class MessengerClientTest {
 
