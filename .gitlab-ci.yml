@@ -78,8 +78,6 @@ build:linux:
   image: $BUILD_LINUX_IMAGE_NAME
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - gradle
       compileKotlin{Jvm,Js,WasmJs}
@@ -98,7 +96,9 @@ test:mac:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:mac" ]
+  needs:
+    - job: "build:mac"
+      artifacts: false
   tags: [ "connect2x-mac" ]
   artifacts: *artifact-reports
   rules:
@@ -112,14 +112,14 @@ test:linux:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - gradle
       :trixnity-messenger:{jvm,js,wasmJs}Test
@@ -127,33 +127,49 @@ test:linux:
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
-test:smoketest-no-ios:
+test:smoketest-jvm:
   stage: test
   interruptible: true
   timeout: 1h
-  #  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
   artifacts:
     when: always
-    paths: [ "screenshots", "**/build/reports" ]
-    reports:
-      coverage_report:
-        coverage_format: jacoco
-        path: trixnity-messenger/build/reports/kover/reportJvm.xml
+    paths: [ "**/screenshots", "**/build/reports" ]
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
     - /start-emulator.sh
-    - apt-get install --yes socat
     - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
-    - gradle
-      :trixnity-messenger-compose-view:{connectedAndroid,jvm,jsBrowser,wasmJsBrowser}Test
-      :trixnity-messenger-compose-view:testCoverage
+    - bash -c "adb logcat | grep System.out > logcat.txt &"
+    - gradle --profile
+      :trixnity-messenger-compose-view:{connectedAndroid,jvm}Test
       --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+  after_script:
+    - bash -c "cat logcat.txt"
+
+test:smoketest-js:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs:
+    - job: "build:linux"
+      artifacts: false
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  artifacts:
+    when: always
+    paths: [ "**/screenshots", "**/build/reports" ]
+  rules:
+    - *if-merge-request
+  script:
+    - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
+    - gradle 
+      :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
+      --stacktrace
 
 # TODO cannot be run on virtualized macOS
 #test:smoketest-ios:
@@ -171,8 +187,6 @@ test:smoketest-no-ios:
 #        path: trixnity-messenger/build/reports/kover/reportJvm.xml
 #  rules:
 #    - *if-merge-request
-#  variables:
-#    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
 #  script:
 #    - ./scripts/start_simulator.sh
 #    - ./gradlew
@@ -185,7 +199,9 @@ test:integration-test:
   stage: test
   interruptible: true
   timeout: 30m
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
@@ -204,7 +220,9 @@ checkAbi:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:mac" ]
+  needs:
+    - job: "build:mac"
+      artifacts: false
   tags: [ "connect2x-mac" ]
   artifacts: *artifact-reports
   rules:

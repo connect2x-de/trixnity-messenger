@@ -1,20 +1,24 @@
 package de.connect2x.trixnity.messenger.compose.view
 
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.store.repository.inMemory
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.CreateMediaStoreModule
 import de.connect2x.trixnity.messenger.CreateRepositoriesModule
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.compose.view.util.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.compose.view.util.createTestMatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.MediaStoreModule
-import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.client.media.inMemory
-import de.connect2x.trixnity.client.store.repository.inMemory
-import de.connect2x.trixnity.core.model.UserId
 import okio.FileSystem
 import okio.fakefilesystem.FakeFileSystem
 import org.koin.dsl.module
@@ -38,6 +42,10 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
             module {
                 single<FileSystem> {
                     FakeFileSystem()
+                }
+
+                single<MatrixMultiMessengerSettingsHolder> {
+                    createTestMatrixMultiMessengerSettingsHolder()
                 }
             }
         }
@@ -72,6 +80,10 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
 
                     single<FileSystem> {
                         FakeFileSystem()
+                    }
+
+                    single<MatrixMessengerSettingsHolder> {
+                        createTestMatrixMessengerSettingsHolder()
                     }
                 }
             }
