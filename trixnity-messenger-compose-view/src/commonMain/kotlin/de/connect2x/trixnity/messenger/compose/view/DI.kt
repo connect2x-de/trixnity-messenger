@@ -226,6 +226,8 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.room.KnockRoomListE
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.KnockRoomListElementImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainerView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementContainerViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementSymbolsView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementSymbolsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchGroupView
@@ -457,6 +459,7 @@ fun searchViewModule() = module {
 
 fun roomViewModule() = module {
     single<RoomListElementView> { RoomListElementViewImpl() }
+    single<RoomListElementSymbolsView> { RoomListElementSymbolsViewImpl() }
     single<SearchUsersSettingsView> { SearchUsersSettingsViewImpl() }
 }
 
