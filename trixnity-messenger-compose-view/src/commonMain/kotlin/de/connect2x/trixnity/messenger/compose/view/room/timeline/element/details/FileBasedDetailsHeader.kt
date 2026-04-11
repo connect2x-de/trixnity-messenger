@@ -1,21 +1,18 @@
 package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.ExpandCircleDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -24,8 +21,10 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.zIndex
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
@@ -35,66 +34,50 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import kotlin.random.Random
 
 @Composable
 fun FileBasedDetailsHeader(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     onClose: () -> Unit,
-    additionalButtons: @Composable RowScope.() -> Unit = {},
+    additionalButtons: @Composable () -> Unit = {},
 ) {
     val i18n = DI.get<I18nView>()
     val configuration = DI.get<MatrixMessengerConfiguration>()
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
-    FlowRow(
-        Modifier
-            .zIndex(99.0f)
-            .fillMaxWidth()
-            .padding(MaterialTheme.messengerDpConstants.small)
-            .onKeyEvent {
-                if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                    onClose()
-                    true
-                } else {
-                    false
-                }
-            },
-        itemVerticalAlignment = Alignment.CenterVertically,
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
-        horizontalArrangement = Arrangement.spacedBy(
-            MaterialTheme.messengerDpConstants.small,
-            alignment = Alignment.CenterHorizontally
-        ),
-    ) {
+    Layout(modifier = Modifier.zIndex(99.0f).padding(MaterialTheme.messengerDpConstants.small).onKeyEvent {
+        if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
+            onClose()
+            true
+        } else {
+            false
+        }
+    }, content = {
         FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
 
-        Box(
-            Modifier.weight(1f, fill = true).padding(vertical = MaterialTheme.messengerDpConstants.small),
-            contentAlignment = Alignment.Center
-        ) {
-            Tooltip(tooltip = {
-                Text(element.name)
-            }) {
-                Text(
-                    text = element.name,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.LightGray,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+
+        Tooltip(tooltip = {
+            Text(element.name)
+        }) {
+            Text(
+                text = element.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.LightGray,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
 
-        additionalButtons(this)
+        additionalButtons()
         if (downloadProgress == null) {
             FileBasedDetailsHeaderButton(
                 Icons.Outlined.Download,
                 i18n.downloadMessage(),
                 !configuration.downloadsDisabled,
-                onSave
+                onSave,
             )
         } else {
             Box {
@@ -102,8 +85,7 @@ fun FileBasedDetailsHeader(
                     ThemedProgressIndicator(
                         progress = {
                             it
-                        },
-                        style = MaterialTheme.components.circularProgressIndicator
+                        }, style = MaterialTheme.components.circularProgressIndicator
                     )
                 } ?: ThemedProgressIndicator(
                     style = MaterialTheme.components.circularProgressIndicator
@@ -117,8 +99,41 @@ fun FileBasedDetailsHeader(
                 }
             }
         }
+        FileBasedDetailsHeaderButton(
+            Icons.Outlined.ExpandCircleDown,
+            "",
+        ) {
+
+        }
+    }) { measurables, constraints ->
+        val placeables = measurables.map { it.measure(constraints) }
+        val regularPlaceables = placeables - placeables.last()
+        val maxHeight = placeables.maxByOrNull { it.height }?.height ?: 0
+        val width = regularPlaceables.sumOf { it.width }
+        var showExpand = false
+        if (constraints.maxWidth < width) {
+            showExpand = true
+        }
+        layout(constraints.maxWidth, maxHeight, mapOf()) {
+            var xPos = 0
+
+            regularPlaceables.forEachIndexed { index, placeable ->
+                if (index <= 1 || !showExpand) {
+                    val height = (maxHeight - placeable.height) / 2
+                    placeable.placeRelative(xPos, height)
+                    xPos += placeable.measuredWidth
+                }
+            }
+            if (showExpand) {
+                val expandButton = placeables.last()
+                val height = (maxHeight - expandButton.height) / 2
+
+                expandButton.placeRelative(constraints.maxWidth - expandButton.width, height)
+            }
+        }
     }
 }
+
 
 @Composable
 fun FileBasedDetailsHeaderButton(
@@ -129,11 +144,10 @@ fun FileBasedDetailsHeaderButton(
 ) {
     val i18n = DI.get<I18nView>()
     Tooltip(
+        modifier = Modifier.background(Color(Random.nextInt())),
         tooltip = {
-            if (isEnabled)
-                Text(actionDescription)
-            else
-                Text(i18n.commonButtonDisabled())
+            if (isEnabled) Text(actionDescription)
+            else Text(i18n.commonButtonDisabled())
         },
     ) {
         ThemedIconButton(
