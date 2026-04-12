@@ -71,6 +71,7 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.HorizontalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.Platform
@@ -95,7 +96,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
@@ -255,8 +255,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             element,
             onSave,
             onClose,
-            additions = {
+            additionalIndicators = {
                 PageIndicator(lazyListState, reader.value?.numOfPages?.value, focusRequester)
+            },
+            additions = {
                 ZoomButtons({
                     scope.launch {
                         val prevCanZoom = canZoom.value

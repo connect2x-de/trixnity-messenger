@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.detai
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,7 +19,8 @@ fun FileBasedDetailsDialog(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     onClose: () -> Unit,
-    additions: @Composable () -> Unit = {},
+    additionalIndicators: (@Composable RowScope.() -> Unit)? = null,
+    additions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     Dialog(
@@ -30,7 +32,7 @@ fun FileBasedDetailsDialog(
                 style = MaterialTheme.components.fileViewerSurface,
             ) {
                 Column(Modifier.fillMaxSize()) {
-                    FileBasedDetailsHeader(element, onSave, onClose, additions)
+                    FileBasedDetailsHeader(element, onSave, onClose, additionalIndicators, additions)
                     Box(Modifier.fillMaxSize()) {
                         content()
                     }
