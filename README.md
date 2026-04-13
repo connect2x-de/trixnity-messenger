@@ -181,6 +181,20 @@ To set a notification provider, a DSL in `MatrixMultiMessengerConfiguration` can
 addFcmPushNotificationProvider()
 ```
 
+### Fonts
+
+Trixnity Messenger uses the System Font per default.
+This behavior can be changed by providing a custom implementation of `ThemeTypography`.
+One such custom implementation setting the font to Nunito can be found in `trixnity-messenger-compose-view-typography-nunito`.
+
+To use Nunito instead of the System Font, a DSL in `MatrixMultiMessengerConfiguration` can be used similar to above.
+
+```kotlin
+addNunitoThemeTypography()
+```
+
+You can also follow the example and create your own instance of `ThemeTypography` with custom fonts.
+
 ### Adjusting the log level
 
 Currently the log level can be adjusted using environment variables and config files

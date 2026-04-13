@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
 - UI: Per-account notification counter bubbles in roomlist avatar area
 - UI,ANDROID,IOS,MACOS: First-class support for notification count app icon badges
+- SDK: A separate package which provides Nunito as Font for the application
+- SDK, UI: Toggle between bundled and system Font
 
 ### Changed
 
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: smoke tests for Android with more logging
 - SDK: OAuth2 allow for setting the `login_hint` query-parameter
 - CI: Use new Android emulator docker image
+- SDK: Don't ship font per default
 
 ### Deprecated
 
