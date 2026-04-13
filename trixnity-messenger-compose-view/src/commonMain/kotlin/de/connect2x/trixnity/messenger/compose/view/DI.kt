@@ -247,6 +247,8 @@ import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListV
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepListImpl
+import de.connect2x.trixnity.messenger.compose.view.settings.AccountSingleSettingsView
+import de.connect2x.trixnity.messenger.compose.view.settings.AccountSingleSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountsSettingsView
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountsSettingsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.AdditionalAccountSetupWizardStep
@@ -588,6 +590,7 @@ fun settingsViewModule() = module {
     single<NotificationsSettingsView> { NotificationsSettingsViewImpl() }
     single<PrivacySettingsView> { PrivacySettingsViewImpl() }
     single<AccountsSettingsView> { AccountsSettingsViewImpl() }
+    single<AccountSingleSettingsView> { AccountSingleSettingsViewImpl() }
     single<UserSettingsView> { UserSettingsViewImpl() }
     single<ProfilesSettingsView> { ProfilesSettingsViewImpl() }
     single<AdditionalAccountSetupWizardStep> { AdditionalAccountSetupWizardStepImpl() }

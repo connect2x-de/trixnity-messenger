@@ -96,12 +96,12 @@ class AccountsViewModelImpl(
         registerBackCallback(backCallback)
         accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
-                this@AccountsViewModelImpl.get<ProfileSingleViewModelFactory>().create(
-                    viewModelContext.childContext(userId.full, this@AccountsViewModelImpl),
+                this@AccountsViewModelImpl.get<AccountSingleViewModelFactory>().create(
+                    viewModelContext.childContext("account-settings-${userId.full}", userId),
                     userId,
                     error,
                     showAccountSetup = { onShowAccountSetup(userId) },
-                    removeAccount = { onRemoveAccount(userId) }
+                    removeAccount = { onRemoveAccount(userId) },
                 )
             }
         }.stateIn(coroutineScope, WhileSubscribed(), emptyList())

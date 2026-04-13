@@ -127,6 +127,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
@@ -138,7 +139,6 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAl
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
@@ -384,7 +384,7 @@ private fun settingsViewModels() = module {
     single<AccountsViewModelFactory> { AccountsViewModelFactory }
     single<ProfilesSettingsViewModelFactory> { ProfilesSettingsViewModelFactory }
     single<ProfilesSettingsSingleViewModelFactory> { ProfilesSettingsSingleViewModelFactory }
-    single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
+    single<AccountSingleViewModelFactory> { AccountSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }

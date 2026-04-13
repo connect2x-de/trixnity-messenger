@@ -9,6 +9,7 @@ import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
+@Deprecated("Use AccountSingleViewModelFactory")
 interface ProfileSingleViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
@@ -41,6 +43,26 @@ interface ProfileSingleViewModelFactory {
     }
 
     companion object : ProfileSingleViewModelFactory
+}
+
+interface AccountSingleViewModelFactory {
+    fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        userId: UserId,
+        error: MutableStateFlow<String?>,
+        showAccountSetup: () -> Unit,
+        removeAccount: () -> Unit,
+    ): AccountSingleViewModel {
+        return AccountSingleViewModelImpl(
+            viewModelContext,
+            userId,
+            error,
+            showAccountSetup,
+            removeAccount,
+        )
+    }
+
+    companion object : AccountSingleViewModelFactory
 }
 
 interface AccountSingleViewModel {
