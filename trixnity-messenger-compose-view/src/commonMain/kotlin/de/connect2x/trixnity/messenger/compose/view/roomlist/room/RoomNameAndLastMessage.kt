@@ -42,13 +42,7 @@ fun RoomName(roomName: String?, modifier: Modifier = Modifier) {
 @Composable
 fun RoomTime(roomListElementViewModel: RoomListElementViewModel, modifier: Modifier = Modifier) {
     val time = roomListElementViewModel.time.collectAsState().value
-    val isEncrypted = roomListElementViewModel.isEncrypted.collectAsState().value
     Row {
-        if (isEncrypted != null && isEncrypted.not()) {
-            Box(Modifier.padding(end = 5.dp), contentAlignment = Alignment.Center) {
-                UnencryptedIcon()
-            }
-        }
         Text(
             time ?: " ",
             style = MaterialTheme.typography.labelMedium,
