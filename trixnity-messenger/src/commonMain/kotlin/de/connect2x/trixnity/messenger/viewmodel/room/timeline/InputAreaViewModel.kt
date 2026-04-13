@@ -8,6 +8,7 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.mentions
 import de.connect2x.trixnity.client.room.message.replace
 import de.connect2x.trixnity.client.room.message.reply
@@ -185,6 +186,8 @@ open class InputAreaViewModelImpl(
     private val timeZone = get<TimeZone>()
     private val initials = get<Initials>()
 
+    private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
+
     override val isAllowedToSendMessages: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
@@ -274,20 +277,26 @@ open class InputAreaViewModelImpl(
             }
         }
         coroutineScope.launch {
-            loadDraftIntoTextField()
-            textField
-                .debounce(2.seconds)
-                .collect {
-                    draftMutex.withLock {
-                        saveAsDraft()
+            if (enableMessageDrafts) {
+                loadDraftIntoTextField()
+                textField
+                    .debounce(2.seconds)
+                    .collect {
+                        draftMutex.withLock {
+                            saveAsDraft()
+                        }
                     }
-                }
+            } else {
+                matrixClient.room.deleteDraftMessage(roomId)
+            }
         }
-        lifecycle.doOnDestroy {
-            get<CoroutineScope>().launch {
-                withContext(NonCancellable) {
-                    draftMutex.withLock {
-                        saveAsDraft()
+        if (enableMessageDrafts) {
+            lifecycle.doOnDestroy {
+                get<CoroutineScope>().launch {
+                    withContext(NonCancellable) {
+                        draftMutex.withLock {
+                            saveAsDraft()
+                        }
                     }
                 }
             }
@@ -319,11 +328,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    suspend fun saveAsDraft(text: String = textField.value.text) {
-        if (text.isEmpty()) {
-            matrixClient.room.deleteDraftMessage(roomId)
-            return
-        }
+    private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences =
             references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
@@ -362,7 +367,8 @@ open class InputAreaViewModelImpl(
 
         val replacedEvent = currentReplace.value
         val repliedEvent = currentReply.value
-        matrixClient.room.setDraftMessage(roomId) {
+
+        return {
             when {
                 replacedEvent != null -> replace(replacedEvent.second)
                 repliedEvent != null -> {
@@ -376,6 +382,14 @@ open class InputAreaViewModelImpl(
             mentions(userReferences)
             text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
         }
+    }
+
+    private suspend fun saveAsDraft(text: String = textField.value.text) {
+        if (text.isEmpty()) {
+            matrixClient.room.deleteDraftMessage(roomId)
+            return
+        }
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = getMessageBuilder(text))
     }
 
 
@@ -411,10 +425,14 @@ open class InputAreaViewModelImpl(
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                draftMutex.withLock {
-                    saveAsDraft(text)
-                    log.debug { "send message" }
-                    matrixClient.room.sendDraftMessage(roomId)
+                if (enableMessageDrafts) {
+                    draftMutex.withLock {
+                        saveAsDraft(text)
+                        log.debug { "send message" }
+                        matrixClient.room.sendDraftMessage(roomId)
+                    }
+                } else {
+                    matrixClient.room.sendMessage(roomId = roomId, builder = getMessageBuilder(text))
                 }
                 currentReplace.value?.also {
                     currentReplace.value = null

@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.*
-import io.ktor.client.engine.*
 import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.messenger.util.mb
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -46,6 +47,7 @@ data class MatrixMessengerConfiguration(
     val features: Features = Features(
         enablePdfReader = true,
         enablePowerlevelEventConfigurationInRoomSettings = true,
+        enableMessageDrafts = true
     ),
 
     /**
@@ -139,6 +141,7 @@ data class MatrixMessengerConfiguration(
          */
         var enablePdfReader: Boolean = true,
         var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
+        var enableMessageDrafts: Boolean = true
     )
 
     enum class CryptoDriver {

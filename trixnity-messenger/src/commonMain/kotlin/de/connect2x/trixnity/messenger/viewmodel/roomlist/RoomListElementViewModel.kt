@@ -13,8 +13,8 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.ReceiptType
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationStep
@@ -219,6 +219,12 @@ open class RoomListElementViewModelImpl(
             }
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    private val draftFlow = if (get<MatrixMessengerConfiguration>().features.enableMessageDrafts) {
+        matrixClient.room.getDraftMessage(roomId)
+    } else {
+        flowOf(null)
+    }
+
     private val lastRelevantTimelineEventMessage =
         roomFlow.flatMapLatest { room ->
             val lastRelevantEventId = room.lastRelevantEventId
@@ -235,7 +241,7 @@ open class RoomListElementViewModelImpl(
                         matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
                         matrixClient.room.getById(roomId).map { it?.isDirect == true }
                             .distinctUntilChanged(),
-                        matrixClient.room.getDraftMessage(roomId)
+                        draftFlow
                     ) { lastTimelineEventSender, isDirect, draftMessage ->
                         val draftMessageContent = getDraftMessageContent(draftMessage)
                         val message = timelineEventTypeDescription(lastTimelineEvent)
