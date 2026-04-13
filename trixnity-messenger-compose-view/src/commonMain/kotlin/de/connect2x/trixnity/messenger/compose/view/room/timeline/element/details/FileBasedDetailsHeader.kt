@@ -54,14 +54,18 @@ fun FileBasedDetailsHeader(
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
     FlowRow(
-        Modifier.zIndex(99.0f).fillMaxWidth().padding(MaterialTheme.messengerDpConstants.small).onKeyEvent {
-            if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                onClose()
-                true
-            } else {
-                false
-            }
-        },
+        Modifier
+            .zIndex(99.0f)
+            .fillMaxWidth()
+            .padding(MaterialTheme.messengerDpConstants.small)
+            .onKeyEvent {
+                if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
+                    onClose()
+                    true
+                } else {
+                    false
+                }
+            },
         itemVerticalAlignment = Alignment.CenterVertically,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
         horizontalArrangement = Arrangement.SpaceEvenly
@@ -71,9 +75,16 @@ fun FileBasedDetailsHeader(
             modifier = Modifier.weight(1f, true),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
+            FileBasedDetailsHeaderButton(
+                Icons.Outlined.Close,
+                i18n.commonClose(),
+                onAction = onClose
+            )
             VerySmallSpacer()
-            Box(Modifier.weight(1f, true), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier.weight(1f, true),
+                contentAlignment = Alignment.Center
+            ) {
                 Tooltip(tooltip = {
                     Text(element.name)
                 }) {
@@ -103,7 +114,10 @@ fun FileBasedDetailsHeader(
                 additionalButtons(this)
                 if (downloadProgress == null) {
                     FileBasedDetailsHeaderButton(
-                        Icons.Outlined.Download, i18n.downloadMessage(), !configuration.downloadsDisabled, onSave
+                        Icons.Outlined.Download,
+                        i18n.downloadMessage(),
+                        !configuration.downloadsDisabled,
+                        onSave
                     )
                 } else {
                     Box {
