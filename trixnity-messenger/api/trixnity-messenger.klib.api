@@ -3193,8 +3193,16 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountSin
     abstract val userId // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.userId|{}userId[0]
         abstract fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.userId.<get-userId>|<get-userId>(){}[0]
 
+    abstract fun cancelEditDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.cancelEditDisplayName|cancelEditDisplayName(){}[0]
     abstract fun logout() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.logout|logout(){}[0]
     abstract fun resetSetup() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.resetSetup|resetSetup(){}[0]
+    abstract fun saveDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.saveDisplayName|saveDisplayName(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/UserId, kotlinx.coroutines.flow/MutableStateFlow<kotlin/String?>, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.UserId;kotlinx.coroutines.flow.MutableStateFlow<kotlin.String?>;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelFactory.Companion|null[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel { // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel|null[0]
@@ -3209,13 +3217,11 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountsVi
     abstract val openAvatarCutter // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.openAvatarCutter|{}openAvatarCutter[0]
         abstract fun <get-openAvatarCutter>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model/UserId?> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.openAvatarCutter.<get-openAvatarCutter>|<get-openAvatarCutter>(){}[0]
 
-    abstract fun cancelEditDisplayName(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.cancelEditDisplayName|cancelEditDisplayName(de.connect2x.trixnity.core.model.UserId){}[0]
     abstract fun close() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.close|close(){}[0]
     abstract fun closeAvatarCutter() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.closeAvatarCutter|closeAvatarCutter(){}[0]
     abstract fun createNewAccount() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.createNewAccount|createNewAccount(){}[0]
     abstract fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.errorDismiss|errorDismiss(){}[0]
     abstract fun openAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.openAvatarCutter|openAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
-    abstract fun saveDisplayName(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.saveDisplayName|saveDisplayName(de.connect2x.trixnity.core.model.UserId){}[0]
     abstract fun setMultiProfileEnabled(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel.setMultiProfileEnabled|setMultiProfileEnabled(kotlin.Boolean){}[0]
 }
 
@@ -10281,6 +10287,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleView
     final val userId // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.userId|{}userId[0]
         final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
 
+    final fun cancelEditDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.cancelEditDisplayName|cancelEditDisplayName(){}[0]
     final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContext|childContext(kotlin.String){}[0]
     final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
     final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
@@ -10290,6 +10297,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleView
     final fun logout() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.logout|logout(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final fun resetSetup() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.resetSetup|resetSetup(){}[0]
+    final fun saveDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.saveDisplayName|saveDisplayName(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl|null[0]
@@ -10322,7 +10330,6 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel
     final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
         final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
 
-    final fun cancelEditDisplayName(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.cancelEditDisplayName|cancelEditDisplayName(de.connect2x.trixnity.core.model.UserId){}[0]
     final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.childContext|childContext(kotlin.String){}[0]
     final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
     final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
@@ -10335,7 +10342,6 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModel
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.getKoin|getKoin(){}[0]
     final fun openAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.openAvatarCutter|openAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
-    final fun saveDisplayName(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.saveDisplayName|saveDisplayName(de.connect2x.trixnity.core.model.UserId){}[0]
     final fun setMultiProfileEnabled(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountsViewModelImpl.setMultiProfileEnabled|setMultiProfileEnabled(kotlin.Boolean){}[0]
 }
 

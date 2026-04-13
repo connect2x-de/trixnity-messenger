@@ -10631,6 +10631,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSet
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel {
+	public abstract fun cancelEditDisplayName ()V
 	public abstract fun getAvatar ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanChangeAvatar ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanChangeDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
@@ -10641,10 +10642,25 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public abstract fun logout ()V
 	public abstract fun resetSetup ()V
+	public abstract fun saveDisplayName ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$Companion;
+	public fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory {
+	public fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$DefaultImpls {
+	public static fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelEditDisplayName ()V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -10670,10 +10686,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSin
 	public fun logout ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun resetSetup ()V
+	public fun saveDisplayName ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel {
-	public abstract fun cancelEditDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun close ()V
 	public abstract fun closeAvatarCutter ()V
 	public abstract fun createNewAccount ()V
@@ -10684,7 +10700,6 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getOpenAvatarCutter ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isMultiProfile ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun openAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
-	public abstract fun saveDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun setMultiProfileEnabled (Z)V
 }
 
@@ -10703,7 +10718,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsVi
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
-	public fun cancelEditDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -10729,7 +10743,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsVi
 	public fun isMultiProfile ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun openAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
-	public fun saveDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public fun setMultiProfileEnabled (Z)V
 }
 

@@ -4358,11 +4358,24 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Account
 	public fun getSteps ()Ljava/util/List;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountsSettingsKt {
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSingleSettingsKt {
 	public static final fun AccountAvatar (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun AccountCard (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun AccountDisplayName (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AccountDisplayName (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AccountSingleSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun AccountUserId (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/AccountSingleSettingsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSingleSettingsViewImpl : de/connect2x/trixnity/messenger/compose/view/settings/AccountSingleSettingsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountsSettingsKt {
 	public static final fun AccountsOverview (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun AccountsSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 }
