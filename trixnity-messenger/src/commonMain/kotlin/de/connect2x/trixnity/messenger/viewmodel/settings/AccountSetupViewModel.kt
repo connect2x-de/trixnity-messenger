@@ -1,10 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import de.connect2x.trixnity.core.model.UserId
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
 
@@ -35,6 +40,7 @@ interface AccountSetupViewModel {
      */
     val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
+    val displayName: StateFlow<String?>
     val appearanceSettingsViewModel: AppearanceSettingsViewModel
     val privacySettingsViewModel: PrivacySettingsSingleAccountViewModel
     val notificationSettingsViewModel: NotificationSettingsSingleAccountViewModel
@@ -48,6 +54,9 @@ class AccountSetupViewModelImpl(
 ) :
     ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
+    override val displayName: StateFlow<String?> =
+        viewModelContext.matrixClient.profile.map { it?.displayName ?: userId.localpart }
+            .stateIn(viewModelContext.coroutineScope, WhileSubscribed(), null)
     override val appearanceSettingsViewModel: AppearanceSettingsViewModel by lazy {
         get<AppearanceSettingsViewModelFactory>().create(viewModelContext) {}
     }
