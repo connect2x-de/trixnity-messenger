@@ -149,7 +149,7 @@ fun AccountCard(
     SettingsAccountCard(accountSingleViewModel.userId) {
         AccountAvatar(accountSingleViewModel)
         Spacer(Modifier.size(10.dp))
-        AccountDisplayName(accountSingleViewModel, accountsViewModel)
+        AccountDisplayName(accountSingleViewModel)
         Spacer(Modifier.size(10.dp))
         AccountUserId(accountSingleViewModel)
         Spacer(Modifier.size(10.dp))
@@ -207,7 +207,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
 }
 
 @Composable
-fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsViewModel: AccountsViewModel) {
+fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel) {
     val i18n = DI.get<I18nView>()
     val displayName = accountSingleViewModel.displayName.collectAsState().value
     var editDisplayName by (accountSingleViewModel.editDisplayName as TextFieldViewModel).collectAsTextFieldValueState()
@@ -222,7 +222,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsV
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = {
-                        accountsViewModel.cancelEditDisplayName(accountSingleViewModel.userId)
+                        accountSingleViewModel.cancelEditDisplayName()
                         editMode.value = false
                     },
                 ) {
@@ -238,7 +238,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsV
                         if (it.type == KeyEventType.KeyDown) {
                             when (it.key) {
                                 Key.Enter -> {
-                                    done(editMode, accountSingleViewModel, accountsViewModel)
+                                    done(editMode, accountSingleViewModel)
                                     true
                                 }
 
@@ -256,8 +256,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsV
                 keyboardActions = KeyboardActions(onDone = {
                     done(
                         editMode,
-                        accountSingleViewModel,
-                        accountsViewModel
+                        accountSingleViewModel
                     )
                 })
             )
@@ -276,7 +275,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsV
             Tooltip({ Text(i18n.commonAcceptEdit()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
-                    onClick = { done(editMode, accountSingleViewModel, accountsViewModel) },
+                    onClick = { done(editMode, accountSingleViewModel) },
                 ) {
                     EditIcon(Icons.Default.Check, i18n.commonAcceptEdit())
                 }
@@ -307,10 +306,9 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel, accountsV
 private fun done(
     editMode: MutableState<Boolean>,
     accountSingleViewModel: AccountSingleViewModel,
-    accountsViewModel: AccountsViewModel,
 ) {
     editMode.value = false
-    accountsViewModel.saveDisplayName(accountSingleViewModel.userId)
+    accountSingleViewModel.saveDisplayName()
 }
 
 @Composable
