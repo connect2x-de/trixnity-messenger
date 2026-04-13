@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.create
+import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
@@ -958,6 +962,47 @@ class InputAreaViewModelTest {
         }
     }
 
+    @Test
+    fun `previous DraftMessage is deleted when saving empty draft`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        delay(20)
+
+        cut.textField.update("")
+
+        eventually(3.seconds) {
+            draftMessage.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `previous DraftMessage is deleted, when destroying viewmodel`() = runTest {
+        val lifecycleRegistry = LifecycleRegistry()
+        lifecycleRegistry.create()
+
+        val cut = inputAreaViewModel(lifecycleRegistry)
+        subscribe(cut)
+
+        delay(20)
+
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        delay(20)
+
+        lifecycleRegistry.destroy()
+
+        eventually(500.milliseconds) {
+            draftMessage.value shouldBe null
+        }
+    }
+
     private fun roomUser(userId: UserId, name: String) = RoomUser(
         roomId, userId, name, StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
@@ -969,7 +1014,7 @@ class InputAreaViewModelTest {
         )
     )
 
-    private suspend fun TestScope.inputAreaViewModel(): InputAreaViewModelImpl {
+    private suspend fun TestScope.inputAreaViewModel(lifecycleRegistry: LifecycleRegistry? = null): InputAreaViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
@@ -979,7 +1024,11 @@ class InputAreaViewModelTest {
         }.koin
         di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())
         return InputAreaViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(di = di, userId = UserId("test", "server")),
+            viewModelContext = testMatrixClientViewModelContext(
+                di = di,
+                userId = UserId("test", "server"),
+                componentContext = DefaultComponentContext(lifecycleRegistry ?: LifecycleRegistry())
+            ),
             roomId = roomId,
             onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,
