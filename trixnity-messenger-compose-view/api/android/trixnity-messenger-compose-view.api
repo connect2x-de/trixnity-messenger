@@ -4055,6 +4055,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/room/Ro
 	public static final fun RoomListElement (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModel;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementViewModel;IZLandroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/room/RoomListElementSymbolsKt {
+	public static final fun RoomListElementSymbols (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/room/RoomListElementSymbolsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/room/RoomListElementSymbolsViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/room/RoomListElementSymbolsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/room/RoomListElementView {
 	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListViewModel;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/RoomListElementViewModel;IZLandroidx/compose/runtime/Composer;I)V
 }

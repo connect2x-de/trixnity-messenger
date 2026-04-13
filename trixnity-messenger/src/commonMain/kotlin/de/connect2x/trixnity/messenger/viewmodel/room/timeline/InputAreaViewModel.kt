@@ -320,6 +320,9 @@ open class InputAreaViewModelImpl(
     }
 
     suspend fun saveAsDraft(text: String = textField.value.text) {
+        if (text.isEmpty()) {
+            matrixClient.room.deleteDraftMessage(roomId)
+        }
         val references = TrixnityReference.findReferences(text)
         val userReferences =
             references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()

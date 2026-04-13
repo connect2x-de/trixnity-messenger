@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.roomlist.room
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +40,12 @@ fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementVi
             modifier = Modifier,
             horizontalAlignment = Alignment.End
         ) {
-            Box(Modifier.alpha(actionVisibility)) {
-                RoomTime(roomListElementViewModel)
+            Row {
+                RoomListElementSymbols(roomListElementViewModel)
+                VerySmallSpacer()
+                Box(Modifier.alpha(actionVisibility)) {
+                    RoomTime(roomListElementViewModel)
+                }
             }
             VerySmallSpacer()
             NotificationAndUnreadMarker(notificationCount, isUnread)
