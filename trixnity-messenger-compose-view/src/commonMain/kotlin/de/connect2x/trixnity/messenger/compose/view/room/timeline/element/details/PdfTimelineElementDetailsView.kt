@@ -258,7 +258,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             additionalIndicators = {
                 PageIndicator(lazyListState, reader.value?.numOfPages?.value, focusRequester)
             },
-            additions = {
+            additionalButtons = {
                 ZoomButtons({
                     scope.launch {
                         val prevCanZoom = canZoom.value

@@ -20,7 +20,7 @@ fun FileBasedDetailsDialog(
     onSave: () -> Unit,
     onClose: () -> Unit,
     additionalIndicators: (@Composable RowScope.() -> Unit)? = null,
-    additions: @Composable RowScope.() -> Unit = {},
+    additionalButtons: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     Dialog(
@@ -32,7 +32,7 @@ fun FileBasedDetailsDialog(
                 style = MaterialTheme.components.fileViewerSurface,
             ) {
                 Column(Modifier.fillMaxSize()) {
-                    FileBasedDetailsHeader(element, onSave, onClose, additionalIndicators, additions)
+                    FileBasedDetailsHeader(element, onSave, onClose, additionalIndicators, additionalButtons)
                     Box(Modifier.fillMaxSize()) {
                         content()
                     }
