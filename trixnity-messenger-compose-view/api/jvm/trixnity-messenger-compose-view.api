@@ -2647,13 +2647,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsDialogKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsDialogKt;
 	public fun <init> ()V
-	public final fun getLambda$1358520081$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-2106876684$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsHeaderKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$FileBasedDetailsHeaderKt;
 	public fun <init> ()V
-	public final fun getLambda$1263901129$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$337133129$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$PdfTimelineElementDetailsViewKt {
@@ -2661,13 +2661,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 	public fun <init> ()V
 	public final fun getLambda$-1801596070$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 	public final fun getLambda$-607799581$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$937887227$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1864641980$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$PreviewNotSupportedTimelineElementDetailsViewKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ComposableSingletons$PreviewNotSupportedTimelineElementDetailsViewKt;
 	public fun <init> ()V
-	public final fun getLambda$1226496329$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1722716760$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/ElementDetailsViewSelector : de/connect2x/trixnity/messenger/compose/view/room/timeline/element/TimelineElementViewFactorySelector {
@@ -2687,11 +2687,11 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/el
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/FileBasedDetailsDialogKt {
-	public static final fun FileBasedDetailsDialog (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun FileBasedDetailsDialog (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/element/details/FileBasedDetailsHeaderKt {
-	public static final fun FileBasedDetailsHeader (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun FileBasedDetailsHeader (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun FileBasedDetailsHeaderButton (Landroidx/compose/ui/graphics/vector/ImageVector;Ljava/lang/String;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;II)V
 }
 

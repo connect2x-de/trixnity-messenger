@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: OAuth2 allow for setting the `login_hint` query-parameter
 - CI: Use new Android emulator docker image
 - SDK: Don't ship font per default
+- UI: Group buttons in pdf viewer layout
 
 ### Deprecated
 
