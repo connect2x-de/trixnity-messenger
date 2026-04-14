@@ -422,7 +422,6 @@ class MatrixClientsTest {
             GetSystemLang { "en" },
             TimeZone.of("CET"),
         ) {},
-        configurer = listOf(),
         matrixClients = mutableMatrixClients,
     )
 }

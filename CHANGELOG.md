@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,ANDROID,IOS,MACOS: First-class support for notification count app icon badges
 - SDK: A separate package which provides Nunito as Font for the application
 - SDK, UI: Toggle between bundled and system Font
+- SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow for customizing the `MatrixClient` via
+  configuration
 
 ### Changed
 
@@ -30,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `MatrixClientViewModelContext`
 - UI: **breaking change**: introduced `AccountSingleSettingsView` to allow customizations of settings for an account
   instead of overriding the settings container for all accounts
+- SDK: **breaking change**: `MatrixClientServerApiClientFactory` cannot be used inside Trixnity Messenger DI anymore.
+  Extend `MatrixClientFactory` instead
+- SDK: **breaking change**: `EventContentSerializerMappings` passed to the DI are not picked up anymore. Instead,
+  `CustomEventContentSerializerMappings` are now picked up from the
+  `MatrixMessengerConfiguration.clientConfiguration.moduleFactories`
 
 ### Deprecated
 

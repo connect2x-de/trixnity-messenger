@@ -1,11 +1,6 @@
 package de.connect2x.trixnity.messenger
 
-import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
-import de.connect2x.trixnity.core.MSC3814
-import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
-import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -31,7 +26,6 @@ import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavourImpl
-import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
@@ -197,50 +191,11 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
 
-fun interface ConfigureMatrixClientConfiguration {
-    operator fun MatrixClientConfiguration.invoke()
-}
-
-fun interface DebugName {
-    operator fun invoke(): String
-}
-
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
     {
         module {
             single<Clock> { Clock.System }
             single<TimeZone> { TimeZone.currentSystemDefault() }
-
-            single<ConfigureMatrixClientConfiguration>(named("DefaultConfigureMatrixClientConfiguration")) {
-                val config = get<MatrixMessengerConfiguration>()
-                val relevantTimelineEvents = get<RelevantTimelineEvents>()
-                val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
-                ConfigureMatrixClientConfiguration {
-                    name = getOrNull<DebugName>()?.invoke()
-                    markOwnMessageAsRead = true
-                    enableExternalNotifications = true
-                    httpClientEngine = config.httpClientEngine
-                    httpClientConfig = config.httpClientConfig
-                    @OptIn(MSC3814::class)
-                    experimentalFeatures.enableMSC3814 = true
-                    lastRelevantEventFilter =
-                        { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
-                    if (eventContentSerializerMappings.isNotEmpty()) {
-                        modulesFactories += {
-                            module {
-                                single<EventContentSerializerMappings> {
-                                    eventContentSerializerMappings
-                                        .fold(EventContentSerializerMappings.default) { a, b -> a + b }
-                                }
-                            }
-                        }
-                    }
-                    getOrNull<MatrixClientServerApiClientFactory>()?.let {
-                        matrixClientServerApiClientFactory = it
-                    }
-                }
-            }
-
             single<MatrixClientFactory> {
                 MatrixClientFactoryImpl(
                     secretByteArrays = get(),
@@ -248,6 +203,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     createMediaStoreModule = get(),
                     createCryptoDriverModule = get(),
                     appCoroutineContext = get<CoroutineScope>().coroutineContext,
+                    messengerConfiguration = get(),
                 )
             }
             single<MatrixClients> {
@@ -258,7 +214,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     config = get(),
                     secretByteArrays = get(),
                     i18n = get(),
-                    configurer = getAll()
                 )
             }.apply {
                 bind<AutoCloseable>()
@@ -268,7 +223,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
             single<Initials> { InitialsImpl(get()) }
             single<VerifyAccount> { VerifyAccountImpl() }
-            single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
             single<Languages> { DefaultLanguages }
             single<I18n> { I18n(get(), get(), get(), get()) }

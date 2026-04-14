@@ -79,7 +79,6 @@ class MatrixClientsImpl(
     private val config: MatrixMessengerConfiguration,
     private val secretByteArrays: SecretByteArrays,
     private val i18n: I18n,
-    private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
 ) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     companion object {
@@ -121,9 +120,7 @@ class MatrixClientsImpl(
             val matrixClient = matrixClientFactory.create(
                 userId = userId,
                 authProviderData = authProviderData,
-            ) {
-                configurer.forEach { with(it) { invoke() } }
-            }.getOrThrow()
+            ).getOrThrow()
             add(matrixClient)
             matrixClient
         }.fold(
@@ -212,9 +209,7 @@ class MatrixClientsImpl(
                             runCatching {
                                 matrixClientFactory.load(
                                     userId = account,
-                                ) {
-                                    configurer.forEach { with(it) { invoke() } }
-                                }.getOrThrow()
+                                ).getOrThrow()
                             }.onSuccess {
                                 success.update { it + account }
                             }.onFailure { e ->
