@@ -172,7 +172,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                 Tooltip({ Text(i18n.audioRecordingSend()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.primaryIconButton,
-                        onClick = { audioRecordingAreaViewModel.sendAudioRecording() },
+                        onClick = { audioRecordingAreaViewModel.sendAudioMessage() },
                         modifier = Modifier.padding(start = 15.dp),
                     ) {
                         Icon(

@@ -224,6 +224,7 @@ open class InputAreaViewModelImpl(
         get<AudioRecordingAreaViewModelFactory>().create(
             childContext("audioRecordingAreaViewModel"),
             roomId,
+            ::sendAudioMessage
         )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
@@ -356,6 +357,23 @@ open class InputAreaViewModelImpl(
         currentReply.value?.also {
             currentReply.value = null
             onMessageReplyFinished(it.first, it.second)
+        }
+    }
+
+    private fun sendAudioMessage(audioMessage: suspend MessageBuilder.() -> Unit) {
+        coroutineScope.launch {
+            val repliedEvent = currentReply.value
+            log.debug { "send audio message" }
+            matrixClient.room.sendMessage(roomId) {
+                when {
+                    repliedEvent != null -> {
+                        reply(repliedEvent)
+                    }
+                }
+                audioMessage()
+            }
+            audio.recorder?.close()
+            resetCurrentReply()
         }
     }
 
