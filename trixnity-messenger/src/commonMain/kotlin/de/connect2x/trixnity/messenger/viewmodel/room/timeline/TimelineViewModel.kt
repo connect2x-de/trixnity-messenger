@@ -887,6 +887,7 @@ class TimelineViewModelImpl(
                             }
                         }
 
+                    // We don't sroll/mark as read when the UI has changed the visible elements during the calculation
                     if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
                         log.trace { "finished load more timeline events after" }
 
@@ -951,7 +952,7 @@ class TimelineViewModelImpl(
         }
         val scrollToKey = lastOutboxElementKey ?: lastTimelineEventKey
         log.debug { "jump to end of timeline (key=$scrollToKey)" }
-        scrollTo.emit(scrollToKey).also { log.error { "Scrolling from jump to end" } }
+        scrollTo.emit(scrollToKey)
     }
 
     internal fun jumpTo(roomId: RoomId, eventId: EventId) {
