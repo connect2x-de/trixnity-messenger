@@ -155,7 +155,7 @@ object CommonAudioRecorder {
     fun onMaxDuration(state: AudioRecorder.State, callback: () -> Unit) {
         when (state) {
             is AudioRecorder.State.Recording -> {
-                if (state.duration >= 2.hours) {
+                if (state.duration >= 5.hours) {
                     callback()
                 }
             }

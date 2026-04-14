@@ -139,16 +139,18 @@ class InputAreaViewImpl : InputAreaView {
             @Composable
             fun StartAudioRecordingButton() {
                 AnimatedVisibility(canRecordAudio && isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.primaryIconButton,
-                        onClick = {
-                            inputAreaViewModel.audio.recorder?.start()
-                        },
-                    ) {
-                        Icon(
-                            Icons.Default.Mic,
-                            "TODO: Audio",
-                        )
+                    Tooltip(i18n.inputAreaStartAudioRecording()) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.primaryIconButton,
+                            onClick = {
+                                inputAreaViewModel.audio.recorder?.start()
+                            },
+                        ) {
+                            Icon(
+                                Icons.Default.Mic,
+                                i18n.inputAreaStartAudioRecording(),
+                            )
+                        }
                     }
                 }
             }

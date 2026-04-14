@@ -1305,6 +1305,36 @@ open class I18nView(
         DE - "Emojis"
     }
 
+    open fun inputAreaStartAudioRecording() = translate {
+        EN - "record voice message"
+        DE - "Sprachnachricht aufnehmen"
+    }
+
+    open fun audioRecordingSend() = translate {
+        EN - "send voice message"
+        DE - "Sprachnachricht senden"
+    }
+
+    open fun audioRecordingStop() = translate {
+        EN - "stop voice recording without sending"
+        DE - "Sprachaufnahme stoppen ohne zu senden"
+    }
+
+    open fun audioRecordingInProgress() = translate {
+        EN - "voice recording in progress"
+        DE - "Sprachaufnahme im Gange"
+    }
+
+    open fun audioRecordingDelete() = translate {
+        EN - "delete voice recording"
+        DE - "Sprachaufnahme löschen"
+    }
+
+    open fun audioRecordingPreviewUnavailable() = translate {
+        EN - "Preview unavailable."
+        DE - "Vorschau nicht verfügbar."
+    }
+
     open fun inputAreaSelectAttachment() = translate {
         EN - "select attachment"
         DE - "Anhang auswählen"

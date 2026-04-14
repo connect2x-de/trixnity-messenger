@@ -7,11 +7,12 @@ import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.CommonAudioRecorder.CommonState
 import de.connect2x.trixnity.messenger.media.CommonAudioRecorder.sampleToPublicState
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
-import de.connect2x.trixnity.messenger.util.requestPermissionActivityResult
+import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,7 @@ internal class AndroidAudioRecorder(
     private val fileSystem: FileSystem,
     private val getContext: ContextGetter,
     private val getActivity: ActivityGetter,
+    private val i18n: I18n,
     parentScope: CoroutineScope
 ) : AudioRecorder {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidAudioRecorder")
@@ -43,19 +45,17 @@ internal class AndroidAudioRecorder(
             .onEach { CommonAudioRecorder.onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    var requestPermission: ActivityResultLauncher<String>? = null
+    var registeredRequestPermission: ActivityResultLauncher<String>? = null
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override suspend fun startSuspending() {
         fun requestPermission() {
-            if (requestPermission == null) {
-                requestPermission = requestPermissionActivityResult(
-                    getActivity(),
-                    Manifest.permission.RECORD_AUDIO,
-                    "Microphone"
-                )
-            }
-            requestPermission?.launch(Manifest.permission.RECORD_AUDIO)
+            registeredRequestPermission?.unregister()
+            registeredRequestPermission = requestRecordPermissionActivityResult(
+                getActivity(),
+                i18n.audioRecordingManuallyGiveMicrophonePermissionPrompt()
+            )
+            registeredRequestPermission?.launch(Manifest.permission.RECORD_AUDIO)
         }
 
         close()
@@ -75,14 +75,14 @@ internal class AndroidAudioRecorder(
     }
 
     override fun close() {
-        requestPermission?.unregister()
+        registeredRequestPermission?.unregister()
         commonState.update {
             CommonAudioRecorder.close(it)
         }
     }
 
     private suspend fun startRecorder() {
-        requestPermission?.unregister()
+        registeredRequestPermission?.unregister()
         withContext(Dispatchers.IO) {
             val recorder =
                 if (Build.VERSION.SDK_INT >= 31) {

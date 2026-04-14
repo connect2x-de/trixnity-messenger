@@ -66,7 +66,8 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
     override fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {
         val player = audioRecordingAreaViewModel.capturePlayer.collectAsState().value
         val recorderState = audioRecordingAreaViewModel.recorder?.state?.collectAsState()?.value
-        
+        val i18n = DI.get<I18nView>()
+
         @Composable
         fun LoudnessAnimationCircle(currentLoudness: Float) {
             Row(
@@ -127,7 +128,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             )
             Icon(
                 Icons.Default.Circle,
-                "TODO: currently recording",
+                i18n.audioRecordingInProgress(),
                 tint = pulsatingRed.value,
                 modifier = Modifier.padding(start = 7.dp)
             )
@@ -136,17 +137,24 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
 
             LoudnessAnimationCircle(recordingState.loudness)
 
-            ThemedIconButton(
-                style = MaterialTheme.components.primaryIconButton,
-                onClick = {
-                    audioRecordingAreaViewModel.recorder?.complete()
-                },
-            ) {
-                Icon(
-                    Icons.Default.Stop,
-                    "TODO: Audio",
-                )
+            Tooltip({ Text(i18n.audioRecordingStop()) }) {
+                ThemedIconButton(
+                    style = MaterialTheme.components.primaryIconButton,
+                    onClick = {
+                        audioRecordingAreaViewModel.recorder?.complete()
+                    },
+                ) {
+                    Icon(
+                        Icons.Default.Stop,
+                        i18n.audioRecordingStop(),
+                    )
+                }
             }
+        }
+
+        @Composable
+        fun AudioPlayerFallback() {
+            Text(i18n.audioRecordingPreviewUnavailable())
         }
 
         @Composable
@@ -155,14 +163,13 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             fun AudioPlayer(player: MediaPlayerViewModel) {
                 DI.current.get<AudioPlayerView>().CreateWithViewModelDuration(
                     viewModel = player,
-                    fallbackView = {  } // TODO: Test how this looks
+                    fallbackView = { AudioPlayerFallback() }
                 )
             }
 
             @Composable
             fun SendButton(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {
-                val i18n = DI.get<I18nView>()
-                Tooltip({ Text(i18n.inputAreaSend()) }) {
+                Tooltip({ Text(i18n.audioRecordingSend()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.primaryIconButton,
                         onClick = { audioRecordingAreaViewModel.sendAudioRecording() },
@@ -170,20 +177,20 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.Send,
-                            i18n.inputAreaSend(),
+                            i18n.audioRecordingSend(),
                         )
                     }
                 }
             }
 
-            Tooltip({ Text("TODO") }) {
+            Tooltip({ Text(i18n.audioRecordingDelete()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.destructiveIconButton,
                     onClick = { audioRecordingAreaViewModel.recorder?.close() },
                 ) {
                     Icon(
                         Icons.Default.Delete,
-                        "TODO",
+                        i18n.audioRecordingDelete(),
                     )
                 }
             }
@@ -196,8 +203,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                 if (player != null) {
                     AudioPlayer(player)
                 } else {
-                    // TODO
-                    Text("No player")
+                    AudioPlayerFallback()
                 }
             }
 

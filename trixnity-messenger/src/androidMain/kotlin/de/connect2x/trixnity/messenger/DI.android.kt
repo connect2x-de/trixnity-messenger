@@ -24,6 +24,6 @@ actual fun platformModule(): Module = module {
         AndroidMediaPlayer(get(), get())
     }
     single<AudioRecorder> {
-        AndroidAudioRecorder(get(),get(), get(), get(), get())
+        AndroidAudioRecorder(get(),get(), get(), get(), get(), get())
     }
 }

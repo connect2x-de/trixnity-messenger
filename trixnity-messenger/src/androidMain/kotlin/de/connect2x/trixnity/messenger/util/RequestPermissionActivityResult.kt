@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.util
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -35,7 +36,7 @@ private fun <I, O> registerActivityResultIgnoreLifecycle(
 fun requestPermissionActivityResult(
     activity: ComponentActivity,
     permission: String,
-    permissionSettingNameUi: String,
+    manuallyGivePermissionPrompt: String,
 ): ActivityResultLauncher<String> {
     return registerActivityResultIgnoreLifecycle(
         activity,
@@ -53,8 +54,7 @@ fun requestPermissionActivityResult(
             } else {
                 log.debug { "Permission denied permanently. Redirecting to Android app settings..." }
                 activity.runOnUiThread {
-                    // TODO: translate
-                    Toast.makeText(activity, "Go to Permissions and allow $permissionSettingNameUi", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, manuallyGivePermissionPrompt, Toast.LENGTH_LONG).show()
                 }
                 val intent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
@@ -64,4 +64,15 @@ fun requestPermissionActivityResult(
             }
         }
     }
+}
+
+fun requestRecordPermissionActivityResult(
+    activity: ComponentActivity,
+    manuallyGivePermissionPrompt: String,
+): ActivityResultLauncher<String> {
+    return requestPermissionActivityResult(
+        activity,
+        Manifest.permission.RECORD_AUDIO,
+        manuallyGivePermissionPrompt
+    )
 }

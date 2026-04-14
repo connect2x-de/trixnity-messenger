@@ -15,6 +15,7 @@ interface AudioRecorder : AutoCloseable {
     
     sealed interface State {
         object Ready : State
+
         data class Recording(val duration: Duration, val loudness: Float) : State
 
         data class Completed(
@@ -22,6 +23,6 @@ interface AudioRecorder : AutoCloseable {
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
-        ) : State// TODO: Doc: Could be used to display preview
+        ) : State
     }
 }
