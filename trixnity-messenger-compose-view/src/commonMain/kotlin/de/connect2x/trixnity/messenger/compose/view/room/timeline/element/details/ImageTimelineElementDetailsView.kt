@@ -86,7 +86,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
             element.loadMedia()
         }
 
-        FileBasedDetailsDialog(element, onSave, onClose, additions = { ZoomButtons(zoom) }) {
+        FileBasedDetailsDialog(element, onSave, onClose, additionalButtons = { ZoomButtons(zoom) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {

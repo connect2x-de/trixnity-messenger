@@ -32,6 +32,7 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptV
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
 import org.koin.core.component.get
 import org.koin.core.component.inject
+import kotlin.concurrent.atomics.AtomicReference
 import kotlin.reflect.KClass
 
 interface OAuth2LoginViewModelFactory {
@@ -108,14 +109,21 @@ open class OAuth2LoginViewModelImpl(
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
 
     private val flow: MutableStateFlow<OAuth2LoginFlow> = MutableStateFlow(makeLoginFlow())
-    private fun makeLoginFlow(loginHint: String? = null) = MatrixClientAuthProviderData.oAuth2Login(
+    private fun makeLoginFlow(
+        loginHint: String? = null,
+        promptValue: PromptValue? = null
+    ) = MatrixClientAuthProviderData.oAuth2Login(
         baseUrl = Url(serverUrl),
         applicationType = platformApplicationType,
         clientUri = config.oAuth2ClientUrl,
         redirectUri = "${config.appUri}/${config.appUriOAuth2Redirect}",
         responseMode = ResponseMode.Fragment,
         clientName = LocalizedField(getDefaultDeviceDisplayName()),
-        promptValue = if (type == OAuth2LoginViewModel.Type.REGISTER) PromptValue.Create else null,
+        promptValue = when {
+            promptValue != null -> promptValue
+            type == OAuth2LoginViewModel.Type.REGISTER -> PromptValue.Create
+            else -> null
+        },
         initialState = initialState,
         httpClientEngine = config.httpClientEngine,
         httpClientConfig = config.httpClientConfig,
@@ -131,7 +139,7 @@ open class OAuth2LoginViewModelImpl(
         if (checkState(State.None::class, requestedState = State.StartLogin)) {
             coroutineScope.launch {
                 log.debug { "start login" }
-                flow.updateAndGet { makeLoginFlow(loginHint.value) }.createAuthRequest()
+                flow.updateAndGet { makeLoginFlow(loginHint.load(), promptValue.load()) }.createAuthRequest()
                     .onSuccess { authRequestData ->
                         log.debug { "createAuthRequest successful" }
                         messengerSettings.update<MatrixMessengerSettingsBase> {
@@ -205,11 +213,18 @@ open class OAuth2LoginViewModelImpl(
         back()
     }
 
-    private val loginHint: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val loginHint: AtomicReference<String?> = AtomicReference(null)
 
     @TrixnityMessengerPrivateApi
     fun setLoginHint(hint: String?) {
-        loginHint.value = hint
+        loginHint.store(hint)
+    }
+
+    private val promptValue: AtomicReference<PromptValue?> = AtomicReference(null)
+
+    @TrixnityMessengerPrivateApi
+    fun setPromptValue(value: PromptValue?) {
+        promptValue.store(value)
     }
 
     init {
