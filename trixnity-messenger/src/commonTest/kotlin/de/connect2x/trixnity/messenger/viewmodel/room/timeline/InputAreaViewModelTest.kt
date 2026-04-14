@@ -981,7 +981,7 @@ class InputAreaViewModelTest {
     }
 
     @Test
-    fun `previous DraftMessage is deleted, when destroying viewmodel`() = runTest {
+    fun `previous DraftMessage is deleted when destroying viewmodel`() = runTest {
         val lifecycleRegistry = LifecycleRegistry()
         lifecycleRegistry.create()
 
