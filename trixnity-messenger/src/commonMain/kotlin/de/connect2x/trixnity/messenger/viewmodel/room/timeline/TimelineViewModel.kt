@@ -814,6 +814,10 @@ class TimelineViewModelImpl(
             .distinctUntilChanged()
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+
+    /**
+     * Update the timeline elements and scroll to the bottom if a new event has been added and we were at the bottom of the timeline
+     */
     private fun continuouslyLoadAndScroll() {
         coroutineScope.launch {
             // only start when a view state is set
@@ -871,8 +875,6 @@ class TimelineViewModelImpl(
                     }
                 }
                 if (isInBufferAfter) {
-                    val lastEventIdBeforeChange = matrixClient.room.getById(roomId).first()?.lastEventId
-
                     log.debug { "load timeline events after" }
                     val timelineStateChange =
                         coroutineScope {
@@ -885,25 +887,31 @@ class TimelineViewModelImpl(
                             }
                         }
 
-                    if (timelineStateChange != null) {
+                    if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
                         log.trace { "finished load more timeline events after" }
-                        val indexOfLastEventIdBeforeChange by lazy {
-                            timelineElements.indexOfLast { it.eventId == lastEventIdBeforeChange && it.roomId == roomId }
-                        }
 
-                        if (timelineStateChange.addedElements.isNotEmpty()
-                            && viewState.value?.timelineIsFocused == true
-                            && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
+                        val previousLastElement = timelineStateChange.elementsBeforeChange.last()
+                        val addedElementsAtEnd =
+                            timelineStateChange.addedElements.isNotEmpty()
+                                    && timelineStateChange.elementsAfterChange.firstOrNull { it.key == previousLastElement.key } != null
+                                    && previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
+
+                        val wasAtEndOfTimeline =
+                            timelineStateChange.elementsBeforeChange.last().key == lastVisibleTimelineElement?.key
+
+                        if (viewState.value?.timelineIsFocused == true
+                            && addedElementsAtEnd
+                            && wasAtEndOfTimeline
                         ) {
                             val newLastEvent = timelineStateChange.addedElements.last().key
 
                             val currentReadEvent = readEvent.value
-                            log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement?.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
+                            log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
                             log.debug { "new timeline events has been added at the end of timeline, scroll to end of timeline" }
                             jumpToEndOfTimelineSuspending()
                             if (
-                                lastVisibleTimelineElement?.roomId == currentReadEvent?.first
-                                && lastVisibleTimelineElement?.eventId == currentReadEvent?.second
+                                lastVisibleTimelineElement.roomId == currentReadEvent?.first
+                                && lastVisibleTimelineElement.eventId == currentReadEvent.second
                             ) {
                                 log.debug { "new timeline events has been added at the end of timeline -> mark as fully read" }
                                 // wait for new element be part of the StateFlows (used by markAsRead)
@@ -943,17 +951,19 @@ class TimelineViewModelImpl(
         }
         val scrollToKey = lastOutboxElementKey ?: lastTimelineEventKey
         log.debug { "jump to end of timeline (key=$scrollToKey)" }
-        scrollTo.emit(scrollToKey)
+        scrollTo.emit(scrollToKey).also { log.error { "Scrolling from jump to end" } }
     }
 
-    private fun jumpTo(roomId: RoomId, eventId: EventId) {
+    internal fun jumpTo(roomId: RoomId, eventId: EventId) {
         coroutineScope.launch {
             var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
             if (element == null) {
                 log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
                 timelineStartFrom.emit(eventId)
-                timeline.state.first()
-                element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+                element = withTimeoutOrNull(1.seconds) {
+                    timelineElements.mapNotNull { it.firstOrNull { it.eventId == eventId && it.roomId == roomId } }
+                        .first()
+                }
             }
 
             if (element == null) {
