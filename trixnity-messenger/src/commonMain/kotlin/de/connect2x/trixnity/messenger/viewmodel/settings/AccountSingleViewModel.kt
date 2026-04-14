@@ -42,6 +42,7 @@ interface ProfileSingleViewModelFactory {
         )
     }
 
+    @Suppress("DEPRECATION")
     companion object : ProfileSingleViewModelFactory
 }
 

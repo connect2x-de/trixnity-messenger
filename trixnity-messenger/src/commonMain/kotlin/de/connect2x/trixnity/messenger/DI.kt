@@ -241,7 +241,15 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                 }
             }
 
-            single<MatrixClientFactory> { MatrixClientFactory }
+            single<MatrixClientFactory> {
+                MatrixClientFactoryImpl(
+                    secretByteArrays = get(),
+                    createRepositoriesModule = get(),
+                    createMediaStoreModule = get(),
+                    createCryptoDriverModule = get(),
+                    appCoroutineContext = get<CoroutineScope>().coroutineContext,
+                )
+            }
             single<MatrixClients> {
                 MatrixClientsImpl(
                     matrixClientFactory = get(),
@@ -249,10 +257,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
                     settings = get(),
                     config = get(),
                     secretByteArrays = get(),
-                    createRepositoriesModule = get(),
-                    createMediaStoreModule = get(),
-                    createCryptoDriverModule = get(),
-                    appCoroutineContext = get<CoroutineScope>().coroutineContext,
                     i18n = get(),
                     configurer = getAll()
                 )

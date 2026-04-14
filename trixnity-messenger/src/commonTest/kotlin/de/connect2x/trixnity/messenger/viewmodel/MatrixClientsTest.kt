@@ -1,8 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.CreateCryptoDriverModule
-import de.connect2x.trixnity.messenger.CreateMediaStoreModule
-import de.connect2x.trixnity.messenger.CreateRepositoriesModule
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.client.AuthenticationApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType.User
+import de.connect2x.trixnity.clientserverapi.model.authentication.Login
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClientFactory
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -39,19 +44,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.CryptoDriverModule
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.MediaStoreModule
-import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.client.cryptodriver.vodozemac.vodozemac
-import de.connect2x.trixnity.client.media.inMemory
-import de.connect2x.trixnity.clientserverapi.client.AuthenticationApiClient
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType.User
-import de.connect2x.trixnity.clientserverapi.model.authentication.Login
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
@@ -75,17 +67,6 @@ class MatrixClientsTest {
 
     private val matrixClientMock1 = mock<MatrixClient>()
     private val matrixClientMock2 = mock<MatrixClient>()
-    private val repositoriesModule1 = mock<RepositoriesModule>()
-    private val repositoriesModule2 = mock<RepositoriesModule>()
-    private val createRepositoriesModule = mock<CreateRepositoriesModule> {
-        everySuspend { generateDatabaseKey() } returns null
-        everySuspend { create(userId1, any()) } returns repositoriesModule1
-        everySuspend { create(userId2, any()) } returns repositoriesModule2
-        everySuspend { load(userId1, any()) } returns repositoriesModule1
-        everySuspend { load(userId2, any()) } returns repositoriesModule2
-    }
-    private val createMediaStoreModule = mock<CreateMediaStoreModule>()
-    private val createCryptoDriverModule = mock<CreateCryptoDriverModule>()
     private val matrixClientServerApiClient = mock<MatrixClientServerApiClient>()
     private val authenticationApiClient = mock<AuthenticationApiClient>()
     private val matrixClientFactory = mock<MatrixClientFactory>()
@@ -95,22 +76,40 @@ class MatrixClientsTest {
     private val settings: MatrixMessengerSettingsHolder = createTestMatrixMessengerSettingsHolder()
 
     private var createCalled = false
+    private var loadCalled = false
     private var logoutCalled = false
     private var createCalledCount = 0
+    private var loadCalledCount = 0
 
     private val createMatrixClient: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
-        matrixClientFactory.create(any(), any(), any(), any(), any(), any())
+        matrixClientFactory.create(any(), any(), any())
+    }
+
+    private val loadMatrixClient: SuspendAnsweringScope<Result<MatrixClient>> = everySuspend {
+        matrixClientFactory.load(any(), any(), any())
     }
 
     init {
         createMatrixClient calls {
-            val repositoriesModule = it.args[0] as? RepositoriesModule
+            val userId = it.args[0] as? UserId
             createCalled = true
             createCalledCount++
-            val matrixClient = when (repositoriesModule) {
-                repositoriesModule1 -> matrixClientMock1
-                repositoriesModule2 -> matrixClientMock2
-                else -> fail("unconfigured repositories module $repositoriesModule")
+            val matrixClient = when (userId) {
+                userId1 -> matrixClientMock1
+                userId2 -> matrixClientMock2
+                else -> fail("unconfigured repositories module $userId")
+            }
+            Result.success(matrixClient)
+        }
+
+        loadMatrixClient calls {
+            val userId = it.args[0] as? UserId
+            loadCalled = true
+            loadCalledCount++
+            val matrixClient = when (userId) {
+                userId1 -> matrixClientMock1
+                userId2 -> matrixClientMock2
+                else -> fail("unconfigured repositories module $userId")
             }
             Result.success(matrixClient)
         }
@@ -135,8 +134,6 @@ class MatrixClientsTest {
         }
         everySuspend { secretByteArrays.set(any(), any()) } returns Unit
         everySuspend { secretByteArrays.get(any()) } returns null
-        everySuspend { createMediaStoreModule.invoke(any()) } returns MediaStoreModule.inMemory()
-        everySuspend { createCryptoDriverModule.invoke() } returns CryptoDriverModule.vodozemac()
         everySuspend {
             authenticationApiClient.login(
                 identifier = any(),
@@ -171,6 +168,11 @@ class MatrixClientsTest {
     @BeforeTest
     fun setup() {
         configureTestLogging()
+        createCalled = false
+        createCalledCount = 0
+        logoutCalled = false
+        loadCalled = false
+        loadCalledCount = 0
     }
 
     @Test
@@ -231,7 +233,7 @@ class MatrixClientsTest {
             userId1 to matrixClientMock1,
             userId2 to matrixClientMock2,
         )
-        createCalled shouldBe true
+        loadCalled shouldBe true
     }
 
     @Test
@@ -251,14 +253,14 @@ class MatrixClientsTest {
             userId1 to matrixClientMock1,
             userId2 to matrixClientMock2,
         )
-        createCalledCount shouldBe 1
+        loadCalledCount shouldBe 1
     }
 
     @Test
     fun `initFromStore » have failure when init from store is not possible`() = runTest {
         val cut = createCut()
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        createMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
+        loadMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
 
         val result = cut.initFromStore()
 
@@ -279,7 +281,7 @@ class MatrixClientsTest {
 
         result shouldBe MatrixClients.InitFromStoreResult(setOf(id), mapOf())
         cut.value shouldBe mapOf(id to matrixClientMock1)
-        createCalled shouldBe true
+        loadCalled shouldBe true
 
         cut.remove(id)
         cut.initFromStoreResult.value shouldBe MatrixClients.InitFromStoreResult(setOf(), mapOf())
@@ -292,7 +294,7 @@ class MatrixClientsTest {
 
         settings.create(id, MatrixMessengerAccountSettingsBase())
 
-        createMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
+        loadMatrixClient returns Result.failure(MatrixClientInitializationException.DatabaseAccessException())
 
         val result = cut.initFromStore()
 
@@ -413,11 +415,7 @@ class MatrixClientsTest {
                 }
             }
         },
-        createRepositoriesModule = createRepositoriesModule,
-        createMediaStoreModule = createMediaStoreModule,
-        createCryptoDriverModule = createCryptoDriverModule,
         secretByteArrays = secretByteArrays,
-        appCoroutineContext = backgroundScope.coroutineContext,
         i18n = object : I18n(
             DefaultLanguages,
             createTestMatrixMessengerSettingsHolder(),
