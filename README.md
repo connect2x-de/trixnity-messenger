@@ -185,7 +185,8 @@ addFcmPushNotificationProvider()
 
 Trixnity Messenger uses the System Font per default.
 This behavior can be changed by providing a custom implementation of `ThemeTypography`.
-One such custom implementation setting the font to Nunito can be found in `trixnity-messenger-compose-view-typography-nunito`.
+One such custom implementation setting the font to Nunito can be found in
+`trixnity-messenger-compose-view-typography-nunito`.
 
 To use Nunito instead of the System Font, a DSL in `MatrixMultiMessengerConfiguration` can be used similar to above.
 
@@ -369,8 +370,20 @@ data class CatEventContent(
     override val externalUrl: String? = null
 }
 
-val catEventContentSerializerMappings = createEventContentSerializerMappings {
-    stateOf<CatEventContent>("de.connect2x.cat")
+val catEventClientModule = module {
+    single<CustomEventContentSerializerMappings>(named("CatEvent")) {
+        CustomEventContentSerializerMappings {
+            stateOf<CatEventContent>("de.connect2x.cat")
+        }
+    }
+}
+```
+
+And add it to the client DI:
+
+```kotlin
+clientConfiguration {
+    moduleFactories += ::catEventClientModule
 }
 ```
 
@@ -422,18 +435,17 @@ class CatMessageMessageTimelineElementView : TimelineElementView<CatMessageTimel
 }
 ```
 
-Next, add it to the DI:
+Next, add both to the messenger DI:
 
 ```kotlin
-fun catEventModule() = modules {
-    // don't forget to name the singleton
-    single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
+fun catEventMessengerModule() = modules {
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
 
-// add the module to the matrix messenger:
-moduleFactories += ::catEventModule
+messengerConfiguration {
+    moduleFactories += ::catEventMessengerModule
+}
 ```
 
 If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement

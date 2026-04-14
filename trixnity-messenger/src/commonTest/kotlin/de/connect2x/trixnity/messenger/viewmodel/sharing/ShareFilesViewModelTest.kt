@@ -109,7 +109,6 @@ class ShareFilesViewModelTest {
                             config = get(),
                             secretByteArrays = get(),
                             i18n = i18n,
-                            configurer = emptyList(),
                             matrixClients = MutableStateFlow(mapOf(ourUserId to matrixClientMock))
                         )
                     }

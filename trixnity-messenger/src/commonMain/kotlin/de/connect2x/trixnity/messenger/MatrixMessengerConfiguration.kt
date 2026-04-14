@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import de.connect2x.trixnity.client.ModuleFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -109,6 +110,11 @@ data class MatrixMessengerConfiguration(
     var cryptoDriver: CryptoDriver = CryptoDriver.VODOZEMAC,
 
     /**
+     * Consider using [clientConfiguration], as it can be called multiple times.
+     */
+    var client: MatrixClientConfiguration.() -> Unit = { },
+
+    /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
      */
     override var httpClientEngine: HttpClientEngine? = null,
@@ -130,6 +136,15 @@ data class MatrixMessengerConfiguration(
      */
     var modulesFactories: List<ModuleFactory> = createTrixnityMessengerDefaultModuleFactories(),
 ) : MatrixMessengerBaseConfiguration {
+
+    fun clientConfiguration(config: MatrixClientConfiguration.() -> Unit) {
+        val original = client
+        client = {
+            original()
+            config()
+        }
+    }
+
     /**
      * A list of feature toggles for the Matrix Messenger.
      */

@@ -6,10 +6,19 @@ import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.RepositoriesModule
 import de.connect2x.trixnity.client.create
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder
+import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
+import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
 private val log = Logger("de.connect2x.trixnity.messenger.MatrixClientFactory")
@@ -18,13 +27,13 @@ interface MatrixClientFactory {
     suspend fun create(
         userId: UserId,
         authProviderData: MatrixClientAuthProviderData,
-        configuration: MatrixClientConfiguration.() -> Unit,
+        configuration: MatrixClientConfiguration.() -> Unit = {},
     ): Result<MatrixClient>
 
     suspend fun load(
         userId: UserId,
         authProviderData: MatrixClientAuthProviderData? = null,
-        configuration: MatrixClientConfiguration.() -> Unit,
+        configuration: MatrixClientConfiguration.() -> Unit = {},
     ): Result<MatrixClient>
 }
 
@@ -34,6 +43,7 @@ class MatrixClientFactoryImpl(
     private val createMediaStoreModule: CreateMediaStoreModule,
     private val createCryptoDriverModule: CreateCryptoDriverModule,
     private val appCoroutineContext: CoroutineContext,
+    private val messengerConfiguration: MatrixMessengerConfiguration,
 ) : MatrixClientFactory {
     override suspend fun create(
         userId: UserId,
@@ -46,8 +56,9 @@ class MatrixClientFactoryImpl(
             cryptoDriverModule = createCryptoDriverModule(),
             authProviderData = authProviderData,
             coroutineContext = appCoroutineContext,
-            configuration = configuration,
-        )
+        ) {
+            configureDefault()
+        }
 
     override suspend fun load(
         userId: UserId,
@@ -60,8 +71,9 @@ class MatrixClientFactoryImpl(
             cryptoDriverModule = createCryptoDriverModule(),
             authProviderData = authProviderData,
             coroutineContext = appCoroutineContext,
-            configuration = configuration,
-        )
+        ) {
+            configureDefault()
+        }
 
 
     private suspend fun createRepositoriesModuleOrThrow(
@@ -103,4 +115,37 @@ class MatrixClientFactoryImpl(
     // we cannot check for SQLNonTransientConnectionException since this is common code
     private fun isLocked(exc: Throwable): Boolean =
         exc.cause?.message?.contains("locked") == true || exc.cause?.let { isLocked(it) } ?: false
+
+    private fun MatrixClientConfiguration.configureDefault() {
+        markOwnMessageAsRead = true
+        enableExternalNotifications = true
+        httpClientEngine = messengerConfiguration.httpClientEngine
+        httpClientConfig = messengerConfiguration.httpClientConfig
+        @OptIn(MSC3814::class)
+        experimentalFeatures.enableMSC3814 = true
+        lastRelevantEventFilter = {
+            val content = it.content
+            val isReplace = content is MessageEventContent && content.relatesTo is RelatesTo.Replace
+            val isMessage = content is RoomMessageEventContent || content is EncryptedMessageEventContent
+            (!isReplace && isMessage)
+        }
+        modulesFactories += {
+            module {
+                single<EventContentSerializerMappings> {
+                    val customEventContentSerializerMappings = getAll<CustomEventContentSerializerMappings>()
+                    customEventContentSerializerMappings
+                        .fold(EventContentSerializerMappings.default) { a, b -> a + b }
+                }
+            }
+        }
+        messengerConfiguration.client.invoke(this)
+    }
+}
+
+interface CustomEventContentSerializerMappings : EventContentSerializerMappings {
+    companion object {
+        operator fun invoke(builder: EventContentSerializerMappingsBuilder.() -> Unit): CustomEventContentSerializerMappings =
+            object : CustomEventContentSerializerMappings,
+                EventContentSerializerMappings by EventContentSerializerMappingsBuilder().apply(builder).build() {}
+    }
 }
