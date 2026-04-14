@@ -48,7 +48,8 @@ data class MatrixMessengerConfiguration(
     val features: Features = Features(
         enablePdfReader = true,
         enablePowerlevelEventConfigurationInRoomSettings = true,
-        enableMessageDrafts = true
+        enableMessageDrafts = true,
+        enableAudioRecorder = false,
     ),
 
     /**
@@ -156,7 +157,11 @@ data class MatrixMessengerConfiguration(
          */
         var enablePdfReader: Boolean = true,
         var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
-        var enableMessageDrafts: Boolean = true
+        var enableMessageDrafts: Boolean = true,
+        /**
+         * Transitively enables voice messages
+         */
+        var enableAudioRecorder: Boolean = false,
     )
 
     enum class CryptoDriver {

@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.messenger.media.AndroidAudioRecorder
 import de.connect2x.trixnity.messenger.media.AndroidMediaPlayer
-import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
 import de.connect2x.trixnity.messenger.util.ActivityGetter
@@ -23,7 +23,14 @@ actual fun platformModule(): Module = module {
     single<MediaPlayer> {
         AndroidMediaPlayer(get(), get())
     }
-    single<AudioRecorder> {
-        AndroidAudioRecorder(get(),get(), get(), get(), get(), get())
+    single<AudioRecorderHolder> {
+        val config = get<MatrixMessengerConfiguration>()
+        val audioRecorder =
+            if (config.features.enableAudioRecorder) {
+                AndroidAudioRecorder(get(), get(), get(), get(), get(), get())
+            } else {
+                null
+            }
+        AudioRecorderHolder(audioRecorder)
     }
 }

@@ -7,6 +7,7 @@ import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.audio
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.util.ExposedImplementationDetailTrixnityMessenger
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -52,8 +53,8 @@ class AudioRecordingAreaViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecordingAreaViewModel {
 
     override val recorder: AudioRecorderViewModel? = run {
-        val recorder = getOrNull<AudioRecorder>()
-        // TODO: Test correct view when not available
+        val recorderHolder = getOrNull<AudioRecorderHolder>()
+        val recorder = recorderHolder?.getOrNull
         if(recorder != null) {
             AudioRecorderViewModelImpl(viewModelContext, recorder)
         } else {

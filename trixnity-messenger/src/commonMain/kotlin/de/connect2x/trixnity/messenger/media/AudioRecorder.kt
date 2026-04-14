@@ -26,3 +26,5 @@ interface AudioRecorder : AutoCloseable {
         ) : State
     }
 }
+
+class AudioRecorderHolder(val getOrNull: AudioRecorder?)
