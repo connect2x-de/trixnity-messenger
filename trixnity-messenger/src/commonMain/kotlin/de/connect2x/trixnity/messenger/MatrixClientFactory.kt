@@ -58,6 +58,8 @@ class MatrixClientFactoryImpl(
             coroutineContext = appCoroutineContext,
         ) {
             configureDefault()
+            configuration()
+            messengerConfiguration.client.invoke(this)
         }
 
     override suspend fun load(
@@ -73,6 +75,8 @@ class MatrixClientFactoryImpl(
             coroutineContext = appCoroutineContext,
         ) {
             configureDefault()
+            configuration()
+            messengerConfiguration.client.invoke(this)
         }
 
 
@@ -138,7 +142,6 @@ class MatrixClientFactoryImpl(
                 }
             }
         }
-        messengerConfiguration.client.invoke(this)
     }
 }
 
