@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.backend.Backend
@@ -126,11 +127,12 @@ fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by View
 fun TestScope.testMatrixClientViewModelContext(
     di: Koin,
     userId: UserId,
-    coroutineContext: CoroutineContext = backgroundScope.coroutineContext
+    coroutineContext: CoroutineContext = backgroundScope.coroutineContext,
+    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
 ) =
     object : MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
         di = di,
-        componentContext = DefaultComponentContext(LifecycleRegistry()),
+        componentContext = componentContext,
         userId = userId,
         coroutineContext = coroutineContext,
         "TestMatrixClient"
