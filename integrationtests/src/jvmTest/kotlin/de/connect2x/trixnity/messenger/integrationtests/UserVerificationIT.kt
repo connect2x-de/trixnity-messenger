@@ -83,7 +83,7 @@ class UserVerificationIT {
                 username = "user1",
                 password = passwordUser1,
             )
-        messenger2 = createTestMatrixMessenger("client-2")
+        messenger2 = createTestMatrixMessenger()
         messenger2.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = user2,

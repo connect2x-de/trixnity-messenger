@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SDK: Add option to change the OAuth 2.0 prompt value
 - SDK: add an abi checker to the CI
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
 - UI: Per-account notification counter bubbles in roomlist avatar area
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: OAuth2 allow for setting the `login_hint` query-parameter
 - CI: Use new Android emulator docker image
 - SDK: Don't ship font per default
+- UI: Group buttons in pdf viewer layout
 - SDK: **breaking change**: `AccountSingleViewModel` now has `cancelEditDisplayName()` and `saveDisplayName()` instead
   of the surrounding `AccountsViewModel`; also introduced `AccountSingleViewModelFactory` which correctly gets a
   `MatrixClientViewModelContext`

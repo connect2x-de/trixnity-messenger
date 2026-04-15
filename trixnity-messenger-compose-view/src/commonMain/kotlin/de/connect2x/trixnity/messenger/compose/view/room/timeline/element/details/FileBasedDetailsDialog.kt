@@ -19,7 +19,8 @@ fun FileBasedDetailsDialog(
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
     onSave: () -> Unit,
     onClose: () -> Unit,
-    additions: @Composable RowScope.() -> Unit = {},
+    additionalIndicators: (@Composable RowScope.() -> Unit)? = null,
+    additionalButtons: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     Dialog(
@@ -31,7 +32,7 @@ fun FileBasedDetailsDialog(
                 style = MaterialTheme.components.fileViewerSurface,
             ) {
                 Column(Modifier.fillMaxSize()) {
-                    FileBasedDetailsHeader(element, onSave, onClose, additions)
+                    FileBasedDetailsHeader(element, onSave, onClose, additionalIndicators, additionalButtons)
                     Box(Modifier.fillMaxSize()) {
                         content()
                     }
