@@ -12690,8 +12690,11 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
+        final var enableMessageDrafts // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts|{}enableMessageDrafts[0]
+            final fun <get-enableMessageDrafts>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<get-enableMessageDrafts>|<get-enableMessageDrafts>(){}[0]
+            final fun <set-enableMessageDrafts>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<set-enableMessageDrafts>|<set-enableMessageDrafts>(kotlin.Boolean){}[0]
         final var enablePdfReader // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader|{}enablePdfReader[0]
             final fun <get-enablePdfReader>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader.<get-enablePdfReader>|<get-enablePdfReader>(){}[0]
             final fun <set-enablePdfReader>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader.<set-enablePdfReader>|<set-enablePdfReader>(kotlin.Boolean){}[0]
@@ -12701,7 +12704,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
 
         final fun component1(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component1|component1(){}[0]
         final fun component2(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component2|component2(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component3|component3(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]
@@ -13819,7 +13823,6 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaView
     open val userId // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.userId|{}userId[0]
         open fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
 
-    final suspend fun saveAsDraft(kotlin/String = ...) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.saveAsDraft|saveAsDraft(kotlin.String){}[0]
     open fun cancelReplace() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.cancelReplace|cancelReplace(){}[0]
     open fun cancelReply() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.cancelReply|cancelReply(){}[0]
     open fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.childContext|childContext(kotlin.String){}[0]

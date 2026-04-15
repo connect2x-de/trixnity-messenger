@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SDK, UI: Added feature-toggle for message drafts
 - SDK: Add option to change the OAuth 2.0 prompt value
 - SDK: add an abi checker to the CI
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS

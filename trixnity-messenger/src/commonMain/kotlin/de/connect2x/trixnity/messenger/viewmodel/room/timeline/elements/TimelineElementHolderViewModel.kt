@@ -206,13 +206,15 @@ class TimelineElementHolderViewModelImpl(
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
-        coroutineScope.launch {
-            val relatesTo = matrixClient.room.getDraftMessage(roomId).first()?.content?.relatesTo
-            if (relatesTo?.eventId == eventId) {
-                when (relatesTo.relationType) {
-                    is RelationType.Replace -> editInProgress.value = true
-                    is RelationType.Reply -> replyToInProgress.value = true
-                    else -> {}
+        if (get<MatrixMessengerConfiguration>().features.enableMessageDrafts) {
+            coroutineScope.launch {
+                val relatesTo = matrixClient.room.getDraftMessage(roomId).first()?.content?.relatesTo
+                if (relatesTo?.eventId == eventId) {
+                    when (relatesTo.relationType) {
+                        is RelationType.Replace -> editInProgress.value = true
+                        is RelationType.Reply -> replyToInProgress.value = true
+                        else -> {}
+                    }
                 }
             }
         }
