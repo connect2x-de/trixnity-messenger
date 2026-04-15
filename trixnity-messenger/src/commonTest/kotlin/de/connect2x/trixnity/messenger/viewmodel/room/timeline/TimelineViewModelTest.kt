@@ -740,8 +740,9 @@ class TimelineViewModelTest {
             }
         }
 
+
     @Test
-    fun `jumpTo » scroll to a message when it's loaded`() =
+    fun `jumpTo » scroll to a message when it's loaded and visible`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) {
                 repeat(40) {
@@ -771,6 +772,40 @@ class TimelineViewModelTest {
 
             continually(500.milliseconds) {
                 scrollToCalled.value shouldBe listOf("!room1-39", "!room1-35")
+            }
+        }
+
+    @Test
+    fun `jumpTo » scroll to a message when it's loaded but not visible`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) {
+                repeat(40) {
+                    +messageEvent(sender = alice) {
+                        text("Hello $it!")
+                    }
+                }
+            }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 11
+
+            cut.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = "$roomId-30",
+                lastVisibleElement = "$roomId-39",
+                firstLoadedElement = "$roomId-25",
+                lastLoadedElement = "$roomId-39",
+                timelineIsFocused = true
+            )
+            delay(500.milliseconds) // give scrollTo time to be cleared
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
+
+            cut.jumpTo(roomId, EventId("27"))
+
+            delay(500.milliseconds)
+
+            continually(500.milliseconds) {
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-27")
             }
         }
 
@@ -834,12 +869,13 @@ class TimelineViewModelTest {
             scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
 
             cut.jumpTo(roomId, EventId("5"))
+            cut.jumpTo(roomId, EventId("27"))
             cut.jumpTo(roomId, EventId("35"))
 
             delay(500.milliseconds)
 
             continually(500.milliseconds) {
-                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-5", "!room1-35")
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-5", "!room1-27", "!room1-35")
             }
         }
 
