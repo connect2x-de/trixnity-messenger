@@ -107,6 +107,8 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -955,26 +957,29 @@ class TimelineViewModelImpl(
         scrollTo.emit(scrollToKey)
     }
 
+    private val jumpMutex = Mutex()
     internal fun jumpTo(roomId: RoomId, eventId: EventId) {
         coroutineScope.launch {
-            var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
-            if (element == null) {
-                log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
-                timelineStartFrom.emit(eventId)
-                element = withTimeoutOrNull(1.seconds) {
-                    timelineElements.mapNotNull { it.firstOrNull { it.eventId == eventId && it.roomId == roomId } }
-                        .first()
+            jumpMutex.withLock {
+                var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+                if (element == null) {
+                    log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
+                    timelineStartFrom.emit(eventId)
+                    element = withTimeoutOrNull(10.seconds) {
+                        timelineElements.mapNotNull { it.firstOrNull { it.eventId == eventId && it.roomId == roomId } }
+                            .first()
+                    }
                 }
-            }
 
-            if (element == null) {
-                log.error { "Element could not be found even though timeline is initialized" }
-                return@launch
-            }
+                if (element == null) {
+                    log.error { "Element could not be found even though timeline is initialized" }
+                    return@launch
+                }
 
-            val elementKey = element.key
-            log.debug { "Jump to element $elementKey in timeline" }
-            scrollTo.emit(elementKey)
+                val elementKey = element.key
+                log.debug { "Jump to element $elementKey in timeline" }
+                scrollTo.emit(elementKey)
+            }
         }
     }
 
