@@ -24,6 +24,7 @@ import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.window.ComposeViewportConfiguration
+import js.numbers.JsDouble
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +52,7 @@ import web.html.HTMLDivElement
 import web.html.HTMLElement
 import web.html.HTMLInputElement
 import web.html.HTMLProgressElement
+import web.input.InputEvent
 import web.keyboard.KeyboardEvent
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
@@ -92,11 +94,14 @@ class CanvasSemanticsOwnerListener(
     private val owners = mutableSetOf<SemanticsOwner>()
 
     private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
+    private val backingDomDiv = a11yContainer.previousElementSibling as? HTMLDivElement
 
     private val syncFlow =
         MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     private val eventHandlerCaller = canvas?.let(::EventHandlerCaller)
+
+    private var preventFocus = false
 
     init {
         // every browser other than Chrome needs this attribute in order for copy/paste events to be sendable to the
@@ -106,11 +111,26 @@ class CanvasSemanticsOwnerListener(
 
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
-        for (type in listOf("keydown", "keyup", "copy", "paste", "cut")) a11yContainer.addEventListener(
-            EventType(type),
+
+        backingDomDiv?.addEventListener(
+            EventType("keydown"),
+            EventHandler { event ->
+                if (event is KeyboardEvent) {
+                    // We prevent focus right before a copy, paste or cut event to prevent it from being send to
+                    // the wrong HtmlElement (The Shadow Element) and thus being ignored.
+                    if (isClipboardEventTrigger(event)) {
+                        preventFocus = true
+                    }
+                }
+            },
+            unsafeJso { capture = true }
+        )
+
+        a11yContainer.addEventListener(
+            EventType("keydown"),
             EventHandler { event ->
                 // we need to prevent the default (moving focus) on these keys because we handle it ourselves
-                if (event is KeyboardEvent && type == "keydown" && listOf(
+                if (event is KeyboardEvent && listOf(
                         "ArrowLeft",
                         "ArrowRight",
                         "ArrowDown",
@@ -119,9 +139,88 @@ class CanvasSemanticsOwnerListener(
                     ).contains(event.key)
                 ) event.preventDefault()
 
-                eventHandlerCaller?.callWithEvent(event)
+                val backingInputField = backingDomDiv?.querySelector("input, textarea") as? HTMLElement
+                // If the backingInputField exists and we send keydown events to the canvas,
+                // they might get processed in the wrong order, because the canvas's EventHandler does not care about event.timeStamp
+                if (backingInputField == null) {
+                    eventHandlerCaller?.callWithEvent(event)
+                } else {
+                    if (event is KeyboardEvent) {
+                        // We prevent focus right before a copy, paste or cut event to prevent it from being send to the wrong HtmlElement (The Shadow Element)
+                        // and thus being ignored. Redispatching doesn't work because of the isTrusted flag (it might honestly also be other browser code magic)
+                        if (isClipboardEventTrigger(event)) {
+                            preventFocus = true
+                            backingInputField.focus()
+                        }
+
+                        // If there is a backing textarea or input field, then compose always intends for keydown and keyup events to go to it.
+                        // Redispatching them works, because we are only interested in triggering
+                        // the custom Event Handler in androidx.compose.ui.platform.DomInputStrategy
+                        backingInputField.dispatchEvent(
+                            copyKeyboardEvent(event).also {
+                                setEventTimestamp(
+                                    it,
+                                    event.timeStamp
+                                )
+                            })
+                    }
+                }
             },
-            unsafeJso { capture = true })
+            unsafeJso { capture = true }
+        )
+        a11yContainer.addEventListener(
+            EventType("keyup"),
+            EventHandler { event ->
+                val backingInputField = backingDomDiv?.querySelector("input, textarea") as? HTMLElement
+                if (backingInputField == null) {
+                    eventHandlerCaller?.callWithEvent(event)
+                } else {
+                    if (event is KeyboardEvent) {
+                        backingInputField.dispatchEvent(
+                            copyKeyboardEvent(event).also {
+                                setEventTimestamp(
+                                    it,
+                                    event.timeStamp
+                                )
+                            })
+                    }
+                }
+            },
+            unsafeJso { capture = true }
+        )
+
+        // We never have to send copy, paste and cut events to the canvas, as there are no listeners for them
+        //for (type in listOf("copy", "paste", "cut")) a11yContainer.addEventListener(
+        //    EventType(type),
+        //    EventHandler { event ->
+        //        // Do nothing
+        //    },
+        //    unsafeJso { capture = true })
+
+        for (type in listOf("copy", "paste", "cut")) document.addEventListener(
+            EventType(type),
+            EventHandler { _ ->
+                // Once a copy, paste or cut event has been send, we no longer need to prevent focus
+                preventFocus = false
+            },
+            unsafeJso { capture = false }) //Needs to only trigger when bubbling back up
+
+        a11yContainer.addEventListener(
+            EventType("beforeinput"),
+            EventHandler { event ->
+                event.preventDefault()
+                if (event is InputEvent) {
+                    // Redispatching beforeinput events works despite the new event being not trusted,
+                    // because we are only interested in triggering the custom Event Handler in androidx.compose.ui.platform.DomInputStrategy
+                    (backingDomDiv?.querySelector("input, textarea") as? HTMLElement)?.dispatchEvent(
+                        copyInputEvent(event).also {
+                            setEventTimestamp(it, event.timeStamp)
+                        }
+                    )
+                }
+            },
+            unsafeJso { capture = true }
+        )
 
         coroutineScope.launch {
             syncFlow
@@ -461,10 +560,12 @@ class CanvasSemanticsOwnerListener(
 
         doIf(SemanticsProperties.Focused) {
             if (it) {
-                // It is not enough for textboxes to just have focus they also need to be clicked.
-                // This is the same workaround as upstream.
-                doIf(SemanticsProperties.EditableText) { el.click() }
-                el.focus()
+                if (!preventFocus) {
+                    // It is not enough for textboxes to just have focus they also need to be clicked.
+                    // This is the same workaround as upstream.
+                    doIf(SemanticsProperties.EditableText) { el.click() }
+                    el.focus()
+                }
             }
         }
 
@@ -625,3 +726,43 @@ private fun call(listener: AnyEventHandler, event: Event): Unit = js("""listener
 
 
 private fun isChrome(): Boolean = js("""typeof window.chrome !== "undefined"""")
+
+private fun setEventTimestamp(event: Event, timeStamp: JsDouble) {
+    js(
+        """try {
+            Object.defineProperty(event, 'timeStamp', {
+                value: timeStamp
+            });
+        } catch (err) {
+            // ignore
+        }"""
+    )
+}
+
+private fun copyInputEvent(event: InputEvent): InputEvent =
+    InputEvent(event.type, unsafeJso {
+        this.data = event.data
+        this.inputType = event.inputType
+        this.bubbles = true
+        this.cancelable = true
+    })
+
+private fun copyKeyboardEvent(event: KeyboardEvent): KeyboardEvent =
+    js(
+        """new KeyboardEvent(event.type, {
+            key: event.key,
+            code: event.code,
+            location: event.location,
+            ctrlKey: event.ctrlKey,
+            shiftKey: event.shiftKey,
+            altKey: event.altKey,
+            metaKey: event.metaKey,
+            repeat: event.repeat,
+            isComposing: event.isComposing,
+            bubbles: true,
+            cancelable: true
+        })"""
+    )
+
+private fun isClipboardEventTrigger(event: KeyboardEvent) =
+    (event.metaKey || event.ctrlKey) && (event.key == "c" || event.key == "v" || event.key == "x")

@@ -302,6 +302,10 @@ class RoomListViewModelMultiAccountTest {
             )
         } returns flowOf(null)
 
+        every { roomServiceMock1.getDraftMessage(any()) } returns flowOf(null)
+        every { roomServiceMock2.getDraftMessage(any()) } returns flowOf(null)
+        every { roomServiceMock3.getDraftMessage(any()) } returns flowOf(null)
+
         every { onRoomSelectedMock.invoke(any(), any()) } returns Unit
 
         every {
@@ -890,7 +894,8 @@ class RoomListViewModelMultiAccountTest {
                                 override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
                                 override val accounts: StateFlow<List<AccountInfo>> = MutableStateFlow(listOf())
                                 override val globalNotificationCount: StateFlow<String?> = MutableStateFlow(null)
-                                override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = MutableStateFlow(emptyMap())
+                                override val accountNotificationCounts: StateFlow<Map<UserId, String?>> =
+                                    MutableStateFlow(emptyMap())
 
                                 override fun selectActiveAccount(userId: UserId?) {}
                                 override fun openUserSettings() {}

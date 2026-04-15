@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SDK, UI: Added feature-toggle for message drafts
 - SDK: Add option to change the OAuth 2.0 prompt value
 - SDK: add an abi checker to the CI
 - UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
@@ -49,8 +50,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- SDK: Empty Draft messages being saved
+- SDK: Empty draft messages being saved
 - UI: Thin line appearing in room-list when in single pane mode
+- UI: Fast successive keyboard-inputs being misordered on web
 - UI: hovering over a room list element does not hide unencrypted symbol
 - SDK: Don't publish kmmBridge module to Maven Central
 
