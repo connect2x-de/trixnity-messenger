@@ -1835,14 +1835,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/previews/Composa
 	public final fun getLambda$196685535$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/previews/InMemoryPlatformMedia : de/connect2x/trixnity/client/media/PlatformMedia, kotlinx/coroutines/flow/Flow {
-	public static final field $stable I
-	public fun <init> (Lkotlinx/coroutines/flow/Flow;)V
-	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun toByteArray (Lkotlinx/coroutines/CoroutineScope;Ljava/lang/Long;Ljava/lang/Long;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun transformByteArrayFlow (Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/client/media/PlatformMedia;
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/previews/MessageBubblePreviewKt {
 	public static final fun FileMessageBubblePreview (Landroidx/compose/runtime/Composer;I)V
 	public static final fun ImageMessageBubblePreview (Landroidx/compose/runtime/Composer;I)V
