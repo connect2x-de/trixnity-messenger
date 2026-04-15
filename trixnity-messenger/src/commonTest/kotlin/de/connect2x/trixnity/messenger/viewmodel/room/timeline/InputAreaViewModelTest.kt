@@ -172,8 +172,8 @@ class InputAreaViewModelTest {
 
         every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
 
-        everySuspend { roomServiceMock.setDraftMessage(any(), any()) } calls {
-            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(1)
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls {
+            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
             val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
             requireNotNull(content) { "you must add some sort of content for set a draft" }
             draftMessage.value = RoomOutboxMessage(
@@ -187,6 +187,7 @@ class InputAreaViewModelTest {
                 keepMediaInCache = true,
                 isDraft = true,
             )
+            "0"
         }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
 
@@ -213,6 +214,7 @@ class InputAreaViewModelTest {
                 }
                 draftMessage.value = null
             }
+            "0"
         }
 
         everySuspend {
