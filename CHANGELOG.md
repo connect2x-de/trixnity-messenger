@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- SDK: Update SysNotify to 2.6.1
+- DEPENDENCY: Update SysNotify to 2.6.1
+- DEPENDENCY: Update Trixnity to 5.5.0
 - SDK: Use builtin Gradle distribution for dockerized CI jobs
 - SDK: Update README
 - SDK: smoke tests for Android with more logging

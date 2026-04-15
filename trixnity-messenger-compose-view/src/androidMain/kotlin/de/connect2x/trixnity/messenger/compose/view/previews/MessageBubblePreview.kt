@@ -198,7 +198,7 @@ fun FileMessageBubblePreview() {
     }
 }
 
-class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia,
+private class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia,
     ByteArrayFlow by delegate {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): PlatformMedia =
         InMemoryPlatformMedia(delegate.let(transformer))
@@ -208,4 +208,8 @@ class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia
         expectedSize: Long?,
         maxSize: Long?
     ): ByteArray = delegate.toByteArray()
+
+    override suspend fun getTemporaryFile(): Result<PlatformMedia.TemporaryFile> {
+        TODO("Not yet implemented")
+    }
 }
