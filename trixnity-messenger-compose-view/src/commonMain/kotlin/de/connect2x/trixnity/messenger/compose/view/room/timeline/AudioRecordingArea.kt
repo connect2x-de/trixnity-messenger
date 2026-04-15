@@ -44,6 +44,7 @@ import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModel
 import kotlinx.datetime.toDateTimePeriod
@@ -61,6 +62,7 @@ fun RowScope.AudioRecordingArea(audioRecordingAreaViewModel: AudioRecordingAreaV
     with(DI.get<AudioRecordingAreaView>()) { create(audioRecordingAreaViewModel) }
 }
 
+@OptIn(ExperimentalTrixnityMessengerApi::class)
 class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
     @Composable
     override fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {

@@ -6,7 +6,7 @@ import de.connect2x.trixnity.client.room.message.audio
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
-import de.connect2x.trixnity.messenger.util.ExposedImplementationDetailTrixnityMessenger
+import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
@@ -32,12 +32,10 @@ interface AudioRecordingAreaViewModel {
 interface AudioRecordingAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        roomId: RoomId,
         sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
     ): AudioRecordingAreaViewModel {
         return AudioRecordingAreaViewModelImpl(
             viewModelContext,
-            roomId,
             sendAudioMessage
         )
     }
@@ -45,9 +43,9 @@ interface AudioRecordingAreaViewModelFactory {
     companion object : AudioRecordingAreaViewModelFactory
 }
 
+@OptIn(ExperimentalTrixnityMessengerApi::class)
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val roomId: RoomId,
     private val sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecordingAreaViewModel {
 
@@ -61,7 +59,6 @@ class AudioRecordingAreaViewModelImpl(
         }
     }
 
-    @OptIn(ExposedImplementationDetailTrixnityMessenger::class)
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = run {
         fun create(capture: AudioRecorder.State.Completed?): MediaPlayerViewModel? {
             return if (capture != null) {
@@ -104,7 +101,6 @@ class AudioRecordingAreaViewModelImpl(
         }
     }
 
-    @OptIn(ExposedImplementationDetailTrixnityMessenger::class)
     override fun sendAudioMessage() {
         val message: (suspend MessageBuilder.() -> Unit)? = when (val audioRecorderStateValue = recorder?.state?.value) {
             AudioRecorder.State.Ready -> { null }

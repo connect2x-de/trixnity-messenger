@@ -8,6 +8,9 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
+import de.connect2x.trixnity.messenger.media.CommonAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -20,6 +23,7 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
@@ -431,6 +435,17 @@ private fun roomSettingsViewModels() = module {
 
 private fun mediaViewModels() = module {
     single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
+    @OptIn(ExperimentalTrixnityMessengerApi::class)
+    single<AudioRecorderHolder> {
+        val config = get<MatrixMessengerConfiguration>()
+        val audioRecorder =
+            if (config.features.enableAudioRecorder) {
+                CommonAudioRecorder(get(), get(), get())
+            } else {
+                null
+            }
+        AudioRecorderHolder(audioRecorder)
+    }
 }
 
 private fun timelineViewModels() = module {

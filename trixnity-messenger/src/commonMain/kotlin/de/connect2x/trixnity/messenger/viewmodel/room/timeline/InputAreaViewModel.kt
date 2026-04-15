@@ -223,7 +223,6 @@ open class InputAreaViewModelImpl(
     override val audio: AudioRecordingAreaViewModel =
         get<AudioRecordingAreaViewModelFactory>().create(
             childContext("audioRecordingAreaViewModel"),
-            roomId,
             ::sendAudioMessage
         )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
