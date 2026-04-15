@@ -145,20 +145,31 @@ left out for clarity.
 ## Configuration
 
 Trixnity Messenger has multiple ways to configure the client to your needs.
+There are three layers of configuration and dependency injection (DI).
 
-### Change default configuration
+Each configuration layer allows configuring the DI of that layer. Use `moduleFactories` to add custom
+modules to the DI.
 
-The class `MatrixMessengerConfiguration` contains information that is used to determine some folder names and other data
-in
-the lifecycle of the messenger. To override the standard configuration use `MatrixMessenger.create`:
+The configurations contain information used to determine some folder names and other data in the lifecycle of
+the messenger.
 
-```kotlin
-val matrixMessenger = MatrixMessenger.create {
-    appName = "Dino Messenger"
-    appId = "org.example.dino.messenger"
-    // ... more config ...
-}
-```
+Configurations are available when creating an instance of `MatrixMultiMessenger` or `MatrixMessenger` using `create`.
+
+### MatrixMultiMessengerConfiguration
+
+This configuration allows configuring the `MatrixMultiMessenger` itself.
+Use `messengerConfiguration` to configure the `MatrixMessengerConfiguration`.
+
+### MatrixMessengerConfiguration
+
+This configuration allows configuring the `MatrixMessenger` itself.
+When `MatrixMultiMessengerConfiguration` is already used, some of the configuration options don't need to be set again.
+See `MatrixMessengerBaseConfiguration` to find out, which options are copied.
+Use `clientConfiguration` to configure the `MatrixClientConfiguration`.
+
+### MatrixClientConfiguration
+
+This configuration allows configuring the `MatrixClient` itself.
 
 ### Notifications
 
