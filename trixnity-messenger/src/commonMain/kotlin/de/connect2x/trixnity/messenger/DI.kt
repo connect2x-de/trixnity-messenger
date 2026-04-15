@@ -435,7 +435,6 @@ private fun roomSettingsViewModels() = module {
 
 private fun mediaViewModels() = module {
     single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
-    @OptIn(ExperimentalTrixnityMessengerApi::class)
     single<AudioRecorderHolder> {
         val config = get<MatrixMessengerConfiguration>()
         val audioRecorder =

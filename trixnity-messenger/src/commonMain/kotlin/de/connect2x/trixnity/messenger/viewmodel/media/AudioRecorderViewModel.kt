@@ -9,12 +9,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalTrixnityMessengerApi::class)
+@TrixnityMessengerPrivateApi
 interface AudioRecorderViewModel: AudioRecorder {
     fun start()
 }
 
-@OptIn(ExperimentalTrixnityMessengerApi::class)
+@TrixnityMessengerPrivateApi
 class AudioRecorderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     recorder: AudioRecorder,

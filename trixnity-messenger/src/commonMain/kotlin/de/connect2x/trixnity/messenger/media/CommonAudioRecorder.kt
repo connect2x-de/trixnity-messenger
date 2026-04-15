@@ -28,14 +28,13 @@ import kotlin.time.Instant
 /**
  * Use this with delegation to implement a platform-specific [AudioRecorder]
  */
-@OptIn(ExperimentalTrixnityMessengerApi::class)
+// TODO: make this abstract and move function from [PlatformAudioRecorder] to here. [AndroidAudioRecorder] then implements this
+@ExperimentalTrixnityMessengerApi
 class CommonAudioRecorder(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
     parentScope: CoroutineScope,
 ): AudioRecorder {
-    // TODO look how DI now works, specifically optional feature
-
     private val commonState: MutableStateFlow<CommonState> =
         MutableStateFlow(CommonState.Ready)
 
@@ -78,7 +77,7 @@ class CommonAudioRecorder(
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
-            val close: () -> Unit
+            val deleteCapture: () -> Unit
         ) : CommonState
     }
 
@@ -137,7 +136,7 @@ class CommonAudioRecorder(
             when (val completed = complete(commonState)) {
                 is CommonState.Completed ->
                     try {
-                        completed.close()
+                        completed.deleteCapture()
                     } catch (t: Throwable) {
                         log.warn(t) { "Failed to close audio recorder" }
                     }

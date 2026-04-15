@@ -52,17 +52,19 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
 
+@TrixnityMessengerPrivateApi
 interface AudioRecordingAreaView {
     @Composable
     fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel)
 }
 
 @Composable
+@TrixnityMessengerPrivateApi
 fun RowScope.AudioRecordingArea(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {
     with(DI.get<AudioRecordingAreaView>()) { create(audioRecordingAreaViewModel) }
 }
 
-@OptIn(ExperimentalTrixnityMessengerApi::class)
+@TrixnityMessengerPrivateApi
 class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
     @Composable
     override fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {

@@ -114,7 +114,6 @@ fun InputArea(inputAreaViewModel: InputAreaViewModel) {
     DI.get<InputAreaView>().create(inputAreaViewModel)
 }
 
-@OptIn(ExperimentalTrixnityMessengerApi::class)
 class InputAreaViewImpl : InputAreaView {
     @Composable
     override fun create(inputAreaViewModel: InputAreaViewModel) {
