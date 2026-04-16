@@ -344,6 +344,21 @@ open class InputAreaViewModelImpl(
         }
     }
 
+    private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
+        val event =
+            matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
+                .filterNotNull()
+                .first()
+        reply(event)
+    }
+
+    private fun resetCurrentReply() {
+        currentReply.value?.also {
+            currentReply.value = null
+            onMessageReplyFinished(it.first, it.second)
+        }
+    }
+
     private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences =
@@ -388,11 +403,7 @@ open class InputAreaViewModelImpl(
             when {
                 replacedEvent != null -> replace(replacedEvent.second)
                 repliedEvent != null -> {
-                    val event =
-                        matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-                            .filterNotNull()
-                            .first()
-                    reply(event)
+                    reply(repliedEvent)
                 }
             }
             mentions(userReferences)
@@ -454,10 +465,7 @@ open class InputAreaViewModelImpl(
                     currentReplace.value = null
                     onMessageReplaceFinished(it.first, it.second)
                 }
-                currentReply.value?.also {
-                    currentReply.value = null
-                    onMessageReplyFinished(it.first, it.second)
-                }
+                resetCurrentReply()
             }
         }
     }
