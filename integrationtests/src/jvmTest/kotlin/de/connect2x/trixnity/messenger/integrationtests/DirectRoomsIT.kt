@@ -72,7 +72,7 @@ class DirectRoomsIT {
 
     @Test
     fun shouldUseDirectRoomEvenIfDirectRoomExistedBefore(): Unit = runBlockingWithTimeout {
-        messenger1 = createTestMatrixMessenger("client-1")
+        messenger1 = createTestMatrixMessenger()
         val recoveryKey =
             messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -80,7 +80,7 @@ class DirectRoomsIT {
                 password = passwordUser1,
             )
         messenger1.verifyAccountsArePresent(user1)
-        messenger2 = createTestMatrixMessenger("client-2")
+        messenger2 = createTestMatrixMessenger()
         messenger2.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = user2,

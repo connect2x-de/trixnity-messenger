@@ -1,18 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
-import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,7 +45,6 @@ interface AccountsViewModelFactory {
     companion object : AccountsViewModelFactory
 }
 
-// TODO !!! This is totally cursed. The parent should not manipulate the child !!!
 interface AccountsViewModel {
     val accountSingleViewModels: StateFlow<List<AccountSingleViewModel>>
     val error: MutableStateFlow<String?>
@@ -60,8 +54,6 @@ interface AccountsViewModel {
 
     fun close()
     fun errorDismiss()
-    fun cancelEditDisplayName(userId: UserId)
-    fun saveDisplayName(userId: UserId)
     fun openAvatarCutter(userId: UserId, file: FileDescriptor)
     fun closeAvatarCutter()
     fun createNewAccount()
@@ -104,12 +96,12 @@ class AccountsViewModelImpl(
         registerBackCallback(backCallback)
         accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
             matrixClients.map { (userId, _) ->
-                this@AccountsViewModelImpl.get<ProfileSingleViewModelFactory>().create(
-                    viewModelContext.childContext(userId.full, this@AccountsViewModelImpl),
+                this@AccountsViewModelImpl.get<AccountSingleViewModelFactory>().create(
+                    viewModelContext.childContext("account-settings-${userId.full}", userId),
                     userId,
                     error,
                     showAccountSetup = { onShowAccountSetup(userId) },
-                    removeAccount = { onRemoveAccount(userId) }
+                    removeAccount = { onRemoveAccount(userId) },
                 )
             }
         }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
@@ -129,35 +121,11 @@ class AccountsViewModelImpl(
         error.value = null
     }
 
-    override fun cancelEditDisplayName(userId: UserId) {
-        getEditDisplayNameFlow(userId)?.also {
-            it.update(getDisplayNameFlow(userId)?.value ?: "")
-        }
+    override fun closeAvatarCutter() {
+        accountSingleViewModels.value.forEach { it.openAvatarCutter.value = false }
     }
 
-
-    override fun saveDisplayName(userId: UserId) {
-        val newDisplayName = getEditDisplayNameFlow(userId)?.value?.text
-        if (newDisplayName != getDisplayNameFlow(userId)?.value) {
-            coroutineScope.launch {
-                val matrixClient = getMatrixClient(userId)
-                if (matrixClient.serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
-                    log.debug { "set new display name in account $userId: $newDisplayName" }
-                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName))
-                        .onFailure {
-                            log.error(it) { "Cannot set display name." }
-                            if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
-                                error.value = i18n.profileNameForbidden()
-                            } else {
-                                error.value = i18n.profileNameError()
-                            }
-                        }
-                } else {
-                    log.warn { "Missing server capability to set the display name." }
-                }
-            }
-        }
-    }
+    override fun createNewAccount() = onCreateNewAccount()
 
     override fun openAvatarCutter(userId: UserId, file: FileDescriptor) {
         if (getMatrixClient(userId).serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
@@ -166,18 +134,6 @@ class AccountsViewModelImpl(
             log.warn { "Missing server capability to change the user avatar." }
         }
     }
-
-    override fun closeAvatarCutter() {
-        accountSingleViewModels.value.forEach { it.openAvatarCutter.value = false }
-    }
-
-    override fun createNewAccount() = onCreateNewAccount()
-
-    private fun getDisplayNameFlow(userId: UserId) =
-        accountSingleViewModels.value.find { it.userId == userId }?.displayName
-
-    private fun getEditDisplayNameFlow(userId: UserId) =
-        accountSingleViewModels.value.find { it.userId == userId }?.editDisplayName
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
         coroutineScope.launch { profileManager?.setMultiProfileEnabled(enabled) }

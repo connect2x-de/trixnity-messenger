@@ -38,6 +38,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderSurface
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.UserState
+import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.icons.PublicIcon
 import de.connect2x.trixnity.messenger.compose.view.common.icons.UnencryptedIcon
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.minHeaderHeight
@@ -126,11 +127,12 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                         PublicIcon()
                                     }
                                 }
-                                Spacer(Modifier.size(5.dp))
+                                VerySmallSpacer()
                                 UserState(roomHeaderViewModel.userTrustLevel, roomHeaderViewModel.isUserBlocked)
+                                VerySmallSpacer()
                                 if (roomHeaderElement.isEncrypted.not()) {
                                     UnencryptedIcon()
-                                    Spacer(Modifier.size(5.dp))
+                                    VerySmallSpacer()
                                 }
 
                                 if (knockingMembersCount > 0) {

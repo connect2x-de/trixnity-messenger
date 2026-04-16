@@ -9,10 +9,6 @@ public final class de/connect2x/trixnity/messenger/AccountAlreadyExistsException
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/ConfigureMatrixClientConfiguration {
-	public abstract fun invoke (Lde/connect2x/trixnity/client/MatrixClientConfiguration;)V
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/CreateCryptoDriverModule {
 	public abstract fun invoke (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -44,16 +40,25 @@ public final class de/connect2x/trixnity/messenger/CreateRepositoriesModule_jvmA
 	public static final fun platformCreateRepositoriesModuleModule ()Lorg/koin/core/module/Module;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings : de/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings {
+	public static final field Companion Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$Companion;
+}
+
+public final class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$Companion {
+	public final fun invoke (Lkotlin/jvm/functions/Function1;)Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;
+}
+
+public final class de/connect2x/trixnity/messenger/CustomEventContentSerializerMappings$DefaultImpls {
+	public static fun minus (Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
+	public static fun plus (Lde/connect2x/trixnity/messenger/CustomEventContentSerializerMappings;Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;)Lde/connect2x/trixnity/core/serialization/events/EventContentSerializerMappings;
+}
+
 public final class de/connect2x/trixnity/messenger/DIKt {
 	public static final fun createTrixnityMessengerDefaultModuleFactories ()Ljava/util/List;
 }
 
 public final class de/connect2x/trixnity/messenger/DI_androidKt {
 	public static final fun platformModule ()Lorg/koin/core/module/Module;
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/DebugName {
-	public abstract fun invoke ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/FontKind : java/lang/Enum {
@@ -87,16 +92,21 @@ public final class de/connect2x/trixnity/messenger/InitialSyncWorkerKt {
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/MatrixClientFactory {
-	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixClientFactory$Companion;
-	public fun create-bMdYcbs (Lde/connect2x/trixnity/client/RepositoriesModule;Lde/connect2x/trixnity/client/MediaStoreModule;Lde/connect2x/trixnity/client/CryptoDriverModule;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class de/connect2x/trixnity/messenger/MatrixClientFactory$Companion : de/connect2x/trixnity/messenger/MatrixClientFactory {
-	public fun create-bMdYcbs (Lde/connect2x/trixnity/client/RepositoriesModule;Lde/connect2x/trixnity/client/MediaStoreModule;Lde/connect2x/trixnity/client/CryptoDriverModule;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun create-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun create-ox9Ts-Y$default (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun load-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun load-ox9Ts-Y$default (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/MatrixClientFactory$DefaultImpls {
-	public static fun create-bMdYcbs (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Lde/connect2x/trixnity/client/RepositoriesModule;Lde/connect2x/trixnity/client/MediaStoreModule;Lde/connect2x/trixnity/client/CryptoDriverModule;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun create-ox9Ts-Y$default (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun load-ox9Ts-Y$default (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixClientFactoryImpl : de/connect2x/trixnity/messenger/MatrixClientFactory {
+	public fun <init> (Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Lde/connect2x/trixnity/messenger/CreateRepositoriesModule;Lde/connect2x/trixnity/messenger/CreateMediaStoreModule;Lde/connect2x/trixnity/messenger/CreateCryptoDriverModule;Lkotlin/coroutines/CoroutineContext;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
+	public fun create-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun load-ox9Ts-Y (Ljava/lang/String;Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/MatrixClientInitializationException {
@@ -297,8 +307,8 @@ public final class de/connect2x/trixnity/messenger/MatrixClients$InitFromStoreRe
 
 public final class de/connect2x/trixnity/messenger/MatrixClientsImpl : de/connect2x/trixnity/messenger/MatrixClients, kotlinx/coroutines/flow/StateFlow {
 	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixClientsImpl$Companion;
-	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Lde/connect2x/trixnity/messenger/util/DeleteAccountData;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Lde/connect2x/trixnity/messenger/CreateRepositoriesModule;Lde/connect2x/trixnity/messenger/CreateMediaStoreModule;Lde/connect2x/trixnity/messenger/CreateCryptoDriverModule;Lkotlin/coroutines/CoroutineContext;Lde/connect2x/trixnity/messenger/i18n/I18n;Ljava/util/List;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function3;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Lde/connect2x/trixnity/messenger/util/DeleteAccountData;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Lde/connect2x/trixnity/messenger/CreateRepositoriesModule;Lde/connect2x/trixnity/messenger/CreateMediaStoreModule;Lde/connect2x/trixnity/messenger/CreateCryptoDriverModule;Lkotlin/coroutines/CoroutineContext;Lde/connect2x/trixnity/messenger/i18n/I18n;Ljava/util/List;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Lde/connect2x/trixnity/messenger/util/DeleteAccountData;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/MutableStateFlow;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/MatrixClientFactory;Lde/connect2x/trixnity/messenger/util/DeleteAccountData;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Lde/connect2x/trixnity/messenger/i18n/I18n;Lkotlinx/coroutines/flow/MutableStateFlow;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V
 	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun create (Lde/connect2x/trixnity/clientserverapi/client/MatrixClientAuthProviderData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -447,8 +457,9 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerBaseConfigurat
 }
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration : de/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clientConfiguration (Lkotlin/jvm/functions/Function1;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Z
 	public final fun component11 ()Z
@@ -473,17 +484,18 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun component29 ()Z
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component30 ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;
-	public final fun component31 ()Lio/ktor/client/engine/HttpClientEngine;
-	public final fun component32 ()Lkotlin/jvm/functions/Function1;
-	public final fun component33 ()Ljava/util/List;
+	public final fun component31 ()Lkotlin/jvm/functions/Function1;
+	public final fun component32 ()Lio/ktor/client/engine/HttpClientEngine;
+	public final fun component33 ()Lkotlin/jvm/functions/Function1;
+	public final fun component34 ()Ljava/util/List;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Lkotlin/jvm/functions/Function2;
-	public final fun copy-FzZmbO0 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
-	public static synthetic fun copy-FzZmbO0$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
+	public final fun copy-s89DoEw (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
+	public static synthetic fun copy-s89DoEw$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIJJLjava/lang/String;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
 	public fun copyTo (Lde/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getAppIcon ()Ljava/lang/String;
@@ -493,6 +505,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun getAppUriOAuth2Redirect ()Ljava/lang/String;
 	public final fun getAppUriSsoRedirect ()Ljava/lang/String;
 	public fun getAppVersion ()Ljava/lang/String;
+	public final fun getClient ()Lkotlin/jvm/functions/Function1;
 	public final fun getCryptoDriver ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;
 	public final fun getDatabaseEncryptionEnabled ()Z
 	public final fun getDefaultHomeServer ()Ljava/lang/String;
@@ -527,6 +540,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun setAppUriOAuth2Redirect (Ljava/lang/String;)V
 	public final fun setAppUriSsoRedirect (Ljava/lang/String;)V
 	public fun setAppVersion (Ljava/lang/String;)V
+	public final fun setClient (Lkotlin/jvm/functions/Function1;)V
 	public final fun setCryptoDriver (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;)V
 	public final fun setDatabaseEncryptionEnabled (Z)V
 	public final fun setDefaultHomeServer (Ljava/lang/String;)V
@@ -2495,6 +2509,8 @@ public final class de/connect2x/trixnity/messenger/settings/SettingsViewDelegate
 
 public final class de/connect2x/trixnity/messenger/settings/SettingsViewKt {
 	public static final fun get (Lde/connect2x/trixnity/messenger/settings/Settings;Lkotlinx/serialization/KSerializer;)Lde/connect2x/trixnity/messenger/settings/SettingsView;
+	public static final fun getOrNull (Lde/connect2x/trixnity/messenger/settings/Settings;Lkotlinx/serialization/KSerializer;)Lde/connect2x/trixnity/messenger/settings/SettingsView;
+	public static final fun getValues (Lde/connect2x/trixnity/messenger/settings/Settings;Lkotlinx/serialization/KSerializer;)Lkotlinx/serialization/json/JsonObject;
 	public static final fun set (Lde/connect2x/trixnity/messenger/settings/MutableSettings;Lde/connect2x/trixnity/messenger/settings/SettingsView;Lkotlinx/serialization/KSerializer;)V
 }
 
@@ -2936,19 +2952,6 @@ public abstract interface class de/connect2x/trixnity/messenger/util/ProcessImag
 public final class de/connect2x/trixnity/messenger/util/ProcessImageUploadKt {
 	public static final fun platformProcessImageUploadModule ()Lorg/koin/core/module/Module;
 	public static final fun rotateImageToMetadataOrientation ([BLio/ktor/http/ContentType;)[B
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/util/RelevantTimelineEvents {
-	public static final field Companion Lde/connect2x/trixnity/messenger/util/RelevantTimelineEvents$Companion;
-	public fun isRelevantTimelineEvent (Lde/connect2x/trixnity/core/model/events/RoomEventContent;)Z
-}
-
-public final class de/connect2x/trixnity/messenger/util/RelevantTimelineEvents$Companion : de/connect2x/trixnity/messenger/util/RelevantTimelineEvents {
-	public fun isRelevantTimelineEvent (Lde/connect2x/trixnity/core/model/events/RoomEventContent;)Z
-}
-
-public final class de/connect2x/trixnity/messenger/util/RelevantTimelineEvents$DefaultImpls {
-	public static fun isRelevantTimelineEvent (Lde/connect2x/trixnity/messenger/util/RelevantTimelineEvents;Lde/connect2x/trixnity/core/model/events/RoomEventContent;)Z
 }
 
 public final class de/connect2x/trixnity/messenger/util/RootPath {
@@ -10632,6 +10635,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSet
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel {
+	public abstract fun cancelEditDisplayName ()V
 	public abstract fun getAvatar ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanChangeAvatar ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getCanChangeDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
@@ -10642,10 +10646,25 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public abstract fun logout ()V
 	public abstract fun resetSetup ()V
+	public abstract fun saveDisplayName ()V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$Companion;
+	public fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory {
+	public fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory$DefaultImpls {
+	public static fun create-P0jKWCc (Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/AccountSingleViewModel {
 	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun cancelEditDisplayName ()V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -10671,10 +10690,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSin
 	public fun logout ()V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 	public fun resetSetup ()V
+	public fun saveDisplayName ()V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel {
-	public abstract fun cancelEditDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun close ()V
 	public abstract fun closeAvatarCutter ()V
 	public abstract fun createNewAccount ()V
@@ -10685,7 +10704,6 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun getOpenAvatarCutter ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isMultiProfile ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun openAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
-	public abstract fun saveDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun setMultiProfileEnabled (Z)V
 }
 
@@ -10704,7 +10722,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsVi
 
 public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/settings/AccountsViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)V
-	public fun cancelEditDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
@@ -10730,7 +10747,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountsVi
 	public fun isMultiProfile ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun openAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
-	public fun saveDisplayName-dxpKhU0 (Ljava/lang/String;)V
 	public fun setMultiProfileEnabled (Z)V
 }
 

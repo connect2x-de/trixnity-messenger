@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.TrixnityMessengerDsl
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import de.connect2x.trixnity.client.ModuleFactory
 
 @TrixnityMessengerDsl
 data class MatrixMultiMessengerConfiguration(
@@ -78,5 +78,4 @@ data class MatrixMultiMessengerConfiguration(
         }
     }
 }
-
 

@@ -5,8 +5,11 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
@@ -18,8 +21,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
+@Deprecated("Use AccountSingleViewModelFactory")
 interface ProfileSingleViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
@@ -28,10 +33,37 @@ interface ProfileSingleViewModelFactory {
         showAccountSetup: () -> Unit,
         removeAccount: () -> Unit,
     ): AccountSingleViewModel {
-        return AccountSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
+        return AccountSingleViewModelImpl(
+            viewModelContext,
+            userId,
+            error,
+            showAccountSetup,
+            removeAccount,
+        )
     }
 
+    @Suppress("DEPRECATION")
     companion object : ProfileSingleViewModelFactory
+}
+
+interface AccountSingleViewModelFactory {
+    fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        userId: UserId,
+        error: MutableStateFlow<String?>,
+        showAccountSetup: () -> Unit,
+        removeAccount: () -> Unit,
+    ): AccountSingleViewModel {
+        return AccountSingleViewModelImpl(
+            viewModelContext,
+            userId,
+            error,
+            showAccountSetup,
+            removeAccount,
+        )
+    }
+
+    companion object : AccountSingleViewModelFactory
 }
 
 interface AccountSingleViewModel {
@@ -44,6 +76,8 @@ interface AccountSingleViewModel {
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
 
+    fun cancelEditDisplayName()
+    fun saveDisplayName()
     fun logout()
     fun resetSetup()
 }
@@ -96,6 +130,35 @@ class AccountSingleViewModelImpl(
         TextFieldViewModelImpl(maxLength = 1_000, matrixClient.profile.value?.displayName ?: "")
 
     override val openAvatarCutter = MutableStateFlow(false)
+
+    override fun cancelEditDisplayName() {
+        editDisplayName.also {
+            it.update(displayName.value)
+        }
+    }
+
+    override fun saveDisplayName() {
+        val newDisplayName = editDisplayName.value.text
+        if (newDisplayName != displayName.value) {
+            coroutineScope.launch {
+                val matrixClient = getMatrixClient(userId)
+                if (matrixClient.serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
+                    log.debug { "set new display name in account $userId: $newDisplayName" }
+                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName))
+                        .onFailure {
+                            log.error(it) { "Cannot set display name." }
+                            if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                                error.value = i18n.profileNameForbidden()
+                            } else {
+                                error.value = i18n.profileNameError()
+                            }
+                        }
+                } else {
+                    log.warn { "Missing server capability to set the display name." }
+                }
+            }
+        }
+    }
 
     override fun logout() = removeAccount()
 

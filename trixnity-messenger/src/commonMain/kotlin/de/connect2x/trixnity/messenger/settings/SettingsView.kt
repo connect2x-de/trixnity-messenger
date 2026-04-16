@@ -9,18 +9,28 @@ import kotlin.reflect.KProperty
 
 interface SettingsView<S : Settings<S>>
 
-@OptIn(ExperimentalSerializationApi::class)
-fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.get(serializer: KSerializer<T>): T {
+fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.getValues(serializer: KSerializer<T>): JsonObject? {
     val keys = serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()
         ?.let { listOf(it.key) + it.otherKeys }
     val parent = JsonObject(this)
     val newValues =
         if (keys != null) getJsonChild(parent, keys)
         else parent
-    return SettingsJson.decodeFromJsonElement(serializer, newValues)
+    return newValues
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.get(serializer: KSerializer<T>): T {
+    return SettingsJson.decodeFromJsonElement(serializer, getValues(serializer) ?: JsonObject(mapOf()))
+}
+
+fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.getOrNull(serializer: KSerializer<T>): T? {
+    return SettingsJson.decodeFromJsonElement(serializer, getValues(serializer) ?: return null)
 }
 
 inline fun <S : Settings<S>, reified T : SettingsView<S>> Settings<S>.get(): T = get(serializer())
+
+inline fun <S : Settings<S>, reified T : SettingsView<S>> Settings<S>.getOrNull(): T? = getOrNull(serializer())
 
 @OptIn(ExperimentalSerializationApi::class)
 fun <S : Settings<S>, T : SettingsView<S>> MutableSettings<S>.set(value: T, serializer: KSerializer<T>) {

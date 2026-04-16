@@ -3,15 +3,19 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.useApi
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients.CreateResult.Failure
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.deleteDatabaseKey
-import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
-import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
-import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
@@ -29,14 +33,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.RepositoriesModule
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.useApi
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.model.UserId
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, Worker {
@@ -82,14 +78,8 @@ class MatrixClientsImpl(
     private val settings: MatrixMessengerSettingsHolder,
     private val config: MatrixMessengerConfiguration,
     private val secretByteArrays: SecretByteArrays,
-    private val createRepositoriesModule: CreateRepositoriesModule,
-    private val createMediaStoreModule: CreateMediaStoreModule,
-    private val createCryptoDriverModule: CreateCryptoDriverModule,
-    private val appCoroutineContext: CoroutineContext,
     private val i18n: I18n,
-    private val configurer: List<ConfigureMatrixClientConfiguration>,
     private val matrixClients: MutableStateFlow<Map<UserId, MatrixClient>> = MutableStateFlow(mapOf()),
-    private val onCreate: suspend (MatrixClientAuthProviderData, UserId) -> Unit = { _, _ -> },
 ) : MatrixClients, StateFlow<Map<UserId, MatrixClient>> by matrixClients {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixClientsImpl")
@@ -127,16 +117,10 @@ class MatrixClientsImpl(
                 httpClientEngine = config.httpClientEngine,
             ) { it.authentication.whoAmI() }.getOrThrow().userId
             checkExisting(authProviderData, userId)
-            onCreate(authProviderData, userId)
             val matrixClient = matrixClientFactory.create(
-                repositoriesModule = createRepositoriesModuleOrThrow(userId),
-                mediaStoreModule = createMediaStoreModule(userId),
-                cryptoDriverModule = createCryptoDriverModule(),
+                userId = userId,
                 authProviderData = authProviderData,
-                coroutineContext = appCoroutineContext,
-            ) {
-                configurer.forEach { with(it) { invoke() } }
-            }.getOrThrow()
+            ).getOrThrow()
             add(matrixClient)
             matrixClient
         }.fold(
@@ -223,15 +207,9 @@ class MatrixClientsImpl(
                     if (matrixClients.value[account] == null) {
                         val newMatrixClient =
                             runCatching {
-                                matrixClientFactory.create(
-                                    repositoriesModule = loadRepositoriesModuleOrThrow(account),
-                                    mediaStoreModule = createMediaStoreModule(account),
-                                    cryptoDriverModule = createCryptoDriverModule(),
-                                    authProviderData = null,
-                                    coroutineContext = appCoroutineContext,
-                                ) {
-                                    configurer.forEach { with(it) { invoke() } }
-                                }.getOrThrow()
+                                matrixClientFactory.load(
+                                    userId = account,
+                                ).getOrThrow()
                             }.onSuccess {
                                 success.update { it + account }
                             }.onFailure { e ->
@@ -291,46 +269,6 @@ class MatrixClientsImpl(
     override fun close() {
         value.values.forEach { it.close() }
     }
-
-    private suspend fun createRepositoriesModuleOrThrow(
-        userId: UserId,
-    ): RepositoriesModule {
-        log.debug { "create repositories module" }
-        val repositoriesModule = try {
-            createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
-        } catch (exc: Exception) {
-            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
-            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
-        }
-        return repositoriesModule
-    }
-
-    private suspend fun loadRepositoriesModuleOrThrow(
-        userId: UserId,
-    ): RepositoriesModule {
-        log.debug { "load repositories module" }
-        val repositoriesModule = try {
-            createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
-        } catch (exc: Exception) {
-            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
-            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
-        }
-        return repositoriesModule
-    }
-
-    private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
-        return if (createNew) {
-            val newKey = createRepositoriesModule.generateDatabaseKey() ?: return null
-            secretByteArrays.setDatabaseKey(userId, newKey)
-            newKey
-        } else {
-            secretByteArrays.getDatabaseKey(userId)
-        }
-    }
-
-    // we cannot check for SQLNonTransientConnectionException since this is common code
-    private fun isLocked(exc: Throwable): Boolean =
-        exc.cause?.message?.contains("locked") == true || exc.cause?.let { isLocked(it) } ?: false
 }
 
 @Serializable

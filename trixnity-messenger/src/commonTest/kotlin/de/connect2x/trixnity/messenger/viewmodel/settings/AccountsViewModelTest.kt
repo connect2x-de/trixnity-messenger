@@ -10,8 +10,6 @@ import de.connect2x.trixnity.clientserverapi.model.server.GetCapabilities
 import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
 import de.connect2x.trixnity.clientserverapi.model.user.Profile
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -21,19 +19,12 @@ import de.connect2x.trixnity.messenger.testViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.utils.toByteArrayFlow
-import dev.mokkery.answering.SuspendAnsweringScope
-import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
-import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldContain
-import io.ktor.http.*
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -42,7 +33,6 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class AccountsViewModelTest {
@@ -57,8 +47,6 @@ class AccountsViewModelTest {
     val mediaServiceMock = mock<MediaService>()
 
     val mediaServiceMock2 = mock<MediaService>()
-
-    private lateinit var setDisplayNameMocker: SuspendAnsweringScope<Result<Unit>>
 
     init {
         resetMocks(matrixClientMock, matrixClientMock2, mediaServiceMock, mediaServiceMock2)
@@ -163,108 +151,6 @@ class AccountsViewModelTest {
             account2.displayName.value shouldBe "Alice"
             account2.initials.value shouldBe "A"
             account2.avatar.value shouldBe "avatar2".encodeToByteArray()
-        }
-    }
-
-    @Test
-    fun `set a new display name and reload profile`() = runTest {
-        // do NOT move this block into the init block as it will break in iOS tests
-        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
-        every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Bobby")) }
-        setDisplayNameMocker calls {
-            profile.value += ProfileField.DisplayName((it.args[0] as ProfileField.DisplayName).value)
-            Result.success(Unit)
-        }
-        everySuspend {
-            mediaServiceMock.getThumbnail(
-                "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
-
-        val cut = profileViewModel()
-        val accounts = cut.accountSingleViewModels
-        accounts.first { it.size == 2 }
-
-        eventually(1.seconds) {
-            accounts.value[0].editDisplayName.textValue shouldBe "Bob"
-            accounts.value[0].editDisplayName.update("Bobby")
-        }
-
-        cut.saveDisplayName(ownUserId)
-        delay(200.milliseconds)
-        // this leads to matrixClient.displayName to be set to "Bobby"
-        verifySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName("Bobby")) }
-    }
-
-    @Test
-    fun `show error when new display name cannot be set`() = runTest {
-        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
-        every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
-        setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
-        everySuspend {
-            mediaServiceMock.getThumbnail(
-                "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
-
-        val cut = profileViewModel()
-        val accounts = cut.accountSingleViewModels
-        accounts.first { it.size == 2 }
-
-        accounts.value[0].editDisplayName.update("Nobby")
-        cut.saveDisplayName(ownUserId)
-
-        eventually(1.seconds) {
-            cut.error.value shouldNotBe null
-            accounts.value[0].displayName.value shouldBe "Bob"
-        }
-    }
-
-    @Test
-    fun `display an error message when the user has not enough rights to change the display name`() = runTest {
-        val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
-        every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker = everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
-        setDisplayNameMocker returns Result.failure(
-            MatrixServerException(
-                HttpStatusCode.Forbidden,
-                ErrorResponse.Forbidden("")
-            )
-        )
-        everySuspend {
-            mediaServiceMock.getThumbnail(
-                "mxc://localhost/123456",
-                avatarSize().toLong(),
-                avatarSize().toLong(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
-
-        val cut = profileViewModel()
-        val accounts = cut.accountSingleViewModels
-        accounts.first { it.size == 2 }
-
-        accounts.value[0].editDisplayName.update("Nobby")
-        cut.saveDisplayName(ownUserId)
-
-
-        eventually(1.seconds) {
-            cut.error.value shouldContain "not allowed"
-            accounts.value[0].displayName.value shouldBe "Bob"
         }
     }
 

@@ -145,20 +145,31 @@ left out for clarity.
 ## Configuration
 
 Trixnity Messenger has multiple ways to configure the client to your needs.
+There are three layers of configuration and dependency injection (DI).
 
-### Change default configuration
+Each configuration layer allows configuring the DI of that layer. Use `moduleFactories` to add custom
+modules to the DI.
 
-The class `MatrixMessengerConfiguration` contains information that is used to determine some folder names and other data
-in
-the lifecycle of the messenger. To override the standard configuration use `MatrixMessenger.create`:
+The configurations contain information used to determine some folder names and other data in the lifecycle of
+the messenger.
 
-```kotlin
-val matrixMessenger = MatrixMessenger.create {
-    appName = "Dino Messenger"
-    appId = "org.example.dino.messenger"
-    // ... more config ...
-}
-```
+Configurations are available when creating an instance of `MatrixMultiMessenger` or `MatrixMessenger` using `create`.
+
+### MatrixMultiMessengerConfiguration
+
+This configuration allows configuring the `MatrixMultiMessenger` itself.
+Use `messengerConfiguration` to configure the `MatrixMessengerConfiguration`.
+
+### MatrixMessengerConfiguration
+
+This configuration allows configuring the `MatrixMessenger` itself.
+When `MatrixMultiMessengerConfiguration` is already used, some of the configuration options don't need to be set again.
+See `MatrixMessengerBaseConfiguration` to find out, which options are copied.
+Use `clientConfiguration` to configure the `MatrixClientConfiguration`.
+
+### MatrixClientConfiguration
+
+This configuration allows configuring the `MatrixClient` itself.
 
 ### Notifications
 
@@ -185,7 +196,8 @@ addFcmPushNotificationProvider()
 
 Trixnity Messenger uses the System Font per default.
 This behavior can be changed by providing a custom implementation of `ThemeTypography`.
-One such custom implementation setting the font to Nunito can be found in `trixnity-messenger-compose-view-typography-nunito`.
+One such custom implementation setting the font to Nunito can be found in
+`trixnity-messenger-compose-view-typography-nunito`.
 
 To use Nunito instead of the System Font, a DSL in `MatrixMultiMessengerConfiguration` can be used similar to above.
 
@@ -369,8 +381,20 @@ data class CatEventContent(
     override val externalUrl: String? = null
 }
 
-val catEventContentSerializerMappings = createEventContentSerializerMappings {
-    stateOf<CatEventContent>("de.connect2x.cat")
+val catEventClientModule = module {
+    single<CustomEventContentSerializerMappings>(named("CatEvent")) {
+        CustomEventContentSerializerMappings {
+            stateOf<CatEventContent>("de.connect2x.cat")
+        }
+    }
+}
+```
+
+And add it to the client DI:
+
+```kotlin
+clientConfiguration {
+    moduleFactories += ::catEventClientModule
 }
 ```
 
@@ -422,18 +446,17 @@ class CatMessageMessageTimelineElementView : TimelineElementView<CatMessageTimel
 }
 ```
 
-Next, add it to the DI:
+Next, add both to the messenger DI:
 
 ```kotlin
-fun catEventModule() = modules {
-    // don't forget to name the singleton
-    single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
+fun catEventMessengerModule() = modules {
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
 
-// add the module to the matrix messenger:
-moduleFactories += ::catEventModule
+messengerConfiguration {
+    moduleFactories += ::catEventMessengerModule
+}
 ```
 
 If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement
