@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.audio
-import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi

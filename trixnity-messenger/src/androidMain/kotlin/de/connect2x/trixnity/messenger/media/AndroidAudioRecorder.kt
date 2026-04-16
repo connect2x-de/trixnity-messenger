@@ -30,7 +30,7 @@ internal class AndroidAudioRecorder(
     var registeredRequestPermission: ActivityResultLauncher<String>? = null
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
-    override suspend fun start(): CommonAudioRecorder.CommonState.Recording? {
+    override suspend fun start(): AudioRecorderImpl.State.Recording? {
         fun requestPermission() {
             registeredRequestPermission?.unregister()
             registeredRequestPermission = requestRecordPermissionActivityResult(
@@ -55,7 +55,7 @@ internal class AndroidAudioRecorder(
         registeredRequestPermission?.unregister()
     }
 
-    private suspend fun startRecorder(): CommonAudioRecorder.CommonState.Recording {
+    private suspend fun startRecorder(): AudioRecorderImpl.State.Recording {
         registeredRequestPermission?.unregister()
         return withContext(Dispatchers.IO) {
             val recorder =
@@ -68,18 +68,18 @@ internal class AndroidAudioRecorder(
 
             val format =
                 if (Build.VERSION.SDK_INT >= 29) {
-                    CommonAudioRecorder.Format(
+                    AudioRecorderImpl.Format(
                         MediaRecorder.OutputFormat.OGG,
                         MediaRecorder.AudioEncoder.OPUS,
-                        CommonAudioRecorder.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ,
+                        AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ,
                         ContentType.Audio.OGG
                     )
                 } else {
-                    CommonAudioRecorder.Format(
+                    AudioRecorderImpl.Format(
                         MediaRecorder.OutputFormat.AMR_WB,
                         MediaRecorder.AudioEncoder.AMR_WB,
-                        CommonAudioRecorder.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ,
-                        CommonAudioRecorder.Format.amrWbContentType
+                        AudioRecorderImpl.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ,
+                        AudioRecorderImpl.Format.amrWbContentType
                     )
                 }
             recorder.setOutputFormat(format.container)
@@ -91,7 +91,7 @@ internal class AndroidAudioRecorder(
             recorder.prepare()
             recorder.start()
 
-            CommonAudioRecorder.CommonState.Recording(
+            AudioRecorderImpl.State.Recording(
                 start = clock.now(),
                 loudness = {
                     recorder.maxAmplitude.toFloat()
@@ -100,7 +100,7 @@ internal class AndroidAudioRecorder(
                     try {
                         recorder.stop()
                         val capture = ReadOnlyFileOkioPlatformMedia(tempFilePath, fileSystem)
-                        CommonAudioRecorder.CommonState.Completed(
+                        AudioRecorderImpl.State.Completed(
                             capture,
                             duration = clock.now() - recordingState.start,
                             sizeBytes = fileSystem.metadata(tempFilePath).size,

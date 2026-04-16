@@ -8,9 +8,8 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
-import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
-import de.connect2x.trixnity.messenger.media.CommonAudioRecorder
+import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -195,7 +194,6 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
-import kotlin.time.TimeSource
 
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
     {
@@ -439,7 +437,7 @@ private fun mediaViewModels() = module {
         val config = get<MatrixMessengerConfiguration>()
         val audioRecorder =
             if (config.features.enableAudioRecorder) {
-                CommonAudioRecorder(get(), get(), get())
+                AudioRecorderImpl(get(), get(), get())
             } else {
                 null
             }

@@ -30,16 +30,16 @@ import kotlin.time.Instant
  */
 // TODO: make this abstract and move function from [PlatformAudioRecorder] to here. [AndroidAudioRecorder] then implements this
 @ExperimentalTrixnityMessengerApi
-class CommonAudioRecorder(
+class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
     parentScope: CoroutineScope,
 ): AudioRecorder {
-    private val commonState: MutableStateFlow<CommonState> =
-        MutableStateFlow(CommonState.Ready)
+    private val stateImpl: MutableStateFlow<State> =
+        MutableStateFlow(State.Ready)
 
     override val state: StateFlow<AudioRecorder.State> =
-        commonState.sampleToPublicState(clock)
+        stateImpl.sampleToPublicState(clock)
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
@@ -48,37 +48,36 @@ class CommonAudioRecorder(
 
         val initialRecordingState = platformAudioRecorder.start()
         if (initialRecordingState != null) {
-            commonState.value = withCatchCallbacks(initialRecordingState)
+            stateImpl.value = withCatchCallbacks(initialRecordingState)
         }
     }
 
     override fun complete() {
-        commonState.value = complete(commonState.value)
+        stateImpl.value = complete(stateImpl.value)
     }
 
     override fun close() {
         platformAudioRecorder.close()
-        commonState.value = close(commonState.value)
+        stateImpl.value = close(stateImpl.value)
     }
-
 
     /**
      * Abstract effectful platform-specific actions by storing them here as function values
      */
-    sealed interface CommonState {
-        object Ready : CommonState
+    sealed interface State {
+        object Ready : State
         data class Recording(
             val start: Instant,
             val loudness: () -> Float?,
             val complete: (Recording) -> Completed?,
-        ) : CommonState
+        ) : State
         data class Completed(
             val capture: PlatformMedia,
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
             val deleteCapture: () -> Unit
-        ) : CommonState
+        ) : State
     }
 
     data class Format<Container, Encoder>(
@@ -100,18 +99,18 @@ class CommonAudioRecorder(
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.CommonAudioRecorder")
 
-        private fun complete(commonState: CommonState): CommonState {
-            return when (commonState) {
-                CommonState.Ready -> {
+        private fun complete(stateImpl: State): State {
+            return when (stateImpl) {
+                State.Ready -> {
                     log.debug { "Audio recorder not started" }
-                    CommonState.Ready
+                    State.Ready
                 }
 
-                is CommonState.Recording -> {
+                is State.Recording -> {
                     log.debug { "Stopping audio recorder" }
 
                     val completedState = try {
-                        commonState.complete(commonState)
+                        stateImpl.complete(stateImpl)
                     } catch (t: Throwable) {
                         log.warn(t) { "Completing audio recording failed." }
                         null
@@ -120,31 +119,31 @@ class CommonAudioRecorder(
                         completedState
                     } else {
                         log.warn { "Stopping audio recorder failed" }
-                        CommonState.Ready
+                        State.Ready
                     }
                 }
 
-                is CommonState.Completed -> {
+                is State.Completed -> {
                     log.debug { "Audio recorder already stopped" }
-                    commonState
+                    stateImpl
                 }
             }
         }
 
-        private fun close(commonState: CommonState): CommonState {
+        private fun close(stateImpl: State): State {
             log.debug { "Cleaning audio recorder" }
-            when (val completed = complete(commonState)) {
-                is CommonState.Completed ->
+            when (val completed = complete(stateImpl)) {
+                is State.Completed ->
                     try {
                         completed.deleteCapture()
                     } catch (t: Throwable) {
                         log.warn(t) { "Failed to close audio recorder" }
                     }
-                CommonState.Ready -> Unit
-                is CommonState.Recording -> Unit
+                State.Ready -> Unit
+                is State.Recording -> Unit
             }
 
-            return CommonState.Ready
+            return State.Ready
         }
 
         /**
@@ -152,39 +151,39 @@ class CommonAudioRecorder(
          *
          * TODO: test how often this code is run by mocking the time source and modifying the time manually
          */
-        private fun Flow<CommonState>.sampleToPublicState(clock: Clock): Flow<AudioRecorder.State> {
+        private fun Flow<State>.sampleToPublicState(clock: Clock): Flow<AudioRecorder.State> {
             @OptIn(ExperimentalCoroutinesApi::class)
-            fun emitRepeatedlyWhileRecording(commonState: Flow<CommonState>): Flow<CommonState> {
-                return commonState.transformLatest { state ->
+            fun emitRepeatedlyWhileRecording(stateImpl: Flow<State>): Flow<State> {
+                return stateImpl.transformLatest { state ->
                     when (state) {
-                        is CommonState.Recording ->
+                        is State.Recording ->
                             while (currentCoroutineContext().isActive) {
                                 emit(state)
                                 delay(50.milliseconds)
                             }
-                        is CommonState.Completed, CommonState.Ready -> {
+                        is State.Completed, State.Ready -> {
                             emit(state)
                         }
                     }
                 }
             }
 
-            fun toPublicState(commonState: CommonState): AudioRecorder.State {
-                return when (commonState) {
-                    is CommonState.Recording -> {
+            fun toPublicState(stateImpl: State): AudioRecorder.State {
+                return when (stateImpl) {
+                    is State.Recording -> {
                         AudioRecorder.State.Recording(
-                            duration = clock.now() - commonState.start,
-                            loudness = commonState.loudness() ?: 0f
+                            duration = clock.now() - stateImpl.start,
+                            loudness = stateImpl.loudness() ?: 0f
                         )
                     }
 
-                    CommonState.Ready -> AudioRecorder.State.Ready
-                    is CommonState.Completed ->
+                    State.Ready -> AudioRecorder.State.Ready
+                    is State.Completed ->
                         AudioRecorder.State.Completed(
-                            commonState.capture,
-                            commonState.duration,
-                            commonState.sizeBytes,
-                            commonState.contentType
+                            stateImpl.capture,
+                            stateImpl.duration,
+                            stateImpl.sizeBytes,
+                            stateImpl.contentType
                         )
                 }
             }
@@ -205,7 +204,7 @@ class CommonAudioRecorder(
             }
         }
 
-        private fun withCatchCallbacks(recordingState: CommonState.Recording): CommonState.Recording {
+        private fun withCatchCallbacks(recordingState: State.Recording): State.Recording {
             return recordingState.copy(
                 loudness = {
                     try {
