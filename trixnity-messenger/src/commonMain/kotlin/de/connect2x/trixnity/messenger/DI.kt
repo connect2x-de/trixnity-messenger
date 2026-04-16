@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
+import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -435,9 +436,10 @@ private fun mediaViewModels() = module {
     single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
     single<AudioRecorderHolder> {
         val config = get<MatrixMessengerConfiguration>()
+        val platformAudioRecorder = getOrNull<PlatformAudioRecorder>()
         val audioRecorder =
-            if (config.features.enableAudioRecorder) {
-                AudioRecorderImpl(get(), get(), get())
+            if (config.features.enableAudioRecorder && platformAudioRecorder != null) {
+                AudioRecorderImpl(platformAudioRecorder, get(), get())
             } else {
                 null
             }
