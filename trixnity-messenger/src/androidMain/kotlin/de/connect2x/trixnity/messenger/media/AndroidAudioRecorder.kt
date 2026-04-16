@@ -9,7 +9,6 @@ import androidx.annotation.RequiresPermission
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
 import io.ktor.http.ContentType
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +16,6 @@ import kotlinx.coroutines.withContext
 import okio.FileSystem
 import kotlin.time.Clock
 
-@TrixnityMessengerPrivateApi
 internal class AndroidAudioRecorder(
     private val clock: Clock,
     private val fileSystem: FileSystem,

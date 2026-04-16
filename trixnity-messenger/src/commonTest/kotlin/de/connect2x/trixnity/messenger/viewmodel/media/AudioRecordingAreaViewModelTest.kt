@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
 import de.connect2x.trixnity.messenger.media.PlatformMediaMock
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModelFactory
 import dev.mokkery.answering.returns

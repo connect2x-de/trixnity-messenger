@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every

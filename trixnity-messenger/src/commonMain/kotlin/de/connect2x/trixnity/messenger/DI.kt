@@ -23,7 +23,6 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom

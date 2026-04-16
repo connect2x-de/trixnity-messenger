@@ -91,7 +91,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import okio.FileSystem
 import kotlin.math.abs

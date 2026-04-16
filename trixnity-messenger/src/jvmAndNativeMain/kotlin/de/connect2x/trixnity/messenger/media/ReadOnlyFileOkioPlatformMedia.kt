@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.readByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
@@ -11,7 +11,6 @@ import okio.FileSystem
 import okio.IOException
 import okio.Path
 
-@TrixnityMessengerPrivateApi
 class ReadOnlyFileOkioPlatformMedia(val path: Path, val fileSystem: FileSystem) : OkioPlatformMedia {
     override fun transformByteArrayFlow(transformer: (ByteArrayFlow) -> ByteArrayFlow): OkioPlatformMedia {
         throw NotImplementedError("No use case was seen by the developer. Feel free to implement.")

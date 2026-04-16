@@ -338,7 +338,6 @@ import de.connect2x.trixnity.messenger.compose.view.verification.RedoSelfVerific
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardView
 import de.connect2x.trixnity.messenger.compose.view.verification.SelfVerificationWizardViewImpl
 import de.connect2x.trixnity.messenger.notification.getPlatformNotificationIconModule
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named

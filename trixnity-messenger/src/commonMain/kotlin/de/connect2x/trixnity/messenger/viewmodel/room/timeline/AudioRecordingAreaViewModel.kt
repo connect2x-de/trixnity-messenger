@@ -3,9 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.essenty.lifecycle.doOnDestroy
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
@@ -29,7 +29,6 @@ interface AudioRecordingAreaViewModel {
     fun sendAudioMessage()
 }
 
-@TrixnityMessengerPrivateApi
 interface AudioRecordingAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -44,7 +43,6 @@ interface AudioRecordingAreaViewModelFactory {
     companion object : AudioRecordingAreaViewModelFactory
 }
 
-@TrixnityMessengerPrivateApi
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
@@ -122,7 +120,6 @@ class AudioRecordingAreaViewModelImpl(
     }
 }
 
-@TrixnityMessengerPrivateApi
 class PreviewAudioRecordingAreaViewModel: AudioRecordingAreaViewModel {
     override val recorder: AudioRecorderViewModel? = null
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = MutableStateFlow(null)

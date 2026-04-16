@@ -43,7 +43,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -163,7 +162,6 @@ interface InputAreaViewModel {
     val listOfMentions: StateFlow<List<UserInfoElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
-    @TrixnityMessengerPrivateApi
     val audio: AudioRecordingAreaViewModel
 
     fun selectMention(userId: UserId)
@@ -208,7 +206,6 @@ open class InputAreaViewModelImpl(
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    @TrixnityMessengerPrivateApi
     @Suppress("unused")
     private val completeAudioRecordingOnReplace =
         isReplace
@@ -223,7 +220,6 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
-    @TrixnityMessengerPrivateApi
     override val audio: AudioRecordingAreaViewModel =
         get<AudioRecordingAreaViewModelFactory>().create(
             childContext("audioRecordingAreaViewModel"),
@@ -363,7 +359,6 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    @TrixnityMessengerPrivateApi
     private fun sendAudioMessage(audioMessage: suspend MessageBuilder.() -> Unit) {
         coroutineScope.launch {
             val repliedEvent = currentReply.value
@@ -678,7 +673,6 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
-    @TrixnityMessengerPrivateApi
     override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 
     override fun selectMention(userId: UserId) {

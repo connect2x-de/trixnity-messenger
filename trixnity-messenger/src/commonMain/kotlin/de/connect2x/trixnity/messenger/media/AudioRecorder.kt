@@ -5,7 +5,6 @@ import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import io.ktor.http.ContentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,7 +51,6 @@ class AudioRecorderHolder(val getOrNull: AudioRecorder?)
 /**
  * Use this with delegation to implement a platform-specific [AudioRecorder]
  */
-@TrixnityMessengerPrivateApi
 class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,

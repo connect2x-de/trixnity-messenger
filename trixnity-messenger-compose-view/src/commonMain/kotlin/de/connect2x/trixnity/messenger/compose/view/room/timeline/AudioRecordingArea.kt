@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -44,7 +45,6 @@ import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.media.AudioRecorder
-import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModel
 import kotlinx.datetime.toDateTimePeriod
@@ -59,12 +59,10 @@ interface AudioRecordingAreaView {
 }
 
 @Composable
-@TrixnityMessengerPrivateApi
 fun RowScope.AudioRecordingArea(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {
     with(DI.get<AudioRecordingAreaView>()) { create(audioRecordingAreaViewModel) }
 }
 
-@TrixnityMessengerPrivateApi
 class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
     @Composable
     override fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel) {
