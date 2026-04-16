@@ -1,0 +1,12 @@
+public final class de/connect2x/trixnity/messenger/compose/view/typography/nunito/ThemeTypographyNunito : de/connect2x/trixnity/messenger/compose/view/theme/ThemeTypography {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/runtime/Composer;I)Landroidx/compose/material3/Typography;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/typography/nunito/ThemeTypographyNunitoKt {
+	public static final fun addNunitoThemeTypography (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
+	public static final fun addNunitoThemeTypography (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;)V
+	public static final fun nunitoThemeTypographyModule ()Lorg/koin/core/module/Module;
+}
+

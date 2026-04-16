@@ -27,7 +27,7 @@ kotlin {
         withBrowser()
     }
     withIos()
-    withAndroid("$group.compose.view.typography-nunito", minSdk = libs.versions.minSdkVersion)
+    withAndroid("$group.compose.view.typography.nunito", minSdk = libs.versions.minSdkVersion)
 
     sourceSets {
         commonMain.dependencies {
