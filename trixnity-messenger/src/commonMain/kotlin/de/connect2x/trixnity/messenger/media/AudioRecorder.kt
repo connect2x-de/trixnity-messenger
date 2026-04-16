@@ -1,10 +1,30 @@
 package de.connect2x.trixnity.messenger.media
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.debug
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.util.ExperimentalTrixnityMessengerApi
 import io.ktor.http.ContentType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.isActive
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 @TrixnityMessengerPrivateApi
 interface AudioRecorder : AutoCloseable {
@@ -27,7 +47,6 @@ interface AudioRecorder : AutoCloseable {
     }
 }
 
-@TrixnityMessengerPrivateApi
 class AudioRecorderHolder(val getOrNull: AudioRecorder?)
 
 /**
