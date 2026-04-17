@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.media.AndroidAudioRecorder
 import de.connect2x.trixnity.messenger.media.AndroidMediaPlayer
 import de.connect2x.trixnity.messenger.media.MediaPlayer
+import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
@@ -20,5 +22,8 @@ actual fun platformModule(): Module = module {
     }
     single<MediaPlayer> {
         AndroidMediaPlayer(get(), get())
+    }
+    single<PlatformAudioRecorder> {
+        AndroidAudioRecorder(get(), get(), get(), get(), get())
     }
 }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.EditOff
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -89,6 +90,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurfa
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
+import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 import okio.FileSystem
 import kotlin.math.abs
@@ -121,6 +123,49 @@ class InputAreaViewImpl : InputAreaView {
         val emojisOpen = remember { mutableStateOf(false) }
         val focusRequester = remember { FocusRequester() }
         val textField = inputAreaViewModel.textField.collectAsTextFieldValueState()
+        val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
+        val audioRecorderState = inputAreaViewModel.audio.recorder?.state?.collectAsState()?.value
+
+        @Composable
+        fun RowScope.TextInput(canRecordAudio: Boolean) {
+            EmojiButton(emojisOpen)
+
+            InputAreaTextField(inputAreaViewModel, textField, focusRequester, canRecordAudio = canRecordAudio)
+
+            if (isEdit) {
+                EditButton(inputAreaViewModel)
+            }
+
+            @Composable
+            fun StartAudioRecordingButton() {
+                AnimatedVisibility(canRecordAudio && isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
+                    Tooltip(i18n.inputAreaStartAudioRecording()) {
+                        ThemedIconButton(
+                            style = MaterialTheme.components.primaryIconButton,
+                            onClick = {
+                                inputAreaViewModel.audio.recorder?.start()
+                            },
+                        ) {
+                            Icon(
+                                Icons.Default.Mic,
+                                i18n.inputAreaStartAudioRecording(),
+                            )
+                        }
+                    }
+                }
+            }
+
+            Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
+                if (canRecordAudio) {
+                    StartAudioRecordingButton()
+                } else {
+                    AttachmentButton(inputAreaViewModel, insideTextInputField = false)
+                }
+
+
+                SendButton(inputAreaViewModel)
+            }
+        }
 
         ThemedSurface(
             style = MaterialTheme.components.inputAreaSurface,
@@ -153,16 +198,18 @@ class InputAreaViewImpl : InputAreaView {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (canSendMessages) {
-                        EmojiButton(emojisOpen)
+                        when (audioRecorderState) {
+                            AudioRecorder.State.Ready ->
+                                TextInput(canRecordAudio = true)
+                            null ->
+                                TextInput(canRecordAudio = false)
+                            is AudioRecorder.State.Recording, is AudioRecorder.State.Completed ->
+                                if (isEdit) {
+                                    TextInput(canRecordAudio = true)
+                                } else {
+                                    AudioRecordingArea(inputAreaViewModel.audio)
+                                }
 
-                        InputAreaTextField(inputAreaViewModel, textField, focusRequester)
-
-                        if (isEdit) {
-                            EditButton(inputAreaViewModel)
-                        }
-                        Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-                            AttachmentButton(inputAreaViewModel)
-                            SendButton(inputAreaViewModel)
                         }
                     } else {
                         Box(Modifier.fillMaxWidth()) {
@@ -230,6 +277,7 @@ fun RowScope.InputAreaTextField(
     textField: MutableState<TextFieldValue>,
     focusRequester: FocusRequester,
     style: InputAreaStyle = MaterialTheme.components.inputArea,
+    canRecordAudio: Boolean,
 ) {
     val platformType = Platform.current
     val i18n = DI.get<I18nView>()
@@ -345,6 +393,12 @@ fun RowScope.InputAreaTextField(
                 },
                 colors = style.colors,
                 contentPadding = style.contentPadding,
+                suffix = {
+                    if (canRecordAudio)
+                        AttachmentButton(inputAreaViewModel, insideTextInputField = true)
+                    else
+                        Unit
+                }
             )
         }
     }
@@ -404,7 +458,7 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
 }
 
 @Composable
-fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
+fun AttachmentButton(inputAreaViewModel: InputAreaViewModel, insideTextInputField: Boolean) {
     val i18n = DI.get<I18nView>()
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
@@ -418,11 +472,12 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
         inputAreaViewModel::onAttachmentFileSelect,
         inputAreaViewModel::closeAttachmentDialog,
     )
+    val style = MaterialTheme.components.commonIconButton
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
         Tooltip({ Text(i18n.inputAreaSelectAttachment()) }) {
             ThemedIconButton(
                 modifier = Modifier.expandable(showAttachmentDialog),
-                style = MaterialTheme.components.commonIconButton,
+                style = style,
                 onClick = {
                     if (!showAttachmentDialog) {
                         val hasShown = inputAreaViewModel.hasShownAttachmentSelectDialog.replayCache.getOrNull(0)
@@ -435,6 +490,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel) {
                         inputAreaViewModel.closeAttachmentDialog()
                     }
                 },
+                size = if (insideTextInputField) 20.dp else style.size,
             ) {
                 Icon(
                     MaterialTheme.messengerIcons.attachFile,

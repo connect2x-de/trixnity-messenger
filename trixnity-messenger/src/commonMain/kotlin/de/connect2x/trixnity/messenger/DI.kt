@@ -8,6 +8,9 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
+import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
+import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
 import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
@@ -77,6 +80,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewM
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
@@ -429,10 +433,22 @@ private fun roomSettingsViewModels() = module {
 
 private fun mediaViewModels() = module {
     single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
+    single<AudioRecorderHolder> {
+        val config = get<MatrixMessengerConfiguration>()
+        val platformAudioRecorder = getOrNull<PlatformAudioRecorder>()
+        val audioRecorder =
+            if (config.features.enableAudioRecorder && platformAudioRecorder != null) {
+                AudioRecorderImpl(platformAudioRecorder, get(), get())
+            } else {
+                null
+            }
+        AudioRecorderHolder(audioRecorder)
+    }
 }
 
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
+    single<AudioRecordingAreaViewModelFactory> { AudioRecordingAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }

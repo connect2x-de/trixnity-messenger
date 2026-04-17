@@ -1031,6 +1031,11 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun appearanceTitle ()Ljava/lang/String;
 	public fun archiveThresholdFromBeginning ()Ljava/lang/String;
 	public fun archiveThresholdSpecifyNumber ()Ljava/lang/String;
+	public fun audioRecordingDelete ()Ljava/lang/String;
+	public fun audioRecordingInProgress ()Ljava/lang/String;
+	public fun audioRecordingPreviewUnavailable ()Ljava/lang/String;
+	public fun audioRecordingSend ()Ljava/lang/String;
+	public fun audioRecordingStop ()Ljava/lang/String;
 	public fun authenticate ()Ljava/lang/String;
 	public fun automated ()Ljava/lang/String;
 	public fun ban ()Ljava/lang/String;
@@ -1221,6 +1226,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun inputAreaPrompt ()Ljava/lang/String;
 	public fun inputAreaSelectAttachment ()Ljava/lang/String;
 	public fun inputAreaSend ()Ljava/lang/String;
+	public fun inputAreaStartAudioRecording ()Ljava/lang/String;
 	public fun invitationAccept ()Ljava/lang/String;
 	public fun invitationBlock ()Ljava/lang/String;
 	public fun invitationReject ()Ljava/lang/String;
@@ -1651,12 +1657,14 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/media/AudioPlayerView {
 	public abstract fun Create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun CreateWithViewModelDuration (Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/media/AudioPlayerViewImpl : de/connect2x/trixnity/messenger/compose/view/media/AudioPlayerView {
 	public static final field $stable I
 	public fun <init> ()V
 	public fun Create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
+	public fun CreateWithViewModelDuration (Lde/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerViewModel;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/profiles/ComposableSingletons$ProfileSelectionKt {
@@ -2146,6 +2154,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Us
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/AudioRecordingAreaKt {
+	public static final fun AudioRecordingArea (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/AudioRecordingAreaViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/AudioRecordingAreaViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/AudioRecordingAreaView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/AudioRecordingAreaViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/AudioReplyView {
 	public abstract fun create (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
@@ -2214,11 +2232,11 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/In
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/InputAreaKt {
-	public static final fun AttachmentButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AttachmentButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;ZLandroidx/compose/runtime/Composer;I)V
 	public static final fun EditButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun EmojiButton (Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
 	public static final fun InputArea (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun InputAreaTextField (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/ui/focus/FocusRequester;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;Landroidx/compose/runtime/Composer;II)V
+	public static final fun InputAreaTextField (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/ui/focus/FocusRequester;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;ZLandroidx/compose/runtime/Composer;II)V
 	public static final fun SendButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun UserSelector (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;I)V
 }

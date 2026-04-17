@@ -1648,6 +1648,11 @@ open class I18n(
         EN - "This event id exists already"
         DE - "Diese Event Id existiert bereits"
     }
+
+    open fun audioRecordingManuallyGiveMicrophonePermissionPrompt() = translate {
+        EN - "Go to Permissions and allow Microphone"
+        DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
+    }
 }
 
 internal fun getLang(

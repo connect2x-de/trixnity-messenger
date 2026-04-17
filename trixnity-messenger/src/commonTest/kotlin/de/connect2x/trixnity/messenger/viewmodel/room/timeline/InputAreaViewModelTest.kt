@@ -34,6 +34,7 @@ import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
@@ -84,6 +85,12 @@ class InputAreaViewModelTest {
 
     val roomsApiClientMock = mock<RoomApiClient>()
 
+    val audioRecorder = mock<AudioRecorderViewModel>()
+
+    val audioRecordingArea = mock<AudioRecordingAreaViewModel>()
+
+    val audioRecordingAreaViewModelFactory = mock<AudioRecordingAreaViewModelFactory>()
+
     private var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
     private val onMessageEditFinishedMock = mock<Function2<RoomId, EventId, Unit>>()
@@ -123,7 +130,10 @@ class InputAreaViewModelTest {
             matrixClientServerApiClientMock,
             roomsApiClientMock,
             onMessageEditFinishedMock,
-            onMessageReplToFinishedMock
+            onMessageReplToFinishedMock,
+            audioRecorder,
+            audioRecordingArea,
+            audioRecordingAreaViewModelFactory
         )
         every { matrixClientMock.di } returns koinApplication {
             modules(
@@ -190,6 +200,11 @@ class InputAreaViewModelTest {
             "0"
         }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
+
+        every { audioRecordingAreaViewModelFactory.create(any(), any()) } returns
+                audioRecordingArea
+        every { audioRecordingArea.recorder } returns audioRecorder
+        every { audioRecorder.complete() } returns Unit
 
         everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
             val roomId = it.arg<RoomId>(0)
@@ -1005,6 +1020,18 @@ class InputAreaViewModelTest {
         }
     }
 
+    @Test
+    fun `audio » when starting to edit a message then complete audio recording`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.replaceMessage(roomId, eventId)
+
+        delay(300.milliseconds)
+
+        verify { audioRecorder.complete() }
+    }
+
     private fun roomUser(userId: UserId, name: String) = RoomUser(
         roomId, userId, name, StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
@@ -1021,7 +1048,12 @@ class InputAreaViewModelTest {
             modules(
                 createTestDefaultTrixnityMessengerModules(
                     mapOf(UserId("test", "server") to matrixClientMock)
-                ),
+                ) + module {
+                    single<AudioRecordingAreaViewModelFactory> {
+                        audioRecordingAreaViewModelFactory
+                    }
+                },
+
             )
         }.koin
         di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())

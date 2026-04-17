@@ -36,7 +36,7 @@ interface MediaPlayerViewModelFactory {
     companion object : MediaPlayerViewModelFactory
 }
 
-interface MediaPlayerViewModel {
+interface MediaPlayerViewModel : AutoCloseable {
     val elapsedTime: StateFlow<Duration>
     val duration: StateFlow<Duration>
     val state: StateFlow<State>
@@ -144,6 +144,14 @@ class MediaPlayerViewModelImpl(
         coroutineScope.launch {
             mutex.withLock {
                 item.value?.seekTo(position)
+            }
+        }
+    }
+
+    override fun close() {
+        coroutineScope.launch {
+            mutex.withLock {
+                item.value?.close()
             }
         }
     }
