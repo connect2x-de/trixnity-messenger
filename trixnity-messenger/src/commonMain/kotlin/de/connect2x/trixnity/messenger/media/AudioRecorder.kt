@@ -48,9 +48,6 @@ interface AudioRecorder : AutoCloseable {
 
 class AudioRecorderHolder(val getOrNull: AudioRecorder?)
 
-/**
- * Use this with delegation to implement a platform-specific [AudioRecorder]
- */
 class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
@@ -170,7 +167,6 @@ class AudioRecorderImpl(
         /**
          * Sampling so that the public API ([AudioRecorder.State]) can be immutable
          *
-         * TODO: test how often this code is run by mocking the time source and modifying the time manually
          */
         private fun Flow<State>.sampleToPublicState(clock: Clock): Flow<AudioRecorder.State> {
             @OptIn(ExperimentalCoroutinesApi::class)
