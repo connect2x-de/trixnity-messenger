@@ -18,7 +18,8 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.ProcessIm
 actual fun platformProcessImageUploadModule(): Module = module {
     single<ProcessImageUpload> {
         ProcessImageUpload { imageBytes, mimeType ->
-            rotateImageToMetadataOrientation(imageBytes, mimeType)
+            val rotated = rotateImageToMetadataOrientation(imageBytes, mimeType)
+            removeImageMetadata(rotated)
         }
     }
 }
