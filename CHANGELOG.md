@@ -48,6 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- SDK: **breaking change**: The Nunito Font is not included per default anymore. There is a separate package called
+  `trixnity-messenger-compose-view-typography-nunito`.
+
 ### Fixed
 
 - SDK: Empty draft messages being saved
