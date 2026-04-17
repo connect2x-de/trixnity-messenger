@@ -2,6 +2,15 @@ package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.notification
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.push.PusherData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushers
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -9,6 +18,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
+import de.connect2x.trixnity.utils.retry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -27,15 +37,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import de.connect2x.trixnity.client.notification
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.clientserverapi.model.push.PusherData
-import de.connect2x.trixnity.clientserverapi.model.push.SetPushers
-import de.connect2x.trixnity.core.MatrixServerException
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.utils.retry
 
 /**
  * Basic implementation for push-based notifications.
@@ -53,7 +54,7 @@ abstract class PushNotificationProvider(
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.PushNotificationProvider")
     }
 
-      @Serializable
+    @Serializable
     data class PusherSettings(
         val pushKey: String,
         val url: String,
@@ -173,7 +174,7 @@ abstract class PushNotificationProvider(
                     launch {
                         if (matrixClient.notification.getCount().first() != 0)
                             matrixClient.syncOnce().getOrNull()
-                        matrixClient.notification.processPending()
+                        matrixClient.notification.processPending(Presence.ONLINE)
                     }
                 }
             }
@@ -182,19 +183,19 @@ abstract class PushNotificationProvider(
     }
 
     /**
-     * This should be called within a medial timeframe, when [onPush] return false.
+     * This should be called within a medial timeframe, when [onPush] returned false.
      */
     suspend fun processPending(profile: String?, account: UserId?) {
         waitForStartup()
         log.debug { "process pending notifications" }
         when {
             profile != null && multiSettings?.value?.base?.activeProfile != profile -> return
-            account != null -> matrixClients.value[account]?.notification?.processPending()
+            account != null -> matrixClients.value[account]?.notification?.processPending(Presence.OFFLINE)
             else -> coroutineScope {
                 matrixClients.value.values
                     .forEach { matrixClient ->
                         launch {
-                            matrixClient.notification.processPending()
+                            matrixClient.notification.processPending(Presence.OFFLINE)
                         }
                     }
             }
