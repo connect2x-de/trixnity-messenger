@@ -12,6 +12,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.GetTimelineEventsConfig
 import de.connect2x.trixnity.client.room.Timeline
@@ -33,6 +34,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -98,6 +100,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
@@ -523,23 +526,22 @@ class TimelineViewModelImpl(
     }
 
     private fun scrollToEndOnNewOutboxElement() {
-        coroutineScope.launch {
-            var transactionIdsOld: Set<String>? = null
-            elements.collect { elements ->
-                val outboxElements = elements.filterIsInstance<OutboxElementHolderViewModel>()
-                val transactionIdsNew = outboxElements
-                    .filter { it.element.filterNotNull().first() !is TimelineElementViewModel.Empty }
-                    .map { it.transactionId }
-                    .toSet()
-                val scrollToEndOnNewOutboxElement =
-                    transactionIdsOld != null && (transactionIdsNew - transactionIdsOld).isNotEmpty()
-                transactionIdsOld = transactionIdsNew
-                if (scrollToEndOnNewOutboxElement) {
-                    log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
-                    jumpToEndOfTimelineSuspending()
+        val outboxTransactionIds =
+            outbox
+                .flatten()
+                .map { outboxMessages ->
+                    outboxMessages.map { outboxMessage ->
+                        outboxMessage.transactionId
+                    }
                 }
+        outboxTransactionIds.scan(setOf<String>()) { old, current ->
+            val new = current - old
+            if (new.isNotEmpty()) {
+                log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
+                jumpToEndOfTimelineSuspending()
             }
-        }
+            current.toSet()
+        }.launchIn(coroutineScope)
     }
 
     private fun markLastVisibleEventAsReadWhenItChanges() {
