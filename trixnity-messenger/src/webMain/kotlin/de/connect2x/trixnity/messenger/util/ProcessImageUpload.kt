@@ -7,7 +7,8 @@ import org.koin.dsl.module
 actual fun platformProcessImageUploadModule(): Module = module {
     single<ProcessImageUpload> {
         ProcessImageUpload { imageBytes, mimeType ->
-            rotateImageToMetadataOrientation(imageBytes, mimeType)
+            val rotated = rotateImageToMetadataOrientation(imageBytes, mimeType)
+            removeImageMetadata(rotated)
         }
     }
 }

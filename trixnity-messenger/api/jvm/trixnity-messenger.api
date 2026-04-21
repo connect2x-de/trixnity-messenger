@@ -3040,6 +3040,10 @@ public final class de/connect2x/trixnity/messenger/util/ProcessImageUploadKt {
 	public static final fun rotateImageToMetadataOrientation ([BLio/ktor/http/ContentType;)[B
 }
 
+public final class de/connect2x/trixnity/messenger/util/ProcessImageUploadRemoveMetadataKt {
+	public static final fun removeImageMetadata ([B)[B
+}
+
 public final class de/connect2x/trixnity/messenger/util/RootPath {
 	public static final synthetic fun box-impl (Lokio/Path;)Lde/connect2x/trixnity/messenger/util/RootPath;
 	public static fun constructor-impl (Lokio/Path;)Lokio/Path;

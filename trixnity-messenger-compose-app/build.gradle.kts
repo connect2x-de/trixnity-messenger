@@ -153,6 +153,7 @@ kotlin {
         webMain {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
+                implementation(npm("pako", libs.versions.pako.get()))
             }
         }
     }

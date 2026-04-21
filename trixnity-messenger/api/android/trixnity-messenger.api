@@ -3103,6 +3103,10 @@ public final class de/connect2x/trixnity/messenger/util/ProcessImageUploadKt {
 	public static final fun rotateImageToMetadataOrientation ([BLio/ktor/http/ContentType;)[B
 }
 
+public final class de/connect2x/trixnity/messenger/util/ProcessImageUploadRemoveMetadataKt {
+	public static final fun removeImageMetadata ([B)[B
+}
+
 public final class de/connect2x/trixnity/messenger/util/RequestPermissionActivityResultKt {
 	public static final fun requestPermissionActivityResult (Landroidx/activity/ComponentActivity;Ljava/lang/String;Ljava/lang/String;)Landroidx/activity/result/ActivityResultLauncher;
 	public static final fun requestRecordPermissionActivityResult (Landroidx/activity/ComponentActivity;Ljava/lang/String;)Landroidx/activity/result/ActivityResultLauncher;

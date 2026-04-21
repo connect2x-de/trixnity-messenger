@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow for customizing the `MatrixClient` via
   configuration
 - UI,SDK,ANDROID: Voice messages (experimental, disabled by default with feature flag)
+- SDK: remove Exif metadata (and IPTC, XMP) for jpeg, png and webP when sending
 
 ### Changed
 
