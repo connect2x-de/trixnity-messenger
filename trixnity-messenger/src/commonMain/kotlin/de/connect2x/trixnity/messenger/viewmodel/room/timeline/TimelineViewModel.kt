@@ -34,7 +34,6 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
-import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -103,6 +102,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -421,7 +421,8 @@ class TimelineViewModelImpl(
 
         initTimeline()
         scrollToEndOnNewOutboxElement()
-        continuouslyLoadAndScroll()
+        continuouslyLoad()
+        scrollToNewEventWhenAtEndOfTimeline()
 
         markLastVisibleEventAsReadWhenItChanges()
 
@@ -818,11 +819,57 @@ class TimelineViewModelImpl(
             .distinctUntilChanged()
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+    private fun scrollToNewEventWhenAtEndOfTimeline() {
+        fun <A, B> toNonNullableComponents(pair: Pair<A?, B?>): Pair<A, B>? {
+            val first = pair.first
+            val second = pair.second
+            return if (first != null && second != null) {
+                Pair(first, second)
+            } else {
+                null
+            }
+        }
 
-    /**
-     * Update the timeline elements and scroll to the bottom if a new event has been added and we were at the bottom of the timeline
-     */
-    private fun continuouslyLoadAndScroll() {
+        suspend fun transactionKey(eventId: EventId): String? {
+            return matrixClient.api.room
+                .getEvent(roomId, eventId)
+                .getOrNull()
+                ?.unsigned
+                ?.transactionId
+                ?.asKey(roomId)
+        }
+
+        fun eventKey(eventId: EventId): String {
+            return eventId.asKey(roomId)
+        }
+
+        val bottomAndNewEvent = matrixClient.room.getById(roomId)
+            .mapNotNull { it?.lastEventId }
+            .distinctUntilChanged()
+            .scan(Pair<EventId?, EventId?>(null, null)) { (_previouslyBottom, bottom), new ->
+                Pair(bottom, new)
+            }
+            .mapNotNull {
+                toNonNullableComponents(it)
+            }
+
+        bottomAndNewEvent.onEach { (bottom, new) ->
+            // This sometimes contains a transaction ID and sometimes an event ID
+            // Seems to be (but not sure): When incoming message then event ID and when outgoing message then transaction ID
+            val lastVisible = viewState.value?.lastVisibleElement
+
+            val bottomVisible =
+                lastVisible == eventKey(bottom) || lastVisible == transactionKey(bottom)
+            val timelineFocused = viewState.value?.timelineIsFocused == true
+            if (timelineFocused && bottomVisible) {
+                log.debug { "we are at the bottom and a new timeline event occurred, scrolling to new event..." }
+                jumpTo(roomId, new)
+            }
+        }
+            .launchIn(coroutineScope)
+    }
+
+    private fun continuouslyLoad() {
         coroutineScope.launch {
             // only start when a view state is set
             viewState.filterNotNull().first()
@@ -844,7 +891,7 @@ class TimelineViewModelImpl(
                         .firstOrNull { it.value is TimelineElementHolderViewModel }
                         ?.index
                         ?: -1
-                val (indexOfLastVisibleTimelineElement, lastVisibleTimelineElement) = // ignores outbox
+                val (indexOfLastVisibleTimelineElement, _lastVisibleTimelineElement) = // ignores outbox
                     elements.asReversedIndexedFlow()
                         .dropWhile { it.value.key != lastVisibleElement }
                         .firstOrNull { it.value is TimelineElementHolderViewModel }
@@ -891,39 +938,8 @@ class TimelineViewModelImpl(
                             }
                         }
 
-                    // We don't sroll/mark as read when the UI has changed the visible elements during the calculation
                     if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
                         log.trace { "finished load more timeline events after" }
-
-                        val previousLastElement = timelineStateChange.elementsBeforeChange.last()
-                        val addedElementsAtEnd =
-                            timelineStateChange.addedElements.isNotEmpty()
-                                    && timelineStateChange.elementsAfterChange.firstOrNull { it.key == previousLastElement.key } != null
-                                    && previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
-
-                        val wasAtEndOfTimeline =
-                            timelineStateChange.elementsBeforeChange.last().key == lastVisibleTimelineElement?.key
-
-                        if (viewState.value?.timelineIsFocused == true
-                            && addedElementsAtEnd
-                            && wasAtEndOfTimeline
-                        ) {
-                            val newLastEvent = timelineStateChange.addedElements.last().key
-
-                            val currentReadEvent = readEvent.value
-                            log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
-                            log.debug { "new timeline events has been added at the end of timeline, scroll to end of timeline" }
-                            jumpToEndOfTimelineSuspending()
-                            if (
-                                lastVisibleTimelineElement.roomId == currentReadEvent?.first
-                                && lastVisibleTimelineElement.eventId == currentReadEvent.second
-                            ) {
-                                log.debug { "new timeline events has been added at the end of timeline -> mark as fully read" }
-                                // wait for new element be part of the StateFlows (used by markAsRead)
-                                this@TimelineViewModelImpl.elements.first { it.any { it.key == newLastEvent } }
-                                markAsRead(newLastEvent)
-                            }
-                        }
 
                         if (visibleTimelineSize > timelineMaxSize && !isInBufferBefore) {
                             log.debug { "drop timeline events before" }
