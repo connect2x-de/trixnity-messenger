@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.media
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.core.component.get
 import kotlin.time.Duration
 
 interface MediaPlayerViewModelFactory {
@@ -25,13 +27,21 @@ interface MediaPlayerViewModelFactory {
         mimeType: String,
         initialDuration: Duration?,
         acquireFile: suspend () -> Result<PlatformMedia>
-    ) : MediaPlayerViewModel = MediaPlayerViewModelImpl(
-        id = id,
-        viewModelContext = viewModelContext,
-        mimeType = mimeType,
-        initialDurationOptional = initialDuration,
-        acquireFile = acquireFile
-    )
+    ) : MediaPlayerViewModel? {
+        val config = viewModelContext.get<MatrixMessengerConfiguration>()
+        return if (config.features.enableMediaPlayer) {
+            MediaPlayerViewModelImpl(
+                id = id,
+                viewModelContext = viewModelContext,
+                mimeType = mimeType,
+                initialDurationOptional = initialDuration,
+                acquireFile = acquireFile
+            )
+        } else {
+            null
+        }
+
+    }
 
     companion object : MediaPlayerViewModelFactory
 }

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   configuration
 - UI,SDK,ANDROID: Voice messages (has a feature flag which is enabled by default, experimental SDK API)
 - SDK: remove Exif metadata (and IPTC, XMP) for jpeg, png and webP when sending
+- SDK: media/audio player now has a feature toggle (enabled by default)
 
 ### Changed
 
