@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: **breaking change**: `EventContentSerializerMappings` passed to the DI are not picked up anymore. Instead,
   `CustomEventContentSerializerMappings` are now picked up from the
   `MatrixMessengerConfiguration.clientConfiguration.moduleFactories`
+- UI: The welcome dialog now greets a user via their display name if possible
 
 ### Deprecated
 

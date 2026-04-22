@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.Wizard
@@ -23,7 +24,6 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModel
 
@@ -134,7 +134,14 @@ private fun wizardStepExplanation(
 ): WizardStep {
     return WizardStep(
         id = step.stepId,
-        title = { "${i18n.commonWelcome()} ${viewModel.userId.localpart}" },
+        title = {
+            val displayName by viewModel.displayName.collectAsState()
+            if (displayName != null) {
+                "${i18n.commonWelcome()} $displayName"
+            } else {
+                ""
+            }
+        },
         content = { Text(i18n.accountSetupWizardExplanationMessage()) },
     )
 }

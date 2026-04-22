@@ -10759,6 +10759,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/settin
 	public abstract fun closeAccountSetup ()V
 	public abstract fun getAppearanceSettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/AppearanceSettingsViewModel;
 	public abstract fun getCompletedVerification ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public abstract fun getDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNotificationSettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/NotificationSettingsSingleAccountViewModel;
 	public abstract fun getPrivacySettingsViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;
 	public abstract fun getSetupBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
@@ -10793,6 +10794,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/settings/AccountSet
 	public fun getCompletedVerification ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getDisplayName ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
