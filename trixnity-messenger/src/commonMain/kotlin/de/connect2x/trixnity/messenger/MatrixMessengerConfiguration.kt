@@ -49,7 +49,7 @@ data class MatrixMessengerConfiguration(
         enablePdfReader = true,
         enablePowerlevelEventConfigurationInRoomSettings = true,
         enableMessageDrafts = true,
-        enableAudioRecorder = false,
+        enableAudioRecorder = true,
     ),
 
     /**
@@ -161,7 +161,7 @@ data class MatrixMessengerConfiguration(
         /**
          * Transitively enables voice messages
          */
-        var enableAudioRecorder: Boolean = false,
+        var enableAudioRecorder: Boolean = true,
     )
 
     enum class CryptoDriver {
