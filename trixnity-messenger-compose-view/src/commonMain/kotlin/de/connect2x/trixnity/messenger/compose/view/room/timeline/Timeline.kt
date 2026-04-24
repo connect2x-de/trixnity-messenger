@@ -188,8 +188,8 @@ class TimelineViewImpl : TimelineView {
                     Box(Modifier.padding(vertical = 2.dp)) {
                         val canScrollToEnd = remember {
                             derivedStateOf {
-                                val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
-                                lastVisibleItem != null && !(lastVisibleItem.index == 0 && lastVisibleItem.offset == 0)
+                                val fistVisibleItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+                                fistVisibleItem != null && !(fistVisibleItem.index == 0 && fistVisibleItem.offset == 0)
                             }
                         }
                         Box {
@@ -237,9 +237,11 @@ class TimelineViewImpl : TimelineView {
                                 ) { index, timelineViewElement ->
                                     Box(
                                         Modifier.rovingFocusItem(
-                                            isFocused = focusedElement == index,
-                                            onFocus = { focusedElement = index },
                                         ).animateItem()
+                                        Modifier
+                                            .rovingFocusItem(
+                                            )
+                                            .animateItem()
                                             .animateContentSize()
                                     ) {
                                         when (timelineViewElement) {
