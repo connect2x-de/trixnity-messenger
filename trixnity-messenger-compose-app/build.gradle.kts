@@ -5,7 +5,6 @@ import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import de.connect2x.conventions.withAndroid
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
-import de.connect2x.conventions.withJs
 import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.gradle.internal.extensions.stdlib.capitalized
@@ -153,7 +152,6 @@ kotlin {
         webMain {
             dependencies {
                 implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
-                implementation(npm("pako", libs.versions.pako.get()))
             }
         }
     }

@@ -171,6 +171,7 @@ kotlin {
                 api(libs.trixnity.client.media.opfs)
                 api(libs.trixnity.client.media.indexeddb)
                 api(npm("@js-joda/timezone", libs.versions.jsJoda.get()))
+                implementation(npm("pako", libs.versions.pako.get()))
                 implementation(projects.wrappersZipjs)
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
