@@ -25,13 +25,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -99,23 +102,41 @@ class RoomListViewImpl : RoomListView {
                     }
                 }
             } else {
-                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState()
-
-                var selectedId by remember {
-                    mutableStateOf(selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId)
+                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
+                var focusedItem by remember(selectedRoomId, allRooms) {
+                    mutableStateOf(
+                        if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
+                            selectedRoomId
+                        } else {
+                            allRooms.firstOrNull()?.roomId
+                        }
+                    )
                 }
+
+                val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+                val coroutineScope = rememberCoroutineScope()
+
                 LazyColumn(
                     Modifier
                         .fillMaxSize()
-                        .rovingFocusContainer()
+                        .rovingFocusContainer(
+                            coroutineScope = coroutineScope,
+                            singletonFocusRequester = singletonFocusRequester,
+                            isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
+                            scrollToFocusedItem = {
+                                val index = allRooms.indexOfFirst { it.roomId == focusedItem }
+                                if (index != -1) state.scrollToItem(index)
+                            })
                         .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
                     state,
                 ) {
                     itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
                         Box(
                             Modifier.rovingFocusItem(
-                                isFocused = roomListElement.roomId == selectedId,
-                                onFocus = { selectedId = roomListElement.roomId })
+                                isFocused = focusedItem == roomListElement.roomId,
+                                onFocus = { focusedItem = roomListElement.roomId },
+                                singletonFocusRequester = singletonFocusRequester
+                            ),
                         ) {
                             RoomListElementContainer(
                                 roomListElement.roomId,
