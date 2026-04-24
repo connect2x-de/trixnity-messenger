@@ -3,9 +3,13 @@ package de.connect2x.trixnity.messenger.compose.view.common.modifier
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
@@ -15,6 +19,9 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInputModeManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 
 enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
@@ -24,7 +31,13 @@ enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
 }
 
 @Composable
-fun Modifier.rovingFocusContainer(direction: RovingFocusDirection = RovingFocusDirection.Vertical): Modifier {
+fun Modifier.rovingFocusContainer(
+    direction: RovingFocusDirection = RovingFocusDirection.Vertical,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    singletonFocusRequester: FocusRequester,
+    isFocusedItemVisible: () -> Boolean = { true },
+    scrollToFocusedItem: suspend () -> Unit = {},
+): Modifier {
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
     val moveFocus = remember(focusManager, inputModeManager) {
@@ -34,12 +47,35 @@ fun Modifier.rovingFocusContainer(direction: RovingFocusDirection = RovingFocusD
         }
     }
     return this.moveFocusOnDirection(moveFocus, direction.directions)
+        .focusProperties @ExperimentalComposeUiApi {
+            enter = {
+                if (it.isTab()) {
+                    if (!isFocusedItemVisible()) {
+                        coroutineScope.launch {
+                            scrollToFocusedItem()
+                            yield()
+                            singletonFocusRequester.requestFocus(it)
+                        }
+                    } else {
+                        singletonFocusRequester.requestFocus(it)
+                    }
+                    FocusRequester.Cancel
+                }
+                FocusRequester.Default
+            }
+        }
 }
 
-fun Modifier.rovingFocusItem(isFocused: Boolean, onFocus: () -> Unit): Modifier = this
+fun Modifier.rovingFocusItem(
+    isFocused: Boolean,
+    onFocus: () -> Unit,
+    singletonFocusRequester: FocusRequester,
+    hasRequester: () -> Boolean = { isFocused }
+): Modifier = this
     .focusProperties { onEnter = { if (!isFocused && requestedFocusDirection.isTab()) cancelFocusChange() } }
     .focusGroup()
     .onFocusChanged { if (it.isFocused) onFocus() }
+    .run { if (hasRequester()) focusRequester(singletonFocusRequester) else this@run }
 
 private fun Modifier.moveFocusOnDirection(
     moveFocus: (FocusDirection) -> Boolean,
