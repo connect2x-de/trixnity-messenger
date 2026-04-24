@@ -28,9 +28,12 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -40,6 +43,7 @@ import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
@@ -193,14 +197,40 @@ class TimelineViewImpl : TimelineView {
                             }
                         }
                         Box {
-                            var focusedElement by remember(
-                                showTypingIndicator,
-                                timelineViewElements.value
-                            ) { mutableStateOf(0) }
+                            class Container<T>(var value: T)
+
+                            var focusedItemKey by remember {
+                                mutableStateOf(
+                                    listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? String
+                                )
+                            }
+                            // Approximate because the actual intended index can change if a message is received
+                            // and timelineViewElements.value does not contain the focusedMessage anymore (Due to scrolling)
+                            var approximateFocusedItemIndex = remember {
+                                Container(timelineViewElements.value.indexOfFirst { it.key == focusedItemKey }
+                                    .let { if (it >= 0) it else 0 })
+                            }
+                            val focusedItemIndex = remember(focusedItemKey, timelineViewElements.value) {
+                                val index = timelineViewElements.value.indexOfFirst { it.key == focusedItemKey }
+                                if (index >= 0) {
+                                    approximateFocusedItemIndex.value = index
+                                    index
+                                } else approximateFocusedItemIndex.value
+                            }
+
+                            val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+                            val coroutineScope = rememberCoroutineScope()
+
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .rovingFocusContainer()
+                                    .rovingFocusContainer(
+                                        coroutineScope = coroutineScope,
+                                        singletonFocusRequester = singletonFocusRequester,
+                                        isFocusedItemVisible = { listState.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItemKey } },
+                                        scrollToFocusedItem = {
+                                            listState.scrollToItem(focusedItemIndex)
+                                        })
                                     .semantics {
                                         collectionInfo = CollectionInfo(1, timelineViewElements.value.size)
                                         liveRegion = LiveRegionMode.Polite
@@ -221,8 +251,9 @@ class TimelineViewImpl : TimelineView {
                                 if (showTypingIndicator) {
                                     item(key = "typing", contentType = "typing") {
                                         TypingIndicator(timelineViewModel)
-                                        if (focusedElement == 0)
-                                            focusedElement++
+                                        if (focusedItemIndex == 0)
+                                            focusedItemKey = timelineViewElements.value
+                                                .getOrNull(focusedItemIndex + 1)?.key
                                     }
                                 }
                                 itemsIndexed(
@@ -236,10 +267,11 @@ class TimelineViewImpl : TimelineView {
                                     },
                                 ) { index, timelineViewElement ->
                                     Box(
-                                        Modifier.rovingFocusItem(
-                                        ).animateItem()
                                         Modifier
                                             .rovingFocusItem(
+                                                isFocused = (timelineViewElement.key == focusedItemKey || (focusedItemKey == null && index == 0)),
+                                                onFocus = { focusedItemKey = timelineViewElement.key },
+                                                singletonFocusRequester
                                             )
                                             .animateItem()
                                             .animateContentSize()
@@ -254,10 +286,11 @@ class TimelineViewImpl : TimelineView {
 
                                             is TimelineViewElement.Element -> {
                                                 val viewModel = timelineViewElement.viewModel
-                                                // if an empty timeline-event is marked as the focusedElement we cannot tab into the
+                                                // if an empty timeline-event is marked as the focusedItem we cannot tab into the
                                                 // timeline due to it not being focusable so we initially skip all empties
-                                                if (viewModel.element.value is TimelineElementViewModel.Empty && index == focusedElement)
-                                                    focusedElement++
+                                                if (focusedItemKey == timelineViewElement.key && viewModel.element.value is TimelineElementViewModel.Empty)
+                                                    focusedItemKey = timelineViewElements.value
+                                                        .getOrNull(focusedItemIndex + 1)?.key
 
                                                 TimelineElementHolder(viewModel, index)
                                             }
@@ -482,3 +515,5 @@ fun ListDateHeader(
         }
     }
 }
+
+private fun FocusDirection.isTab(): Boolean = this == FocusDirection.Next || this == FocusDirection.Previous
