@@ -17,10 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -49,6 +51,9 @@ fun EmojiSelector(
     val scrollState = rememberScrollState()
     var focusedItem by remember { mutableStateOf(emojis.firstOrNull()) }
 
+    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
     Box(modifier) {
         Row(modifier = Modifier.verticalScroll(scrollState).align(Alignment.Center)) {
             BoxWithConstraints(Modifier.padding(12.dp)) {
@@ -64,14 +69,22 @@ fun EmojiSelector(
 
                             else -> false
                         }
-                    }.rovingFocusContainer(RovingFocusDirection.Grid)
+                    }.rovingFocusContainer(
+                        direction = RovingFocusDirection.Grid,
+                        coroutineScope = coroutineScope,
+                        singletonFocusRequester = singletonFocusRequester,
+                        isFocusedItemVisible = { false },
+                        scrollToFocusedItem = { scrollState.scrollTo(0) }
+                    )
                 ) {
-                    for (emoji in emojis) {
+                    emojis.forEachIndexed { index, emoji ->
                         EmojiButton(
                             label = emoji,
                             modifier = Modifier.rovingFocusItem(
                                 isFocused = focusedItem == emoji,
                                 onFocus = { focusedItem = emoji },
+                                singletonFocusRequester = singletonFocusRequester,
+                                hasRequester = { index == 0 }
                             ),
                             onClick = { onTextAdded(emoji) },
                         )

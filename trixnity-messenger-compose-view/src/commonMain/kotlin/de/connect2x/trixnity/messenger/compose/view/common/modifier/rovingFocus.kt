@@ -2,8 +2,11 @@ package de.connect2x.trixnity.messenger.compose.view.common.modifier
 
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -52,19 +55,28 @@ fun Modifier.rovingFocusContainer(
             focusManager.moveFocus(focusDirection)
         }
     }
+    var isInternalFocus by remember { mutableStateOf(false) } //This is used to only execute enter once
+
     return this.moveFocusOnDirection(moveFocus, direction.directions)
+        .onFocusChanged {
+            isInternalFocus = it.hasFocus
+        }
         .focusProperties @ExperimentalComposeUiApi {
             enter = {
                 if (it.isTab()) {
-                    if (!isFocusedItemVisible()) {
-                        coroutineScope.launch {
-                            scrollToFocusedItem()
-                            yield()
+                    if (!isInternalFocus) {
+                        if (!isFocusedItemVisible()) {
+                            coroutineScope.launch {
+                                scrollToFocusedItem()
+                                yield()
+                                singletonFocusRequester.requestFocus(it)
+                            }
+                        } else {
                             singletonFocusRequester.requestFocus(it)
                         }
-                    } else {
-                        singletonFocusRequester.requestFocus(it)
                     }
+                    isInternalFocus = true
+                    FocusRequester.Cancel
                 }
                 FocusRequester.Default
             }
