@@ -27,9 +27,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -77,6 +79,8 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
+        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+        val coroutineScope = rememberCoroutineScope()
         var references by remember {
             mutableStateOf(listOf<String>())
         }
@@ -91,7 +95,15 @@ class CreateNewChatViewImpl : CreateNewChatView {
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
             Box(Modifier.fillMaxSize()) {
-                LazyColumn(Modifier.rovingFocusContainer(), listState) {
+                LazyColumn(
+                    Modifier.rovingFocusContainer(
+                        coroutineScope = coroutineScope,
+                        singletonFocusRequester = singletonFocusRequester,
+                        isFocusedItemVisible = { false },
+                        scrollToFocusedItem = {
+                            listState.scrollToItem(0)
+                        }), listState
+                ) {
                     item(key = "CreatingIndicator") {
                         if (isCreating) {
                             ThemedProgressIndicator(
@@ -110,6 +122,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         searchUsersResults,
                         userSearchResultView,
                         this,
+                        singletonFocusRequester
                     )
                 }
 

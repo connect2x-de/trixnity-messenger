@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -69,8 +70,10 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     icon: ImageVector = Icons.Default.Settings,
 ) {
     var focusedItem by remember(value) { mutableStateOf(value) }
+    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+
     ExpandableSection(heading = { title() }, icon = icon) {
-        Column(modifier = Modifier.rovingFocusContainer()) {
+        Column(modifier = Modifier.rovingFocusContainer(singletonFocusRequester = singletonFocusRequester)) {
             for ((key, option) in options) {
                 val (optionText, optionExplanation, optionEnabled, optionStyle) = option
                 ThemedListItemRadioButton(
@@ -83,6 +86,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                         .rovingFocusItem(
                             isFocused = focusedItem == key,
                             onFocus = { focusedItem = key },
+                            singletonFocusRequester = singletonFocusRequester
                         )
                         .semantics(mergeDescendants = true) {
                             if (optionExplanation != null)

@@ -22,11 +22,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.Header
@@ -59,8 +62,11 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
         val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        val references = remember(userList) { userList.map { it.userId } }
-        var focusedItem by remember(userList) { mutableStateOf(references.firstOrNull()) }
+        var focusedItem by remember(userList) { mutableStateOf(userList.firstOrNull()?.userId) }
+
+        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+        val coroutineScope = rememberCoroutineScope()
+
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
             if (userList.isEmpty()) {
@@ -95,7 +101,17 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                 }
             } else {
                 Box(Modifier.fillMaxSize()) {
-                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), state) {
+                    LazyColumn(
+                        Modifier.fillMaxSize().rovingFocusContainer(
+                            coroutineScope = coroutineScope,
+                            singletonFocusRequester = singletonFocusRequester,
+                            isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
+                            scrollToFocusedItem = {
+                                val index = userList.indexOfFirst { it.userId == focusedItem }
+                                if (index != -1) state.scrollToItem(index)
+                            }),
+                        state
+                    ) {
                         item("header") {
                             ThemedListItem(
                                 style = MaterialTheme.components.settingsItem,
@@ -112,11 +128,12 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                 user = user, i18n = i18n,
                                 isFocused = focusedItem == user.userId,
                                 onFocus = { focusedItem = user.userId },
+                                singletonFocusRequester = singletonFocusRequester
                             ) {
-                                val referencesWithoutThisOne = references - user.userId
+                                val userListWithoutThisOne = userList.filter { it.userId != user.userId }
                                 blockedContactsSettingsViewModel.unblockContact(user.userId)
-                                if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
-                                focusedItem = referencesWithoutThisOne[0]
+                                if (userListWithoutThisOne.isEmpty()) return@IgnoredUserListElement
+                                focusedItem = userListWithoutThisOne[0].userId
                             }
                         }
                     }
@@ -135,11 +152,12 @@ fun IgnoredUserListElement(
     i18n: I18nView,
     isFocused: Boolean,
     onFocus: () -> Unit,
-    onRemove: () -> Unit,
+    singletonFocusRequester: FocusRequester,
+    onRemove: () -> Unit
 ) {
     ThemedListItem(
         style = MaterialTheme.components.settingsItem,
-        modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
+        modifier = Modifier.rovingFocusItem(isFocused, onFocus, singletonFocusRequester).focusHighlighting(),
         leadingContent = { Icon(Icons.Default.PersonOff, null) },
         headlineContent = { Text(user.userId.full) },
         trailingContent = {

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
@@ -64,7 +65,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModel
-import de.connect2x.trixnity.core.MSC3814
 
 interface DeviceSettingsView {
     @Composable
@@ -119,7 +119,13 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
         val otherDevices = devices.filter { it.isThisDevice.not() }
         var focusedItem by remember { mutableStateOf(thisDevice?.deviceId) }
 
-        SettingsAccountCard(viewModel.account, modifier = Modifier.rovingFocusContainer()) {
+        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+
+        SettingsAccountCard(
+            viewModel.account, modifier = Modifier.rovingFocusContainer(
+                singletonFocusRequester = singletonFocusRequester
+            )
+        ) {
             val i18n = DI.get<I18nView>()
             error?.let { ErrorView(it) }
             if (isLoading || thisDevice == null) {
@@ -137,6 +143,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                     device = thisDevice,
                     isFocused = focusedItem == thisDevice.deviceId,
                     onFocus = { focusedItem = thisDevice.deviceId },
+                    singletonFocusRequester = singletonFocusRequester
                 )
 
                 if (otherDevices.isNotEmpty()) {
@@ -152,6 +159,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                             device = device,
                             isFocused = focusedItem == device.deviceId,
                             onFocus = { focusedItem = device.deviceId },
+                            singletonFocusRequester = singletonFocusRequester
                         )
                     }
                 }
@@ -167,6 +175,7 @@ fun DeviceItem(
     device: DeviceSettingsSingleAccountViewModel.DeviceInfo,
     isFocused: Boolean,
     onFocus: () -> Unit,
+    singletonFocusRequester: FocusRequester
 ) {
     val i18n = DI.get<I18nView>()
     val displayName = device.displayName
@@ -178,7 +187,7 @@ fun DeviceItem(
     Box(Modifier.semantics { contentDescription = "${displayName}, ${device.lastSeenAt}" }) {
         ThemedListItem(
             style = MaterialTheme.components.settingsItem,
-            modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
+            modifier = Modifier.rovingFocusItem(isFocused, onFocus, singletonFocusRequester).focusHighlighting(),
             leadingContent = {
                 if (isVerified) {
                     VerifiedIcon(VerificationLevel.DEVICE)

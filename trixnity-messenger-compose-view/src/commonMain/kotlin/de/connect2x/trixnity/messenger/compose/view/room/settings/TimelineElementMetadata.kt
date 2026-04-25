@@ -32,12 +32,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -202,8 +205,10 @@ fun ColumnScope.ReadersAndReactions(
     }
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
     var focusedItem by remember(allReadersAndReactions) {
-        mutableStateOf(allReadersAndReactions.map { it.sender.userId }.firstOrNull())
+        mutableStateOf(allReadersAndReactions.firstOrNull()?.sender?.userId)
     }
+    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
     Column(Modifier.heightIn(min = 25.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
@@ -217,13 +222,25 @@ fun ColumnScope.ReadersAndReactions(
                 }
             )
             Box {
-                LazyColumn(Modifier.rovingFocusContainer(), state) {
+                LazyColumn(
+                    Modifier.rovingFocusContainer(
+                        coroutineScope = coroutineScope,
+                        singletonFocusRequester = singletonFocusRequester,
+                        isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
+                        scrollToFocusedItem = {
+                            val index = allReadersAndReactions
+                                .indexOfFirst { it.sender.userId == focusedItem }
+                            if (index != -1) state.scrollToItem(index)
+                        }),
+                    state
+                ) {
                     items(allReadersAndReactions) { eventReaction ->
                         UserInfo(
                             eventReaction.sender,
                             Modifier.rovingFocusItem(
                                 isFocused = focusedItem == eventReaction.sender.userId,
-                                onFocus = { focusedItem = eventReaction.sender.userId }
+                                onFocus = { focusedItem = eventReaction.sender.userId },
+                                singletonFocusRequester = singletonFocusRequester
                             ),
                             eventReaction.reactions.keys,
                             onOpenUserProfile = onOpenUserProfile,

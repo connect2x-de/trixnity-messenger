@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.profiles
 
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusItem
@@ -53,31 +55,45 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
         val profiles = profileManager.profiles.collectAsState()
         val multiAccount = profileManager.isMultiProfileEnabled.collectAsState().value.let { it != null && it }
         val showProfileCreation = ShowProfileCreation.current
+        val scrollState = rememberScrollState()
 
-        var focusedItem by remember { mutableStateOf(profiles.value.keys.firstOrNull()) }
+        var focusedItem by remember(profiles.value) { mutableStateOf(profiles.value.keys.firstOrNull()) }
+        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
 
         AdaptiveDialogWrapper {
             AdaptiveDialogHeader {
                 Text(i18n.selectProfileHeader())
             }
 
-            AdaptiveDialogScrollContent(modifier = Modifier.rovingFocusContainer()) {
-                for ((id, settings) in profiles.value) {
+            AdaptiveDialogScrollContent(
+                scrollState = scrollState,
+                modifier = Modifier.rovingFocusContainer(
+                    coroutineScope = coroutineScope,
+                    singletonFocusRequester = singletonFocusRequester,
+                    isFocusedItemVisible = { false },
+                    scrollToFocusedItem = {
+                        scrollState.scrollTo(0)
+                    }
+                )
+            ) {
+                profiles.value.entries.forEachIndexed { index, entry ->
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,
                         modifier = Modifier.rovingFocusItem(
-                            isFocused = focusedItem == id,
-                            onFocus = { focusedItem = id },
+                            isFocused = focusedItem == entry.key,
+                            onFocus = { focusedItem = entry.key },
+                            singletonFocusRequester = singletonFocusRequester,
+                            hasRequester = { index == 0 }
                         ),
                         leadingContent = {
                             Icon(Icons.Default.AccountCircle, null)
                         },
                         headlineContent = {
-                            Text(settings.base.displayName ?: i18n.commonUnknown())
+                            Text(entry.value.base.displayName ?: i18n.commonUnknown())
                         },
                         onClick = {
                             coroutineScope.launch {
-                                profileManager.selectProfile(id)
+                                profileManager.selectProfile(entry.key)
                             }
                         }
                     )

@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
@@ -40,16 +43,26 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         onUserClick: (Search.SearchUserElement) -> Unit,
     ) {
         val listState = rememberLazyListState()
+        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+        val coroutineScope = rememberCoroutineScope()
         val userSearchResultList = DI.get<UserSearchResultListView>()
         val userSearchResults = collectUserSearchResult(potentialMembersViewModel.searchHandler)
 
         Box {
-            LazyColumn(Modifier.rovingFocusContainer(), listState) {
+            LazyColumn(
+                Modifier.rovingFocusContainer(
+                    coroutineScope = coroutineScope,
+                    singletonFocusRequester = singletonFocusRequester,
+                    isFocusedItemVisible = { false },
+                    scrollToFocusedItem = { listState.scrollToItem(0) }),
+                listState
+            ) {
                 searchUsersLocally(
                     potentialMembersViewModel.searchHandler,
                     { onUserClick(it) },
                     userSearchResults,
                     userSearchResultList,
+                    singletonFocusRequester
                 )
             }
             VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)

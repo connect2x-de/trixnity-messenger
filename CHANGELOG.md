@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - UI: Add proper rendering for "All accounts" avatar
+- SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
 
 ### Changed
 
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - SDK: Slow compilation times
+- UI: Some containers not being focusable, when selected item was out of view
 
 ### Security
 

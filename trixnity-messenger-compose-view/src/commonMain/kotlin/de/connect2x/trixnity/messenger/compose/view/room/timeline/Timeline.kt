@@ -192,8 +192,8 @@ class TimelineViewImpl : TimelineView {
                     Box(Modifier.padding(vertical = 2.dp)) {
                         val canScrollToEnd = remember {
                             derivedStateOf {
-                                val fistVisibleItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
-                                fistVisibleItem != null && !(fistVisibleItem.index == 0 && fistVisibleItem.offset == 0)
+                                val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+                                lastVisibleItem != null && !(lastVisibleItem.index == 0 && lastVisibleItem.offset == 0)
                             }
                         }
                         Box {
@@ -251,9 +251,6 @@ class TimelineViewImpl : TimelineView {
                                 if (showTypingIndicator) {
                                     item(key = "typing", contentType = "typing") {
                                         TypingIndicator(timelineViewModel)
-                                        if (focusedItemIndex == 0)
-                                            focusedItemKey = timelineViewElements.value
-                                                .getOrNull(focusedItemIndex + 1)?.key
                                     }
                                 }
                                 itemsIndexed(

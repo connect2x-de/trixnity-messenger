@@ -30,6 +30,12 @@ enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
     Grid(listOf(FocusDirection.Up, FocusDirection.Down, FocusDirection.Left, FocusDirection.Right));
 }
 
+/**
+ * The singletonFocusRequester is used to focus the item which has the singletonFocusRequester (see rovingFocusItem) and
+ * the focus direction is Next or Previous. If isFocusedItemVisible is false it will additionally first start a new coroutine,
+ * scroll to the item using scrollToFocusedItem and then focus it.
+ *
+ */
 @Composable
 fun Modifier.rovingFocusContainer(
     direction: RovingFocusDirection = RovingFocusDirection.Vertical,
@@ -59,13 +65,17 @@ fun Modifier.rovingFocusContainer(
                     } else {
                         singletonFocusRequester.requestFocus(it)
                     }
-                    FocusRequester.Cancel
                 }
                 FocusRequester.Default
             }
         }
 }
 
+/**
+ * singletonFocusRequester should be a focusRequester stored at the scope of your rovingFocusContainer,
+ * which the rovingFocusContainer uses to switch focus. Additionally you may set a condition which item
+ * has the requester using hasFocus (such a hasFocus={false}, if no item should have a focusRequester)
+ */
 fun Modifier.rovingFocusItem(
     isFocused: Boolean,
     onFocus: () -> Unit,

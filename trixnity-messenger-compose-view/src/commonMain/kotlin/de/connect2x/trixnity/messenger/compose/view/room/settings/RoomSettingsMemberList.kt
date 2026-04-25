@@ -22,9 +22,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionInfo
@@ -33,6 +35,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -47,8 +52,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
     @Composable
@@ -156,31 +159,41 @@ fun MemberList(
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
-    var focusedItem by remember(members) { mutableStateOf(members.map { it.memberUserId }.firstOrNull()) }
+    var focusedItem by remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }
+    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(
             Modifier
                 .fillMaxWidth()
-                .rovingFocusContainer()
+                .rovingFocusContainer(
+                    coroutineScope = coroutineScope,
+                    singletonFocusRequester = singletonFocusRequester,
+                    isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
+                    scrollToFocusedItem = {
+                        val index = members.indexOfFirst { it.memberUserId.full == focusedItem }
+                        if (index != -1) state.scrollToItem(index)
+                    })
                 .semantics {
                     collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
                 },
             state
         ) {
-            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { i, member ->
+            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { index, member ->
                 RoomSettingsMemberListElement(
                     memberListViewModel,
                     member.memberUserId,
                     member,
                     modifier = Modifier
                         .rovingFocusItem(
-                            isFocused = focusedItem == member.memberUserId,
-                            onFocus = { focusedItem = member.memberUserId },
+                            isFocused = focusedItem == member.memberUserId.full,
+                            onFocus = { focusedItem = member.memberUserId.full },
+                            singletonFocusRequester = singletonFocusRequester
                         )
                         .semantics {
                             collectionItemInfo =
-                                CollectionItemInfo(rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                                CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
                         },
                     onClick = {
                         onClickUser(member.memberUserId)

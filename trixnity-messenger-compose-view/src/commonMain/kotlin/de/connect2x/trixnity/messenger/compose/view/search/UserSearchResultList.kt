@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -41,7 +42,8 @@ interface UserSearchResultListView {
     fun create(
         scope: LazyListScope,
         state: SearchResultState,
-        userClickReaction: (SearchUserElement) -> Unit,
+        singletonFocusRequester: FocusRequester,
+        userClickReaction: (SearchUserElement) -> Unit
     )
 }
 
@@ -49,7 +51,8 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         scope: LazyListScope,
         state: SearchResultState,
-        userClickReaction: (SearchUserElement) -> Unit,
+        singletonFocusRequester: FocusRequester,
+        userClickReaction: (SearchUserElement) -> Unit
     ) {
         with(scope) {
             when (state) {
@@ -95,13 +98,15 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         }
                     } else {
                         val focusedElement = MutableStateFlow(state.users.firstOrNull()?.userId?.full)
-                        scope.items(state.users, key = { it.userId.toString() }) { user ->
+                        scope.itemsIndexed(state.users, key = { _, user -> user.userId.toString() }) { index, user ->
                             val focusedElementState by focusedElement.collectAsState()
                             UserElement(
                                 user,
                                 modifier = Modifier.rovingFocusItem(
                                     isFocused = focusedElementState == user.userId.full,
-                                    onFocus = { focusedElement.value = user.userId.full }
+                                    onFocus = { focusedElement.value = user.userId.full },
+                                    singletonFocusRequester = singletonFocusRequester,
+                                    hasRequester = { index == 0 }
                                 ),
                                 onClick = { userClickReaction(user) },
                             )
