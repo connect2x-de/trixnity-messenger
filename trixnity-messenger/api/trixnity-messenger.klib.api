@@ -965,7 +965,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerVi
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory|null[0]
-    open fun create(kotlin/String, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/String, kotlin.time/Duration?, kotlin.coroutines/SuspendFunction0<kotlin/Result<de.connect2x.trixnity.client.media/PlatformMedia>>): de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModel // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.create|create(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.String;kotlin.time.Duration?;kotlin.coroutines.SuspendFunction0<kotlin.Result<de.connect2x.trixnity.client.media.PlatformMedia>>){}[0]
+    open fun create(kotlin/String, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/String, kotlin.time/Duration?, kotlin.coroutines/SuspendFunction0<kotlin/Result<de.connect2x.trixnity.client.media/PlatformMedia>>): de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModel? // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.create|create(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.String;kotlin.time.Duration?;kotlin.coroutines.SuspendFunction0<kotlin.Result<de.connect2x.trixnity.client.media.PlatformMedia>>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.Companion|null[0]
 }
@@ -12912,11 +12912,14 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
         final var enableAudioRecorder // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder|{}enableAudioRecorder[0]
             final fun <get-enableAudioRecorder>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder.<get-enableAudioRecorder>|<get-enableAudioRecorder>(){}[0]
             final fun <set-enableAudioRecorder>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder.<set-enableAudioRecorder>|<set-enableAudioRecorder>(kotlin.Boolean){}[0]
+        final var enableMediaPlayer // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMediaPlayer|{}enableMediaPlayer[0]
+            final fun <get-enableMediaPlayer>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMediaPlayer.<get-enableMediaPlayer>|<get-enableMediaPlayer>(){}[0]
+            final fun <set-enableMediaPlayer>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMediaPlayer.<set-enableMediaPlayer>|<set-enableMediaPlayer>(kotlin.Boolean){}[0]
         final var enableMessageDrafts // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts|{}enableMessageDrafts[0]
             final fun <get-enableMessageDrafts>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<get-enableMessageDrafts>|<get-enableMessageDrafts>(){}[0]
             final fun <set-enableMessageDrafts>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<set-enableMessageDrafts>|<set-enableMessageDrafts>(kotlin.Boolean){}[0]
@@ -12931,7 +12934,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component2(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component2|component2(){}[0]
         final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component3|component3(){}[0]
         final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component4|component4(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun component5(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component5|component5(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]

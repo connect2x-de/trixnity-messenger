@@ -562,21 +562,24 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features {
 	public fun <init> ()V
-	public fun <init> (ZZZZ)V
-	public synthetic fun <init> (ZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (ZZZZZ)V
+	public synthetic fun <init> (ZZZZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Z
 	public final fun component2 ()Z
 	public final fun component3 ()Z
 	public final fun component4 ()Z
-	public final fun copy (ZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public final fun component5 ()Z
+	public final fun copy (ZZZZZ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;ZZZZZILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEnableAudioRecorder ()Z
+	public final fun getEnableMediaPlayer ()Z
 	public final fun getEnableMessageDrafts ()Z
 	public final fun getEnablePdfReader ()Z
 	public final fun getEnablePowerlevelEventConfigurationInRoomSettings ()Z
 	public fun hashCode ()I
 	public final fun setEnableAudioRecorder (Z)V
+	public final fun setEnableMediaPlayer (Z)V
 	public final fun setEnableMessageDrafts (Z)V
 	public final fun setEnablePdfReader (Z)V
 	public final fun setEnablePowerlevelEventConfigurationInRoomSettings (Z)V
