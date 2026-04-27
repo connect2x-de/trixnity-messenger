@@ -201,7 +201,7 @@ class TimelineViewImpl : TimelineView {
 
                             var focusedItemKey by remember {
                                 mutableStateOf(
-                                    listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? String
+                                    timelineViewElements.value.firstOrNull()?.key
                                 )
                             }
                             // Approximate because the actual intended index can change if a message is received
@@ -285,9 +285,10 @@ class TimelineViewImpl : TimelineView {
                                                 val viewModel = timelineViewElement.viewModel
                                                 // if an empty timeline-event is marked as the focusedItem we cannot tab into the
                                                 // timeline due to it not being focusable so we initially skip all empties
-                                                if (focusedItemKey == timelineViewElement.key && viewModel.element.value is TimelineElementViewModel.Empty)
+                                                if (focusedItemKey == timelineViewElement.key && viewModel.element.value is TimelineElementViewModel.Empty) {
                                                     focusedItemKey = timelineViewElements.value
-                                                        .getOrNull(focusedItemIndex + 1)?.key
+                                                        .getOrNull(index + 1)?.key
+                                                }
 
                                                 TimelineElementHolder(viewModel, index)
                                             }
