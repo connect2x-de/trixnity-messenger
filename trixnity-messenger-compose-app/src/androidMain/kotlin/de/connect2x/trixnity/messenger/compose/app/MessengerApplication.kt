@@ -8,9 +8,9 @@ import de.connect2x.lognity.config.SerializableConfig
 import de.connect2x.lognity.config.setDefaultConfig
 import de.connect2x.trixnity.messenger.MatrixMultiMessengerService
 import de.connect2x.trixnity.messenger.notification.fcm.addFcmPushNotificationProvider
+import de.connect2x.trixnity.messenger.notification.unifiedpush.addUnifiedPushNotificationProvider
 import kotlinx.io.asSource
 import kotlinx.io.buffered
-import de.connect2x.trixnity.messenger.notification.unifiedpush.addUnifiedPushNotificationProvider
 
 class MessengerApplication : Application() {
     override fun onCreate() {
@@ -23,11 +23,11 @@ class MessengerApplication : Application() {
         MatrixMultiMessengerService.configuration = {
             configure()
             addFcmPushNotificationProvider(
-                pushUrl = "https://sygnal.demo.timmy-messenger.de/_matrix/push/v1/notify",
+                pushUrl = "https://sygnal.matrix.dev.connect2x.de/_matrix/push/v1/notify",
                 pushAppId = "$appId.fcm",
             )
             addUnifiedPushNotificationProvider(
-                pushUrl = "https://ntfy.demo.timmy-messenger.de/_matrix/push/v1/notify",
+                pushUrl = "https://ntfy.matrix.dev.connect2x.de/_matrix/push/v1/notify",
                 pushAppId = "$appId.unifiedpush",
             )
         }
