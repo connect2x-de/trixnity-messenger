@@ -174,7 +174,7 @@ abstract class PushNotificationProvider(
                     launch {
                         if (matrixClient.notification.getCount().first() != 0)
                             matrixClient.syncOnce().getOrNull()
-                        matrixClient.notification.processPending(Presence.ONLINE)
+                        matrixClient.notification.processPending(Presence.OFFLINE)
                     }
                 }
             }
