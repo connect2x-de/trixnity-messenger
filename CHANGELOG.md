@@ -25,10 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- UI: focus-highlight color of own messages in dark mode to white 
+- UI: focus-highlight color of own messages in dark mode to white
 - DEPENDENCY: Update C2X Conventions to 20260325.112432
 - DEPENDENCY: Update SysNotify to 2.6.2
-- DEPENDENCY: Update Trixnity to 5.5.0
+- DEPENDENCY: Update Trixnity to 5.5.1
 - SDK: Use builtin Gradle distribution for dockerized CI jobs
 - SDK: Update README
 - SDK: smoke tests for Android with more logging
