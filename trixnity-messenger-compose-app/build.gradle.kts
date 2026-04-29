@@ -181,11 +181,11 @@ compose {
 
                 windows {
                     menu = true
-                    iconFile.set(project.file("src/desktopMain/resources/logo.ico"))
+                    iconFile.set(project.file("src/jvmMain/resources/logo.ico"))
                 }
                 macOS {
                     dockName = appName
-                    iconFile.set(project.file("src/desktopMain/resources/logo.icns"))
+                    iconFile.set(project.file("src/jvmMain/resources/logo.icns"))
                 }
                 linux {
                     modules("jdk.security.auth")
