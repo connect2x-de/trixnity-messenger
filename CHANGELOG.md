@@ -16,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
-- SDK: Fix timeline not jumping when trying to jump to a referenced event
 
+- SDK: Fix timeline not jumping when trying to jump to a referenced event
+- SDK: Fix startup crash on iOS/macOS because of missing SysNotify hooks initialization
 
 ### Security
 
