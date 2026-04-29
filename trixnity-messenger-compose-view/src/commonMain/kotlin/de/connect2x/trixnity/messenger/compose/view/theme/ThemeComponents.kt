@@ -321,7 +321,7 @@ class ThemeComponentsImpl : ThemeComponents {
             color = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(8.dp),
-            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onPrimary),
+            focusedBorder = focusedBorder(MaterialTheme.colorScheme.onSecondary),
         ),
         messageBubbleOther = SurfaceStyle.default(
             color = MaterialTheme.colorScheme.secondary,
