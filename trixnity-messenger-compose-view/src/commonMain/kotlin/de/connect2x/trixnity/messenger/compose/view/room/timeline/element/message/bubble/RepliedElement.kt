@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelector
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
@@ -27,9 +28,10 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
             timelineElementViewSelector.createReplyInTimeline(
                 holder = repliedElementHolder,
                 element = element,
-                modifier = Modifier.clickable(interactionSource, LocalIndication.current) {
-                    repliedElementHolder.jumpTo()
-                },
+                modifier = Modifier.buttonPointerModifier()
+                    .clickable(interactionSource, LocalIndication.current) {
+                        repliedElementHolder.jumpTo()
+                    },
                 interactionSource = interactionSource,
             )
         }
