@@ -51,6 +51,14 @@ class NotificationHandlersImpl(
 ) : NotificationHandlers {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
+
+        init {
+            /**
+             * Ensure all hooks for the underlying platform are registered.
+             * This includes delegates on macOS and iOS for example.
+             */
+            NotificationHandler.installHooks()
+        }
     }
 
     private val notificationHandlers: MutableStateFlow<Map<UserId, Lazy<NotificationHandler>>> =
@@ -69,7 +77,7 @@ class NotificationHandlersImpl(
     }
 
     override suspend fun continuouslyRequestPermissions() {
-        combine(notificationProviders.map { it.isEnabled }) { it.any { it } }
+        combine(notificationProviders.map { provider -> provider.isEnabled }) { states -> states.any { it } }
             .distinctUntilChanged()
             .collect { anyNotificationsEnabled ->
                 if (anyNotificationsEnabled && global.hasPermissions.not()) {
