@@ -283,7 +283,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
     // Platform-specific implementations:
     ::platformModule,
-    ::platformNotificationHandlersModule,
     ::platformPathsModule,
     ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
