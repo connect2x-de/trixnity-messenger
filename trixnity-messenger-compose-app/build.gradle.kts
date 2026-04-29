@@ -174,16 +174,15 @@ compose {
             nativeDistributions {
                 modules("java.net.http", "java.sql", "java.naming")
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-                // @see https://github.com/JetBrains/compose-jb/tree/master/tutorials/Native_distributions_and_local_execution#jvm-resource-loading
-                appResourcesRootDir = layout.buildDirectory
-                packageName = appId
+                packageName = appName
                 packageVersion = appVersion
-
                 windows {
                     menu = true
                     iconFile.set(project.file("src/jvmMain/resources/logo.ico"))
                 }
                 macOS {
+                    appCategory = "public.app-category.productivity"
+                    bundleID = appId
                     dockName = appName
                     iconFile.set(project.file("src/jvmMain/resources/logo.icns"))
                 }

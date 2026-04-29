@@ -50,15 +50,11 @@ class NotificationHandlersImpl(
     private val notificationHandlerFactory: NotificationHandlerFactory = defaultNotificationHandlerFactory
 ) : NotificationHandlers {
     companion object {
-        private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
-
         init {
-            /**
-             * Ensure all hooks for the underlying platform are registered.
-             * This includes delegates on macOS and iOS for example.
-             */
             NotificationHandler.installHooks()
         }
+
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationHandlers")
     }
 
     private val notificationHandlers: MutableStateFlow<Map<UserId, Lazy<NotificationHandler>>> =
