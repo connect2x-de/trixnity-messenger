@@ -6,7 +6,7 @@ minSdkVersion = "28"
 
 seskar = "4.34.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-trixnity = "5.5.0" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.5.1-SNAPSHOT.CI-20260422.053743" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.6.2" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.6" # https://gitlab.com/connect2x/sqlitenity/-/releases
 

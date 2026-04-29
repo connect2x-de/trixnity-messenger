@@ -59,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK: Presence being set to 'online' on android, when app is closed and message received
 - SDK: Empty draft messages being saved
 - UI: Thin line appearing in room-list when in single pane mode
 - UI: Fast successive keyboard-inputs being misordered on web
