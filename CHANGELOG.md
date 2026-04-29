@@ -9,19 +9,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- SDK, UI: Added feature-toggle for message drafts
-- SDK: Add option to change the OAuth 2.0 prompt value
-- SDK: add an abi checker to the CI
-- UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.5.0
+
+### Added
+
+- UI,SDK,ANDROID: Experimental voice messages
 - UI: Per-account notification counter bubbles in roomlist avatar area
-- UI,ANDROID,IOS,MACOS: First-class support for notification count app icon badges
+- UI,ANDROID,IOS,MACOS: First-class support for system notification count app icon badges
+- SDK: remove Exif metadata (and IPTC, XMP) for jpeg, png and webP when sending
 - SDK: A separate package which provides Nunito as Font for the application
 - SDK, UI: Toggle between bundled and system Font
-- SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow for customizing the `MatrixClient` via
+- SDK: Added feature-toggle for message drafts (enabled by default)
+- SDK: Added feature-toggle for media player (enabled by default)
+- SDK: Added feature-toggle for audio recorder (enabled by default)
+- SDK: Add option to change the OAuth 2.0 prompt and login_hint value
+- SDK: add an abi checker to the CI
+- SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow customizing the `MatrixClient` via
   configuration
-- UI,SDK,ANDROID: Voice messages (has a feature flag which is enabled by default, experimental SDK API)
-- SDK: remove Exif metadata (and IPTC, XMP) for jpeg, png and webP when sending
-- SDK: media/audio player now has a feature toggle (enabled by default)
+- INTERNAL: UI tests infrastructure for all platforms
 
 ### Changed
 
@@ -29,21 +44,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DEPENDENCY: Update C2X Conventions to 20260325.112432
 - DEPENDENCY: Update SysNotify to 2.6.2
 - DEPENDENCY: Update Trixnity to 5.5.1
-- SDK: Use builtin Gradle distribution for dockerized CI jobs
-- SDK: Update README
-- SDK: smoke tests for Android with more logging
-- SDK: OAuth2 allow for setting the `login_hint` query-parameter
+- INTERNAL: Use builtin Gradle distribution for dockerized CI jobs
 - CI: Use new Android emulator docker image
-- SDK: Don't ship font per default
 - UI: Group buttons in pdf viewer layout
-- SDK: **breaking change**: `AccountSingleViewModel` now has `cancelEditDisplayName()` and `saveDisplayName()` instead
+- SDK (**breaking change**): `AccountSingleViewModel` now has `cancelEditDisplayName()` and `saveDisplayName()` instead
   of the surrounding `AccountsViewModel`; also introduced `AccountSingleViewModelFactory` which correctly gets a
   `MatrixClientViewModelContext`
-- UI: **breaking change**: introduced `AccountSingleSettingsView` to allow customizations of settings for an account
+- UI (**breaking change**): introduced `AccountSingleSettingsView` to allow customizations of settings for an account
   instead of overriding the settings container for all accounts
-- SDK: **breaking change**: `MatrixClientServerApiClientFactory` cannot be used inside Trixnity Messenger DI anymore.
+- SDK (**breaking change**): `MatrixClientServerApiClientFactory` cannot be used inside Trixnity Messenger DI anymore.
   Extend `MatrixClientFactory` instead
-- SDK: **breaking change**: `EventContentSerializerMappings` passed to the DI are not picked up anymore. Instead,
+- SDK (**breaking change**): `EventContentSerializerMappings` passed to the DI are not picked up anymore. Instead,
   `CustomEventContentSerializerMappings` are now picked up from the
   `MatrixMessengerConfiguration.clientConfiguration.moduleFactories`
 - UI: The welcome dialog now greets a user via their display name if possible
@@ -54,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- SDK: **breaking change**: The Nunito Font is not included per default anymore. There is a separate package called
+- SDK: The Nunito Font is not included per default anymore. There is a separate package called
   `trixnity-messenger-compose-view-typography-nunito`.
 
 ### Fixed
@@ -63,11 +74,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Empty draft messages being saved
 - UI: Thin line appearing in room-list when in single pane mode
 - UI: Fast successive keyboard-inputs being misordered on web
-- UI: hovering over a room list element does not hide unencrypted symbol
-- SDK: Don't publish kmmBridge module to Maven Central
-- SDK: Typography error on Android
-
-### Security
+- UI: hovering over a room list element does hide unencrypted symbol
+- CI: Don't publish kmmBridge module to Maven Central
 
 ## 4.4.0
 
