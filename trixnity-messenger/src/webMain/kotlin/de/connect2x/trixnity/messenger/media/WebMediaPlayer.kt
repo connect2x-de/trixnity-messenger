@@ -5,10 +5,7 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,13 +25,10 @@ import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-class WebMediaPlayer(parentScope: CoroutineScope) : MediaPlayer {
+class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
     internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
-    private val coroutineScope: CoroutineScope = CoroutineScope(
-            parentScope.coroutineContext + SupervisorJob(parentScope.coroutineContext[Job])
-        )
 
     private val audioContext: AudioContext = AudioContext()
 
@@ -52,14 +46,6 @@ class WebMediaPlayer(parentScope: CoroutineScope) : MediaPlayer {
             return Result.success(playingItem)
         }
 
-        val scopeWithExceptionHandler = run {
-            val coroutineContext = coroutineScope.coroutineContext
-            val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                log.error(throwable) { "Unexpected error while running media player" }
-            }
-            CoroutineScope(coroutineContext + Job(coroutineContext[Job]) + exceptionHandler)
-        }
-
         media.getTemporaryFile().fold(
             onFailure = {
                 log.error(it) { "Unable to open media as temporary file" }
@@ -73,7 +59,7 @@ class WebMediaPlayer(parentScope: CoroutineScope) : MediaPlayer {
                     val playerItem = WebPlayerItem(
                         id = id,
                         tempFile = tempFile,
-                        coroutineScope = scopeWithExceptionHandler,
+                        coroutineScope = coroutineScope,
                         player = this@WebMediaPlayer,
                         audio = audio,
                         duration = duration,

@@ -50,12 +50,7 @@ class WebPlayerItem(
     }
 
     override suspend fun onClose() {
-        when (state.value) {
-            MediaPlayer.Item.State.Playing -> pauseWithoutLock()
-            is MediaPlayer.Item.State.Failed, MediaPlayer.Item.State.Ready -> Unit
-        }
         tempFile.delete()
-        coroutineScope.cancel()
     }
 
     private fun repeatedlyUpdateElapsedTime(): Job = coroutineScope.launch {
