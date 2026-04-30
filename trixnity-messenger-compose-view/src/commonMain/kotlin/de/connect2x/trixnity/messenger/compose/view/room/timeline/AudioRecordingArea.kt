@@ -82,6 +82,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                     val bounded = min(1.0f, max(0.2f, amplified))
                     return bounded
                 }
+
                 val relativeLoudnessAnimated by
                     animateFloatAsState(
                         adjustedRelativeLoudness(),
@@ -166,7 +167,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             Tooltip({ Text(i18n.audioRecordingDelete()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.destructiveIconButton,
-                    onClick = { audioRecordingAreaViewModel.recorder?.close() },
+                    onClick = { audioRecordingAreaViewModel.deleteAudioMessage() },
                 ) {
                     Icon(Icons.Default.Delete, i18n.audioRecordingDelete())
                 }
@@ -185,9 +186,12 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
 
         when (recorderState) {
             is AudioRecorder.State.Recording -> AudioRecorder(recorderState)
+
             is AudioRecorder.State.Completed -> AudioCapturePreview()
+
             null,
             AudioRecorder.State.Ready -> Unit
         }
     }
+
 }

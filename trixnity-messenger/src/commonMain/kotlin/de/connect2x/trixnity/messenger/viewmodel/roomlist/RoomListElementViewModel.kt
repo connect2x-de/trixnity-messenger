@@ -519,6 +519,10 @@ open class RoomListElementViewModelImpl(
                 }
             }
 
+            is FileBased.Audio -> {
+                i18n.audioDraftMessage()
+            }
+
             else -> null
         }
     }

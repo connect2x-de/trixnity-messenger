@@ -156,19 +156,22 @@ class AudioRecordingAreaViewModelTest {
         sendAudioMessageMock: () -> Unit = {},
     ): AudioRecordingAreaViewModel {
         val userId = UserId("")
-        val di =
-            koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)) + additionalModule
-                    )
-                }
-                .koin
-        val cut =
-            AudioRecordingAreaViewModelFactory.create(
-                testMatrixClientViewModelContext(di = di, userId, coroutineContext)
-            ) {
-                sendAudioMessageMock()
-            }
+        val di = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(userId to matrixClientMock)
+                ) + additionalModule
+            )
+        }.koin
+        val cut = AudioRecordingAreaViewModelFactory.create(
+            testMatrixClientViewModelContext(
+                di = di,
+                userId,
+                coroutineContext
+            ),
+            sendAudioMessage = { sendAudioMessageMock() },
+            deleteAudioDraftMessage = {}
+        )
         backgroundScope.launch { cut.recorder?.state?.collect() }
         backgroundScope.launch { cut.capturePlayer.collect() }
         return cut

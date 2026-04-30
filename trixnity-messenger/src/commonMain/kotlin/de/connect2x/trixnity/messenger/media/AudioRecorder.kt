@@ -33,6 +33,8 @@ interface AudioRecorder : AutoCloseable {
 
     fun complete()
 
+    suspend fun loadSuspending(state: State.Completed)
+
     sealed interface State {
         object Ready : State
 
@@ -71,6 +73,12 @@ class AudioRecorderImpl(
         }
     }
 
+    override suspend fun loadSuspending(state: AudioRecorder.State.Completed) {
+        close()
+
+        platformAudioRecorder.load(state)?.let { stateImpl.value = it }
+    }
+
     override fun complete() {
         stateImpl.value = complete(stateImpl.value)
     }
@@ -86,7 +94,6 @@ class AudioRecorderImpl(
 
         data class Recording(val start: Instant, val loudness: () -> Float?, val complete: (Recording) -> Completed?) :
             State
-
         data class Completed(
             val capture: PlatformMedia,
             val duration: Duration,
@@ -156,6 +163,7 @@ class AudioRecorderImpl(
                     } catch (t: Throwable) {
                         log.warn(t) { "Failed to close audio recorder" }
                     }
+
                 State.Ready -> Unit
                 is State.Recording -> Unit
             }
@@ -174,6 +182,7 @@ class AudioRecorderImpl(
                                 emit(state)
                                 delay(50.milliseconds)
                             }
+
                         is State.Completed,
                         State.Ready -> {
                             emit(state)
@@ -212,6 +221,7 @@ class AudioRecorderImpl(
                         callback()
                     }
                 }
+
                 is AudioRecorder.State.Completed,
                 AudioRecorder.State.Ready -> Unit
             }

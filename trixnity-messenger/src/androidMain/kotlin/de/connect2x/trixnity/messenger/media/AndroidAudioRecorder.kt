@@ -45,7 +45,19 @@ internal class AndroidAudioRecorder(
                 requestPermission()
                 null
             }
+
             else -> null
+        }
+    }
+
+    override suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed? {
+        return AudioRecorderImpl.State.Completed(
+            capture = state.data,
+            duration = state.duration,
+            sizeBytes = state.sizeBytes,
+            contentType = state.contentType
+        ) {
+
         }
     }
 

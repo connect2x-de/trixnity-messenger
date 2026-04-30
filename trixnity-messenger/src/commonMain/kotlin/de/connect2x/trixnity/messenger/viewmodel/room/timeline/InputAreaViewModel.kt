@@ -9,6 +9,7 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.audio
 import de.connect2x.trixnity.client.room.message.mentions
 import de.connect2x.trixnity.client.room.message.replace
 import de.connect2x.trixnity.client.room.message.reply
@@ -29,6 +30,7 @@ import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.core.util.Reference as TrixnityReference
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.html.toLink
@@ -45,6 +47,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import io.ktor.http.ContentType
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -226,8 +229,11 @@ open class InputAreaViewModelImpl(
 
     override val useMarkdown = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel =
-        get<AudioRecordingAreaViewModelFactory>()
-            .create(childContext("audioRecordingAreaViewModel"), ::sendAudioMessage)
+        get<AudioRecordingAreaViewModelFactory>().create(
+            viewModelContext = childContext("audioRecordingAreaViewModel"),
+            sendAudioMessage = ::sendAudioMessage,
+            deleteAudioDraftMessage = { matrixClient.room.deleteDraftMessage(roomId) }
+        )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -322,15 +328,36 @@ open class InputAreaViewModelImpl(
         coroutineScope.launch { textField.collect { if (it.text.isEmpty()) userIsNotTyping() else typing() } }
         coroutineScope.launch {
             if (enableMessageDrafts) {
-                loadDraftIntoTextField()
-                textField.debounce(2.seconds).collect { draftMutex.withLock { saveAsDraft() } }
+                loadDraftIntoTextArea()
+                textField
+                    .debounce(2.seconds)
+                    .collect {
+                        draftMutex.withLock {
+                            saveTextAsDraft()
+                        }
+                    }
             } else {
                 matrixClient.room.deleteDraftMessage(roomId)
             }
         }
         if (enableMessageDrafts) {
+            coroutineScope.launch {
+                audio.recorder?.state?.collect { state ->
+                    when (state) {
+                        is AudioRecorder.State.Completed -> draftMutex.withLock { saveAudioAsDraft() }
+                        else -> {}
+                    }
+                }
+            }
             lifecycle.doOnDestroy {
-                get<CoroutineScope>().launch { withContext(NonCancellable) { draftMutex.withLock { saveAsDraft() } } }
+                log.error { audio.recorder?.state }
+                get<CoroutineScope>().launch {
+                    withContext(NonCancellable) {
+                        draftMutex.withLock {
+                            saveTextAsDraft()
+                        }
+                    }
+                }
             }
         }
     }
@@ -338,23 +365,45 @@ open class InputAreaViewModelImpl(
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
 
-    private suspend fun loadDraftIntoTextField() {
+    private suspend fun loadDraftIntoTextArea() {
         val draftMessage = draftMessage.first()
         val content = draftMessage?.content
-        if (content is TextBased.Text) {
-            when (val relatesTo = content.relatesTo) {
-                is RelatesTo.Reply -> {
-                    currentReply.value = draftMessage.roomId to relatesTo.eventId
-                    textField.update(content.body)
-                }
+        when (content) {
+            is TextBased.Text -> {
+                when (val relatesTo = content.relatesTo) {
+                    is RelatesTo.Reply -> {
+                        currentReply.value = draftMessage.roomId to relatesTo.eventId
+                        textField.update(content.body)
+                    }
 
-                is RelatesTo.Replace -> {
-                    currentReplace.value = draftMessage.roomId to relatesTo.eventId
-                    (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
-                }
+                    is RelatesTo.Replace -> {
+                        currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                        (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
+                    }
 
-                else -> {
-                    textField.update(content.body)
+                    else -> {
+                        textField.update(content.body)
+                    }
+                }
+            }
+
+            is RoomMessageEventContent.FileBased.Audio -> {
+                when (val relatesTo = content.relatesTo) {
+                    is RelatesTo.Reply -> {
+                        currentReply.value = draftMessage.roomId to relatesTo.eventId
+                        audio.loadAudioMessage(content)
+                    }
+
+                    is RelatesTo.Replace -> {
+                        currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                        (relatesTo.newContent as? RoomMessageEventContent.FileBased.Audio)?.let {
+                            audio.loadAudioMessage(it)
+                        }
+                    }
+
+                    else -> {
+                        audio.loadAudioMessage(content)
+                    }
                 }
             }
         }
@@ -372,24 +421,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private fun sendAudioMessage(audioMessage: suspend MessageBuilder.() -> Unit) {
-        coroutineScope.launch {
-            val repliedEvent = currentReply.value
-            log.debug { "send audio message" }
-            matrixClient.room.sendMessage(roomId) {
-                when {
-                    repliedEvent != null -> {
-                        reply(repliedEvent)
-                    }
-                }
-                audioMessage()
-            }
-            audio.recorder?.close()
-            resetCurrentReply()
-        }
-    }
-
-    private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
+    private suspend fun getTextMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
         val formattedReferences =
@@ -443,12 +475,56 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private suspend fun saveAsDraft(text: String = textField.value.text) {
+    private fun getAudioMessageBuilder(): (suspend MessageBuilder.() -> Unit)? {
+        val repliedEvent = currentReply.value
+
+        val audioMessage: (suspend MessageBuilder.() -> Unit)? =
+            when (val audioRecorderStateValue = audio.recorder?.state?.value) {
+                AudioRecorder.State.Ready -> null
+
+                is AudioRecorder.State.Recording -> null
+
+                is AudioRecorder.State.Completed -> {
+                    {
+                        audio(
+                            "voice message",
+                            audioRecorderStateValue.data,
+                            type = ContentType.Audio.OGG,
+                            duration = audioRecorderStateValue.duration.inWholeMilliseconds,
+                            size = audioRecorderStateValue.sizeBytes
+                        )
+                    }
+                }
+
+                null -> null
+            }
+
+        return audioMessage?.let {
+            {
+                when {
+                    repliedEvent != null -> {
+                        reply(repliedEvent)
+                    }
+                }
+                audioMessage()
+            }
+        }
+    }
+
+    private suspend fun saveTextAsDraft(text: String = textField.value.text) {
         if (text.isEmpty()) {
-            matrixClient.room.deleteDraftMessage(roomId)
+            if (draftMessage.first()?.content is TextBased.Text) {
+                matrixClient.room.deleteDraftMessage(roomId)
+            }
             return
         }
-        matrixClient.room.setDraftMessage(roomId = roomId, builder = getMessageBuilder(text))
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = getTextMessageBuilder(text))
+    }
+
+    private suspend fun saveAudioAsDraft() {
+        getAudioMessageBuilder()?.let {
+            matrixClient.room.setDraftMessage(roomId = roomId, builder = it)
+        }
     }
 
     override fun selectMention(userId: UserId) {
@@ -487,12 +563,12 @@ open class InputAreaViewModelImpl(
             coroutineScope.launch {
                 if (enableMessageDrafts) {
                     draftMutex.withLock {
-                        saveAsDraft(text)
+                        saveTextAsDraft(text)
                         log.debug { "send message" }
                         matrixClient.room.sendDraftMessage(roomId)
                     }
                 } else {
-                    matrixClient.room.sendMessage(roomId = roomId, builder = getMessageBuilder(text))
+                    matrixClient.room.sendMessage(roomId = roomId, builder = getTextMessageBuilder(text))
                 }
                 currentReplace.value?.also {
                     currentReplace.value = null
@@ -500,6 +576,24 @@ open class InputAreaViewModelImpl(
                 }
                 resetCurrentReply()
             }
+        }
+    }
+
+    private fun sendAudioMessage() {
+        log.trace { "try to send audio message" }
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                draftMutex.withLock {
+                    saveAudioAsDraft()
+                    matrixClient.room.sendDraftMessage(roomId)
+                }
+            } else {
+                getAudioMessageBuilder()?.let {
+                    matrixClient.room.sendMessage(roomId = roomId, builder = it)
+                }
+            }
+            audio.recorder?.close()
+            resetCurrentReply()
         }
     }
 

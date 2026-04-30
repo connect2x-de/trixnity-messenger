@@ -205,7 +205,8 @@ class InputAreaViewModelTest {
             }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
 
-        every { audioRecordingAreaViewModelFactory.create(any(), any()) } returns audioRecordingArea
+        every { audioRecordingAreaViewModelFactory.create(any(), any(), any()) } returns
+                audioRecordingArea
         every { audioRecordingArea.recorder } returns audioRecorder
         every { audioRecorder.complete() } returns Unit
 

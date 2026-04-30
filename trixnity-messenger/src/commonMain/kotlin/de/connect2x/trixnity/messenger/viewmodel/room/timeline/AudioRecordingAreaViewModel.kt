@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.doOnDestroy
-import de.connect2x.trixnity.client.room.message.MessageBuilder
-import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
+import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
@@ -20,6 +21,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.koin.core.component.get
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @TrixnityMessengerPrivateApi
 interface AudioRecordingAreaViewModel {
@@ -27,14 +32,23 @@ interface AudioRecordingAreaViewModel {
     val capturePlayer: StateFlow<MediaPlayerViewModel?>
 
     fun sendAudioMessage()
+
+    fun deleteAudioMessage()
+
+    fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio)
 }
 
 interface AudioRecordingAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
+        sendAudioMessage: () -> Unit,
+        deleteAudioDraftMessage: suspend () -> Unit
     ): AudioRecordingAreaViewModel {
-        return AudioRecordingAreaViewModelImpl(viewModelContext, sendAudioMessage)
+        return AudioRecordingAreaViewModelImpl(
+            viewModelContext,
+            sendAudioMessage,
+            deleteAudioDraftMessage
+        )
     }
 
     companion object : AudioRecordingAreaViewModelFactory
@@ -42,8 +56,12 @@ interface AudioRecordingAreaViewModelFactory {
 
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
+    private val _sendAudioMessage: () -> Unit,
+    private val deleteAudioDraftMessage: suspend () -> Unit
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecordingAreaViewModel {
+
+    private val downloadManager = viewModelContext.get<DownloadManager>()
+    private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
 
     override val recorder: AudioRecorderViewModel? = run {
         val recorderHolder = getOrNull<AudioRecorderHolder>()
@@ -97,31 +115,53 @@ class AudioRecordingAreaViewModelImpl(
     }
 
     override fun sendAudioMessage() {
-        val message: (suspend MessageBuilder.() -> Unit)? =
-            when (val audioRecorderStateValue = recorder?.state?.value) {
-                AudioRecorder.State.Ready -> {
-                    null
-                }
-                is AudioRecorder.State.Recording -> {
-                    null
-                }
-                is AudioRecorder.State.Completed -> {
-                    {
-                        audio(
-                            "voice message",
-                            audioRecorderStateValue.data,
-                            type = ContentType.Audio.OGG,
-                            duration = audioRecorderStateValue.duration.inWholeMilliseconds,
-                            size = audioRecorderStateValue.sizeBytes,
-                        )
-                    }
-                }
-                null -> {
-                    null
-                }
+        _sendAudioMessage()
+    }
+
+    override fun deleteAudioMessage() {
+        if (enableMessageDrafts) {
+            coroutineScope.launch {
+                deleteAudioDraftMessage()
             }
-        if (message != null) {
-            sendAudioMessage(message)
+        }
+        recorder?.close()
+    }
+
+    override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) {
+        coroutineScope.launch {
+            val duration = content.info?.duration
+
+            if (duration != null) {
+                val data = downloadManager.startDownloadAsync(
+                    matrixClient,
+                    content,
+                    content.fileName ?: content.body,
+                    MutableStateFlow(null)
+                )
+
+                data.await().onSuccess {
+                    val type = content.info?.mimeType?.dropLastWhile { char -> char != '/' }?.dropLast(1)
+                    val subtype = content.info?.mimeType?.dropWhile { char -> char != '/' }?.drop(1)
+                    val contentType = if (type?.isNotEmpty() == true && subtype?.isNotEmpty() == true) {
+                        ContentType(type, subtype)
+                    } else {
+                        ContentType.Audio.OGG
+                    }
+
+                    recorder?.loadSuspending(
+                        AudioRecorder.State.Completed(
+                            data = it,
+                            duration = duration.milliseconds,
+                            sizeBytes = content.info?.size,
+                            contentType = contentType
+                        )
+                    )
+                }.onFailure {
+                    log.warn { "Failed downloading audio message draft" }
+                }
+            } else {
+                log.warn { "Failed loading audio message draft, because the duration was null" }
+            }
         }
     }
 }
@@ -131,4 +171,6 @@ class PreviewAudioRecordingAreaViewModel : AudioRecordingAreaViewModel {
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = MutableStateFlow(null)
 
     override fun sendAudioMessage() = Unit
+    override fun deleteAudioMessage() = Unit
+    override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) = Unit
 }
