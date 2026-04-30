@@ -3888,7 +3888,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/header/
 	public static final fun AccountMenuItem (Lde/connect2x/trixnity/messenger/viewmodel/AccountInfo;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun AccountNotificationCount (Landroidx/compose/foundation/layout/BoxScope;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 	public static final fun ActiveAccountData-P0jKWCc (Landroidx/compose/foundation/layout/RowScope;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun AllAccountsMenuItem (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun AllAccountsMenuItem (Lkotlin/jvm/functions/Function0;Ljava/util/List;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun AvatarArea (Lde/connect2x/trixnity/messenger/viewmodel/AccountInfo;Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 	public static final fun NoAccountActiveAccountData (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/AccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun SelectAccountHeader (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
@@ -3956,8 +3956,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/header/
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/header/ComposableSingletons$AccountAvatarKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/roomlist/header/ComposableSingletons$AccountAvatarKt;
 	public fun <init> ()V
-	public final fun getLambda$-1854760807$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-715953649$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-91279511$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/header/ShowSearchKt {
@@ -5447,8 +5447,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ComposableSingletons$ThemedAvatarKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/theme/components/ComposableSingletons$ThemedAvatarKt;
 	public fun <init> ()V
+	public final fun getLambda$-1613508244$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$-2011480049$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 	public final fun getLambda$1634640935$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$1690369324$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle {
@@ -5968,10 +5970,12 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedAvatarKt {
 	public static final fun AvatarContentIcon-ziNgDLE (Landroidx/compose/ui/graphics/vector/ImageVector;FLandroidx/compose/runtime/Composer;I)V
 	public static final fun AvatarContentImage-ziNgDLE (Landroidx/compose/ui/graphics/ImageBitmap;FLandroidx/compose/runtime/Composer;I)V
+	public static final fun AvatarContentImageStack-uFdPcIQ (Ljava/util/List;FILandroidx/compose/runtime/Composer;II)V
 	public static final fun AvatarContentText-ziNgDLE (Ljava/lang/String;FLandroidx/compose/runtime/Composer;I)V
 	public static final fun AvatarPresenceBadge (Lde/connect2x/trixnity/core/model/events/m/Presence;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ThemedAvatar-PBTpf3Q (FLandroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ThemedUserAvatar--b7W0Lw (Ljava/lang/String;[BLde/connect2x/trixnity/core/model/events/m/Presence;FLde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun ThemedUserAvatarStack--b7W0Lw (Ljava/lang/String;Ljava/util/List;Lde/connect2x/trixnity/core/model/events/m/Presence;FLde/connect2x/trixnity/messenger/compose/view/theme/components/AvatarStyle;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedButtonKt {

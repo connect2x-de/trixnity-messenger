@@ -33,9 +33,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.MoonShape
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
+import de.connect2x.trixnity.messenger.compose.view.common.modifier.pieSlice
 import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -43,7 +45,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.SystemDensity
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import de.connect2x.trixnity.core.model.events.m.Presence
 
 data class AvatarStyle(
     val color: Color,
@@ -77,6 +78,27 @@ data class AvatarStyle(
 }
 
 @Composable
+private inline fun ThemedUserAvatarBase(
+    presence: Presence? = null,
+    size: Dp = avatarSize().dp,
+    style: AvatarStyle = MaterialTheme.components.avatar,
+    modifier: Modifier = Modifier,
+    noinline overlay: @Composable BoxScope.() -> Unit = {},
+    crossinline content: @Composable BoxScope.() -> Unit
+) {
+    val tooltip = presenceText(presence)
+    tooltip?.let {
+        Tooltip({ Text(tooltip) }) {
+            ThemedAvatar(size, modifier, style, overlay) {
+                content()
+            }
+        }
+    } ?: ThemedAvatar(size, modifier, style, overlay) {
+        content()
+    }
+}
+
+@Composable
 fun ThemedUserAvatar(
     initials: String,
     image: ByteArray? = null,
@@ -84,24 +106,32 @@ fun ThemedUserAvatar(
     size: Dp = avatarSize().dp,
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
-    overlay: @Composable BoxScope.() -> Unit = {},
+    overlay: @Composable BoxScope.() -> Unit = {}
 ) {
     val bitmap = remember(image) { image?.toImageBitmap() }
-
-    val tooltip = presenceText(presence)
-    tooltip?.let {
-        Tooltip({ Text(tooltip) }) {
-            ThemedAvatar(size, modifier, style, overlay) {
-                if (bitmap != null) {
-                    AvatarContentImage(bitmap, size)
-                } else {
-                    AvatarContentText(initials, size)
-                }
-            }
-        }
-    } ?: ThemedAvatar(size, modifier, style, overlay) {
+    ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
         if (bitmap != null) {
             AvatarContentImage(bitmap, size)
+        } else {
+            AvatarContentText(initials, size)
+        }
+    }
+}
+
+@Composable
+fun ThemedUserAvatarStack(
+    initials: String,
+    images: List<ByteArray?> = emptyList(),
+    presence: Presence? = null,
+    size: Dp = avatarSize().dp,
+    style: AvatarStyle = MaterialTheme.components.avatar,
+    modifier: Modifier = Modifier,
+    overlay: @Composable BoxScope.() -> Unit = {},
+) {
+    val bitmaps = remember(images) { images.mapNotNull { image -> image?.toImageBitmap() } }
+    ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
+        if (bitmaps.isNotEmpty()) {
+            AvatarContentImageStack(bitmaps, size)
         } else {
             AvatarContentText(initials, size)
         }
@@ -136,6 +166,25 @@ fun ThemedAvatar(
             }
         }
         overlay()
+    }
+}
+
+@Composable
+fun AvatarContentImageStack(
+    images: List<ImageBitmap>,
+    size: Dp,
+    maxSlices: Int = 4
+) {
+    val sliceCount = images.size.coerceAtMost(maxSlices)
+    Box(modifier = Modifier.size(size)) {
+        for (sliceIndex in 0..<sliceCount) {
+            Image(
+                images[sliceIndex],
+                modifier = Modifier.matchParentSize().pieSlice(sliceCount, sliceIndex),
+                contentScale = ContentScale.Fit,
+                contentDescription = null
+            )
+        }
     }
 }
 
