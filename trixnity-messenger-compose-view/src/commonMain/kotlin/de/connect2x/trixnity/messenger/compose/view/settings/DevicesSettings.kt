@@ -119,12 +119,8 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
         val otherDevices = devices.filter { it.isThisDevice.not() }
         var focusedItem by remember { mutableStateOf(thisDevice?.deviceId) }
 
-        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-
         SettingsAccountCard(
-            viewModel.account, modifier = Modifier.rovingFocusContainer(
-                singletonFocusRequester = singletonFocusRequester
-            )
+            viewModel.account, modifier = Modifier.rovingFocusContainer(singletonFocusRequester = null)
         ) {
             val i18n = DI.get<I18nView>()
             error?.let { ErrorView(it) }
@@ -142,8 +138,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                     viewModel = viewModel,
                     device = thisDevice,
                     isFocused = focusedItem == thisDevice.deviceId,
-                    onFocus = { focusedItem = thisDevice.deviceId },
-                    singletonFocusRequester = singletonFocusRequester
+                    onFocus = { focusedItem = thisDevice.deviceId }
                 )
 
                 if (otherDevices.isNotEmpty()) {
@@ -158,8 +153,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                             viewModel = viewModel,
                             device = device,
                             isFocused = focusedItem == device.deviceId,
-                            onFocus = { focusedItem = device.deviceId },
-                            singletonFocusRequester = singletonFocusRequester
+                            onFocus = { focusedItem = device.deviceId }
                         )
                     }
                 }
@@ -175,7 +169,6 @@ fun DeviceItem(
     device: DeviceSettingsSingleAccountViewModel.DeviceInfo,
     isFocused: Boolean,
     onFocus: () -> Unit,
-    singletonFocusRequester: FocusRequester
 ) {
     val i18n = DI.get<I18nView>()
     val displayName = device.displayName
@@ -187,7 +180,7 @@ fun DeviceItem(
     Box(Modifier.semantics { contentDescription = "${displayName}, ${device.lastSeenAt}" }) {
         ThemedListItem(
             style = MaterialTheme.components.settingsItem,
-            modifier = Modifier.rovingFocusItem(isFocused, onFocus, singletonFocusRequester).focusHighlighting(),
+            modifier = Modifier.rovingFocusItem(isFocused, onFocus, null).focusHighlighting(),
             leadingContent = {
                 if (isVerified) {
                     VerifiedIcon(VerificationLevel.DEVICE)

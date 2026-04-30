@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -37,13 +36,13 @@ enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
  * The singletonFocusRequester is used to focus the item which has the singletonFocusRequester (see rovingFocusItem) and
  * the focus direction is Next or Previous. If isFocusedItemVisible is false it will additionally first start a new coroutine,
  * scroll to the item using scrollToFocusedItem and then focus it.
- *
+ * This should only be used for Containers that stop rendering items out of view, such as LazyColumns
  */
 @Composable
 fun Modifier.rovingFocusContainer(
     direction: RovingFocusDirection = RovingFocusDirection.Vertical,
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    singletonFocusRequester: FocusRequester,
+    coroutineScope: CoroutineScope? = null,
+    singletonFocusRequester: FocusRequester?,
     isFocusedItemVisible: () -> Boolean = { true },
     scrollToFocusedItem: suspend () -> Unit = {},
 ): Modifier {
@@ -63,9 +62,9 @@ fun Modifier.rovingFocusContainer(
         }
         .focusProperties @ExperimentalComposeUiApi {
             enter = {
-                if (it.isTab()) {
+                if (singletonFocusRequester != null && it.isTab()) {
                     if (!isInternalFocus) {
-                        if (!isFocusedItemVisible()) {
+                        if (coroutineScope != null && !isFocusedItemVisible()) {
                             coroutineScope.launch {
                                 scrollToFocusedItem()
                                 yield()
@@ -74,9 +73,9 @@ fun Modifier.rovingFocusContainer(
                         } else {
                             singletonFocusRequester.requestFocus(it)
                         }
+                        isInternalFocus = true
+                        FocusRequester.Cancel
                     }
-                    isInternalFocus = true
-                    FocusRequester.Cancel
                 }
                 FocusRequester.Default
             }
@@ -86,18 +85,19 @@ fun Modifier.rovingFocusContainer(
 /**
  * singletonFocusRequester should be a focusRequester stored at the scope of your rovingFocusContainer,
  * which the rovingFocusContainer uses to switch focus. Additionally you may set a condition which item
- * has the requester using hasFocus (such a hasFocus={false}, if no item should have a focusRequester)
+ * has the requester using hasFocus (such a hasFocus={false}, if no item should have a focusRequester).
+ * This should only be used for Containers that stop rendering items out of view, such as LazyColumns
  */
 fun Modifier.rovingFocusItem(
     isFocused: Boolean,
     onFocus: () -> Unit,
-    singletonFocusRequester: FocusRequester,
+    singletonFocusRequester: FocusRequester?,
     hasRequester: () -> Boolean = { isFocused }
 ): Modifier = this
     .focusProperties { onEnter = { if (!isFocused && requestedFocusDirection.isTab()) cancelFocusChange() } }
     .focusGroup()
     .onFocusChanged { if (it.isFocused) onFocus() }
-    .run { if (hasRequester()) focusRequester(singletonFocusRequester) else this@run }
+    .run { if (hasRequester() && singletonFocusRequester != null) focusRequester(singletonFocusRequester) else this@run }
 
 private fun Modifier.moveFocusOnDirection(
     moveFocus: (FocusDirection) -> Boolean,

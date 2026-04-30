@@ -16,7 +16,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusItem
@@ -58,7 +57,6 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
         val scrollState = rememberScrollState()
 
         var focusedItem by remember(profiles.value) { mutableStateOf(profiles.value.keys.firstOrNull()) }
-        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
 
         AdaptiveDialogWrapper {
             AdaptiveDialogHeader {
@@ -67,14 +65,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
 
             AdaptiveDialogScrollContent(
                 scrollState = scrollState,
-                modifier = Modifier.rovingFocusContainer(
-                    coroutineScope = coroutineScope,
-                    singletonFocusRequester = singletonFocusRequester,
-                    isFocusedItemVisible = { false },
-                    scrollToFocusedItem = {
-                        scrollState.scrollTo(0)
-                    }
-                )
+                modifier = Modifier.rovingFocusContainer(singletonFocusRequester = null)
             ) {
                 profiles.value.entries.forEachIndexed { index, entry ->
                     ThemedListItemButton(
@@ -82,8 +73,7 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
                         modifier = Modifier.rovingFocusItem(
                             isFocused = focusedItem == entry.key,
                             onFocus = { focusedItem = entry.key },
-                            singletonFocusRequester = singletonFocusRequester,
-                            hasRequester = { index == 0 }
+                            singletonFocusRequester = null
                         ),
                         leadingContent = {
                             Icon(Icons.Default.AccountCircle, null)
