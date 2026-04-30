@@ -71,7 +71,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     var focusedItem by remember(value) { mutableStateOf(value) }
 
     ExpandableSection(heading = { title() }, icon = icon) {
-        Column(modifier = Modifier.rovingFocusContainer(singletonFocusRequester = null)) {
+        Column(modifier = Modifier.rovingFocusContainer()) {
             for ((key, option) in options) {
                 val (optionText, optionExplanation, optionEnabled, optionStyle) = option
                 ThemedListItemRadioButton(
@@ -83,8 +83,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                     modifier = Modifier
                         .rovingFocusItem(
                             isFocused = focusedItem == key,
-                            onFocus = { focusedItem = key },
-                            singletonFocusRequester = null
+                            onFocus = { focusedItem = key }
                         )
                         .semantics(mergeDescendants = true) {
                             if (optionExplanation != null)

@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.view.common.modifier
 
 import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
@@ -21,9 +22,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInputModeManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 
 enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
@@ -32,19 +32,15 @@ enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
     Grid(listOf(FocusDirection.Up, FocusDirection.Down, FocusDirection.Left, FocusDirection.Right));
 }
 
-/**
- * The singletonFocusRequester is used to focus the item which has the singletonFocusRequester (see rovingFocusItem) and
- * the focus direction is Next or Previous. If isFocusedItemVisible is false it will additionally first start a new coroutine,
- * scroll to the item using scrollToFocusedItem and then focus it.
- * This should only be used for Containers that stop rendering items out of view, such as LazyColumns
- */
+@PublishedApi
 @Composable
-fun Modifier.rovingFocusContainer(
+internal fun <T : Any> Modifier.rovingFocusContainer(
     direction: RovingFocusDirection = RovingFocusDirection.Vertical,
-    coroutineScope: CoroutineScope? = null,
-    singletonFocusRequester: FocusRequester?,
-    isFocusedItemVisible: () -> Boolean = { true },
-    scrollToFocusedItem: suspend () -> Unit = {},
+    listState: LazyListState?,
+    focusedItem: MutableState<T?>?,
+    focusedItemClass: KClass<T>?,
+    ignoredKeys: List<Any>,
+    isEnterDirectionReversed: Boolean
 ): Modifier {
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
@@ -54,50 +50,101 @@ fun Modifier.rovingFocusContainer(
             focusManager.moveFocus(focusDirection)
         }
     }
-    var isInternalFocus by remember { mutableStateOf(false) } //This is used to only execute enter once
+    var isInternalFocus by remember { mutableStateOf(false) }
 
-    return this.moveFocusOnDirection(moveFocus, direction.directions)
-        .onFocusChanged {
-            isInternalFocus = it.hasFocus
-        }
-        .focusProperties @ExperimentalComposeUiApi {
-            enter = {
-                if (singletonFocusRequester != null && it.isTab()) {
-                    if (!isInternalFocus) {
-                        if (coroutineScope != null && !isFocusedItemVisible()) {
-                            coroutineScope.launch {
-                                scrollToFocusedItem()
-                                yield()
-                                singletonFocusRequester.requestFocus(it)
+    return this.moveFocusOnDirection(moveFocus, direction.directions).let { modifier ->
+        if (listState != null && focusedItem != null && focusedItemClass != null) {
+            modifier
+                .onFocusChanged {
+                    isInternalFocus = it.hasFocus
+                }
+                .focusProperties @ExperimentalComposeUiApi {
+                    enter = {
+                        if (it.isTab() && !isInternalFocus) {
+                            val filteredKeys =
+                                listState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.key } - ignoredKeys
+                            if (filteredKeys.none { key -> key == focusedItem.value }) {
+                                if (filteredKeys.isEmpty()) {
+                                    focusedItem.value = null
+                                    FocusRequester.Default
+                                }
+                                val key = if ((it == FocusDirection.Previous) xor isEnterDirectionReversed) {
+                                    filteredKeys.last()
+                                } else {
+                                    filteredKeys.first()
+                                }
+                                require(key::class == focusedItemClass) {
+                                    "The class of the LazyList's item key was not equal to the class of focusedItem in rovingFocusContainer."
+                                }
+                                focusedItem.value = focusedItemClass.cast(key)
                             }
-                        } else {
-                            singletonFocusRequester.requestFocus(it)
+                            isInternalFocus = true
                         }
-                        isInternalFocus = true
-                        FocusRequester.Cancel
+                        FocusRequester.Default
                     }
                 }
-                FocusRequester.Default
-            }
+        } else {
+            modifier
         }
+    }
 }
 
 /**
- * singletonFocusRequester should be a focusRequester stored at the scope of your rovingFocusContainer,
- * which the rovingFocusContainer uses to switch focus. Additionally you may set a condition which item
- * has the requester using hasFocus (such a hasFocus={false}, if no item should have a focusRequester).
- * This should only be used for Containers that stop rendering items out of view, such as LazyColumns
+ * This should be used for containers that stops loading items if they are scrolled out of the viewport (Using the mouse), such as LazyColumns.
+ * In that case this will either set listState.layoutInfo.visibleItemsInfo.last().key or listState.layoutInfo.visibleItemsInfo.first().key
+ * as the new focusedItem depending on the scroll direction
+ */
+@Composable
+inline fun <reified T : Any> Modifier.rovingFocusContainer(
+    direction: RovingFocusDirection = RovingFocusDirection.Vertical,
+    listState: LazyListState? = null,
+    focusedItem: MutableState<T?>,
+    ignoredKeys: List<Any> = emptyList(),
+    isEnterDirectionReversed: Boolean = false,
+): Modifier = rovingFocusContainer(
+    direction = direction,
+    listState = listState,
+    focusedItem = focusedItem,
+    focusedItemClass = T::class,
+    ignoredKeys = ignoredKeys,
+    isEnterDirectionReversed = isEnterDirectionReversed
+)
+
+/*
+* When using rovingFocusContainer on lazy loading containers a lazyListState and the current focused Item
+* should additionally be passed as an argument to avoid the hole container being unfocusable,
+* when the focused item is scrolled out of view
+ */
+@Composable
+fun Modifier.rovingFocusContainer(
+    direction: RovingFocusDirection = RovingFocusDirection.Vertical,
+): Modifier = rovingFocusContainer<Unit>(
+    direction = direction,
+    listState = null,
+    focusedItem = null,
+    focusedItemClass = null,
+    ignoredKeys = emptyList(),
+    isEnterDirectionReversed = false
+)
+
+fun Modifier.rovingFocusItem(
+    isFocused: () -> Boolean,
+    onFocus: () -> Unit,
+): Modifier = this
+    .focusProperties { onEnter = { if (!isFocused() && requestedFocusDirection.isTab()) cancelFocusChange() } }
+    .focusGroup()
+    .onFocusChanged { if (it.isFocused) onFocus() }
+
+/**
+ * When using rovingFocusContainer on a lazily loaded container, such as a LazyColumn, isFocused should be passed as a Lambda
  */
 fun Modifier.rovingFocusItem(
     isFocused: Boolean,
     onFocus: () -> Unit,
-    singletonFocusRequester: FocusRequester?,
-    hasRequester: () -> Boolean = { isFocused }
 ): Modifier = this
     .focusProperties { onEnter = { if (!isFocused && requestedFocusDirection.isTab()) cancelFocusChange() } }
     .focusGroup()
     .onFocusChanged { if (it.isFocused) onFocus() }
-    .run { if (hasRequester() && singletonFocusRequester != null) focusRequester(singletonFocusRequester) else this@run }
 
 private fun Modifier.moveFocusOnDirection(
     moveFocus: (FocusDirection) -> Boolean,

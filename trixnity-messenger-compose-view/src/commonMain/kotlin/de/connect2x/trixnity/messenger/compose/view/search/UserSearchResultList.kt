@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
@@ -15,11 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,15 +35,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface UserSearchResultListView {
     // this function is no @Composable as it is used inside a LazyListScope
     fun create(
         scope: LazyListScope,
         state: SearchResultState,
-        singletonFocusRequester: FocusRequester,
-        userClickReaction: (SearchUserElement) -> Unit
+        focusedItem: MutableState<String?>,
+        userClickReaction: (SearchUserElement) -> Unit,
     )
 }
 
@@ -51,8 +50,8 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         scope: LazyListScope,
         state: SearchResultState,
-        singletonFocusRequester: FocusRequester,
-        userClickReaction: (SearchUserElement) -> Unit
+        focusedItem: MutableState<String?>,
+        userClickReaction: (SearchUserElement) -> Unit,
     ) {
         with(scope) {
             when (state) {
@@ -97,16 +96,12 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                             }
                         }
                     } else {
-                        val focusedElement = MutableStateFlow(state.users.firstOrNull()?.userId?.full)
-                        scope.itemsIndexed(state.users, key = { _, user -> user.userId.toString() }) { index, user ->
-                            val focusedElementState by focusedElement.collectAsState()
+                        scope.items(state.users, key = { user -> user.userId.full }) { user ->
                             UserElement(
                                 user,
                                 modifier = Modifier.rovingFocusItem(
-                                    isFocused = focusedElementState == user.userId.full,
-                                    onFocus = { focusedElement.value = user.userId.full },
-                                    singletonFocusRequester = singletonFocusRequester,
-                                    hasRequester = { index == 0 }
+                                    isFocused = { focusedItem.value == user.userId.full },
+                                    onFocus = { focusedItem.value = user.userId.full },
                                 ),
                                 onClick = { userClickReaction(user) },
                             )

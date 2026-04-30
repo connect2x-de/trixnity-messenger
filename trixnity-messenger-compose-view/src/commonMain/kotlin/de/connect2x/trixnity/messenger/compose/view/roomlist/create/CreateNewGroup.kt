@@ -27,12 +27,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -133,17 +131,22 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         )
                     }
                     val listState = rememberLazyListState()
-                    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-                    val coroutineScope = rememberCoroutineScope()
+
+                    val focusedItem = remember(userSearchResults) {
+                        mutableStateOf(
+                            if (userSearchResults is SearchResultState.Results) {
+                                userSearchResults.users.firstOrNull()?.userId?.full
+                            } else {
+                                null
+                            }
+                        )
+                    }
 
                     LazyColumn(
                         Modifier.fillMaxSize().rovingFocusContainer(
-                            coroutineScope = coroutineScope,
-                            singletonFocusRequester = singletonFocusRequester,
-                            isFocusedItemVisible = { false },
-                            scrollToFocusedItem = {
-                                listState.scrollToItem(0)
-                            }), listState
+                            listState = listState,
+                            focusedItem = focusedItem
+                        ), listState
                     ) {
                         item(key = "MoreOptions") {
                             val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
@@ -177,7 +180,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             userSearchResults,
                             userSearchResultView,
                             this,
-                            singletonFocusRequester
+                            focusedItem
                         )
                     }
 

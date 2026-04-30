@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
@@ -24,16 +24,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
@@ -174,29 +171,22 @@ fun SearchGroupResults(
                 if (foundGroups.isEmpty()) {
                     Text(i18n.searchGroupNotFound())
                 } else {
-                    var focusedItem by remember(foundGroups) {
-                        mutableStateOf(0)
+                    val focusedItem = remember(foundGroups) {
+                        mutableStateOf(foundGroups.firstOrNull()?.roomId?.full)
                     }
-
-                    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-                    val coroutineScope = rememberCoroutineScope()
 
                     LazyColumn(
                         Modifier.fillMaxSize().rovingFocusContainer(
-                            coroutineScope = coroutineScope,
-                            singletonFocusRequester = singletonFocusRequester,
-                            isFocusedItemVisible = { listState.layoutInfo.visibleItemsInfo.fastAny { it.index == focusedItem } },
-                            scrollToFocusedItem = {
-                                listState.scrollToItem(focusedItem)
-                            }), listState
+                            listState = listState,
+                            focusedItem = focusedItem
+                        ), listState
                     ) {
-                        itemsIndexed(foundGroups, { _, group -> group.roomId.full }) { index, group ->
+                        items(foundGroups, { group -> group.roomId.full }) { group ->
                             SearchGroupResult(
                                 group = group,
                                 modifier = Modifier.rovingFocusItem(
-                                    isFocused = focusedItem == index,
-                                    onFocus = { focusedItem = index },
-                                    singletonFocusRequester = singletonFocusRequester
+                                    isFocused = { focusedItem.value == group.roomId.full },
+                                    onFocus = { focusedItem.value = group.roomId.full }
                                 ),
                                 searchGroupViewModel = searchGroupViewModel,
                                 knockGroupModalShownFor = knockGroupModalShownFor,

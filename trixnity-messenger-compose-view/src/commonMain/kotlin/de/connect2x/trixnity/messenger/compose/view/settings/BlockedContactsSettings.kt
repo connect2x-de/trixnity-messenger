@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonOff
@@ -22,14 +22,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.Header
@@ -62,10 +58,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
         val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        var focusedItem by remember(userList) { mutableStateOf(userList.firstOrNull()?.userId) }
-
-        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-        val coroutineScope = rememberCoroutineScope()
+        val focusedItem = remember(userList) { mutableStateOf(userList.firstOrNull()?.userId) }
 
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
@@ -103,13 +96,9 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                 Box(Modifier.fillMaxSize()) {
                     LazyColumn(
                         Modifier.fillMaxSize().rovingFocusContainer(
-                            coroutineScope = coroutineScope,
-                            singletonFocusRequester = singletonFocusRequester,
-                            isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
-                            scrollToFocusedItem = {
-                                val index = userList.indexOfFirst { it.userId == focusedItem }
-                                if (index != -1) state.scrollToItem(index)
-                            }),
+                            listState = state,
+                            focusedItem = focusedItem
+                        ),
                         state
                     ) {
                         item("header") {
@@ -123,17 +112,16 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                 }
                             )
                         }
-                        itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
+                        items(userList, key = { value -> value.userId }) { user ->
                             IgnoredUserListElement(
                                 user = user, i18n = i18n,
-                                isFocused = focusedItem == user.userId,
-                                onFocus = { focusedItem = user.userId },
-                                singletonFocusRequester = singletonFocusRequester
+                                isFocused = { focusedItem.value == user.userId },
+                                onFocus = { focusedItem.value = user.userId },
                             ) {
                                 val userListWithoutThisOne = userList.filter { it.userId != user.userId }
                                 blockedContactsSettingsViewModel.unblockContact(user.userId)
                                 if (userListWithoutThisOne.isEmpty()) return@IgnoredUserListElement
-                                focusedItem = userListWithoutThisOne[0].userId
+                                focusedItem.value = userListWithoutThisOne[0].userId
                             }
                         }
                     }
@@ -150,14 +138,13 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
 fun IgnoredUserListElement(
     user: BlockedContact,
     i18n: I18nView,
-    isFocused: Boolean,
+    isFocused: () -> Boolean,
     onFocus: () -> Unit,
-    singletonFocusRequester: FocusRequester,
     onRemove: () -> Unit
 ) {
     ThemedListItem(
         style = MaterialTheme.components.settingsItem,
-        modifier = Modifier.rovingFocusItem(isFocused, onFocus, singletonFocusRequester).focusHighlighting(),
+        modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
         leadingContent = { Icon(Icons.Default.PersonOff, null) },
         headlineContent = { Text(user.userId.full) },
         trailingContent = {

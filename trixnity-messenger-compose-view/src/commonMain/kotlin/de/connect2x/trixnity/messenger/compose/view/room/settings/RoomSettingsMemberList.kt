@@ -22,11 +22,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionInfo
@@ -35,7 +32,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -159,22 +155,16 @@ fun MemberList(
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
-    var focusedItem by remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }
-    val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-    val coroutineScope = rememberCoroutineScope()
+    val focusedItem = remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(
             Modifier
                 .fillMaxWidth()
                 .rovingFocusContainer(
-                    coroutineScope = coroutineScope,
-                    singletonFocusRequester = singletonFocusRequester,
-                    isFocusedItemVisible = { state.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
-                    scrollToFocusedItem = {
-                        val index = members.indexOfFirst { it.memberUserId.full == focusedItem }
-                        if (index != -1) state.scrollToItem(index)
-                    })
+                    listState = state,
+                    focusedItem = focusedItem
+                )
                 .semantics {
                     collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
                 },
@@ -187,9 +177,8 @@ fun MemberList(
                     member,
                     modifier = Modifier
                         .rovingFocusItem(
-                            isFocused = focusedItem == member.memberUserId.full,
-                            onFocus = { focusedItem = member.memberUserId.full },
-                            singletonFocusRequester = singletonFocusRequester
+                            isFocused = { focusedItem.value == member.memberUserId.full },
+                            onFocus = { focusedItem.value = member.memberUserId.full },
                         )
                         .semantics {
                             collectionItemInfo =

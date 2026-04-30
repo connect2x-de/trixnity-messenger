@@ -27,11 +27,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -77,32 +75,34 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
         val searchUsersView = DI.get<SearchUsersView>()
         val userSearchResultView = DI.get<UserSearchResultListView>()
-        val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
+        val userSearchResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
-        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-        val coroutineScope = rememberCoroutineScope()
         var references by remember {
             mutableStateOf(listOf<String>())
         }
 
-        LaunchedEffect(searchUsersResults) {
-            if (searchUsersResults is SearchResultState.Results) {
-                references = searchUsersResults.users.map { it.userId.full }
+        LaunchedEffect(userSearchResults) {
+            if (userSearchResults is SearchResultState.Results) {
+                references = userSearchResults.users.map { it.userId.full }
             }
         }
         references.firstOrNull()
+
+        val focusedItem = remember(userSearchResults) {
+            mutableStateOf(
+                if (userSearchResults is SearchResultState.Results) {
+                    userSearchResults.users.firstOrNull()?.userId?.full
+                } else {
+                    null
+                }
+            )
+        }
 
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
             Box(Modifier.fillMaxSize()) {
                 LazyColumn(
-                    Modifier.rovingFocusContainer(
-                        coroutineScope = coroutineScope,
-                        singletonFocusRequester = singletonFocusRequester,
-                        isFocusedItemVisible = { false },
-                        scrollToFocusedItem = {
-                            listState.scrollToItem(0)
-                        }), listState
+                    Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState
                 ) {
                     item(key = "CreatingIndicator") {
                         if (isCreating) {
@@ -119,10 +119,10 @@ class CreateNewChatViewImpl : CreateNewChatView {
                     searchUsersView.create(
                         createNewChatViewModel.createNewRoomViewModel,
                         createNewChatViewModel::onUserClick,
-                        searchUsersResults,
+                        userSearchResults,
                         userSearchResultView,
                         this,
-                        singletonFocusRequester
+                        focusedItem
                     )
                 }
 

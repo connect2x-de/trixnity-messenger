@@ -64,15 +64,14 @@ fun EmojiSelector(
 
                             else -> false
                         }
-                    }.rovingFocusContainer(direction = RovingFocusDirection.Grid, singletonFocusRequester = null)
+                    }.rovingFocusContainer(direction = RovingFocusDirection.Grid)
                 ) {
-                    emojis.forEachIndexed { index, emoji ->
+                    emojis.forEach { emoji ->
                         EmojiButton(
                             label = emoji,
                             modifier = Modifier.rovingFocusItem(
                                 isFocused = focusedItem == emoji,
-                                onFocus = { focusedItem = emoji },
-                                singletonFocusRequester = null
+                                onFocus = { focusedItem = emoji }
                             ),
                             onClick = { onTextAdded(emoji) },
                         )

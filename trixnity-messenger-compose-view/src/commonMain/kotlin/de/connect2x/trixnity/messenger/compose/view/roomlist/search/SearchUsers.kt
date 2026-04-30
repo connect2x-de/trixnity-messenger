@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.MutableState
 import de.connect2x.trixnity.messenger.compose.view.search.SearchResultState
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.searchUsersLocally
@@ -16,7 +16,7 @@ interface SearchUsersView {
         userSearchResults: SearchResultState,
         userSearchResultListView: UserSearchResultListView,
         scope: LazyListScope,
-        singletonFocusRequester: FocusRequester
+        focusedItem: MutableState<String?>,
     )
 }
 
@@ -27,7 +27,7 @@ class SearchUsersViewImpl : SearchUsersView {
         userSearchResults: SearchResultState,
         userSearchResultListView: UserSearchResultListView,
         scope: LazyListScope,
-        singletonFocusRequester: FocusRequester
+        focusedItem: MutableState<String?>,
     ) {
         with(scope) {
             searchUsersLocally(
@@ -35,7 +35,7 @@ class SearchUsersViewImpl : SearchUsersView {
                 onUserClick,
                 userSearchResults,
                 userSearchResultListView,
-                singletonFocusRequester
+                focusedItem
             )
         }
     }

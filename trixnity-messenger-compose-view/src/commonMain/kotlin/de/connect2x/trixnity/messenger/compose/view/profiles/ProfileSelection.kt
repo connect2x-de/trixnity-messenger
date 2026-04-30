@@ -65,15 +65,14 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
 
             AdaptiveDialogScrollContent(
                 scrollState = scrollState,
-                modifier = Modifier.rovingFocusContainer(singletonFocusRequester = null)
+                modifier = Modifier.rovingFocusContainer()
             ) {
-                profiles.value.entries.forEachIndexed { index, entry ->
+                profiles.value.entries.forEach { entry ->
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,
                         modifier = Modifier.rovingFocusItem(
                             isFocused = focusedItem == entry.key,
-                            onFocus = { focusedItem = entry.key },
-                            singletonFocusRequester = null
+                            onFocus = { focusedItem = entry.key }
                         ),
                         leadingContent = {
                             Icon(Icons.Default.AccountCircle, null)

@@ -13,11 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.util.fastAny
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
@@ -62,11 +59,7 @@ internal fun Licenses(onClose: () -> Unit) {
         val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
         var openLibrary by remember { mutableStateOf<Library?>(null) }
 
-        //maybe change
-        var focusedItem by remember(libraries) { mutableStateOf(libraries.libraries.firstOrNull()?.uniqueId) }
-
-        val singletonFocusRequester: FocusRequester = remember { FocusRequester() }
-        val coroutineScope = rememberCoroutineScope()
+        val focusedItem = remember(libraries) { mutableStateOf(libraries.libraries.firstOrNull()?.uniqueId) }
 
         ThemedAdaptiveDialog(onClose) {
             AdaptiveDialogHeader(onClose = onClose) {
@@ -76,13 +69,9 @@ internal fun Licenses(onClose: () -> Unit) {
             AdaptiveDialogScrollContent(scrollState = listState) {
                 LazyColumn(
                     modifier = Modifier.rovingFocusContainer(
-                        coroutineScope = coroutineScope,
-                        singletonFocusRequester = singletonFocusRequester,
-                        isFocusedItemVisible = { listState.layoutInfo.visibleItemsInfo.fastAny { it.key == focusedItem } },
-                        scrollToFocusedItem = {
-                            val index = libraries.libraries.indexOfFirst { it.uniqueId == focusedItem }
-                            if (index != -1) listState.scrollToItem(index)
-                        }),
+                        listState = listState,
+                        focusedItem = focusedItem
+                    ),
                     verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
                     state = listState,
                 ) {
@@ -93,9 +82,8 @@ internal fun Licenses(onClose: () -> Unit) {
                             modifier = Modifier
                                 .focusHighlighting(interactionSource)
                                 .rovingFocusItem(
-                                    isFocused = focusedItem == library.uniqueId,
-                                    onFocus = { focusedItem = library.uniqueId },
-                                    singletonFocusRequester = singletonFocusRequester
+                                    isFocused = { focusedItem.value == library.uniqueId },
+                                    onFocus = { focusedItem.value = library.uniqueId }
                                 )
                                 .clickable(interactionSource, LocalIndication.current) {
                                     openLibrary = library

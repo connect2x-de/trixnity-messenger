@@ -120,7 +120,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
         var focusedItem by remember { mutableStateOf(thisDevice?.deviceId) }
 
         SettingsAccountCard(
-            viewModel.account, modifier = Modifier.rovingFocusContainer(singletonFocusRequester = null)
+            viewModel.account, modifier = Modifier.rovingFocusContainer()
         ) {
             val i18n = DI.get<I18nView>()
             error?.let { ErrorView(it) }
@@ -180,7 +180,7 @@ fun DeviceItem(
     Box(Modifier.semantics { contentDescription = "${displayName}, ${device.lastSeenAt}" }) {
         ThemedListItem(
             style = MaterialTheme.components.settingsItem,
-            modifier = Modifier.rovingFocusItem(isFocused, onFocus, null).focusHighlighting(),
+            modifier = Modifier.rovingFocusItem(isFocused, onFocus).focusHighlighting(),
             leadingContent = {
                 if (isVerified) {
                     VerifiedIcon(VerificationLevel.DEVICE)
