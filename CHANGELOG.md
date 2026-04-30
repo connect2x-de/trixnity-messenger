@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.5.1
+
+### Added
+
+### Changed
+
 - SDK: Update SysNotify to 2.6.3
 
 ### Deprecated
@@ -23,8 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Fix startup crash on iOS/macOS because of missing SysNotify hooks initialization
 - UI,MACOS: Fix window title and dock name of the app
 - SDK,MACOS: Fix app not starting when installed from packaged DMG
-
-### Security
 
 ## 4.5.0
 
