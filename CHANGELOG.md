@@ -11,13 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- SDK: Update SysNotify to 2.6.3
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
-- SDK: Fix timeline not jumping when trying to jump to a referenced event
 
+- SDK: Fix timeline not jumping when trying to jump to a referenced event
+- SDK: Fix startup crash on iOS/macOS because of missing SysNotify hooks initialization
+- UI,MACOS: Fix window title and dock name of the app
+- SDK,MACOS: Fix app not starting when installed from packaged DMG
 
 ### Security
 
