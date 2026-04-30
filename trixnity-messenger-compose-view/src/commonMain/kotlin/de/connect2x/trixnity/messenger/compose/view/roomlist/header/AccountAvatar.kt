@@ -26,7 +26,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -40,6 +39,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenu
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedDropdownMenuItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatarStack
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
@@ -79,6 +79,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 
     val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
     val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
+    val avatarImages = remember(accounts) { accounts.mapNotNull { info -> info.avatar } }
 
     if (activeAccountInfo != null) {
         Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
@@ -106,7 +107,8 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                             iconOverlay = {
                                 if (globalNotificationCount == null) return@AllAccountsMenuItem
                                 AccountNotificationCount(globalNotificationCount)
-                            }
+                            },
+                            images = avatarImages
                         )
                         accounts
                             .filterNot { account -> account.userId == activeAccount }
@@ -179,6 +181,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 
     val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
     val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
+    val avatarImages = remember(accounts) { accounts.mapNotNull { info -> info.avatar } }
 
     Box(Modifier.weight(1.0f, false).fillMaxWidth()) {
         ThemedButton(
@@ -193,8 +196,8 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ThemedUserAvatar("*", null, overlay = {
-                    AccountNotificationCount(globalNotificationCount ?: return@ThemedUserAvatar)
+                ThemedUserAvatarStack("*", avatarImages, overlay = {
+                    AccountNotificationCount(globalNotificationCount ?: return@ThemedUserAvatarStack)
                 })
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
@@ -249,12 +252,13 @@ fun BoxScope.AccountNotificationCount(count: String) {
 @Composable
 fun AllAccountsMenuItem(
     selectAction: () -> Unit,
+    images: List<ByteArray> = emptyList(),
     iconOverlay: @Composable BoxScope.() -> Unit = {}
 ) {
     val i18n = DI.get<I18nView>()
     ThemedDropdownMenuItem(
         leadingIcon = {
-            ThemedUserAvatar("*", null, overlay = iconOverlay)
+            ThemedUserAvatarStack("*", images, overlay = iconOverlay)
         },
         text = { Text(i18n.accountAllAccounts()) },
         onClick = selectAction,
