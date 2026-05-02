@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
-import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
 import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
@@ -59,6 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomConfirmViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -405,6 +405,7 @@ private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
     single<GetEventReactions> { GetEventReactionsImpl() }
     single<GetEventReaders> { GetEventReadersImpl() }
+    single<JoinRoomConfirmViewModelFactory> { JoinRoomConfirmViewModelFactory }
 }
 
 private fun roomSettingsViewModels() = module {

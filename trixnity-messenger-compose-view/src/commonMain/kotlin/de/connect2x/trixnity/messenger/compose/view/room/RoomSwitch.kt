@@ -20,6 +20,7 @@ fun RoomSwitch(
     ) {
         when (val child = it.instance) {
             is RoomRouter.Wrapper.View -> Room(child.viewModel)
+            is RoomRouter.Wrapper.JoinRoomConfirm -> JoinRoomAction(child.viewModel)
             is RoomRouter.Wrapper.None -> Box {} // TODO: Would be nice to show a placeholder here.
         }.let {}
     }

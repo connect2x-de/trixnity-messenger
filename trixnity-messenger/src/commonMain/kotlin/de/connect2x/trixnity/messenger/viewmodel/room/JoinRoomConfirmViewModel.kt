@@ -16,14 +16,17 @@ interface JoinRoomConfirmViewModelFactory {
     fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId) =
         JoinRoomConfirmViewModelImpl(viewModelContext, roomId)
 
-    companion object JoinRoomViewModelFactory
+    companion object : JoinRoomConfirmViewModelFactory
 }
 
 interface JoinRoomConfirmViewModel {
     val actionNecessary: StateFlow<JoinRoomAction?>
 
-    enum class JoinRoomAction {
-        JOIN, KNOCK, IMPOSSIBLE
+    sealed class JoinRoomAction {
+        data object Join : JoinRoomAction()
+        data object Knock : JoinRoomAction()
+        data class Restricted(val requiredRooms: Set<RoomId>) : JoinRoomAction()
+        data object Impossible : JoinRoomAction()
     }
 }
 
@@ -36,11 +39,28 @@ class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContex
                 it?.content?.historyVisibility
             },
             matrixClient.room.getState(roomId, JoinRulesEventContent::class).mapNotNull {
-                it?.content?.joinRule
+                it?.content
             }
-        ) { membership, historyVisibility, joinRule ->
+        ) { membership, historyVisibility, joinRuleContent ->
             return@combine when {
-                joinRule.isKnock -> JoinRoomConfirmViewModel.JoinRoomAction.KNOCK
+                joinRuleContent.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomConfirmViewModel.JoinRoomAction.Join
+
+                joinRuleContent.joinRule.isKnock -> JoinRoomConfirmViewModel.JoinRoomAction.Knock
+
+                //Only show restricted action when there are room join conditions
+                joinRuleContent.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
+                    val allowConditionsRooms =
+                        joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
+                            ?.map { it.roomId }?.toSet()
+                    if (allowConditionsRooms?.isNotEmpty() ?: false) {
+                        JoinRoomConfirmViewModel.JoinRoomAction.Restricted(allowConditionsRooms)
+                    } else {
+                        JoinRoomConfirmViewModel.JoinRoomAction.Impossible
+                    }
+                }
+
+                joinRuleContent.joinRule == JoinRulesEventContent.JoinRule.Private -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible
+
                 else -> {
                     null
                 }
