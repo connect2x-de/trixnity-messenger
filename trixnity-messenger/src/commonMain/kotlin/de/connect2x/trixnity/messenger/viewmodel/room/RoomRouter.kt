@@ -6,16 +6,23 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface RoomRouter {
@@ -31,10 +38,14 @@ interface RoomRouter {
 
         @Serializable
         data class View(val userId: UserId, val roomId: String) : Config()
+
+        @Serializable
+        data class JoinRoomConfirm(val userId: UserId, val roomId: String) : Config()
     }
 
     sealed class Wrapper {
         data class View(val viewModel: RoomViewModel) : Wrapper()
+        data class JoinRoomConfirm(val viewModel: JoinRoomConfirmViewModel) : Wrapper()
         data object None : Wrapper()
     }
 }
@@ -78,11 +89,36 @@ class RoomRouterImpl(
                     log.debug { "::: created viewModel for ${roomConfig.userId}" }
                 }
             )
+
+            is Config.JoinRoomConfirm -> Wrapper.JoinRoomConfirm(
+                viewModelContext.get<JoinRoomConfirmViewModelFactory>().create(
+                    viewModelContext.childContext("RoomJoinConfirm", componentContext, roomConfig.userId),
+                    RoomId(roomConfig.roomId)
+                ),
+            )
         }
 
+
     override suspend fun openRoom(userId: UserId, roomId: RoomId) {
-        log.debug { "show room: $roomId" }
-        roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
+        val matrixClient = viewModelContext.getMatrixClient(userId)
+        val encrypted = matrixClient.room.getById(roomId).first()?.encrypted ?: true
+        val memberState = matrixClient.user.getById(roomId, userId).first()?.membership
+        val visibility =
+            matrixClient.room.getState(roomId, HistoryVisibilityEventContent::class).first()?.content?.historyVisibility
+        when {
+            memberState == Membership.JOIN -> {
+                log.debug { "show room: $roomId" }
+                roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
+            }
+
+            visibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && !encrypted -> {
+                //TODO show preview
+            }
+
+            else -> {
+                roomNavigation.bringToFrontSuspending(Config.JoinRoomConfirm(userId, roomId.full))
+            }
+        }
     }
 
     override suspend fun closeRoom() {
@@ -93,5 +129,6 @@ class RoomRouterImpl(
         when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
+            is Config.JoinRoomConfirm -> false
         }
 }
