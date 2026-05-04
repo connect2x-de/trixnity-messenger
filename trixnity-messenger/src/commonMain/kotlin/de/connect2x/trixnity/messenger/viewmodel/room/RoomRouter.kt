@@ -93,8 +93,10 @@ class RoomRouterImpl(
             is Config.JoinRoomConfirm -> Wrapper.JoinRoomConfirm(
                 viewModelContext.get<JoinRoomConfirmViewModelFactory>().create(
                     viewModelContext.childContext("RoomJoinConfirm", componentContext, roomConfig.userId),
-                    RoomId(roomConfig.roomId)
-                ),
+                    roomId = RoomId(roomConfig.roomId)
+                ).also {
+                    log.debug { "::: created viewModel for ${roomConfig.userId} room join confirm (room ${roomConfig.roomId}" }
+                },
             )
         }
 

@@ -443,7 +443,7 @@ open class MainViewModelImpl(
         when (this) {
             is RoomRouter.Config.None -> null
             is RoomRouter.Config.View -> RoomId(roomId)
-            is RoomRouter.Config.JoinRoomConfirm -> null
+            is RoomRouter.Config.JoinRoomConfirm -> RoomId(roomId)
         }
 
     private fun onSendLogs() {

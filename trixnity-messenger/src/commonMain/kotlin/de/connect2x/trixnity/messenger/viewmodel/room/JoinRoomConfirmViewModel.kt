@@ -42,6 +42,7 @@ class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContex
                 it?.content
             }
         ) { membership, historyVisibility, joinRuleContent ->
+            println("Updating action")
             return@combine when {
                 joinRuleContent.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomConfirmViewModel.JoinRoomAction.Join
 
@@ -59,12 +60,7 @@ class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContex
                     }
                 }
 
-                joinRuleContent.joinRule == JoinRulesEventContent.JoinRule.Private -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible
-
-                else -> {
-                    null
-                }
+                else -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
 }
