@@ -35,7 +35,9 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                     JoinRoomConfirmViewModel.JoinRoomAction.Join -> Text("Please join room")
                     JoinRoomConfirmViewModel.JoinRoomAction.Knock -> Text("Please knock")
                     is JoinRoomConfirmViewModel.JoinRoomAction.Restricted -> Text("Please join rooms")
-                    else -> {}
+                    else -> {
+                        Text("Unknown state")
+                    }
                 }
             }
         }
