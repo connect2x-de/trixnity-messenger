@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
 import de.connect2x.trixnity.clientserverapi.model.room.DirectoryVisibility
 import de.connect2x.trixnity.core.model.events.InitialStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -86,8 +86,14 @@ open class CreateNewGroupViewModelImpl(
 
     override fun setIsPrivate(isPrivate: Boolean) {
         this.isPrivate.value = isPrivate
-        if (isPrivate)
+        if (isPrivate) {
             directoryVisibilityIsPublic.value = false
+            // when changing from public to private we should enable encryption to prevent someone from accidentally
+            // creating an unencrypted room
+            isEncrypted.value = true
+        } else {
+            isEncrypted.value = false
+        }
     }
 
     override fun setDirectoryVisibilityIsPublic(setDirectoryVisibilityIsPublic: Boolean) {
@@ -199,6 +205,12 @@ open class CreateNewGroupViewModelImpl(
     }
 
     override fun changeEncryptionStatus(newEncryptionStatus: Boolean) {
+        // do not change the encryption if the room is public
+        if (!isPrivate.value) {
+            log.error { "Cannot change encryption because the room is public" }
+            return
+        }
+
         if (newEncryptionStatus &&
             optionalRoomHistoryVisibility.value == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
         ) {

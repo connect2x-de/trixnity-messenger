@@ -2511,6 +2511,11 @@ open class I18nView(
         DE - "Private Räume können nicht angezeigt werden"
     }
 
+    open fun roomEncryptionExplanation() = translate {
+        EN - "Public rooms cannot be encrypted"
+        DE - "Öffentliche Räume können nicht verschlüsselt sein"
+    }
+
     open fun roomVisibility() = translate {
         EN - "Visibility: "
         DE - "Sichtbarkeit: "

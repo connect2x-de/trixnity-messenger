@@ -4097,6 +4097,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun roomDirectoryVisibilityInfo(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomDirectoryVisibilityInfo|roomDirectoryVisibilityInfo(){}[0]
     open fun roomEnableEncryptionWarningConfirmation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomEnableEncryptionWarningConfirmation|roomEnableEncryptionWarningConfirmation(){}[0]
     open fun roomEncryption(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomEncryption|roomEncryption(){}[0]
+    open fun roomEncryptionExplanation(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomEncryptionExplanation|roomEncryptionExplanation(){}[0]
     open fun roomEndToEndEncryption(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomEndToEndEncryption|roomEndToEndEncryption(){}[0]
     open fun roomEndToEndEncryptionDescription(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomEndToEndEncryptionDescription|roomEndToEndEncryptionDescription(){}[0]
     open fun roomHeaderBlockUser(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.roomHeaderBlockUser|roomHeaderBlockUser(){}[0]
