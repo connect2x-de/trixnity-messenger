@@ -1,36 +1,52 @@
 package de.connect2x.trixnity.messenger.viewmodel.room
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 interface JoinRoomConfirmViewModelFactory {
-    fun create(viewModelContext: MatrixClientViewModelContext, roomId: RoomId) =
-        JoinRoomConfirmViewModelImpl(viewModelContext, roomId)
+    fun create(
+        viewModelContext: MatrixClientViewModelContext,
+        roomId: RoomId,
+        onOpenRoom: (roomId: RoomId) -> Unit,
+        onDismiss: () -> Unit
+    ) = JoinRoomConfirmViewModelImpl(viewModelContext, roomId, onOpenRoom, onDismiss)
 
     companion object : JoinRoomConfirmViewModelFactory
 }
 
 interface JoinRoomConfirmViewModel {
     val actionNecessary: StateFlow<JoinRoomAction?>
+    val error: StateFlow<String?>
 
     sealed class JoinRoomAction {
-        data object Join : JoinRoomAction()
-        data object Knock : JoinRoomAction()
-        data class Restricted(val requiredRooms: Set<RoomId>) : JoinRoomAction()
-        data object Impossible : JoinRoomAction()
+        data class Join(val onJoinRoom: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
+        data class Knock(val onKnock: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
+        data class Restricted(val requiredRooms: Set<RoomId>, val onDismiss: () -> Unit) : JoinRoomAction()
+        data class Impossible(val onDismiss: () -> Unit) : JoinRoomAction()
     }
 }
 
-class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContext, roomId: RoomId) :
+class JoinRoomConfirmViewModelImpl(
+    viewModelContext: MatrixClientViewModelContext,
+    private val roomId: RoomId,
+    private val onOpenRoom: (roomId: RoomId) -> Unit,
+    private val onDismiss: () -> Unit
+) :
     JoinRoomConfirmViewModel, MatrixClientViewModelContext by viewModelContext {
     override val actionNecessary: StateFlow<JoinRoomConfirmViewModel.JoinRoomAction?> =
         combine(
@@ -44,9 +60,12 @@ class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContex
                 return@combine null
             }
             return@combine when {
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomConfirmViewModel.JoinRoomAction.Join
+                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomConfirmViewModel.JoinRoomAction.Join(
+                    ::onConfirmJoin, onDismiss
+                )
 
-                joinRuleContent?.joinRule?.isKnock ?: false -> JoinRoomConfirmViewModel.JoinRoomAction.Knock
+                joinRuleContent?.joinRule?.isKnock
+                    ?: false -> JoinRoomConfirmViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
 
                 //Only show restricted action when there are room join conditions
                 joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
@@ -54,13 +73,56 @@ class JoinRoomConfirmViewModelImpl(viewModelContext: MatrixClientViewModelContex
                         joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
                             ?.map { it.roomId }?.toSet()
                     if (allowConditionsRooms?.isNotEmpty() ?: false) {
-                        JoinRoomConfirmViewModel.JoinRoomAction.Restricted(allowConditionsRooms)
+                        JoinRoomConfirmViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
                     } else {
-                        JoinRoomConfirmViewModel.JoinRoomAction.Impossible
+                        JoinRoomConfirmViewModel.JoinRoomAction.Impossible(onDismiss)
                     }
                 }
 
-                else -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible
+                else -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible(onDismiss)
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    private val _error = MutableStateFlow<String?>(null)
+    override val error: StateFlow<String?> = _error.asStateFlow()
+    private fun onConfirmJoin() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                log.debug { "try to join room while not connected" }
+                _error.value = i18n.joinRoomConfirmJoinOffline()
+            } else {
+                log.debug { "try to join room $roomId" }
+                matrixClient.api.room.joinRoom(roomId).fold(
+                    onSuccess = {
+                        onOpenRoom(it)
+                    },
+                    onFailure = {
+                        log.error(it) { "Cannot join room." }
+                        _error.value = i18n.roomListInvitationError()
+                    }
+                )
+            }
+        }
+    }
+
+    private fun onConfirmKnock() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                log.debug { "try to knock on room while not connected" }
+                _error.value = i18n.joinRoomConfirmJoinOffline()
+            } else {
+                log.debug { "try to knock on room $roomId" }
+                matrixClient.api.room.knockRoom(roomId).fold(
+                    onSuccess = {
+                        onOpenRoom(it)
+                    },
+                    onFailure = {
+                        log.error(it) { "Cannot knock on room." }
+                        _error.value = i18n.roomListInvitationError()
+                    }
+                )
+            }
+        }
+    }
+
 }

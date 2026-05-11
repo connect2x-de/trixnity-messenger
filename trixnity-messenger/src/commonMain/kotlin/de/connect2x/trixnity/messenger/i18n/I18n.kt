@@ -1653,6 +1653,11 @@ open class I18n(
         EN - "Go to Permissions and allow Microphone"
         DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
     }
+
+    open fun joinRoomConfirmJoinOffline() = translate {
+        EN - "You can't join the room without an internet connection, please try again later."
+        DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
+    }
 }
 
 internal fun getLang(
