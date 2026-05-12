@@ -1,6 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -10,8 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.Url
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,13 +21,11 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import net.folivo.trixnity.clientserverapi.model.authentication.AccountType
-import net.folivo.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
+import de.connect2x.trixnity.core.ErrorResponse
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger { }
 
 interface RegisterMatrixAccountViewModelFactory {
     fun create(
@@ -102,7 +101,7 @@ class RegisterMatrixAccountViewModelImpl(
                             username = username.textValue,
                             password = password.textValue,
                             initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                            refreshToken = get<MatrixMessengerConfiguration>().useRefreshTokens,
+                            refreshToken = config.useRefreshTokens,
                         )
                     }
                 }
@@ -111,20 +110,28 @@ class RegisterMatrixAccountViewModelImpl(
                         log.info { "try to do UIA to retrieve access_token" }
                         val deviceId = result.uia.value.deviceId
                         val accessToken = result.uia.value.accessToken
+                        val accessTokenExpiresInMs = result.uia.value.accessTokenExpiresInMs
                         val refreshToken = result.uia.value.refreshToken
                         if (deviceId != null && accessToken != null) {
-                            matrixClients.loginWithCatching(
-                                baseUrl = serverUrl,
-                                loginInfo = MatrixClient.LoginInfo(
-                                    userId = result.uia.value.userId,
-                                    deviceId = deviceId,
-                                    accessToken = accessToken,
-                                    refreshToken = refreshToken,
-                                ),
-                                addMatrixAccountState = addMatrixAccountState,
-                                i18n = i18n,
-                                onLogin = onLogin,
+                            addMatrixAccountState.value = AddMatrixAccountState.Connecting
+
+                            val authProviderData = ClassicMatrixClientAuthProviderData(
+                                baseUrl = Url(serverUrl),
+                                accessToken = accessToken,
+                                accessTokenExpiresInMs = accessTokenExpiresInMs,
+                                refreshToken = refreshToken,
                             )
+                            when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
+                                is MatrixClients.CreateResult.Success -> {
+                                    addMatrixAccountState.value = AddMatrixAccountState.Success
+                                    onLogin()
+                                }
+
+                                is MatrixClients.CreateResult.Failure -> {
+                                    addMatrixAccountState.value =
+                                        AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                                }
+                            }
                         } else {
                             log.error { "accessToken or deviceId missing in registration response" }
                             error.value = i18n.registrationErrorNotSuccessful()
@@ -155,6 +162,14 @@ class RegisterMatrixAccountViewModelImpl(
 
     override fun back() {
         onBack()
+    }
+
+    val backCallback = BackCallback {
+        back()
+    }
+
+    init {
+        registerBackCallback(backCallback)
     }
 }
 

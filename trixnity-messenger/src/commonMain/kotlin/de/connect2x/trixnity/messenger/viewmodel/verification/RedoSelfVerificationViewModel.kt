@@ -1,7 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 
 interface RedoSelfVerificationViewModelFactory {
     fun create(
@@ -35,5 +36,13 @@ open class RedoSelfVerificationViewModelImpl(
 
     override fun close() {
         onClose()
+    }
+
+    private val backCallback = BackCallback {
+        close()
+    }
+
+    init {
+        registerBackCallback(backCallback)
     }
 }

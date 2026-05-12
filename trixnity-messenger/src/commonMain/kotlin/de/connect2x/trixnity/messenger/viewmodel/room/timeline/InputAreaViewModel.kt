@@ -2,7 +2,30 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
+import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.mentions
+import de.connect2x.trixnity.client.room.message.replace
+import de.connect2x.trixnity.client.room.message.reply
+import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -20,8 +43,10 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,45 +68,22 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.room.message.mentions
-import net.folivo.trixnity.client.room.message.replace
-import net.folivo.trixnity.client.room.message.reply
-import net.folivo.trixnity.client.room.message.text
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.utils.concurrentMutableMap
-import org.intellij.markdown.IElementType
 import org.intellij.markdown.ast.ASTNode
-import org.intellij.markdown.flavours.gfm.GFMElementTypes
-import org.intellij.markdown.flavours.gfm.GFMFlavourDescriptor
-import org.intellij.markdown.html.GeneratingProvider
 import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
-import org.intellij.markdown.html.SimpleInlineTagProvider
-import org.intellij.markdown.html.URI
-import org.intellij.markdown.parser.LinkMap
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import net.folivo.trixnity.core.util.Reference as TrixnityReference
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.core.util.Reference as TrixnityReference
 
 private sealed interface SubstringType {
     suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String
@@ -160,6 +162,7 @@ interface InputAreaViewModel {
     val listOfMentions: StateFlow<List<UserInfoElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
+    val audio: AudioRecordingAreaViewModel
 
     fun selectMention(userId: UserId)
     fun sendMessage()
@@ -186,6 +189,8 @@ open class InputAreaViewModelImpl(
     private val timeZone = get<TimeZone>()
     private val initials = get<Initials>()
 
+    private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
+
     override val isAllowedToSendMessages: StateFlow<Boolean> =
         matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
@@ -200,6 +205,14 @@ open class InputAreaViewModelImpl(
     private val currentReplace: MutableStateFlow<Pair<RoomId, EventId>?> = MutableStateFlow(null)
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    @Suppress("unused")
+    private val completeAudioRecordingOnReplace =
+        isReplace
+            .filter { it }
+            .onEach { audio.recorder?.complete() }
+            .launchIn(coroutineScope)
+
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReply: StateFlow<Boolean> =
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
@@ -207,10 +220,15 @@ open class InputAreaViewModelImpl(
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
     override val useMarkdown = MutableStateFlow(true)
+    override val audio: AudioRecordingAreaViewModel =
+        get<AudioRecordingAreaViewModelFactory>().create(
+            childContext("audioRecordingAreaViewModel"),
+            ::sendAudioMessage
+        )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
-    private class HtmlTagRenderer() : TagRenderer {
+    private class HtmlTagRenderer : TagRenderer {
         override fun openTag(
             node: ASTNode,
             tagName: CharSequence,
@@ -259,6 +277,9 @@ open class InputAreaViewModelImpl(
             } else null
         }.stateIn(coroutineScope, WhileSubscribed(), null)
 
+    private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
+    private val draftMutex: Mutex = Mutex()
+
     init {
         coroutineScope.launch {
             isStillTyping.debounce(3.seconds).collect {
@@ -271,10 +292,150 @@ open class InputAreaViewModelImpl(
                 else typing()
             }
         }
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                loadDraftIntoTextField()
+                textField
+                    .debounce(2.seconds)
+                    .collect {
+                        draftMutex.withLock {
+                            saveAsDraft()
+                        }
+                    }
+            } else {
+                matrixClient.room.deleteDraftMessage(roomId)
+            }
+        }
+        if (enableMessageDrafts) {
+            lifecycle.doOnDestroy {
+                get<CoroutineScope>().launch {
+                    withContext(NonCancellable) {
+                        draftMutex.withLock {
+                            saveAsDraft()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
+
+    private suspend fun loadDraftIntoTextField() {
+        val draftMessage = draftMessage.first()
+        val content = draftMessage?.content
+        if (content is TextBased.Text) {
+            when (val relatesTo = content.relatesTo) {
+                is RelatesTo.Reply -> {
+                    currentReply.value = draftMessage.roomId to relatesTo.eventId
+                    textField.update(content.body)
+                }
+
+                is RelatesTo.Replace -> {
+                    currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                    (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
+                }
+
+                else -> {
+                    textField.update(content.body)
+                }
+            }
+        }
+    }
+
+    private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
+        val event =
+            matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
+                .filterNotNull()
+                .first()
+        reply(event)
+    }
+
+    private fun resetCurrentReply() {
+        currentReply.value?.also {
+            currentReply.value = null
+            onMessageReplyFinished(it.first, it.second)
+        }
+    }
+
+    private fun sendAudioMessage(audioMessage: suspend MessageBuilder.() -> Unit) {
+        coroutineScope.launch {
+            val repliedEvent = currentReply.value
+            log.debug { "send audio message" }
+            matrixClient.room.sendMessage(roomId) {
+                when {
+                    repliedEvent != null -> {
+                        reply(repliedEvent)
+                    }
+                }
+                audioMessage()
+            }
+            audio.recorder?.close()
+            resetCurrentReply()
+        }
+    }
+
+    private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
+        val references = TrixnityReference.findReferences(text)
+        val userReferences =
+            references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+        val formattedReferences = references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
+            .windowed(
+                size = 2,
+                partialWindows = true
+            ) { mentionWindow ->
+                val first = mentionWindow[0]
+                val second = mentionWindow.getOrNull(1)
+
+                listOfNotNull(
+                    if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
+                    else null,
+                    SubstringType.Reference(first.value.value),
+                    if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
+                    else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
+                )
+            }.flatten()
+            .map { substring ->
+                substring.format(matrixClient, roomId)
+            }.joinToString("")
+            .ifBlank { text }
+
+        val formattedBody =
+            when (useMarkdown.value) {
+                true ->
+                    HtmlGenerator(
+                        formattedReferences,
+                        markdownParser.buildMarkdownTreeFromString(formattedReferences),
+                        markdownFlavourDescriptor
+                    ).generateHtml(HtmlTagRenderer())
+
+                false -> formattedReferences
+            }
+
+        val replacedEvent = currentReplace.value
+        val repliedEvent = currentReply.value
+
+        return {
+            when {
+                replacedEvent != null -> replace(replacedEvent.second)
+                repliedEvent != null -> {
+                    reply(repliedEvent)
+                }
+            }
+            mentions(userReferences)
+            text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+        }
+    }
+
+    private suspend fun saveAsDraft(text: String = textField.value.text) {
+        if (text.isEmpty()) {
+            matrixClient.room.deleteDraftMessage(roomId)
+            return
+        }
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = getMessageBuilder(text))
+    }
+
 
     override fun selectMention(userId: UserId) {
         if (listOfMentions.value?.any { it.userId == userId } != true) return
@@ -304,70 +465,24 @@ open class InputAreaViewModelImpl(
 
     override fun sendMessage() {
         log.trace { "try to send message" }
-        if (isSendEnabled.value == true) {
+        if (isSendEnabled.value) {
             val text = textField.value.text
             textField.update("")
             coroutineScope.launch {
-                val references = TrixnityReference.findReferences(text)
-                val userReferences =
-                    references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
-                val formattedReferences =
-                    references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
-                        .windowed(
-                            size = 2,
-                            partialWindows = true
-                        ) { mentionWindow ->
-                            val first = mentionWindow[0]
-                            val second = mentionWindow.getOrNull(1)
-
-                            listOfNotNull(
-                                if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
-                                else null,
-                                SubstringType.Reference(first.value.value),
-                                if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
-                                else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
-                            )
-                        }.flatten()
-                        .map { substring ->
-                            substring.format(matrixClient, roomId)
-                        }.joinToString("")
-                        .ifBlank { text }
-
-                val formattedBody =
-                    when (useMarkdown.value) {
-                        true ->
-                            HtmlGenerator(
-                                formattedReferences,
-                                markdownParser.buildMarkdownTreeFromString(formattedReferences),
-                                markdownFlavourDescriptor
-                            ).generateHtml(HtmlTagRenderer())
-
-                        false -> formattedReferences
+                if (enableMessageDrafts) {
+                    draftMutex.withLock {
+                        saveAsDraft(text)
+                        log.debug { "send message" }
+                        matrixClient.room.sendDraftMessage(roomId)
                     }
-
-                val replacedEvent = currentReplace.value
-                val repliedEvent = currentReply.value
-                log.debug { "send message" }
-                matrixClient.room.sendMessage(roomId) {
-                    when {
-                        replacedEvent != null -> replace(replacedEvent.second)
-                        repliedEvent != null -> {
-                            val event =
-                                matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-                                    .filterNotNull()
-                                    .first()
-                            reply(event)
-                        }
-                    }
-                    mentions(userReferences)
-                    text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
+                } else {
+                    matrixClient.room.sendMessage(roomId = roomId, builder = getMessageBuilder(text))
                 }
-                currentReplace.value = null
-                replacedEvent?.also { onMessageReplaceFinished(it.first, it.second) }
-                repliedEvent?.also {
-                    currentReply.value = null
-                    onMessageReplyFinished(it.first, it.second)
+                currentReplace.value?.also {
+                    currentReplace.value = null
+                    onMessageReplaceFinished(it.first, it.second)
                 }
+                resetCurrentReply()
             }
         }
     }
@@ -448,7 +563,7 @@ open class InputAreaViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                viewModelContext = childContextWithOwnLifecycle(eventId.full, lifecycle),
                 key = "element",
                 timelineEventFlow = timelineEventFlow,
                 roomId = roomId,
@@ -558,6 +673,7 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
+    override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 
     override fun selectMention(userId: UserId) {
     }

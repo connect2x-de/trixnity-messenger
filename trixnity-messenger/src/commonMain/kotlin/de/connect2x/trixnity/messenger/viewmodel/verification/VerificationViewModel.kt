@@ -5,8 +5,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
-import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
@@ -23,37 +23,33 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Timeout
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config.Wait
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Wrapper
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.ActiveDeviceVerification
-import net.folivo.trixnity.client.verification.ActiveSasVerificationMethod
-import net.folivo.trixnity.client.verification.ActiveSasVerificationState
-import net.folivo.trixnity.client.verification.ActiveVerification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationMethod
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.ActiveDeviceVerification
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationMethod
+import de.connect2x.trixnity.client.verification.ActiveSasVerificationState
+import de.connect2x.trixnity.client.verification.ActiveVerification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
+import kotlinx.coroutines.flow.filterNotNull
 import org.koin.core.component.get
 import kotlin.jvm.JvmInline
-
-
-private val log = KotlinLogging.logger {}
 
 interface VerificationViewModelFactory {
     fun create(
@@ -177,7 +173,7 @@ open class VerificationViewModelImpl(
             is Request -> Wrapper.Request(
                 get<VerificationStepRequestViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("Request", componentContext),
                         onRequestAccept = ::onRequestAccept,
                         theirUserId = config.theirUserId,
                         fromDeviceId = config.fromDeviceId,
@@ -187,7 +183,7 @@ open class VerificationViewModelImpl(
             is Wait -> Wrapper.Wait
             is SelectVerificationMethod -> Wrapper.SelectVerificationMethod(
                 get<SelectVerificationMethodViewModelFactory>().create(
-                    viewModelContext = childContext(componentContext),
+                    viewModelContext = childContext("SelectVerificationMethod", componentContext),
                     verificationContext,
                     verificationMethods = config.verificationMethods,
                     roomId = config.roomId,
@@ -198,7 +194,7 @@ open class VerificationViewModelImpl(
 
             is AcceptSasStart -> Wrapper.AcceptSasStart(
                 get<AcceptSasStartViewModelFactory>().create(
-                    viewModelContext = childContext(componentContext),
+                    viewModelContext = childContext("AcceptSasStart", componentContext),
                     verificationContext,
                     roomId = config.roomId,
                     timelineEventId = config.timelineEventId,
@@ -208,7 +204,7 @@ open class VerificationViewModelImpl(
             is CompareEmojisOrNumbers -> Wrapper.CompareEmojisOrNumbers(
                 get<VerificationStepCompareViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("CompareEmojisOrNumbers", componentContext),
                         decimals = config.decimals,
                         emojisWithoutTranslation = config.emojis,
                         onAccept = ::onAcceptVerification,
@@ -219,7 +215,7 @@ open class VerificationViewModelImpl(
             is Success -> Wrapper.Success(
                 get<VerificationStepSuccessViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("Success", componentContext),
                         onVerificationSuccessOk = ::onVerificationSuccessOk,
                     )
             )
@@ -227,7 +223,7 @@ open class VerificationViewModelImpl(
             is Rejected -> Wrapper.Rejected(
                 get<VerificationStepRejectedViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("Rejected", componentContext),
                         onVerificationRejectedOk = ::onVerificationNotOk,
                     )
             )
@@ -235,7 +231,7 @@ open class VerificationViewModelImpl(
             is Timeout -> Wrapper.Timeout(
                 get<VerificationStepTimeoutViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("Timeout", componentContext),
                         onVerificationTimeoutOk = ::onVerificationNotOk,
                     )
             )
@@ -243,7 +239,7 @@ open class VerificationViewModelImpl(
             is Cancelled -> Wrapper.Cancelled(
                 get<VerificationStepCancelledViewModelFactory>()
                     .create(
-                        viewModelContext = childContext(componentContext),
+                        viewModelContext = childContext("Cancelled", componentContext),
                         onVerificationCancelledOk = ::onVerificationNotOk,
                     )
             )
@@ -252,12 +248,20 @@ open class VerificationViewModelImpl(
         }
 
     init {
-        val setupRunning =
-            get<MatrixMessengerSettingsHolder>().value.base.accounts.values.any { !it.base.accountSetupFinished }
         //Necessary to handle back button presses while in the setup, whose back callback has a higher priority because of the underlying viewModel backHandlers
-        backHandler.register(BackCallback(priority = if (setupRunning) 1 else 0) { cancel() })
+        registerBackCallback(BackCallback(priority = BackHandler.PRIORITY_VERIFICATION) {
+            if (stack.value.active.configuration != Cancelled) {
+                cancel()
+            } else {
+                onVerificationNotOk()
+            }
+        })
         coroutineScope.launch {
             if (timelineEventId == null) {
+                if (matrixClient.verification.activeDeviceVerification.value == null) {
+                    log.warn { "Found no active verification, cancelling verification process" }
+                    onCloseVerification()
+                }
                 matrixClient.verification.activeDeviceVerification
                     .filterNotNull()
                     .collectLatest {
@@ -395,7 +399,7 @@ open class VerificationViewModelImpl(
             coroutineScope.launch {
                 try {
                     activeVerification.cancel()
-                } catch (exc: Exception) {
+                } catch (_: Exception) {
                     onCloseVerification()
                 }
             }
@@ -444,7 +448,7 @@ open class VerificationViewModelImpl(
                     if (methodState is ActiveSasVerificationState.ComparisonByUser) {
                         try {
                             reaction(methodState)
-                        } catch (exc: Exception) {
+                        } catch (_: Exception) {
                             activeVerification.cancel()
                         }
                     }

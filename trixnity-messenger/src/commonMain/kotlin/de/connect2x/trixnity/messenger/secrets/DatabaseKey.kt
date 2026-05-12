@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.secrets
 
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 
 private const val ID = "de.connect2x.trixnity.messenger.secrets.database"
 

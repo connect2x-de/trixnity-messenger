@@ -2,19 +2,31 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.withClue
@@ -30,21 +42,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -98,6 +95,7 @@ class ChangePowerLevelViewModelTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
         resetMocks(
             matrixClientMock,
             roomServiceMock,
@@ -119,8 +117,8 @@ class ChangePowerLevelViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiMock
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-        every { userServiceMock.getById(eq(roomId), eq(alice)) } returns roomUserAliceFlow
-        every { userServiceMock.getById(eq(roomId), eq(bob)) } returns roomUserBobFlow
+        every { userServiceMock.getById(roomId, alice) } returns roomUserAliceFlow
+        every { userServiceMock.getById(roomId, bob) } returns roomUserBobFlow
 
         every {
             roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "")
@@ -149,15 +147,14 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             canSetAlicePowerLevelToMax.value = 100
             every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                userServiceMock.canSetPowerLevelToMax(roomId, testUser)
             } returns MutableStateFlow(PowerLevel.User(100))
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
                 )
             } returns Result.success(EventId(""))
 
@@ -168,10 +165,9 @@ class ChangePowerLevelViewModelTest {
             cut.error.value shouldBe null
             verifySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
-                    eq(PowerLevelsEventContent(users = mapOf(alice to 100L))),
+                    roomId,
+                    PowerLevelsEventContent(users = mapOf(alice to 100L)),
                     any(),
-                    eqNull()
                 )
             }
         }
@@ -181,7 +177,7 @@ class ChangePowerLevelViewModelTest {
         runTestWithCoroutineScope { coroutineScope ->
             canSetAlicePowerLevelToMax.value = 100
             every {
-                userServiceMock.canSetPowerLevelToMax(eq(roomId), eq(testUser))
+                userServiceMock.canSetPowerLevelToMax(roomId, testUser)
             } returns MutableStateFlow(PowerLevel.User(100L))
 
             syncStateMocker returns MutableStateFlow(SyncState.ERROR)
@@ -203,10 +199,9 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
                 )
             } returns Result.failure(Throwable())
 
@@ -224,10 +219,9 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
                 )
             } returns Result.success(EventId(""))
 
@@ -238,10 +232,9 @@ class ChangePowerLevelViewModelTest {
             cut.error.value shouldBe null
             verifySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
-                    eq(PowerLevelsEventContent(users = mapOf(alice to 99L))),
+                    roomId,
+                    PowerLevelsEventContent(users = mapOf(alice to 99L)),
                     any(),
-                    eqNull()
                 )
             }
         }
@@ -267,10 +260,9 @@ class ChangePowerLevelViewModelTest {
 
             everySuspend {
                 roomsApiClientMock.sendStateEvent(
-                    eq(roomId),
+                    roomId,
                     any(),
                     any(),
-                    eqNull()
                 )
             } returns Result.failure(Throwable())
 
@@ -436,7 +428,8 @@ class ChangePowerLevelViewModelTest {
                     )
                 }.koin,
                 userId = userId,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "PowerLevel"
             ),
             targetUser = userId,
             error = MutableStateFlow(null),

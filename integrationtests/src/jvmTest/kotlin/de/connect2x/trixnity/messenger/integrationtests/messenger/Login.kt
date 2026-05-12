@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
@@ -11,17 +12,16 @@ import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.messenger.LoginKt")
 
 suspend fun MatrixMessengerWithRoot.login(
     serverUrl: String,

@@ -1,15 +1,18 @@
 package de.connect2x.trixnity.messenger.util
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
+import kotlin.concurrent.atomics.AtomicReference
 
-class ActivityGetter : () -> Activity? {
-    private var backingField: () -> Activity? = { null }
+class ActivityGetter(initialValue: (() -> ComponentActivity)?) {
+    private val value: AtomicReference<(() -> ComponentActivity)?> = AtomicReference(initialValue)
 
-    override operator fun invoke(): Activity? = backingField()
-    operator fun invoke(value: () -> Activity?) {
-        backingField = value
+    operator fun invoke(): ComponentActivity =
+        checkNotNull(value.load()) { "ActivityGetter has not been set. Use MatrixMessenger.defaultActivityGetter or MatrixMultiMessenger.defaultActivityGetter to set it." }()
+
+    operator fun invoke(value: () -> ComponentActivity) {
+        this.value.store(value)
     }
 }
 

@@ -1,26 +1,52 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.create
+import com.arkivanov.essenty.lifecycle.destroy
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.settle
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
+import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import dev.mokkery.answering.BlockingAnsweringScope
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
-import io.ktor.utils.io.core.*
+import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,30 +58,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.message.MessageBuilder
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -76,6 +84,12 @@ class InputAreaViewModelTest {
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
 
     val roomsApiClientMock = mock<RoomApiClient>()
+
+    val audioRecorder = mock<AudioRecorderViewModel>()
+
+    val audioRecordingArea = mock<AudioRecordingAreaViewModel>()
+
+    val audioRecordingAreaViewModelFactory = mock<AudioRecordingAreaViewModelFactory>()
 
     private var canSendEventMocker: BlockingAnsweringScope<Flow<Boolean>>
 
@@ -105,6 +119,7 @@ class InputAreaViewModelTest {
     var formattedBody: String? = null
     var body = ""
 
+    var draftMessage: MutableStateFlow<RoomOutboxMessage<*>?> = MutableStateFlow(null)
 
     init {
         resetMocks(
@@ -115,7 +130,10 @@ class InputAreaViewModelTest {
             matrixClientServerApiClientMock,
             roomsApiClientMock,
             onMessageEditFinishedMock,
-            onMessageReplToFinishedMock
+            onMessageReplToFinishedMock,
+            audioRecorder,
+            audioRecordingArea,
+            audioRecordingAreaViewModelFactory
         )
         every { matrixClientMock.di } returns koinApplication {
             modules(
@@ -134,9 +152,9 @@ class InputAreaViewModelTest {
         }
 
         canSendEventMocker returns flowOf(true)
-        everySuspend { roomServiceMock.sendMessage(eq(roomId), any(), any()) } returns ""
+        everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } returns ""
         every {
-            roomServiceMock.getTimelineEvent(any(), eq(eventId), any())
+            roomServiceMock.getTimelineEvent(any(), eventId, any())
         } returns flowOf(
             TimelineEvent(
                 event = messageEvent,
@@ -162,6 +180,32 @@ class InputAreaViewModelTest {
         every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
         every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
+        every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls {
+            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
+            val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+            requireNotNull(content) { "you must add some sort of content for set a draft" }
+            draftMessage.value = RoomOutboxMessage(
+                roomId = roomId,
+                transactionId = "0",
+                content = content,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+            "0"
+        }
+        everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
+
+        every { audioRecordingAreaViewModelFactory.create(any(), any()) } returns
+                audioRecordingArea
+        every { audioRecordingArea.recorder } returns audioRecorder
+        every { audioRecorder.complete() } returns Unit
+
         everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
             val roomId = it.arg<RoomId>(0)
             val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
@@ -176,17 +220,33 @@ class InputAreaViewModelTest {
             ""
         }
 
+        everySuspend { roomServiceMock.sendDraftMessage(any()) } calls {
+            val content = draftMessage.value?.content
+            if (content != null) {
+                if (content is RoomMessageEventContent.TextBased) {
+                    body = content.body
+                    formattedBody = content.formattedBody
+                }
+                draftMessage.value = null
+            }
+            "0"
+        }
+
         everySuspend {
             mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
         } returns Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
 
         everySuspend {
             roomsApiClientMock.setTyping(
-                any(), any(), any(), any(), any()
+                any(), any(), any(), any(),
             )
         } returns Result.success(Unit)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `not allow sending when message is empty`() = runTest {
@@ -298,7 +358,7 @@ class InputAreaViewModelTest {
     fun `set 'is typing' when message was changed and is not empty`() = runTest {
         var setTypingWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(eq(roomId), eq(ourUserId), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(roomId, ourUserId, true, any())
         } calls {
             setTypingWasCalled = true
             Result.success(Unit)
@@ -318,13 +378,13 @@ class InputAreaViewModelTest {
     fun `keep 'is typing' when message changes at least once every 3 seconds`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -354,13 +414,13 @@ class InputAreaViewModelTest {
     fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -384,13 +444,13 @@ class InputAreaViewModelTest {
     fun `set 'is not typing' when the message has been sent`() = runTest {
         var setTypingCancelWasCalled = false
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(false), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), false, any())
         } calls {
             setTypingCancelWasCalled = true
             Result.success(Unit)
         }
         everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), eq(true), any(), eqNull())
+            roomsApiClientMock.setTyping(any(), any(), true, any())
         } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
@@ -675,7 +735,7 @@ class InputAreaViewModelTest {
     fun `convert markdown to HTML`() = runTest {
         val markdown = """
             # The train station and Sony
-           
+            
             ## Origins
             
             There once was an amazing train station. It was so amazing that people in Germany began to say
@@ -724,19 +784,19 @@ class InputAreaViewModelTest {
 
         val html = """
             <h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
-            the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
-            its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
-            This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
-            for example:</p><pre><code>fun main() {
+            <br />the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
+            <br />its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
+            <br />This annoyed the following people:</p><ul><li>the pirates as they couldn't sail now</li><li>the airports as they were overfilled with pirates now</li></ul><p>So ✨ <code>the coders</code> ✨ started greeting the world for which they used magic glyphs Computers could understand
+            <br />for example:</p><pre><code>fun main() {
                 println(&quot;Hello World 👋👋👋&quot;)
             }
             </code></pre><p>The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
-            The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
-            the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
-            infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
-            video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
-            Hope you had a good read? It's mostly non-sense
-            Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
+            <br />The republic of Germany does not rely on them due to <del>ancient</del> traditionally proven technology for which the people of
+            <br />the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:</p><ol><li>North America</li><li>China</li><li>Baltics</li></ol><p>The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
+            <br />infrastructure. This way the people of the Tube are able to produce more Europe Transport &gt; America Transport
+            <br />video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
+            <br />Hope you had a good read? It's mostly non-sense
+            <br />Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
         """.trimIndent()
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -789,9 +849,10 @@ class InputAreaViewModelTest {
         cut.sendMessage()
 
         eventually(300.milliseconds) {
+            println(formattedBody)
             formattedBody shouldBe """
                 <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
-                und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
+                <br />und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
             """.trimIndent()
         }
     }
@@ -886,6 +947,91 @@ class InputAreaViewModelTest {
         }
     }
 
+    @Test
+    fun `draft Message is loaded into text field on creation`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("champagner")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        eventually(300.milliseconds) {
+            cut.textField.textValue shouldBe "champagner"
+        }
+    }
+
+    @Test
+    fun `draft Message is updated automatically with text field`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        delay(20)
+
+        cut.textField.update("bye")
+
+        eventually(3.seconds) {
+            (draftMessage.value?.content as? RoomMessageEventContent.TextBased)?.body shouldBe "bye"
+        }
+    }
+
+    @Test
+    fun `previous DraftMessage is deleted when saving empty draft`() = runTest {
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        delay(20)
+
+        cut.textField.update("")
+
+        eventually(3.seconds) {
+            draftMessage.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `previous DraftMessage is deleted when destroying viewmodel`() = runTest {
+        val lifecycleRegistry = LifecycleRegistry()
+        lifecycleRegistry.create()
+
+        val cut = inputAreaViewModel(lifecycleRegistry)
+        subscribe(cut)
+
+        delay(20)
+
+        roomServiceMock.setDraftMessage(roomId) {
+            text("hi")
+        }
+
+        delay(20)
+
+        lifecycleRegistry.destroy()
+
+        eventually(500.milliseconds) {
+            draftMessage.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `audio » when starting to edit a message then complete audio recording`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.replaceMessage(roomId, eventId)
+
+        delay(300.milliseconds)
+
+        verify { audioRecorder.complete() }
+    }
+
     private fun roomUser(userId: UserId, name: String) = RoomUser(
         roomId, userId, name, StateEvent(
             content = MemberEventContent(membership = Membership.JOIN),
@@ -897,17 +1043,26 @@ class InputAreaViewModelTest {
         )
     )
 
-    private suspend fun TestScope.inputAreaViewModel(): InputAreaViewModelImpl {
+    private suspend fun TestScope.inputAreaViewModel(lifecycleRegistry: LifecycleRegistry? = null): InputAreaViewModelImpl {
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(
                     mapOf(UserId("test", "server") to matrixClientMock)
-                ),
+                ) + module {
+                    single<AudioRecordingAreaViewModelFactory> {
+                        audioRecordingAreaViewModelFactory
+                    }
+                },
+
             )
         }.koin
         di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())
         return InputAreaViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(di = di, userId = UserId("test", "server")),
+            viewModelContext = testMatrixClientViewModelContext(
+                di = di,
+                userId = UserId("test", "server"),
+                componentContext = DefaultComponentContext(lifecycleRegistry ?: LifecycleRegistry())
+            ),
             roomId = roomId,
             onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,

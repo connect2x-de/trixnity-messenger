@@ -1,24 +1,25 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.TrixnityMessengerDsl
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import net.folivo.trixnity.client.ModuleFactory
 
 @TrixnityMessengerDsl
 data class MatrixMultiMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
-    override var appId: String = "de.connect2x.messenger",
+    override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
-    override var urlProtocol: String = appId,
-    override var urlHost: String = "localhost",
+    override var appIcon: String? = null,
+    override var appUri: String = "$appId:",
+    override var oAuth2ClientUrl: String = "https://messenger.trixnity.connect2x.de",
+
     override var sendLogsEmailAddress: String? = null,
     override var privacyInfo: String? = null,
     override var imprint: String? = null,
     override var licenses: String? = null,
-    override var pushUrl: String? = null,
 
     /**
      * Consider using [messengerConfiguration], as it can be called multiple times.
@@ -50,7 +51,14 @@ data class MatrixMultiMessengerConfiguration(
     /**
      * Simultaneously use multiple profiles
      */
+    @Deprecated("use defaultIsMultiProfileEnabled instead", replaceWith = ReplaceWith("defaultIsMultiProfileEnabled"))
     var multiProfile: Boolean = true,
+
+    /** This allows multiple profiles to be used simultaneously.
+     * Null means undefined, so the user should be asked if they want to enable this. */
+    var defaultIsMultiProfileEnabled: Boolean? = true,
+
+    var enableBundledFont: Boolean = false,
 ) : MatrixMessengerBaseConfiguration {
     val messengerWithBase: MatrixMessengerConfiguration.() -> Unit
         get() = {
@@ -70,5 +78,4 @@ data class MatrixMultiMessengerConfiguration(
         }
     }
 }
-
 

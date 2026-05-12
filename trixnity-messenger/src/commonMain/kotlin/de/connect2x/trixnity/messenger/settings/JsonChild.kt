@@ -6,17 +6,17 @@ import kotlinx.serialization.json.buildJsonObject
 internal fun getJsonChild(
     source: JsonObject,
     vararg keys: String
-): JsonObject = getJsonChild(source, keys.toList())
+): JsonObject? = getJsonChild(source, keys.toList())
 
 internal fun getJsonChild(
     source: JsonObject,
     keys: List<String>
-): JsonObject {
+): JsonObject? {
     if (keys.isEmpty()) return source
 
     var target: JsonObject = source
     keys.forEach { segment ->
-        target = target[segment] as? JsonObject ?: return JsonObject(mapOf())
+        target = target[segment] as? JsonObject ?: return null
     }
     return target
 }

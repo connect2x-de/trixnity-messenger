@@ -1,41 +1,28 @@
-import de.connect2x.conventions.registerCoverageTask
-import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
+import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.withBrowser
+import de.connect2x.conventions.withWeb
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
-    alias(sharedLibs.plugins.dokka)
     alias(libs.plugins.seskar)
-    `maven-publish`
 }
 
-registerCoverageTask()
-
 kotlin {
-    compilerOptions {
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-    }
-    js {
-        compilerOptions {
-            sourceMap.set(true)
-            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
-        }
-        browser {
+    withSourcesJar()
+    defaultCompilerOptions()
+    withWeb {
+        withBrowser {
             commonWebpackConfig {
                 showProgress = true
             }
-            testTask {
-                useKarma {
-                    useFirefoxHeadless()
-                    useConfigDirectory(rootDir.resolve("karma.config.d"))
-                }
-            }
         }
+        useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()
     }
     applyDefaultHierarchyTemplate()
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(npm("@zip.js/zip.js", libs.versions.zipjs.get()))
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))

@@ -6,7 +6,7 @@ import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface MatrixClientInitializationFailureViewModelFactory {
@@ -23,6 +23,7 @@ interface MatrixClientInitializationFailureViewModelFactory {
 }
 
 interface MatrixClientInitializationFailureViewModel {
+    val userId: UserId
     val deleteEnabled: Boolean
     fun closeApplication()
     fun delete()
@@ -30,7 +31,7 @@ interface MatrixClientInitializationFailureViewModel {
 
 open class MatrixClientInitializationFailureViewModelImpl(
     viewModelContext: ViewModelContext,
-    private val userId: UserId,
+    override val userId: UserId,
     exception: MatrixClientInitializationException,
     private val onDeletionFinished: () -> Unit,
 ) : ViewModelContext by viewModelContext, MatrixClientInitializationFailureViewModel {

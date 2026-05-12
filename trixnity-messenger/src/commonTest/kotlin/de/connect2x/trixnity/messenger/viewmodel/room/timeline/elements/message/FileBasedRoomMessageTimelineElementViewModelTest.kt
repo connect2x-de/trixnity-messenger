@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -10,7 +11,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -18,15 +18,16 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.EncryptedFile
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -49,10 +50,15 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         }.koin
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `downloading » download a file and process result`() = runTest {
         every {
-            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any())
         } returns async { Result.success(InMemoryPlatformMedia(file)) }
 
         val cut = fileBasedMessageViewModel()
@@ -71,7 +77,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
     @Test
     fun `downloading » download a file and set Result to 'failure' if not successful`() = runTest {
         every {
-            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any())
         } returns async { Result.failure(RuntimeException("Oh no!")) }
 
         val cut = fileBasedMessageViewModel()
@@ -90,7 +96,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
     @Test
     fun `downloading » download a file and reset everything if the download is cancelled`() = runTest {
         every {
-            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any())
         } returns async {
             delay(5.seconds)
             Result.failure(RuntimeException("Oh no!"))
@@ -115,14 +121,14 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
     @Test
     fun `loading » load a file into memory`() = runTest {
         every {
-            downloadManagerMock.startDownloadAsync(eq(matrixClientMock), any(), any(), any())
+            downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any())
         } returns async { Result.success(InMemoryPlatformMedia(file)) }
         val cut = fileBasedMessageViewModel()
 
         cut.loadMedia()
         delay(500.milliseconds)
 
-        cut.loadMediaResult.value shouldBe file
+        cut.loadMediaResultBytes.value shouldBe file
         cut.loadMediaError.value shouldBe null
     }
 

@@ -1,10 +1,10 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import kotlinx.coroutines.CoroutineScope
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArray
-import net.folivo.trixnity.utils.toByteArrayFlow
 
 class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia,
     ByteArrayFlow by delegate {
@@ -17,5 +17,9 @@ class InMemoryPlatformMedia(private val delegate: ByteArrayFlow) : PlatformMedia
         coroutineScope: CoroutineScope?,
         expectedSize: Long?,
         maxSize: Long?
-    ): ByteArray? = delegate.toByteArray()
+    ): ByteArray = delegate.toByteArray()
+
+    override suspend fun getTemporaryFile(): Result<PlatformMedia.TemporaryFile> {
+        TODO("Not yet implemented")
+    }
 }

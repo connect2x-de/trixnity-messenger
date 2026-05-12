@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.firstNotNullWithClue
 import de.connect2x.trixnity.messenger.resetMocks
@@ -15,22 +16,24 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import dev.mokkery.matcher.any
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -72,7 +75,7 @@ class RoomMessageTimelineElementViewModelTest {
         }.koin
 
         every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId to flowOf()))
-        every { roomServiceMock.getState(roomId, CanonicalAliasEventContent::class) } returns flowOf(
+        every { roomServiceMock.getState(roomId, CanonicalAliasEventContent::class, any()) } returns flowOf(
             ClientEvent.RoomEvent.StateEvent(
                 content = CanonicalAliasEventContent(roomAliasId, setOf()),
                 id = EventId("\$alias"),
@@ -85,6 +88,11 @@ class RoomMessageTimelineElementViewModelTest {
         every { roomServiceMock.getById(roomId) } returns flowOf(room)
 
         every { userServiceMock.getById(roomId, meUserId) } returns flowOf(meRoomUser)
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     // TODO Test for RoomIDs and EventIDs once they are being found again

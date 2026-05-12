@@ -3,7 +3,35 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getTimelineEventReplaceAggregation
+import de.connect2x.trixnity.client.room.message.react
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
@@ -21,7 +49,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +58,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -50,39 +78,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.flatten
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getTimelineEventReplaceAggregation
-import net.folivo.trixnity.client.room.message.react
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents.Direction
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.m.ReactionEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
-
-
-private val log = KotlinLogging.logger {}
 
 interface TimelineElementHolderViewModelFactory {
     fun create(
@@ -154,12 +154,15 @@ interface TimelineElementHolderViewModel : BaseTimelineElementHolderViewModel {
 
     val redactionInProgress: StateFlow<Boolean>
     val redactionError: StateFlow<String?>
+    val showRedactionWarning: StateFlow<Boolean>
 
     val highlight: StateFlow<Boolean>
 
     fun replace()
     fun endReplace()
     fun redact()
+    fun acceptRedactionWarning()
+    fun cancelRedactionWarning()
     fun reply()
     fun endReply()
     fun report()
@@ -201,18 +204,39 @@ class TimelineElementHolderViewModelImpl(
     private val repliedElementCache: MutableStateFlow<RepliedTimelineElementViewModelWrapper?> = MutableStateFlow(null)
     private val editInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val replyToInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    init {
+        if (get<MatrixMessengerConfiguration>().features.enableMessageDrafts) {
+            coroutineScope.launch {
+                val relatesTo = matrixClient.room.getDraftMessage(roomId).first()?.content?.relatesTo
+                if (relatesTo?.eventId == eventId) {
+                    when (relatesTo.relationType) {
+                        is RelationType.Replace -> editInProgress.value = true
+                        is RelationType.Reply -> replyToInProgress.value = true
+                        else -> {}
+                    }
+                }
+            }
+        }
+    }
+
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val redactionWarningEnabled =
+        get<MatrixMessengerSettingsHolder>()[userId].map { it?.base?.redactionWarningIsEnabled ?: true }
+            .stateIn(coroutineScope, Eagerly, true)
+    private val _showRedactionWarning = MutableStateFlow(false)
+    override val showRedactionWarning: StateFlow<Boolean> = _showRedactionWarning.asStateFlow()
 
     private val previousSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
-            matrixClient.room.getTimelineEvents(roomId, eventId, Direction.BACKWARDS)
+            matrixClient.room.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS)
                 .drop(1)
         ).shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val nextSupportedTimelineEvent =
         timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
-            matrixClient.room.getTimelineEvents(roomId, eventId, Direction.FORWARDS)
+            matrixClient.room.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS)
                 .drop(1)
         ).shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
@@ -317,7 +341,7 @@ class TimelineElementHolderViewModelImpl(
             val lifecycle = LifecycleRegistry()
             lifecycle.start()
             timelineElementViewModelFactorySelector.create(
-                childContextWithOwnLifecycle(lifecycle),
+                childContextWithOwnLifecycle(eventId.full, lifecycle),
                 timelineEvent.event.content,
                 content,
                 roomId,
@@ -361,7 +385,7 @@ class TimelineElementHolderViewModelImpl(
             lifecycle.start()
 
             timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(lifecycle),
+                viewModelContext = childContextWithOwnLifecycle(repliedEventId.full, lifecycle),
                 key = "replied-element",
                 timelineEventFlow = repliedTimelineEventFlow,
                 roomId = repliedTimelineEvent.roomId,
@@ -402,13 +426,13 @@ class TimelineElementHolderViewModelImpl(
             user.toUserInfoElement(coroutineScope, matrixClient, initials, senderUserId, config.maxMediaSizeInMemory)
         }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    private val isOneToOneRoom: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, roomId)
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    private val isOneToOneRoom = get<IsOneToOneRoom>()(matrixClient, roomId)
+        .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
-    private val previousEventIsStateOrNotBySender: StateFlow<Boolean> =
+    private val previousEventIsStateOrNotBySender =
         previousSupportedTimelineEvent.map { event ->
             event?.sender != senderUserId || event.event is ClientEvent.RoomEvent.StateEvent
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+        }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val showSender: StateFlow<Boolean?> = combine(isOneToOneRoom, previousEventIsStateOrNotBySender)
     { is1on1Room, previousEventIsStateOrNotBySender ->
@@ -504,7 +528,7 @@ class TimelineElementHolderViewModelImpl(
         editInProgress.value = false
     }
 
-    override fun redact() {
+    private fun redactElement() {
         if (redactionInProgress.getAndUpdate { true }.not()) {
             coroutineScope.launch {
                 timelineEventFlow.first().let { timelineEvent ->
@@ -534,6 +558,24 @@ class TimelineElementHolderViewModelImpl(
             "try to redact timeline event $eventId," +
                     " but is already marked for redaction"
         }
+    }
+
+    override fun redact() {
+        if (!redactionWarningEnabled.value) {
+            redactElement()
+        } else {
+            log.debug { "Showing redaction warning instead of redacting directly" }
+            _showRedactionWarning.value = true
+        }
+    }
+
+    override fun acceptRedactionWarning() {
+        redactElement()
+        _showRedactionWarning.value = false
+    }
+
+    override fun cancelRedactionWarning() {
+        _showRedactionWarning.value = false
     }
 
     override fun reply() {
@@ -594,7 +636,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello everyone!"
             override val formattedBody: String = "Hello <b/>everyone!"
-            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(mapOf())
@@ -623,6 +665,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -630,6 +673,8 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}
@@ -648,7 +693,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
         MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
             override val body: String = "Hello!"
             override val formattedBody: String = "Hello!"
-            override val formattedBodyContent: HtmlNode.HtmlElement? = HtmlVisitor.process(formattedBody)
+            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(mapOf())
@@ -677,6 +722,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
     override val canBeRepliedTo: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val canBeReported: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val reactions: MutableStateFlow<EventReactions> = MutableStateFlow(EventReactions(setOf()))
@@ -684,6 +730,8 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
     override fun replace() {}
     override fun endReplace() {}
     override fun redact() {}
+    override fun acceptRedactionWarning() {}
+    override fun cancelRedactionWarning() {}
     override fun reply() {}
     override fun endReply() {}
     override fun report() {}

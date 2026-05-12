@@ -1,46 +1,60 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.notification.NoOpNotificationProvider
+import de.connect2x.trixnity.messenger.notification.NotificationHandlers
+import de.connect2x.trixnity.messenger.notification.NotificationProviders
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel.NotificationProviderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
 import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
-import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import org.koin.core.component.get
-import org.koin.core.module.Module
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
-
-fun interface NotificationSettingsSingleAccountViewModelFactory {
+interface NotificationSettingsSingleAccountViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-    ): NotificationSettingsSingleAccountViewModel
+    ): NotificationSettingsSingleAccountViewModel =
+        NotificationSettingsSingleAccountViewModelImpl(viewModelContext)
+
+    companion object : NotificationSettingsSingleAccountViewModelFactory
 }
 
-data class NotificationSettings(
+data class AccountNotificationSettings(
     val defaultLevel: DefaultLevel = DefaultLevel.ROOM,
     val sound: Sound = Sound(),
     val activity: Activity = Activity(),
@@ -74,7 +88,7 @@ data class NotificationSettings(
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
-        other as NotificationSettings
+        other as AccountNotificationSettings
 
         if (defaultLevel != other.defaultLevel) return false
         if (sound != other.sound) return false
@@ -92,57 +106,148 @@ data class NotificationSettings(
     }
 }
 
-interface NotificationSettingsSingleAccountViewModelBase {
+data class DeviceNotificationSettings(
+    val playSound: Boolean = true,
+    val showDetails: Boolean = true,
+)
+
+interface NotificationSettingsSingleAccountViewModel {
+    data class NotificationProviderViewModel(
+        val id: String,
+        val displayName: String,
+    )
+
     val account: UserId
 
     val enabledForThisDevice: StateFlow<Boolean>
     fun toggleEnabledForThisDevice()
+    val availableProviders: List<NotificationProviderViewModel>
+    val selectedProvider: StateFlow<NotificationProviderViewModel?>
+    fun selectProvider(id: String)
 
-    val accountSettings: StateFlow<NotificationSettings>
-    fun updateAccountSettings(settings: NotificationSettings)
+    val notificationHandlerId: String
+    val notificationPermissionsNecessary: StateFlow<Boolean>
+
+    val deviceSettings: StateFlow<DeviceNotificationSettings>
+    fun updateDeviceSettings(settings: DeviceNotificationSettings)
+
+    val accountSettings: StateFlow<AccountNotificationSettings>
+    fun updateAccountSettings(settings: AccountNotificationSettings)
     val accountSettingsIsUpdating: StateFlow<Boolean>
-    val accountSettingsUpdateError: StateFlow<String?>
+    val updateAccountSettingsError: StateFlow<String?>
 }
 
-/**
- * This interface may look different depending on the platform. Therefore, the UI should be platform dependent.
- */
-expect interface NotificationSettingsSingleAccountViewModel : NotificationSettingsSingleAccountViewModelBase
-
-class NotificationSettingsSingleAccountViewModelBaseImpl(
+class NotificationSettingsSingleAccountViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModelBase {
+) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
     override val account: UserId = userId
     private val i18n = get<I18n>()
-    private val settings = get<MatrixMessengerSettingsHolder>()
+    private val notificationProviders = get<NotificationProviders>()
+    private val notificationHandlers = get<NotificationHandlers>()
 
-    override val enabledForThisDevice: StateFlow<Boolean> = settings[userId]
-        .map { it?.base?.notificationsEnabled == true }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    private val settingsHolder = get<MatrixMessengerSettingsHolder>()
 
+    override val enabledForThisDevice: StateFlow<Boolean> =
+        combine(notificationProviders.map { it.isEnabled(account) }) { it.toList().any { it } }
+            .stateIn(coroutineScope, Eagerly, false)
+
+    override val availableProviders: List<NotificationProviderViewModel> =
+        notificationProviders.filter { it.canBeEnabled && it !is NoOpNotificationProvider }
+            .map { NotificationProviderViewModel(it.id, it.displayName) }
+
+    private val changeProviderMutex = Mutex()
     override fun toggleEnabledForThisDevice() {
         coroutineScope.launch {
-            settings.update<MatrixMessengerAccountSettingsBase>(userId) {
-                it.copy(notificationsEnabled = !it.notificationsEnabled)
+            changeProviderMutex.withLock {
+                if (enabledForThisDevice.value) {
+                    notificationProviders.forEach { it.disable(account) }
+                } else {
+                    notificationProviders.firstOrNull { it.canBeEnabled }
+                        ?.enable(account)
+                }
+            }
+        }
+    }
+
+    override val selectedProvider: StateFlow<NotificationProviderViewModel?> =
+        combine(notificationProviders.map { notificationProvider ->
+            notificationProvider.isEnabled(account).map { notificationProvider to it }
+        }
+        ) { it }
+            .filterNot { it.none { (_, enabled) -> enabled } } // prevent flickering when selecting a new provider
+            .map { notificationProvidersEnabled ->
+                val firstEnabledNotificationProvider =
+                    notificationProvidersEnabled
+                        .firstOrNull { it.first !is NoOpNotificationProvider && it.second }
+                        ?.first
+                        ?: return@map null
+                NotificationProviderViewModel(
+                    firstEnabledNotificationProvider.id,
+                    firstEnabledNotificationProvider.displayName
+                )
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override fun selectProvider(id: String) {
+        coroutineScope.launch {
+            log.debug { "select notification provider $id" }
+            changeProviderMutex.withLock {
+                notificationProviders.filter { it.id != id }.forEach { it.disable(account) }
+                notificationProviders.find { it.id == id }?.enable(account)
+            }
+        }
+    }
+
+    override val notificationHandlerId: String = notificationHandlers[account].id
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val notificationPermissionsNecessary: StateFlow<Boolean> =
+        enabledForThisDevice.transformLatest { enabled ->
+            if (enabled.not()) emit(false)
+            else {
+                while (currentCoroutineContext().isActive) {
+                    val hasPermissions = notificationHandlers.global.hasPermissions
+                    delay(1.seconds)
+                    emit(hasPermissions.not())
+                }
+            }
+        }.stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val deviceSettings: StateFlow<DeviceNotificationSettings> =
+        settingsHolder[account].filterNotNull().map { it.notification }
+            .map {
+                DeviceNotificationSettings(
+                    playSound = it.playSound,
+                    showDetails = it.showDetails,
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), DeviceNotificationSettings())
+
+    override fun updateDeviceSettings(settings: DeviceNotificationSettings) {
+        coroutineScope.launch {
+            settingsHolder.update<MatrixMessengerAccountNotificationSettings>(account) {
+                MatrixMessengerAccountNotificationSettings(
+                    playSound = settings.playSound,
+                    showDetails = settings.showDetails,
+                )
             }
         }
     }
 
     override val accountSettingsIsUpdating: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val accountSettingsUpdateError: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val updateAccountSettingsError: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    override val accountSettings: StateFlow<NotificationSettings> =
+    override val accountSettings: StateFlow<AccountNotificationSettings> =
         matrixClient.user.getAccountData<PushRulesEventContent>()
             .map { it?.global }
             .filterNotNull()
             .map { it.toNotificationSettings() }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), NotificationSettings())
+            .stateIn(coroutineScope, WhileSubscribed(), AccountNotificationSettings())
 
     @OptIn(FlowPreview::class)
-    override fun updateAccountSettings(settings: NotificationSettings) {
+    override fun updateAccountSettings(settings: AccountNotificationSettings) {
         if (accountSettingsIsUpdating.getAndUpdate { true }.not()) {
             coroutineScope.launch {
-                accountSettingsUpdateError.value = null
+                updateAccountSettingsError.value = null
 
                 val currentPushRuleSet =
                     matrixClient.user.getAccountData<PushRulesEventContent>()
@@ -225,14 +330,12 @@ class NotificationSettingsSingleAccountViewModelBaseImpl(
                 } catch (exception: Exception) {
                     log.warn(exception) { "there was an error updating the notification settings" }
                     if (exception is TimeoutCancellationException) {
-                        accountSettingsUpdateError.value = i18n.updateNotificationSettingsTimeoutError()
+                        updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
                     } else {
-                        accountSettingsUpdateError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
+                        updateAccountSettingsError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
                     }
                 }
             }.invokeOnCompletion { accountSettingsIsUpdating.value = false }
         }
     }
 }
-
-expect fun platformNotificationSettingsSingleAccountViewModelFactoryModule(): Module

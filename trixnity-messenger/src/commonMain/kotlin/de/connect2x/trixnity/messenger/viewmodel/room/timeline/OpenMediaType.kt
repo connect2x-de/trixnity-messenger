@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 
 
 enum class OpenMediaType {

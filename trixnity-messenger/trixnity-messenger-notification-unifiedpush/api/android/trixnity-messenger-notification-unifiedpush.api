@@ -1,0 +1,390 @@
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Z
+	public final fun component2 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;ZLde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeliveredPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun getEnabled ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings : de/connect2x/trixnity/messenger/settings/SettingsView {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPusher ()Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherSettings;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnMessageReceivedWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnMessageReceivedWorker$Companion;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnMessageReceivedWorker$Companion {
+	public final fun enqueueWork (Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$Companion;
+	public static final field UNIQUE_WORK_NAME Ljava/lang/String;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$Companion {
+	public final fun enqueueUniqueWork (Landroid/content/Context;Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery;Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getUnifiedpush ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getGateway ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/OnNewEndpointWorker$PushEndpointMatrixGatewayDiscovery$UnifiedPush$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/SyncAndProcessPendingWorker : androidx/work/CoroutineWorker {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/SyncAndProcessPendingWorker$Companion;
+	public static final field UNIQUE_WORK_NAME Ljava/lang/String;
+	public fun <init> (Landroid/content/Context;Landroidx/work/WorkerParameters;)V
+	public fun doWork (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/SyncAndProcessPendingWorker$Companion {
+	public final fun enqueueUniquePeriodicWork-HG0u8IE (Landroid/content/Context;J)V
+	public final fun stopUniquePeriodicWork (Landroid/content/Context;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/SyncAndProcessPendingWorkerBroadcastReceiver : android/content/BroadcastReceiver {
+	public fun <init> ()V
+	public fun onReceive (Landroid/content/Context;Landroid/content/Intent;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService : org/unifiedpush/android/connector/PushService {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$Companion;
+	public fun <init> ()V
+	public fun onCreate ()V
+	public fun onDestroy ()V
+	public fun onMessage (Lorg/unifiedpush/android/connector/data/PushMessage;Ljava/lang/String;)V
+	public fun onNewEndpoint (Lorg/unifiedpush/android/connector/data/PushEndpoint;Ljava/lang/String;)V
+	public fun onRegistrationFailed (Lorg/unifiedpush/android/connector/FailedReason;Ljava/lang/String;)V
+	public fun onUnregistered (Ljava/lang/String;)V
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$Companion {
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Companion;
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getNotification ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Companion;
+	public fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDevices ()Ljava/util/List;
+	public final fun getEventId ()Ljava/lang/String;
+	public final fun getRoomId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Companion;
+	public fun <init> (Ljava/lang/String;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;
+	public final fun copy (Ljava/lang/String;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device;Ljava/lang/String;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAppId ()Ljava/lang/String;
+	public final fun getData ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$Companion;
+	public fun <init> ()V
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;
+	public final fun copy (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDefaultPayload ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccount ()Ljava/lang/String;
+	public final fun getProfile ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/TrixnityMessengerUnifiedPushService$UnifiedPushMessage$Notification$Device$Data$DefaultPayload$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProvider : de/connect2x/trixnity/messenger/notification/PushNotificationProvider {
+	public static final field Companion Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProvider$Companion;
+	public fun <init> (Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lde/connect2x/trixnity/messenger/util/GetDefaultDeviceDisplayName;Lde/connect2x/trixnity/messenger/MatrixClients;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/util/ContextGetter;Lde/connect2x/trixnity/messenger/util/ActivityGetter;)V
+	public fun disableService (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun enableService (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCanBeEnabled ()Z
+	public final fun getConfig ()Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig;
+	public fun getCurrentPusherSettings ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getDisplayName ()Ljava/lang/String;
+	public fun getId ()Ljava/lang/String;
+	public fun getPusherCustomFields-2EL3Co0 (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getPusherSettings (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/PushNotificationProvider$PusherAccountSettings;
+	public fun updatePusherSettings-PKisLvk (Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProvider$Companion {
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3-UwyO8pc ()J
+	public final fun copy-SxA4cEA (Ljava/lang/String;Ljava/lang/String;J)Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig;
+	public static synthetic fun copy-SxA4cEA$default (Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderConfig;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPeriodicSyncInterval-UwyO8pc ()J
+	public final fun getPushAppId ()Ljava/lang/String;
+	public final fun getPushUrl ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/notification/unifiedpush/UnifiedPushNotificationProviderKt {
+	public static final fun addUnifiedPushNotificationProvider-Wn2Vu4Y (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;J)V
+	public static final fun addUnifiedPushNotificationProvider-Wn2Vu4Y (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;J)V
+	public static synthetic fun addUnifiedPushNotificationProvider-Wn2Vu4Y$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)V
+	public static synthetic fun addUnifiedPushNotificationProvider-Wn2Vu4Y$default (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;JILjava/lang/Object;)V
+	public static final fun getNotificationProviderUnifiedPush (Lde/connect2x/trixnity/messenger/MatrixMessengerAccountSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerAccountNotificationProviderUnifiedPushSettings;
+	public static final fun getNotificationProviderUnifiedPush (Lde/connect2x/trixnity/messenger/MatrixMessengerSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMessengerNotificationProviderUnifiedPushSettings;
+	public static final fun getNotificationProviderUnifiedPush (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerSettings;)Lde/connect2x/trixnity/messenger/notification/unifiedpush/MatrixMultiMessengerNotificationProviderUnifiedPushSettings;
+}
+

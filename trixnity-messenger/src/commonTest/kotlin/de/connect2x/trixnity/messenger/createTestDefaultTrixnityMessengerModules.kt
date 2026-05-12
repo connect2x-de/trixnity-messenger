@@ -5,10 +5,8 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerSettingsHolderImpl
 import de.connect2x.trixnity.messenger.settings.SettingsStorage
 import de.connect2x.trixnity.messenger.util.GraphemeIterableProvider
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
-import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
@@ -23,15 +21,16 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.createInMemoryMediaStoreModule
-import net.folivo.trixnity.client.store.repository.createInMemoryRepositoriesModule
-import net.folivo.trixnity.clientserverapi.model.authentication.IdentifierType
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MediaStoreModule
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.media.inMemory
+import de.connect2x.trixnity.client.store.repository.inMemory
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.core.model.UserId
 import okio.FileSystem
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import org.koin.core.module.Module
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
@@ -56,7 +55,6 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
     single<CoroutineScope> {
         CoroutineScope(
             backgroundScope.coroutineContext
-                    + ImmediateDispatcherElement(testDispatcher)
                     + SupervisorJob(backgroundScope.coroutineContext[Job])
         )
     }
@@ -65,30 +63,13 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
     if (matrixClients != null) single<MatrixClients> {
         @OptIn(ExperimentalForInheritanceCoroutinesApi::class) object : MatrixClients,
             StateFlow<Map<UserId, MatrixClient>> by matrixClients {
-            override suspend fun login(
-                baseUrl: Url, identifier: IdentifierType, password: String, initialDeviceDisplayName: String?
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun login(
-                baseUrl: Url, token: String, initialDeviceDisplayName: String?
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
-
-            override suspend fun loginWith(
-                baseUrl: Url, loginInfo: MatrixClient.LoginInfo
-            ): Result<MatrixClient> {
-                TODO("Not yet implemented")
-            }
 
             override val initFromStoreResult: StateFlow<MatrixClients.InitFromStoreResult?>
                 get() = TODO("Not yet implemented")
             override val isInitialized: StateFlow<Boolean>
                 get() = TODO("Not yet implemented")
 
-            override suspend fun initFromStore(): MatrixClients.InitFromStoreResult {
+            override suspend fun create(authProviderData: MatrixClientAuthProviderData): MatrixClients.CreateResult {
                 TODO("Not yet implemented")
             }
 
@@ -103,21 +84,25 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
             override fun close() {
                 TODO("Not yet implemented")
             }
+
+            override suspend fun doWork() {
+                TODO("Not yet implemented")
+            }
         }
     }
     single<CreateRepositoriesModule> {
         object : CreateRepositoriesModule {
-            val module by lazy { createInMemoryRepositoriesModule() }
+            val module by lazy { RepositoriesModule.inMemory() }
 
             override suspend fun generateDatabaseKey(): ByteArray? = null
-            override suspend fun create(userId: UserId, databaseKey: ByteArray?): Module = module
-            override suspend fun load(userId: UserId, databaseKey: ByteArray?): Module = module
+            override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule = module
+            override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule = module
         }
     }
     single<CreateMediaStoreModule> {
         object : CreateMediaStoreModule {
-            val store by lazy { createInMemoryMediaStoreModule() }
-            override suspend fun invoke(userId: UserId): Module = store
+            val store by lazy { MediaStoreModule.inMemory() }
+            override suspend fun invoke(userId: UserId): MediaStoreModule = store
         }
     }
     single<FileSystem> { FakeFileSystem() }

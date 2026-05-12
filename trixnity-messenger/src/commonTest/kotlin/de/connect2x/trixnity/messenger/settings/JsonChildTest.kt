@@ -16,11 +16,11 @@ class JsonChildTest {
     }
 
     @Test
-    fun `getJsonChild - property - empty object`() {
+    fun `getJsonChild - property - null`() {
         getJsonChild(
             JsonObject(mapOf("a" to JsonPrimitive("value"))),
             "a"
-        ) shouldBe JsonObject(mapOf())
+        ) shouldBe null
     }
 
     @Test
@@ -40,11 +40,11 @@ class JsonChildTest {
     }
 
     @Test
-    fun `getJsonChild - property not found - empty object`() {
+    fun `getJsonChild - property not found - null`() {
         getJsonChild(
             JsonObject(mapOf("a" to JsonObject(mapOf("b.c" to simpleObject)))),
             "a", "b", "c"
-        ) shouldBe JsonObject(mapOf())
+        ) shouldBe null
     }
 
     @Test

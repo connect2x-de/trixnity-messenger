@@ -1,19 +1,23 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.RoomId
-
-private val log = KotlinLogging.logger {}
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.mapNotNull
 
 interface AddMembersViewModelFactory {
     fun create(
@@ -40,6 +44,7 @@ interface AddMembersViewModel {
     val error: StateFlow<String?>
     val errorCause: StateFlow<String?>
     val isAddingMembers: StateFlow<Boolean>
+    val undecryptableHistoryInfo: StateFlow<String?>
 
     fun onUserClick(user: Search.SearchUserElement)
     fun addMembers()
@@ -64,7 +69,7 @@ class AddMembersViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun back() {
@@ -80,6 +85,27 @@ class AddMembersViewModelImpl(
     override val errorCause = MutableStateFlow<String?>(null)
 
     override val isAddingMembers = MutableStateFlow(false)
+
+    override val undecryptableHistoryInfo =
+        combine(
+        matrixClient.room.getById(roomId).filterNotNull(),
+        matrixClient.room.getState<HistoryVisibilityEventContent>(roomId)
+            .mapNotNull { it?.content?.historyVisibility }
+        ) { room, historyVisibility -> 
+            if (room.encrypted) {
+                when (historyVisibility) {
+                    HistoryVisibilityEventContent.HistoryVisibility.INVITED,
+                    HistoryVisibilityEventContent.HistoryVisibility.SHARED,
+                    HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE->
+                        i18n.addMembersUndecryptableHistoryBeforeInvite()
+
+                    HistoryVisibilityEventContent.HistoryVisibility.JOINED ->
+                        i18n.addMembersUndecryptableHistoryBeforeJoin()
+                }
+            } else {
+                null
+            }
+        }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), null)
 
     override fun addMembers() {
         isAddingMembers.value = true

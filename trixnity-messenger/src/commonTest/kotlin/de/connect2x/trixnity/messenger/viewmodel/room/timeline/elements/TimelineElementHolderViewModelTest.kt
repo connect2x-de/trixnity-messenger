@@ -1,15 +1,51 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.TimelineEventRelation
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.Mentions
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
+import de.connect2x.trixnity.messenger.coroutineDispatcher
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
+import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
@@ -17,6 +53,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,39 +65,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.TimelineEventRelation
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.Mentions
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.RelationType
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
@@ -110,6 +122,8 @@ class TimelineElementHolderViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
+    val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
+    val roomApiClientMock = mock<RoomApiClient>()
 
     val timelineEvent = TimelineEvent(
         event = MessageEvent(
@@ -127,15 +141,17 @@ class TimelineElementHolderViewModelTest {
 
     private val receipts = MutableStateFlow<Map<EventId, Set<UserId>>>(mapOf())
     private val scope = TestScope()
+
+    private val settings = createTestMatrixMessengerSettingsHolder()
     private val di = koinApplication {
         modules(
-            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock)),
+            scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings),
         )
     }.koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
 
     init {
-        resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
+        resetCalls(matrixClientMock, roomServiceMock, userServiceMock, roomApiClientMock)
         every { matrixClientMock.di } returns koinApplication {
             modules(
                 module {
@@ -176,7 +192,21 @@ class TimelineElementHolderViewModelTest {
             )
         }
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(null)
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
+        every { matrixClientMock.api } returns matrixClientServerApiClientMock
+        every { matrixClientServerApiClientMock.room } returns roomApiClientMock
         receipts.value = mapOf()
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun runTest(action: suspend TestScope.() -> Unit) = kotlinx.coroutines.test.runTest {
+        Dispatchers.setMain(coroutineDispatcher)
+        action()
     }
 
     @Test
@@ -190,7 +220,11 @@ class TimelineElementHolderViewModelTest {
             }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = aliceId,
                 roomId = roomId,
@@ -216,7 +250,11 @@ class TimelineElementHolderViewModelTest {
             }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = bobId,
                 roomId = roomId,
@@ -275,6 +313,9 @@ class TimelineElementHolderViewModelTest {
             )
         )
         timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = aliceId) {
+                text("Hello!")
+            }
             +timelineEvent
         }
         val cut = cut()
@@ -318,6 +359,9 @@ class TimelineElementHolderViewModelTest {
             )
         )
         val timeline = timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = aliceId) {
+                text("Hello!")
+            }
             +timelineEvent
             +messageEvent(sender = usId) {
                 text("Hello!")
@@ -386,7 +430,7 @@ class TimelineElementHolderViewModelTest {
     @Test
     fun `isSent » should be true when outbox is empty`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        val timeline = timeline(roomServiceMock, roomId) {
+        timeline(roomServiceMock, roomId) {
             +timelineEvent
         }
         val cut = cut()
@@ -635,7 +679,11 @@ class TimelineElementHolderViewModelTest {
         timeline.addEvents {
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(buildJsonObject { put("dino", JsonPrimitive("yes")) }, "m.dino"),
+                content = UnknownEventContent(
+                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                    EventContentBlocks(),
+                    "m.dino"
+                ),
                 id = EventId("dino"),
                 sender = bobId,
                 roomId = roomId,
@@ -762,6 +810,62 @@ class TimelineElementHolderViewModelTest {
         cut.sendError.launchIn(backgroundScope)
         eventually(100.milliseconds) {
             cut.sendError.value shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `redact » should redact via warning if enabled`() = runTest {
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = true) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        var redactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls {
+            redactCalled = true
+            Result.success(it.args[1] as EventId)
+        }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        eventually(100.milliseconds) {
+            cut.showRedactionWarning.value shouldBe true
+        }
+        continually(100.milliseconds) {
+            redactCalled shouldBe false
+        }
+        cut.acceptRedactionWarning()
+        eventually(100.milliseconds) {
+            redactCalled shouldBe true
+        }
+    }
+
+    @Test
+    fun `redact » should redact directly when no warning is enabled`() = runTest {
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = false) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        var redactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls {
+            redactCalled = true
+            Result.success(it.args[1] as EventId)
+        }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) {
+            +timelineEvent
+        }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        continually(100.milliseconds) {
+            cut.showRedactionWarning.value shouldBe false
+        }
+        eventually(100.milliseconds) {
+            redactCalled shouldBe true
         }
     }
 

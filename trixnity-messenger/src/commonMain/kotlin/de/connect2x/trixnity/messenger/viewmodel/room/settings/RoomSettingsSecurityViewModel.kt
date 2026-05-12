@@ -1,25 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 
 interface RoomSettingsSecurityViewModelFactory {
     fun create(

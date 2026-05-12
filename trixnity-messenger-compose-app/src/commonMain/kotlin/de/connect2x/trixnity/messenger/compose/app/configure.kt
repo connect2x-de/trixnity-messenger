@@ -1,0 +1,63 @@
+package de.connect2x.trixnity.messenger.compose.app
+
+import de.connect2x.trixnity.messenger.compose.view.composeViewModule
+import de.connect2x.trixnity.messenger.compose.view.typography.nunito.addNunitoThemeTypography
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.i18n.Languages
+import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
+import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
+import de.connect2x.trixnity.messenger.util.RootPath
+import kotlinx.datetime.TimeZone
+import org.koin.dsl.module
+
+fun MatrixMultiMessengerConfiguration.configure() {
+    appName = BuildConfig.appName
+    appId = BuildConfig.appId
+    appVersion = BuildConfig.version
+    appIcon = "status_icon.png"
+    privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+    imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+    licenses = BuildConfig.licenses
+    sendLogsEmailAddress = null
+
+    appUri = "$appId:"
+
+    modulesFactories += listOf(
+        { composeViewModule(null) },
+        // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
+        ::platformMatrixMessengerSettingsHolderModule,
+        // TODO there should be a more clean way for I18n
+        ::platformGetSystemLangModule,
+        {
+            module {
+                single<Languages> { DefaultLanguages }
+                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
+            }
+        },
+    )
+
+    // MatrixMultiMessengerConfiguration flavors
+    when (BuildConfig.flavor) {
+        Flavor.PROD -> {}
+        Flavor.DEV -> {
+            modulesFactories += {
+                module {
+                    val devRootPath = getDevRootPath()
+                    if (devRootPath != null) single<RootPath> { devRootPath }
+                }
+            }
+        }
+    }
+
+    // MatrixMessengerConfiguration flavors
+    messengerConfiguration {
+        modulesFactories += { composeViewModule(this) }
+        defaultHomeServer = "matrix.dev.connect2x.de"
+    }
+
+    addNunitoThemeTypography()
+}
+
+internal expect fun getDevRootPath(): RootPath?

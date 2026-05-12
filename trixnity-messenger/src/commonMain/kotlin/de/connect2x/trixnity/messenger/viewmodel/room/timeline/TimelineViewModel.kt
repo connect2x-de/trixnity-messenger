@@ -10,6 +10,31 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.GetTimelineEventsConfig
+import de.connect2x.trixnity.client.room.Timeline
+import de.connect2x.trixnity.client.room.getAccountData
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.store.isFirst
+import de.connect2x.trixnity.client.store.isLast
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.roomId
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.keys.keysOf
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -40,7 +65,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +100,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.scan
@@ -84,38 +110,16 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.GetTimelineEventsConfig
-import net.folivo.trixnity.client.room.Timeline
-import net.folivo.trixnity.client.room.getAccountData
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.store.isFirst
-import net.folivo.trixnity.client.store.isLast
-import net.folivo.trixnity.client.store.originTimestamp
-import net.folivo.trixnity.client.store.roomId
-import net.folivo.trixnity.client.store.sender
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-
-
-private val log = KotlinLogging.logger {}
 
 interface TimelineViewModelFactory {
     fun create(
@@ -150,6 +154,9 @@ interface TimelineViewModel {
      * Use this to set the state of the current UI.
      */
     val viewState: MutableStateFlow<ViewState?>
+
+    val canLoadBefore: StateFlow<Boolean?>
+    val canLoadAfter: StateFlow<Boolean?>
 
     /**
      * Emits a unique String each time the view should scroll to the given key. String is the key from [elements].
@@ -205,7 +212,7 @@ interface TimelineViewModel {
         val lastVisibleElement: String,
         val firstLoadedElement: String,
         val lastLoadedElement: String,
-        val windowIsFocused: Boolean,
+        val timelineIsFocused: Boolean,
     )
 
     sealed class Wrapper {
@@ -300,7 +307,7 @@ class TimelineViewModelImpl(
                 .filter(timelineElementViewModelFactorySelector::supports)
                 .take(100)
                 .scan(0) { count, _ -> count + 1 }
-                .debounce(100)
+                .debounce(100.milliseconds)
                 .map {
                     when {
                         it in 1..99 -> it.toString()
@@ -326,9 +333,15 @@ class TimelineViewModelImpl(
         }.stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     override val scrollTo: MutableSharedFlow<String> =
-        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST, replay = 1)
 
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
+    override val canLoadBefore: StateFlow<Boolean?> =
+        timelineState.map { it.canLoadBefore }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+    override val canLoadAfter: StateFlow<Boolean?> =
+        timelineState.map { it.canLoadAfter }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isDirect: StateFlow<Boolean> =
         matrixClient.room.getById(roomId).map { it?.isDirect == true }
@@ -394,7 +407,7 @@ class TimelineViewModelImpl(
         is Config.None -> Wrapper.None
         is Config.SendAttachmentView -> Wrapper.View(
             get<SendAttachmentViewModelFactory>().create(
-                viewModelContext = childContext(componentContext),
+                viewModelContext = childContext("SendAttachmentView", componentContext),
                 file = config.file,
                 selectedRoomId = roomId,
                 onCloseAttachmentSendView = ::closeAttachmentSendView,
@@ -403,6 +416,7 @@ class TimelineViewModelImpl(
     }
 
     init {
+        outerScope.removeMarkAsUnread()
         updateReadEventAndMarker()
 
         initTimeline()
@@ -454,9 +468,9 @@ class TimelineViewModelImpl(
             } else {
                 log.trace { "skipped setting readEventMarker, because timeline is fully read" }
             }
-            viewState.filterNotNull().map { it.windowIsFocused }
-                .collectLatest { windowIsFocused ->
-                    if (windowIsFocused.not()) {
+            viewState.filterNotNull().map { it.timelineIsFocused }
+                .collectLatest { timelineIsFocused ->
+                    if (timelineIsFocused.not()) {
                         log.trace { "start setting readEventMarker" }
                         readEvent.collect {
                             readEventMarker.value = it
@@ -493,7 +507,7 @@ class TimelineViewModelImpl(
                 log.error { "could not load start point of timeline" }
             }
             timelineStartFrom.emit(initTimelineFrom)
-            scrollTo.emit(initTimelineFrom.asKey(roomId))
+            scrollTo.emit(matrixClient.room.getTimelineEvent(roomId, initTimelineFrom).filterNotNull().first().asKey())
         }
         coroutineScope.launch {
             timelineStartFrom.collect { startFrom ->
@@ -512,34 +526,33 @@ class TimelineViewModelImpl(
     }
 
     private fun scrollToEndOnNewOutboxElement() {
-        coroutineScope.launch {
-            var transactionIdsOld: Set<String>? = null
-            elements.collect { elements ->
-                val outboxElements = elements.filterIsInstance<OutboxElementHolderViewModel>()
-                val transactionIdsNew = outboxElements
-                    .filter { it.element.filterNotNull().first() !is TimelineElementViewModel.Empty }
-                    .map { it.transactionId }
-                    .toSet()
-                val scrollToEndOnNewOutboxElement =
-                    transactionIdsOld != null && (transactionIdsNew - transactionIdsOld).isNotEmpty()
-                transactionIdsOld = transactionIdsNew
-                if (scrollToEndOnNewOutboxElement) {
-                    log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
-                    jumpToEndOfTimelineSuspending()
+        val outboxTransactionIds =
+            outbox
+                .flatten()
+                .map { outboxMessages ->
+                    outboxMessages.map { outboxMessage ->
+                        outboxMessage.transactionId
+                    }
                 }
+        outboxTransactionIds.scan(setOf<String>()) { old, current ->
+            val new = current - old
+            if (new.isNotEmpty()) {
+                log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
+                jumpToEndOfTimelineSuspending()
             }
-        }
+            current.toSet()
+        }.launchIn(coroutineScope)
     }
 
     private fun markLastVisibleEventAsReadWhenItChanges() {
         coroutineScope.launch {
             viewState
                 .filterNotNull()
-                .map { it.lastVisibleElement to it.windowIsFocused }
+                .map { it.lastVisibleElement to it.timelineIsFocused }
                 .distinctUntilChanged()
                 .throttleFirst(500.milliseconds) // we don't want to spam the server
-                .collect { (lastVisibleTimelineElement, windowIsFocused) ->
-                    if (windowIsFocused) {
+                .collect { (lastVisibleTimelineElement, timelineIsFocused) ->
+                    if (timelineIsFocused) {
                         log.debug { "mark the last visible element as read: $lastVisibleTimelineElement" }
                         markAsRead(lastVisibleTimelineElement)
                     }
@@ -584,8 +597,7 @@ class TimelineViewModelImpl(
         val roomId = timelineEvent.roomId
         val eventId = timelineEvent.eventId
         val sender = timelineEvent.sender
-        val key = timelineEvent.event.unsigned?.transactionId?.asKey(timelineEvent.roomId)
-            ?: eventId.asKey(timelineEvent.roomId)
+        val key = timelineEvent.asKey()
 
         log.trace { "compute timeline element $eventId" }
         val lifecycleRegistry = LifecycleRegistry()
@@ -593,7 +605,7 @@ class TimelineViewModelImpl(
 
         val showUnreadMarker = readEventMarker
             // prevent fast re-computations
-            .debounce(300.milliseconds)
+            .throttleFirst(300.milliseconds)
             .map { it?.first == roomId && it.second == eventId }
             .distinctUntilChanged()
 
@@ -615,7 +627,7 @@ class TimelineViewModelImpl(
             formatTime(Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone))
 
         val viewModel = get<TimelineElementHolderViewModelFactory>().create(
-            viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
+            viewModelContext = childContextWithOwnLifecycle(key, lifecycleRegistry),
             key = key,
             timelineEventFlow = timelineEventFlow,
             roomId = roomId,
@@ -685,8 +697,8 @@ class TimelineViewModelImpl(
 
                     val lifecycleRegistry = LifecycleRegistry()
                     lifecycleRegistry.start()
-                    get<OutboxElementHolderViewModelFactory>().create(
-                        viewModelContext = childContextWithOwnLifecycle(lifecycleRegistry),
+                    this@TimelineViewModelImpl.get<OutboxElementHolderViewModelFactory>().create(
+                        viewModelContext = childContextWithOwnLifecycle(transactionId, lifecycleRegistry),
                         key = transactionId.asKey(roomId),
                         outboxMessageFlow = outboxMessage,
                         roomId = roomId,
@@ -806,6 +818,10 @@ class TimelineViewModelImpl(
             .distinctUntilChanged()
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+
+    /**
+     * Update the timeline elements and scroll to the bottom if a new event has been added and we were at the bottom of the timeline
+     */
     private fun continuouslyLoadAndScroll() {
         coroutineScope.launch {
             // only start when a view state is set
@@ -816,6 +832,8 @@ class TimelineViewModelImpl(
             ) { elements, currentVisibleElements ->
                 val timelineElements = elements.filterIsInstance<TimelineElementHolderViewModel>()
                 val timelineSize = timelineElements.size
+                val visibleTimelineSize =
+                    timelineElements.count { it.element.filterNotNull().first() !is TimelineElementViewModel.Empty }
                 if (timelineSize == 0) return@combine
                 val timelineMaxSize = config.timelineMaxSize + 2 * config.timelineBuffer
 
@@ -842,7 +860,7 @@ class TimelineViewModelImpl(
                     continuouslyLoadAndScroll (check):
                     indexOfFirstVisibleTimelineElement=$indexOfFirstVisibleTimelineElement (isInBufferBefore=$isInBufferBefore)
                     indexOfLastVisibleTimelineElement=$indexOfLastVisibleTimelineElement (isInBufferAfter=$isInBufferAfter)
-                    timelineSize=$timelineSize (timelineElementViewModels=${elements.map { it.key }})
+                    timelineSize=$timelineSize visibleTimelineSize=$visibleTimelineSize (timelineElementViewModels=${elements.map { it.key }})
                     """.trimIndent()
                 }
 
@@ -850,7 +868,7 @@ class TimelineViewModelImpl(
                     log.debug { "load timeline events before" }
                     timeline.loadBefore(loadConfig)
 
-                    if (timelineSize > timelineMaxSize && !isInBufferAfter) {
+                    if (visibleTimelineSize > timelineMaxSize && !isInBufferAfter) {
                         log.debug { "drop timeline events after" }
                         val dropAfterElement = timelineElements[timelineSize - config.timelineBuffer - 1]
                         val change = timeline.dropAfter(
@@ -861,8 +879,6 @@ class TimelineViewModelImpl(
                     }
                 }
                 if (isInBufferAfter) {
-                    val lastEventIdBeforeChange = matrixClient.room.getById(roomId).first()?.lastEventId
-
                     log.debug { "load timeline events after" }
                     val timelineStateChange =
                         coroutineScope {
@@ -875,25 +891,32 @@ class TimelineViewModelImpl(
                             }
                         }
 
-                    if (timelineStateChange != null) {
+                    // We don't sroll/mark as read when the UI has changed the visible elements during the calculation
+                    if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
                         log.trace { "finished load more timeline events after" }
-                        val indexOfLastEventIdBeforeChange by lazy {
-                            timelineElements.indexOfLast { it.eventId == lastEventIdBeforeChange && it.roomId == roomId }
-                        }
 
-                        if (timelineStateChange.addedElements.isNotEmpty()
-                            && viewState.value?.windowIsFocused == true
-                            && indexOfLastEventIdBeforeChange == indexOfLastVisibleTimelineElement
+                        val previousLastElement = timelineStateChange.elementsBeforeChange.last()
+                        val addedElementsAtEnd =
+                            timelineStateChange.addedElements.isNotEmpty()
+                                    && timelineStateChange.elementsAfterChange.firstOrNull { it.key == previousLastElement.key } != null
+                                    && previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
+
+                        val wasAtEndOfTimeline =
+                            timelineStateChange.elementsBeforeChange.last().key == lastVisibleTimelineElement?.key
+
+                        if (viewState.value?.timelineIsFocused == true
+                            && addedElementsAtEnd
+                            && wasAtEndOfTimeline
                         ) {
                             val newLastEvent = timelineStateChange.addedElements.last().key
 
                             val currentReadEvent = readEvent.value
-                            log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement?.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
+                            log.trace { "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent" }
                             log.debug { "new timeline events has been added at the end of timeline, scroll to end of timeline" }
                             jumpToEndOfTimelineSuspending()
                             if (
-                                lastVisibleTimelineElement?.roomId == currentReadEvent?.first
-                                && lastVisibleTimelineElement?.eventId == currentReadEvent?.second
+                                lastVisibleTimelineElement.roomId == currentReadEvent?.first
+                                && lastVisibleTimelineElement.eventId == currentReadEvent.second
                             ) {
                                 log.debug { "new timeline events has been added at the end of timeline -> mark as fully read" }
                                 // wait for new element be part of the StateFlows (used by markAsRead)
@@ -902,7 +925,7 @@ class TimelineViewModelImpl(
                             }
                         }
 
-                        if (timelineSize > timelineMaxSize && !isInBufferBefore) {
+                        if (visibleTimelineSize > timelineMaxSize && !isInBufferBefore) {
                             log.debug { "drop timeline events before" }
                             val dropBeforeElement = timelineElements[config.timelineBuffer]
                             val change = timeline.dropBefore(
@@ -924,9 +947,7 @@ class TimelineViewModelImpl(
             matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull()
                 .first()
         val lastTimelineEventKey =
-            matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull()
-                .first()
-                .run { event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId) }
+            matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull().first().asKey()
         val lastOutboxElementKey =
             (elements.value.lastOrNull() as? OutboxElementHolderViewModel)?.key
         if (elements.value.none { it.key == lastTimelineEventKey }) {
@@ -938,24 +959,29 @@ class TimelineViewModelImpl(
         scrollTo.emit(scrollToKey)
     }
 
-    private fun jumpTo(roomId: RoomId, eventId: EventId) {
+    private val jumpMutex = Mutex()
+    internal fun jumpTo(roomId: RoomId, eventId: EventId) {
         coroutineScope.launch {
-            var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
-            if (element == null) {
-                log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
-                timelineStartFrom.emit(eventId)
-                timeline.state.first()
-                element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
-            }
+            jumpMutex.withLock {
+                var element = timelineElements.value.firstOrNull { it.eventId == eventId && it.roomId == roomId }
+                if (element == null) {
+                    log.debug { "Element $roomId-$eventId is not loaded, re-initialize timeline" }
+                    timelineStartFrom.emit(eventId)
+                    element = withTimeoutOrNull(10.seconds) {
+                        timelineElements.mapNotNull { it.firstOrNull { it.eventId == eventId && it.roomId == roomId } }
+                            .first()
+                    }
+                }
 
-            if (element == null) {
-                log.error { "Element could not be found even though timeline is initialized" }
-                return@launch
-            }
+                if (element == null) {
+                    log.error { "Element could not be found even though timeline is initialized" }
+                    return@launch
+                }
 
-            val elementKey = element.key
-            log.debug { "Jump to element $elementKey in timeline" }
-            scrollTo.emit(elementKey)
+                val elementKey = element.key
+                log.debug { "Jump to element $elementKey in timeline" }
+                scrollTo.emit(elementKey)
+            }
         }
     }
 
@@ -1043,14 +1069,30 @@ class TimelineViewModelImpl(
         outerScope.launch {
             // we have to execute this in the outerScope, since otherwise the view model would be cleaned up and with
             // it the scope where this code is executed
-            matrixClient.api.room.setReadMarkers(
-                roomId = nextReadUntilRoomId,
-                read = if (readMarkerIsPublic) nextReadUntil else null,
-                fullyRead = nextReadUntil,
-                privateRead = nextReadUntil,
-            ).onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
-                .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
+            launch {
+                matrixClient.api.room.setReadMarkers(
+                    roomId = nextReadUntilRoomId,
+                    read = if (readMarkerIsPublic) nextReadUntil else null,
+                    fullyRead = nextReadUntil,
+                    privateRead = nextReadUntil,
+                )
+                    .onFailure { log.error(it) { "cannot set read marker for event $nextReadUntil in $nextReadUntilRoomId" } }
+                    .onSuccess { log.debug { "successfully set read marker for message: $nextReadUntil in $nextReadUntilRoomId" } }
+            }
+            removeMarkAsUnread()
+
         }.join()
+    }
+
+    private fun CoroutineScope.removeMarkAsUnread() {
+        this.launch {
+            if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).map { it?.unread }
+                    .firstOrNull() ?: false) {
+                matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId)
+                    .onFailure { log.warn(it) { "could not reset unread in $roomId" } }
+                    .onSuccess { log.debug { "successfully reset unread in $roomId" } }
+            }
+        }
     }
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
@@ -1081,6 +1123,9 @@ class TimelineViewModelImpl(
         }
     }
 
+    private fun TimelineEvent.asKey() =
+        event.unsigned?.transactionId?.asKey(event.roomId) ?: eventId.asKey(event.roomId)
+
     private fun EventId.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + full
     private fun String.asKey(roomId: RoomId? = null) = (roomId ?: this@TimelineViewModelImpl.roomId).full + "-" + this
 }
@@ -1094,6 +1139,8 @@ class PreviewTimelineViewModel : TimelineViewModel {
             )
         )
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
+    override val canLoadBefore: StateFlow<Boolean?> = MutableStateFlow(null)
+    override val canLoadAfter: StateFlow<Boolean?> = MutableStateFlow(null)
     override val scrollTo: Flow<String> = MutableSharedFlow()
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)

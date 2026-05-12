@@ -4,15 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
- 
+
 ## [Unreleased]
 
 ### Added
 
+- UI: Add proper rendering for "All accounts" avatar
+
 ### Changed
-
-- Add button to cancel download in file details view
-
 
 ### Deprecated
 
@@ -20,11 +19,354 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Show download progress indicator when no total file size is received during download
-- Allow restart of download after cancellation
-- a11y: add proper label and role to LegalFooter
-
 ### Security
+
+## 4.5.2
+
+### Changed
+
+- DEPENDENCY: Update Trixnity to 5.5.2
+
+## 4.5.1
+
+### Changed
+
+- DEPENDENCY: Update SysNotify to 2.6.3
+
+### Fixed
+
+- SDK: Fix timeline not jumping when trying to jump to a referenced event
+- SDK: Fix startup crash on iOS/macOS because of missing SysNotify hooks initialization
+- UI,MACOS: Fix window title and dock name of the app
+- SDK,MACOS: Fix app not starting when installed from packaged DMG
+
+## 4.5.0
+
+### Added
+
+- UI,SDK,ANDROID: Experimental voice messages
+- UI: Per-account notification counter bubbles in roomlist avatar area
+- UI,ANDROID,IOS,MACOS: First-class support for system notification count app icon badges
+- SDK: remove Exif metadata (and IPTC, XMP) for jpeg, png and webP when sending
+- SDK: A separate package which provides Nunito as Font for the application
+- SDK, UI: Toggle between bundled and system Font
+- SDK: Added feature-toggle for message drafts (enabled by default)
+- SDK: Added feature-toggle for media player (enabled by default)
+- SDK: Added feature-toggle for audio recorder (enabled by default)
+- SDK: Add option to change the OAuth 2.0 prompt and login_hint value
+- SDK: add an abi checker to the CI
+- SDK: Introduce `MatrixMessengerConfiguration.clientConfiguration` to allow customizing the `MatrixClient` via
+  configuration
+- INTERNAL: UI tests infrastructure for all platforms
+
+### Changed
+
+- UI: focus-highlight color of own messages in dark mode to white
+- DEPENDENCY: Update C2X Conventions to 20260325.112432
+- DEPENDENCY: Update SysNotify to 2.6.2
+- DEPENDENCY: Update Trixnity to 5.5.1
+- INTERNAL: Use builtin Gradle distribution for dockerized CI jobs
+- CI: Use new Android emulator docker image
+- UI: Group buttons in pdf viewer layout
+- SDK (**breaking change**): `AccountSingleViewModel` now has `cancelEditDisplayName()` and `saveDisplayName()` instead
+  of the surrounding `AccountsViewModel`; also introduced `AccountSingleViewModelFactory` which correctly gets a
+  `MatrixClientViewModelContext`
+- UI (**breaking change**): introduced `AccountSingleSettingsView` to allow customizations of settings for an account
+  instead of overriding the settings container for all accounts
+- SDK (**breaking change**): `MatrixClientServerApiClientFactory` cannot be used inside Trixnity Messenger DI anymore.
+  Extend `MatrixClientFactory` instead
+- SDK (**breaking change**): `EventContentSerializerMappings` passed to the DI are not picked up anymore. Instead,
+  `CustomEventContentSerializerMappings` are now picked up from the
+  `MatrixMessengerConfiguration.clientConfiguration.moduleFactories`
+- UI: The welcome dialog now greets a user via their display name if possible
+
+### Deprecated
+
+- SDK: `ProfileSingleViewModelFactory` -> use `AccountSingleViewModelFactory`
+
+### Removed
+
+- SDK: The Nunito Font is not included per default anymore. There is a separate package called
+  `trixnity-messenger-compose-view-typography-nunito`.
+
+### Fixed
+
+- SDK: Presence being set to 'online' on android, when app is closed and message received
+- SDK: Empty draft messages being saved
+- UI: Thin line appearing in room-list when in single pane mode
+- UI: Fast successive keyboard-inputs being misordered on web
+- UI: hovering over a room list element does hide unencrypted symbol
+- CI: Don't publish kmmBridge module to Maven Central
+
+## 4.4.0
+
+### Added
+
+- SDK: add an abi checker to the CI
+- UI-Test: UI tests infrastructure for platforms Android, Desktop (JVM), Web and iOS
+- SDK: Message Drafts
+- SDK, UI: Room list context menu now includes option to mark a room as read
+
+### Changed
+
+- SDK: Update Trixnity to 5.4.0
+
+### Fixed
+
+- SDK: Don't show history is undecryptable warning when room is upgraded
+
+## 4.3.1
+
+### Fixed
+
+- SDK: Downgrade lognity due to performance regression and bugs
+- UI: Self verification is no longer shown twice during the setup wizard
+
+## 4.3.0
+
+### Added
+
+- WEB,SDK: Support Kotlin/WasmJs
+- SDK: TextFieldViewModel: allow for input validation
+- SDK: The floating 'create new chat or group' button is now part of the DI
+- UI: Info when history is undecryptable. Shown in the timeline for the joined user (either before their invite or their
+  join event dependent on room history visibility setting) and for the inviter when adding a member
+- UI: Info that pre-join history is unavailable. That is in the timeline for the joined user and for the inviter when
+  adding a member
+- UI: Show a warning if an invited user does not exist (server must support this)
+- CI, Android: Add Android APK download link to merge requests
+- UI: Context menu for room list which currently includes the option to mark as unread
+
+### Changed
+
+- UI: Notification settings spacing
+- UI: Don't show the "deprecated login methods" section unless there are some
+- SDK: Enable dehydrated devices by default
+- SDK: Update Trixnity to 5.3.0
+- SDK: Update kotlin-wrappers to 2026.3.10
+
+### Fixed
+
+- UI: Correctly format markdown based privacy and imprint
+- UI: Correctly render chat bubble edge for own messages
+- UI,Android: Keep Wizard fullscreen after keyboard popup
+- SDK: Mark rooms as read when they are marked as unread without having unread events
+- SDK: Fix empty notifications
+- UI: Tooltips no longer render off-screen
+- UI: Fix color used for the verification badge of secure, but unverified room members
+- UI: Dev info for rooms and timeline events is scrollable again
+- UI,ANDROID: Show text toolbar for text fields in Wizards
+
+## 4.2.3
+
+### Fixed
+
+- UI: Fix some scrolling offsets
+- WEB,SDK: Remove default parameter in MessageBubbleView.create for Kotlin/JS compatibility
+
+## 4.2.2
+
+### Changed
+
+- UI: Added icons to message modal bottom sheet menu items
+- SDK: Update Lognity to 1.4.1
+- SDK: Update SysNotify to 2.5.0
+
+### Removed
+
+- Android: Remove dependency on Firebase in Android compose view
+
+### Fixed
+
+- UI: Fixed misleading translation for deprecated login methods
+
+## 4.2.1
+
+### Changed
+
+- SDK: Update Trixnity to 5.1.2
+
+### Fixed
+
+- UI: Fix duplicate keys in timeline leading to application crash
+
+# 4.2.0
+
+### Added
+
+- Desktop: automatic change from/to dark mode if OS preferences change
+- WEB,SDK: The 'lang' attribute in the HTML body tag now reflects the language chosen by the user.
+- API: Media playback API (currently only supporting audio on Android and iOS)
+- UI, IOS, ANDROID: Add support for playback of audio files
+
+### Changed
+
+- SDL, IOS: Make `MultiMessengerViewController` a public API
+- SDK: Don't use per-project cache directory for macOS CI
+- SDK: Bump compose to 1.10.1
+- SDK: Bump kotlin to 2.3.10
+- SDK: Bump Gradle to 9.3.1
+- SDK: update sysnotify to 2.4.0
+- UI: Added icons to message context menu items
+
+### Fixed
+
+- UI: Archived rooms can now be opened in the timeline again
+- SDK: Fix broken os_log logging on iOS
+- SDK: Fix mis-compilation in JavaScript resulting in the 'create profile' button not working
+- ANDROID,UI: Fix notification image being used as notification status icon
+- UI: Fix timeline not scrolling to / scrolling away from the unread marker
+- UI: Fix various timeline scrolling issues
+- WEB,A11Y: Fix message bubbles not being read out in some browser/screeenreader combinations
+- SDK: Fix NotOnMainThreadException when verifying another user
+- UI: Fix naming of untrusted users
+- UI,ANDROID,IOS: Login buttons aren't covered by the on-screen keyboard
+
+## 4.1.0
+
+### Added
+
+- UI,SDK: Add option to disable redaction warning
+- SDK,UI: Introduced profiles settings
+- SDK,UI: Ability to manage profiles via profile settings
+
+### Fixed
+
+- UI: "Show message history" no longer causes a crash
+- WEB,A11Y: Fix keyboard navigation not working due js interop error
+
+## 4.0.3
+
+### Added
+
+- UI: Dev info panel to room settings and message information panel
+
+### Changed
+
+- UI: Adjusted which rooms are shown as public
+- UI: Show application version in About Panel of dev app
+- UI: Fix typo in "Change Power Levels" for event type
+- SDK: Use unread marker calculation from Trixnity
+
+### Fixed
+
+- IOS: Fix initialization of APNS notification provider
+
+## 4.0.2
+
+### Changed
+
+- UI: Moved de.connect2x.messenger -> de.connect2x.trixnity.messenger
+- IOS: Rename iOS project folder for debug app to 'iosApp'
+
+## 4.0.1
+
+### Changed
+
+- SDK: Upgrade Trixnity to 5.0.4
+
+### Fixed
+
+- UI: Adjust the color of names in message bubbles to have better contrast
+
+## 4.0.0
+
+### Added
+
+- SDK: Support UnifiedPush
+
+### Changed
+
+- UI: Adjusted Markdown formating to make a single line break lead to a visible new line
+- SDK: Completely new notification handling
+- SDK: Support OAuth2 based authentication
+- SDK: Support Vodozemac (this is now the default)
+- SDK: Change back handling to use custom handler instead of Decomposes
+- UI: Close room list search with back button
+- UI: Merge the 'Your Accounts' panel into profile settings
+- SDK: Rename references to profile in the settings to accounts
+- UI: Turn the typing indicator into a message bubble
+- UI,SDK: Move account creation warning from separate modal to connection wizard
+- UI: Show a warning when redacting messages
+- SDK: Replace all logging with new Lognity logging framework
+- SDK: Update to conventions version 20260129.102940
+
+### Removed
+
+- UI: Remove AccountsOverview, AccountsOverviewViewModel
+- UI: Remove reset account setup button from settings
+
+### Fixed
+
+- ANDROID,IOS,UI: Make several dialogs and modals adapt to font/display size changes
+- ANDROID,UI: Fix crash when trying to apply font/display size changes in setup wizard
+- UI: Fix setup wizard sometimes not responding to clicks when starting verifications
+- SDK: Fix BackHandler missing in MatrixMultiMessenger
+- WEB: Keyboard shortcuts now work reliably by only preventing the default action of focus-related keys
+- UI: Remove large gap between message and expandable sections in message details
+- UI: The avatar shape no longer deforms at very small heights in the profile view
+- SDK: Fix empty verification screen when ending verification on other device before starting messenger
+
+## 3.10.0
+
+### Added
+
+- SDK: Rendering room upgrades (tombstone event)
+- API: add multi-profile option to `MultiMessengerConfiguration`
+- UI: Settings: add a button to enable multi-profile mode
+
+### Changed
+
+- UI: Text selections have better visibility now
+- UI: Replace roving focus with a focusGroup based implementation
+- UI: Remove download indicator from TimelineEvents
+- UI: AccountsOverview: show a warning when adding a new account
+- UI: On startup: show an introduction instead of profiles if required
+
+### Fixed
+
+- ANDROID / UI: Fix upper padding being too big on emoji reaction bottom sheet
+- UI: Add vertical divider after room list (for 2- or 3-sided layout)
+- WEB: copy/paste/cut shortcuts work now
+- UI: Remove unnecessary padding around state events
+- WEB: the pdf reader no longer loads indefinitely when loading an invalid pdf file
+- WEB,A11Y: CanvasSemanticsOwnerListener: render `SemanticsProperties.ContentDescription` as `aria-description`
+- UI: emojis in the picker are no longer cut off at larger font sizes
+- IDE: Set correct environment variables for prod/dev version
+- UI: Don't crash when interacting with the page selector in the PDF viewer
+- UI: Don't display close profile button when multi-profile mode is turned off
+
+## 3.9.0
+
+### Added
+
+- UI: StoreFailure: show the name of the account with the corrupted database
+- A11Y,WEB: add a SemanticsOwnerListener to allow for accessibility in web
+
+### Changed
+
+- DEPENDENCIES: Bump c2x Conventions to 20251114.122133
+- Add button to cancel download in file details view
+- A11Y,WEB: CanvasSemanticsOwnerListener: dialog now has labelledby and describedby attributes
+
+### Fixed
+
+- WEB: Using latest emojifont version
+- A11Y: add proper label and role to LegalFooter
+- UI,A11Y: Dropdown menu button is highlighted when hovering or focussing the box instead of the button itself
+- API: When calling `ProfileManager.updateProfile`, the closure allows to mutate the configuration
+- A11Y: add proper label and role to LegalFooter
+- IOS: reporting a message could result in app crash
+- UI: Create new group keeps information on expanded elements
+- UI: Show download progress indicator when no total file size is received during download
+- Allow restart of download after cancellation
+- A11Y: add proper label and role to LegalFooter
+- UI: headers now have a consistent minimum size
+- UI: fix little timeline flickering while loading timeline element sender
+- fix getting stuck on error screen after deleting local database
+- UI: Emoji picker is correctly aligned to the center and scales as required when using different screen sizes
+- WEB: fix incremental compilation
+- A11Y,WEB: CanvasSemanticsOwnerListener: fix a bug with nodes not regaining the tabindex property
 
 ## 3.8.11
 
@@ -140,7 +482,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Technical: Support deep nested settings view
 - Copy message content
 - Captions for Media messages
--
 
 ### Changed
 

@@ -1,0 +1,16 @@
+services:
+  synapse:
+    # https://github.com/element-hq/synapse/releases
+    image: "matrixdotorg/synapse:v1.138.0"
+    container_name: "uitest-synapse"
+    volumes:
+      - "./data:/data"
+    environment:
+      VIRTUAL_HOST: "localhost"
+      VIRTUAL_PORT: 8008
+      SYNAPSE_SERVER_NAME: "localhost"
+      SYNAPSE_REPORT_STATS: "no"
+      UID: "1000"
+      GID: "1000"
+    ports:
+      - 8008:8008

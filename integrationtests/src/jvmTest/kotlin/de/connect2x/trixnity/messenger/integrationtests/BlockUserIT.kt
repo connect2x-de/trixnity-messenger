@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.integrationtests.messenger.findRoomWithId
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.messenger.rejectTheInvitationToRoomAndBlock
 import de.connect2x.trixnity.messenger.integrationtests.messenger.verifyAccountsArePresent
+import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
 import de.connect2x.trixnity.messenger.integrationtests.util.createTestMatrixMessenger
 import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
@@ -20,7 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import kotlin.test.AfterTest
@@ -31,6 +32,9 @@ import kotlin.time.Duration.Companion.seconds
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
 class BlockUserIT {
+    init {
+        configureTestLogging()
+    }
 
     private lateinit var singleThreadContext: ExecutorCoroutineDispatcher
     private lateinit var messenger1: MatrixMessengerWithRoot
@@ -67,7 +71,7 @@ class BlockUserIT {
 
     @Test
     fun shouldBlockAUserOnInvitation(): Unit = runBlockingWithTimeout {
-        messenger1 = createTestMatrixMessenger("client-1")
+        messenger1 = createTestMatrixMessenger()
         val recoveryKey =
             messenger1.login(
                 serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
@@ -75,7 +79,7 @@ class BlockUserIT {
                 password = passwordUser1,
             )
         messenger1.verifyAccountsArePresent(user1)
-        messenger2 = createTestMatrixMessenger("client-2")
+        messenger2 = createTestMatrixMessenger()
         messenger2.login(
             serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
             username = user2,

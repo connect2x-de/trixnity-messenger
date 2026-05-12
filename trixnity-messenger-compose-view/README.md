@@ -2,7 +2,8 @@
 
 This project is the base implementation of a Matrix messenger UI
 with [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/). For a quick start and a running
-example, have a look at [compose-app](../compose-app) in this project. If you are looking for a completely white labelled client, check out [Tammy](https://gitlab.com/connect2x/trixnity-messenger/tammy).
+example, have a look at [compose-app](../compose-app) in this project. If you are looking for a completely white
+labelled client, check out [Tammy](https://gitlab.com/connect2x/trixnity-messenger/tammy).
 
 ## Platforms
 
@@ -76,7 +77,8 @@ Theming allows to change colors and icons.
 
 ### Colors
 
-Have a look into the [theme](src/commonMain/kotlin/de/connect2x/messenger/compose/view/theme) folder, and look out for
+Have a look into the [theme](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/theme) folder, and look
+out for
 everything that starts with `Theme...`. Those are the hooks where customization can be applied.
 
 An example would be a changed light color scheme.
@@ -135,7 +137,7 @@ Instead of viewmodels, here we need to extend `View`s. Each `View` comes with 3 
   `class [Name]ViewImpl: [Name]View {  @Composable override fun create(vm: [Name]ViewModel) { ... } }`
 
 In the module for the UI layer, every `View` gets wired to its standard implementation (
-see [DI.kt](src/commonMain/kotlin/de/connect2x/messenger/compose/view/DI.kt)).
+see [DI.kt](src/commonMain/kotlin/de/connect2x/trixnity/messenger/compose/view/DI.kt)).
 
 In your application, you can include the standard module and afterward override some views with custom views like this:
 
@@ -155,10 +157,6 @@ fun myViewModule() = module {
 For more information on how to use the DI to configure your client, please refer to
 the [Trixnity Messenger README](../README.md).
 
-## Android: MessengerActivity startup hook
-When using the `MessengerActivity`, one can use a startup hook called `MatrixMessengerStartup` that can be used to act
-on the main activity.
-
 ## Troubleshooting
 
 ### Common Images
@@ -173,6 +171,32 @@ on the main activity.
 ### Previews (Android)
 
 * previews for certain views can be found
-  in [src/androidMain/kotlin/de/connect2x/messenger/previews](src/androidMain/kotlin/de/connect2x/messenger/previews)
+  in [src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews](src/androidMain/kotlin/de/connect2x/trixnity/messenger/previews)
 * IntelliJ might not recognize the previews, but opening the project in Android Studio should show the previews
   correctly
+
+## UI Tests
+
+UI tests can be executed for the following platforms:
+
+* Desktop
+    * `./gradlew :trixnity-messenger-compose-view:jvmTest`
+* Web (js)
+    * `./gradlew :trixnity-messenger-compose-view:jsTest`
+* Web (Wasm)
+    * `./gradlew :trixnity-messenger-compose-view:wasmJsTest`
+* Android (requires a running emulator!)
+    * `./gradlew :trixnity-messenger-compose-view:connectedAndroidTest`
+* iOS (requires iOS simulator)
+    * `./gradlew :trixnity-messenger-compose-view:iosSimulatorArm64Test`
+
+All tests require a synapse server to be running on `http://localhost:8008`. The gradle tasks automatically start and
+stop this environment (see [../buildSrc/src/main/kotlin/UITestInfraService.kt](../buildSrc/src/main/kotlin/UITestInfraService.kt)).
+
+### Screenshots
+
+Especially in error scenarios, it might be helpful to "see" what the UI test is doing. Screenshots are saved for all
+platforms.
+
+* Desktop/Web/iOS: saved into [screenshots](screenshots) by the gradle task
+* Js/Wasm: open [build/reports/tests](build/reports/tests), go to `js/wasmJsBrowserTest/<testName>/<testName>.html`, there open `output`; there are images encoded as base64 which can be decoded to image files again

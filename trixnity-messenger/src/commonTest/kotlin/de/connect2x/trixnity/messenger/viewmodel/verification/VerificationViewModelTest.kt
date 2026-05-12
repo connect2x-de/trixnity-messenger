@@ -1,9 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.verification.ActiveDeviceVerification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.clientserverapi.client.DeviceApiClient
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.device.Device
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.settle
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel.Config
 import dev.mokkery.answering.calls
@@ -11,32 +27,22 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.verification.ActiveDeviceVerification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.clientserverapi.client.DeviceApiClient
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.devices.Device
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationRequestToDeviceEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -65,7 +71,7 @@ class VerificationViewModelTest {
 
     private val onCloseDeviceVerificationMock = mock<Function0<Unit>>()
     private val onRedoSelfVerificationMock = mock<Function0<Unit>>()
-    private val activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification> =
+    private val activeDeviceVerificationFlow: MutableStateFlow<ActiveDeviceVerification?> =
         MutableStateFlow(activeVerification)
 
     init {
@@ -79,15 +85,17 @@ class VerificationViewModelTest {
         every { matrixClientMock.userId } returns ownUserId
         every { matrixClientMock.deviceId } returns ownDeviceId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
-        every { matrixClientMock.displayName } returns MutableStateFlow("otherUser")
+        val profile = Profile(ProfileField.DisplayName("otherUser"))
+        every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientServerApiClientMock.json } returns Json
         every { matrixClientServerApiClientMock.device } returns devicesApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
 
         everySuspend {
-            devicesApiClientMock.getDevice(any(), eqNull())
+            devicesApiClientMock.getDevice(any())
         } returns Result.success(Device(ownDeviceId))
-        everySuspend { usersApiClientMock.getDisplayName(eq(otherUserId)) } returns Result.success("otherUser")
+        everySuspend { usersApiClientMock.getProfileField(otherUserId, ProfileField.DisplayName) } returns
+                Result.success(ProfileField.DisplayName("otherUser"))
 
         every { verificationService.activeDeviceVerification } returns activeDeviceVerificationFlow
         every { activeVerification.theirDeviceId } returns otherDeviceId
@@ -98,6 +106,10 @@ class VerificationViewModelTest {
         every { onCloseDeviceVerificationMock.invoke() } returns Unit
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
 
     @Test
     fun `show verification request when a verification is started by another client`() = runTest {
@@ -133,7 +145,7 @@ class VerificationViewModelTest {
     fun `redo self verification if the trust level of the device is not 'verified' after verification`() = runTest {
         every { onRedoSelfVerificationMock.invoke() } returns Unit
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(
             ActiveVerificationState.Cancel(
@@ -164,7 +176,7 @@ class VerificationViewModelTest {
             onRedoWasCalled = true
         }
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
 
@@ -185,7 +197,7 @@ class VerificationViewModelTest {
     @Test
     fun `show request screen again when verification is re-initiated`() = runTest {
         every {
-            keyServiceMock.getTrustLevel(eq(ownUserId), eq(ownDeviceId))
+            keyServiceMock.getTrustLevel(ownUserId, ownDeviceId)
         } returns MutableStateFlow(DeviceTrustLevel.Valid(false))
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
         every { activeVerification2.state } returns MutableStateFlow(theirRequest())
@@ -203,7 +215,23 @@ class VerificationViewModelTest {
         }
     }
 
+    @Test
+    fun `cancel verification when no verification could be found`() = runTest {
+        var cancelledVerification = false
+        activeDeviceVerificationFlow.value = null
+        every { onCloseDeviceVerificationMock.invoke() } calls {
+            cancelledVerification = true
+        }
+        val cut = deviceVerificationViewModel()
+
+        eventually(1.seconds) {
+            cancelledVerification shouldBe true
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.deviceVerificationViewModel(): VerificationViewModel {
+        Dispatchers.setMain(testDispatcher)
         return VerificationViewModelImpl(
             viewModelContext = testMatrixClientViewModelContext(
                 di = koinApplication {

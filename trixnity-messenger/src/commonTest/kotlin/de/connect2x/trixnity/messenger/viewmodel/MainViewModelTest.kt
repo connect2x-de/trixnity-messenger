@@ -1,22 +1,50 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
-import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeySecretService
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.key.KeyTrustService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.TimelineStateChange
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import de.connect2x.trixnity.clientserverapi.client.SyncEvents
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
+import de.connect2x.trixnity.clientserverapi.model.user.displayName
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.InitialSyncRouter
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
@@ -42,7 +70,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.assertSoftly
@@ -55,6 +82,8 @@ import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,33 +91,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeySecretService
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.key.KeyTrustService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.TimelineStateChange
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
-import net.folivo.trixnity.clientserverapi.client.SyncEvents
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
+import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -96,8 +104,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
-    private val backPressedHandler = BackDispatcher()
-
+    private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
     private val myDeviceId = "deviceId"
@@ -108,6 +115,8 @@ class MainViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
+    val profile1 = Profile()
+    val profile2 = Profile()
     val roomHeaderViewModelMock = mock<RoomHeaderViewModel>()
     val inputAreaViewModelMock = mock<InputAreaViewModel>()
     private val matrixClientMock2 = mock<MatrixClient>()
@@ -140,8 +149,7 @@ class MainViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns myUserId
         every { matrixClientMock.deviceId } returns myDeviceId
-        every { matrixClientMock.displayName } returns MutableStateFlow(null)
-        every { matrixClientMock.avatarUrl } returns MutableStateFlow(null)
+        every { matrixClientMock.profile } returns MutableStateFlow(profile1)
         syncState = every { matrixClientMock.syncState }
         syncState returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock.startSync(any()) } calls { startSyncPresenceCapture.add(it.arg(0)) }
@@ -150,7 +158,7 @@ class MainViewModelTest {
 
         every { roomServiceMock.getAll() } returns roomsFlow
         every {
-            roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            roomServiceMock.getState(any(), CreateEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
@@ -160,7 +168,10 @@ class MainViewModelTest {
         } returns NoOpTimeline()
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
         every {
-            roomServiceMock.getAccountData(any(), eq(FullyReadEventContent::class), any())
+            roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any())
+        } returns flowOf(null)
+        every {
+            roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any())
         } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns flowOf(listOf())
         every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
@@ -174,7 +185,7 @@ class MainViewModelTest {
 
         every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.Valid(true))
 
-        everySuspend { userServiceMock.loadMembers(RoomId(any()), any()) } returns Unit
+        everySuspend { userServiceMock.loadMembers(any(), any()) } returns Unit
         every { userServiceMock.getAccountData(DirectEventContent::class) } returns MutableStateFlow(
             DirectEventContent(
                 emptyMap()
@@ -198,12 +209,18 @@ class MainViewModelTest {
         }.koin
         every { matrixClientMock2.userId } returns myUserId
         every { matrixClientMock2.deviceId } returns myDeviceId
-        every { matrixClientMock2.displayName } returns MutableStateFlow(null)
-        every { matrixClientMock2.avatarUrl } returns MutableStateFlow(null)
         every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
         everySuspend { matrixClientMock2.startSync() } returns Unit
         everySuspend { matrixClientMock2.cancelSync() } returns Unit
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(false)
+        )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @AfterTest
@@ -230,7 +247,7 @@ class MainViewModelTest {
     @Test
     fun `show room when room is selected`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -245,7 +262,7 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is closed`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -263,13 +280,13 @@ class MainViewModelTest {
     @Test
     fun `show room list when the room view is left with the back button`() = runTest {
         val roomId = RoomId("!Room:localhost")
-        every { roomServiceMock.getOutbox(eq(roomId)) } returns flowOf(listOf())
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
         delay(100)
 
-        backPressedHandler.back()
+        backHandler.goBack()
         delay(100)
 
         assertSoftly {
@@ -542,7 +559,7 @@ class MainViewModelTest {
         lifecycle.stop()
         eventually(300.milliseconds) {
             verifySuspend {
-                matrixClientMock.cancelSync()
+                matrixClientMock.stopSync()
             }
         }
 
@@ -608,14 +625,16 @@ class MainViewModelTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun TestScope.mainViewModel(
         matrixClients: Map<UserId, MatrixClient> = mapOf(testUserId to matrixClientMock),
     ): MainViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = true))
 
         return MainViewModelImpl(
             viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                componentContext = DefaultComponentContext(lifecycle),
                 di = koinApplication {
                     allowOverride(true)
                     modules(
@@ -657,10 +676,9 @@ class MainViewModelTest {
                                         onRoomSelected: (UserId, RoomId) -> Unit,
                                         onStartCreateNewRoom: (UserId) -> Unit,
                                         onUserSettingsSelected: () -> Unit,
-                                        onUserProfileSelected: () -> Unit,
+                                        onShowAccounts: () -> Unit,
                                         onOpenAppInfo: () -> Unit,
                                         onSendLogs: () -> Unit,
-                                        onOpenAccountsOverview: () -> Unit,
                                         onAccountSelected: () -> Unit,
                                         onStartVerification: (UserId) -> Unit,
                                         onCloseRoom: () -> Unit,
@@ -671,10 +689,6 @@ class MainViewModelTest {
                                             MutableStateFlow(ErrorType.JUST_DISMISS)
                                         override val elements: StateFlow<List<RoomListElementViewModel>> =
                                             MutableStateFlow(emptyList())
-                                        override val syncStateError: StateFlow<Map<UserId, Boolean>> = MutableStateFlow(
-                                            emptyMap()
-                                        )
-                                        override val allSyncError: StateFlow<Boolean> = MutableStateFlow(false)
                                         override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
                                         override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
                                         override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -690,10 +704,12 @@ class MainViewModelTest {
                                             override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
                                             override val accounts: StateFlow<List<AccountInfo>> =
                                                 MutableStateFlow(listOf())
+                                            override val globalNotificationCount: StateFlow<String?> = MutableStateFlow(null)
+                                            override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = MutableStateFlow(emptyMap())
 
                                             override fun selectActiveAccount(userId: UserId?) {}
                                             override fun openUserSettings() {}
-                                            override fun openUserProfile() {}
+                                            override fun openUserAccounts() {}
                                             override fun openAppInfo() {}
                                         }
 
@@ -702,15 +718,16 @@ class MainViewModelTest {
                                         override fun selectRoom(roomId: RoomId) {}
                                         override fun errorDismiss() {}
                                         override fun sendLogs() {}
-                                        override fun openAccountsOverview() {}
                                         override fun closeProfile() {}
                                         override fun verifyAccount(userId: UserId) {}
                                     }
                                 }
                             }
+                            single<BackHandler> { backHandler }
                         })
                 }.koin,
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "Main"
             ),
             onCreateNewAccount = {},
             onRemoveAccount = {},

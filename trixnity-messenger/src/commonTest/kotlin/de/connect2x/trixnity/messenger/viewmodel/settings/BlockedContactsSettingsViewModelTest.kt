@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -10,7 +11,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +21,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -48,9 +49,14 @@ class BlockedContactsSettingsViewModelTest {
             contact1,
         )
         resetMocks(matrixClientMock1, matrixClientMock2, userBlockingMock)
-        every { userBlockingMock.getBlockedUsers(eq(matrixClientMock1)) } returns blockedContactsForUser1
+        every { userBlockingMock.getBlockedUsers(matrixClientMock1) } returns blockedContactsForUser1
 
-        every { userBlockingMock.getBlockedUsers(eq(matrixClientMock2)) } returns flowOf(listOf(contact1, contact2))
+        every { userBlockingMock.getBlockedUsers(matrixClientMock2) } returns flowOf(listOf(contact1, contact2))
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -83,8 +89,8 @@ class BlockedContactsSettingsViewModelTest {
         val isRequestCompleted = MutableStateFlow(false)
         everySuspend {
             userBlockingMock.unblockUser(
-                eq(matrixClientMock1),
-                eq(contact3),
+                matrixClientMock1,
+                contact3,
                 any(),
                 any(),
             )

@@ -9,6 +9,7 @@ import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
@@ -19,13 +20,14 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.media.PlatformMedia
-import net.folivo.trixnity.core.MSC2448
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.bodyWithoutFallback
-import net.folivo.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.core.MSC2448
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
+import de.connect2x.trixnity.core.model.events.m.room.formattedBodyWithoutFallback
 import org.koin.core.component.get
+import kotlin.time.Duration
 
 sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent> : Message<C> {
     /**
@@ -46,7 +48,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
     /**
      * Users, Events and Room mentioned in the event's message
      */
-    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>>
+    val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> // TODO typing should be consistent to mentionsInFormattedBody
 
     /**
      * Users, Events and Room mentioned in the event's formatted body
@@ -107,7 +109,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         }
 
         interface Audio : FileBased<RoomMessageEventContent.FileBased.Audio> {
-            val duration: Long?
+            val duration: Duration?
+            val audioPlayer: MediaPlayerViewModel?
         }
 
         interface Video : FileBased<RoomMessageEventContent.FileBased.Video> {

@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
@@ -17,19 +17,23 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import kotlinx.coroutines.test.setMain
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RootViewModelTest {
@@ -61,14 +65,20 @@ class RootViewModelTest {
         every { start() } returns Unit
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `show account creation when there is no account defined yet`() = runTest {
         val cut = rootViewModel()
         cut.stack.toFlow().first { it.active.configuration == RootRouter.Config.AddMatrixAccount }
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalCoroutinesApi::class)
     private fun TestScope.rootViewModel(): RootViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         val koinApplication = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules() + module {
@@ -92,7 +102,7 @@ class RootViewModelTest {
                                 onAccountSelected: (UserId?) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
                                 onShowAppInfo: () -> Unit,
-                                onShowProfile: () -> Unit
+                                onShowAccounts: () -> Unit
                             ): AccountViewModel = accountViewModelMock
                         }
                     }
@@ -104,10 +114,9 @@ class RootViewModelTest {
                                 onRoomSelected: (UserId, RoomId) -> Unit,
                                 onStartCreateNewRoom: (UserId) -> Unit,
                                 onUserSettingsSelected: () -> Unit,
-                                onUserProfileSelected: () -> Unit,
+                                onShowAccounts: () -> Unit,
                                 onOpenAppInfo: () -> Unit,
                                 onSendLogs: () -> Unit,
-                                onOpenAccountsOverview: () -> Unit,
                                 onAccountSelected: () -> Unit,
                                 onStartVerification: (UserId) -> Unit,
                                 onCloseRoom: () -> Unit,
@@ -119,7 +128,7 @@ class RootViewModelTest {
         return RootViewModelImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
             di = koinApplication.koin,
-            coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+            coroutineContext = backgroundScope.coroutineContext
         )
     }
 }

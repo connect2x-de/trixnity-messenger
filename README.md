@@ -45,19 +45,20 @@ This is an overview on how different UI technologies can be used on top of trixn
 
 ## Getting Started
 
-First you need to add the maven repository:
+Trixnity Messenger is published on Maven Central:
+
+```kotlin
+implementation("de.connect2x.trixnity.messenger:trixnity-messenger:<version>") // SDK
+implementation("de.connect2x.trixnity.messenger:trixnity-messenger-compose-view:<version>") // Compose View
+```
+
+If you want SNAPSHOT builds, you can inclide the following maven repository:
 
 ```kotlin
 maven("https://gitlab.com/api/v4/projects/47538655/packages/maven")
 ```
 
-Now you are able to add trixnity-messenger as dependency to your project:
-
-```kotlin
-implementation("de.connect2x:trixnity-messenger:<version>")
-```
-
-Just create `MatrixMessenger` including the view model tree that is used in your app.
+Create a `MatrixMessenger` including the view model tree that is used in your app.
 
 ```kotlin
 val matrixMessenger = MatrixMessenger.create()
@@ -77,6 +78,10 @@ application {
 where `MyMatrixClient` is a `@Composable` function that gets the `RootViewModel` as a parameter.
 
 Now you are ready to react to different states of the routing in the `RootViewModel`.
+
+You can always look into the [example Compose app](./trixnity-messenger-compose-app)
+or [Tammy](https://tammy.connect2x.de) as a reference for a Compose multiplatform messenger implementation of Trixnity
+Messenger.
 
 ### Multi profiles/tenancy
 
@@ -140,43 +145,67 @@ left out for clarity.
 ## Configuration
 
 Trixnity Messenger has multiple ways to configure the client to your needs.
+There are three layers of configuration and dependency injection (DI).
 
-### Change default configuration
+Each configuration layer allows configuring the DI of that layer. Use `moduleFactories` to add custom
+modules to the DI.
 
-The class `MatrixMessengerConfiguration` contains information that is used to determine some folder names and other data
-in
-the lifecycle of the messenger. To override the standard configuration use `MatrixMessenger.create`:
+The configurations contain information used to determine some folder names and other data in the lifecycle of
+the messenger.
+
+Configurations are available when creating an instance of `MatrixMultiMessenger` or `MatrixMessenger` using `create`.
+
+### MatrixMultiMessengerConfiguration
+
+This configuration allows configuring the `MatrixMultiMessenger` itself.
+Use `messengerConfiguration` to configure the `MatrixMessengerConfiguration`.
+
+### MatrixMessengerConfiguration
+
+This configuration allows configuring the `MatrixMessenger` itself.
+When `MatrixMultiMessengerConfiguration` is already used, some of the configuration options don't need to be set again.
+See `MatrixMessengerBaseConfiguration` to find out, which options are copied.
+Use `clientConfiguration` to configure the `MatrixClientConfiguration`.
+
+### MatrixClientConfiguration
+
+This configuration allows configuring the `MatrixClient` itself.
+
+### Notifications
+
+Trixnity Messenger can show system notifications using [Sysnotify](https://gitlab.com/connect2x/sysnotify).
+
+#### NotificationProvider
+
+A `NotificationProvider` decides when notifications should be retrieved. Usually this would be a push service, but long
+polling would be also a szenario. There are a few default implementations:
+
+- `NoOpNotificationProvider` does nothing and can be used when no other provider is needed (usually on Desktop).
+- `PushNotificationProvider` can be inherited to implement a push based notification provider.
+    - `FcmPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-fcm`)
+    - `ApnPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-apn`)
+    - `UnifiedPushNotificationProvider` (dependency `de.connect2x:trixnity-messenger-notification-unifiedpush`)
+
+To set a notification provider, a DSL in `MatrixMultiMessengerConfiguration` can be used. For example:
 
 ```kotlin
-val matrixMessenger = MatrixMessenger.create {
-    appName = "Dino Messenger"
-    appId = "org.example.dino.messenger"
-    // ... more config ...
-}
+addFcmPushNotificationProvider()
 ```
 
-### Enable notifications
+### Fonts
 
-In order to receive system notifications from a Trixnity Messenger instance, the default `noopNotificationsModule`
-must be overriden in the DI of the multi-messenger and messenger respectively.
-If no `NotificationHandlerProvider` is present in the view DIs, a warning will be logged upon the first time
-of it being accessed through the DI.
+Trixnity Messenger uses the System Font per default.
+This behavior can be changed by providing a custom implementation of `ThemeTypography`.
+One such custom implementation setting the font to Nunito can be found in
+`trixnity-messenger-compose-view-typography-nunito`.
 
-A `NotificationHandlerProvider` may be registered in your `MatrixMultiMessengerConfiguration` or
-`MatrixMessengerConfiguration`
-using the `notificationModule` function provided by the view module.
-
-Example:
+To use Nunito instead of the System Font, a DSL in `MatrixMultiMessengerConfiguration` can be used similar to above.
 
 ```kotlin
-val matrixMessenger = MatrixMessenger.create configScope@{
-    val notificationsDebugEnabled = // ...
-        moduleFactories += { notificationsModule(this@configScope, notificationsDebugEnabled) }
-}
+addNunitoThemeTypography()
 ```
 
-For more information about the `notificationsDebugEnabled` flag,
-see [the according Sysnotify documentation](https://gitlab.com/connect2x/sysnotify/-/blob/main/sysnotify/src/commonMain/kotlin/de/connect2x/sysnotify/NotificationHandler.kt?ref_type=heads#L211).
+You can also follow the example and create your own instance of `ThemeTypography` with custom fonts.
 
 ### Adjusting the log level
 
@@ -223,7 +252,7 @@ tries to login the user to a Matrix server. To do this, you have to do the follo
     addMatrixAccountViewModel: AddMatrixAccountViewModelImpl,
 ) : ViewModelContext by viewModelContext, AddMatrixAccountViewModel by addMatrixAccountViewModel {
 
-    private val isDemoVersion: Boolean = ... // this is computed from the config or a runtime parameter
+    private val isDemoVersion: Boolean = false // TODO: compute from config or runtime parameter
     val canChangeServerUrl: Boolean = !isDemoVersion
     override val serverUrl: MutableStateFlow<String> =
         MutableStateFlow(if (isDemoVersion) "https://myUrl" else addMatrixAccountViewModel.serverUrl.value)
@@ -352,8 +381,20 @@ data class CatEventContent(
     override val externalUrl: String? = null
 }
 
-val catEventContentSerializerMappings = createEventContentSerializerMappings {
-    stateOf<CatEventContent>("de.connect2x.cat")
+val catEventClientModule = module {
+    single<CustomEventContentSerializerMappings>(named("CatEvent")) {
+        CustomEventContentSerializerMappings {
+            stateOf<CatEventContent>("de.connect2x.cat")
+        }
+    }
+}
+```
+
+And add it to the client DI:
+
+```kotlin
+clientConfiguration {
+    moduleFactories += ::catEventClientModule
 }
 ```
 
@@ -405,18 +446,17 @@ class CatMessageMessageTimelineElementView : TimelineElementView<CatMessageTimel
 }
 ```
 
-Next, add it to the DI:
+Next, add both to the messenger DI:
 
 ```kotlin
-fun catEventModule() = modules {
-    // don't forget to name the singleton
-    single<EventContentSerializerMappings>(named("catEventContentSerializerMappings")) { catEventContentSerializerMappings }
+fun catEventMessengerModule() = modules {
     timelineElementViewModelFactory<CatMessageTimelineElementViewModelFactory> { CatMessageTimelineElementViewModelFactory }
     timelineElementView<CatMessageMessageTimelineElementView> { CatMessageMessageTimelineElementView() }
 }
 
-// add the module to the matrix messenger:
-moduleFactories += ::catEventModule
+messengerConfiguration {
+    moduleFactories += ::catEventMessengerModule
+}
 ```
 
 If your custom event should support a full screen details view when the user clicks/taps on it, you may also implement
@@ -450,11 +490,11 @@ a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put
 
 ## Worker
 
-Doing work while the messenger is running can be a common use case. To do that, you can implement
-`MatrixMessengerWorker` or `MatrixMultiMessengerWorker` and put it into the DI:
+Doing work while the messenger is running can be a common use case. To do that, you can implement the
+`Worker` interface into the DI:
 
 ```kotlin
-single<MatrixMessengerWorker>(named("MyWorker")) { // don't forget to name the singleton
+single<Worker>(named("MyWorker")) { // don't forget to name the singleton
     MatrixMessengerWorker {
         longRunningTask()
     }

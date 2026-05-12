@@ -1,14 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.util.BackCallback
+import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,20 +22,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.SelfVerificationMethod
-import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
-import net.folivo.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.AlreadyCrossSigned
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
-import net.folivo.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.crypto.key.RecoveryKeyInvalidException
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.AlreadyCrossSigned
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger { }
 
 interface SelfVerificationViewModelFactory {
     fun create(
@@ -122,11 +121,10 @@ open class SelfVerificationViewModelImpl(
         )
 
     override fun waitForAvailableVerificationMethods() {
+        showVerificationHelp.value = false
         coroutineScope.launch {
             log.debug { "launch self verification method listener for account $userId" }
             verificationMethods.collectLatest { foundSelfVerificationMethods ->
-                showVerificationHelp.value = false
-
                 when (foundSelfVerificationMethods) {
                     is PreconditionsNotMet -> {
                         log.debug { "$userId: cannot determine yet if cross-signing is needed" }
@@ -263,18 +261,17 @@ open class SelfVerificationViewModelImpl(
         onCloseSelfVerification(!showVerificationHelp.value)
     }
 
-    private val backCallback = BackCallback(priority = if (isSetup.value) 1 else 0) {
-        when {
-            showVerificationHelp.value -> close()
-            (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
+    private val backCallback =
+        BackCallback(priority = BackHandler.PRIORITY_VERIFICATION) {
+            when {
+                showVerificationHelp.value -> close()
+                (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
 
-            else -> backToHelp()
+                else -> backToHelp()
+            }
         }
-    }
 
     init {
-        backHandler.register(
-            backCallback
-        )
+        registerBackCallback(backCallback)
     }
 }

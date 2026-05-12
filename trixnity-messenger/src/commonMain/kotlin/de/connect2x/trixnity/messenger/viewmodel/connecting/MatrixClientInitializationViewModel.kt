@@ -7,17 +7,13 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface MatrixClientInitializationViewModelFactory {
     fun create(
@@ -61,12 +57,14 @@ open class MatrixClientInitializationViewModelImpl(
     private suspend fun retrieveMatrixClientsFromStore() {
         currentState.value = i18n.matrixClientInitLoading()
 
-        log.info { "init MatrixClients ${matrixClients.value.keys} from settings and store" }
-        if (settings.value.base.accounts.isEmpty()) { // no account defined yet, show account creation
+        val accounts = settings.value.base.accounts.keys
+        log.info { "init MatrixClients $accounts from settings and store" }
+        if (accounts.isEmpty()) { // no account defined yet, show account creation
             onNoAccounts()
         } else {
             checkWhetherSelectedAccountIsStillValid()
             val initFromStoreResult = matrixClients.initFromStoreResult.filterNotNull().first()
+            log.debug { "init MatrixClients results: $initFromStoreResult" }
             when {
                 initFromStoreResult.failures.isNotEmpty() -> {
                     val firstFailure = initFromStoreResult.failures.entries.first()

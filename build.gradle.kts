@@ -1,10 +1,19 @@
-import de.connect2x.conventions.authenticatedPackageRegistry
+import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
+import de.connect2x.conventions.CI
+import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.defaultDependencyLocking
-import de.connect2x.conventions.isCI
+import de.connect2x.conventions.defaultPublishing
+import de.connect2x.conventions.enableAbiChecker
+import de.connect2x.conventions.setProjectInfo
+import de.connect2x.conventions.updateAbiFilesFromReportZip
 import de.connect2x.conventions.withVersionSuffix
+import org.jetbrains.dokka.gradle.DokkaPlugin
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
+    alias(sharedLibs.plugins.c2xConventions)
+
     alias(sharedLibs.plugins.kotlin.multiplatform) apply false
     alias(sharedLibs.plugins.kotlin.jvm) apply false
     alias(sharedLibs.plugins.kotlin.serialization) apply false
@@ -17,15 +26,16 @@ plugins {
     alias(sharedLibs.plugins.skie) apply false
     alias(sharedLibs.plugins.kmmBridge) apply false
     alias(sharedLibs.plugins.compose.multiplatform) apply false
-    alias(sharedLibs.plugins.dokka)
+    alias(sharedLibs.plugins.dokka) apply false
     alias(sharedLibs.plugins.google.services) apply false
     alias(libs.plugins.seskar) apply false
-    `maven-publish`
-    alias(sharedLibs.plugins.c2xConventions)
+    alias(sharedLibs.plugins.mavenPublish) apply false
 }
 
+updateAbiFilesFromReportZip()
+
 allprojects {
-    group = "de.connect2x"
+    group = "de.connect2x.trixnity.messenger"
     version = withVersionSuffix(rootProject.libs.versions.trixnityMessenger)
     if (System.getenv("WITH_LOCK")?.toBoolean() == true) {
         defaultDependencyLocking()
@@ -36,25 +46,20 @@ subprojects {
     val isTrixnityProject = project.name.startsWith("trixnity-") && !project.name.endsWith("app")
     val isJsWrapper = project.name.startsWith("wrappers-")
     if (isTrixnityProject || isJsWrapper) {
-        apply(plugin = "org.jetbrains.dokka")
-        apply(plugin = "maven-publish")
+        if (CI.isCI) apply<DokkaPlugin>()
 
-        val dokkaJar by tasks.registering(Jar::class) {
-            dependsOn("dokkaGenerate")
-            from(dokka.dokkaPublications.html.flatMap { it.outputDirectory })
-            archiveClassifier = "javadoc"
-            onlyIf { isCI }
-        }
+        apply<MavenPublishPlugin>()
+        apply<SigningPlugin>()
+        defaultPublishing()
 
-        publishing {
-            repositories {
-                authenticatedPackageRegistry()
-            }
+        extensions.configure<PublishingExtension> {
             publications.withType<MavenPublication>().configureEach {
                 pom {
-                    name = project.name
-                    description = "Multiplatform Kotlin SDK for Matrix messengers"
-                    url = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
+                    setProjectInfo(
+                        name = project.name,
+                        description = "Multiplatform Kotlin SDK for Matrix messengers",
+                        repository = "connect2x/trixnity-messenger/trixnity-messenger"
+                    )
                     c2xOrganization()
                     licenses {
                         license {
@@ -62,11 +67,13 @@ subprojects {
                             url = "https://www.gnu.org/licenses/agpl-3.0.html"
                         }
                     }
-                    scm {
-                        url = this@pom.url
-                    }
                 }
-                if (isCI) artifact(dokkaJar)
+            }
+        }
+
+        plugins.withId(PluginIds.KOTLIN_MULTIPLATFORM) {
+            extensions.configure<KotlinMultiplatformExtension> {
+                enableAbiChecker("TrixnityMessengerPrivateApi", "de.connect2x.trixnity.messenger.abi")
             }
         }
     }

@@ -1,9 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.initialsync
 
-import io.github.oshai.kotlinlogging.KotlinLogging
-import net.folivo.trixnity.client.MatrixClient
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 
 /**
  * Since the initial sync can take some time due to thousands of events and
@@ -22,6 +21,8 @@ interface RunInitialSync {
 }
 
 object RunInitialSyncImpl : RunInitialSync {
+    private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl")
+
     override suspend operator fun invoke(matrixClient: MatrixClient): Boolean =
         matrixClient.syncOnce { true }
             .getOrElse {

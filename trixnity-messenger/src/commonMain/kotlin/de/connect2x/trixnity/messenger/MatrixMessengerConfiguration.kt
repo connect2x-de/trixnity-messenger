@@ -1,9 +1,11 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.*
-import io.ktor.client.engine.*
-import net.folivo.trixnity.client.ModuleFactory
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -21,12 +23,14 @@ private val colors =
 @TrixnityMessengerDsl
 data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
-    override var appId: String = "de.connect2x.messenger",
+    override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
+    override var appIcon: String? = null,
 
-    override var urlProtocol: String = appId,
-    override var urlHost: String = "localhost",
-    var ssoRedirectPath: String = "sso",
+    override var appUri: String = "$appId:",
+    var appUriSsoRedirect: String = "sso",
+    var appUriOAuth2Redirect: String = "oAuth2",
+    override var oAuth2ClientUrl: String = "https://messenger.trixnity.connect2x.de",
 
     var generateInitialAccountColor: (suspend (alreadyUsedColors: Set<Long>) -> Long)? = { alreadyUsedColors: Set<Long> ->
         colors.firstOrNull { alreadyUsedColors.contains(it).not() } ?: 0x00000000
@@ -37,12 +41,16 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
 
-    var databaseEncryptionEnabled: Boolean = true,
-    var notificationsEnabled: Boolean = false,
+    var defaultRedactionWarningIsEnabled: Boolean = true,
 
-    val features: MatrixMessengerFeatures = MatrixMessengerFeatures(
+    var databaseEncryptionEnabled: Boolean = true,
+
+    val features: Features = Features(
         enablePdfReader = true,
         enablePowerlevelEventConfigurationInRoomSettings = true,
+        enableMessageDrafts = true,
+        enableAudioRecorder = true,
+        enableMediaPlayer = true,
     ),
 
     /**
@@ -75,7 +83,7 @@ data class MatrixMessengerConfiguration(
     var defaultHomeServer: String? = null,
 
     /**
-     * Whether the [de.connect2x.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
+     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new accounts.
      *
      * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel]
      * and others can be used to manually guide the user through the setup process.
@@ -96,14 +104,19 @@ data class MatrixMessengerConfiguration(
     override var imprint: String? = null,
     override var licenses: String? = null,
 
-    override var pushUrl: String? = null,
-
     var downloadsDisabled: Boolean = false,
 
     /**
      * Whether the messenger uses refresh tokens or access tokens.
      */
     var useRefreshTokens: Boolean = false,
+
+    var cryptoDriver: CryptoDriver = CryptoDriver.VODOZEMAC,
+
+    /**
+     * Consider using [clientConfiguration], as it can be called multiple times.
+     */
+    var client: MatrixClientConfiguration.() -> Unit = { },
 
     /**
      * Specify a [HttpClientEngine]. It is highly recommended to set it and share it within an application.
@@ -126,4 +139,35 @@ data class MatrixMessengerConfiguration(
      * ```
      */
     var modulesFactories: List<ModuleFactory> = createTrixnityMessengerDefaultModuleFactories(),
-) : MatrixMessengerBaseConfiguration
+) : MatrixMessengerBaseConfiguration {
+
+    fun clientConfiguration(config: MatrixClientConfiguration.() -> Unit) {
+        val original = client
+        client = {
+            original()
+            config()
+        }
+    }
+
+    /**
+     * A list of feature toggles for the Matrix Messenger.
+     */
+    data class Features(
+        /**
+         * If true, the PDF reader details view in the timeline will be enabled.
+         */
+        var enablePdfReader: Boolean = true,
+        var enablePowerlevelEventConfigurationInRoomSettings: Boolean = true,
+        var enableMessageDrafts: Boolean = true,
+        /**
+         * Transitively enables voice messages
+         */
+        var enableAudioRecorder: Boolean = true,
+        var enableMediaPlayer: Boolean = true,
+    )
+
+    enum class CryptoDriver {
+        LIBOLM,
+        VODOZEMAC
+    }
+}

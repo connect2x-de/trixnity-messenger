@@ -1,9 +1,10 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,15 +23,15 @@ import java.net.ServerSocket
 import java.net.Socket
 import kotlin.concurrent.thread
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UrlHandlerKt")
 
-class UrlHandlerImpl(
+class UriHandlerImpl(
     config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
     rootPath: RootPath,
     private val closeApp: CloseApp?
 ) :
-    UrlHandlerBase(config) {
+    UriHandlerBase(config) {
 
     private val started = MutableStateFlow(false)
     private val rootPath = rootPath.path
@@ -45,8 +46,7 @@ class UrlHandlerImpl(
             Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
                 args.firstOrNull()?.also { emitUrl(it) }
                 Desktop.getDesktop().setOpenURIHandler { event ->
-                    val url = Url(event.uri)
-                    urlHandlerFlow.tryEmit(url)
+                    urlHandlerFlow.tryEmit(event.uri.toString())
                 }
             }
 
@@ -69,7 +69,7 @@ class UrlHandlerImpl(
     private suspend fun emitUrl(urlArg: String) {
         if (urlArg.isNotBlank())
             try {
-                urlHandlerFlow.emit(Url(urlArg))
+                urlHandlerFlow.emit(urlArg)
             } catch (exception: URLParserException) {
                 log.error(exception) { "could not parse url from arg $urlArg" }
             }
@@ -78,14 +78,14 @@ class UrlHandlerImpl(
     private fun readPortFromLockFile(): Int? {
         val lockFile = rootPath.resolve(lockFileName)
         return if (fileSystem.exists(lockFile)) {
-            fileSystem.read(lockFile) { readInt() }
+            fileSystem.read(lockFile) { readUtf8().toIntOrNull() }
         } else null
     }
 
     private fun writePortToLockFile(port: Int) {
         log.debug { "write port $port to lock file" }
         val lockFile = rootPath.resolve(lockFileName)
-        fileSystem.write(lockFile) { writeInt(port) }
+        fileSystem.write(lockFile) { writeUtf8(port.toString()) }
         val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
         val channel = randomAccessFile.getChannel()
         val lock = channel.tryLock(0, Long.MAX_VALUE, true)
@@ -186,18 +186,18 @@ class UrlHandlerImpl(
     }
 }
 
-actual fun platformUrlHandlerModule(): Module = module {
-    single<UrlHandler> {
-        UrlHandlerImpl(get(), get(), get(), getOrNull())
+actual fun platformUriHandlerModule(): Module = module {
+    single<UriHandler> {
+        UriHandlerImpl(get(), get(), get(), getOrNull())
     }
 }
 
-val MatrixMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
+val MatrixMessenger.defaultUriHandler: UriHandlerImpl
+    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }
 
-val MatrixMultiMessenger.defaultUrlHandler: UrlHandlerImpl
-    get() = checkNotNull(di.get<UrlHandler>() as? UrlHandlerImpl) {
+val MatrixMultiMessenger.defaultUriHandler: UriHandlerImpl
+    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
         "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
     }

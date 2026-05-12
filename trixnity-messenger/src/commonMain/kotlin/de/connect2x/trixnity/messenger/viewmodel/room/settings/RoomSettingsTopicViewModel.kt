@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.TopicEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.html.AutoLinkifyVisitor
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
@@ -20,12 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.TopicEventContent
 import org.koin.core.component.get
 
 
@@ -63,6 +63,7 @@ interface RoomSettingsTopicViewModel {
      * Users, Events and Room mentioned in the topic's formatted body
      */
     val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>>
+
     /**
      * Open the mention in the UI
      */
@@ -98,7 +99,7 @@ class RoomSettingsTopicViewModelImpl(
         ApprovableTextFieldViewModelImpl(
             serverValue = matrixClient.room
                 .getState<TopicEventContent>(roomId = selectedRoomId)
-                .map { it?.content?.topic ?: "" },
+                .map { it?.content?.topic?.text?.plain ?: it?.content?.legacy?.topic },
             maxLength = 20_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newTopic ->
@@ -134,6 +135,8 @@ class PreviewRoomSettingsTopicViewModel : RoomSettingsTopicViewModel {
     override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> = MutableStateFlow(
         HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent("")))
     )
-    override val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>> = MutableStateFlow(emptyMap())
+    override val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>> =
+        MutableStateFlow(emptyMap())
+
     override fun openMention(mention: TimelineElementMention) = Unit
 }

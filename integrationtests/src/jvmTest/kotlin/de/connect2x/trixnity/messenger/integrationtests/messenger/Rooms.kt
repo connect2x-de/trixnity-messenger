@@ -1,21 +1,21 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeout
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.core.model.RoomId
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger {}
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.messenger.RoomsKt")
 
 suspend fun MatrixMessengerWithRoot.rejectTheInvitationToRoomAndBlock(roomId: RoomId) = with(root) {
     withTimeout(10.seconds) {

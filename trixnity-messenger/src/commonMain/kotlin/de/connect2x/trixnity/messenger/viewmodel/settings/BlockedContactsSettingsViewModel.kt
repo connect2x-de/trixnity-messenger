@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,11 +11,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger { }
 
 interface BlockedContactsSettingsViewModelFactory {
     fun create(
@@ -103,7 +100,7 @@ class BlockedContactsSettingsViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 }
 

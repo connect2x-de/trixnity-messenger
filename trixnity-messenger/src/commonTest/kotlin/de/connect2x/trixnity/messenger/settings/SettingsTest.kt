@@ -5,6 +5,7 @@ import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.update
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -14,7 +15,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonObject
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -35,6 +36,7 @@ class SettingsTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
         settings = MutableStateFlow(MatrixMessengerSettings(mapOf()))
         settingsStorage = MockSettingsStorage()
         cut = MatrixMessengerSettingsHolderImpl(settingsStorage, settings)
@@ -54,14 +56,16 @@ class SettingsTest {
                 "accounts": {},
                 "preferredLang": null,
                 "selectedAccount": null,
-                "ssoState": null,
+                "ssoLoginState": null,
+                "oAuth2LoginState": null,
                 "themeMode": "default",
                 "isHighContrast": false,
                 "isFocusHighlighting": false,
                 "accentColor": 1,
                 "fontSize": null,
                 "displaySize": null,
-                "applySystemSizes": true
+                "applySystemSizes": true,
+                "fontKind": null
             }
         """.trimIndent()
     }

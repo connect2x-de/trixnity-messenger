@@ -2,10 +2,25 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -22,23 +37,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.key.verification.VerificationCancelEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -97,6 +98,11 @@ class VerificationCancelTimelineElementViewModelTest {
         )
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `shows that this cancel event was sent by the current user - original request by other user`() = runTest {
         val verificationCancelEventContent = VerificationCancelEventContent(
@@ -109,7 +115,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -127,7 +133,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),
@@ -167,7 +173,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("1"),
@@ -185,7 +191,7 @@ class VerificationCancelTimelineElementViewModelTest {
             TimelineEvent(
                 event = ClientEvent.RoomEvent.MessageEvent(
                     content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = "",
+                        ciphertext = MegolmMessageValue(""),
                         sessionId = "",
                     ),
                     id = EventId("2"),
@@ -228,7 +234,8 @@ class VerificationCancelTimelineElementViewModelTest {
                     }.koin,
                     componentContext = DefaultComponentContext(LifecycleRegistry()),
                     userId = userId,
-                    coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                    coroutineContext = backgroundScope.coroutineContext,
+                    name = "CancelVerification"
                 ),
                 content = verificationCancelEventContent,
                 roomId = roomId,

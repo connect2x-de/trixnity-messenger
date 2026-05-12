@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -17,13 +17,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-
-private val log = KotlinLogging.logger { }
 
 interface UserSearchHandler {
     val searchTerm: TextFieldViewModel
@@ -44,6 +42,10 @@ class DefaultUserSearchHandler(
     private val limit: Long? = 100,
     filterNotUsers: Flow<Set<UserId>> = flowOf(emptySet()),
 ) : UserSearchHandler {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.DefaultUserSearchHandler")
+    }
+
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
     override val selectedUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     private val unfilteredFoundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())

@@ -1,6 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.store.UserPresence
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.Profile
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.PresenceEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
@@ -13,10 +28,10 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,19 +45,9 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.store.UserPresence
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.GetProfile
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.PresenceEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 
@@ -106,6 +111,11 @@ class SearchTest {
         setupMatrixClient()
         setupApiMocks()
         search = SearchImpl(InitialsImpl(testGraphemeIterableProvider()), i18n, MatrixMessengerConfiguration())
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
@@ -238,6 +248,87 @@ class SearchTest {
         res.first() shouldBeEqual user
     }
 
+    @Test
+    fun `doesNotExist - should not exist on NotFound - ignore HTTP error code`() = runTest {
+        val user = UserId("not_existing", "localhost")
+        val searchTerm = user.full
+        
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.NotFound("unused")))        
+        
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe true
+    }
+
+    @Test
+    fun `doesNotExist - should not exist on Unknown and HTTP 404 - do not ignore HTTP error code`() = runTest {
+        val user = UserId("not_existing", "localhost")
+        val searchTerm = user.full
+        
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.Unknown("unused")))
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe true
+    }
+
+    @Test
+    fun `doesNotExist - should be false on other error response - ignore HTTP error code`() = runTest {
+        val user = UserId("maybe_not_existing", "localhost")
+        val searchTerm = user.full
+
+        // Forbidden means that we are not allowed to fetch profiles and therefore cannot say if the user does not exist
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.Forbidden("unused")))
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe false
+    }
+
+    @Test
+    fun `doesNotExist - should be false on success`() = runTest {
+        val user = UserId("exists", "localhost")
+        val searchTerm = user.full
+
+        // Forbidden means that we are not allowed to fetch profiles and therefore cannot say if the user does not exist
+        everySuspend { usersApiClientMock.getProfile(user) } returns
+                Result.success(Profile())
+
+        val res = search.searchUsers(
+            coroutineScope = backgroundScope,
+            matrixClient = matrixClientMock,
+            searchTerm = searchTerm,
+            limit = null,
+        )
+
+        res.size shouldBe 1
+        res.first().userId shouldBe user
+        res.first().doesNotExist shouldBe false
+    }
 
     @Test
     fun `cancel presence when cancelling searchUsersScope`() = runTest {
@@ -247,7 +338,7 @@ class SearchTest {
         val cancelled = MutableStateFlow(false)
 
         injectSearchUsers(searchTerm, listOf(user))
-        every { userServiceMock.getPresence(eq(user.userId)) } returns flow {
+        every { userServiceMock.getPresence(user.userId) } returns flow {
             currentCoroutineContext().job.invokeOnCompletion { cancelled.value = true }
             started.value = true
         }
@@ -280,7 +371,7 @@ class SearchTest {
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq(searchTerm), acceptLanguage = i18n.currentLang.code, limit
+                searchTerm, acceptLanguage = i18n.currentLang.code, limit
             )
         } returns Result.success(SearchUsers.Response(limited = limit != null, results = results))
     }
@@ -314,10 +405,10 @@ class SearchTest {
     }
 
     private fun setupGetProfile(userId: UserId, displayName: String, avatarUrl: String? = null) {
-        everySuspend { usersApiClientMock.getProfile(eq(userId)) } returns Result.success(
-            GetProfile.Response(
-                displayName = displayName,
-                avatarUrl = avatarUrl,
+        everySuspend { usersApiClientMock.getProfile(userId) } returns Result.success(
+            Profile(
+                ProfileField.DisplayName(displayName),
+                ProfileField.AvatarUrl(avatarUrl),
             )
         )
     }
@@ -325,13 +416,13 @@ class SearchTest {
     private fun setupGetPresence(userId: UserId, presence: StateFlow<Presence?>) {
         when (val p = presence.value) {
             null -> {
-                everySuspend { usersApiClientMock.getPresence(eq(userId), any()) } returns Result.failure(
+                everySuspend { usersApiClientMock.getPresence(userId) } returns Result.failure(
                     Exception("presence not available")
                 )
             }
 
             else -> {
-                everySuspend { usersApiClientMock.getPresence(eq(userId), any()) } returns Result.success(
+                everySuspend { usersApiClientMock.getPresence(userId) } returns Result.success(
                     PresenceEventContent(p)
                 )
             }
@@ -340,7 +431,7 @@ class SearchTest {
 
     private fun setupGetThumbnail(data: Pair<String, ByteArray>?) {
         data?.also { (url, bytes) ->
-            everySuspend { mediaServiceMock.getThumbnail(eq(url), any(), any()) } returns Result.success(
+            everySuspend { mediaServiceMock.getThumbnail(url, any(), any()) } returns Result.success(
                 InMemoryPlatformMedia(
                     flow {
                         bytes.forEach { emit(byteArrayOf(it)) }

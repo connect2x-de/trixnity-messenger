@@ -1,7 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -10,7 +28,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
@@ -23,26 +40,9 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class RoomSettingsViewModelTest {
@@ -118,33 +118,38 @@ class RoomSettingsViewModelTest {
         } returns MutableStateFlow(createEvent)
 
         every {
-            userServiceMock.getAll(eq(roomId))
+            userServiceMock.getAll(roomId)
         } returns MutableStateFlow(
             mapOf(
                 roomUserMe.userId to flowOf(roomUserMe),
             )
         )
 
-        every { userServiceMock.canKickUser(eq(roomId), any()) } returns MutableStateFlow(true)
+        every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
 
         every { userServiceMock.canInvite(any()) } returns MutableStateFlow(true)
 
         every {
             userServiceMock.canSetPowerLevelToMax(
-                eq(roomId),
+                roomId,
                 any()
             )
         } returns MutableStateFlow(PowerLevel.User(100))
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `go back to the room list view when leaving the room successfully`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                eq(roomId), any(), eqNull()
+                roomId, any()
             )
         } returns Result.success(Unit)
 
@@ -154,14 +159,14 @@ class RoomSettingsViewModelTest {
         yield()
 
         verifySuspend {
-            roomsApiClientMock.leaveRoom(eq(roomId), any(), eqNull())
+            roomsApiClientMock.leaveRoom(roomId, any())
         }
     }
 
     @Test
     fun `show an error message when trying to leave a room and we are not connected`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         syncStateMocker returns MutableStateFlow(SyncState.ERROR)
 
@@ -175,11 +180,11 @@ class RoomSettingsViewModelTest {
     @Test
     fun `show an error message when leaving the room fails`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
         everySuspend {
             roomsApiClientMock.leaveRoom(
-                eq(roomId), any(), eqNull()
+                roomId, any(),
             )
         } returns Result.failure(RuntimeException("Oh no!"))
 
@@ -193,7 +198,7 @@ class RoomSettingsViewModelTest {
     @Test
     fun `not allow to invite users`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
 
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
@@ -207,7 +212,7 @@ class RoomSettingsViewModelTest {
     @Test
     fun `allow to invite users`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(PushRulesEventContent::class), any())
+            userServiceMock.getAccountData(PushRulesEventContent::class, any())
         } returns MutableStateFlow(null)
 
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(true)
@@ -263,7 +268,8 @@ class RoomSettingsViewModelTest {
             onOpenAddMembers = mock(),
             onOpenExportRoom = mock(),
             onOpenUserProfile = mock(),
-            onOpenMention = { _, _  -> },
+            onOpenMention = { _, _ -> },
+            onOpenDevInfo = mock(),
             onOpenPowerLevel = mock(),
         )
     }

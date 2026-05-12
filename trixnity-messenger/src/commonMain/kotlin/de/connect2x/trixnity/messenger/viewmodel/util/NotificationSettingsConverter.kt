@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings
-import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettings.DefaultLevel
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushRule
-import net.folivo.trixnity.core.model.push.PushRuleSet
-import net.folivo.trixnity.core.model.push.ServerDefaultPushRules
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountNotificationSettings.DefaultLevel
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.push.PushAction
+import de.connect2x.trixnity.core.model.push.PushRule
+import de.connect2x.trixnity.core.model.push.PushRuleSet
+import de.connect2x.trixnity.core.model.push.ServerDefaultPushRules
 
-internal fun PushRuleSet.toNotificationSettings(): NotificationSettings {
+internal fun PushRuleSet.toNotificationSettings(): AccountNotificationSettings {
     val serverDefaultRules = getServerDefaultRules()
     val dmRules = setOfNotNull(
         serverDefaultRules[ServerDefaultPushRules.RoomOneToOne.id],
@@ -20,14 +20,14 @@ internal fun PushRuleSet.toNotificationSettings(): NotificationSettings {
     )
     val contentRules = getContentRules().values
 
-    return NotificationSettings(
+    return AccountNotificationSettings(
         defaultLevel = when {
             serverDefaultRules[ServerDefaultPushRules.Master.id]?.enabled == true -> DefaultLevel.NONE
             roomRules.shouldNotify() -> DefaultLevel.ROOM
             dmRules.shouldNotify() -> DefaultLevel.DM
             else -> DefaultLevel.MENTION
         },
-        sound = NotificationSettings.Sound(
+        sound = AccountNotificationSettings.Sound(
             room = roomRules.shouldSetSoundTweak(),
             dm = dmRules.shouldSetSoundTweak(),
             mention = (setOfNotNull(
@@ -36,7 +36,7 @@ internal fun PushRuleSet.toNotificationSettings(): NotificationSettings {
             ) + contentRules).shouldSetSoundTweak(),
             call = setOfNotNull(serverDefaultRules[ServerDefaultPushRules.Call.id]).shouldSetSoundTweak(),
         ),
-        activity = NotificationSettings.Activity(
+        activity = AccountNotificationSettings.Activity(
             invite = setOfNotNull(serverDefaultRules[ServerDefaultPushRules.InviteForMe.id]).shouldNotify(),
             status = setOfNotNull(
                 serverDefaultRules[ServerDefaultPushRules.MemberEvent.id],
@@ -44,7 +44,7 @@ internal fun PushRuleSet.toNotificationSettings(): NotificationSettings {
             ).shouldNotify(),
             notice = serverDefaultRules[ServerDefaultPushRules.SuppressNotice.id]?.enabled == false,
         ),
-        mention = NotificationSettings.Mention(
+        mention = AccountNotificationSettings.Mention(
             user = setOfNotNull(serverDefaultRules[ServerDefaultPushRules.IsUserMention.id]).shouldNotify(),
             room = setOfNotNull(serverDefaultRules[ServerDefaultPushRules.IsRoomMention.id]).shouldNotify(),
             keyword = contentRules.shouldNotify(),
@@ -70,7 +70,7 @@ private fun Collection<PushRule>.shouldSetSoundTweak(): Boolean =
         .firstNotNullOfOrNull { it.actions.filterIsInstance<PushAction.SetSoundTweak>().firstOrNull() }
         ?.value != null
 
-internal fun NotificationSettings.toPushRuleSet(userId: UserId): PushRuleSet =
+internal fun AccountNotificationSettings.toPushRuleSet(userId: UserId): PushRuleSet =
     PushRuleSet(
         override = listOf(
             ServerDefaultPushRules.Master.rule.copy(enabled = defaultLevel == DefaultLevel.NONE),

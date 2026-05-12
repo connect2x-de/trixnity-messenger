@@ -9,19 +9,18 @@ import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.message.audio
-import net.folivo.trixnity.client.room.message.file
-import net.folivo.trixnity.client.room.message.image
-import net.folivo.trixnity.client.room.message.text
-import net.folivo.trixnity.client.room.message.video
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.client.room.message.file
+import de.connect2x.trixnity.client.room.message.image
+import de.connect2x.trixnity.client.room.message.text
+import de.connect2x.trixnity.client.room.message.video
+import de.connect2x.trixnity.core.model.RoomId
 import org.koin.core.component.get
 
 interface ShareDataViewModelFactory {
@@ -50,8 +49,6 @@ interface ShareDataViewModel {
     fun cancel()
 }
 
-private val log = KotlinLogging.logger { }
-
 class SharedDataViewModelImpl(
     private val viewModelContext: ViewModelContext,
     override val sharedData: SharedData,
@@ -72,10 +69,9 @@ class SharedDataViewModelImpl(
         onRoomSelected = { _, roomId -> _selectedRoomId.update { if (it == roomId) null else roomId } },
         onStartCreateNewRoom = { },
         onUserSettingsSelected = { },
-        onUserProfileSelected = { },
+        onShowAccounts = { },
         onOpenAppInfo = { },
         onSendLogs = { },
-        onOpenAccountsOverview = { },
         onAccountSelected = { },
         onStartVerification = { },
         onCloseRoom = { }

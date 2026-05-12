@@ -2,11 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.calls
@@ -14,7 +27,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContain
@@ -31,21 +43,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class AddMembersViewModelTest {
     private val roomId = RoomId("!room")
@@ -64,6 +67,8 @@ class AddMembersViewModelTest {
     val roomsApiClientMock = mock<RoomApiClient>()
 
     val userServiceMock = mock<UserService>()
+    
+    val roomServiceMock = mock<RoomService>()
 
     private val onBackMock = mock<Function0<Unit>>()
 
@@ -80,6 +85,9 @@ class AddMembersViewModelTest {
             modules(
                 module {
                     single { userServiceMock }
+                }, 
+                module {
+                    single { roomServiceMock }
                 })
         }.koin
         every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.STARTED)
@@ -89,13 +97,27 @@ class AddMembersViewModelTest {
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
+        every { roomServiceMock.getById(roomId) } returns flowOf(null)
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
     fun `remove user - should add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -109,7 +131,7 @@ class AddMembersViewModelTest {
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
         val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
-        val cut = createNewAddMembersViewmodel()
+        val cut = createAddMembersViewModel()
         backgroundScope.launch { cut.canAddMembers.collect {} }
         val searchHandler = cut.potentialMembersViewModel.searchHandler
         backgroundScope.launch { searchHandler.foundUsers.collect { } }
@@ -139,17 +161,17 @@ class AddMembersViewModelTest {
 
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId2), eqNull(), eqNull()
+                roomId, userId2, null
             )
         } returns Result.success(Unit)
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId3), eqNull(), eqNull()
+                roomId, userId3, null
             )
         } returns Result.success(Unit)
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any()
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -163,7 +185,7 @@ class AddMembersViewModelTest {
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
         val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
-        val cut = createNewAddMembersViewmodel()
+        val cut = createAddMembersViewModel()
         val searchHandler = cut.potentialMembersViewModel.searchHandler
         searchHandler.searchTerm.update("u")
         searchHandler.foundUsers.first {
@@ -188,7 +210,7 @@ class AddMembersViewModelTest {
 
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId2), eqNull(), eqNull()
+                roomId, userId2, null,
             )
         } returns Result.failure(
             MatrixServerException(
@@ -197,7 +219,7 @@ class AddMembersViewModelTest {
         )
         everySuspend {
             roomsApiClientMock.inviteUser(
-                eq(roomId), eq(userId3), eqNull(), eqNull()
+                roomId, userId3, null,
             )
         } returns Result.failure(
             MatrixServerException(
@@ -206,7 +228,7 @@ class AddMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -220,7 +242,7 @@ class AddMembersViewModelTest {
         val user2 = Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U")
         val user3 = Search.SearchUserElementImpl(userId = userId3, displayName = userDisplayName3, initials = "U")
 
-        val cut = createNewAddMembersViewmodel()
+        val cut = createAddMembersViewModel()
 
         val searchHandler = cut.potentialMembersViewModel.searchHandler
         searchHandler.searchTerm.update("u")
@@ -238,7 +260,83 @@ class AddMembersViewModelTest {
         onBackWasCalled shouldBe false
     }
 
-    private fun TestScope.createNewAddMembersViewmodel(): AddMembersViewModel {
+    @Test
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility INVITED`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+        
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+        
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before you invited them"
+    }
+
+    @Test
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility JOINED`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before they joined"
+    }
+
+    @Test
+    fun `undecryptable history info - should show specific undecryptable history info when room has history visibility SHARED`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = true)
+        )
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.SHARED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
+
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+
+        cut.undecryptableHistoryInfo.value shouldBe "Added members cannot see messages from before you invited them"
+    }
+
+    @Test
+    fun `undecryptable history info - should not show undecryptable history info when room is unencrypted`() = runTest {
+        every { roomServiceMock.getById(roomId) } returns flowOf(
+            Room(RoomId(""), encrypted = false)
+        )
+        
+        val cut = createAddMembersViewModel()
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+        
+        cut.undecryptableHistoryInfo.value shouldBe null
+    }
+
+    private fun TestScope.createAddMembersViewModel(): AddMembersViewModel {
         return AddMembersViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -250,13 +348,14 @@ class AddMembersViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
-            ), potentialMembersViewModel = potentialMembersViewModel(), onBack = onBackMock, roomId = roomId
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "AddMembers"
+            ), potentialMembersViewModel = createPotentialMembersViewModel(), onBack = onBackMock, roomId = roomId
         )
     }
 
 
-    private fun TestScope.potentialMembersViewModel(): PotentialMembersViewModel {
+    private fun TestScope.createPotentialMembersViewModel(): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
@@ -268,7 +367,8 @@ class AddMembersViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "PotentialMembers"
             ), roomId
         )
     }

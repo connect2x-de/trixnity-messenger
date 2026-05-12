@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -12,13 +13,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportMessageView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouter.Wrapper
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger {}
 
 interface ReportMessageRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
@@ -48,6 +46,10 @@ class ReportMessageRouterImpl(
     private val onShowReportMessageDialog: (RoomId, EventId) -> Unit,
     private val onReportMessageDialogDismiss: () -> Unit,
 ) : ReportMessageRouter {
+    companion object {
+        private val log: Logger =
+            Logger("de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMessageRouterImpl")
+    }
 
     private val reportMessageNavigation = StackNavigation<Config>()
     override val stack =
@@ -67,7 +69,7 @@ class ReportMessageRouterImpl(
             is Config.None -> Wrapper.None
             is Config.ReportMessage -> Wrapper.ReportMessageView(
                 viewModelContext.get<ReportToMessageViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(componentContext),
+                    viewModelContext = viewModelContext.childContext("ReportMessage", componentContext),
                     roomId = reportConfig.roomId,
                     eventId = reportConfig.eventId,
                     onShowReportMessageDialog = onShowReportMessageDialog,

@@ -2,6 +2,9 @@
 
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
@@ -17,8 +20,7 @@ import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
-import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOState
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -26,17 +28,15 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.serializer
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.module.Module
-
-private val log = KotlinLogging.logger { }
 
 @Serializable
 data class MatrixMessengerSettingsBase(
     val accounts: Map<UserId, MatrixMessengerAccountSettings> = mapOf(),
     val preferredLang: String? = null,
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
-    val ssoState: SSOState? = null,
+    val ssoLoginState: SSOLoginState? = null,
+    val oAuth2LoginState: OAuth2LoginState? = null,
 
     val themeMode: ThemeMode = ThemeMode.DEFAULT,
     /**
@@ -52,9 +52,25 @@ data class MatrixMessengerSettingsBase(
     val fontSize: Float? = null,
     val displaySize: Float? = null,
     val applySystemSizes: Boolean = true,
-) : SettingsView<MatrixMessengerSettings>
+    val fontKind: FontKind? = null,
+) : SettingsView<MatrixMessengerSettings> {
+    @Serializable
+    data class SSOLoginState(
+        val state: String,
+        val serverUrl: String,
+        val providerId: String?,
+        val providerName: String?,
+    )
 
-@Serializable()
+    @Serializable
+    data class OAuth2LoginState(
+        val serverUrl: String,
+        val type: OAuth2LoginViewModel.Type,
+        val state: OAuth2LoginFlow.AuthRequestData.State,
+    )
+}
+
+@Serializable
 @NestedSettingsView("secretByteArrays")
 data class SecretByteArraySettings(
     val secrets: Map<String, SecretByteArray>? = null,
@@ -86,11 +102,11 @@ data class SecretByteArraySettings(
 data class MatrixMessengerAccountSettingsBase(
     val displayName: String? = null,
     val displayColor: Long? = null,
-    val notificationsEnabled: Boolean = false,
     val presenceIsPublic: Boolean = true,
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
     val accountSetupFinished: Boolean = false,
+    val redactionWarningIsEnabled: Boolean = true
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
         fun withConfigDefaults(
@@ -102,9 +118,17 @@ data class MatrixMessengerAccountSettingsBase(
             readMarkerIsPublic = config.defaultReadMarkerIsPublic,
             typingIsPublic = config.defaultTypingIsPublic,
             accountSetupFinished = config.useAccountSetupWizard.not(),
+            redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled
         )
     }
 }
+
+@Serializable
+@NestedSettingsView("notification")
+data class MatrixMessengerAccountNotificationSettings(
+    val playSound: Boolean = true,
+    val showDetails: Boolean = true,
+) : SettingsView<MatrixMessengerAccountSettings>
 
 data class MatrixMessengerSettings(
     private val delegate: Map<String, JsonElement>
@@ -118,6 +142,7 @@ data class MatrixMessengerAccountSettings(
     private val delegate: Map<String, JsonElement>
 ) : SettingsImpl<MatrixMessengerAccountSettings>(delegate) {
     val base by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountSettingsBase>() }
+    val notification by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationSettings>() }
 }
 
 internal object MatrixMessengerAccountSettingsSerializer : JsonDelegateSerializer<MatrixMessengerAccountSettings>(
@@ -145,6 +170,10 @@ class MatrixMessengerSettingsHolderImpl(
     settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
 ) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
     MatrixMessengerSettingsHolder {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl")
+    }
+
     override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> =
         map { it.base.accounts[userId] }
 

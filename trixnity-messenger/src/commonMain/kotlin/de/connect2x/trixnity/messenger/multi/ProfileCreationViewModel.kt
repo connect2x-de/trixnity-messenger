@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,18 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.Koin
 
-private val log = KotlinLogging.logger { }
+
+interface ProfileCreationViewModelFactory {
+    fun create(
+        di: Koin,
+        coroutineScope: CoroutineScope,
+    ): ProfileCreationViewModel = ProfileCreationViewModelImpl(
+        di = di,
+        coroutineScope = coroutineScope
+    )
+
+    companion object : ProfileCreationViewModelFactory
+}
 
 /**
  * In case of multiple profiles, this can create new profiles. Uses [ProfileManager] under the hood.
@@ -41,6 +52,10 @@ class ProfileCreationViewModelImpl(
     di: Koin,
     private val coroutineScope: CoroutineScope,
 ) : ProfileCreationViewModel {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.multi.ProfileCreationViewModelImpl")
+    }
+
     private val profileManager = di.get<ProfileManager>()
     private val i18n = di.get<I18n>()
 
@@ -58,10 +73,9 @@ class ProfileCreationViewModelImpl(
     override fun createProfile() {
         if (canCreateProfile.value) {
             coroutineScope.launch {
-                val id = profileManager.createProfile(
+                profileManager.createProfile(
                     settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileName.value.text)
                 )
-                profileManager.selectProfile(id)
             }
         } else {
             log.warn { "cannot create a profile" }

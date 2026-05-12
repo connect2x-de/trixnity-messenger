@@ -1,10 +1,19 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,19 +25,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.getState
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.canSendEvent
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import org.koin.core.component.get
 import kotlin.time.Duration.Companion.seconds
-
-private val log = KotlinLogging.logger {}
 
 interface RoomSettingsAliasViewModelFactory {
     fun create(
@@ -177,7 +175,7 @@ class RoomSettingsAliasViewModelImpl(
                     }
                 )
 
-                matrixClient.api.room.setRoomAlias(selectedRoomId, alias, userId).onFailure { error ->
+                matrixClient.api.room.setRoomAlias(selectedRoomId, alias).onFailure { error ->
                     newAliasError.value =
                         if (error !is MatrixServerException) {
                             log.error(error) { "Unexpected Failure" }
@@ -356,7 +354,7 @@ class RoomSettingsAliasViewModelImpl(
                     return@launch
                 }
 
-                matrixClient.api.room.deleteRoomAlias(alias, userId).onFailure { error ->
+                matrixClient.api.room.deleteRoomAlias(alias).onFailure { error ->
                     if (error !is MatrixServerException) {
                         log.error(error) { "Unexpected Failure" }
                         removeAliasError.value = i18n.settingsRoomAliasGeneric()

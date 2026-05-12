@@ -21,8 +21,7 @@ private class Icu4jGaphemeIterable(val inner: String) : GraphemeIterable {
             return count
         }
 
-    override fun iterator(): GraphemeIterator
-            = Icu4jGaphemeIterator(inner)
+    override fun iterator(): GraphemeIterator = Icu4jGaphemeIterator(inner)
 }
 
 private class Icu4jGaphemeIterator(val inner: String) : GraphemeIterator {

@@ -1,30 +1,31 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.user.ProfileField.AvatarUrl
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.ktor.http.*
 import io.ktor.http.ContentType.*
+import io.ktor.http.ContentType
+import io.ktor.http.ContentType.Image
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.room.AvatarEventContent
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArrayFlow
 import org.koin.core.component.get
-import net.folivo.trixnity.utils.toByteArray
 
-
-private val log = KotlinLogging.logger {}
 
 interface AvatarCutterViewModelFactory {
     fun create(
@@ -73,7 +74,9 @@ interface AvatarCutterViewModel {
     fun cancel()
 
     @Deprecated("Use setImageData instead", replaceWith = ReplaceWith("setImageData"))
-    fun setAvatarImage(data: ByteArray?, mimeType: ContentType = Image.PNG) = setImageData(data?.toByteArrayFlow(), mimeType)
+    fun setAvatarImage(data: ByteArray?, mimeType: ContentType = Image.PNG) =
+        setImageData(data?.toByteArrayFlow(), mimeType)
+
     fun setImageData(data: ByteArrayFlow?, mimeType: ContentType)
 }
 
@@ -114,7 +117,7 @@ open class AvatarCutterViewModelImpl(
 
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun setImageData(data: ByteArrayFlow?, mimeType: ContentType) {
@@ -148,7 +151,7 @@ open class AvatarCutterViewModelImpl(
     }
 
     private suspend fun setUserAvatar(url: String) {
-        matrixClient.setAvatarUrl(url).fold(
+        matrixClient.setProfileField(AvatarUrl(url)).fold(
             onSuccess = {
                 upload.value = false
                 log.debug { "Successfully set user avatar" }

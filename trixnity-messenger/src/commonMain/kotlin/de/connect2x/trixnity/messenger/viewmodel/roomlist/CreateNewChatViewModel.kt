@@ -1,9 +1,20 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,21 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface CreateNewChatViewModelFactory {
     fun create(
@@ -82,7 +79,7 @@ open class CreateNewChatViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
         coroutineScope.launch {
             getAllDirectRooms()
         }

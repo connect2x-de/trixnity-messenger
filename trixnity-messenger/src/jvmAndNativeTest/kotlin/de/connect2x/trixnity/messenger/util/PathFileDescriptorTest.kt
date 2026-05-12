@@ -3,10 +3,10 @@ package de.connect2x.trixnity.messenger.util
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.http.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.utils.toByteArray
+import de.connect2x.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 import kotlin.test.Test

@@ -1,38 +1,41 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @Suppress("NonAsciiCharacters")
 class MemberStateTimelineElementViewModelTest {
@@ -72,9 +75,17 @@ class MemberStateTimelineElementViewModelTest {
         }
         isDirect.value = false
         every { roomServiceMock.getById(roomId) } returns isDirect.map { Room(roomId, isDirect = it) }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
 
         every {
-            userServiceMock.getById(any(), eq(UserId("bob", "localhost")))
+            userServiceMock.getById(any(), UserId("bob", "localhost"))
         } returns MutableStateFlow(
             RoomUser(
                 roomId = RoomId("!room1"),
@@ -91,7 +102,7 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         every {
-            userServiceMock.getById(any(), eq(UserId("mallory", "localhost")))
+            userServiceMock.getById(any(), UserId("mallory", "localhost"))
         } returns MutableStateFlow(
             RoomUser(
                 roomId = RoomId("!room1"),
@@ -109,6 +120,11 @@ class MemberStateTimelineElementViewModelTest {
         )
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `name change » should show an indicator for name changes`() = runTest {
         val cut = memberStatusViewModel(
@@ -119,10 +135,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(1.seconds)
 
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
-        }
+        cut.changeMessage.value shouldBe "'I am the original' has changed their name to 'I have changed!'"
     }
 
     @Test
@@ -135,26 +150,278 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(1.seconds)
 
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Sender has changed the avatar image"
-        }
+        cut.changeMessage.value shouldBe "Sender has changed the avatar image"
+
     }
 
     @Test
-    fun `joining user » should show an indicator for user joining a room`() = runTest {
+    fun `joining user » should show an indicator without undecryptable history info when someone else joins an unencrypted room`() =
+        runTest {
+            val currentUser = UserId("@alice:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = false
+                )
+            }
+
+            val joiningUser = UserId("@bob:localhost")
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = memberEventContent(),
+                    stateKey = joiningUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe null
+        }
+
+    @Test
+    fun `joining user » should show an indicator without undecryptable history info when I join an unencrypted room`() =
+        runTest {
+            val joiningUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns joiningUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = false
+                )
+            }
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = memberEventContent(),
+                    stateKey = joiningUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe null
+        }
+
+    @Test
+    fun `joining user » should show an indicator without undecryptable history info when someone else joins an encrypted room`() =
+        runTest {
+            val currentUser = UserId("@alice:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+            every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                    flowOf(
+                        ClientEvent.StrippedStateEvent(
+                            HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                            sender = UserId("user", "server"),
+                            stateKey = "stateKey",
+                        )
+                    )
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = memberEventContent(),
+                    stateKey = "@bob:localhost",
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe null
+        }
+
+    @Test
+    fun `joining user » should show an indicator without undecryptable history info when I join an encrypted room but there is no previous content eg on room creation`() =
+        runTest {
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = null,
+                    stateKey = currentUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe null
+
+        }
+
+    @Test
+    fun `joining user » should show undecryptable history info near my join event when history visibility is JOINED`() =
+        runTest {
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+            every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                    flowOf(
+                        ClientEvent.StrippedStateEvent(
+                            HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                            sender = UserId("user", "server"),
+                            stateKey = "stateKey",
+                        )
+                    )
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = memberEventContent(),
+                    stateKey = currentUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
+        }
+
+    @Test
+    fun `joining user » should show undecryptable history info near my invite event when history visibility is INVITED`() =
+        runTest {
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+            every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                    flowOf(
+                        ClientEvent.StrippedStateEvent(
+                            HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                            sender = UserId("user", "server"),
+                            stateKey = "stateKey",
+                        )
+                    )
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.INVITE,
+                    previousMemberEventContent = null,
+                    stateKey = currentUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob was invited by Sender"
+            cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
+        }
+
+    @Test
+    fun `joining user » should show undecryptable history info near my invite event when history visibility is SHARED`() =
+        runTest {
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+            every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                    flowOf(
+                        ClientEvent.StrippedStateEvent(
+                            HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.SHARED),
+                            sender = UserId("user", "server"),
+                            stateKey = "stateKey",
+                        )
+                    )
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.INVITE,
+                    previousMemberEventContent = null,
+                    stateKey = currentUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob was invited by Sender"
+            cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
+        }
+
+    @Test
+    fun `joining user » should snot how undecryptable history info when room is upgraded`() = runTest {
+        val previousRoomId = RoomId("!previousRoom")
+        val currentUser = UserId("@bob:localhost")
+        every { matrixClientMock.userId } returns currentUser
+        every { roomServiceMock.getById(previousRoomId) } returns flowOf(
+            Room(previousRoomId, encrypted = true)
+        )
+        every { roomServiceMock.getById(roomId) } returns isDirect.map {
+            Room(
+                roomId,
+                isDirect = it,
+                encrypted = true,
+                createEventContent = CreateEventContent(predecessor = CreateEventContent.PreviousRoom(previousRoomId))
+            )
+        }
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.SHARED),
+                        sender = UserId("user", "server"),
+                        stateKey = "stateKey",
+                    )
+                )
 
         val cut = memberStatusViewModel(
             mockTimelineEvent(
-                membership = Membership.JOIN,
+                membership = Membership.INVITE,
                 previousMemberEventContent = null,
-                stateKey = "@bob:localhost",
+                stateKey = currentUser.full,
             ),
         )
-        backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
+        backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+        delay(1.seconds)
+
+        cut.undecryptableHistoryInfo.value shouldBe null
     }
 
     @Test
@@ -168,9 +435,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has left the group"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob has left the group"
+
     }
 
     @Test
@@ -183,9 +451,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender"
     }
 
     @Test
@@ -199,9 +467,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was banned from the group by Sender because \"he spammed our chat :(\""
     }
 
     @Test
@@ -214,9 +482,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was unbanned by Sender"
+
     }
 
     @Test
@@ -230,9 +499,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was unbanned by Sender because \"he spammed our chat :(\""
+
     }
 
     @Test
@@ -245,9 +515,10 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender"
+
     }
 
     @Test
@@ -261,9 +532,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Mallory was removed from the group by Sender because \"he spammed our chat :(\""
     }
 
     @Test
@@ -276,9 +547,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob was invited by Sender"
     }
 
     @Test
@@ -292,9 +563,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob was invited by Sender because \"I want him to play Stardew Valley with us\""
     }
 
     @Test
@@ -309,9 +580,9 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob has rejected the invitation because \"I don't want to play Stardew Valley with you\""
     }
 
     @Test
@@ -325,9 +596,8 @@ class MemberStateTimelineElementViewModelTest {
             )
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Sender has revoked the invitation to Bob because \"I don't want him to play Stardew Valley with us\""
     }
 
     @Test
@@ -340,9 +610,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob requested to join the group. Check the room settings to manage the Request"
     }
 
     @Test
@@ -356,9 +626,9 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
-        }
+        delay(1.seconds)
+
+        cut.changeMessage.value shouldBe "Bob requested to join the group because \"he also likes treecake\". Check the room settings to manage the Request"
     }
 
     @Test
@@ -371,18 +641,19 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender"
-        }
+        delay(1.seconds)
 
+        cut.changeMessage.value shouldBe "Bob was invited by Sender"
         senderName.value = "Sender2"
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob was invited by Sender2"
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Bob was invited by Sender2"
     }
 
     @Test
     fun `changed room » update indicator on room changing 'direct' state`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+
         val cut = memberStatusViewModel(
             mockTimelineEvent(
                 membership = Membership.JOIN,
@@ -391,15 +662,53 @@ class MemberStateTimelineElementViewModelTest {
             ),
         )
         backgroundScope.launch { cut.changeMessage.collect {} }
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the group"
-        }
+        delay(1.seconds)
 
+        cut.changeMessage.value shouldBe "Bob has joined the group"
         isDirect.value = true
-        eventually(100.milliseconds) {
-            cut.changeMessage.value shouldBe "Bob has joined the chat"
-        }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe "Bob has joined the chat"
     }
+
+    @Test
+    fun `changed room » update indicator and keep undecryptable history info on room changing 'direct' state`() =
+        runTest {
+            val currentUser = UserId("@bob:localhost")
+            every { matrixClientMock.userId } returns currentUser
+            every { roomServiceMock.getById(roomId) } returns isDirect.map {
+                Room(
+                    roomId,
+                    isDirect = it,
+                    encrypted = true
+                )
+            }
+            every { roomServiceMock.getState<HistoryVisibilityEventContent>(roomId, any(), any()) } returns
+                    flowOf(
+                        ClientEvent.StrippedStateEvent(
+                            HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.JOINED),
+                            sender = UserId("user", "server"),
+                            stateKey = "stateKey",
+                        )
+                    )
+
+            val cut = memberStatusViewModel(
+                mockTimelineEvent(
+                    membership = Membership.JOIN,
+                    previousMemberEventContent = memberEventContent(),
+                    stateKey = currentUser.full,
+                ),
+            )
+            backgroundScope.launch { cut.changeMessage.collect {} }
+            backgroundScope.launch { cut.undecryptableHistoryInfo.collect {} }
+            delay(1.seconds)
+
+            cut.changeMessage.value shouldBe "Bob has joined the group"
+            cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
+            isDirect.value = true
+            delay(1.seconds)
+            cut.changeMessage.value shouldBe "Bob has joined the chat"
+            cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
+        }
 
     private fun TestScope.memberStatusViewModel(
         timelineEvent: TimelineEvent,

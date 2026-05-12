@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -10,7 +11,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.delay
@@ -18,15 +18,16 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.ImageInfo
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.ThumbnailInfo
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -39,11 +40,16 @@ class ImageRoomMessageTimelineElementViewModelTest {
         every { thumbnailsMock.mapProgressToProgressElement(any()) } returns flowOf(null)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns "thumbnail".encodeToByteArray()
 
@@ -58,7 +64,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } calls {
             delay(500.milliseconds)
@@ -81,7 +87,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), eq(matrixClientMock), any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
             )
         } returns null
 

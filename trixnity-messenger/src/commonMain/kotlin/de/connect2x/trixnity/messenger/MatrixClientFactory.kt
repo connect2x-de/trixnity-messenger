@@ -1,92 +1,91 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.MatrixClientConfiguration
+import de.connect2x.trixnity.client.RepositoriesModule
+import de.connect2x.trixnity.client.create
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.core.MSC3814
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder
+import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.MatrixClient.LoginInfo
-import net.folivo.trixnity.client.fromStore
-import net.folivo.trixnity.client.loginWith
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.core.model.UserId
-import org.koin.core.module.Module
+import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
-
-private val log = KotlinLogging.logger { }
+private val log = Logger("de.connect2x.trixnity.messenger.MatrixClientFactory")
 
 interface MatrixClientFactory {
-    suspend fun loginWith(
-        baseUrl: Url,
-        getLoginInfo: suspend (MatrixClientServerApiClient) -> LoginInfo,
-        checkExisting: suspend (LoginInfo) -> Unit,
+    suspend fun create(
+        userId: UserId,
+        authProviderData: MatrixClientAuthProviderData,
+        configuration: MatrixClientConfiguration.() -> Unit = {},
     ): Result<MatrixClient>
 
-    suspend fun initFromStore(
+    suspend fun load(
         userId: UserId,
-    ): Result<MatrixClient?>
+        authProviderData: MatrixClientAuthProviderData? = null,
+        configuration: MatrixClientConfiguration.() -> Unit = {},
+    ): Result<MatrixClient>
 }
 
 class MatrixClientFactoryImpl(
-    private val repositoriesModuleCreation: CreateRepositoriesModule,
-    private val createMediaStoreModule: CreateMediaStoreModule,
     private val secretByteArrays: SecretByteArrays,
-    private val configurer: List<ConfigureMatrixClientConfiguration>,
-    private val coroutineContext: CoroutineContext,
-    private val onLogin: suspend (loginInfo: LoginInfo, baseUrl: Url) -> Unit = { _, _ -> },
+    private val createRepositoriesModule: CreateRepositoriesModule,
+    private val createMediaStoreModule: CreateMediaStoreModule,
+    private val createCryptoDriverModule: CreateCryptoDriverModule,
+    private val appCoroutineContext: CoroutineContext,
+    private val messengerConfiguration: MatrixMessengerConfiguration,
 ) : MatrixClientFactory {
-    override suspend fun loginWith(
-        baseUrl: Url,
-        getLoginInfo: suspend (MatrixClientServerApiClient) -> LoginInfo,
-        checkExisting: suspend (LoginInfo) -> Unit,
-    ): Result<MatrixClient> = kotlin.runCatching {
-        log.debug { "loginWith to account" }
-        MatrixClient.loginWith(
-            baseUrl = baseUrl,
-            repositoriesModuleFactory = { loginInfo ->
-                createRepositoriesModuleOrThrow(loginInfo.userId, getDatabaseKey(loginInfo.userId, true))
-            },
-            mediaStoreModuleFactory = { loginInfo ->
-                createMediaStoreModule(loginInfo.userId)
-            },
-            getLoginInfo = {
-                kotlin.runCatching {
-                    val loginInfo = getLoginInfo(it)
-                    checkExisting(loginInfo)
-                    onLogin(loginInfo, baseUrl)
-                    loginInfo
-                }
-            },
-            configuration = {
-                configurer.forEach { with(it) { invoke() } }
-            },
-            coroutineContext = coroutineContext,
-        ).getOrThrow()
-    }
-
-    override suspend fun initFromStore(
+    override suspend fun create(
         userId: UserId,
-    ): Result<MatrixClient?> = kotlin.runCatching {
-        log.debug { "initFromStore (userId=$userId)" }
-        MatrixClient.fromStore(
-            repositoriesModule = loadRepositoriesModuleOrThrow(userId, getDatabaseKey(userId, false)),
+        authProviderData: MatrixClientAuthProviderData,
+        configuration: MatrixClientConfiguration.() -> Unit
+    ): Result<MatrixClient> =
+        MatrixClient.create(
+            repositoriesModule = createRepositoriesModuleOrThrow(userId),
             mediaStoreModule = createMediaStoreModule(userId),
-            configuration = {
-                configurer.forEach { with(it) { invoke() } }
-            },
-            coroutineContext = coroutineContext,
-        ).getOrThrow()
-    }
+            cryptoDriverModule = createCryptoDriverModule(),
+            authProviderData = authProviderData,
+            coroutineContext = appCoroutineContext,
+        ) {
+            configureDefault()
+            configuration()
+            messengerConfiguration.client.invoke(this)
+        }
+
+    override suspend fun load(
+        userId: UserId,
+        authProviderData: MatrixClientAuthProviderData?,
+        configuration: MatrixClientConfiguration.() -> Unit
+    ): Result<MatrixClient> =
+        MatrixClient.create(
+            repositoriesModule = loadRepositoriesModuleOrThrow(userId),
+            mediaStoreModule = createMediaStoreModule(userId),
+            cryptoDriverModule = createCryptoDriverModule(),
+            authProviderData = authProviderData,
+            coroutineContext = appCoroutineContext,
+        ) {
+            configureDefault()
+            configuration()
+            messengerConfiguration.client.invoke(this)
+        }
+
 
     private suspend fun createRepositoriesModuleOrThrow(
         userId: UserId,
-        databaseKey: ByteArray?,
-    ): Module {
+    ): RepositoriesModule {
         log.debug { "create repositories module" }
         val repositoriesModule = try {
-            repositoriesModuleCreation.create(userId, databaseKey)
+            createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
         } catch (exc: Exception) {
             if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
             else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
@@ -96,11 +95,10 @@ class MatrixClientFactoryImpl(
 
     private suspend fun loadRepositoriesModuleOrThrow(
         userId: UserId,
-        databaseKey: ByteArray?,
-    ): Module {
+    ): RepositoriesModule {
         log.debug { "load repositories module" }
         val repositoriesModule = try {
-            repositoriesModuleCreation.load(userId, databaseKey)
+            createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
         } catch (exc: Exception) {
             if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
             else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
@@ -110,7 +108,7 @@ class MatrixClientFactoryImpl(
 
     private suspend fun getDatabaseKey(userId: UserId, createNew: Boolean): ByteArray? {
         return if (createNew) {
-            val newKey = repositoriesModuleCreation.generateDatabaseKey() ?: return null
+            val newKey = createRepositoriesModule.generateDatabaseKey() ?: return null
             secretByteArrays.setDatabaseKey(userId, newKey)
             newKey
         } else {
@@ -121,4 +119,36 @@ class MatrixClientFactoryImpl(
     // we cannot check for SQLNonTransientConnectionException since this is common code
     private fun isLocked(exc: Throwable): Boolean =
         exc.cause?.message?.contains("locked") == true || exc.cause?.let { isLocked(it) } ?: false
+
+    private fun MatrixClientConfiguration.configureDefault() {
+        markOwnMessageAsRead = true
+        enableExternalNotifications = true
+        httpClientEngine = messengerConfiguration.httpClientEngine
+        httpClientConfig = messengerConfiguration.httpClientConfig
+        @OptIn(MSC3814::class)
+        experimentalFeatures.enableMSC3814 = true
+        lastRelevantEventFilter = {
+            val content = it.content
+            val isReplace = content is MessageEventContent && content.relatesTo is RelatesTo.Replace
+            val isMessage = content is RoomMessageEventContent || content is EncryptedMessageEventContent
+            (!isReplace && isMessage)
+        }
+        modulesFactories += {
+            module {
+                single<EventContentSerializerMappings> {
+                    val customEventContentSerializerMappings = getAll<CustomEventContentSerializerMappings>()
+                    customEventContentSerializerMappings
+                        .fold(EventContentSerializerMappings.default) { a, b -> a + b }
+                }
+            }
+        }
+    }
+}
+
+interface CustomEventContentSerializerMappings : EventContentSerializerMappings {
+    companion object {
+        operator fun invoke(builder: EventContentSerializerMappingsBuilder.() -> Unit): CustomEventContentSerializerMappings =
+            object : CustomEventContentSerializerMappings,
+                EventContentSerializerMappings by EventContentSerializerMappingsBuilder().apply(builder).build() {}
+    }
 }

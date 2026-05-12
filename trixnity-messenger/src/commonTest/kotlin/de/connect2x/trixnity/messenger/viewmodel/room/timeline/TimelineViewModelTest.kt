@@ -4,31 +4,51 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
+import de.connect2x.trixnity.messenger.coroutineDispatcher
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.FileDescriptor
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import dev.mokkery.answering.BlockingAnsweringScope
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -42,31 +62,13 @@ import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.RoomOutboxMessage
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.DefaultAsserter.fail
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -76,7 +78,6 @@ import kotlin.time.Instant
 
 @Suppress("NonAsciiCharacters")
 class TimelineViewModelTest {
-
     private var lifecycleRegistry: LifecycleRegistry
 
     private val roomId = RoomId("!room1")
@@ -130,10 +131,13 @@ class TimelineViewModelTest {
 
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
         everySuspend {
-            roomsApiClientMock.setReadMarkers(any(), any(), any(), any(), eqNull())
+            roomsApiClientMock.setReadMarkers(any(), any(), any(), any())
         } returns Result.success(Unit)
         everySuspend {
-            roomsApiClientMock.setReceipt(any(), any(), any(), any(), eqNull())
+            roomsApiClientMock.setAccountData(any(), any(), any(), any())
+        } returns Result.success(Unit)
+        everySuspend {
+            roomsApiClientMock.setReceipt(any(), any(), any(), any())
         } returns Result.success(Unit)
 
         every { roomServiceMock.getOutbox() } returns outboxMessagesFlow.map {
@@ -150,7 +154,7 @@ class TimelineViewModelTest {
 
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns dummyEvent
         every { roomServiceMock.getNextTimelineEvent(any(), any()) } returns flowOf(null)
-        every { roomServiceMock.getTimelineEventRelations(eq(roomId), any(), any()) } returns flowOf(null)
+        every { roomServiceMock.getTimelineEventRelations(roomId, any(), any()) } returns flowOf(null)
 
         every {
             userServiceMock.getAll(roomId)
@@ -189,14 +193,16 @@ class TimelineViewModelTest {
                 ),
             )
         )
-        every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getAllReceipts(roomId) } returns MutableStateFlow(emptyMap())
         every {
-            userServiceMock.getById(eq(roomId), any())
+            userServiceMock.getById(roomId, any())
         } returns MutableStateFlow(null)
-        every { userServiceMock.getById(eq(roomId), any()) } returns flowOf(null)
+        every { userServiceMock.getById(roomId, any()) } returns flowOf(null)
         everySuspend { userServiceMock.loadMembers(roomId, false) } returns Unit
 
         every { clock.now() } returns Instant.parse("2020-09-01T01:00:00.000Z")
+
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
 
         outboxMessagesFlow.value = listOf() // reset
 
@@ -204,10 +210,21 @@ class TimelineViewModelTest {
         lifecycleRegistry.start()
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     // TODO
     @AfterTest
     fun afterTest() {
         lifecycleRegistry.destroy()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun runTest(action: suspend TestScope.() -> Unit) = kotlinx.coroutines.test.runTest {
+        Dispatchers.setMain(coroutineDispatcher)
+        action()
     }
 
     @Test
@@ -229,9 +246,9 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-1",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true
+                timelineIsFocused = true
             )
-            delay(200) // give the viewmodel time to compute derived values
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -403,7 +420,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "notRelevant",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         cut.elements waitForSize 20
     }
@@ -426,7 +443,7 @@ class TimelineViewModelTest {
 
         cut.viewState.value = TimelineViewModel.ViewState(
             firstVisibleElement = "notRelevant", lastVisibleElement = "$roomId-8",// [9..19], see above
-            firstLoadedElement = "notRelevant", lastLoadedElement = "notRelevant", windowIsFocused = true
+            firstLoadedElement = "notRelevant", lastLoadedElement = "notRelevant", timelineIsFocused = true
         )
         continually(1.seconds) {
             cut.elements.value.size shouldBe 11
@@ -456,7 +473,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-9",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         cut.elements waitForSize 20
     }
@@ -487,7 +504,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-transactionId-1",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
 
         timelineMock.addEvents {
@@ -522,7 +539,7 @@ class TimelineViewModelTest {
             lastVisibleElement = "$roomId-0",
             firstLoadedElement = "notRelevant",
             lastLoadedElement = "notRelevant",
-            windowIsFocused = true
+            timelineIsFocused = true
         )
         continually(1.seconds) {
             cut.elements.value.size shouldBe 11
@@ -596,7 +613,7 @@ class TimelineViewModelTest {
     @Test
     fun `leaveRoom » show an error message when leaving the room fails`() = runTest {
         everySuspend {
-            roomsApiClientMock.leaveRoom(roomId, any(), eqNull())
+            roomsApiClientMock.leaveRoom(roomId, any())
         } returns Result.failure(RuntimeException("Oh no!"))
 
         timeline(roomServiceMock, roomId) {}
@@ -667,12 +684,12 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-0",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true,
+                timelineIsFocused = true,
             )
-            delay(200) // give the viewmodel time to compute derived values
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
-            scrollToCalled.value.shouldBeEmpty()
+            scrollToCalled.value shouldBe listOf("!room1-0") // initial loading
 
             timelineMock.addEvents {
                 +messageEvent(sender = alice) {
@@ -681,7 +698,7 @@ class TimelineViewModelTest {
             }
 
             cut.elements waitForSize 2
-            scrollToCalled.firstWithClue(listOf("$roomId-1"))
+            scrollToCalled.firstWithClue(listOf("!room1-0", "$roomId-1"))
         }
 
     @Test
@@ -704,12 +721,12 @@ class TimelineViewModelTest {
                 lastVisibleElement = "$roomId-0",
                 firstLoadedElement = "notRelevant",
                 lastLoadedElement = "notRelevant",
-                windowIsFocused = true
+                timelineIsFocused = true
             )
             delay(500.milliseconds) // give scrollTo time to be cleared
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
-            scrollToCalled.value.shouldBeEmpty()
+            scrollToCalled.value shouldBe listOf("!room1-1") // initial loading
 
             // this will not trigger a creation of a viewmodel as we are not at the end of the timeline
             timelineMock.addEvents {
@@ -719,7 +736,146 @@ class TimelineViewModelTest {
             }
 
             continually(500.milliseconds) {
-                scrollToCalled.value.shouldBeEmpty()
+                scrollToCalled.value shouldBe listOf("!room1-1")
+            }
+        }
+
+
+    @Test
+    fun `jumpTo » scroll to a message when it's loaded and visible`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) {
+                repeat(40) {
+                    +messageEvent(sender = alice) {
+                        text("Hello $it!")
+                    }
+                }
+            }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 11
+
+            cut.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = "$roomId-30",
+                lastVisibleElement = "$roomId-39",
+                firstLoadedElement = "$roomId-25",
+                lastLoadedElement = "$roomId-39",
+                timelineIsFocused = true
+            )
+            delay(500.milliseconds) // give scrollTo time to be cleared
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
+
+            cut.jumpTo(roomId, EventId("35"))
+
+            delay(500.milliseconds)
+
+            continually(500.milliseconds) {
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-35")
+            }
+        }
+
+    @Test
+    fun `jumpTo » scroll to a message when it's loaded but not visible`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) {
+                repeat(40) {
+                    +messageEvent(sender = alice) {
+                        text("Hello $it!")
+                    }
+                }
+            }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 11
+
+            cut.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = "$roomId-30",
+                lastVisibleElement = "$roomId-39",
+                firstLoadedElement = "$roomId-25",
+                lastLoadedElement = "$roomId-39",
+                timelineIsFocused = true
+            )
+            delay(500.milliseconds) // give scrollTo time to be cleared
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
+
+            cut.jumpTo(roomId, EventId("27"))
+
+            delay(500.milliseconds)
+
+            continually(500.milliseconds) {
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-27")
+            }
+        }
+
+    @Test
+    fun `jumpTo » scroll to a message when it's not loaded`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) {
+                repeat(40) {
+                    +messageEvent(sender = alice) {
+                        text("Hello $it!")
+                    }
+                }
+            }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 11
+
+            cut.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = "$roomId-30",
+                lastVisibleElement = "$roomId-39",
+                firstLoadedElement = "$roomId-25",
+                lastLoadedElement = "$roomId-39",
+                timelineIsFocused = true
+            )
+            delay(500.milliseconds) // give scrollTo time to be cleared
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
+
+            cut.jumpTo(roomId, EventId("5"))
+
+            delay(500.milliseconds)
+
+            continually(500.milliseconds) {
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-5")
+            }
+        }
+
+    @Test
+    fun `jumpTo » execute multiple scroll requests in sequence`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) {
+                repeat(40) {
+                    +messageEvent(sender = alice) {
+                        text("Hello $it!")
+                    }
+                }
+            }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 11
+
+            cut.viewState.value = TimelineViewModel.ViewState(
+                firstVisibleElement = "$roomId-30",
+                lastVisibleElement = "$roomId-39",
+                firstLoadedElement = "$roomId-25",
+                lastLoadedElement = "$roomId-39",
+                timelineIsFocused = true
+            )
+            delay(500.milliseconds) // give scrollTo time to be cleared
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-39") // initial loading
+
+            cut.jumpTo(roomId, EventId("5"))
+            cut.jumpTo(roomId, EventId("27"))
+            cut.jumpTo(roomId, EventId("35"))
+
+            delay(500.milliseconds)
+
+            continually(500.milliseconds) {
+                scrollToCalled.value shouldBe listOf("!room1-39", "!room1-5", "!room1-27", "!room1-35")
             }
         }
 
@@ -892,9 +1048,44 @@ class TimelineViewModelTest {
         }
     }
 
+    @Test
+    fun `mark room as read when opening`() = runTest {
+        timeline(roomServiceMock, roomId) {
+            +messageEvent(sender = alice) { text("Text message") }
+        }
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(true)
+        )
+        var setRoomAsReadCalled = false
+        everySuspend {
+            roomsApiClientMock.setAccountData(
+                MarkedUnreadEventContent(false),
+                any(),
+                any(),
+            )
+        } calls {
+            setRoomAsReadCalled = true
+            Result.success(Unit)
+        }
+        val cut = timelineViewModel()
+        cut.elements waitForSize 1
+
+        cut.viewState.value = TimelineViewModel.ViewState(
+            firstVisibleElement = "notRelevant",
+            lastVisibleElement = "$roomId-0",
+            firstLoadedElement = "notRelevant",
+            lastLoadedElement = "notRelevant",
+            timelineIsFocused = true
+        )
+        eventually(2.seconds) {
+            setRoomAsReadCalled shouldBe true
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.timelineViewModel(
         onBackMock: () -> Unit = mock(),
-    ): TimelineViewModel {
+    ): TimelineViewModelImpl {
         return TimelineViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(lifecycleRegistry),
@@ -945,7 +1136,8 @@ class TimelineViewModelTest {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "Timeline"
             ),
             roomId = roomId,
             onOpenSettings = mock(),

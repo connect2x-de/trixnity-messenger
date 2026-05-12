@@ -18,14 +18,14 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.EventType
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.EventType
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import kotlin.collections.plus
 
 interface PowerlevelViewModelFactory {

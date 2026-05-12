@@ -1,11 +1,12 @@
 package de.connect2x.trixnity.messenger.multi
 
 import co.touchlab.skie.configuration.annotations.DefaultArgumentInterop
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -24,8 +25,6 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
 
-private val log = KotlinLogging.logger {}
-
 interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
     companion object
 
@@ -42,8 +41,9 @@ class MatrixMultiMessengerImpl private constructor(
     override val di: Koin,
     private val profileManager: ProfileManager,
 ) : MatrixMultiMessenger, ProfileManager by profileManager {
-
     companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl")
+
         @DefaultArgumentInterop.Enabled
         suspend operator fun invoke(
             coroutineContext: CoroutineContext = Dispatchers.Default,
@@ -108,7 +108,7 @@ class MatrixMultiMessengerImpl private constructor(
     }
 }
 
-suspend fun MatrixMultiMessenger.singleModeMatrixMessenger(): Flow<MatrixMessenger> {
+suspend fun ProfileManager.singleModeMatrixMessenger(): Flow<MatrixMessenger> {
     if (activeProfile.value == null) {
         val profile = profiles.value.keys.firstOrNull() ?: createProfile()
         selectProfile(profile)

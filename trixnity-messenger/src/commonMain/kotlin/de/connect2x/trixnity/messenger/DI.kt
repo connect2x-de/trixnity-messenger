@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -7,19 +8,27 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
+import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
+import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
+import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
+import de.connect2x.trixnity.messenger.notification.notificationModule
+import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
 import de.connect2x.trixnity.messenger.secrets.secretsModule
+import de.connect2x.trixnity.messenger.util.BackHandler
+import de.connect2x.trixnity.messenger.util.BackHandlerImpl
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.DownloadManagerImpl
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.DragAndDropHandlerBase
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.util.EnterRoomImpl
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavour
+import de.connect2x.trixnity.messenger.util.InformationMarkdownFlavourImpl
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.LeaveRoomImpl
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavourImpl
-import de.connect2x.trixnity.messenger.util.RelevantTimelineEvents
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
@@ -35,13 +44,14 @@ import de.connect2x.trixnity.messenger.util.platformProcessImageUploadModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformStringsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
-import de.connect2x.trixnity.messenger.util.platformUrlHandlerModule
+import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
@@ -49,6 +59,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFac
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -58,6 +69,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElement
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsHistoryVisibilityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsJoinRulesViewModelFactory
@@ -66,8 +78,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotif
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.TimelineElementMetadataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.UserProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportToMessageViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.RoomHeaderViewModelFactory
@@ -100,6 +114,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.Hi
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.PowerLevelsTimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TombstoneStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TopicStateTimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
@@ -118,19 +133,21 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsOverviewViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.DevicesSettingsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAllAccountsViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAccountsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileSingleViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.ProfileViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsSingleViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.settings.platformNotificationSettingsSingleAccountViewModelFactoryModule
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaImpl
@@ -139,6 +156,7 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepEmailIdentityViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepOAuth2ViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
@@ -177,12 +195,6 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.TimeZone
-import net.folivo.trixnity.client.MatrixClientConfiguration
-import net.folivo.trixnity.client.ModuleFactory
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClientFactory
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.serialization.events.DefaultEventContentSerializerMappings
-import net.folivo.trixnity.core.serialization.events.EventContentSerializerMappings
 import org.koin.core.module.Module
 import org.koin.core.parameter.ParametersHolder
 import org.koin.core.qualifier.named
@@ -191,55 +203,31 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
 
-
-fun interface ConfigureMatrixClientConfiguration {
-    operator fun MatrixClientConfiguration.invoke()
-}
-
-fun interface DebugName {
-    operator fun invoke(): String
-}
-
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
     {
         module {
             single<Clock> { Clock.System }
             single<TimeZone> { TimeZone.currentSystemDefault() }
-
-            single<ConfigureMatrixClientConfiguration>(named("DefaultConfigureMatrixClientConfiguration")) {
-                val config = get<MatrixMessengerConfiguration>()
-                val relevantTimelineEvents = get<RelevantTimelineEvents>()
-                val eventContentSerializerMappings = getAll<EventContentSerializerMappings>()
-                ConfigureMatrixClientConfiguration {
-                    name = getOrNull<DebugName>()?.invoke()
-                    markOwnMessageAsRead = true
-                    httpClientEngine = config.httpClientEngine
-                    httpClientConfig = config.httpClientConfig
-                    lastRelevantEventFilter =
-                        { relevantTimelineEvents.isRelevantTimelineEvent(it.content) }
-                    if (eventContentSerializerMappings.isNotEmpty()) {
-                        modulesFactories += {
-                            module {
-                                single<EventContentSerializerMappings> {
-                                    eventContentSerializerMappings
-                                        .fold(DefaultEventContentSerializerMappings) { a, b -> a + b }
-                                }
-                            }
-                        }
-                    }
-                    getOrNull<MatrixClientServerApiClientFactory>()?.let {
-                        matrixClientServerApiClientFactory = it
-                    }
-                }
-            }
-
             single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(get(), get(), get(), getAll(), get<CoroutineScope>().coroutineContext)
+                MatrixClientFactoryImpl(
+                    secretByteArrays = get(),
+                    createRepositoriesModule = get(),
+                    createMediaStoreModule = get(),
+                    createCryptoDriverModule = get(),
+                    appCoroutineContext = get<CoroutineScope>().coroutineContext,
+                    messengerConfiguration = get(),
+                )
             }
-            single<MatrixClientsImpl> {
-                MatrixClientsImpl(get(), get(), get(), get(), get())
+            single<MatrixClients> {
+                MatrixClientsImpl(
+                    matrixClientFactory = get(),
+                    deleteAccountData = get(),
+                    settings = get(),
+                    config = get(),
+                    secretByteArrays = get(),
+                    i18n = get(),
+                )
             }.apply {
-                bind<MatrixClients>()
                 bind<AutoCloseable>()
                 bind<Worker>()
             }
@@ -247,7 +235,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
             single<Initials> { InitialsImpl(get()) }
             single<VerifyAccount> { VerifyAccountImpl() }
-            single<RelevantTimelineEvents> { RelevantTimelineEvents }
 
             single<Languages> { DefaultLanguages }
             single<I18n> { I18n(get(), get(), get(), get()) }
@@ -268,6 +255,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<DragAndDropHandler> { DragAndDropHandlerBase() }
             single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
             single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
+            single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
 
             single<RootViewModelFactory> { RootViewModelFactory }
             single<MainViewModelFactory> { MainViewModelFactory }
@@ -276,6 +264,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
             single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
             single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
             single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+            single<UiaStepOAuth2ViewModelFactory> { UiaStepOAuth2ViewModelFactory }
             single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
             single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
             single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
@@ -283,6 +272,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
 
             single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
             single<SharedDataHandler> { SharedDataHandlerImpl() }
+
+            single<BackHandler> { BackHandlerImpl() }
         }
     },
     ::connectingViewModels,
@@ -294,10 +285,9 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::verificationViewModels,
     ::roomViewModels,
     ::roomSettingsViewModels,
+    ::mediaViewModels,
     ::exportModule,
-
-    // Platform-specific view models:
-    ::platformNotificationSettingsSingleAccountViewModelFactoryModule,
+    ::notificationModule,
 
     // Platform-specific implementations:
     ::platformModule,
@@ -305,6 +295,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformStringsModule,
     ::platformCreateRepositoriesModuleModule,
     ::platformCreateMediaStoreModuleModule,
+    ::createCryptoDriverModuleModule,
     ::secretsModule,
     ::platformGetSystemLangModule,
     ::platformDeleteAccountDataModule,
@@ -314,7 +305,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
     ::platformIsNetworkAvailableModule,
     ::platformCloseAppModule,
     ::platformMinimizeAppModule,
-    ::platformUrlHandlerModule,
+    ::platformUriHandlerModule,
     ::platformUriCallerModule,
     ::platformDeleteProfileDataModule,
     ::platformProcessImageUploadModule,
@@ -334,6 +325,7 @@ private fun connectingViewModels() = module {
     single<MatrixClientInitializationFailureViewModelFactory> { MatrixClientInitializationFailureViewModelFactory }
     single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
+    single<OAuth2LoginViewModelFactory> { OAuth2LoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
     single<RegisterMatrixAccountViewModelFactory> { RegisterMatrixAccountViewModelFactory }
 }
@@ -383,18 +375,21 @@ private fun roomListViewModels() = module {
 }
 
 private fun settingsViewModels() = module {
-    single<AccountsOverviewViewModelFactory> { AccountsOverviewViewModelFactory }
     single<AppInfoViewModelFactory> { AppInfoViewModelFactory }
     single<AvatarCutterViewModelFactory> { AvatarCutterViewModelFactory }
-    single<DevicesSettingsViewModelFactory> { DevicesSettingsViewModelFactory }
+    single<DeviceSettingsSingleAccountViewModelFactory> { DeviceSettingsSingleAccountViewModelFactory }
+    single<DeviceSettingsAllAccountsViewModelFactory> { DeviceSettingsAllAccountsViewModelFactory }
     single<NotificationSettingsAllAccountsViewModelFactory> { NotificationSettingsAllAccountsViewModelFactory }
-    single<ProfileViewModelFactory> { ProfileViewModelFactory }
-    single<ProfileSingleViewModelFactory> { ProfileSingleViewModelFactory }
+    single<AccountsViewModelFactory> { AccountsViewModelFactory }
+    single<ProfilesSettingsViewModelFactory> { ProfilesSettingsViewModelFactory }
+    single<ProfilesSettingsSingleViewModelFactory> { ProfilesSettingsSingleViewModelFactory }
+    single<AccountSingleViewModelFactory> { AccountSingleViewModelFactory }
     single<UserSettingsViewModelFactory> { UserSettingsViewModelFactory }
     single<PrivacySettingsAllAccountsViewModelFactory> { PrivacySettingsAllAccountsViewModelFactory }
     single<PrivacySettingsSingleAccountViewModelFactory> { PrivacySettingsSingleAccountViewModelFactory }
     single<AppearanceSettingsViewModelFactory> { AppearanceSettingsViewModelFactory }
     single<BlockedContactsSettingsViewModelFactory> { BlockedContactsSettingsViewModelFactory }
+    single<NotificationSettingsSingleAccountViewModelFactory> { NotificationSettingsSingleAccountViewModelFactory }
 }
 
 inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(
@@ -425,6 +420,7 @@ private fun timelineElementViewModels() = module {
     timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
     timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<TombstoneStateTimelineElementViewModelFactory> { TombstoneStateTimelineElementViewModelFactory }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }
@@ -464,14 +460,32 @@ private fun roomSettingsViewModels() = module {
     single<RoomSettingsJoinRulesViewModelFactory> { RoomSettingsJoinRulesViewModelFactory }
     single<RoomSettingsSecurityViewModelFactory> { RoomSettingsSecurityViewModelFactory }
     single<TimelineElementMetadataViewModelFactory> { TimelineElementMetadataViewModelFactory }
+    single<TimelineElementDevInfoViewModelFactory> { TimelineElementDevInfoViewModelFactory }
     single<UserProfileViewModelFactory> { UserProfileViewModelFactory }
     single<AddMembersViewModelFactory> { AddMembersViewModelFactory }
+    single<RoomDevInfoViewModelFactory> { RoomDevInfoViewModelFactory }
     single<ExportRoomViewModelFactory> { ExportRoomViewModelFactory }
     single<PowerlevelViewModelFactory> { PowerlevelViewModelFactory }
 }
 
+private fun mediaViewModels() = module {
+    single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
+    single<AudioRecorderHolder> {
+        val config = get<MatrixMessengerConfiguration>()
+        val platformAudioRecorder = getOrNull<PlatformAudioRecorder>()
+        val audioRecorder =
+            if (config.features.enableAudioRecorder && platformAudioRecorder != null) {
+                AudioRecorderImpl(platformAudioRecorder, get(), get())
+            } else {
+                null
+            }
+        AudioRecorderHolder(audioRecorder)
+    }
+}
+
 private fun timelineViewModels() = module {
     single<InputAreaViewModelFactory> { InputAreaViewModelFactory }
+    single<AudioRecordingAreaViewModelFactory> { AudioRecordingAreaViewModelFactory }
     single<ReportToMessageViewModelFactory> { ReportToMessageViewModelFactory }
     single<RoomHeaderViewModelFactory> { RoomHeaderViewModelFactory }
     single<SendAttachmentViewModelFactory> { SendAttachmentViewModelFactory }

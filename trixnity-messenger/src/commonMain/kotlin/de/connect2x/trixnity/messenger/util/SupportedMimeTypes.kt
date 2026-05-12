@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.ktor.http.ContentType
+import io.ktor.http.*
 
 object SupportedMimeTypes {
     private val supportedImageMimeTypes: List<ContentType> = listOf(
         ContentType.Image.JPEG,
         ContentType.Image.PNG,
         ContentType.Image.BMP,
-        ContentType.Image.Webp,
+        ContentType.Image.WEBP,
         ContentType.Image.GIF
     )
 

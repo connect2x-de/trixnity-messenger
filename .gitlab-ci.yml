@@ -16,33 +16,22 @@ stages:
 
 variables:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Xmx1g
-  GRADLE_USER_HOME: $CI_PROJECT_DIR/.gradle
-  KONAN_DATA_DIR: $CI_PROJECT_DIR/.konan
-  KOTLIN_DATA_DIR: $CI_PROJECT_DIR/.kotlin
-  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-base:latest
-  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
-  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/trixnity/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
+  BUILD_LINUX_IMAGE_NAME: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-base:latest
+  BUILD_LINUX_IMAGE_NAME_EMULATOR: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-emulator:latest
+  BUILD_LINUX_IMAGE_NAME_TRIVY: registry.gitlab.com/connect2x/build-infrastructure/kmp-dockerfiles/kmp-dockerfiles-trivy:latest
   FF_USE_FASTZIP: "true"
   ARTIFACT_COMPRESSION_LEVEL: "fastest"
-  CACHE_COMPRESSION_LEVEL: "fastest"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_TLS_CERTDIR: ""
 
-.cache: &cache
-  - key:
-      files:
-        - gradle/wrapper/gradle-wrapper.properties
-        - gradle/libs.versions.toml
-    paths:
-      - $GRADLE_USER_HOME/wrapper
-      - $GRADLE_USER_HOME/nodejs
-      - $GRADLE_USER_HOME/yarn
-      - $GRADLE_USER_HOME/native
-      - $KONAN_DATA_DIR
-      - $KOTLIN_DATA_DIR
+services:
+  - name: docker:dind
+    command: [ "--tls=false" ]
 
 .artifact-reports: &artifact-reports
   name: reports
   when: always
-  paths: [ "**/build/reports" ]
+  paths: [ "**/build/reports", "**/build/**/yarn.lock", "**/build/kotlin/abi-legacy" ]
   reports:
     junit: "**/build/test-results/**/TEST-*.xml"
     coverage_report:
@@ -74,8 +63,6 @@ build:mac:
   stage: build
   interruptible: true
   tags: [ "connect2x-mac" ]
-  cache:
-    - *cache
   rules:
     - *if-merge-request
   script:
@@ -89,133 +76,160 @@ build:linux:
   interruptible: true
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
-      compileKotlin{Jvm,Js}
+    - gradle
+      compileKotlin{Jvm,Js,WasmJs}
       compileReleaseKotlinAndroid
-      compileTestKotlin{Jvm,Js}
+      :trixnity-messenger-compose-app:assembleRelease
+      compileTestKotlin{Jvm,Js,WasmJs}
       compileReleaseUnitTestKotlinAndroid
       --stacktrace
+  artifacts:
+    paths:
+      - trixnity-messenger-compose-app/build/outputs/apk/release/trixnity-messenger-compose-app-release.apk
+    expire_in: 1 day
+    expose_as: 'Android App APK'
 
 test:mac:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:mac" ]
+  needs:
+    - job: "build:mac"
+      artifacts: false
   tags: [ "connect2x-mac" ]
-  cache:
-    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
   script:
     - ./gradlew
-      {iosSimulatorArm64,iosX64}Test
+      :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
       --stacktrace
 
 test:linux:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
-      {jvm,js}Test :trixnity-messenger:testCoverage -x :integrationtests:jvmTest
+    - gradle
+      :trixnity-messenger:{jvm,js,wasmJs}Test
+      :trixnity-messenger:testCoverage
       --stacktrace
   coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
-test:smoketest-desktop-linux:
+test:smoketest-jvm:
   stage: test
   interruptible: true
   timeout: 1h
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-  script:
-    - ./gradlew
-      :trixnity-messenger-compose-view:desktopTest
-      :trixnity-messenger-compose-view:testCoverage
-      --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
-
-test:smoketest-web:
-  stage: test
-  interruptible: true
-  timeout: 1h
-  needs: [ "build:linux" ]
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
-  artifacts: *artifact-reports
-  rules:
-    - *if-merge-request
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-  script:
-    - ./gradlew
-      :trixnity-messenger-compose-view:webBrowserFirefoxTest
-      --stacktrace
-
-test:smoketest-android:
-  stage: test
-  interruptible: true
-  timeout: 15m
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME_EMULATOR
-  cache:
-    - *cache
   artifacts:
-    paths:
-      - emulator.log
+    when: always
+    paths: [ "**/screenshots", "**/build/reports" ]
   rules:
     - *if-merge-request
   script:
-    - ./scripts/start_emulator.sh
-    - ./gradlew :trixnity-messenger-compose-view:connectedAndroidTest --stacktrace
+    - /start-emulator.sh
+    - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
+    - bash -c "adb logcat | grep System.out > logcat.txt &"
+    - gradle --profile
+      :trixnity-messenger-compose-view:{connectedAndroid,jvm}Test
+      --stacktrace
+  after_script:
+    - bash -c "cat logcat.txt"
+
+test:smoketest-js:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs:
+    - job: "build:linux"
+      artifacts: false
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  artifacts:
+    when: always
+    paths: [ "**/screenshots", "**/build/reports" ]
+  rules:
+    - *if-merge-request
+  script:
+    - bash -c "socat TCP-LISTEN:8008,fork TCP:docker:8008 &"
+    - gradle 
+      :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
+      --stacktrace
+
+# TODO cannot be run on virtualized macOS
+#test:smoketest-ios:
+#  stage: test
+#  interruptible: true
+#  timeout: 1h
+#  needs: [ "build:mac" ]
+#  tags: [ "connect2x-mac" ]
+#  artifacts:
+#    when: always
+#    paths: [ "screenshots", "**/build/reports" ]
+#    reports:
+#      coverage_report:
+#        coverage_format: jacoco
+#        path: trixnity-messenger/build/reports/kover/reportJvm.xml
+#  rules:
+#    - *if-merge-request
+#  script:
+#    - ./scripts/start_simulator.sh
+#    - ./gradlew
+#      :trixnity-messenger-compose-view:iosX64Test
+#      :trixnity-messenger-compose-view:testCoverage
+#      --stacktrace
+#  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:integration-test:
   stage: test
   interruptible: true
   timeout: 30m
-  needs: [ "build:linux" ]
+  needs:
+    - job: "build:linux"
+      artifacts: false
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
   services:
     - name: docker:dind
-  cache:
-    - *cache
   variables: *docker-variables
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
   script:
-    - ./gradlew
+    - gradle
       :integrationtests:jvmTest
       --stacktrace
+
+# requires macOS since it can build/emulate all other targets
+checkAbi:
+  stage: test
+  interruptible: true
+  timeout: 1h
+  needs:
+    - job: "build:mac"
+      artifacts: false
+  tags: [ "connect2x-mac" ]
+  artifacts: *artifact-reports
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew checkLegacyAbi --stacktrace
 
 security:dependencies:
   stage: security
@@ -227,14 +241,6 @@ security:dependencies:
   variables:
     TRIVY_CACHE_DIR: ".trivycache/"
     WITH_LOCK: true
-  cache:
-    - *cache
-    - key:
-        files:
-          - gradle/wrapper/gradle-wrapper.properties
-          - gradle/libs.versions.toml
-      paths:
-        - .trivycache/
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       allow_failure: true
@@ -247,7 +253,7 @@ security:dependencies:
     reports:
       dependency_scanning: report.json
   script:
-    - ./gradlew dependenciesForAll --write-locks > dependencies.txt
+    - gradle dependenciesForAll --write-locks > dependencies.txt
     - trivy repo ./ --exit-code 0
     - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
@@ -272,8 +278,6 @@ changelog:
 publish:mac-dev:
   stage: publish
   tags: [ "connect2x-mac" ]
-  cache:
-    - *cache
   rules:
     - *if-dev-release
   script:
@@ -285,50 +289,31 @@ publish:linux-dev:
   stage: publish
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
   rules:
     - *if-dev-release
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
+    - gradle
+      publish{KotlinMultiplatform,Jvm,Js,WasmJs,AndroidRelease}PublicationToGitlabRepository
       --stacktrace
 
-publish:mac:
+publish:release:
   stage: publish
   tags: [ "connect2x-mac" ]
-  cache:
-    - *cache
+  timeout: 2h
   rules:
     - *if-release
   script:
     - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
-      --stacktrace
-
-publish:linux:
-  stage: publish
-  tags: [ "connect2x-linux" ]
-  image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
-  rules:
-    - *if-release
-  variables:
-    DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
-  script:
-    - ./gradlew
-      publish{KotlinMultiplatform,Jvm,Js,AndroidRelease,Desktop,Web}PublicationToGitlabRepository
+      publishAllPublicationsToGitLabRepository
+      publishAndReleaseToMavenCentral
       --stacktrace
 
 staging:web:
   stage: publish
   tags: [ "connect2x-linux" ]
   image: $BUILD_LINUX_IMAGE_NAME
-  cache:
-    - *cache
   rules:
     - *if-merge-request
   needs: [ "build:linux" ]
@@ -341,10 +326,10 @@ staging:web:
   variables:
     DIST_JAVA_HOME: /lib/jvm/temurin-24-jdk-amd64
   script:
-    - ./gradlew
-      :trixnity-messenger-compose-app:webBrowserDistribution
+    - gradle
+      :trixnity-messenger-compose-app:jsBrowserDistribution
       --stacktrace
-    - mv trixnity-messenger-compose-app/build/dist/web/productionExecutable public
+    - mv trixnity-messenger-compose-app/build/dist/js/productionExecutable public
   environment:
     name: review/${CI_MERGE_REQUEST_IID}
     url: https://connect2x.gitlab.io/-/trixnity-messenger/trixnity-messenger/-/jobs/${CI_JOB_ID}/artifacts/public/index.html
@@ -352,11 +337,9 @@ staging:web:
 kmmPublish:mac:
   stage: kmmPublish
   tags: [ "connect2x-mac" ]
-  cache:
-    - *cache
   rules:
     - *if-release
   timeout: 2h
-  needs: [ "publish:mac" ]
+  needs: [ "publish:release" ]
   script:
     - ./kmmPublish.sh

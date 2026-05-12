@@ -1,7 +1,21 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.Search
@@ -11,7 +25,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,22 +32,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class PotentialMembersViewModelTest {
@@ -78,15 +78,19 @@ class PotentialMembersViewModelTest {
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `room has no members » filter users by search term`() = runTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user1"),
+                "user1",
                 any(),
                 any(),
-                eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -97,10 +101,9 @@ class PotentialMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("us"),
+                "us",
                 any(),
                 any(),
-                eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -113,10 +116,9 @@ class PotentialMembersViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("user3"),
+                "user3",
                 any(),
                 any(),
-                eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -205,10 +207,9 @@ class PotentialMembersViewModelTest {
         setupRoomHasMembers()
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("us"),
+                "us",
                 any(),
                 any(),
-                eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(

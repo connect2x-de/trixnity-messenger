@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.integrationtests.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.integrationtests.util.waitFor
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
@@ -17,7 +18,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -29,11 +29,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import kotlin.time.Duration.Companion.seconds
 
-private val log = KotlinLogging.logger { }
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.integrationtests.messenger.TimelineKt")
 
 suspend fun MatrixMessengerWithRoot.sendMessage(roomId: RoomId, message: String) = with(root) {
     withTimeout(20.seconds) {
@@ -226,7 +226,7 @@ private fun initViewState(
             lastVisibleElement = vms.last().key,
             firstLoadedElement = vms.first().key,
             lastLoadedElement = vms.last().key,
-            windowIsFocused = true,
+            timelineIsFocused = true,
         )
     }
 }

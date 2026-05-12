@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -9,7 +10,6 @@ import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,11 +18,9 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.UserId
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface PrivacySettingsSingleAccountViewModelFactory {
     fun create(
@@ -43,10 +41,12 @@ interface PrivacySettingsSingleAccountViewModel {
     val presenceIsPublic: StateFlow<Boolean>
     val readMarkerIsPublic: StateFlow<Boolean>
     val typingIsPublic: StateFlow<Boolean>
+    val redactionWarningIsEnabled: StateFlow<Boolean>
 
     fun togglePresenceIsPublic()
     fun toggleReadMarkerIsPublic()
     fun toggleTypingIsPublic()
+    fun toggleRedactionWarningIsEnabled()
 
     val blockedContactsCount: StateFlow<Int>
     fun showBlockedContactsSettings()
@@ -60,7 +60,6 @@ open class PrivacySettingsSingleAccountViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val onShowBlockedContactsSettings: (account: UserId) -> Unit,
 ) : PrivacySettingsSingleAccountViewModel, MatrixClientViewModelContext by viewModelContext {
-
     private val i18n = get<I18n>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
     private val userBlocking = get<UserBlocking>()
@@ -69,17 +68,23 @@ open class PrivacySettingsSingleAccountViewModelImpl(
 
     final override val account = userId
 
-    override val presenceIsPublic = messengerSettings[account]
+    private val accountSettings = messengerSettings[account]
+
+    override val presenceIsPublic = accountSettings
         .filterNotNull().map { it.base.presenceIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val readMarkerIsPublic = messengerSettings[account]
+    override val readMarkerIsPublic = accountSettings
         .filterNotNull().map { it.base.readMarkerIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val typingIsPublic = messengerSettings[account]
+    override val typingIsPublic = accountSettings
         .filterNotNull().map { it.base.typingIsPublic }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+        .stateIn(coroutineScope, WhileSubscribed(), false)
+
+    override val redactionWarningIsEnabled: StateFlow<Boolean> =
+        accountSettings.filterNotNull().map { it.base.redactionWarningIsEnabled }
+            .stateIn(coroutineScope, WhileSubscribed(), true)
 
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
@@ -93,6 +98,14 @@ open class PrivacySettingsSingleAccountViewModelImpl(
         coroutineScope.launch {
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(readMarkerIsPublic = !it.readMarkerIsPublic)
+            }
+        }
+    }
+
+    override fun toggleRedactionWarningIsEnabled() {
+        coroutineScope.launch {
+            messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
+                it.copy(redactionWarningIsEnabled = !it.redactionWarningIsEnabled)
             }
         }
     }

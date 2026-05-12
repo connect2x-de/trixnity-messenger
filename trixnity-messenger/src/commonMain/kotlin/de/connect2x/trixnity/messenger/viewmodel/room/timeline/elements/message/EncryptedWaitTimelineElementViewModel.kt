@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
 
 interface EncryptedWaitTimelineElementViewModel : TimelineElementViewModel.Message<EncryptedMessageEventContent>
 

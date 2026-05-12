@@ -5,12 +5,19 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.active
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.essenty.backhandler.BackCallback
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.doOnStart
 import com.arkivanov.essenty.lifecycle.doOnStop
+import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.notification.NotificationHandlers
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.MinimizeApp
@@ -30,10 +37,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationRouter
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -41,16 +46,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
 import org.koin.core.component.get
 import org.koin.core.component.inject
-
-
-private val log = KotlinLogging.logger {}
 
 interface MainViewModelFactory {
     fun create(
@@ -68,7 +65,6 @@ interface MainViewModelFactory {
 
 interface MainViewModel {
     val selectedRoomId: MutableStateFlow<RoomId?>
-    val isRoomShown: StateFlow<Boolean>
     val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>>
     val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>>
     val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>>
@@ -89,7 +85,6 @@ interface MainViewModel {
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
     fun openSelfVerification(userId: UserId)
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
-    fun closeAccountsOverview()
 }
 
 open class MainViewModelImpl(
@@ -97,14 +92,12 @@ open class MainViewModelImpl(
     onCreateNewAccount: () -> Unit,
     private val onRemoveAccount: (UserId) -> Unit,
 ) : ViewModelContext by viewModelContext, MainViewModel {
-
     // In case of multiple active verifications,
     // these need to be processed in consecutive order one at a time!
     private val activeDeviceVerifications = MutableStateFlow(setOf<UserId>())
     private val messengerSettings by inject<MatrixMessengerSettingsHolder>()
 
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
-    override val isRoomShown = MutableStateFlow(false)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext, ::onCloseSelfVerification)
     override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
@@ -120,7 +113,7 @@ open class MainViewModelImpl(
     }
 
     init { // Init before routers, so those can register other handlers that are executed beforehand.
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     private val initialSyncRouter = InitialSyncRouter(viewModelContext = viewModelContext)
@@ -152,14 +145,6 @@ open class MainViewModelImpl(
             onOpenAvatarCutter = ::onOpenAvatarCutter,
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> = roomRouter.stack
-
-    init {
-        coroutineScope.launch {
-            roomRouterStack.subscribe {
-                isRoomShown.value = it.active.instance !is RoomRouter.Wrapper.None
-            }
-        }
-    }
 
     private val verificationRouter: VerificationRouter =
         VerificationRouter(
@@ -195,7 +180,6 @@ open class MainViewModelImpl(
     }
 
     private fun onRemoveAccountInternal(userId: UserId) {
-        roomListRouter.closeAccountsOverview()
         this.onRemoveAccount(userId)
         coroutineScope.launch {
             if (messengerSettings.value.base.accounts.isEmpty()) {
@@ -252,13 +236,16 @@ open class MainViewModelImpl(
                     }
                 }
         }
+        coroutineScope.launch {
+            this@MainViewModelImpl.get<NotificationHandlers>().continuouslyRequestPermissions()
+        }
         lifecycle.doOnStop {
             coroutineScope.launch {
                 withContext(NonCancellable) { // Even when the scope is destroyed, we want the sync to stop.
-                    log.debug { "app is stopped: cancel sync" }
+                    log.debug { "app is stopped: stop sync" }
                     this@MainViewModelImpl.matrixClients.value.forEach { (userId, matrixClient) ->
                         log.debug { "stop sync for $userId" }
-                        matrixClient.cancelSync()
+                        matrixClient.stopSync()
                     }
                 }
             }
@@ -420,10 +407,6 @@ open class MainViewModelImpl(
         }
     }
 
-    override fun closeAccountsOverview() {
-        roomListRouter.closeAccountsOverview()
-    }
-
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {
         when (timelineElementMention) {
             is TimelineElementMention.User -> {
@@ -464,11 +447,11 @@ open class MainViewModelImpl(
 
     private fun onSendLogs() {
         coroutineScope.launch {
-            val sendLogToDevs = getOrNull<SendLogToDevs>()
+            val sendLogToDevs = this@MainViewModelImpl.getOrNull<SendLogToDevs>()
             if (sendLogToDevs != null)
                 try {
-                    val config = get<MatrixMessengerBaseConfiguration>()
-                    val defaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()()
+                    val config = this@MainViewModelImpl.get<MatrixMessengerBaseConfiguration>()
+                    val defaultDeviceDisplayName = this@MainViewModelImpl.get<GetDefaultDeviceDisplayName>()()
                     log.debug { "send logs to devs (email: ${config.sendLogsEmailAddress})" }
                     config.sendLogsEmailAddress?.let { email ->
                         sendLogToDevs(
@@ -559,7 +542,7 @@ class PreviewMainViewModel : MainViewModel {
                 )
             )
         )
-    override val isRoomShown: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun onRoomSelected(userId: UserId, id: RoomId) {
         selectedRoomId.value = id
     }
@@ -570,5 +553,4 @@ class PreviewMainViewModel : MainViewModel {
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
     override fun openSelfVerification(userId: UserId) {}
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
-    override fun closeAccountsOverview() {}
 }

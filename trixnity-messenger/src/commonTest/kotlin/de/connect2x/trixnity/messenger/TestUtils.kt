@@ -1,18 +1,23 @@
 package de.connect2x.trixnity.messenger
 
+import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
+import de.connect2x.lognity.api.backend.Backend
+import de.connect2x.lognity.test.TestBackend
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContextImpl
-import dev.mokkery.matcher.ArgMatchersScope
-import dev.mokkery.matcher.matching
+import dev.mokkery.matcher.MokkeryMatcherScope
+import dev.mokkery.matcher.matches
 import dev.mokkery.resetAnswers
 import dev.mokkery.resetCalls
+import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
-import io.kotest.matchers.errorCollector
 import io.kotest.matchers.nulls.shouldNotBeNull
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -24,20 +29,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.timeout
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.Koin
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+
+fun configureTestLogging() {
+    Backend.set(TestBackend)
+}
 
 @OptIn(FlowPreview::class)
 suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, crossinline expected: (T) -> T): T {
@@ -95,17 +100,15 @@ fun resetMocks(vararg mocks: Any) {
     resetAnswers(*mocks)
 }
 
-inline fun <reified T : Any> ArgMatchersScope.eqNull(): T? = matching({ "eqNull" }) { it == null }
-
-fun ArgMatchersScope.isRoomOf(roomId: RoomId): Room = matching({
+fun MokkeryMatcherScope.isRoomOf(roomId: RoomId): Room = matches({
     "isRoomOf($roomId)"
 }) {
     it.roomId == roomId
 }
 
-inline fun <reified T> ArgMatchersScope.isNot(
+inline fun <reified T> MokkeryMatcherScope.isNot(
     others: List<T>,
-): T = matching({
+): T = matches({
     "isNot($others)"
 }) {
     others.contains(it).not()
@@ -114,20 +117,27 @@ inline fun <reified T> ArgMatchersScope.isNot(
 fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by ViewModelContextImpl(
     di = di,
     componentContext = DefaultComponentContext(LifecycleRegistry()),
-    coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+    coroutineContext = backgroundScope.coroutineContext,
+    "Test"
 ) {
-    override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
+    override val coroutineScope = backgroundScope
 }
 
 
-fun TestScope.testMatrixClientViewModelContext(di: Koin, userId: UserId) =
+fun TestScope.testMatrixClientViewModelContext(
+    di: Koin,
+    userId: UserId,
+    coroutineContext: CoroutineContext = backgroundScope.coroutineContext,
+    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
+) =
     object : MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
         di = di,
-        componentContext = DefaultComponentContext(LifecycleRegistry()),
+        componentContext = componentContext,
         userId = userId,
-        coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+        coroutineContext = coroutineContext,
+        "TestMatrixClient"
     ) {
-        override val coroutineScope = backgroundScope + ImmediateDispatcherElement(testDispatcher)
+        override val coroutineScope = backgroundScope
     }
 
 suspend fun <T> continually(

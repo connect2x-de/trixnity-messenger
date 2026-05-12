@@ -1,7 +1,27 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.Search
@@ -10,7 +30,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifyNoMoreCalls
@@ -24,28 +43,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class CreateNewChatViewModelTest {
@@ -96,6 +96,11 @@ class CreateNewChatViewModelTest {
         every { onRoomCreatedMock.invoke(any(), any()) } returns Unit
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `jump to room for users which I have already a direct conversation with`() = runTest {
         var createRoomCalled = false
@@ -113,7 +118,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             createRoomCalled = true
@@ -121,10 +125,9 @@ class CreateNewChatViewModelTest {
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -212,10 +215,10 @@ class CreateNewChatViewModelTest {
     @Test
     fun `create a direct chat with selected user and go to new room`() = runTest {
         every {
-            userServiceMock.getAccountData(eq(DirectEventContent::class), any())
+            userServiceMock.getAccountData(DirectEventContent::class, any())
         } returns MutableStateFlow(DirectEventContent(emptyMap()))
 
-        everySuspend { usersApiClientMock.searchUsers(any(), any(), any(), eqNull()) } returns Result.success(
+        everySuspend { usersApiClientMock.searchUsers(any(), any(), any()) } returns Result.success(
             SearchUsers.Response(false, listOf())
         )
         val roomId = RoomId("!room1")
@@ -225,15 +228,14 @@ class CreateNewChatViewModelTest {
                 roomAliasId = any(),
                 name = any(),
                 topic = any(),
-                invite = eq(setOf(userId2)),
+                invite = setOf(userId2),
                 inviteThirdPid = any(),
                 roomVersion = any(),
                 creationContent = any(),
-                initialState = eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
                 preset = any(),
-                isDirect = eq(true),
+                isDirect = true,
                 powerLevelContentOverride = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(roomId)
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(Room(roomId))
@@ -264,7 +266,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             createRoomCalled = true
@@ -272,10 +273,9 @@ class CreateNewChatViewModelTest {
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -342,17 +342,15 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             Result.success(roomId)
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -412,7 +410,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         }
         verify { onRoomCreatedMock.invoke(userId1, roomId) }
@@ -437,17 +434,15 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             Result.success(roomId)
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -556,7 +551,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         }
         verify { onRoomCreatedMock.invoke(userId1, roomId) }
@@ -583,7 +577,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             createRoomCalled = true
@@ -591,10 +584,9 @@ class CreateNewChatViewModelTest {
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -762,17 +754,15 @@ class CreateNewChatViewModelTest {
                     preset = any(),
                     isDirect = any(),
                     powerLevelContentOverride = any(),
-                    asUserId = any(),
                 )
             } calls {
                 Result.success(roomId)
             }
             everySuspend {
                 usersApiClientMock.searchUsers(
-                    searchTerm = eq("u"),
+                    searchTerm = "u",
                     acceptLanguage = any(),
                     limit = any(),
-                    asUserId = eqNull(),
                 )
             } returns Result.success(
                 SearchUsers.Response(
@@ -881,7 +871,6 @@ class CreateNewChatViewModelTest {
                     preset = any(),
                     isDirect = any(),
                     powerLevelContentOverride = any(),
-                    asUserId = any(),
                 )
             }
             verify { onRoomCreatedMock.invoke(userId1, roomId) }
@@ -906,17 +895,15 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         } calls {
             Result.success(roomId)
         }
         everySuspend {
             usersApiClientMock.searchUsers(
-                searchTerm = eq("u"),
+                searchTerm = "u",
                 acceptLanguage = any(),
                 limit = any(),
-                asUserId = eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -978,7 +965,6 @@ class CreateNewChatViewModelTest {
                 preset = any(),
                 isDirect = any(),
                 powerLevelContentOverride = any(),
-                asUserId = any(),
             )
         }
         verify { onRoomCreatedMock.invoke(userId1, roomId) }
@@ -992,10 +978,10 @@ class CreateNewChatViewModelTest {
             cancelWasCalled = true
         }
         every {
-            userServiceMock.getAccountData(eq(DirectEventContent::class), any())
+            userServiceMock.getAccountData(DirectEventContent::class, any())
         } returns MutableStateFlow(DirectEventContent(emptyMap()))
 
-        everySuspend { usersApiClientMock.searchUsers(any(), any(), any(), eqNull()) } returns Result.success(
+        everySuspend { usersApiClientMock.searchUsers(any(), any(), any()) } returns Result.success(
             SearchUsers.Response(false, listOf())
         )
         everySuspend {
@@ -1004,15 +990,14 @@ class CreateNewChatViewModelTest {
                 roomAliasId = any(),
                 name = any(),
                 topic = any(),
-                invite = eq(setOf(userId2)),
+                invite = setOf(userId2),
                 inviteThirdPid = any(),
                 roomVersion = any(),
                 creationContent = any(),
-                initialState = eq(listOf(InitialStateEvent(EncryptionEventContent(), ""))),
+                initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
                 preset = any(),
-                isDirect = eq(true),
+                isDirect = true,
                 powerLevelContentOverride = any(),
-                asUserId = eqNull(),
             )
         } returns Result.failure(
             MatrixServerException(

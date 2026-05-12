@@ -5,11 +5,38 @@ import com.arkivanov.essenty.backhandler.BackDispatcher
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeyService
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.TimelineStateChange
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncApiClient
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.m.DirectEventContent
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
+import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.DownloadManager
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -32,12 +59,12 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -46,34 +73,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key.KeyService
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.TimelineStateChange
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncApiClient
-import net.folivo.trixnity.clientserverapi.client.SyncState
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.m.DirectEventContent
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.PowerLevelsEventContent
-import net.folivo.trixnity.crypto.key.DeviceTrustLevel
-import net.folivo.trixnity.crypto.key.UserTrustLevel
+import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.reflect.KClass
 import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
@@ -153,10 +158,10 @@ class RoomViewModelTest {
         every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
         every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
         every {
-            roomServiceMock.getState(any(), eq(CreateEventContent::class), any())
+            roomServiceMock.getState(any(), CreateEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
-            roomServiceMock.getState(any(), eq(PowerLevelsEventContent::class), any())
+            roomServiceMock.getState(any(), PowerLevelsEventContent::class, any())
         } returns MutableStateFlow(null)
         every {
             roomServiceMock.usersTyping
@@ -164,6 +169,15 @@ class RoomViewModelTest {
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
                 MutableStateFlow(emptyMap())
+        every { roomServiceMock.getState<HistoryVisibilityEventContent>(any(), any(), any()) } returns
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                        sender = UserId("unused", "unused"),
+                        stateKey = "unused",
+                    )
+                )
+        every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
         every { verificationServiceMock.activeDeviceVerification } returns
                 MutableStateFlow(null)
         every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
@@ -178,12 +192,12 @@ class RoomViewModelTest {
         every { keyServiceMock.getTrustLevel(any<UserId>()) } returns
                 flowOf(UserTrustLevel.Blocked)
         everySuspend {
-            userServiceMock.loadMembers(RoomId(any()), any())
+            userServiceMock.loadMembers(any(), any())
         } returns Unit
         every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
-        every { userServiceMock.getAllReceipts(eq(roomId)) } returns MutableStateFlow(emptyMap())
+        every { userServiceMock.getAllReceipts(roomId) } returns MutableStateFlow(emptyMap())
         every { userServiceMock.canInvite(roomId) } returns MutableStateFlow(false)
         every { userServiceMock.canInviteUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(false)
@@ -200,6 +214,14 @@ class RoomViewModelTest {
         every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit
+        every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
+            MarkedUnreadEventContent(false)
+        )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     // TODO
@@ -349,6 +371,7 @@ class RoomViewModelTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.cutRoomViewModel(): RoomViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         return RoomViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
                 componentContext = DefaultComponentContext(
@@ -402,7 +425,8 @@ class RoomViewModelTest {
                         })
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "Room"
             ),
             roomId = roomId,
             onOpenRoom = mock(),

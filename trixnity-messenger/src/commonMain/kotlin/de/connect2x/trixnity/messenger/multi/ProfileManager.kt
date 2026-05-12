@@ -1,8 +1,13 @@
 package de.connect2x.trixnity.messenger.multi
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessenger
+import de.connect2x.trixnity.messenger.settings.MutableSettings
+import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
 import de.connect2x.trixnity.messenger.settings.SettingsJson
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.trixnity.messenger.settings.SettingsView
+import de.connect2x.trixnity.messenger.settings.get
+import de.connect2x.trixnity.messenger.settings.set
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,24 +16,29 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.encodeToJsonElement
-
-private val log = KotlinLogging.logger {}
+import kotlinx.serialization.serializer
 
 interface ProfileManager {
     val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>>
     val activeProfile: StateFlow<String?>
     val activeMatrixMessenger: StateFlow<MatrixMessenger?>
 
+    /** This allows multiple profiles to be used simultaneously.
+     * Null means undefined, so the user should be asked if they want to enable this. */
+    val isMultiProfileEnabled: StateFlow<Boolean?>
+
     suspend fun closeProfile()
     suspend fun selectProfile(profile: String)
     suspend fun createProfile(settings: MatrixMultiMessengerProfileSettingsBase = MatrixMultiMessengerProfileSettingsBase()): String
     suspend fun updateProfile(
         profile: String,
-        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
+        updater: MutableSettings<MatrixMultiMessengerProfileSettings>.(MatrixMultiMessengerProfileSettings) -> Unit
     )
 
+    suspend fun setMultiProfileEnabled(enabled: Boolean)
     suspend fun deleteProfile(profile: String)
 }
 
@@ -38,6 +48,10 @@ class ProfileManagerImpl(
     private val deleteProfileData: DeleteProfileData,
     private val coroutineScope: CoroutineScope,
 ) : ProfileManager {
+    private companion object {
+        val log = Logger("de.connect2x.trixnity.messenger.multi.ProfileManagerImpl")
+    }
+
     override val profiles: StateFlow<Map<String, MatrixMultiMessengerProfileSettings>> =
         settingsHolder.map { it.base.profiles }
             .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.profiles)
@@ -50,6 +64,9 @@ class ProfileManagerImpl(
             if (profile == null) null
             else matrixMessengerFactory(profile)
         }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+
+    override val isMultiProfileEnabled: StateFlow<Boolean?> = settingsHolder.map { it.base.isMultiProfileEnabled }
+        .stateIn(coroutineScope, SharingStarted.Eagerly, settingsHolder.value.base.isMultiProfileEnabled)
 
     override suspend fun closeProfile() {
         coroutineScope.launch { // ensure we are NOT running in a CoroutineScope that is any children of the MatrixMessenger
@@ -90,14 +107,16 @@ class ProfileManagerImpl(
 
     override suspend fun updateProfile(
         profile: String,
-        updateSettings: (MatrixMultiMessengerProfileSettings) -> MatrixMultiMessengerProfileSettings
-    ) {
-        settingsHolder.update<MatrixMultiMessengerSettingsBase> { oldSettings ->
-            val newProfileSettings = oldSettings.profiles[profile]?.also { updateSettings(it) }
-            if (newProfileSettings != null)
-                oldSettings.copy(profiles = oldSettings.profiles + (profile to newProfileSettings))
-            else oldSettings
+        updater: MutableSettings<MatrixMultiMessengerProfileSettings>.(MatrixMultiMessengerProfileSettings) -> Unit
+    ) = settingsHolder.update<MatrixMultiMessengerSettingsBase> {
+        log.debug { "update profile settings for $profile" }
+        val oldProfiles = it.profiles
+        val oldProfileSettings = oldProfiles[profile] ?: return@update it
+        val newProfileSettings = MutableSettingsImpl(oldProfileSettings)
+        with(newProfileSettings) {
+            updater(oldProfileSettings)
         }
+        it.copy(profiles = oldProfiles + (profile to MatrixMultiMessengerProfileSettings(newProfileSettings)))
     }
 
     override suspend fun deleteProfile(profile: String) {
@@ -115,4 +134,21 @@ class ProfileManagerImpl(
             }
         }.join()
     }
+
+    override suspend fun setMultiProfileEnabled(enabled: Boolean) {
+        settingsHolder.update<MatrixMultiMessengerSettingsBase> { it.copy(isMultiProfileEnabled = enabled) }
+    }
 }
+
+suspend fun <T : SettingsView<MatrixMultiMessengerProfileSettings>> ProfileManager.updateProfile(
+    profile: String,
+    serializer: KSerializer<T>,
+    updater: (T) -> T,
+) = updateProfile(profile) {
+    set(updater(it.get(serializer)), serializer)
+}
+
+suspend inline fun <reified T : SettingsView<MatrixMultiMessengerProfileSettings>> ProfileManager.updateProfile(
+    profile: String,
+    noinline updater: (T) -> T,
+) = updateProfile(profile, serializer(), updater)

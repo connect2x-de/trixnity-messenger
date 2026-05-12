@@ -2,12 +2,24 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.clientserverapi.model.room.CreateRoom
+import de.connect2x.trixnity.clientserverapi.model.room.DirectoryVisibility
+import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.InitialStateEvent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.eqNull
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.calls
@@ -15,7 +27,6 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
 import dev.mokkery.verify
 import dev.mokkery.verifySuspend
@@ -31,22 +42,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import net.folivo.trixnity.clientserverapi.client.RoomApiClient
-import net.folivo.trixnity.clientserverapi.client.UserApiClient
-import net.folivo.trixnity.clientserverapi.model.rooms.CreateRoom
-import net.folivo.trixnity.clientserverapi.model.rooms.DirectoryVisibility
-import net.folivo.trixnity.clientserverapi.model.users.SearchUsers
-import net.folivo.trixnity.core.ErrorResponse
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.InitialStateEvent
-import net.folivo.trixnity.core.model.events.m.room.EncryptionEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -91,11 +89,16 @@ class CreateNewGroupViewModelTest {
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
     }
 
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
+    }
+
     @Test
     fun `create a room for public + encrypted`() = runTest {
         everySuspend {
             roomsApiClientMock.createRoom(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
             )
         } returns Result.success(RoomId("!room1"))
         val cut = createNewGroupViewModel()
@@ -111,21 +114,18 @@ class CreateNewGroupViewModelTest {
             roomsApiClientMock.createRoom(
                 any(),
                 any(),
-                eqNull(),
+                null,
                 any(),
                 any(),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
-                eq(CreateRoom.Request.Preset.PUBLIC),
+                CreateRoom.Request.Preset.PUBLIC,
                 any(),
                 any(),
-                eqNull(),
             )
         }
     }
@@ -146,7 +146,7 @@ class CreateNewGroupViewModelTest {
     fun `add user to group list when selected and remove from list when deselected`() = runTest {
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -191,31 +191,27 @@ class CreateNewGroupViewModelTest {
         } returns Unit
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
                 any(),
-                eq(setOf(userId2, userId3)),
+                setOf(userId2, userId3),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
             )
         } returns Result.success(roomId)
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"),
+                "u",
                 any(),
                 any(),
-                eqNull(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -255,23 +251,20 @@ class CreateNewGroupViewModelTest {
         } returns Unit
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
-                eq(topicText),
+                topicText,
                 any(),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
             )
         } returns Result.success(roomId)
 
@@ -297,23 +290,20 @@ class CreateNewGroupViewModelTest {
 
         everySuspend {
             roomsApiClientMock.createRoom(
-                eq(DirectoryVisibility.PRIVATE),
+                DirectoryVisibility.PRIVATE,
                 any(),
                 any(),
                 any(),
-                eq(setOf(userId2, userId3)),
+                setOf(userId2, userId3),
                 any(),
                 any(),
                 any(),
-                eq(
-                    listOf(
-                        InitialStateEvent(EncryptionEventContent(), "")
-                    )
+                listOf(
+                    InitialStateEvent(EncryptionEventContent(), "")
                 ),
                 any(),
-                eq(false),
+                false,
                 any(),
-                eqNull(),
             )
         } returns Result.failure(
             MatrixServerException(
@@ -322,7 +312,7 @@ class CreateNewGroupViewModelTest {
         )
         everySuspend {
             usersApiClientMock.searchUsers(
-                eq("u"), any(), any(), eqNull()
+                "u", any(), any(),
             )
         } returns Result.success(
             SearchUsers.Response(
@@ -352,6 +342,112 @@ class CreateNewGroupViewModelTest {
         groupCreatedWasCalled shouldBe false
     }
 
+    @Test
+    fun `test relationship between isPrivate and directoryVisibilityIsPublic`() = runTest {
+        val model = createNewGroupViewModel() as CreateNewGroupViewModel
+
+        backgroundScope.launch { model.isPrivate.collect {} }
+        backgroundScope.launch { model.directoryVisibilityIsPublic.collect {} }
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setDirectoryVisibilityIsPublic(true)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setIsPrivate(false)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe false
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setDirectoryVisibilityIsPublic(false)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe false
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+
+        model.setIsPrivate(true)
+
+        eventually(2.seconds) {
+            model.isPrivate.value shouldBe true
+            model.directoryVisibilityIsPublic.value shouldBe false
+        }
+    }
+
+    @Test
+    fun `directoryVisibilityIsPublic is true results in visibility is PUBLIC`() = runTest {
+        everySuspend {
+            roomsApiClientMock.createRoom(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } returns Result.success(RoomId("!room1"))
+
+        val model = createNewGroupViewModel()
+
+        model.directoryVisibilityIsPublic.value = true
+
+        eventually(2.seconds) {
+            model.canCreateNewGroup.value shouldBe true
+        }
+
+        model.createNewGroup()
+        yield()
+
+        verifySuspend {
+            roomsApiClientMock.createRoom(
+                name = any(),
+                topic = any(),
+                preset = any(),
+                isDirect = any(),
+                invite = any(),
+                initialState = any(),
+                visibility = DirectoryVisibility.PUBLIC,
+            )
+        }
+    }
+
+
+    @Test
+    fun `directoryVisibilityIsPublic is false results in visibility is PRIVATE`() = runTest {
+        everySuspend {
+            roomsApiClientMock.createRoom(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(),
+            )
+        } returns Result.success(RoomId("!room1"))
+
+        val model = createNewGroupViewModel()
+
+        model.directoryVisibilityIsPublic.value = false
+
+        eventually(2.seconds) {
+            model.canCreateNewGroup.value shouldBe true
+        }
+
+        model.createNewGroup()
+        yield()
+
+        verifySuspend {
+            roomsApiClientMock.createRoom(
+                name = any(),
+                topic = any(),
+                preset = any(),
+                isDirect = any(),
+                invite = any(),
+                initialState = any(),
+                visibility = DirectoryVisibility.PRIVATE,
+            )
+        }
+    }
+
     private fun TestScope.createNewGroupViewModel(): CreateNewGroupViewModelImpl {
         val createNewGroupViewModelImpl = CreateNewGroupViewModelImpl(
             viewModelContext = MatrixClientViewModelContextImpl(
@@ -364,7 +460,8 @@ class CreateNewGroupViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "NewGroup"
             ),
             createNewRoomViewModel = createNewRoomViewModel(),
             onBack = onBackMock,
@@ -385,7 +482,8 @@ class CreateNewGroupViewModelTest {
                     )
                 }.koin,
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher)
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "NewRoom"
             ),
             onRoomCreated = onRoomCreatedMock,
         )

@@ -1,27 +1,28 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.client.notification
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.getNotificationDisplayCount
 import de.connect2x.trixnity.messenger.viewmodel.AccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.toAccountInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
-import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-
-private val log = KotlinLogging.logger {}
 
 interface AccountViewModelFactory {
     fun create(
@@ -29,13 +30,13 @@ interface AccountViewModelFactory {
         onAccountSelected: (UserId?) -> Unit,
         onUserSettingsSelected: () -> Unit,
         onShowAppInfo: () -> Unit,
-        onShowProfile: () -> Unit,
+        onShowAccounts: () -> Unit,
     ): AccountViewModel = AccountViewModelImpl(
         viewModelContext,
         onAccountSelected,
         onUserSettingsSelected,
         onShowAppInfo,
-        onShowProfile,
+        onShowAccounts,
     )
 
     companion object : AccountViewModelFactory
@@ -54,18 +55,31 @@ interface AccountViewModel {
      */
     val isSingleAccount: StateFlow<Boolean>
 
+    /**
+     * A display string representing the global number of unread notifications.
+     * The string is processed according to [getNotificationDisplayCount].
+     */
+    val globalNotificationCount: StateFlow<String?>
+
+    /**
+     * A display string representing the number of unread notifications for a given account.
+     * Each count string is processed according to [getNotificationDisplayCount].
+     */
+    val accountNotificationCounts: StateFlow<Map<UserId, String?>>
+
     fun selectActiveAccount(userId: UserId?)
     fun openUserSettings()
-    fun openUserProfile()
+    fun openUserAccounts()
     fun openAppInfo()
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 open class AccountViewModelImpl(
     viewModelContext: ViewModelContext,
     private val onAccountSelected: (UserId?) -> Unit,
     private val onUserSettingsSelected: () -> Unit,
     private val onShowAppInfo: () -> Unit,
-    private val onShowProfile: () -> Unit,
+    private val onShowAccounts: () -> Unit,
 ) : ViewModelContext by viewModelContext, AccountViewModel {
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
@@ -75,12 +89,25 @@ open class AccountViewModelImpl(
         matrixClients.toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-    override val activeAccount: StateFlow<UserId?> =
-        messengerSettings.map { it.base.selectedAccount }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val activeAccount: StateFlow<UserId?> = messengerSettings.map { it.base.selectedAccount }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val isSingleAccount: StateFlow<Boolean> = accounts.map { it.size <= 1 }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+    override val isSingleAccount: StateFlow<Boolean> =
+        accounts.map { it.size <= 1 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+
+    override val globalNotificationCount: StateFlow<String?> = matrixClients.flatMapLatest { clients ->
+        combine(clients.values.map { client -> client.notification.getCount() }) { flows ->
+            getNotificationDisplayCount(flows.sum())
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = matrixClients.flatMapLatest { clients ->
+        combine(clients.map { (userId, client) ->
+            client.notification.getCount().map { count ->
+                userId to getNotificationDisplayCount(count)
+            }
+        }) { pairs -> pairs.toMap() }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
     override fun selectActiveAccount(userId: UserId?) {
         coroutineScope.launch {
@@ -95,9 +122,9 @@ open class AccountViewModelImpl(
         }
     }
 
-    override fun openUserProfile() {
+    override fun openUserAccounts() {
         coroutineScope.launch {
-            onShowProfile()
+            onShowAccounts()
         }
     }
 
@@ -134,10 +161,14 @@ class PreviewAccountViewModel : AccountViewModel {
             ),
         )
     )
+
     override val activeAccount: MutableStateFlow<UserId?> = MutableStateFlow(null)
     override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val globalNotificationCount: StateFlow<String?> = MutableStateFlow(null)
+    override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = MutableStateFlow(emptyMap())
+
     override fun selectActiveAccount(userId: UserId?) {}
     override fun openUserSettings() {}
-    override fun openUserProfile() {}
+    override fun openUserAccounts() {}
     override fun openAppInfo() {}
 }

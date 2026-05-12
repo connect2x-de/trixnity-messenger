@@ -1,8 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.verification.ActiveVerification
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.firstWithClue
 import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
@@ -12,28 +28,17 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
-import dev.mokkery.matcher.eq
 import dev.mokkery.mock
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.verification.ActiveVerification
-import net.folivo.trixnity.client.verification.ActiveVerificationState
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
+import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class VerificationRequestRoomMessageTimelineElementViewModelTest {
@@ -63,17 +68,22 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         }.koin
         every { matrixClientMock.userId } returns me
         every {
-            roomServiceMock.getTimelineEvent(eq(thisRoom), eq(timelineEventId), any())
+            roomServiceMock.getTimelineEvent(thisRoom, timelineEventId, any())
         } returns MutableStateFlow(
             timelineEvent(timelineEventId)
         )
+    }
+
+    @BeforeTest
+    fun setup() {
+        configureTestLogging()
     }
 
     @Test
     fun `show as active when the verification has not timed out and is not done or cancelled`() = runTest {
         every { activeVerification.state } returns MutableStateFlow(ready)
         everySuspend {
-            activeVerifications.getActiveVerification(any(), eq(thisRoom), eq(timelineEventId))
+            activeVerifications.getActiveVerification(any(), thisRoom, timelineEventId)
         } returns activeVerification
         val cut = userVerificationViewModel()
 
@@ -84,14 +94,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     fun `show as inactive when verification has timed out`() = runTest {
         everySuspend {
             activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
+                matrixClientMock, thisRoom, timelineEventId
             )
         } returns null
         every {
             roomServiceMock.getTimelineEvents(
-                roomId = eq(thisRoom),
-                startFrom = eq(timelineEventId),
-                direction = eq(GetEvents.Direction.FORWARDS),
+                roomId = thisRoom,
+                startFrom = timelineEventId,
+                direction = GetEvents.Direction.FORWARDS,
                 config = any()
             )
         } returns flowOf()
@@ -106,14 +116,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
         everySuspend {
             activeVerifications.getActiveVerification(
-                eq(matrixClientMock), eq(thisRoom), eq(timelineEventId)
+                matrixClientMock, thisRoom, timelineEventId
             )
         } returns activeVerification
         every {
             roomServiceMock.getTimelineEvents(
-                roomId = eq(thisRoom),
-                startFrom = eq(timelineEventId),
-                direction = eq(GetEvents.Direction.FORWARDS),
+                roomId = thisRoom,
+                startFrom = timelineEventId,
+                direction = GetEvents.Direction.FORWARDS,
                 config = any()
             )
         } returns flowOf()
@@ -123,7 +133,9 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
         cut.isActive.firstWithClue(false)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.userVerificationViewModel(): VerificationRequestRoomMessageTimelineElementViewModelImpl {
+        Dispatchers.setMain(testDispatcher)
         val di = koinApplication {
             modules(
                 createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {

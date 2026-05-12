@@ -6,7 +6,6 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelV
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,23 +16,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.key
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.avatarUrl
-import net.folivo.trixnity.client.store.membership
-import net.folivo.trixnity.client.store.originalName
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.PowerLevel
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.crypto.key.UserTrustLevel
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.avatarUrl
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.store.originalName
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger {}
 
 interface MemberListElementViewModelFactory {
     fun create(

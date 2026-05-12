@@ -13,17 +13,14 @@ import de.connect2x.trixnity.messenger.util.replaceCurrentSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import net.folivo.trixnity.client.verification
-import net.folivo.trixnity.client.verification.VerificationService
-import net.folivo.trixnity.core.model.UserId
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
-private val log = KotlinLogging.logger { }
 
 class SelfVerificationRouter(
     private val viewModelContext: ViewModelContext,
@@ -33,8 +30,8 @@ class SelfVerificationRouter(
         MutableStateFlow(setOf<UserId>()) // in case of multiple self verifications, we need to do one after another
     private val crossSigningBootstraps = MutableStateFlow(setOf<UserId>())
 
-
     private val navigation = StackNavigation<Config>()
+
     val stack = viewModelContext.childStack(
         source = navigation,
         serializer = Config.serializer(),
@@ -54,6 +51,7 @@ class SelfVerificationRouter(
                     viewModelContext.get<SelfVerificationViewModelFactory>()
                         .create(
                             viewModelContext = viewModelContext.childContext(
+                                "SelfVerification",
                                 componentContext,
                                 selfVerificationConfig.userId,
                             ),
@@ -77,6 +75,7 @@ class SelfVerificationRouter(
                 viewModelContext.get<RedoSelfVerificationViewModelFactory>()
                     .create(
                         viewModelContext = viewModelContext.childContext(
+                            "RedoSelfVerification",
                             componentContext,
                             selfVerificationConfig.userId,
                         ),
@@ -89,6 +88,7 @@ class SelfVerificationRouter(
                 Wrapper.CrossSigningBootstrap(
                     viewModelContext.get<CrossSigningBootstrapViewModelFactory>().create(
                         viewModelContext = viewModelContext.childContext(
+                            "CrossSigningBootstrap",
                             componentContext,
                             selfVerificationConfig.userId,
                         ),

@@ -1,22 +1,19 @@
 package de.connect2x.trixnity.messenger.i18n
 
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.EN
 import de.connect2x.trixnity.messenger.update
 import de.connect2x.trixnity.messenger.util.mb
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
-import net.folivo.trixnity.core.model.RoomAliasId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
 import kotlin.time.Instant
-
-private val log = KotlinLogging.logger { }
 
 // TODO this is not lazy -> use property delegation or one class for one language instead
 @Suppress("UNUSED")
@@ -50,7 +47,7 @@ open class I18n(
 
     open fun uiaCancelledByUser() = translate {
         EN - "The authorization has been cancelled by you."
-        DE - "Die Autorisierung wurde durch von Ihnen abgebrochen."
+        DE - "Die Autorisierung wurde von Ihnen abgebrochen."
     }
 
     open fun uiaGenericError(message: String? = commonUnknown()) = translate {
@@ -176,6 +173,11 @@ open class I18n(
     open fun eventChangeJoin(username: String, groupOrChat: String) = translate {
         EN - "$username has joined $groupOrChat"
         DE - "$username ist $groupOrChat beigetreten"
+    }
+
+    open fun eventChangeUndecryptableHistoryInfo() = translate {
+        EN - "Previous messages cannot be decrypted"
+        DE - "Vorherige Nachrichten können nicht entschlüsselt werden"
     }
 
     open fun eventChangeLeave(username: String, groupOrChat: String) = translate {
@@ -321,11 +323,6 @@ open class I18n(
         DE - "$username hat den Avatar $groupOrChat geändert"
     }
 
-    open fun invitationFrom(inviter: String) = translate {
-        EN - "(Invitation from $inviter)"
-        DE - "(Einladung von $inviter)"
-    }
-
     open fun bootstrapErrorAccount(message: String? = commonUnknown()) = translate {
         EN - "Account creation failed: ${message ?: commonUnknown()}"
         DE - "Einrichtung des Kontos fehlgeschlagen: ${message ?: commonUnknown()}"
@@ -396,6 +393,11 @@ open class I18n(
     open fun createNewRoomInvalidRoomVersion(isChat: Boolean) = translate {
         EN - "Cannot create new ${if (isChat) "chat" else "group"}: the room version is invalid."
         DE - "${if (isChat) "Neuer Chat" else "Neue Gruppe"} kann nicht angelegt werden: die Raumversion ist veraltet."
+    }
+
+    open fun roomListDraft() = translate {
+        EN - "draft"
+        DE - "Entwurf"
     }
 
     open fun roomListYou() = translate {
@@ -488,54 +490,54 @@ open class I18n(
         DE - "$usernames und andere schreiben..."
     }
 
-    open fun connectingErrorStandard(message: String) = translate {
-        EN - "Cannot connect to the Matrix server: $message"
-        DE - "Matrix-Server kann nicht erreicht werden: $message"
+    open fun createMatrixClientFailureUnknown(message: String?) = translate {
+        EN - "Cannot connect to the Matrix server: ${message ?: commonUnknown()}"
+        DE - "Matrix Server kann nicht erreicht werden: ${message ?: commonUnknown()}"
     }
 
-    open fun connectingErrorForbidden() = translate {
+    open fun createMatrixClientFailureInvalidAuthentication() = translate {
         EN - "Your credentials are not correct."
         DE - "Die Zugangsdaten sind nicht korrekt."
     }
 
-    open fun connectingErrorNotFound() = translate {
-        EN - "Cannot find a Matrix server with the given address."
-        DE - "Kann keinen Matrix-Server unter der angegebenen Adresse finden."
+    open fun createMatrixClientFailureUserDeactivated() = translate {
+        EN - "The account has been deactivated."
+        DE - "Das Konto wurde deaktiviert."
     }
 
-    open fun connectingErrorWrongAddress() = translate {
-        EN - "The address of the Matrix server cannot be determined, or the address might be corrupt."
-        DE - "Die Adresse des Matrix-Servers kann nicht bestimmt werden bzw. ist fehlerhaft."
-    }
-
-    open fun connectingErrorHttps() = translate {
-        EN - "Only secure connections (https) are allowed."
-        DE - "Es muss eine sichere Verbindung (https) genutzt werden."
-    }
-
-    open fun connectingErrorNoMatrixClient() = translate {
-        EN - "No Matrix client could be initialized"
-        DE - "Ein Matrix Client kann nicht erstellt werden."
-    }
-
-    open fun connectingAccountAlreadyExists(userId: UserId) = translate {
+    open fun createMatrixClientFailureAlreadyExists(userId: UserId) = translate {
         EN - "There already is a local account for the user $userId."
         DE - "Es gibt bereits ein lokales Konto für den Nutzer $userId."
     }
 
-    open fun connectingErrorDbLocked() = translate {
+    open fun createMatrixClientFailureDatabaseLocked() = translate {
         EN - "This app seems to be running already. You cannot start more than one instance."
         DE - "Diese App läuft bereits. Sie können die App nur einmal starten."
     }
 
-    open fun connectingErrorDbAccess() = translate {
+    open fun createMatrixClientFailureDatabaseAccess() = translate {
         EN - "The local database cannot be accessed."
         DE - "Auf die lokale Datenbank kann nicht zugegriffen werden."
+    }
+
+    open fun createMatrixClientFailureConnection(message: String?) = translate {
+        EN - "There was a network connection error: ${message ?: commonUnknown()}"
+        DE - "Es gab einen Netzwerkverbindungsfehler: ${message ?: commonUnknown()}"
     }
 
     open fun logoutFailure() = translate {
         EN - "An error occurred during logout. Please try again later."
         DE - "Beim Ausloggen aus Ihrem Account gab es einen Fehler. Bitte versuchen Sie es später noch einmal."
+    }
+
+    open fun uriCallFailure() = translate {
+        EN - "Could not open URI."
+        DE - "URI konnte nicht geöffnet werden."
+    }
+
+    open fun oAuth2LoginFailure(reason: String?) = translate {
+        EN - "Authentication failed. Reason: ${reason ?: commonUnknown()}"
+        DE - "Authentifizierung fehlgeschlagen. Grund: ${reason ?: commonUnknown()}"
     }
 
     open fun registrationTokenNotValid() = translate {
@@ -571,11 +573,6 @@ open class I18n(
     open fun settingsNotificationsSound() = translate {
         EN - "sound"
         DE - "Töne"
-    }
-
-    open fun settingsNotificationsSilent() = translate {
-        EN - "silent"
-        DE - "Stumm"
     }
 
     open fun settingsNotificationsVibration() = translate {
@@ -629,6 +626,11 @@ open class I18n(
         DE - "zuletzt gesehen: ${date.day}.${date.month.number}.${date.year}"
     }
 
+    open fun unknownDevice() = translate {
+        EN - "Unknown device"
+        DE - "Unbekanntes Gerät"
+    }
+
     open fun settingsDevicesDisplayNameError() = translate {
         EN - "Cannot change the name of the device."
         DE - "Der Name des Geräts kann nicht geändert werden."
@@ -646,7 +648,7 @@ open class I18n(
         else "Sind sie sicher Sie wollen Gerät $deviceId entfernen?"
     }
 
-    open fun settingsDevicesRemoveError(message: String? = commonUnknown()) = translate {
+    open fun settingsDevicesRemoveError(message: String? = null) = translate {
         EN - "The device cannot be removed: ${message ?: commonUnknown()}"
         DE - "Das Gerät kann nicht gelöscht werden: ${message ?: commonUnknown()}"
     }
@@ -669,6 +671,16 @@ open class I18n(
     open fun settingsRoomAddMembersErrorOffline() = translate {
         EN - "You cannot invite users when you are offline."
         DE - "Sie können niemanden einladen, wenn Sie offline sind."
+    }
+
+    open fun addMembersUndecryptableHistoryBeforeJoin() = translate {
+        EN - "Added members cannot see messages from before they joined"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrem Beitritt nicht sehen"
+    }
+
+    open fun addMembersUndecryptableHistoryBeforeInvite() = translate {
+        EN - "Added members cannot see messages from before you invited them"
+        DE - "Hinzugefügte Teilnehmer können die Nachrichten von vor ihrer Einladung nicht sehen"
     }
 
     open fun forgetRoomError(groupOrChat: String) = translate {
@@ -836,9 +848,9 @@ open class I18n(
         DE - "Erwähnungen"
     }
 
-    open fun settingsRoomNotificationsSilent() = translate {
-        EN - "Silent"
-        DE - "Stumm"
+    open fun settingsRoomNotificationsOff() = translate {
+        EN - "Off"
+        DE - "Aus"
     }
 
     open fun settingsRoomNotificationsDefault() = translate {
@@ -856,7 +868,7 @@ open class I18n(
         DE - "Sie werden über Nachrichten informiert, die direkt an Sie gerichtet sind"
     }
 
-    open fun settingsRoomNotificationsSilentExplanation() = translate {
+    open fun settingsRoomNotificationsOffExplanation() = translate {
         EN - "you are not notified on any new message"
         DE - "Sie erhalten keinerlei Benachrichtigungen über neue Nachrichten"
     }
@@ -986,6 +998,16 @@ open class I18n(
         DE - "Daten erfolgreich geladen."
     }
 
+    open fun initialSyncNotificationTitle() = translate {
+        EN - "initial sync"
+        DE - "initiale Synchronisierung"
+    }
+
+    open fun initialSyncNotificationDescription() = translate {
+        EN - "Your account data is loading."
+        DE - "Ihre Kontodaten werden geladen."
+    }
+
     open fun timelineLeaveRoomErrorOffline() = settingsRoomLeaveRoomErrorOffline()
     open fun timelineLeaveRoomError(groupOrChat: String) = settingsRoomLeaveRoomError(groupOrChat)
 
@@ -1039,6 +1061,11 @@ open class I18n(
     open fun profileCreationDuplicate() = translate {
         EN - "The profile name is already in use."
         DE - "Dieser Profilname wird bereits benutzt."
+    }
+
+    open fun profileRenameDialogueError() = translate {
+        EN - "This name is already in use!"
+        DE - "Dieser name wird schon verwendet!"
     }
 
     open fun exportRoomStateInit(total: Long) = translate {
@@ -1367,6 +1394,26 @@ open class I18n(
         DE - "Der Account konnte nicht deaktiviert werden: $message"
     }
 
+    open fun newMessageTitle() = translate {
+        EN - "new messages"
+        DE - "neue Nachrichten"
+    }
+
+    open fun newMessageDescription() = translate {
+        EN - "You have new messages."
+        DE - "Sie haben neue Nachrichten."
+    }
+
+    open fun newInvite() = translate {
+        EN - "new invite"
+        DE - "neue Einladung"
+    }
+
+    open fun newActivity() = translate {
+        EN - "new activity"
+        DE - "neue Aktivität"
+    }
+
     open fun powerLevelUpdateBan(powerLevel: Long) = translate {
         EN - when (powerLevel) {
             0L -> "Users can now ban users"
@@ -1592,9 +1639,19 @@ open class I18n(
         DE - "Berechtigungslevel muss unter $maxPowerLevel sein"
     }
 
+    open fun roomUpgraded(message: String) = translate {
+        EN - "This room has been upgraded. Message from the Admins: \"$message\""
+        DE - "Dieser Raum wurde aktualisiert. Nachricht von den Admins: \"$message\""
+    }
+
     open fun newEventAlreadyExistsErr() = translate {
         EN - "This event id exists already"
         DE - "Diese Event Id existiert bereits"
+    }
+
+    open fun audioRecordingManuallyGiveMicrophonePermissionPrompt() = translate {
+        EN - "Go to Permissions and allow Microphone"
+        DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
     }
 }
 
@@ -1604,7 +1661,6 @@ internal fun getLang(
     getSystemLang: GetSystemLang
 ): Language {
     val preferredLang = settings.value.base.preferredLang
-    log.trace { "preferred language: $preferredLang" }
     return preferredLang?.let { languages.langOf(it) }
         ?: languages.langOf(getSystemLang())
         ?: EN// fallback is english

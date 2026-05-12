@@ -1,12 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
-import com.arkivanov.essenty.backhandler.BackCallback
+import de.connect2x.trixnity.messenger.FontKind
+import de.connect2x.trixnity.messenger.MatrixMessengerSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.ThemeMode
+import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.mapLatest
@@ -27,6 +31,8 @@ interface AppearanceSettingsViewModelFactory {
 
 interface AppearanceSettingsViewModel {
     val themeMode: StateFlow<ThemeMode>
+    val isSystemFont: StateFlow<Boolean>
+    val canToggleSystemFont: StateFlow<Boolean>
     val isHighContrast: StateFlow<Boolean>
     val isFocusHighlighting: StateFlow<Boolean>
     val accentColor: StateFlow<Long?>
@@ -35,6 +41,7 @@ interface AppearanceSettingsViewModel {
     val applySystemSizes: StateFlow<Boolean>
 
     fun setThemeMode(themeMode: ThemeMode)
+    fun toggleSystemFont()
     fun toggleHighContrast()
     fun toggleFocusHighlighting()
     fun setAccentColor(accentColor: Long?)
@@ -50,10 +57,24 @@ class AppearanceSettingsViewModelImpl(
     private val onCloseAppearanceSettings: () -> Unit
 ) : ViewModelContext by viewModelContext, AppearanceSettingsViewModel {
     private val settings = get<MatrixMessengerSettingsHolder>()
+    private val config = get<MatrixMultiMessengerConfiguration>()
 
     override val themeMode: StateFlow<ThemeMode> =
         settings.mapLatest { it.base.themeMode }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.themeMode)
+
+    override val canToggleSystemFont: StateFlow<Boolean> =
+        MutableStateFlow(config.enableBundledFont)
+
+    private fun isSystemFont(settings: MatrixMessengerSettings) =
+        when (config.enableBundledFont) {
+            true ->  (settings.base.fontKind ?: FontKind.BUNDLED) == FontKind.SYSTEM
+            false -> true
+        }
+
+    override val isSystemFont: StateFlow<Boolean> =
+        settings.mapLatest(::isSystemFont)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), isSystemFont(settings.value))
     override val isHighContrast: StateFlow<Boolean> =
         settings.mapLatest { it.base.isHighContrast }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), settings.value.base.isHighContrast)
@@ -78,13 +99,26 @@ class AppearanceSettingsViewModelImpl(
     }
 
     init {
-        backHandler.register(backCallback)
+        registerBackCallback(backCallback)
     }
 
     override fun setThemeMode(themeMode: ThemeMode) {
         coroutineScope.launch {
             settings.update<MatrixMessengerSettingsBase> {
                 it.copy(themeMode = themeMode)
+            }
+        }
+    }
+
+    override fun toggleSystemFont() {
+        val fontKind = when {
+            isSystemFont.value && canToggleSystemFont.value -> FontKind.BUNDLED
+            else -> FontKind.SYSTEM
+        }
+
+        coroutineScope.launch {
+            settings.update<MatrixMessengerSettingsBase> {
+                it.copy(fontKind = fontKind)
             }
         }
     }

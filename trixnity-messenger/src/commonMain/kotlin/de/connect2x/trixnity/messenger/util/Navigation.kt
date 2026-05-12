@@ -9,24 +9,22 @@ import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.CoroutineContext.Element
 
+private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.NavigationKt")
 
 // TODO use context receivers for CoroutineScope in future Kotlin version
-
-private val log = KotlinLogging.logger {}
 
 /**
  * @see [com.arkivanov.decompose.router.stack.navigate]
  */
 suspend fun <C : Any> StackNavigator<C>.navigateSuspending(
     transformer: (stack: List<C>) -> List<C>
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     navigate { oldConfiguration ->
         val newConfiguration = transformer(oldConfiguration)
         log.trace { "replace current ($oldConfiguration) with configuration-list $newConfiguration" }
@@ -40,7 +38,7 @@ suspend fun <C : Any> StackNavigator<C>.navigateSuspending(
 fun <C : Any> StackNavigator<C>.launchNavigate(
     scope: CoroutineScope,
     transformer: (stack: List<C>) -> List<C>
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     navigate { oldConfiguration ->
         val newConfiguration = transformer(oldConfiguration)
         log.trace { "replace current ($oldConfiguration) with configuration-list $newConfiguration" }
@@ -54,7 +52,7 @@ fun <C : Any> StackNavigator<C>.launchNavigate(
 suspend fun <C : Any> StackNavigator<C>.replaceCurrentSuspending(
     configuration: C,
     onComplete: () -> Unit = {},
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "replace current with configuration $configuration" }
     replaceCurrent(configuration, onComplete)
 }
@@ -66,7 +64,7 @@ fun <C : Any> StackNavigator<C>.launchReplaceCurrent(
     scope: CoroutineScope,
     configuration: C,
     onComplete: () -> Unit = {},
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "replace current with configuration $configuration" }
     replaceCurrent(configuration, onComplete)
 }
@@ -77,7 +75,7 @@ fun <C : Any> StackNavigator<C>.launchReplaceCurrent(
 suspend fun <C : Any> StackNavigator<C>.replaceAllSuspending(
     vararg configurations: C,
     onComplete: () -> Unit = {},
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "replace all with configuration $configurations" }
     replaceAll(configurations = configurations, onComplete = onComplete)
 }
@@ -89,7 +87,7 @@ fun <C : Any> StackNavigator<C>.launchReplaceAll(
     scope: CoroutineScope,
     configuration: C,
     onComplete: () -> Unit = {},
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "replace all with configuration $configuration" }
     replaceAll(configuration, onComplete = onComplete)
 }
@@ -101,7 +99,7 @@ fun <C : Any> StackNavigator<C>.launchReplaceAll(
 suspend fun <C : Any> StackNavigator<C>.pushSuspending(
     configuration: C,
     onComplete: () -> Unit = {},
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "push configuration $configuration" }
     push(configuration, onComplete)
 }
@@ -114,7 +112,7 @@ fun <C : Any> StackNavigator<C>.launchPush(
     scope: CoroutineScope,
     configuration: C,
     onComplete: () -> Unit = {},
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "push configuration $configuration" }
     push(configuration, onComplete)
 }
@@ -124,7 +122,7 @@ fun <C : Any> StackNavigator<C>.launchPush(
  */
 suspend fun <C : Any> StackNavigator<C>.popSuspending(
     onComplete: (isSuccess: Boolean) -> Unit = {}
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "pop current configuration" }
     pop(onComplete)
 }
@@ -135,7 +133,7 @@ suspend fun <C : Any> StackNavigator<C>.popSuspending(
 fun <C : Any> StackNavigator<C>.launchPop(
     scope: CoroutineScope,
     onComplete: (isSuccess: Boolean) -> Unit = {}
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "pop current configuration" }
     pop(onComplete)
 }
@@ -145,7 +143,7 @@ fun <C : Any> StackNavigator<C>.launchPop(
  */
 suspend fun <C : Any> StackNavigator<C>.popWhileSuspending(
     predicate: (C) -> Boolean
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "popWhile current configuration" }
     popWhile(predicate)
 }
@@ -156,7 +154,7 @@ suspend fun <C : Any> StackNavigator<C>.popWhileSuspending(
 fun <C : Any> StackNavigator<C>.launchPopWhile(
     scope: CoroutineScope,
     predicate: (C) -> Boolean
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "popWhile current configuration" }
     popWhile(predicate)
 }
@@ -167,7 +165,7 @@ fun <C : Any> StackNavigator<C>.launchPopWhile(
 suspend fun <C : Any> StackNavigator<C>.popWhileSuspending(
     predicate: (C) -> Boolean,
     onComplete: (isSuccess: Boolean) -> Unit,
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "popWhile current configuration" }
     popWhile(predicate, onComplete)
 }
@@ -179,7 +177,7 @@ fun <C : Any> StackNavigator<C>.launchPopWhile(
     scope: CoroutineScope,
     predicate: (C) -> Boolean,
     onComplete: (isSuccess: Boolean) -> Unit,
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "popWhile current configuration" }
     popWhile(predicate, onComplete)
 }
@@ -190,7 +188,7 @@ fun <C : Any> StackNavigator<C>.launchPopWhile(
 suspend fun <C : Any> StackNavigator<C>.bringToFrontSuspending(
     configuration: C,
     onComplete: () -> Unit = {}
-) = withContext(currentImmediateDispatcher()) {
+) = withContext(Dispatchers.Main.immediate) {
     log.trace { "bring to front $configuration" }
     bringToFront(configuration, onComplete)
 }
@@ -202,7 +200,7 @@ fun <C : Any> StackNavigator<C>.launchBringToFront(
     scope: CoroutineScope,
     configuration: C,
     onComplete: () -> Unit = {}
-) = scope.launch(scope.ImmediateDispatcher) {
+) = scope.launch(Dispatchers.Main.immediate) {
     log.trace { "bring to front $configuration" }
     bringToFront(configuration, onComplete)
 }

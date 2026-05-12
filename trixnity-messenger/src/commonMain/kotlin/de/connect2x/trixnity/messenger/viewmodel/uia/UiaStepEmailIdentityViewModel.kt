@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import net.folivo.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
 
 interface UiaStepEmailIdentityViewModelFactory {
     fun create(viewModelContext: ViewModelContext, onCancel: () -> Unit): UiaStepEmailIdentityViewModel {

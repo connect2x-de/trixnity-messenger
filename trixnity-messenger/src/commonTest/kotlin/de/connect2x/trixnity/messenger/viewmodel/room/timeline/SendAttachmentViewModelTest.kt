@@ -3,13 +3,12 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.mb
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -26,20 +25,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.media
-import net.folivo.trixnity.client.media.MediaService
-import net.folivo.trixnity.client.room
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.message.MessageBuilder
-import net.folivo.trixnity.client.store.ServerData
-import net.folivo.trixnity.clientserverapi.model.media.GetMediaConfig
-import net.folivo.trixnity.clientserverapi.model.server.GetVersions
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
-import net.folivo.trixnity.utils.ByteArrayFlow
-import net.folivo.trixnity.utils.toByteArrayFlow
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.media.MediaService
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.store.ServerData
+import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
+import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
@@ -59,7 +58,9 @@ class SendAttachmentViewModelTest {
     private val mediaServiceMock: MediaService = mock()
     private val serverData: MutableStateFlow<ServerData> = MutableStateFlow(
         ServerData(
-            versions = GetVersions.Response(listOf()), mediaConfig = GetMediaConfig.Response(50.mb())
+            versions = GetVersions.Response(listOf()),
+            capabilities = null,
+            mediaConfig = GetMediaConfig.Response(50.mb())
         )
     )
     private val imageProcessMock = object : ProcessImageUpload {
@@ -83,6 +84,7 @@ class SendAttachmentViewModelTest {
 
     @BeforeTest
     fun beforeTest() {
+        configureTestLogging()
         resetMocks(matrixClientMock, roomServiceMock, mediaServiceMock)
         every { matrixClientMock.serverData } returns serverData
         every { matrixClientMock.di } returns koinApplication {
@@ -123,8 +125,8 @@ class SendAttachmentViewModelTest {
         val image = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9).toByteArrayFlow()
         val fileContent = object : FileDescriptor {
             override val fileName: String = "numbers.jpg"
-            override val fileSize: Long? = 10
-            override val mimeType: ContentType? = ContentType.Image.JPEG
+            override val fileSize: Long = 10
+            override val mimeType: ContentType = ContentType.Image.JPEG
             override val content: ByteArrayFlow = image
         }
         val builder = MessageBuilder(roomId, matrixClientMock.room, matrixClientMock.media, me)
@@ -151,7 +153,7 @@ class SendAttachmentViewModelTest {
     ): SendAttachmentViewModelImpl = SendAttachmentViewModelImpl(
         viewModelContext = MatrixClientViewModelContextImpl(
             componentContext = DefaultComponentContext(LifecycleRegistry()),
-            coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+            coroutineContext = backgroundScope.coroutineContext,
             userId = me,
             di = koinApplication {
                 modules(
@@ -165,7 +167,8 @@ class SendAttachmentViewModelTest {
                         single<GetImageDimensions> { getImageDimensionsMock }
                         single<MatrixClient> { matrixClientMock }
                     })
-            }.koin
+            }.koin,
+            name = "MatrixClient"
         ),
         file = content ?: object : FileDescriptor {
             override val content: ByteArrayFlow = ByteArray(fileSize.toInt()) { it.toByte() }.toByteArrayFlow()

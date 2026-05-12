@@ -1,27 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
-import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.clientserverapi.model.push.SetPushRule
-import net.folivo.trixnity.core.MatrixServerException
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.events.m.PushRulesEventContent
-import net.folivo.trixnity.core.model.push.PushAction
-import net.folivo.trixnity.core.model.push.PushCondition
-import net.folivo.trixnity.core.model.push.PushRuleKind
-
-private val log = KotlinLogging.logger { }
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
+import de.connect2x.trixnity.core.MatrixServerException
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
+import de.connect2x.trixnity.core.model.push.PushAction
+import de.connect2x.trixnity.core.model.push.PushCondition
+import de.connect2x.trixnity.core.model.push.PushRuleKind
 
 interface RoomSettingsNotificationsViewModelFactory {
     fun create(
@@ -54,7 +52,7 @@ open class RoomSettingsNotificationsViewModelImpl(
     override val roomNotificationLevels = mapOf(
         NotificationLevels.ALL to NotificationLevelImpl(i18n, NotificationLevels.ALL),
         NotificationLevels.MENTIONS to NotificationLevelImpl(i18n, NotificationLevels.MENTIONS),
-        NotificationLevels.SILENT to NotificationLevelImpl(i18n, NotificationLevels.SILENT),
+        NotificationLevels.OFF to NotificationLevelImpl(i18n, NotificationLevels.OFF),
         NotificationLevels.DEFAULT to NotificationLevelImpl(i18n, NotificationLevels.DEFAULT),
     )
     override val selectedRoomNotificationsLevel: StateFlow<NotificationLevel> =
@@ -89,7 +87,7 @@ open class RoomSettingsNotificationsViewModelImpl(
                         NotificationLevels.MENTIONS
 
                     roomActions == null && overrideActions != null && overrideActions.isEmpty() ->
-                        NotificationLevels.SILENT
+                        NotificationLevels.OFF
 
                     else -> NotificationLevels.DEFAULT
                 }
@@ -101,7 +99,7 @@ open class RoomSettingsNotificationsViewModelImpl(
             roomNotificationLevels.getValue(NotificationLevels.ALL)
         )
     override val isNotificationsLevelLoading = MutableStateFlow(false)
-    
+
     override fun changeSelectedRoomNotificationsLevel(newLevel: NotificationLevel) {
         coroutineScope.launch {
             error.value = null
@@ -123,13 +121,11 @@ open class RoomSettingsNotificationsViewModelImpl(
                     setRoomPush(false)
                 }
 
-                NotificationLevels.SILENT -> {
+                NotificationLevels.OFF -> {
                     deleteRoomPush()
                     setOverridePush()
                 }
-
             }
-
             isNotificationsLevelLoading.value = false
         }
     }
@@ -143,7 +139,9 @@ open class RoomSettingsNotificationsViewModelImpl(
                 conditions = setOf(),
                 actions = if (notify) setOf(PushAction.Notify, PushAction.SetSoundTweak("default")) else setOf(),
             ),
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "add room push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             log.error(exception) { "Cannot add room push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
@@ -158,7 +156,9 @@ open class RoomSettingsNotificationsViewModelImpl(
                 conditions = setOf(PushCondition.EventMatch(key = "room_id", pattern = selectedRoomId.full)),
                 actions = setOf(),
             ),
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "add override push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             log.error(exception) { "Cannot add override push notification rule: (${selectedRoomId.full})" }
             error.value = i18n.settingsRoomNotificationsError()
         }
@@ -169,7 +169,9 @@ open class RoomSettingsNotificationsViewModelImpl(
             "global",
             PushRuleKind.ROOM,
             selectedRoomId.full,
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "delete room push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             // we could just prevent calling the function at all, when rule already deleted
             if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
             log.error(exception) { "cannot delete room push notification rule: (${selectedRoomId.full})" }
@@ -182,7 +184,9 @@ open class RoomSettingsNotificationsViewModelImpl(
             "global",
             PushRuleKind.OVERRIDE,
             selectedRoomId.full,
-        ).onFailure { exception ->
+        ).onSuccess {
+            log.debug { "delete override push notification rule: (${selectedRoomId.full})" }
+        }.onFailure { exception ->
             // we could just prevent calling the function at all, when rule already deleted
             if (exception is MatrixServerException && exception.statusCode == HttpStatusCode.NotFound) return
             log.error(exception) { "cannot delete override push notification rule: (${selectedRoomId.full})" }
@@ -196,7 +200,7 @@ enum class NotificationLevels(val key: String) {
     DEFAULT("DEFAULT"),
     ALL("ALL"),
     MENTIONS("MENTIONS"),
-    SILENT("SILENT"),
+    OFF("OFF"),
 }
 
 interface NotificationLevel {
@@ -213,14 +217,14 @@ class NotificationLevelImpl(i18n: I18n, override val key: NotificationLevels) : 
         name.value = when (key) {
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAll()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentions()
-            NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilent()
+            NotificationLevels.OFF -> i18n.settingsRoomNotificationsOff()
             NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefault()
         }
 
         explanation.value = when (key) {
             NotificationLevels.ALL -> i18n.settingsRoomNotificationsAllExplanation()
             NotificationLevels.MENTIONS -> i18n.settingsRoomNotificationsMentionsExplanation()
-            NotificationLevels.SILENT -> i18n.settingsRoomNotificationsSilentExplanation()
+            NotificationLevels.OFF -> i18n.settingsRoomNotificationsOffExplanation()
             NotificationLevels.DEFAULT -> i18n.settingsRoomNotificationsDefaultExplanation()
         }
     }
@@ -239,21 +243,21 @@ class PreviewRoomSettingsNotificationsViewModel : RoomSettingsNotificationsViewM
         override val explanation: MutableStateFlow<String> = MutableStateFlow("something")
     }
 
-    class NotificationLevelSilent : NotificationLevel {
-        override val key: NotificationLevels = NotificationLevels.SILENT
-        override val name: MutableStateFlow<String> = MutableStateFlow("silent")
+    class NotificationLevelOff : NotificationLevel {
+        override val key: NotificationLevels = NotificationLevels.OFF
+        override val name: MutableStateFlow<String> = MutableStateFlow("off")
         override val explanation: MutableStateFlow<String> = MutableStateFlow("nothing")
     }
 
     override val roomNotificationLevels: Map<NotificationLevels, NotificationLevel> = mapOf(
         NotificationLevels.ALL to NotificationLevelAll(),
         NotificationLevels.MENTIONS to NotificationLevelMentions(),
-        NotificationLevels.SILENT to NotificationLevelSilent(),
+        NotificationLevels.OFF to NotificationLevelOff(),
         NotificationLevels.DEFAULT to NotificationLevelMentions(),
     )
 
     override val selectedRoomNotificationsLevel: MutableStateFlow<NotificationLevel> =
-        MutableStateFlow(NotificationLevelSilent())
+        MutableStateFlow(NotificationLevelOff())
 
     override val isNotificationsLevelLoading: MutableStateFlow<Boolean> =
         MutableStateFlow(false)

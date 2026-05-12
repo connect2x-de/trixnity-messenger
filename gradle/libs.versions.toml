@@ -1,62 +1,65 @@
 [versions]
 
-trixnityMessenger = "3.8.12"
+trixnityMessenger = "4.5.3"
 
-seskar = "4.15.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
+minSdkVersion = "28"
 
-trixnity = "4.22.7" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.1.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+seskar = "4.34.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-okio = "3.16.0" # https://square.github.io/okio/changelog
+trixnity = "5.5.2" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.6.3" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.6" # https://gitlab.com/connect2x/sqlitenity/-/releases
+
+unifiedPush = "3.3.2" # https://codeberg.org/UnifiedPush/android-connector/releases
+okio = "3.17.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js
 kim = "0.26.2" # https://github.com/Ashampoo/kim/releases
 markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
-pdfbox = "3.0.6" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
-icu4j = "77.1" # https://github.com/unicode-org/icu/releases
-testContainers = "2.0.1" # https://github.com/testcontainers/testcontainers-java/releases
-ksoup = "0.2.5" # https://github.com/fleeksoft/ksoup/releases
+pdfbox = "3.0.7" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
+icu4j = "78.2" # https://github.com/unicode-org/icu/releases
+testContainers = "2.0.3" # https://github.com/testcontainers/testcontainers-java/releases
+ksoup = "0.2.6" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-filekit = "0.11.0" # https://github.com/vinceglb/FileKit/releases
-kotlinLogging = "7.0.13" # https://github.com/MicroUtils/kotlin-logging/releases
-slf4j = "2.0.17" # https://github.com/qos-ch/slf4j/tags
-logback = "1.5.20" # https://github.com/qos-ch/logback/tags
-logbackAndroid = "3.0.0" # https://github.com/tony19/logback-android/releases
-sqlitenity = "0.0.4"
+pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
+filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases   # 0.13.0 cannot be used, since it is compiled with Java 21...
+androidxMedia3 = "1.9.3" # https://github.com/androidx/media/releases
 
 [libraries]
 
-trixnity-client = { module = "net.folivo:trixnity-client", version.ref = "trixnity" }
-trixnity-crypto-core = { module = "net.folivo:trixnity-crypto-core", version.ref = "trixnity" }
-trixnity-client-repository-exposed = { module = "net.folivo:trixnity-client-repository-exposed", version.ref = "trixnity" }
-trixnity-client-repository-room = { module = "net.folivo:trixnity-client-repository-room", version.ref = "trixnity" }
-trixnity-client-repository-indexeddb = { module = "net.folivo:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
-trixnity-client-media-okio = { module = "net.folivo:trixnity-client-media-okio", version.ref = "trixnity" }
-trixnity-client-media-opfs = { module = "net.folivo:trixnity-client-media-opfs", version.ref = "trixnity" }
-trixnity-client-media-indexeddb = { module = "net.folivo:trixnity-client-media-indexeddb", version.ref = "trixnity" }
+trixnity-client = { module = "de.connect2x.trixnity:trixnity-client", version.ref = "trixnity" }
+trixnity-crypto-core = { module = "de.connect2x.trixnity:trixnity-crypto-core", version.ref = "trixnity" }
+trixnity-client-repository-exposed = { module = "de.connect2x.trixnity:trixnity-client-repository-exposed", version.ref = "trixnity" }
+trixnity-client-repository-room = { module = "de.connect2x.trixnity:trixnity-client-repository-room", version.ref = "trixnity" }
+trixnity-client-repository-indexeddb = { module = "de.connect2x.trixnity:trixnity-client-repository-indexeddb", version.ref = "trixnity" }
+trixnity-client-media-okio = { module = "de.connect2x.trixnity:trixnity-client-media-okio", version.ref = "trixnity" }
+trixnity-client-media-opfs = { module = "de.connect2x.trixnity:trixnity-client-media-opfs", version.ref = "trixnity" }
+trixnity-client-media-indexeddb = { module = "de.connect2x.trixnity:trixnity-client-media-indexeddb", version.ref = "trixnity" }
+trixnity-client-cryptodriver-libolm = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-libolm", version.ref = "trixnity" }
+trixnity-client-cryptodriver-vodozemac = { module = "de.connect2x.trixnity:trixnity-client-cryptodriver-vodozemac", version.ref = "trixnity" }
 
-sysnotify = { module = "de.connect2x:sysnotify", version.ref = "sysnotify" }
+sysnotify = { module = "de.connect2x.sysnotify:sysnotify-core", version.ref = "sysnotify" }
+sqlitenity-bundled = { module = "de.connect2x.sqlitenity:sqlitenity-bundled", version.ref = "sqlitenity" }
+sqlitenity-compat = { module = "de.connect2x.sqlitenity:sqlitenity-compat", version.ref = "sqlitenity" }
 
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logback-android = { module = "com.github.tony19:logback-android", version.ref = "logbackAndroid" }
+unifiedpush-android-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedPush" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
 testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
 kim = { module = "com.ashampoo:kim", version.ref = "kim" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-sqlitenity-bundled = { module = "de.connect2x:sqlitenity-bundled", version.ref = "sqlitenity" }
-sqlitenity-compat = { module = "de.connect2x:sqlitenity-compat", version.ref = "sqlitenity" }
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
+media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
+media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 
 [bundles]
 

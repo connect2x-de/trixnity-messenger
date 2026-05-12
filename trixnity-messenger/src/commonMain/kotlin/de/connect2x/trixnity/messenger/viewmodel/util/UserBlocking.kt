@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import io.github.oshai.kotlinlogging.KotlinLogging
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -8,15 +9,12 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.client.user
-import net.folivo.trixnity.client.user.getAccountData
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import kotlin.time.Duration.Companion.seconds
-
-
-private val log = KotlinLogging.logger { }
 
 interface UserBlocking {
     suspend fun blockUser(
@@ -39,6 +37,9 @@ interface UserBlocking {
 }
 
 class UserBlockingImpl : UserBlocking {
+    companion object {
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.util.UserBlockingImpl")
+    }
 
     private val mutex = Mutex()
 

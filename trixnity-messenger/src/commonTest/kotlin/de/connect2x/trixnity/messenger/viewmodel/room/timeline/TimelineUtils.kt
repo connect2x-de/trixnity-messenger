@@ -1,5 +1,44 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.trixnity.client.room.GetTimelineEventConfig
+import de.connect2x.trixnity.client.room.GetTimelineEventsConfig
+import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.Timeline
+import de.connect2x.trixnity.client.room.TimelineBase
+import de.connect2x.trixnity.client.room.TimelineState
+import de.connect2x.trixnity.client.room.TimelineStateChange
+import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.RoomUserReceipts
+import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
+import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
+import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.RoomEventContent
+import de.connect2x.trixnity.core.model.events.StateEventContent
+import de.connect2x.trixnity.core.model.events.UnknownEventContent
+import de.connect2x.trixnity.core.model.events.UnsignedRoomEventData
+import de.connect2x.trixnity.core.model.events.block.EventContentBlocks
+import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
+import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.ReceiptEventContent
+import de.connect2x.trixnity.core.model.events.m.ReceiptType
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
@@ -20,42 +59,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.folivo.trixnity.client.room.GetTimelineEventConfig
-import net.folivo.trixnity.client.room.GetTimelineEventsConfig
-import net.folivo.trixnity.client.room.RoomService
-import net.folivo.trixnity.client.room.Timeline
-import net.folivo.trixnity.client.room.TimelineBase
-import net.folivo.trixnity.client.room.TimelineState
-import net.folivo.trixnity.client.room.TimelineStateChange
-import net.folivo.trixnity.client.store.Room
-import net.folivo.trixnity.client.store.RoomUser
-import net.folivo.trixnity.client.store.RoomUserReceipts
-import net.folivo.trixnity.client.store.TimelineEvent
-import net.folivo.trixnity.client.store.eventId
-import net.folivo.trixnity.client.user.UserService
-import net.folivo.trixnity.clientserverapi.model.rooms.GetEvents
-import net.folivo.trixnity.core.model.EventId
-import net.folivo.trixnity.core.model.RoomId
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
-import net.folivo.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
-import net.folivo.trixnity.core.model.events.MessageEventContent
-import net.folivo.trixnity.core.model.events.RedactedEventContent
-import net.folivo.trixnity.core.model.events.RoomEventContent
-import net.folivo.trixnity.core.model.events.StateEventContent
-import net.folivo.trixnity.core.model.events.UnknownEventContent
-import net.folivo.trixnity.core.model.events.UnsignedRoomEventData
-import net.folivo.trixnity.core.model.events.m.FullyReadEventContent
-import net.folivo.trixnity.core.model.events.m.ReceiptEventContent
-import net.folivo.trixnity.core.model.events.m.ReceiptType
-import net.folivo.trixnity.core.model.events.m.RelatesTo
-import net.folivo.trixnity.core.model.events.m.room.CreateEventContent
-import net.folivo.trixnity.core.model.events.m.room.EncryptedMessageEventContent
-import net.folivo.trixnity.core.model.events.m.room.MemberEventContent
-import net.folivo.trixnity.core.model.events.m.room.Membership
-import net.folivo.trixnity.core.model.events.m.room.RedactionEventContent
-import net.folivo.trixnity.core.model.events.m.room.RoomMessageEventContent
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -125,7 +128,7 @@ fun timeline(
     block: TimelineBuilder.(startFrom: EventId) -> Unit,
 ): TimelineMock {
     val fullyReadMock = every {
-        roomServiceMock.getAccountData(roomId, FullyReadEventContent::class)
+        roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any())
     }
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
     fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
@@ -139,6 +142,11 @@ fun timeline(
             timelineMock.eventsInStore.map { it.lastOrNull() }
     every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
             timelineMock.eventsInStore.map { it.reversed().asFlow() }
+    every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
+        MarkedUnreadEventContent(false)
+    )
+
+
     every {
         roomServiceMock.getTimeline(
             any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
@@ -204,7 +212,7 @@ internal class MockedTimeline(
     }
 
     @Deprecated("use init with explicit roomId instead")
-    override suspend fun init(
+    suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
@@ -260,7 +268,7 @@ class NoOpTimeline<T> : Timeline<T> {
     override val state: Flow<TimelineState<T>> = flowOf(TimelineState())
 
     @Deprecated("use init with explicit roomId instead")
-    override suspend fun init(
+    suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
@@ -425,7 +433,8 @@ class MessageEventBuilder {
     fun reaction(relatesTo: EventId): UnknownEventContent {
         val result = UnknownEventContent(
             raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
-            eventType = "m.reaction"
+            eventType = "m.reaction",
+            blocks = EventContentBlocks(),
         )
         content = result
         return result
@@ -445,7 +454,7 @@ class MessageEventBuilder {
 
     fun encrypted(): EncryptedMessageEventContent {
         val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-            ciphertext = "",
+            ciphertext = MegolmMessageValue(""),
             sessionId = ""
         )
         content = result
@@ -485,7 +494,8 @@ class StateEventBuilder {
     fun unknownEvent(): UnknownEventContent {
         val result = UnknownEventContent(
             raw = JsonObject(mapOf("unknown" to JsonPrimitive("dino"))),
-            eventType = "this_is_clearly_unknown"
+            eventType = "this_is_clearly_unknown",
+            blocks = EventContentBlocks(),
         )
         content = result
         return result
