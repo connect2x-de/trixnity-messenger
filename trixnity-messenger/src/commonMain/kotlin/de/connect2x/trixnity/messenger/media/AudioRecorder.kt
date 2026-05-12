@@ -111,12 +111,12 @@ class AudioRecorderImpl(
         val contentType: ContentType,
     ) {
         companion object {
-            val amrWbContentType = ContentType("audio", "amr-wb")
+            val audioWebMContentType = ContentType("audio", "webm")
         }
 
         enum class SampleRateHz(val value: Int) {
             OPUS_SAMPLING_RATE_HZ(48_000),
-            AMR_WB_SAMPLING_RATE_HZ(16_000),
+            AAC_SAMPLING_RATE_HZ(44_100),
         }
     }
 

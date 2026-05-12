@@ -77,17 +77,17 @@ internal class AndroidAudioRecorder(
             val format =
                 if (Build.VERSION.SDK_INT >= 29) {
                     AudioRecorderImpl.Format(
-                        MediaRecorder.OutputFormat.OGG,
+                        MediaRecorder.OutputFormat.WEBM,
                         MediaRecorder.AudioEncoder.OPUS,
                         AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ,
-                        ContentType.Audio.OGG,
+                        AudioRecorderImpl.Format.audioWebMContentType,
                     )
                 } else {
                     AudioRecorderImpl.Format(
-                        MediaRecorder.OutputFormat.AMR_WB,
-                        MediaRecorder.AudioEncoder.AMR_WB,
-                        AudioRecorderImpl.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ,
-                        AudioRecorderImpl.Format.amrWbContentType,
+                        MediaRecorder.OutputFormat.MPEG_4,
+                        MediaRecorder.AudioEncoder.AAC,
+                        AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ,
+                        ContentType.Audio.MP4,
                     )
                 }
             recorder.setOutputFormat(format.container)
