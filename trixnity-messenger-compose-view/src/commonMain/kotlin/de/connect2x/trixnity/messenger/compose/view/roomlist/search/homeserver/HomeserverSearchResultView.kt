@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Expand
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,7 +48,7 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
         Box(
             Modifier
                 .fillMaxWidth()
-                .clickable(onClick = { expanded.value = expanded.value.not() })
+                .clickable(onClick = { onClick(userSearchResult) })
                 .buttonPointerModifier()
         ) {
             Row(
@@ -86,9 +88,6 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelMedium,
                     )
-                }
-                ThemedIconButton(onClick = { onClick(userSearchResult) }) {
-                    Icon(Icons.Default.Add, null)
                 }
             }
         }

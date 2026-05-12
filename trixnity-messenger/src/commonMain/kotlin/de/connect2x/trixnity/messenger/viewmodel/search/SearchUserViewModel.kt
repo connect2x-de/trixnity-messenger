@@ -264,64 +264,6 @@ class SearchUserViewModelImpl(
 
         return zip(*userSearchResults.toTypedArray()).flatten().flatten()
     }
-
-//    private fun sequenceWithBM25(results: List<SearchResult>): List<UserSearchResult> {
-//        val userSearchResults = results.flatMap { searchResult ->
-//            if (searchResult.active) {
-//                when (val providerSearchResult = searchResult.providerSearchResult) {
-//                    is ProviderSearchResult.Success -> providerSearchResult.result
-//                    else -> emptyList()
-//                }
-//            } else emptyList()
-//        }
-//        val sortingFields = userSearchResults.flatMap { it.sortingFields.map { it.first } }.distinct()
-//        val documentIndex = DocumentIndex(
-//            mutableMapOf(
-//                "displayname" to TextFieldIndex(
-//                    rankingAlgorithm = RankingAlgorithm.BM25,
-//                    analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
-//                ),
-//                "userId" to TextFieldIndex(
-//                    rankingAlgorithm = RankingAlgorithm.BM25,
-//                    analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
-//                ),
-//                *sortingFields.map {
-//                    it to TextFieldIndex(
-//                        rankingAlgorithm = RankingAlgorithm.BM25,
-//                        analyzer = Analyzer(tokenFilter = listOf(NgramTokenFilter(2)))
-//                    )
-//                }
-//                    .toTypedArray(),
-//            )
-//        )
-//        log.debug { "documentIndex: ${documentIndex.mapping}" }
-//        userSearchResults.map { searchResult ->
-//            Document(
-//                searchResult.userId.full,
-//                mapOf(
-//                    "displayname" to listOf(searchResult.displayName ?: ""),
-//                    "userId" to listOf(searchResult.userId.full),
-//                    *searchResult.sortingFields.map { it.first to listOf(it.second) }.toTypedArray(),
-//                )
-//            )
-//        }.forEach(documentIndex::index)
-//        val result = documentIndex.search {
-//            query = BoolQuery(
-//                should = listOf(
-//                    MatchQuery("displayname", searchTerm.textValue, prefixMatch = true, boost = 1.5),
-//                    MatchQuery("userId", searchTerm.textValue, prefixMatch = true),
-//                ) + sortingFields.map { sortingField ->
-//                    MatchQuery(sortingField, searchTerm.textValue, prefixMatch = true)
-//                })
-//        }
-//            .sortedByDescending { hit -> hit.second }
-//            .onEach { hit -> println("hit: ${hit.first} (${hit.second}") }
-//            .mapNotNull { hit ->
-//                userSearchResults.find { it.userId.full == hit.first }
-//            }
-//
-//        return result.ifEmpty { userSearchResults } // can be empty if every document matches
-//    }
 }
 
 
