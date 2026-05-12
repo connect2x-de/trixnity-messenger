@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember

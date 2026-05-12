@@ -203,6 +203,7 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupView
@@ -235,8 +236,19 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElemen
 import de.connect2x.trixnity.messenger.compose.view.roomlist.room.RoomListElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchGroupView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchGroupViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultViewSelector
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettingsView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelector
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelector
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelectorImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.homeserver.HomeserverSearchResultView
 import de.connect2x.trixnity.messenger.compose.view.root.MainView
 import de.connect2x.trixnity.messenger.compose.view.root.MainViewImpl
 import de.connect2x.trixnity.messenger.compose.view.root.MessengerView
@@ -450,11 +462,31 @@ fun roomListHeaderViewModule() = module {
     single<AccountOptionsView> { AccountOptionsViewImpl() }
 }
 
+inline fun <reified F : SearchResultView<*>> Module.searchResultView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchResultView<*>>(named<F>(), definition = definition)
+
+inline fun <reified F : SearchUserProviderSettingsView<*>> Module.searchUserProviderSettingsView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchUserProviderSettingsView<*>>(named<F>(), definition = definition)
+
+inline fun <reified F : SearchUserProviderToggleView<*>> Module.searchUserProviderToggleView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchUserProviderToggleView<*>>(named<F>(), definition = definition)
+
 fun createRoomsViewModule() = module {
     single<CreateNewChatView> { CreateNewChatViewImpl() }
     single<CreateNewGroupView> { CreateNewGroupViewImpl() }
     single<UsersInGroupView> { UsersInGroupViewImpl() }
     single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
+
+    //new search
+    searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
+    searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
+    single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
+    single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
+    single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
+    single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
 }
 
 fun searchViewModule() = module {

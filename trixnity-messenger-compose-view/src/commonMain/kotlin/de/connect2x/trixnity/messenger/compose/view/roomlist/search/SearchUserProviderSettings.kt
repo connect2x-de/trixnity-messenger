@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
@@ -10,15 +10,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.get
-import de.connect2x.messenger.compose.view.i18n.I18nView
-import de.connect2x.messenger.compose.view.theme.components
-import de.connect2x.messenger.compose.view.theme.components.ModalDialogContent
-import de.connect2x.messenger.compose.view.theme.components.ModalDialogFooter
-import de.connect2x.messenger.compose.view.theme.components.ModalDialogHeader
-import de.connect2x.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedModalDialog
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogContent
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogFooter
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 
 @Composable

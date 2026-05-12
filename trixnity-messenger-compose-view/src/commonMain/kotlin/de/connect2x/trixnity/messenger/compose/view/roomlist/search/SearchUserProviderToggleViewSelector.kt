@@ -1,17 +1,15 @@
-package de.connect2x.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.get
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
 
-
-private val log = KotlinLogging.logger {}
 
 interface SearchUserProviderToggleViewSelector {
     @Composable
@@ -38,6 +36,8 @@ fun SearchUserProviderToggleSelector(
 class SearchUserProviderToggleViewSelectorImpl(
     private val factories: List<SearchUserProviderToggleView<*>>,
 ) : SearchUserProviderToggleViewSelector {
+    private val log = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelectorImpl")
+
     private val factoryMapping =
         MutableStateFlow<Map<KClass<out SearchUserProvider>, SearchUserProviderToggleView<*>>>(emptyMap())
 

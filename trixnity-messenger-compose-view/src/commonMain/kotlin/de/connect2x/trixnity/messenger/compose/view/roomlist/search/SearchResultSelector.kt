@@ -1,15 +1,13 @@
-package de.connect2x.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.runtime.Composable
-import de.connect2x.messenger.compose.view.DI
-import de.connect2x.messenger.compose.view.get
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.reflect.KClass
-
-private val log = KotlinLogging.logger {}
 
 @Composable
 fun SearchResultSelector(
@@ -29,6 +27,8 @@ interface SearchResultViewSelector : SearchResultViewFactorySelector<SearchResul
 class SearchResultViewSelectorImpl(
     private val factories: List<SearchResultView<*>>,
 ) : SearchResultViewSelector {
+    private val log = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultViewSelectorImpl")
+
     private val factoryMapping =
         MutableStateFlow<Map<KClass<out UserSearchResult>, SearchResultView<UserSearchResult>>>(
             emptyMap()

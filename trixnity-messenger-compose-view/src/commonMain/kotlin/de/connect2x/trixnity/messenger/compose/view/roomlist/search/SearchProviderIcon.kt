@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,8 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.theme.components.SurfaceStyle
-import de.connect2x.messenger.compose.view.theme.components.ThemedSurface
+import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 
 @Composable
 fun BoxScope.SearchProviderIcon(modifier: Modifier = Modifier, icon: @Composable () -> Unit) {

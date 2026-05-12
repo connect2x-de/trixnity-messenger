@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.roomlist.search.homeserver
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search.homeserver
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -6,8 +6,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.common.icons.HomeHealth
-import de.connect2x.messenger.compose.view.roomlist.search.SearchUserProviderToggleView
-import de.connect2x.messenger.compose.view.theme.components.ThemedFilterChip
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFilterChip
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import kotlin.reflect.KClass

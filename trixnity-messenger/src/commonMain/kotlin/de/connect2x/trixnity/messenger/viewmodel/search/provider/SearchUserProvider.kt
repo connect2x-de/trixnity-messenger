@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.search.provider
 
+import de.connect2x.trixnity.core.model.UserId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.core.model.UserId
 
 typealias SearchUserProviderId = String
 typealias SettingsId = String

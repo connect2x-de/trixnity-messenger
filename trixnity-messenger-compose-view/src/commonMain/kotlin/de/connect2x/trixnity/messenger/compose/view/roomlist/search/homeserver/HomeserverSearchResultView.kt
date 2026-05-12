@@ -1,4 +1,4 @@
-package de.connect2x.messenger.compose.view.roomlist.search.homeserver
+package de.connect2x.trixnity.messenger.compose.view.roomlist.search.homeserver
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,13 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.buttonPointerModifier
 import de.connect2x.messenger.compose.view.common.icons.HomeHealth
-import de.connect2x.messenger.compose.view.roomlist.search.SearchProviderIcon
-import de.connect2x.messenger.compose.view.roomlist.search.SearchResultView
-import de.connect2x.messenger.compose.view.theme.components.AvatarPresenceBadge
-import de.connect2x.messenger.compose.view.theme.components.ThemedIconButton
-import de.connect2x.messenger.compose.view.theme.components.ThemedUserAvatar
+import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchProviderIcon
+import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultView
+import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
 import kotlin.reflect.KClass
 

@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver
 
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import kotlinx.coroutines.flow.StateFlow
-import net.folivo.trixnity.core.model.UserId
-import net.folivo.trixnity.core.model.events.m.Presence
 
 data class HomeserverUserSearchResult(
     override val userId: UserId,
