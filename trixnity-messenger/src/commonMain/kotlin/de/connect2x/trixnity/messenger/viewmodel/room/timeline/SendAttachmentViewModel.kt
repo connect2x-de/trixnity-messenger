@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
+import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.audio
 import de.connect2x.trixnity.client.room.message.file
@@ -7,12 +8,14 @@ import de.connect2x.trixnity.client.room.message.image
 import de.connect2x.trixnity.client.room.message.video
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
+import de.connect2x.trixnity.messenger.util.AudioMetadataFactory
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
 import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
+import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.util.checkFileSizeExceedsLimit
@@ -67,6 +70,7 @@ class SendAttachmentViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, SendAttachmentViewModel {
 
     private val messengerConfiguration = get<MatrixMessengerConfiguration>()
+    private val audioMetadataFactory = getOrNull<AudioMetadataFactory>()
     private val _error: MutableStateFlow<String?> = MutableStateFlow(null)
 
     private val _sendEnabled = MutableStateFlow(false)
@@ -161,13 +165,20 @@ class SendAttachmentViewModelImpl(
 
                         isAudio ?: false -> {
                             log.debug { "send an audio" }
+                            val audioMetadata =
+                                runCatching { audioMetadataFactory?.invoke(file) }
+                                    .getOrElse {
+                                        log.warn(it) { "could not extract audio metadata for ${file.fileName}" }
+                                        null
+                                    }
                             audio(
                                 body = file.fileName,
                                 fileName = file.fileName,
                                 audio = byteArrayFlow,
                                 type = file.mimeType,
                                 size = file.fileSize,
-                            ) // TODO duration
+                                duration = audioMetadata?.duration()?.inWholeMilliseconds,
+                            )
                         }
 
                         else -> {

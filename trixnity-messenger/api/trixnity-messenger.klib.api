@@ -156,6 +156,10 @@ abstract fun interface de.connect2x.trixnity.messenger.secrets/GetKey { // de.co
     abstract suspend fun invoke(kotlin/Int): kotlin/ByteArray // de.connect2x.trixnity.messenger.secrets/GetKey.invoke|invoke(kotlin.Int){}[0]
 }
 
+abstract fun interface de.connect2x.trixnity.messenger.util/AudioMetadataFactory { // de.connect2x.trixnity.messenger.util/AudioMetadataFactory|null[0]
+    abstract suspend fun invoke(de.connect2x.trixnity.messenger.util/FileDescriptor): de.connect2x.trixnity.messenger.util/AudioMetadata? // de.connect2x.trixnity.messenger.util/AudioMetadataFactory.invoke|invoke(de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
+}
+
 abstract fun interface de.connect2x.trixnity.messenger.util/CloseApp { // de.connect2x.trixnity.messenger.util/CloseApp|null[0]
     abstract fun invoke() // de.connect2x.trixnity.messenger.util/CloseApp.invoke|invoke(){}[0]
 }
@@ -469,6 +473,10 @@ abstract interface de.connect2x.trixnity.messenger.secrets/SecretByteArrays { //
 abstract interface de.connect2x.trixnity.messenger.settings/SettingsStorage { // de.connect2x.trixnity.messenger.settings/SettingsStorage|null[0]
     abstract suspend fun read(): kotlin/String? // de.connect2x.trixnity.messenger.settings/SettingsStorage.read|read(){}[0]
     abstract suspend fun write(kotlin/String) // de.connect2x.trixnity.messenger.settings/SettingsStorage.write|write(kotlin.String){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.util/AudioMetadata { // de.connect2x.trixnity.messenger.util/AudioMetadata|null[0]
+    abstract suspend fun duration(): kotlin.time/Duration? // de.connect2x.trixnity.messenger.util/AudioMetadata.duration|duration(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.util/BackHandler { // de.connect2x.trixnity.messenger.util/BackHandler|null[0]
@@ -6463,6 +6471,10 @@ final class de.connect2x.trixnity.messenger.util/SearchImpl : de.connect2x.trixn
     final suspend fun searchUsers(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.client/MatrixClient, kotlin/String, kotlin/Long?): kotlin.collections/List<de.connect2x.trixnity.messenger.util/Search.SearchUserElement> // de.connect2x.trixnity.messenger.util/SearchImpl.searchUsers|searchUsers(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.client.MatrixClient;kotlin.String;kotlin.Long?){}[0]
 
     final object Companion // de.connect2x.trixnity.messenger.util/SearchImpl.Companion|null[0]
+}
+
+final class de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor : kotlin/Exception { // de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin/Throwable? = ...) // de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor.<init>|<init>(kotlin.String?;kotlin.Throwable?){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatrixAccountViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatrixAccountViewModel|null[0]
@@ -15508,6 +15520,7 @@ final fun de.connect2x.trixnity.messenger.notification/platformNotificationHandl
 final fun de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule|platformSecretByteArrayKeyProviderModule(){}[0]
 final fun de.connect2x.trixnity.messenger.secrets/secretsModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/secretsModule|secretsModule(){}[0]
 final fun de.connect2x.trixnity.messenger.settings/jsonMerge(kotlinx.serialization.json/JsonObject, kotlinx.serialization.json/JsonObject, kotlin.collections/List<kotlin/String>? = ...): kotlinx.serialization.json/JsonObject // de.connect2x.trixnity.messenger.settings/jsonMerge|jsonMerge(kotlinx.serialization.json.JsonObject;kotlinx.serialization.json.JsonObject;kotlin.collections.List<kotlin.String>?){}[0]
+final fun de.connect2x.trixnity.messenger.util/audioMetadataFactoryModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/audioMetadataFactoryModule|audioMetadataFactoryModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformCloseAppModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformCloseAppModule|platformCloseAppModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformGetDefaultDisplayNameModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformGetDefaultDisplayNameModule|platformGetDefaultDisplayNameModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformGetImageDimensionsModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformGetImageDimensionsModule|platformGetImageDimensionsModule(){}[0]

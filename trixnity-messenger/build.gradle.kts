@@ -136,6 +136,8 @@ kotlin {
                 implementation(sharedLibs.jna)
                 implementation(sharedLibs.jna.platform)
                 implementation(libs.icu4j)
+                implementation(libs.tika.core)
+                implementation(libs.tika.parser.audiovideo.module)
             }
         }
         androidMain {

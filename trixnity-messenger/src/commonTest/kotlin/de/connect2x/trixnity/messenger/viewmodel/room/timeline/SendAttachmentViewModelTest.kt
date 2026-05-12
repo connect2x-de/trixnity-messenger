@@ -19,6 +19,8 @@ import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
+import de.connect2x.trixnity.messenger.util.AudioMetadataFactory
+import de.connect2x.trixnity.messenger.util.AudioMetadataImpl
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
@@ -40,6 +42,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,6 +84,8 @@ class SendAttachmentViewModelTest {
             }
         }
 
+    private val audioMetadataFactory = mock<AudioMetadataFactory>()
+
     @BeforeTest
     fun beforeTest() {
         configureTestLogging()
@@ -94,6 +99,7 @@ class SendAttachmentViewModelTest {
                             single<MediaService> { mediaServiceMock }
                             single<ProcessImageUpload> { imageProcessMock }
                             single<GetImageDimensions> { getImageDimensionsMock }
+                            single<AudioMetadataFactory> { audioMetadataFactory }
                         }
                     )
                 }
@@ -150,6 +156,66 @@ class SendAttachmentViewModelTest {
         assertEquals(6, progressedSize.value)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `should send audio duration metadata`() = runTestWithCoroutineScope {
+        val fileContent = TestFileDescriptor()
+        val builder = MessageBuilder(roomId, matrixClientMock.room, matrixClientMock.media, me)
+        val sentDuration = MutableStateFlow<Long?>(null)
+        val sendMessageCalls = MutableStateFlow(0)
+        val audioDuration = 1234.milliseconds
+
+        everySuspend { audioMetadataFactory.invoke(any()) } returns AudioMetadataImpl(duration = audioDuration)
+        everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns ""
+        everySuspend { matrixClientMock.room.sendMessage(any(), any(), any()) } calls
+            {
+                val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
+                val messageContent = builder.build(builderFunction)
+                assertIs<RoomMessageEventContent.FileBased.Audio>(messageContent)
+                sentDuration.value = messageContent.info?.duration
+                sendMessageCalls.value += 1
+                ""
+            }
+        val cut = sendAttachmentViewModel(fileContent, 4)
+        cut.sendEnabled.first { it }
+        cut.send()
+        sendMessageCalls.first { it == 1 }
+        assertEquals(audioDuration.toLong(DurationUnit.MILLISECONDS), sentDuration.value)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `should send audio without duration when duration cannot be extracted`() = runTestWithCoroutineScope {
+        val fileContent = TestFileDescriptor()
+        val builder = MessageBuilder(roomId, matrixClientMock.room, matrixClientMock.media, me)
+        val progressedDuration = MutableStateFlow<Long?>(null)
+        val sendMessageCalls = MutableStateFlow(0)
+
+        everySuspend { audioMetadataFactory.invoke(any()) } returns AudioMetadataImpl(duration = null)
+        everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns ""
+        everySuspend { matrixClientMock.room.sendMessage(any(), any(), any()) } calls
+            {
+                val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
+                val messageContent = builder.build(builderFunction)
+                assertIs<RoomMessageEventContent.FileBased.Audio>(messageContent)
+                progressedDuration.value = messageContent.info?.duration
+                sendMessageCalls.value += 1
+                ""
+            }
+        val cut = sendAttachmentViewModel(fileContent, 4)
+        cut.sendEnabled.first { it }
+        cut.send()
+        sendMessageCalls.first { it == 1 }
+        assertEquals(null, progressedDuration.value)
+    }
+
+    private class TestFileDescriptor(
+        override val fileName: String = "sound.ogg",
+        override val fileSize: Long = 4,
+        override val mimeType: ContentType = ContentType("audio", "ogg"),
+        override val content: ByteArrayFlow = byteArrayOf(0, 1, 2, 3).toByteArrayFlow(),
+    ) : FileDescriptor
+
     private fun TestScope.sendAttachmentViewModel(
         content: FileDescriptor? = null,
         fileSize: Long,
@@ -171,6 +237,7 @@ class SendAttachmentViewModelTest {
                                             single<MediaService> { mediaServiceMock }
                                             single<ProcessImageUpload> { imageProcessMock }
                                             single<GetImageDimensions> { getImageDimensionsMock }
+                                            single<AudioMetadataFactory> { audioMetadataFactory }
                                             single<MatrixClient> { matrixClientMock }
                                         }
                                 )
