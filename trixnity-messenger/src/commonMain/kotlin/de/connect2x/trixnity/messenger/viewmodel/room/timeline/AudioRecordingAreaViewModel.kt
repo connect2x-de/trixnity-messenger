@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
@@ -22,6 +27,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.get
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -41,13 +48,17 @@ interface AudioRecordingAreaViewModel {
 interface AudioRecordingAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        sendAudioMessage: () -> Unit,
-        deleteAudioDraftMessage: suspend () -> Unit
+        roomId: RoomId,
+        currentReply: MutableStateFlow<Pair<RoomId, EventId>?>,
+        resetCurrentReply: () -> Unit,
+        draftMutex: Mutex
     ): AudioRecordingAreaViewModel {
         return AudioRecordingAreaViewModelImpl(
             viewModelContext,
-            sendAudioMessage,
-            deleteAudioDraftMessage
+            roomId,
+            currentReply,
+            resetCurrentReply,
+            draftMutex
         )
     }
 
@@ -56,8 +67,10 @@ interface AudioRecordingAreaViewModelFactory {
 
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val _sendAudioMessage: () -> Unit,
-    private val deleteAudioDraftMessage: suspend () -> Unit
+    private val roomId: RoomId,
+    private val currentReply: MutableStateFlow<Pair<RoomId, EventId>?>,
+    private val resetCurrentReply: () -> Unit,
+    private val draftMutex: Mutex
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecordingAreaViewModel {
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
@@ -114,14 +127,87 @@ class AudioRecordingAreaViewModelImpl(
         }
     }
 
+    init {
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                recorder?.state?.collect { state ->
+                    when (state) {
+                        is AudioRecorder.State.Completed -> draftMutex.withLock { saveAudioAsDraft() }
+                        else -> {}
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getAudioMessageBuilder(): (suspend MessageBuilder.() -> Unit)? {
+        val repliedEvent = currentReply.value
+
+        val audioMessage: (suspend MessageBuilder.() -> Unit)? =
+            when (val audioRecorderStateValue = recorder?.state?.value) {
+                AudioRecorder.State.Ready -> null
+
+                is AudioRecorder.State.Recording -> null
+
+                is AudioRecorder.State.Completed -> {
+                    {
+                        audio(
+                            "voice message",
+                            audioRecorderStateValue.data,
+                            type = ContentType.Audio.OGG,
+                            duration = audioRecorderStateValue.duration.inWholeMilliseconds,
+                            size = audioRecorderStateValue.sizeBytes
+                        )
+                    }
+                }
+
+                null -> null
+            }
+
+        return audioMessage?.let {
+            {
+                when {
+                    repliedEvent != null -> {
+                        reply(repliedEvent)
+                    }
+                }
+                audioMessage()
+            }
+        }
+    }
+
+    private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
+        reply(matrixClient, repliedEvent)
+    }
+
+    private suspend fun saveAudioAsDraft() {
+        getAudioMessageBuilder()?.let {
+            matrixClient.room.setDraftMessage(roomId = roomId, builder = it)
+        }
+    }
+
     override fun sendAudioMessage() {
-        _sendAudioMessage()
+        log.trace { "try to send audio message" }
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                draftMutex.withLock {
+                    saveAudioAsDraft()
+                    matrixClient.room.sendDraftMessage(roomId)
+                }
+            } else {
+                getAudioMessageBuilder()?.let {
+                    matrixClient.room.sendMessage(roomId = roomId, builder = it)
+                }
+            }
+            recorder?.close()
+            resetCurrentReply()
+        }
     }
 
     override fun deleteAudioMessage() {
         if (enableMessageDrafts) {
             coroutineScope.launch {
-                deleteAudioDraftMessage()
+                matrixClient.room.deleteDraftMessage(roomId)
             }
         }
         recorder?.close()
@@ -140,13 +226,9 @@ class AudioRecordingAreaViewModelImpl(
                 )
 
                 data.await().onSuccess {
-                    val type = content.info?.mimeType?.dropLastWhile { char -> char != '/' }?.dropLast(1)
-                    val subtype = content.info?.mimeType?.dropWhile { char -> char != '/' }?.drop(1)
-                    val contentType = if (type?.isNotEmpty() == true && subtype?.isNotEmpty() == true) {
-                        ContentType(type, subtype)
-                    } else {
-                        ContentType.Audio.OGG
-                    }
+                    val contentType = content.info?.mimeType?.let { mimeType ->
+                        ContentType.parse(mimeType)
+                    } ?: ContentType.Audio.OGG
 
                     recorder?.loadSuspending(
                         AudioRecorder.State.Completed(
