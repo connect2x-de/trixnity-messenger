@@ -122,4 +122,8 @@ abstract class AbstractMediaItem(
             elapsedTime.value = Duration.ZERO
         }
     }
+
+    internal fun setError(error: String) {
+        state.value = MediaPlayer.Item.State.Failed(error)
+    }
 }
