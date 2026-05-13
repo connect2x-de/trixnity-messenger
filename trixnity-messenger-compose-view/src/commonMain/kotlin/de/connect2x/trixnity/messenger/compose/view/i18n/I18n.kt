@@ -2030,6 +2030,11 @@ open class I18nView(
         DE - "Profilbild ändern"
     }
 
+    open fun profileAvatarDelete() = translate {
+        EN - "delete avatar"
+        DE - "Profilbild löschen"
+    }
+
     open fun profileYourName() = translate {
         EN - "Your name"
         DE - "Ihr Name"

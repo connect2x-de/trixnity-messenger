@@ -65,7 +65,9 @@ fun MatrixClients.toAccountInfo(
             val serverDisplayNameFlow = matrixClient.profile.map { it?.displayName ?: userId.localpart }
             val avatarFlow =
                 matrixClient.profile.map { profile ->
-                    profile?.avatarUrl?.let { avatarUrl ->
+                    profile?.avatarUrl?.takeIf {
+                        it.isNotBlank()
+                    }?. let { avatarUrl ->
                         matrixClient.media
                             .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                             .fold(

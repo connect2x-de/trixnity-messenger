@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
+import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.ErrorResponse
@@ -59,6 +60,7 @@ interface AccountSingleViewModel {
     val canChangeDisplayName: StateFlow<Boolean>
     val avatar: StateFlow<ByteArray?>
     val canChangeAvatar: StateFlow<Boolean>
+    val canDeleteAvatar: StateFlow<Boolean>
     val initials: StateFlow<String>
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
@@ -70,6 +72,8 @@ interface AccountSingleViewModel {
     fun logout()
 
     fun resetSetup()
+
+    fun deleteAvatar()
 }
 
 class AccountSingleViewModelImpl(
@@ -96,7 +100,9 @@ class AccountSingleViewModelImpl(
         matrixClient.profile
             .map { profile ->
                 profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
-                    avatarUrl.value?.let { avatarUrl ->
+                    avatarUrl.value?.takeIf {
+                        it.isNotBlank()
+                    }?.let { avatarUrl ->
                         matrixClient.media
                             .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
                             .fold(
@@ -116,6 +122,9 @@ class AccountSingleViewModelImpl(
         matrixClient.serverData
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+
+    override val canDeleteAvatar = avatar.map { it != null }
+        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val initials =
         matrixClient.profile
@@ -156,4 +165,26 @@ class AccountSingleViewModelImpl(
     override fun logout() = removeAccount()
 
     override fun resetSetup() = showAccountSetup()
+
+    override fun deleteAvatar() {
+        coroutineScope.launch {
+            val matrixClient = getMatrixClient(userId)
+            val capabilities = matrixClient.serverData.value?.capabilities?.capabilities
+            val hasCapability = capabilities?.profileFields?.enabled ?: true || capabilities.setAvatarUrl.enabled
+            if (hasCapability) {
+                matrixClient.api.user.deleteProfileField(userId, ProfileField.AvatarUrl)
+                    .onFailure {
+                        log.error(it) { "Cannot delete avatar." }
+                        if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                            error.value = i18n.profileAvatarDeleteForbidden()
+                        } else {
+                            error.value = i18n.profileAvatarDeleteError()
+                        }
+                    }
+            } else {
+                log.warn { "Missing server capability to remove the avatar url." }
+            }
+        }
+
+    }
 }
