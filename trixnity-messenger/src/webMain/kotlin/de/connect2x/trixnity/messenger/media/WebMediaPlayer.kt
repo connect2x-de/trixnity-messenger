@@ -5,25 +5,33 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
 import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
+import de.connect2x.trixnity.messenger.util.handleFirst
+import js.errors.toThrowable
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.withTimeout
 import web.audio.AudioContext
 import web.audio.AudioContextState
 import web.audio.resume
 import web.audio.suspended
+import web.events.ERROR
+import web.events.Event
 import web.events.EventHandler
+import web.events.LOADED_METADATA
+import web.events.addEventHandler
 import web.html.Audio
 import web.html.Preload
 import web.html.metadata
 import web.url.URL
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 
 class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
@@ -33,6 +41,15 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val audioContext: AudioContext = AudioContext()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
+
+    init {
+        audioContext.addEventHandler(
+            type = Event.ERROR,
+            handler = EventHandler {
+                log.error { "Unexpected media player error" }
+            },
+        )
+    }
 
     override suspend fun open(
         id: String,
@@ -55,19 +72,21 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
                 log.debug { "Successfully opened media as temporary file" }
                 try {
                     val audio = initAudio(tempFile)
-                    val duration = loadDuration(audio)
                     val playerItem = WebPlayerItem(
                         id = id,
                         tempFile = tempFile,
                         coroutineScope = coroutineScope,
                         player = this@WebMediaPlayer,
                         audio = audio,
-                        duration = duration,
                     )
                     playerItem.updateLifecycle(lifecycleScope)
+                    log.debug { "Successfully initialized audio" }
                     return Result.success(playerItem)
-                } catch (ex: Exception) {
-                    return Result.failure(IllegalArgumentException("Illegal media specified", ex))
+                } catch (t: Throwable) {
+                    if (t is CancellationException) {
+                        throw t
+                    }
+                    return Result.failure(IllegalArgumentException("Illegal media specified", t))
                 }
             }
         )
@@ -87,7 +106,7 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
         audioContext.closeAsync()
     }
 
-    private fun initAudio(tempFile: PlatformMedia.TemporaryFile): Audio {
+    private suspend fun initAudio(tempFile: PlatformMedia.TemporaryFile): Audio {
         val audioBlob = when (tempFile) {
             is OpfsPlatformMedia.TemporaryFile -> tempFile.file
             is IndexeddbPlatformMedia.TemporaryFile -> tempFile.file
@@ -97,15 +116,30 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
         audio.preload = Preload.metadata
         val track = audioContext.createMediaElementSource(audio)
         track.connect(audioContext.destination)
+        loadMetadataOrElseThrow(audio)
         return audio
     }
 
-    private suspend fun loadDuration(audio: Audio): Duration {
-        return suspendCancellableCoroutine { cont ->
-            audio.onloadedmetadata = EventHandler { _ ->
-                cont.resume(audio.duration.seconds)
+    /**
+     * Ensures that duration is set and media is supported
+     */
+    private suspend fun loadMetadataOrElseThrow(audio: Audio) {
+        return withTimeout(2.minutes) {
+            suspendCancellableCoroutine { cont ->
+                handleFirst(
+                    eventTarget = audio,
+                    handlers = mapOf(
+                        Event.ERROR to {
+                            log.error { "Could not load duration: ${audio.error?.message}" }
+                            cont.resumeWithException(audio.error?.toThrowable() ?: IllegalStateException("Could not load duration"))
+                        },
+                        Event.LOADED_METADATA to {
+                            cont.resume(Unit)
+                        }
+                    )
+                )
+
             }
-            cont.invokeOnCancellation { audio.onloadedmetadata = null }
         }
     }
 }
