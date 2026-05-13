@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
 import de.connect2x.trixnity.messenger.i18n.I18n
+import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
@@ -75,26 +76,19 @@ internal class AndroidAudioRecorder(
             recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
 
             val format =
-                if (Build.VERSION.SDK_INT >= 29) {
-                    AudioRecorderImpl.Format(
-                        MediaRecorder.OutputFormat.WEBM,
-                        MediaRecorder.AudioEncoder.OPUS,
-                        AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ,
-                        AudioRecorderImpl.Format.audioWebMContentType,
-                    )
-                } else {
-                    AudioRecorderImpl.Format(
-                        MediaRecorder.OutputFormat.MPEG_4,
-                        MediaRecorder.AudioEncoder.AAC,
-                        AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ,
-                        ContentType.Audio.MP4,
-                    )
-                }
+                AudioRecorderImpl.Format(
+                    MediaRecorder.OutputFormat.MPEG_4,
+                    MediaRecorder.AudioEncoder.HE_AAC,
+                    AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ,
+                    BitRate.AAC_BIT_RATE,
+                    ContentType.Audio.MP4,
+                )
             recorder.setOutputFormat(format.container)
             recorder.setAudioEncoder(format.encoder)
             recorder.setOutputFile(tempFilePath.toString())
             recorder.setAudioChannels(1)
             recorder.setAudioSamplingRate(format.sampleRate.value)
+            recorder.setAudioEncodingBitRate(format.bitRate.value)
 
             recorder.prepare()
             recorder.start()

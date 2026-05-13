@@ -108,15 +108,15 @@ class AudioRecorderImpl(
         val container: Container,
         val encoder: Encoder,
         val sampleRate: SampleRateHz,
+        val bitRate: BitRate,
         val contentType: ContentType,
     ) {
-        companion object {
-            val audioWebMContentType = ContentType("audio", "webm")
+        enum class SampleRateHz(val value: Int) {
+            AAC_SAMPLING_RATE_HZ(44_100),
         }
 
-        enum class SampleRateHz(val value: Int) {
-            OPUS_SAMPLING_RATE_HZ(48_000),
-            AAC_SAMPLING_RATE_HZ(44_100),
+        enum class BitRate(val value: Int) {
+            AAC_BIT_RATE(32_000),
         }
     }
 
