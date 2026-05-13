@@ -184,28 +184,26 @@ class InputAreaViewModelTest {
 
         every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
 
-        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
-            {
-                val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
-                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
-                requireNotNull(content) { "you must add some sort of content for set a draft" }
-                draftMessage.value =
-                    RoomOutboxMessage(
-                        roomId = roomId,
-                        transactionId = "0",
-                        content = content,
-                        createdAt = Clock.System.now(),
-                        sentAt = null,
-                        eventId = null,
-                        sendError = null,
-                        keepMediaInCache = true,
-                        isDraft = true,
-                    )
-                "0"
-            }
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls {
+            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
+            val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+            requireNotNull(content) { "you must add some sort of content to set a draft" }
+            draftMessage.value = RoomOutboxMessage(
+                roomId = roomId,
+                transactionId = "0",
+                content = content,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+            "0"
+        }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
 
-        every { audioRecordingAreaViewModelFactory.create(any(), any(), any()) } returns
+        every { audioRecordingAreaViewModelFactory.create(any(), any(), any(), any(), any()) } returns
                 audioRecordingArea
         every { audioRecordingArea.recorder } returns audioRecorder
         every { audioRecorder.complete() } returns Unit
@@ -965,17 +963,19 @@ class InputAreaViewModelTest {
             ),
         )
 
-    private suspend fun TestScope.inputAreaViewModel(
-        lifecycleRegistry: LifecycleRegistry? = null
-    ): InputAreaViewModelImpl {
-        val di =
-            koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
-                            module { single<AudioRecordingAreaViewModelFactory> { audioRecordingAreaViewModelFactory } }
-                    )
-                }
-                .koin
+    private suspend fun TestScope.inputAreaViewModel(lifecycleRegistry: LifecycleRegistry? = null): InputAreaViewModelImpl {
+        val di = koinApplication {
+            modules(
+                createTestDefaultTrixnityMessengerModules(
+                    mapOf(UserId("test", "server") to matrixClientMock)
+                ) + module {
+                    single<AudioRecordingAreaViewModelFactory> {
+                        audioRecordingAreaViewModelFactory
+                    }
+                },
+
+                )
+        }.koin
         di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())
         return InputAreaViewModelImpl(
             viewModelContext =

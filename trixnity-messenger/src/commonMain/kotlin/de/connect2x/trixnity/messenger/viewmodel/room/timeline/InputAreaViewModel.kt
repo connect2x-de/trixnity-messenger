@@ -343,7 +343,6 @@ open class InputAreaViewModelImpl(
         }
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
-                log.error { audio.recorder?.state }
                 get<CoroutineScope>().launch {
                     withContext(NonCancellable) {
                         draftMutex.withLock {

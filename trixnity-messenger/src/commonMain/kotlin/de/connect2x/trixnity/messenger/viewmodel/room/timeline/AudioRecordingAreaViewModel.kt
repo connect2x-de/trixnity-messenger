@@ -180,10 +180,10 @@ class AudioRecordingAreaViewModelImpl(
         reply(matrixClient, repliedEvent)
     }
 
-    private suspend fun saveAudioAsDraft() {
-        getAudioMessageBuilder()?.let {
-            matrixClient.room.setDraftMessage(roomId = roomId, builder = it)
-        }
+    private suspend fun saveAudioAsDraft(): Boolean {
+        val builder = getAudioMessageBuilder() ?: return false
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = builder)
+        return true
     }
 
     override fun sendAudioMessage() {
@@ -191,8 +191,9 @@ class AudioRecordingAreaViewModelImpl(
         coroutineScope.launch {
             if (enableMessageDrafts) {
                 draftMutex.withLock {
-                    saveAudioAsDraft()
-                    matrixClient.room.sendDraftMessage(roomId)
+                    if (saveAudioAsDraft()) {
+                        matrixClient.room.sendDraftMessage(roomId)
+                    }
                 }
             } else {
                 getAudioMessageBuilder()?.let {
