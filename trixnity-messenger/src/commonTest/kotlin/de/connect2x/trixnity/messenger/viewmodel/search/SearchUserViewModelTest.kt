@@ -2,10 +2,11 @@ package de.connect2x.trixnity.messenger.viewmodel.search
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.searchUserProvider
-import de.connect2x.trixnity.messenger.testDispatcher
-import de.connect2x.trixnity.messenger.util.ImmediateDispatcherElement
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
@@ -15,7 +16,6 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.Home
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -28,8 +28,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import net.folivo.trixnity.client.MatrixClient
-import net.folivo.trixnity.core.model.UserId
 import org.koin.core.qualifier.named
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
@@ -38,7 +36,7 @@ import kotlin.test.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-private val log = KotlinLogging.logger {}
+private val log = Logger("de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelTest")
 
 class SearchUserViewModelTest {
 
@@ -359,7 +357,8 @@ class SearchUserViewModelTest {
                 }.koin,
                 componentContext = DefaultComponentContext(LifecycleRegistry()),
                 userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext + ImmediateDispatcherElement(testDispatcher),
+                coroutineContext = backgroundScope.coroutineContext,
+                name = "test",
             ),
             debounceDuration = Duration.ZERO,
         )

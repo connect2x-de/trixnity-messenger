@@ -206,6 +206,7 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupO
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroupView
@@ -255,6 +256,8 @@ import de.connect2x.trixnity.messenger.compose.view.root.MessengerView
 import de.connect2x.trixnity.messenger.compose.view.root.MessengerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayView
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchView
+import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
@@ -485,8 +488,10 @@ fun createRoomsViewModule() = module {
     searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
     single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
     single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
+    single<CreateNewGroupView> { CreateNewGroupNewSearchViewImpl() }
     single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
     single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
+    single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
 }
 
 fun searchViewModule() = module {

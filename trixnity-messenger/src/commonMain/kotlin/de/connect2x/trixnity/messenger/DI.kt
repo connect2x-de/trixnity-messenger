@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
@@ -123,7 +124,10 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
@@ -202,6 +206,8 @@ import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import kotlin.time.Clock
+
+private val log = Logger("de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories")
 
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
     {
@@ -369,6 +375,24 @@ private fun roomListViewModels() = module {
                         onCancel = onCancel,
                     ),
                 )
+            }
+        }
+    }
+    single<CreateNewGroupViewModelFactory> {
+        object : CreateNewGroupViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                createNewRoomViewModel: CreateNewRoomViewModel,
+                onBack: () -> Unit
+            ): CreateNewGroupViewModel {
+                return CreateNewGroupNewSearchViewModelImpl(
+                    viewModelContext = viewModelContext,
+                    createNewGroupViewModel = CreateNewGroupViewModelImpl(
+                        viewModelContext = viewModelContext,
+                        createNewRoomViewModel = createNewRoomViewModel,
+                        onBack = onBack,
+                    ),
+                ).also { log.debug { "CreateNewGroupViewModel -> CreateNewGroupNewSearchViewModelImpl" } }
             }
         }
     }

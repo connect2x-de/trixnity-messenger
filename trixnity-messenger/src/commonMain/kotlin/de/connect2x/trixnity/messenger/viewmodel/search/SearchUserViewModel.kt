@@ -38,14 +38,46 @@ interface SearchUserViewModelFactory {
     companion object : SearchUserViewModelFactory
 }
 
+/**
+ * Searches for users in different [SearchUserProvider]s and provides a combined search result list.
+ */
 interface SearchUserViewModel {
+    /**
+     * Global search term for every [SearchUserProvider]. When changed, all providers use this term to initiate a search
+     * and update their respective results.
+     */
     val searchTerm: TextFieldViewModel
+
+    /**
+     * A list of all [SearchUserProvider]s. Obtained from the DI.
+     */
     val searchUserProviders: List<SearchUserProvider>
-    val searchResult: StateFlow<List<SearchResult>?>
+
+    /**
+     * A combined list of search results from different search providers. The list is sorted by relevance by the used
+     * [SearchUserProvider]s, but interlaced from different providers.
+     * Is updated as soon as any [SearchUserProvider] has a result list. If you do not want your presentation to jump
+     * on search results popping up, try to `debounce` this list.
+     */
     val searchResultList: StateFlow<List<UserSearchResult>?>
+
+    /**
+     * Indicates whether the search provider is active at the moment. Can be set inactive via [setProvider].
+     */
     val providerSearchActive: StateFlow<List<Boolean>>
+
+    /**
+     * Accumulation of all settings the search providers have, e.g., "city: Berlin, country: Germany".
+     */
     val providerSettings: StateFlow<String?>
+
+    /**
+     * (De-)activate a [SearchUserProvider] by its [SearchUserProviderId].
+     */
     fun setProvider(providerId: SearchUserProviderId, active: Boolean)
+
+    fun filterUserSearchResult(userSearchResult: UserSearchResult)
+    fun unfilterUserSearchResult(userSearchResult: UserSearchResult)
 }
 
 // FIXME limit search to users not already selected in a group
@@ -66,6 +98,16 @@ class SearchUserViewModelImpl(
             activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchActive.value)
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
+
+    private val filteredUserSearchResults = MutableStateFlow<List<UserSearchResult>>(emptyList())
+
+    override fun filterUserSearchResult(userSearchResult: UserSearchResult) {
+        filteredUserSearchResults.value += userSearchResult
+    }
+
+    override fun unfilterUserSearchResult(userSearchResult: UserSearchResult) {
+        filteredUserSearchResults.value -= userSearchResult
+    }
 
     init {
         coroutineScope.launch {
@@ -95,12 +137,13 @@ class SearchUserViewModelImpl(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val searchResult: StateFlow<List<SearchResult>?> = combine(
+    internal val searchResult: StateFlow<List<SearchResult>?> = combine(
         combine(providerSearchResult) { it },
         providerSearchActive,
         combine(providerSearchLoading) { it },
-    ) { results, active, loading ->
-        log.debug { "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, active=$active, loading=$loading" }
+        filteredUserSearchResults,
+    ) { results, active, loading, filteredResults ->
+        log.debug { "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, active=$active, loading=${loading.contentToString()}, filteredResults=${filteredResults.joinToString { it.userId.full }}" }
         results.mapIndexed { index, result ->
             SearchResult(
                 id = searchUserProviders[index].providerId,
@@ -114,13 +157,14 @@ class SearchUserViewModelImpl(
         .mapLatest { it } // optimization
         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val searchResultList: StateFlow<List<UserSearchResult>?> =
-        searchResult.map { results ->
-            if (results != null) {
-                randomSequence(results)
-//                sequenceWithBM25(results)
-            } else null
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val searchResultList: StateFlow<List<UserSearchResult>?> = combine(
+        searchResult,
+        filteredUserSearchResults,
+    ) { results, filteredUserSearchResults ->
+        if (results != null) {
+            randomSequence(results, filteredUserSearchResults)
+        } else null
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val providerSettings: StateFlow<String?> = combine(
         providerSearchActive,
@@ -209,7 +253,10 @@ class SearchUserViewModelImpl(
         }
     }
 
-    private fun randomSequence(results: List<SearchResult>): List<UserSearchResult> {
+    private fun randomSequence(
+        results: List<SearchResult>,
+        filteredUserSearchResults: List<UserSearchResult>
+    ): List<UserSearchResult> {
         // without query
         val random = Random(results.hashCode())
 
@@ -256,7 +303,12 @@ class SearchUserViewModelImpl(
         val userSearchResults = results.map { searchResult ->
             if (searchResult.active) {
                 when (val providerSearchResult = searchResult.providerSearchResult) {
-                    is ProviderSearchResult.Success -> providerSearchResult.result.splitIntoRandomChunks()
+                    is ProviderSearchResult.Success -> {
+                        providerSearchResult.result
+                            .filterNot { filteredUserSearchResults.contains(it) }
+                            .splitIntoRandomChunks()
+                    }
+
                     else -> emptyList()
                 }
             } else emptyList()
@@ -264,6 +316,17 @@ class SearchUserViewModelImpl(
 
         return zip(*userSearchResults.toTypedArray()).flatten().flatten()
     }
+}
+
+class PreviewSearchUserViewModel() : SearchUserViewModel {
+    override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
+    override val searchUserProviders: List<SearchUserProvider> = emptyList()
+    override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
+    override val providerSearchActive: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
+    override val providerSettings: MutableStateFlow<String?> = MutableStateFlow(null)
+    override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {}
+    override fun filterUserSearchResult(userSearchResult: UserSearchResult) {}
+    override fun unfilterUserSearchResult(userSearchResult: UserSearchResult) {}
 }
 
 

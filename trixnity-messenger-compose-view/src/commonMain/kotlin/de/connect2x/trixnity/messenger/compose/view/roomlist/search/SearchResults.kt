@@ -18,29 +18,25 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvi
 
 fun LazyListScope.searchResults(
     searchUserProviders: List<SearchUserProvider>,
-    createNewChatViewModel: CreateNewChatViewModel,
+    onUserClick: (UserSearchResult) -> Unit,
     providerSearchActive: List<Boolean>,
     providerSearchSetActive: (SearchUserProviderId, Boolean) -> Unit,
     searchResultList: List<UserSearchResult>?,
 ) {
-    if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
-        if (searchResultList == null) {
-            item("searchIn") {
-                Text("Search in ... ") // FIXME every provider could contribute a location!
-            }
-        } else {
-            searchOptions(searchUserProviders, providerSearchActive, providerSearchSetActive)
-            searchResultList.forEachIndexed { index, searchResult ->
-                item("${searchResult.id}-${index}") {
-                    Box(Modifier.padding(horizontal = 10.dp)) {
-                        SearchResultSelector(
-                            userSearchResult = searchResult,
-                            showOrigin = searchUserProviders.size > 1,
-                            onClick = {
-                                createNewChatViewModel.onUserClick(it)
-                            }
-                        )
-                    }
+    if (searchResultList == null) {
+        item("searchIn") {
+            Text("Search in ... ") // FIXME every provider could contribute a location!
+        }
+    } else {
+        searchOptions(searchUserProviders, providerSearchActive, providerSearchSetActive)
+        searchResultList.forEachIndexed { index, searchResult ->
+            item("${searchResult.id}-${index}") {
+                Box(Modifier.padding(horizontal = 10.dp)) {
+                    SearchResultSelector(
+                        userSearchResult = searchResult,
+                        showOrigin = searchUserProviders.size > 1,
+                        onClick = { onUserClick(it) }
+                    )
                 }
             }
         }

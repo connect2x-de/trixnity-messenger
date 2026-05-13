@@ -8,7 +8,12 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.viewmodel.search.PreviewSearchUserViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelImpl
 import org.koin.core.component.get
+import kotlin.coroutines.EmptyCoroutineContext.get
 
 interface CreateNewRoomViewModelFactory {
     fun create(
@@ -23,6 +28,7 @@ interface CreateNewRoomViewModelFactory {
 
 interface CreateNewRoomViewModel {
     val searchHandler: UserSearchHandler
+    val searchUserViewModel: SearchUserViewModel
     val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>>
     val error: MutableStateFlow<String?>
     val errorDetails: MutableStateFlow<String?>
@@ -35,6 +41,7 @@ open class CreateNewRoomViewModelImpl(
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)
+    override val searchUserViewModel: SearchUserViewModel = get<SearchUserViewModelFactory>().create(viewModelContext)
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -42,6 +49,7 @@ open class CreateNewRoomViewModelImpl(
 
 class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
     override val searchHandler: UserSearchHandler = PreviewUserSearchHandler
+    override val searchUserViewModel: SearchUserViewModel = PreviewSearchUserViewModel()
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)

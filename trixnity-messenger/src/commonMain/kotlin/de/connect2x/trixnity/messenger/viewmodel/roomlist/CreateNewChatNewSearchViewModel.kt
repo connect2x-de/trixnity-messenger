@@ -38,7 +38,7 @@ class CreateNewChatNewSearchViewModelImpl(
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
 
-    override val searchUserViewModel = get<SearchUserViewModelFactory>().create(viewModelContext)
+    override val searchUserViewModel = createNewChatViewModel.createNewRoomViewModel.searchUserViewModel
 
     // FIXME can we refactor the onUserClick to accept UserId? Breaking change?
     override fun onUserClick(user: UserSearchResult) {

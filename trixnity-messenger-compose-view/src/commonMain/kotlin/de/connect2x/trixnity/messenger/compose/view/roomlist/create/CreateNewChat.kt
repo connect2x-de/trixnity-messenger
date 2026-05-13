@@ -16,42 +16,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GroupAdd
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersView
-import de.connect2x.trixnity.messenger.compose.view.search.SearchResultState
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarContentIcon
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogContent
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogFooter
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAvatar
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
@@ -77,16 +66,6 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
-        var references by remember {
-            mutableStateOf(listOf<String>())
-        }
-
-        LaunchedEffect(searchUsersResults) {
-            if (searchUsersResults is SearchResultState.Results) {
-                references = searchUsersResults.users.map { it.userId.full }
-            }
-        }
-        references.firstOrNull()
 
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
@@ -123,29 +102,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
             }
         }
 
-        if (error != null) {
-            ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
-                ModalDialogHeader {
-                    Text(i18n.anErrorHasOccurred())
-                }
-                ModalDialogContent {
-                    Text(error)
-                    if (errorDetails != null) {
-                        ExpandableSection(heading = i18n.errorDetails(), icon = Icons.Default.Info) {
-                            Text(errorDetails, modifier = Modifier.padding(20.dp))
-                        }
-                    }
-                }
-                ModalDialogFooter {
-                    ThemedButton(
-                        style = MaterialTheme.components.primaryButton,
-                        onClick = { createNewChatViewModel.errorDismiss() },
-                    ) {
-                        Text(i18n.actionOk())
-                    }
-                }
-            }
-        }
+        CreateNewRoomErrorDialog(error, errorDetails, onDismiss = { createNewChatViewModel.errorDismiss() })
     }
 }
 
