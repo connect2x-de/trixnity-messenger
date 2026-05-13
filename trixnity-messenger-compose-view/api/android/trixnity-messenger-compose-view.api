@@ -754,9 +754,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusKt {
-	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Lkotlinx/coroutines/CoroutineScope;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
-	public static final fun rovingFocusItem (Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
-	public static synthetic fun rovingFocusItem$default (Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Landroidx/compose/ui/Modifier;
+	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Landroidx/compose/foundation/lazy/LazyListState;Landroidx/compose/runtime/MutableState;Lkotlin/reflect/KClass;Ljava/util/List;ZLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
+	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
+	public static final fun rovingFocusItem (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
+	public static final fun rovingFocusItem (Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/AddMatrixAccountKt {
@@ -1866,7 +1867,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/previews/util/In
 public final class de/connect2x/trixnity/messenger/compose/view/profiles/ComposableSingletons$ProfileSelectionKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/profiles/ComposableSingletons$ProfileSelectionKt;
 	public fun <init> ()V
-	public final fun getLambda$-1399014993$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$1770753639$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/profiles/ProfileCreationKt {
@@ -4120,13 +4121,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/search/
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/search/SearchUsersView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewRoomViewModel;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/foundation/lazy/LazyListScope;Landroidx/compose/ui/focus/FocusRequester;)V
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewRoomViewModel;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/foundation/lazy/LazyListScope;Landroidx/compose/runtime/MutableState;)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/search/SearchUsersViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/search/SearchUsersView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewRoomViewModel;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/foundation/lazy/LazyListScope;Landroidx/compose/ui/focus/FocusRequester;)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewRoomViewModel;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/foundation/lazy/LazyListScope;Landroidx/compose/runtime/MutableState;)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/root/AccountSetupSwitchKt {
@@ -4243,9 +4244,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/CollectUs
 public final class de/connect2x/trixnity/messenger/compose/view/search/ComposableSingletons$UserSearchResultListKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/ComposableSingletons$UserSearchResultListKt;
 	public fun <init> ()V
-	public final fun getLambda$-1201210426$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-1713108660$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$-1738079345$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1009053467$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1987290657$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$340639720$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/SearchResultState {
@@ -4274,7 +4275,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/SearchRes
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/search/SearchUsersKt {
-	public static final fun searchUsersLocally (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/ui/focus/FocusRequester;)V
+	public static final fun searchUsersLocally (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Lkotlin/jvm/functions/Function1;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Lde/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView;Landroidx/compose/runtime/MutableState;)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/search/UserSearchFieldKt {
@@ -4292,13 +4293,13 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/UserSearc
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView {
-	public abstract fun create (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function1;)V
+	public abstract fun create (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Landroidx/compose/runtime/MutableState;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListViewImpl : de/connect2x/trixnity/messenger/compose/view/search/UserSearchResultListView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function1;)V
+	public fun create (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Landroidx/compose/runtime/MutableState;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardKt {
@@ -4565,7 +4566,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/AvatarC
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/BlockedContactsSettingsKt {
 	public static final fun BlockedContactsSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/BlockedContactsSettingsViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun IgnoredUserListElement (Lde/connect2x/trixnity/messenger/viewmodel/settings/BlockedContact;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;ZLkotlin/jvm/functions/Function0;Landroidx/compose/ui/focus/FocusRequester;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public static final fun IgnoredUserListElement (Lde/connect2x/trixnity/messenger/viewmodel/settings/BlockedContact;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/settings/BlockedContactsSettingsView {
@@ -4614,15 +4615,15 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Composa
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$BlockedContactsSettingsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$BlockedContactsSettingsKt;
 	public fun <init> ()V
-	public final fun getLambda$-1017253597$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$346252395$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$DevicesSettingsKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$DevicesSettingsKt;
 	public fun <init> ()V
-	public final fun getLambda$574653137$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$587351500$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
-	public final fun getLambda$807604853$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-1666027026$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$-928970651$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
+	public final fun getLambda$393505673$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function2;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/ComposableSingletons$PrivacySettingsKt {
@@ -4653,7 +4654,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/DeviceS
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/DevicesSettingsKt {
-	public static final fun DeviceItem (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel$DeviceInfo;ZLkotlin/jvm/functions/Function0;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;I)V
+	public static final fun DeviceItem (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel$DeviceInfo;ZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsAllAccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun DeviceSettingsSingleAccount (Lde/connect2x/trixnity/messenger/viewmodel/settings/DeviceSettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
