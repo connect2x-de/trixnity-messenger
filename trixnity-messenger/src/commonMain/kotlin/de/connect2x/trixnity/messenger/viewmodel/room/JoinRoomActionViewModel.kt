@@ -18,18 +18,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-interface JoinRoomConfirmViewModelFactory {
+interface JoinRoomActionViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         onOpenRoom: (roomId: RoomId) -> Unit,
         onDismiss: () -> Unit
-    ) = JoinRoomConfirmViewModelImpl(viewModelContext, roomId, onOpenRoom, onDismiss)
+    ) = JoinRoomActionViewModelImpl(viewModelContext, roomId, onOpenRoom, onDismiss)
 
-    companion object : JoinRoomConfirmViewModelFactory
+    companion object : JoinRoomActionViewModelFactory
 }
 
-interface JoinRoomConfirmViewModel {
+interface JoinRoomActionViewModel {
     val actionNecessary: StateFlow<JoinRoomAction?>
     val error: StateFlow<String?>
 
@@ -37,35 +37,41 @@ interface JoinRoomConfirmViewModel {
         data class Join(val onJoinRoom: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
         data class Knock(val onKnock: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
         data class Restricted(val requiredRooms: Set<RoomId>, val onDismiss: () -> Unit) : JoinRoomAction()
+        data class AcceptInvitation(val onAcceptInvite: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
         data class Impossible(val onDismiss: () -> Unit) : JoinRoomAction()
     }
 }
 
-class JoinRoomConfirmViewModelImpl(
+class JoinRoomActionViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onOpenRoom: (roomId: RoomId) -> Unit,
     private val onDismiss: () -> Unit
 ) :
-    JoinRoomConfirmViewModel, MatrixClientViewModelContext by viewModelContext {
-    override val actionNecessary: StateFlow<JoinRoomConfirmViewModel.JoinRoomAction?> =
+    JoinRoomActionViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
         combine(
             matrixClient.room.getById(roomId).map { it?.membership },
             matrixClient.room.getState(roomId, JoinRulesEventContent::class).map {
                 it?.content
             }
         ) { membership, joinRuleContent ->
-            if (membership == Membership.JOIN) {
-                log.warn { "Already joined room $roomId, no confirmation necessary, returning null" }
-                return@combine null
-            }
             return@combine when {
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomConfirmViewModel.JoinRoomAction.Join(
+                membership == Membership.JOIN -> {
+                    log.warn { "Already joined room $roomId, no confirmation necessary, returning null" }
+                    null
+                }
+
+                membership == Membership.INVITE -> {
+                    JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onAcceptInvite, onDismiss)
+                }
+
+                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomActionViewModel.JoinRoomAction.Join(
                     ::onConfirmJoin, onDismiss
                 )
 
                 joinRuleContent?.joinRule?.isKnock
-                    ?: false -> JoinRoomConfirmViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
+                    ?: false -> JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
 
                 //Only show restricted action when there are room join conditions
                 joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
@@ -73,13 +79,13 @@ class JoinRoomConfirmViewModelImpl(
                         joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
                             ?.map { it.roomId }?.toSet()
                     if (allowConditionsRooms?.isNotEmpty() ?: false) {
-                        JoinRoomConfirmViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
+                        JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
                     } else {
-                        JoinRoomConfirmViewModel.JoinRoomAction.Impossible(onDismiss)
+                        JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
                     }
                 }
 
-                else -> JoinRoomConfirmViewModel.JoinRoomAction.Impossible(onDismiss)
+                else -> JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -124,5 +130,8 @@ class JoinRoomConfirmViewModelImpl(
             }
         }
     }
+
+    private fun onAcceptInvite() {}
+
 
 }

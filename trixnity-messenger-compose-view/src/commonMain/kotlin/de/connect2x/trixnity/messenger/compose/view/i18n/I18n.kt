@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -3521,6 +3522,26 @@ open class I18nView(
     open fun unreadMessageCount(count: String) = translate {
         EN - "$count unread messages"
         DE - "$count ungelesene Nachrichten"
+    }
+
+    open fun joinRoomConfirmImpossible() = translate {
+        EN - "This room is private, please request an invitation to join."
+        DE - "Dieser Raum ist privat, bitte fordern Sie eine Einladung an, um beizutreten."
+    }
+
+    open fun joinRoomConfirmJoin() = translate {
+        EN - "You need to join the room to access its content. Please confirm you want to join."
+        DE - "Sie müssen dem Raum beitreten, um die Inhalte anzeigen zu können. Bitte bestätigen Sie den Beitritt."
+    }
+
+    open fun joinRoomConfirmKnock() = translate {
+        EN - "Without an invitation you need to knock on the room an be let in. Please confirm you want to knock."
+        DE - "Um ohne eine Einladung beizutreten müssen Sie an dem Raum anklopfen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+    }
+
+    open fun joinRoomConfirmRestricted(requiredRooms: Set<RoomId>) = translate {
+        EN - "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}"
+        DE - "Um ohne eine Einladung beizutreten müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()} "
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

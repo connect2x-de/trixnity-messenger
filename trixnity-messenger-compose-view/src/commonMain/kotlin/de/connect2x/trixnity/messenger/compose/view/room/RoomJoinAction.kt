@@ -2,9 +2,8 @@ package de.connect2x.trixnity.messenger.compose.view.room
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,53 +12,56 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
-import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomConfirmViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel
 
 interface JoinRoomActionView {
     @Composable
-    fun create(viewModel: JoinRoomConfirmViewModel)
+    fun create(viewModel: JoinRoomActionViewModel)
 }
 
 @Composable
-fun JoinRoomAction(viewModel: JoinRoomConfirmViewModel) {
+fun JoinRoomAction(viewModel: JoinRoomActionViewModel) {
     DI.current.get<JoinRoomActionView>().create(viewModel)
 }
 
 class JoinRoomActionViewImpl : JoinRoomActionView {
     @Composable
-    override fun create(viewModel: JoinRoomConfirmViewModel) {
+    override fun create(viewModel: JoinRoomActionViewModel) {
         val action = viewModel.actionNecessary.collectAsState().value
+        val i18n = DI.current.get<I18nView>()
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center)) {
                 when (action) {
-                    is JoinRoomConfirmViewModel.JoinRoomAction.Impossible -> {
-                        JoinRoomActionModal("Can't join room", onDismiss = action.onDismiss)
+                    is JoinRoomActionViewModel.JoinRoomAction.Impossible -> {
+                        JoinRoomActionModal(i18n.joinRoomConfirmImpossible(), onDismiss = action.onDismiss)
                     }
 
-                    is JoinRoomConfirmViewModel.JoinRoomAction.Join -> JoinRoomActionModal(
-                        "Please join room",
+                    is JoinRoomActionViewModel.JoinRoomAction.Join -> JoinRoomActionModal(
+                        i18n.joinRoomConfirmJoin(),
                         onConfirm = action.onJoinRoom,
                         onDismiss = action.onDismiss
                     )
 
-                    is JoinRoomConfirmViewModel.JoinRoomAction.Knock -> JoinRoomActionModal(
-                        "Please knock",
+                    is JoinRoomActionViewModel.JoinRoomAction.Knock -> JoinRoomActionModal(
+                        i18n.joinRoomConfirmKnock(),
                         onConfirm = action.onKnock,
                         onDismiss = action.onDismiss
                     )
 
-                    is JoinRoomConfirmViewModel.JoinRoomAction.Restricted -> JoinRoomActionModal(
-                        "Without an invitation you need to be a member of at least one of the following rooms to join: ${action.requiredRooms.joinToString()}",
-                        onDismiss = action.onDismiss
+                    is JoinRoomActionViewModel.JoinRoomAction.Restricted -> JoinRoomActionModal(
+                        i18n.joinRoomConfirmRestricted(action.requiredRooms), onDismiss = action.onDismiss
                     )
 
-                    else -> {
-                        Text("Unknown state")
-                    }
+                    is JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation -> TODO()
+
+                    null -> {}
                 }
             }
         }
@@ -70,17 +72,30 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
 private fun JoinRoomActionModal(text: String, onConfirm: (() -> Unit)? = null, onDismiss: (() -> Unit)? = null) {
     val i18n = DI.current.get<I18nView>()
     ThemedSurface(
-        style = MaterialTheme.components.popup.copy(padding = PaddingValues(MaterialTheme.messengerDpConstants.large)),
+        style = MaterialTheme.components.popup,
     ) {
-        Column {
+        Column(
+            modifier = Modifier.padding(MaterialTheme.messengerDpConstants.middle),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(text)
             onConfirm?.let {
-                Button(onClick = it, modifier = Modifier.buttonPointerModifier()) {
+                LargeSpacer()
+                ThemedButton(
+                    onClick = it,
+                    modifier = Modifier.buttonPointerModifier(),
+                    style = MaterialTheme.components.primaryButton
+                ) {
                     Text(i18n.actionConfirm())
                 }
             }
             onDismiss?.let {
-                Button(onClick = onDismiss, modifier = Modifier.buttonPointerModifier()) {
+                if (onConfirm == null) LargeSpacer() else MiddleSpacer()
+                ThemedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.buttonPointerModifier(),
+                    style = MaterialTheme.components.secondaryButton
+                ) {
                     Text(i18n.actionCancel())
                 }
             }

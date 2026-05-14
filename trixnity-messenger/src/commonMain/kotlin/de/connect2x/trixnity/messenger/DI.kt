@@ -58,7 +58,7 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomConfirmViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
@@ -405,7 +405,7 @@ private fun roomViewModels() = module {
     single<RoomViewModelFactory> { RoomViewModelFactory }
     single<GetEventReactions> { GetEventReactionsImpl() }
     single<GetEventReaders> { GetEventReadersImpl() }
-    single<JoinRoomConfirmViewModelFactory> { JoinRoomConfirmViewModelFactory }
+    single<JoinRoomActionViewModelFactory> { JoinRoomActionViewModelFactory }
 }
 
 private fun roomSettingsViewModels() = module {

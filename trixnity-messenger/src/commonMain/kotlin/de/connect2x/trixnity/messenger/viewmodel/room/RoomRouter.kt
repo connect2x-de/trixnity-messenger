@@ -40,12 +40,12 @@ interface RoomRouter {
         data class View(val userId: UserId, val roomId: String) : Config()
 
         @Serializable
-        data class JoinRoomConfirm(val userId: UserId, val roomId: String) : Config()
+        data class JoinRoomAction(val userId: UserId, val roomId: String) : Config()
     }
 
     sealed class Wrapper {
         data class View(val viewModel: RoomViewModel) : Wrapper()
-        data class JoinRoomConfirm(val viewModel: JoinRoomConfirmViewModel) : Wrapper()
+        data class JoinRoomAction(val viewModel: JoinRoomActionViewModel) : Wrapper()
         data object None : Wrapper()
     }
 }
@@ -90,8 +90,8 @@ class RoomRouterImpl(
                 }
             )
 
-            is Config.JoinRoomConfirm -> Wrapper.JoinRoomConfirm(
-                viewModelContext.get<JoinRoomConfirmViewModelFactory>().create(
+            is Config.JoinRoomAction -> Wrapper.JoinRoomAction(
+                viewModelContext.get<JoinRoomActionViewModelFactory>().create(
                     viewModelContext.childContext("RoomJoinConfirm", componentContext, roomConfig.userId),
                     roomId = RoomId(roomConfig.roomId),
                     onOpenRoom = { onOpenRoom(roomConfig.userId, it) },
@@ -120,7 +120,7 @@ class RoomRouterImpl(
             }
 
             else -> {
-                roomNavigation.bringToFrontSuspending(Config.JoinRoomConfirm(userId, roomId.full))
+                roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full))
             }
         }
     }
@@ -133,6 +133,6 @@ class RoomRouterImpl(
         when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
-            is Config.JoinRoomConfirm -> false
+            is Config.JoinRoomAction -> false
         }
 }
