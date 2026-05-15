@@ -238,36 +238,40 @@ open class RoomListElementViewModelImpl(
         }
 
     private val lastRelevantTimelineEventMessage =
-        roomFlow
-            .flatMapLatest { room ->
-                val lastRelevantEventId = room.lastRelevantEventId
-                if (lastRelevantEventId != null)
-                    matrixClient.room.getTimelineEvent(roomId = roomId, eventId = lastRelevantEventId)
-                else flowOf(null)
-            }
-            .distinctUntilChanged()
-            .flatMapLatest { lastTimelineEvent ->
-                if (lastTimelineEvent != null) {
-                    combine(
-                        matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
-                        matrixClient.room.getById(roomId).map { it?.isDirect == true }.distinctUntilChanged(),
-                        draftFlow,
-                    ) { lastTimelineEventSender, isDirect, draftMessage ->
-                        val draftMessageContent = getDraftMessageContent(draftMessage)
-                        val message = timelineEventTypeDescription(lastTimelineEvent)
-                        val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
-                        val sender =
-                            if (isByMe) {
-                                i18n.roomListYou()
-                            } else {
-                                lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
-                            }
-                        if (draftMessageContent != null) "${i18n.roomListDraft()}: $draftMessageContent"
-                        else if (isDirect && isByMe.not()) message else "${sender}: $message"
+        roomFlow.flatMapLatest { room ->
+            val lastRelevantEventId = room.lastRelevantEventId
+            if (lastRelevantEventId != null)
+                matrixClient.room.getTimelineEvent(
+                    roomId = roomId,
+                    eventId = lastRelevantEventId,
+                )
+            else flowOf(null)
+        }.distinctUntilChanged().flatMapLatest { lastTimelineEvent ->
+            if (lastTimelineEvent != null) {
+                combine(
+                    matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
+                    matrixClient.room.getById(roomId).map { it?.isDirect == true }
+                        .distinctUntilChanged(),
+                ) { lastTimelineEventSender, isDirect ->
+                    val message = timelineEventTypeDescription(lastTimelineEvent)
+                    val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
+                    val sender = if (isByMe) {
+                        i18n.roomListYou()
+                    } else {
+                        lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
                     }
-                } else flowOf("")
+                    if (isDirect && isByMe.not()) message
+                    else "${sender}: $message"
+                }
+            } else flowOf("")
+        }.combine(draftFlow) { message, draftMessage ->
+            val draftMessageContent = getDraftMessageContent(draftMessage)
+            if (draftMessageContent != null) {
+                "${i18n.roomListDraft()}: $draftMessageContent"
+            } else {
+                message
             }
-            .shareIn(coroutineScope, WhileSubscribed(), 1)
+        }.shareIn(coroutineScope, WhileSubscribed(), 1)
 
     override val lastMessage: StateFlow<String?> =
         combine(lastRelevantTimelineEventMessage, isInvite.filterNotNull()) { message, isInvite ->
