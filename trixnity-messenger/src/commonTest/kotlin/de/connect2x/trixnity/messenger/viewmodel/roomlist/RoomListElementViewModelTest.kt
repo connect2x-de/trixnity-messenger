@@ -1,9 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.notification.NotificationService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.RoomUserReceipts
 import de.connect2x.trixnity.client.store.TimelineEvent
@@ -87,6 +91,8 @@ class RoomListElementViewModelTest {
     val roomServiceMock = mock<RoomService>()
 
     val userServiceMock = mock<UserService>()
+
+    val mediaServiceMock = mock<MediaService>()
     val notificationService = mock<NotificationService>()
 
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
@@ -312,6 +318,83 @@ class RoomListElementViewModelTest {
 
         roomListElementViewModel(roomId1).lastMessage.first { it == "you: Hello!" }
         roomListElementViewModel(roomId2).lastMessage.first { it == "you: What's up?" }
+    }
+
+    @Test
+    fun `display draft message if there is one`() = runTest {
+        val eventId1 = EventId("\$event1")
+        val room1 = Room(
+            roomId1, lastEventId = eventId1, isDirect = true, lastRelevantEventId = eventId1
+        )
+        val room2 = Room(
+            roomId2, lastEventId = eventId1, isDirect = true, lastRelevantEventId = eventId1
+        )
+        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+        every { roomServiceMock.getTimelineEvent(roomId1, eventId1) } returns flowOf(
+            timelineEvent(
+                eventId1,
+                Clock.System.now(),
+                "Hello!"
+            )
+        )
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            text("hi")
+        }
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, me).build(builder)
+        content.shouldNotBeNull()
+
+        every { roomServiceMock.getDraftMessage(roomId1) } returns flowOf(
+            RoomOutboxMessage(
+                roomId = roomId,
+                transactionId = "0",
+                content = content,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        )
+
+        roomListElementViewModel(roomId1).lastMessage.first { it == "draft: hi" }
+    }
+
+    @Test
+    fun `display draft message if there is one and no message in room`() = runTest {
+        val room1 = Room(
+            roomId1, lastEventId = null, isDirect = true, lastRelevantEventId = null
+        )
+        val room2 = Room(
+            roomId2, lastEventId = null, isDirect = true, lastRelevantEventId = null
+        )
+        every { roomServiceMock.getById(roomId1) } returns MutableStateFlow(room1)
+        every { roomServiceMock.getById(roomId2) } returns MutableStateFlow(room2)
+        every { roomServiceMock.getTimelineEvent(roomId1, any()) } returns flowOf(null)
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            text("should I send this?")
+        }
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, me).build(builder)
+        content.shouldNotBeNull()
+
+        every { roomServiceMock.getDraftMessage(roomId1) } returns flowOf(
+            RoomOutboxMessage(
+                roomId = roomId,
+                transactionId = "0",
+                content = content,
+                createdAt = Clock.System.now(),
+                sentAt = null,
+                eventId = null,
+                sendError = null,
+                keepMediaInCache = true,
+                isDraft = true,
+            )
+        )
+
+        roomListElementViewModel(roomId1).lastMessage.first { it == "draft: should I send this?" }
     }
 
     @Test
