@@ -4,11 +4,15 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.message.MessageBuilder
+import de.connect2x.trixnity.client.room.message.audio
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Mentions
+import de.connect2x.trixnity.core.model.events.m.room.AudioInfo
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -26,6 +30,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
 import kotlin.coroutines.CoroutineContext
@@ -93,12 +98,11 @@ class AudioRecordingAreaViewModelTest {
 
         every { recorder.close() } returns Unit
 
-        everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns ""
+        everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns "testUrl"
 
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
         every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
         everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls {
-            println("setting message draft")
             val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
             val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
             requireNotNull(content) { "you must add some sort of content to set a draft" }
@@ -113,7 +117,6 @@ class AudioRecordingAreaViewModelTest {
                 keepMediaInCache = true,
                 isDraft = true,
             )
-            println("finished")
             "0"
         }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
@@ -183,6 +186,36 @@ class AudioRecordingAreaViewModelTest {
     }
 
     @Test
+    fun `completed - when completed an audio draft is saved`() = runTest {
+        val recorderState: MutableStateFlow<AudioRecorder.State> =
+            MutableStateFlow(AudioRecorder.State.Ready)
+        every { recorder.state } returns recorderState
+
+        val cut = audioRecordingAreaViewModel(
+            backgroundScope.coroutineContext,
+        )
+
+        draftMessage.value shouldBe null
+
+        recorderState.value = AudioRecorder.State.Completed(
+            PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg")
+        )
+        delay(1.seconds)
+        draftMessage.value?.content shouldBe RoomMessageEventContent.FileBased.Audio(
+            body = "voice message",
+            format = null,
+            formattedBody = null,
+            fileName = null,
+            info = AudioInfo(duration = 5000, mimeType = "audio/ogg", size = 1000),
+            url = "testUrl",
+            file = null,
+            relatesTo = null,
+            mentions = Mentions(users = null, room = null),
+            externalUrl = null
+        )
+    }
+
+    @Test
     fun `not completed - when not completed then old player paused`() = runTest {
         val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
         every { recorder.state } returns recorderState
@@ -217,7 +250,6 @@ class AudioRecordingAreaViewModelTest {
         )
 
         everySuspend { roomServiceMock.sendDraftMessage(any()) } calls {
-            println("called")
             sent = true
             draftMessage.value = null
             "0"
@@ -244,6 +276,126 @@ class AudioRecordingAreaViewModelTest {
         cut.sendAudioMessage()
         eventually(300.milliseconds) {
             sent shouldBe true
+        }
+    }
+
+    @Test
+    fun `load - should load draft into recorder if duration not null`() = runTest {
+        var wasLoaded = false
+        everySuspend { recorder.loadSuspending(any()) } calls {
+            wasLoaded = true
+        }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val body = "cool audio"
+        val platformMedia = PlatformMediaMock
+
+        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, duration = 69)
+        }
+
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+
+        val cut = audioRecordingAreaViewModel(
+            backgroundScope.coroutineContext,
+        )
+
+        cut.loadAudioMessage(content as RoomMessageEventContent.FileBased.Audio)
+
+        eventually(300.milliseconds) {
+            wasLoaded shouldBe true
+        }
+    }
+
+    @Test
+    fun `load - should not load draft into recorder if duration is null`() = runTest {
+        var wasLoaded = false
+        everySuspend { recorder.loadSuspending(any()) } calls {
+            wasLoaded = true
+        }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val body = "cool audio"
+        val platformMedia = PlatformMediaMock
+
+        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, duration = null)
+        }
+
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+
+        val cut = audioRecordingAreaViewModel(
+            backgroundScope.coroutineContext,
+        )
+
+        cut.loadAudioMessage(content as RoomMessageEventContent.FileBased.Audio)
+
+        eventually(300.milliseconds) {
+            wasLoaded shouldBe false
+        }
+    }
+
+    @Test
+    fun `load - should not load draft into recorder if download failed`() = runTest {
+        var wasLoaded = false
+        everySuspend { recorder.loadSuspending(any()) } calls {
+            wasLoaded = true
+        }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val body = "cool audio"
+        val platformMedia = PlatformMediaMock
+
+        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.failure(Exception())
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, duration = 420)
+        }
+
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+
+        val cut = audioRecordingAreaViewModel(
+            backgroundScope.coroutineContext,
+        )
+
+        cut.loadAudioMessage(content as RoomMessageEventContent.FileBased.Audio)
+
+        eventually(300.milliseconds) {
+            wasLoaded shouldBe false
+        }
+    }
+
+    @Test
+    fun `delete - should delete Draft Message and close recorder`() = runTest {
+        var wasClosed = false
+
+        every { recorder.close() } calls {
+            wasClosed = true
+        }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val cut = audioRecordingAreaViewModel(
+            backgroundScope.coroutineContext,
+        )
+
+        val body = "cool audio"
+        val platformMedia = PlatformMediaMock
+
+        roomServiceMock.setDraftMessage(roomId) {
+            audio(body = body, audio = platformMedia, duration = 420)
+        }
+
+        draftMessage.value.shouldNotBeNull()
+
+        cut.deleteAudioMessage()
+
+        eventually(300.milliseconds) {
+            draftMessage.value shouldBe null
+            wasClosed shouldBe true
         }
     }
 
