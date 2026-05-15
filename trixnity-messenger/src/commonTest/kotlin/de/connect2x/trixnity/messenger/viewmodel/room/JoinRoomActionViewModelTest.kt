@@ -173,6 +173,19 @@ class JoinRoomActionViewModelTest {
     }
 
     @Test
+    fun `show impossible action when room is restricted and no allow condition rooms or invite exists`() = runTest {
+        verifyJoinAction(
+            JoinRule.Restricted,
+            allowCondition = setOf()
+        ) {
+            eventually(2.seconds) {
+                val value = it.actionNecessary.value
+                value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Impossible>()
+            }
+        }
+    }
+
+    @Test
     fun `show joining impossible action when room is invite only and no invite exists`() = runTest {
         verifyJoinAction(
             JoinRule.Invite,

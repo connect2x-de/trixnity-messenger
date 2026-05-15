@@ -91,15 +91,19 @@ class JoinRoomActionViewModelImpl(
                     val allowConditionsRooms =
                         joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
                             ?.map { it.roomId }?.toSet()
-                    log.debug { "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition" }
                     if (allowConditionsRooms?.isNotEmpty() ?: false) {
+                        log.debug { "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition" }
                         JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
                     } else {
+                        log.debug { "Room $roomId is restricted, but there are no rooms as conditions, showing impossible action" }
                         JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
                     }
                 }
 
-                else -> JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
+                else -> {
+                    log.debug { "No action to join room $roomId with join rule ${joinRuleContent?.joinRule} available, returning impossible action" }
+                    JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
+                }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
