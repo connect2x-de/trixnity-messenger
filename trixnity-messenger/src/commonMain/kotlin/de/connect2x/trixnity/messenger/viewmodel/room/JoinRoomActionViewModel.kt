@@ -65,7 +65,8 @@ class JoinRoomActionViewModelImpl(
         ) { membership, joinRuleContent ->
             return@combine when {
                 membership == Membership.JOIN -> {
-                    log.warn { "Already joined room $roomId, no confirmation necessary, returning null" }
+                    log.warn { "Already joined room $roomId, no confirmation necessary, returning null and opening room" }
+                    onOpenRoom(roomId)
                     null
                 }
 

@@ -192,13 +192,16 @@ class JoinRoomActionViewModelTest {
 
 
     @Test
-    fun `show null action when room is already joined`() = allJoinRules.forEach { joinRule ->
+    fun `show null action when room is already joined and open room`() = allJoinRules.forEach { joinRule ->
         runTest {
+            var openRoomCalled = 0
             verifyJoinAction(
                 joinRule,
-                membership = Membership.JOIN
+                membership = Membership.JOIN,
+                onOpenRoom = { openRoomCalled++ }
             ) {
                 continually(2.seconds) { it.actionNecessary.value.shouldBeNull() }
+                eventually(2.seconds) { openRoomCalled shouldBe 1 }
             }
         }
     }
@@ -269,9 +272,10 @@ class JoinRoomActionViewModelTest {
         membership: Membership? = null,
         allowCondition: Set<JoinRulesEventContent.AllowCondition>? = null,
         additionalMocks: () -> Unit = {},
+        onOpenRoom: (RoomId) -> Unit = {},
         expectedResult: suspend (JoinRoomActionViewModel) -> Unit
     ) {
-        every { roomServiceMock.getById(room) } returns flowOf(
+        every { roomServiceMock.getById(any()) } returns flowOf(
             if (membership == null) null else Room(
                 room,
                 membership = membership
@@ -288,7 +292,7 @@ class JoinRoomActionViewModelTest {
             )
         )
         additionalMocks()
-        val cut = JoinRoomActionViewModel()
+        val cut = JoinRoomActionViewModel(onOpenRoom = onOpenRoom)
         val jobAction = cut.actionNecessary.launchIn(this)
         val jobError = cut.error.launchIn(this)
         expectedResult(cut)
@@ -297,7 +301,7 @@ class JoinRoomActionViewModelTest {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun TestScope.JoinRoomActionViewModel(): JoinRoomActionViewModel {
+    private fun TestScope.JoinRoomActionViewModel(onOpenRoom: (RoomId) -> Unit = {}): JoinRoomActionViewModel {
         Dispatchers.setMain(testDispatcher)
         return JoinRoomActionViewModelImpl(
             MatrixClientViewModelContextImpl(
@@ -319,7 +323,7 @@ class JoinRoomActionViewModelTest {
                 name = "RoomJoinAction"
             ),
             roomId = room,
-            onOpenRoom = {},
+            onOpenRoom = onOpenRoom,
             onDismiss = {}
         )
     }
