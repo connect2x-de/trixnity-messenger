@@ -6,6 +6,7 @@ import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -46,9 +47,15 @@ class JoinRoomActionViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
     private val onOpenRoom: (roomId: RoomId) -> Unit,
-    private val onDismiss: () -> Unit
+    private val onDismiss: () -> Unit,
 ) :
     JoinRoomActionViewModel, MatrixClientViewModelContext by viewModelContext {
+
+    init {
+        val backCallback = BackCallback(onBack = onDismiss)
+        trixnityMessengerBackHandler.registerBackCallback(backCallback)
+    }
+
     override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
         combine(
             matrixClient.room.getById(roomId).map { it?.membership },
@@ -63,21 +70,27 @@ class JoinRoomActionViewModelImpl(
                 }
 
                 membership == Membership.INVITE -> {
+                    log.debug { "Got an invitation for room $roomId, showing option to accept" }
                     JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onAcceptInvite, onDismiss)
                 }
 
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> JoinRoomActionViewModel.JoinRoomAction.Join(
-                    ::onConfirmJoin, onDismiss
-                )
+                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> {
+                    log.debug { "Room $roomId is public, showing option to join" }
+                    JoinRoomActionViewModel.JoinRoomAction.Join(::onConfirmJoin, onDismiss)
+                }
 
                 joinRuleContent?.joinRule?.isKnock
-                    ?: false -> JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
+                    ?: false -> {
+                    log.debug { "Room $roomId is knock, showing option to knock" }
+                    JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
+                }
 
                 //Only show restricted action when there are room join conditions
                 joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
                     val allowConditionsRooms =
                         joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
                             ?.map { it.roomId }?.toSet()
+                    log.debug { "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition" }
                     if (allowConditionsRooms?.isNotEmpty() ?: false) {
                         JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
                     } else {
@@ -131,7 +144,23 @@ class JoinRoomActionViewModelImpl(
         }
     }
 
-    private fun onAcceptInvite() {}
-
-
+    private fun onAcceptInvite() {
+        coroutineScope.launch {
+            if (matrixClient.syncState.value == SyncState.ERROR) {
+                log.debug { "try to join room while not connected" }
+                _error.value = i18n.roomListInvitationOffline()
+            } else {
+                log.debug { "try to join room $roomId" }
+                matrixClient.api.room.joinRoom(roomId).fold(
+                    onSuccess = {
+                        onOpenRoom(roomId)
+                    },
+                    onFailure = {
+                        log.error(it) { "Cannot join room." }
+                        _error.value = i18n.roomListInvitationError()
+                    }
+                )
+            }
+        }
+    }
 }

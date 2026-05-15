@@ -3546,7 +3546,7 @@ open class I18nView(
 
     open fun joinRoomActionAcceptInvite() = translate {
         EN - "You need to accept your outstanding invitation to join this room. Please confirm you want to accept the invite."
-        DE - "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, das Sie die Einladung annehmen möchten."
+        DE - "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, dass Sie die Einladung annehmen möchten."
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

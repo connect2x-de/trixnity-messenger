@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.room
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
-import de.connect2x.trixnity.messenger.compose.view.common.LargeSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -123,24 +123,25 @@ private fun JoinRoomActionModal(
                         }
                     }
                 }
-                onConfirm?.let {
-                    LargeSpacer()
-                    ThemedButton(
-                        onClick = it,
-                        modifier = Modifier.buttonPointerModifier(),
-                        style = MaterialTheme.components.primaryButton
-                    ) {
-                        Text(i18n.actionConfirm())
-                    }
-                }
-                onDismiss?.let {
-                    if (onConfirm == null) LargeSpacer() else MiddleSpacer()
-                    ThemedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.buttonPointerModifier(),
-                        style = MaterialTheme.components.secondaryButton
-                    ) {
-                        Text(i18n.actionCancel())
+                MiddleSpacer()
+                Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small)) {
+                    onDismiss?.let {
+                        ThemedButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.buttonPointerModifier(),
+                            style = MaterialTheme.components.secondaryButton
+                        ) {
+                            Text(i18n.actionCancel())
+                        }
+                        onConfirm?.let {
+                            ThemedButton(
+                                onClick = it,
+                                modifier = Modifier.buttonPointerModifier(),
+                                style = MaterialTheme.components.primaryButton
+                            ) {
+                                Text(i18n.actionConfirm())
+                            }
+                        }
                     }
                 }
             }

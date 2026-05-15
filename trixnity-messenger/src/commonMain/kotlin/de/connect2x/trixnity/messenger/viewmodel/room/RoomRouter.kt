@@ -6,12 +6,10 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
@@ -105,19 +103,19 @@ class RoomRouterImpl(
 
     override suspend fun openRoom(userId: UserId, roomId: RoomId) {
         val matrixClient = viewModelContext.getMatrixClient(userId)
-        val encrypted = matrixClient.room.getById(roomId).first()?.encrypted ?: true
+//        val encrypted = matrixClient.room.getById(roomId).first()?.encrypted ?: true
         val memberState = matrixClient.user.getById(roomId, userId).first()?.membership
-        val visibility =
-            matrixClient.room.getState(roomId, HistoryVisibilityEventContent::class).first()?.content?.historyVisibility
+//        val visibility =
+//            matrixClient.room.getState(roomId, HistoryVisibilityEventContent::class).first()?.content?.historyVisibility
         when {
             memberState == Membership.JOIN -> {
                 log.debug { "show room: $roomId" }
                 roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
             }
 
-            visibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && !encrypted -> {
-                //TODO show preview
-            }
+//            visibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && !encrypted -> {
+//                TODO show preview of timeline
+//            }
 
             else -> {
                 roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full))
