@@ -71,7 +71,7 @@ class JoinRoomActionViewModelImpl(
 
                 membership == Membership.INVITE -> {
                     log.debug { "Got an invitation for room $roomId, showing option to accept" }
-                    JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onAcceptInvite, onDismiss)
+                    JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onConfirmJoin, onDismiss)
                 }
 
                 joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> {
@@ -137,26 +137,6 @@ class JoinRoomActionViewModelImpl(
                     },
                     onFailure = {
                         log.error(it) { "Cannot knock on room." }
-                        _error.value = i18n.roomListInvitationError()
-                    }
-                )
-            }
-        }
-    }
-
-    private fun onAcceptInvite() {
-        coroutineScope.launch {
-            if (matrixClient.syncState.value == SyncState.ERROR) {
-                log.debug { "try to join room while not connected" }
-                _error.value = i18n.roomListInvitationOffline()
-            } else {
-                log.debug { "try to join room $roomId" }
-                matrixClient.api.room.joinRoom(roomId).fold(
-                    onSuccess = {
-                        onOpenRoom(roomId)
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot join room." }
                         _error.value = i18n.roomListInvitationError()
                     }
                 )
