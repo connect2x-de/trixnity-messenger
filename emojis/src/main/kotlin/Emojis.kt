@@ -29,5 +29,7 @@ fun main() {
                     }))"""
                 }
             })"""
+        println(map)
+
     }
 }

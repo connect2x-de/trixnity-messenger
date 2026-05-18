@@ -119,9 +119,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
         val otherDevices = devices.filter { it.isThisDevice.not() }
         var focusedItem by remember { mutableStateOf(thisDevice?.deviceId) }
 
-        SettingsAccountCard(
-            viewModel.account, modifier = Modifier.rovingFocusContainer()
-        ) {
+        SettingsAccountCard(viewModel.account, modifier = Modifier.rovingFocusContainer()) {
             val i18n = DI.get<I18nView>()
             error?.let { ErrorView(it) }
             if (isLoading || thisDevice == null) {
@@ -138,7 +136,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                     viewModel = viewModel,
                     device = thisDevice,
                     isFocused = focusedItem == thisDevice.deviceId,
-                    onFocus = { focusedItem = thisDevice.deviceId }
+                    onFocus = { focusedItem = thisDevice.deviceId },
                 )
 
                 if (otherDevices.isNotEmpty()) {
@@ -153,7 +151,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                             viewModel = viewModel,
                             device = device,
                             isFocused = focusedItem == device.deviceId,
-                            onFocus = { focusedItem = device.deviceId }
+                            onFocus = { focusedItem = device.deviceId },
                         )
                     }
                 }

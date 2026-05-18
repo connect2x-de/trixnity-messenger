@@ -69,7 +69,6 @@ internal fun <T : Any> ColumnScope.RadioSetting(
     icon: ImageVector = Icons.Default.Settings,
 ) {
     var focusedItem by remember(value) { mutableStateOf(value) }
-
     ExpandableSection(heading = { title() }, icon = icon) {
         Column(modifier = Modifier.rovingFocusContainer()) {
             for ((key, option) in options) {
@@ -83,7 +82,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                     modifier = Modifier
                         .rovingFocusItem(
                             isFocused = focusedItem == key,
-                            onFocus = { focusedItem = key }
+                            onFocus = { focusedItem = key },
                         )
                         .semantics(mergeDescendants = true) {
                             if (optionExplanation != null)
