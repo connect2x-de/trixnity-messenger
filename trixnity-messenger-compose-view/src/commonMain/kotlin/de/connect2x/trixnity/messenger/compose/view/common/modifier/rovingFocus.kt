@@ -8,10 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.InputMode
@@ -42,6 +40,8 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
     ignoredKeys: List<Any>,
     isEnterDirectionReversed: Boolean
 ): Modifier {
+    //println(isEnterDirectionReversed)
+    //println(listState?.layoutInfo?.reverseLayout)
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
     val moveFocus = remember(focusManager, inputModeManager) {
@@ -58,29 +58,29 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
                 .onFocusChanged {
                     isInternalFocus = it.hasFocus
                 }
-                .focusProperties @ExperimentalComposeUiApi {
-                    enter = {
-                        if (it.isTab() && !isInternalFocus) {
+                .focusProperties {
+                    onEnter = {
+                        if (requestedFocusDirection.isTab() && !isInternalFocus) {
                             val filteredKeys =
                                 listState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.key } - ignoredKeys
                             if (filteredKeys.none { key -> key == focusedItem.value }) {
                                 if (filteredKeys.isEmpty()) {
                                     focusedItem.value = null
-                                    FocusRequester.Default
-                                }
-                                val key = if ((it == FocusDirection.Previous) xor isEnterDirectionReversed) {
-                                    filteredKeys.last()
                                 } else {
-                                    filteredKeys.first()
+                                    val key =
+                                        if ((requestedFocusDirection == FocusDirection.Previous) xor isEnterDirectionReversed) {
+                                            filteredKeys.last()
+                                        } else {
+                                            filteredKeys.first()
+                                        }
+                                    require(key::class == focusedItemClass) {
+                                        "The class of the LazyList's item key was not equal to the class of focusedItem in rovingFocusContainer."
+                                    }
+                                    focusedItem.value = focusedItemClass.cast(key)
                                 }
-                                require(key::class == focusedItemClass) {
-                                    "The class of the LazyList's item key was not equal to the class of focusedItem in rovingFocusContainer."
-                                }
-                                focusedItem.value = focusedItemClass.cast(key)
                             }
                             isInternalFocus = true
                         }
-                        FocusRequester.Default
                     }
                 }
         } else {
