@@ -55,6 +55,7 @@ internal suspend fun waitForElementWithTimeout(
                     element.repliedElement.filterNotNull().first()
                         .element.filterNotNull().first()
                 )
+            element.repliedElement.filterNotNull().first().sender.filterNotNull().first()
         }
         when (element) {
             is TimelineElementHolderViewModel -> {
