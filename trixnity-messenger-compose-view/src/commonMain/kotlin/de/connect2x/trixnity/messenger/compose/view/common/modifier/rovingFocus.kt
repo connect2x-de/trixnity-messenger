@@ -40,8 +40,6 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
     ignoredKeys: List<Any>,
     isEnterDirectionReversed: Boolean
 ): Modifier {
-    //println(isEnterDirectionReversed)
-    //println(listState?.layoutInfo?.reverseLayout)
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
     val moveFocus = remember(focusManager, inputModeManager) {
@@ -136,7 +134,9 @@ fun Modifier.rovingFocusItem(
     .onFocusChanged { if (it.isFocused) onFocus() }
 
 /**
- * When using rovingFocusContainer on a lazily loaded container, such as a LazyColumn, isFocused should be passed as a Lambda
+ * When using rovingFocusContainer on a lazily loaded container, such as a LazyColumn, isFocused should be provided as a Lambda.
+ * This ensures that updates to focusedItem inside rovingFocusContainer are visible to rovingFocusItem before recomposition occurs,
+ * since recomposition only happens after the focusManager finishes changing focus.
  */
 fun Modifier.rovingFocusItem(
     isFocused: Boolean,
