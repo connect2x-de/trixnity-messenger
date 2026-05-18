@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.util.ContextGetter
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
@@ -20,6 +21,16 @@ actual fun platformModule(): Module = module {
             to.single<ActivityGetter> { from.get() }
         }
     }
-    single<MediaPlayer> { AndroidMediaPlayer(get(), get()) }
-    single<PlatformAudioRecorder> { AndroidAudioRecorder(get(), get(), get(), get(), get()) }
+
+    single<MediaPlayer> {
+        AndroidMediaPlayer(get(), get())
+    }.apply {
+        bind<AutoCloseable>()
+    }
+
+    single<PlatformAudioRecorder> {
+        AndroidAudioRecorder(get(), get(), get(), get(), get())
+    }.apply {
+        bind<AutoCloseable>()
+    }
 }

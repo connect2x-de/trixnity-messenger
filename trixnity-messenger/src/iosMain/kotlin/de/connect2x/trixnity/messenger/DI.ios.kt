@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.util.UriHandler
 import de.connect2x.trixnity.messenger.util.UriHandlerImpl
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
@@ -22,7 +23,11 @@ actual fun platformModule(): Module = module {
             }
         )
     }
-    single<MediaPlayer> { AppleMediaPlayer(get()) }
+    single<MediaPlayer> {
+        AppleMediaPlayer(get())
+    }.apply {
+        bind<AutoCloseable>()
+    }
 }
 
 fun delegateModule(): Module = module {
