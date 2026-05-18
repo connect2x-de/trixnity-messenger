@@ -204,8 +204,7 @@ class TimelineViewImpl : TimelineView {
                                     .fillMaxSize()
                                     .rovingFocusContainer(
                                         listState = listState,
-                                        focusedItem = focusedItem,
-                                        isEnterDirectionReversed = true
+                                        focusedItem = focusedItem
                                     ).semantics {
                                         collectionInfo = CollectionInfo(1, timelineViewElements.value.size)
                                         liveRegion = LiveRegionMode.Polite

@@ -38,7 +38,6 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
     focusedItem: MutableState<T?>?,
     focusedItemClass: KClass<T>?,
     ignoredKeys: List<Any>,
-    isEnterDirectionReversed: Boolean
 ): Modifier {
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
@@ -66,7 +65,7 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
                                     focusedItem.value = null
                                 } else {
                                     val key =
-                                        if ((requestedFocusDirection == FocusDirection.Previous) xor isEnterDirectionReversed) {
+                                        if ((requestedFocusDirection == FocusDirection.Previous) xor listState.layoutInfo.reverseLayout) {
                                             filteredKeys.last()
                                         } else {
                                             filteredKeys.first()
@@ -97,15 +96,13 @@ inline fun <reified T : Any> Modifier.rovingFocusContainer(
     direction: RovingFocusDirection = RovingFocusDirection.Vertical,
     listState: LazyListState? = null,
     focusedItem: MutableState<T?>,
-    ignoredKeys: List<Any> = emptyList(),
-    isEnterDirectionReversed: Boolean = false,
+    ignoredKeys: List<Any> = emptyList()
 ): Modifier = rovingFocusContainer(
     direction = direction,
     listState = listState,
     focusedItem = focusedItem,
     focusedItemClass = T::class,
-    ignoredKeys = ignoredKeys,
-    isEnterDirectionReversed = isEnterDirectionReversed
+    ignoredKeys = ignoredKeys
 )
 
 /*
@@ -121,8 +118,7 @@ fun Modifier.rovingFocusContainer(
     listState = null,
     focusedItem = null,
     focusedItemClass = null,
-    ignoredKeys = emptyList(),
-    isEnterDirectionReversed = false
+    ignoredKeys = emptyList()
 )
 
 fun Modifier.rovingFocusItem(
