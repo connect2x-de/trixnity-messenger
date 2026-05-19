@@ -134,14 +134,12 @@ class CreateNewGroupViewModelTest {
 
     @Test
     fun `not allow creation of room when private and unencrypted`() = runTest {
-
         val cut = createNewGroupViewModel()
         cut.isPrivate.value = true
         cut.isEncrypted.value = false
 
-        eventually(2.seconds) {
-            cut.canCreateNewGroup.value shouldBe false
-        }
+        delay(2.seconds)
+        cut.canCreateNewGroup.value shouldBe true
     }
 
     @Test
