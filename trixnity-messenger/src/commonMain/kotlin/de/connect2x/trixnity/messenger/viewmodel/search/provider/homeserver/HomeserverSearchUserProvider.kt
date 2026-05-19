@@ -122,13 +122,12 @@ open class HomeserverSearchUserProvider(
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
-                            //                            .take(limit?.toInt() ?: Int.MAX_VALUE)
                             .map { searchUser ->
                                 async {
                                     val image =
                                         getImage(coroutineScope, matrixClient, searchUser.avatarUrl, maxMediaSizeInMemory)
                                     val presence = getPresence(matrixClient, searchUser.userId)
-                                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                                        .stateIn(coroutineScope, WhileSubscribed(), null)
 
                                     HomeserverUserSearchResult(
                                         userId = searchUser.userId,

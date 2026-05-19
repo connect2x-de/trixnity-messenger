@@ -62,6 +62,11 @@ interface SearchUserViewModel {
     val searchResultList: StateFlow<List<UserSearchResult>?>
 
     /**
+     * Indicates whether a search is currently running for each individual [SearchUserProvider].
+     */
+    val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>>
+
+    /**
      * Indicates whether the search provider is active at the moment. Can be set inactive via [setProvider].
      */
     val providerSearchActive: StateFlow<List<Boolean>>
@@ -108,33 +113,6 @@ class SearchUserViewModelImpl(
         filteredUserSearchResults.value -= userSearchResult
     }
 
-    init {
-        coroutineScope.launch {
-            val settings2SearchUserProviders = buildMap {
-                searchUserProviders.forEachIndexed { index, searchUserProvider ->
-                    searchUserProvider.settings.keys.forEach { setting ->
-                        getOrPut(setting) { mutableListOf() }.add(index)
-                    }
-                }
-            }
-            combine(searchUserProviders.flatMap { searchUserProvider ->
-                searchUserProvider.settings.values
-            }) { it }.collectLatest { // anything changed in the settings
-                searchUserProviders.forEach { searchUserProvider ->
-                    searchUserProvider.settings.forEach { (settingsId, setting) ->
-                        if (setting.value.value != null && setting.value.value?.isNotBlank() == true) {
-                            settings2SearchUserProviders[settingsId]?.let { hasSetting ->
-                                providerSearchCanBeActive.value = searchUserProviders.mapIndexed { index, _ ->
-                                    hasSetting.contains(index)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     internal val searchResult: StateFlow<List<SearchResult>?> = combine(
         combine(providerSearchResult) { it },
@@ -149,7 +127,7 @@ class SearchUserViewModelImpl(
                 active = active[index], // FIXME needed?
                 providerDisplayName = searchUserProviders[index].providerDisplayName,
                 providerSearchResult = result,
-                isLoading = loading[index],
+                isSearching = loading[index],
             )
         }
     }
@@ -198,11 +176,6 @@ class SearchUserViewModelImpl(
             }
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    init {
-        log.debug { "searchUserProviders: $searchUserProviders" }
-        coroutineScope.launch { search() }
-    }
-
     override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {
         val index = searchUserProviders.indexOfFirst { it.providerId == providerId }
         val rest =
@@ -211,18 +184,58 @@ class SearchUserViewModelImpl(
         _providerSearchActive.value = _providerSearchActive.value.subList(0, index) + active + rest
     }
 
+    override val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>> =
+        combine(providerSearchLoading) {
+            it
+        }.map { it.mapIndexed { index, loading -> searchUserProviders[index].providerId to loading }.toMap() }
+            .stateIn(
+                coroutineScope,
+                SharingStarted.WhileSubscribed(),
+                searchUserProviders.associate { it.providerId to false }
+            )
+
+    init {
+        log.debug { "searchUserProviders: $searchUserProviders" }
+
+        coroutineScope.launch {
+            val settings2SearchUserProviders = buildMap {
+                searchUserProviders.forEachIndexed { index, searchUserProvider ->
+                    searchUserProvider.settings.keys.forEach { setting ->
+                        getOrPut(setting) { mutableListOf() }.add(index)
+                    }
+                }
+            }
+            combine(searchUserProviders.flatMap { searchUserProvider ->
+                searchUserProvider.settings.values
+            }) { it }.collectLatest { // anything changed in the settings
+                searchUserProviders.forEach { searchUserProvider ->
+                    searchUserProvider.settings.forEach { (settingsId, setting) ->
+                        if (setting.value.value != null && setting.value.value?.isNotBlank() == true) {
+                            settings2SearchUserProviders[settingsId]?.let { hasSetting ->
+                                providerSearchCanBeActive.value = searchUserProviders.mapIndexed { index, _ ->
+                                    hasSetting.contains(index)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        coroutineScope.launch { search() }
+    }
+
     @OptIn(FlowPreview::class)
     private suspend fun search() {
         combine(
             providerSettings,
             searchTerm
-                .onEach { log.trace { "Searching for user $it" } }
+                .onEach { log.trace { "Searching for user **** (redacted for privacy)" } }
                 .map { it.text }
                 .distinctUntilChanged()
                 .debounce(debounceDuration)
                 .map {
                     if (UserId.isValid(it.lowercase())) {
-                        log.trace { "found matrix id" }
+                        log.debug { "found matrix id" }
                         it.lowercase()
                     } else it
                 },
@@ -230,14 +243,16 @@ class SearchUserViewModelImpl(
             searchTerm // we just need to react to providerSettings changes
         }.scopedCollectLatest { searchTerm ->
             if (searchTerm.isNotBlank()) {
-                log.trace { "search for users" }
+                log.trace { "search for users in search providers" }
                 searchUserProviders.mapIndexed { index, searchUserProvider ->
-                    log.trace { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
+                    log.debug { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
                     if (providerSearchActive.value[index]) {
                         providerSearchLoading[index].value = true
+                        providerSearchResult[index].value = null // reset old search results
                         launch {
                             providerSearchResult[index].value =
                                 searchUserProvider.search(searchTerm, matrixClient.userId, this)
+                            log.trace { " searchProvider ${searchUserProvider.providerId} finished search" }
                             providerSearchLoading[index].value = false
                         }
                     } else {
@@ -323,6 +338,7 @@ class PreviewSearchUserViewModel() : SearchUserViewModel {
     override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
     override val providerSearchActive: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
     override val providerSettings: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
     override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {}
     override fun filterUserSearchResult(userSearchResult: UserSearchResult) {}
     override fun unfilterUserSearchResult(userSearchResult: UserSearchResult) {}

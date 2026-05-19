@@ -5,6 +5,7 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.searchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -18,6 +19,8 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainOnly
+import io.kotest.matchers.maps.shouldContain
+import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +28,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -134,6 +138,8 @@ class SearchUserViewModelTest {
 
     @BeforeTest
     fun setup() {
+        configureTestLogging()
+
         searchUserProvider1 = SearchUserProvider1()
         searchUserProvider2 = SearchUserProvider2()
         every { matrixClientMock.userId } returns UserId("test", "server")
@@ -161,7 +167,7 @@ class SearchUserViewModelTest {
                         id = "test-1",
                         active = true,
                         providerDisplayName = "Test 1",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(
                             listOf(user1)
                         )
@@ -170,7 +176,7 @@ class SearchUserViewModelTest {
                         id = "test-2",
                         active = true,
                         providerDisplayName = "Test 2",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(
                             listOf(user2, user3)
                         )
@@ -204,14 +210,14 @@ class SearchUserViewModelTest {
                         id = "test-1",
                         active = true,
                         providerDisplayName = "Test 1",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(listOf()) // user1 is not in Berlin Ost
                     ),
                     SearchResult(
                         id = "test-2",
                         active = true,
                         providerDisplayName = "Test 2",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(
                             listOf(user2, user3)
                         )
@@ -229,14 +235,14 @@ class SearchUserViewModelTest {
                         id = "test-1",
                         active = true,
                         providerDisplayName = "Test 1",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(listOf(user1)) // user1 is in Berlin
                     ),
                     SearchResult(
                         id = "test-2",
                         active = true,
                         providerDisplayName = "Test 2",
-                        isLoading = false,
+                        isSearching = false,
                         providerSearchResult = ProviderSearchResult.Success(
                             listOf(user2, user3)
                         )
@@ -318,6 +324,32 @@ class SearchUserViewModelTest {
         cut.providerSettings.value shouldBe "city: Berlin"
     }
 
+    @Test
+    fun `should show searching for provider when search is ongoing`() = runTest {
+        val searchUserProviderWithResumedSearch = SearchUserProviderWithResumedSearch()
+        val cut = searchUserViewModel(searchUserProviderWithResumedSearch)
+        cut.searchTerm.update("onlyResumedReturnsUser1")
+        delay(10.milliseconds)
+        cut.isSearching.value shouldContainAll mapOf(
+            "test-1" to false,
+            "test-2" to false,
+            searchUserProviderWithResumedSearch.providerId to true,
+        )
+        cut.searchResultList.value shouldNotBeNull {} shouldBe emptyList()
+        searchUserProviderWithResumedSearch.resumeSearch()
+        delay(10.milliseconds)
+        cut.isSearching.value shouldContainAll mapOf(
+            "test-1" to false,
+            "test-2" to false,
+            searchUserProviderWithResumedSearch.providerId to false,
+        )
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1)
+
+        cut.searchTerm.update("changedAgain")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldBe emptyList() // result is reset until search finishes
+    }
+
     private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
 
     private inline fun <reified T : SearchUserProvider> TestScope.searchUserViewModel(additionalSearchUserProvider: T?): SearchUserViewModelImpl {
@@ -365,6 +397,7 @@ class SearchUserViewModelTest {
         backgroundScope.launch { searchUserViewModelImpl.searchResult.collect() }
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSettings.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
         return searchUserViewModelImpl
     }
 
@@ -438,6 +471,32 @@ class SearchUserViewModelTest {
         ): ProviderSearchResult {
             log.debug { "test-2' search" }
             return ProviderSearchResult.Success(listOf(martin, alex, merlin))
+        }
+    }
+
+    class SearchUserProviderWithResumedSearch : SearchUserProvider {
+        override val providerId: String = "test-99"
+        override val providerDisplayName: String = "Test 99"
+        override val settings: Map<SettingsId, StateFlow<SearchSetting>> = emptyMap()
+
+        private val resumeSearch = MutableStateFlow(false)
+        fun resumeSearch() {
+            resumeSearch.value = true
+        }
+
+        override fun applySettings() {}
+
+        override suspend fun search(
+            searchTerm: String,
+            activeAccount: UserId,
+            coroutineScope: CoroutineScope
+        ): ProviderSearchResult {
+            log.debug { "test-99 search" }
+
+            resumeSearch.first { it }
+            resumeSearch.value = false
+
+            return ProviderSearchResult.Success(listOf(user1))
         }
     }
 

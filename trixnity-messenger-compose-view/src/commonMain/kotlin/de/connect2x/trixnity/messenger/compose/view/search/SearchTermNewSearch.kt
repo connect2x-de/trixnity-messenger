@@ -28,7 +28,6 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
 fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel) {
     stickyHeader("searchTerm") {
-        var searchTerm by searchUserViewModel.searchTerm.collectAsTextFieldValueState()
         val searchUserProviderSettings = remember { mutableStateOf(false) }
         val providerSettings = searchUserViewModel.providerSettings.collectAsState().value
 
