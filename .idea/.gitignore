@@ -5,3 +5,5 @@
 !runConfigurations/
 !runConfigurations/**
 !runConfigurations.xml
+!ktfmt.xml
+!externalDependencies.xml
