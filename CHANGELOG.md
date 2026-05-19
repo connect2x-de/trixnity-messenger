@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK: Slow compilation times
+- UI: Flickering in timeline when sending a reply
+
 ### Security
 
 ## 4.5.2
