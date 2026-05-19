@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: Slow compilation times
 - UI: Flickering in timeline when sending a reply
+- UI,SDK: It is no longer possible to create encrypted public rooms
+- UI,SDK: It is now possible to create unencrypted private rooms
 
 ### Security
 

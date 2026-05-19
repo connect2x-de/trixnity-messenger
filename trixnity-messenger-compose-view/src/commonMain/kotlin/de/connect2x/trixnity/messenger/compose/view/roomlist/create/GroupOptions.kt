@@ -15,6 +15,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.icons.HelpIcon
@@ -27,7 +28,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemRadioButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 
 interface CreateGroupOptionsView {
     @Composable
@@ -80,6 +80,8 @@ class CreateGroupOptionsViewImpl : CreateGroupOptionsView {
                 selected = isEncrypted,
                 onChange = { createNewGroupViewModel.changeEncryptionStatus(it) },
                 leadingContent = { HelpIcon(if (isEncrypted) i18n.roomTypeEncryptedInfo() else i18n.roomTypeUnencryptedInfo()) },
+                supportingContent = { if (!isPrivate) Text(i18n.roomEncryptionExplanation()) },
+                enabled = isPrivate,
                 style = MaterialTheme.components.settingsItem,
             )
             /** this cannot be a [de.connect2x.trixnity.messenger.compose.view.common.RadioSetting] because expanded is controlled via an argument */

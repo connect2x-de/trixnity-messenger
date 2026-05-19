@@ -36,6 +36,7 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -46,6 +47,7 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
 class CreateNewGroupViewModelTest {
@@ -132,14 +134,12 @@ class CreateNewGroupViewModelTest {
 
     @Test
     fun `not allow creation of room when private and unencrypted`() = runTest {
-
         val cut = createNewGroupViewModel()
         cut.isPrivate.value = true
         cut.isEncrypted.value = false
 
-        eventually(2.seconds) {
-            cut.canCreateNewGroup.value shouldBe false
-        }
+        delay(2.seconds)
+        cut.canCreateNewGroup.value shouldBe true
     }
 
     @Test
@@ -446,6 +446,43 @@ class CreateNewGroupViewModelTest {
                 visibility = DirectoryVisibility.PRIVATE,
             )
         }
+    }
+
+    @Test
+    fun `encryption is set to true when the room is public`() = runTest {
+        val model = createNewGroupViewModel()
+        delay(2.seconds)
+
+        assertEquals(model.isPrivate.value, true)
+        assertEquals(model.isEncrypted.value, true)
+
+        model.changeEncryptionStatus(true)
+        delay(2.seconds)
+
+        assertEquals(model.isPrivate.value, true)
+        assertEquals(model.isEncrypted.value, true)
+
+        // This should change isEncrypted to false since it is the only valid configuration
+        model.setIsPrivate(false)
+        delay(2.seconds)
+
+        assertEquals(model.isPrivate.value, false)
+        assertEquals(model.isEncrypted.value, false)
+
+        // You shouldn't be able to change isEncrypted while the room is public
+        model.changeEncryptionStatus(true)
+        delay(2.seconds)
+
+        assertEquals(model.isPrivate.value, false)
+        assertEquals(model.isEncrypted.value, false)
+
+        // Should enable encryption again
+        model.setIsPrivate(true)
+        delay(2.seconds)
+
+        assertEquals(model.isPrivate.value, true)
+        assertEquals(model.isEncrypted.value, true)
+
     }
 
     private fun TestScope.createNewGroupViewModel(): CreateNewGroupViewModelImpl {
