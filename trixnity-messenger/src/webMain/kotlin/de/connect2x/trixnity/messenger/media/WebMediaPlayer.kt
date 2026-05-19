@@ -12,6 +12,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeout
@@ -27,11 +31,20 @@ import web.events.addEventHandler
 import web.html.Audio
 import web.html.Preload
 import web.html.metadata
+import web.mediasession.MediaSessionAction
+import web.mediasession.MediaSessionActionDetails
+import web.mediasession.pause
+import web.mediasession.play
+import web.mediasession.seekbackward
+import web.mediasession.seekforward
+import web.mediasession.seekto
+import web.navigator.navigator
 import web.url.URL
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
@@ -49,6 +62,8 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
                 log.error { "Unexpected media player error" }
             },
         )
+
+        handleMediaSessionActions()
     }
 
     override suspend fun open(
@@ -141,5 +156,54 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
 
             }
         }
+    }
+
+    private suspend fun seekByOffset(item: AbstractMediaItem, offset: Double?) {
+        val elapsedTime = item.elapsedTime.value
+        if (offset != null && elapsedTime != null) {
+            item.seekTo(elapsedTime + offset.seconds)
+        } else {
+            log.warn { "Media session 'seek by offset' failed" }
+        }
+    }
+
+    private fun handleMediaSessionActions() {
+        currentItemPlaying
+            .filterNotNull()
+            .onEach { item ->
+                val handlers =
+                    mapOf<MediaSessionAction, suspend (MediaSessionActionDetails) -> Unit>(
+                        MediaSessionAction.play to { _ ->
+                            item.play()
+                        },
+                        MediaSessionAction.pause to { _ ->
+                            item.pause()
+                        },
+                        MediaSessionAction.seekto to { actionDetails ->
+                            val seekTime = actionDetails.seekTime
+                            if (seekTime != null) {
+                                item.seekTo(seekTime.seconds)
+                            } else {
+                                log.warn { "Media session 'seek to' failed" }
+                            }
+                        },
+                        MediaSessionAction.seekforward to { actionDetails ->
+                            seekByOffset(item, actionDetails.seekOffset)
+                        },
+                        MediaSessionAction.seekbackward to { actionDetails ->
+                            seekByOffset(item, actionDetails.seekOffset)
+                        },
+                    )
+                handlers.forEach { (mediaSessionAction, handler) ->
+                    navigator.mediaSession.setActionHandler(
+                        action = mediaSessionAction,
+                        handler = { actionDetails ->
+                            coroutineScope.launch {
+                                handler(actionDetails)
+                            }
+                        }
+                    )
+                }
+            }.launchIn(coroutineScope)
     }
 }
