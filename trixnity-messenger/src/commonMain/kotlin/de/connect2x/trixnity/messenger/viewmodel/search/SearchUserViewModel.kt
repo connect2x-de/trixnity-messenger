@@ -80,7 +80,6 @@ interface SearchUserViewModel {
     fun unfilterUserSearchResult(userSearchResult: UserSearchResult)
 }
 
-// FIXME limit search to users not already selected in a group
 // FIXME change active should lead to new search being triggered
 
 class SearchUserViewModelImpl(

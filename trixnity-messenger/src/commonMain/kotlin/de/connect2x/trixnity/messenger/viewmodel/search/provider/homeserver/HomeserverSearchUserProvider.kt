@@ -5,7 +5,6 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.clientserverapi.model.user.SearchUsers
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.model.UserId
@@ -25,8 +24,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -84,14 +86,8 @@ open class HomeserverSearchUserProvider(
                 log.error(exc) { "Cannot access user profile for $userId." }
             }
             .getOrNull()
-        val image = profile?.avatarUrl?.let { url ->
-            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = { null }
-            )
-        }
+        val image = getImage(coroutineScope, matrixClient, profile?.avatarUrl, maxMediaSizeInMemory)
+
         val presence = getPresence(matrixClient, userId)
             .map { presence ->
                 presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
@@ -130,7 +126,7 @@ open class HomeserverSearchUserProvider(
                             .map { searchUser ->
                                 async {
                                     val image =
-                                        getImage(coroutineScope, matrixClient, searchUser, maxMediaSizeInMemory)
+                                        getImage(coroutineScope, matrixClient, searchUser.avatarUrl, maxMediaSizeInMemory)
                                     val presence = getPresence(matrixClient, searchUser.userId)
                                         .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
@@ -154,20 +150,25 @@ open class HomeserverSearchUserProvider(
                 }
             )
 
-    private suspend fun getImage(
+    private fun getImage(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
-        searchUser: SearchUsers.Response.SearchUser,
+        avatarUrl: String?,
         maxMediaSizeInMemory: Long,
-    ): ByteArray? {
-        return searchUser.avatarUrl?.let { url ->
-            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = { null }
-            )
-        }
+    ): StateFlow<ByteArray?> {
+        return avatarUrl?.let { avatarUrl ->
+            flow {
+                // TODO some sort of retry (see retryLoopFlow)
+                emit(
+                    matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong()).fold(
+                        onSuccess = {
+                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+                        },
+                        onFailure = { null }
+                    )
+                )
+            }.stateIn(coroutineScope, WhileSubscribed(), null)
+        } ?: MutableStateFlow(null)
     }
 
     private fun getPresence(matrixClient: MatrixClient, userId: UserId): Flow<Presence?> {

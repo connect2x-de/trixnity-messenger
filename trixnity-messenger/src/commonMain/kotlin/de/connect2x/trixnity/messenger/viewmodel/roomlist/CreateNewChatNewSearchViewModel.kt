@@ -12,7 +12,6 @@ import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventCont
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,7 +69,6 @@ class CreateNewChatNewSearchViewModelImpl(
         }
     }
 
-    // FIXME this should be reused
     private suspend fun createNewRoom(userId: UserId) {
         if (_isCreating.getAndUpdate { true }) {
             log.warn { "group creation is already in progress" }

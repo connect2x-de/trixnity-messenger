@@ -202,6 +202,7 @@ private fun UsersInGroup(createNewGroupViewModel: CreateNewGroupNewSearchViewMod
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     selectedUsers.map { groupUser ->
+                        val image by groupUser.image.collectAsState()
                         key(groupUser.userId) {
                             Column(
                                 Modifier.requiredWidth(60.dp)
@@ -215,7 +216,7 @@ private fun UsersInGroup(createNewGroupViewModel: CreateNewGroupNewSearchViewMod
                                     else null
                                 ThemedUserAvatar(
                                     initials = groupUser.initials,
-                                    image = groupUser.image,
+                                    image = image,
                                     presence = presence,
                                 ) {
                                     Tooltip({ Text(i18n.commonRemove()) }) {

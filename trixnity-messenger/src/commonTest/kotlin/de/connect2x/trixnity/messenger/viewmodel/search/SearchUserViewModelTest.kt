@@ -51,7 +51,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("user1", "server")
             override val displayName: String = "User 1"
             override val initials: String = "U1"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -64,7 +64,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("user2", "server")
             override val displayName: String = "User 2"
             override val initials: String = "U2"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -75,7 +75,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("user3", "server")
             override val displayName: String = "User 3"
             override val initials: String = "U3"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -88,7 +88,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("supertester", "server")
             override val displayName: String = "Martin ST"
             override val initials: String = "MS"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -101,7 +101,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("native", "server")
             override val displayName: String = "Alex ST"
             override val initials: String = "AS"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -114,7 +114,7 @@ class SearchUserViewModelTest {
             override val userId: UserId = UserId("star merlin", "server")
             override val displayName: String = "Merlin"
             override val initials: String = "M"
-            override val image: ByteArray? = null
+            override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
             override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
@@ -127,7 +127,7 @@ class SearchUserViewModelTest {
             userId = UserId("martin", "server"),
             displayName = "Martin",
             initials = "M",
-            image = null,
+            image = MutableStateFlow(null),
             myCustomField = "SuperTester",
         )
     }
@@ -446,7 +446,7 @@ class SearchUserViewModelTest {
         override val userId: UserId,
         override val displayName: String?,
         override val initials: String,
-        override val image: ByteArray?,
+        override val image: StateFlow<ByteArray?>,
         val myCustomField: String,
     ) : UserSearchResult {
         override val sortingFields: List<Pair<String, String>> = listOf(::myCustomField.name to myCustomField)

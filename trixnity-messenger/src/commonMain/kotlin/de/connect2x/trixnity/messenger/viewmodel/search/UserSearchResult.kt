@@ -1,12 +1,39 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
 import de.connect2x.trixnity.core.model.UserId
+import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Represents a search result for a user.
+ */
 interface UserSearchResult {
-    val id: String // unique ID; if userId is unique, it can be used here
+    /**
+     * unique ID; if [userId] is unique, it can be used here
+     */
+    val id: String
+
+    /**
+     * the [UserId] of the user
+     */
     val userId: UserId
+
+    /**
+     * the display name of the user (in Matrix `display_name`)
+     */
     val displayName: String?
+
+    /**
+     * the initials of the user, shown if no [image] is available
+     */
     val initials: String
-    val image: ByteArray?
+
+    /**
+     * an image of the user, shown if available
+     */
+    val image: StateFlow<ByteArray?>
+
+    /**
+     * FIXME remove, since not used?
+     */
     val sortingFields: List<Pair<String, String>>
 }

@@ -8,20 +8,6 @@ typealias SearchUserProviderId = String
 typealias SettingsId = String
 
 /**
- * Holds information on a special search setting, e.g., "city" -> "Berlin".
- */
-data class SearchSetting(
-    /**
-     * The name of the setting for the UI. Should be i18nized.
-     */
-    val name: String,
-    /**
-     * The setting's value. Can be `null` or blank to be interpreted as 'not set'.
-     */
-    val value: String? = null,
-)
-
-/**
  * A place to search for users that at least have a UserId. For standard Matrix clients this is the homeserver search
  * which is already included by default.
  *

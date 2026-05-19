@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,6 +43,8 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
         showOrigin: Boolean,
         onClick: (HomeserverUserSearchResult) -> Unit,
     ) {
+        val image by userSearchResult.image.collectAsState()
+
         val presence = userSearchResult.presence.collectAsState().value
         val expanded = remember { mutableStateOf(false) }
 
@@ -64,7 +67,7 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
                     ) {
                         ThemedUserAvatar(
                             userSearchResult.initials,
-                            userSearchResult.image,
+                            image,
                         ) {
                             AvatarPresenceBadge(presence)
                         }
