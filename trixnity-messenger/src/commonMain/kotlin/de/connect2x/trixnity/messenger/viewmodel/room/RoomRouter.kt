@@ -19,7 +19,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
 
@@ -104,7 +104,7 @@ class RoomRouterImpl(
     override suspend fun openRoom(userId: UserId, roomId: RoomId) {
         val matrixClient = viewModelContext.getMatrixClient(userId)
 //        val encrypted = matrixClient.room.getById(roomId).first()?.encrypted ?: true
-        val memberState = matrixClient.user.getById(roomId, userId).first()?.membership
+        val memberState = matrixClient.user.getById(roomId, userId).firstOrNull()?.membership
 //        val visibility =
 //            matrixClient.room.getState(roomId, HistoryVisibilityEventContent::class).first()?.content?.historyVisibility
         when {
