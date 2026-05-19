@@ -3,9 +3,8 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -51,6 +50,7 @@ data class MatrixMessengerConfiguration(
         enableMessageDrafts = true,
         enableAudioRecorder = true,
         enableMediaPlayer = true,
+        enableNewSearch = true,
     ),
 
     /**
@@ -164,6 +164,11 @@ data class MatrixMessengerConfiguration(
          */
         var enableAudioRecorder: Boolean = true,
         var enableMediaPlayer: Boolean = true,
+        /**
+         * Mainly can be used by extensions such as TI-Messenger to provide more search providers.
+         * @see [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider].
+         */
+        var enableNewSearch: Boolean = true,
     )
 
     enum class CryptoDriver {

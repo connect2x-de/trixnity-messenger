@@ -55,6 +55,9 @@ fun MatrixMultiMessengerConfiguration.configure() {
     messengerConfiguration {
         modulesFactories += { composeViewModule(this) }
         defaultHomeServer = "matrix.dev.connect2x.de"
+//        features.apply {
+//            enableNewSearch = false
+//        }
     }
 
     addNunitoThemeTypography()

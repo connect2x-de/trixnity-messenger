@@ -14,21 +14,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
-fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel) {
+fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel, onProviderSettingsClicked: () -> Unit) {
     stickyHeader("searchTerm") {
-        val searchUserProviderSettings = remember { mutableStateOf(false) }
         val providerSettings = searchUserViewModel.providerSettings.collectAsState().value
 
         Surface(
@@ -47,9 +41,7 @@ fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel) {
                     UserSearchFieldNewSearch(searchUserViewModel)
 
                     if (searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }) {
-                        ThemedIconButton(onClick = {
-                            searchUserProviderSettings.value = true
-                        }) {
+                        ThemedIconButton(onClick = onProviderSettingsClicked) {
                             Icon(Icons.Default.Settings, "Settings")
                         }
                     }

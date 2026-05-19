@@ -31,9 +31,4 @@ interface UserSearchResult {
      * an image of the user, shown if available
      */
     val image: StateFlow<ByteArray?>
-
-    /**
-     * FIXME remove, since not used?
-     */
-    val sortingFields: List<Pair<String, String>>
 }

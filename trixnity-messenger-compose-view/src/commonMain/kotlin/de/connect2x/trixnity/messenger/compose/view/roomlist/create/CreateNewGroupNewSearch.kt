@@ -142,7 +142,9 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                                 VerySmallSpacer()
                                 UsersInGroup(createNewGroupViewModel)
                             }
-                            searchTerm(createNewGroupViewModel.searchUserViewModel)
+                            searchTerm(createNewGroupViewModel.searchUserViewModel) {
+                                searchUserProviderSettings.value = true
+                            }
                             searchResults(
                                 searchUserProviders = createNewGroupViewModel.searchUserViewModel.searchUserProviders,
                                 onUserClick = createNewGroupViewModel::onUserClick,

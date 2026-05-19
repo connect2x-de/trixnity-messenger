@@ -374,7 +374,8 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         profileViewModule(),
         roomListViewModule(),
         roomListHeaderViewModule(),
-        createRoomsViewModule(),
+        createRoomsViewModule(messengerConfiguration),
+        createRoomsNewSearchViewModule(messengerConfiguration),
         searchViewModule(),
         roomViewModule(),
         roomSettingsViewModule(messengerConfiguration?.features),
@@ -477,21 +478,29 @@ inline fun <reified F : SearchUserProviderToggleView<*>> Module.searchUserProvid
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<SearchUserProviderToggleView<*>>(named<F>(), definition = definition)
 
-fun createRoomsViewModule() = module {
-    single<CreateNewChatView> { CreateNewChatViewImpl() }
-    single<CreateNewGroupView> { CreateNewGroupViewImpl() }
+fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    // We have to do it here reliably as the order in which modules in a list of Koin modules is evaluated is an
+    // implementation detail (current impl reverses the list, but that could change in the future)
+    if (messengerConfiguration?.features?.enableNewSearch == true) {
+        single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
+        single<CreateNewGroupView> { CreateNewGroupNewSearchViewImpl() }
+    } else {
+        single<CreateNewChatView> { CreateNewChatViewImpl() }
+        single<CreateNewGroupView> { CreateNewGroupViewImpl() }
+    }
     single<UsersInGroupView> { UsersInGroupViewImpl() }
     single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
+}
 
-    //new search
-    searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
-    searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
-    single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
-    single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
-    single<CreateNewGroupView> { CreateNewGroupNewSearchViewImpl() }
-    single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
-    single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
-    single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
+fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    if (messengerConfiguration?.features?.enableNewSearch == true) {
+        searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
+        searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
+        single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
+        single<SearchUserProviderSettingsViewSelector> { SearchUserProviderSettingsViewSelectorImpl(getAll()) }
+        single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
+        single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
+    }
 }
 
 fun searchViewModule() = module {

@@ -38,6 +38,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
 
     @Composable
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
+        println("------- WOWO =====")
         if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
             val i18n = DI.get<I18nView>()
             val isCreating by createNewChatViewModel.isCreating.collectAsState()
@@ -68,7 +69,9 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                     AddOrSearchGroup(createNewChatViewModel)
                                     HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
                                 }
-                                searchTerm(createNewChatViewModel.searchUserViewModel)
+                                searchTerm(createNewChatViewModel.searchUserViewModel) {
+                                    searchUserProviderSettings.value = true
+                                }
                                 searchResults(
                                     searchUserProviders = createNewChatViewModel.searchUserViewModel.searchUserProviders,
                                     onUserClick = createNewChatViewModel::onUserClick,

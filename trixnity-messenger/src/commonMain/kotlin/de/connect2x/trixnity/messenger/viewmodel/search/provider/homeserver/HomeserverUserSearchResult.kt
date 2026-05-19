@@ -14,7 +14,6 @@ data class HomeserverUserSearchResult(
 ) : UserSearchResult {
 
     override val id: String = userId.full
-    override val sortingFields: List<Pair<String, String>> = emptyList()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

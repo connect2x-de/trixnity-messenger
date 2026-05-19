@@ -19,7 +19,6 @@ import dev.mokkery.every
 import dev.mokkery.mock
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainOnly
-import io.kotest.matchers.maps.shouldContain
 import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -56,7 +55,6 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 1"
             override val initials: String = "U1"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -69,7 +67,6 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 2"
             override val initials: String = "U2"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -80,7 +77,6 @@ class SearchUserViewModelTest {
             override val displayName: String = "User 3"
             override val initials: String = "U3"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -93,7 +89,6 @@ class SearchUserViewModelTest {
             override val displayName: String = "Martin ST"
             override val initials: String = "MS"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -106,7 +101,6 @@ class SearchUserViewModelTest {
             override val displayName: String = "Alex ST"
             override val initials: String = "AS"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
@@ -119,21 +113,10 @@ class SearchUserViewModelTest {
             override val displayName: String = "Merlin"
             override val initials: String = "M"
             override val image: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
-            override val sortingFields: List<Pair<String, String>> = emptyList()
             override fun toString(): String {
                 return "(id='$id', userId=$userId, displayName='$displayName')"
             }
         }
-
-        // with custom field
-        val martinCustom = CustomUserSearchResult(
-            id = "martin",
-            userId = UserId("martin", "server"),
-            displayName = "Martin",
-            initials = "M",
-            image = MutableStateFlow(null),
-            myCustomField = "SuperTester",
-        )
     }
 
     @BeforeTest
@@ -261,16 +244,6 @@ class SearchUserViewModelTest {
         delay(10.milliseconds)
 
         cut.providerSettings.value shouldBe "options: loud, color: grey, city: Berlin"
-    }
-
-    @Test
-    fun `should consider custom UserSearchResult's sorting fields`() = runTest {
-        val additionalSearchUserProvider = SearchUserProvider4(SearchUserProvider1())
-        val cut = searchUserViewModel(additionalSearchUserProvider)
-        cut.searchTerm.update("super")
-        delay(10.milliseconds)
-
-        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(martinCustom, martin)
     }
 
     @Test
@@ -497,28 +470,6 @@ class SearchUserViewModelTest {
             resumeSearch.value = false
 
             return ProviderSearchResult.Success(listOf(user1))
-        }
-    }
-
-    data class CustomUserSearchResult(
-        override val id: String,
-        override val userId: UserId,
-        override val displayName: String?,
-        override val initials: String,
-        override val image: StateFlow<ByteArray?>,
-        val myCustomField: String,
-    ) : UserSearchResult {
-        override val sortingFields: List<Pair<String, String>> = listOf(::myCustomField.name to myCustomField)
-    }
-
-    class SearchUserProvider4(searchUserProvider: SearchUserProvider) : SearchUserProvider by searchUserProvider {
-        override suspend fun search(
-            searchTerm: String,
-            activeAccount: UserId,
-            coroutineScope: CoroutineScope
-        ): ProviderSearchResult {
-            log.debug { "test-2' search" }
-            return ProviderSearchResult.Success(listOf(martinCustom, martin))
         }
     }
 }
