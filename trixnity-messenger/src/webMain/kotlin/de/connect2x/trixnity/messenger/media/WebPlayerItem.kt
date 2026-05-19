@@ -10,6 +10,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
+import web.events.ENDED
 import web.events.ERROR
 import web.events.Event
 import web.events.EventHandler
@@ -41,6 +42,17 @@ class WebPlayerItem(
             state.value = MediaPlayer.Item.State.Failed("Playback error")
             coroutineScope.launch {
                 onPause() // this also pauses when in Failed state
+            }
+        },
+    )
+
+    private val removeEndedEventHandler: () -> Unit = audio.addEventHandler(
+        type = Event.ENDED,
+        handler = EventHandler {
+            log.debug { "Playback ended. Seeking to beginning..." }
+            coroutineScope.launch {
+                pause()
+                seekTo(Duration.ZERO)
             }
         },
     )
@@ -108,6 +120,7 @@ class WebPlayerItem(
         updateJob?.cancel()
         updateJob = null
         removeErrorEventHandler()
+        removeEndedEventHandler()
         tempFile.delete()
     }
 
