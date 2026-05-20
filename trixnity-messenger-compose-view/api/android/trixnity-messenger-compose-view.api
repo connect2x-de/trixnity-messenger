@@ -754,7 +754,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusKt {
-	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Landroidx/compose/foundation/lazy/LazyListState;Landroidx/compose/runtime/MutableState;Lkotlin/reflect/KClass;Ljava/util/List;ZLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
+	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Landroidx/compose/foundation/lazy/LazyListState;Landroidx/compose/runtime/MutableState;Lkotlin/reflect/KClass;Ljava/util/List;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
 	public static final fun rovingFocusContainer (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/common/modifier/RovingFocusDirection;Landroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
 	public static final fun rovingFocusItem (Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
 	public static final fun rovingFocusItem (Landroidx/compose/ui/Modifier;ZLkotlin/jvm/functions/Function0;)Landroidx/compose/ui/Modifier;
