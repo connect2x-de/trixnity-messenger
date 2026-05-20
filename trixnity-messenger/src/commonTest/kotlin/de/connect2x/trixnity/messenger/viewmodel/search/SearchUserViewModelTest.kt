@@ -136,7 +136,6 @@ class SearchUserViewModelTest {
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
     }
 
-
     @Test
     fun `should search in the search providers`() = runTest {
         val cut = searchUserViewModel()
@@ -176,6 +175,35 @@ class SearchUserViewModelTest {
         delay(10.milliseconds)
 
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(martin, alex, merlin)
+    }
+
+    @Test
+    fun `should search in search provider when search term is blank but a filter setting is set`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("")
+        searchUserProvider1.cityFlow.value = SearchSetting("city", "Berlin")
+        delay(10.milliseconds)
+        cut.searchResult.value shouldNotBeNull {
+            shouldContainAll(
+                listOf(
+                    SearchResult(
+                        id = "test-1",
+                        active = true,
+                        providerDisplayName = "Test 1",
+                        isSearching = false,
+                        providerSearchResult = ProviderSearchResult.Success(listOf(user1))
+                    ),
+                    SearchResult(
+                        id = "test-2",
+                        active = true,
+                        providerDisplayName = "Test 2",
+                        isSearching = false,
+                        // does not react to empty search term
+                        providerSearchResult = null,
+                    ),
+                )
+            )
+        }
     }
 
     @Test
@@ -394,7 +422,7 @@ class SearchUserViewModelTest {
             coroutineScope: CoroutineScope
         ): ProviderSearchResult {
             log.debug { "test-1 search" }
-            return if (searchTerm == "u") {
+            return if (searchTerm == "u" || searchTerm == "") { // "" for testing filter settings
                 if (cityFlow.value.value == null || cityFlow.value.value == "Berlin") {
                     ProviderSearchResult.Success(listOf(user1))
                 } else {

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -242,10 +243,12 @@ class SearchUserViewModelImpl(
         ) { _, searchTerm ->
             searchTerm // we just need to react to providerSettings changes
         }.scopedCollectLatest { searchTerm ->
-            if (searchTerm.isNotBlank()) {
-                log.trace { "search for users in search providers" }
-                searchUserProviders.mapIndexed { index, searchUserProvider ->
-                    log.debug { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
+            log.trace { "search for users in search providers" }
+            searchUserProviders.mapIndexed { index, searchUserProvider ->
+                log.debug { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
+                if (searchTerm.isNotBlank()
+                    || searchUserProvider.settings.values.any { flow -> flow.first().value.isNullOrBlank().not() }
+                ) {
                     if (providerSearchActive.value[index]) {
                         providerSearchLoading[index].value = true
                         providerSearchResult[index].value = null // reset old search results
@@ -258,11 +261,11 @@ class SearchUserViewModelImpl(
                     } else {
                         log.debug { "searchProvider ${searchUserProvider.providerId} is not active -> no search" }
                     }
+                } else {
+                    log.trace { "user search blank -> empty list" }
+                    providerSearchResult[index].value = null
+                    providerSearchLoading[index].value = false
                 }
-            } else {
-                log.trace { "user search blank -> empty list" }
-                providerSearchResult.map { it.value = null }
-                providerSearchLoading.map { it.value = false }
             }
         }
     }
