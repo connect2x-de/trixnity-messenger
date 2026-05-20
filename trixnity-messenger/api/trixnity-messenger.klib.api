@@ -5887,8 +5887,10 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
     }
 
     final class <#A1: kotlin/Any?, #B1: kotlin/Any?> Format { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format|null[0]
-        constructor <init>(#A1, #B1, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz, io.ktor.http/ContentType) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.<init>|<init>(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;io.ktor.http.ContentType){}[0]
+        constructor <init>(#A1, #B1, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate, io.ktor.http/ContentType) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.<init>|<init>(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate;io.ktor.http.ContentType){}[0]
 
+        final val bitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.bitRate|{}bitRate[0]
+            final fun <get-bitRate>(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.bitRate.<get-bitRate>|<get-bitRate>(){}[0]
         final val container // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.container|{}container[0]
             final fun <get-container>(): #A1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.container.<get-container>|<get-container>(){}[0]
         final val contentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.contentType|{}contentType[0]
@@ -5901,15 +5903,27 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
         final fun component1(): #A1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component1|component1(){}[0]
         final fun component2(): #B1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component2|component2(){}[0]
         final fun component3(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component3|component3(){}[0]
-        final fun component4(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component4|component4(){}[0]
-        final fun copy(#A1 = ..., #B1 = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz = ..., io.ktor.http/ContentType = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format<#A1, #B1> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.copy|copy(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;io.ktor.http.ContentType){}[0]
+        final fun component4(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component4|component4(){}[0]
+        final fun component5(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component5|component5(){}[0]
+        final fun copy(#A1 = ..., #B1 = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate = ..., io.ktor.http/ContentType = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format<#A1, #B1> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.copy|copy(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate;io.ktor.http.ContentType){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.toString|toString(){}[0]
 
+        final enum class BitRate : kotlin/Enum<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate|null[0]
+            enum entry AAC_BIT_RATE // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.AAC_BIT_RATE|null[0]
+
+            final val entries // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.entries|#static{}entries[0]
+                final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.entries.<get-entries>|<get-entries>#static(){}[0]
+            final val value // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.value|{}value[0]
+                final fun <get-value>(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.value.<get-value>|<get-value>(){}[0]
+
+            final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.valueOf|valueOf#static(kotlin.String){}[0]
+            final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.values|values#static(){}[0]
+        }
+
         final enum class SampleRateHz : kotlin/Enum<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz|null[0]
-            enum entry AMR_WB_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ|null[0]
-            enum entry OPUS_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ|null[0]
+            enum entry AAC_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ|null[0]
 
             final val entries // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.entries|#static{}entries[0]
                 final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.entries.<get-entries>|<get-entries>#static(){}[0]
@@ -5918,11 +5932,6 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
 
             final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.valueOf|valueOf#static(kotlin.String){}[0]
             final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.values|values#static(){}[0]
-        }
-
-        final object Companion { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion|null[0]
-            final val amrWbContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion.amrWbContentType|{}amrWbContentType[0]
-                final fun <get-amrWbContentType>(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion.amrWbContentType.<get-amrWbContentType>|<get-amrWbContentType>(){}[0]
         }
     }
 
@@ -16165,6 +16174,28 @@ final class de.connect2x.trixnity.messenger.i18n/AppLanguageUpdaterImpl : de.con
 }
 
 // Targets: [js, wasmJs]
+final class de.connect2x.trixnity.messenger.media/WebMediaPlayer : de.connect2x.trixnity.messenger.media/MediaPlayer { // de.connect2x.trixnity.messenger.media/WebMediaPlayer|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.messenger.media/WebMediaPlayer.<init>|<init>(kotlinx.coroutines.CoroutineScope){}[0]
+
+    final val playingItem // de.connect2x.trixnity.messenger.media/WebMediaPlayer.playingItem|{}playingItem[0]
+        final fun <get-playingItem>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.media/MediaPlayer.Item?> // de.connect2x.trixnity.messenger.media/WebMediaPlayer.playingItem.<get-playingItem>|<get-playingItem>(){}[0]
+
+    final fun close() // de.connect2x.trixnity.messenger.media/WebMediaPlayer.close|close(){}[0]
+    final suspend fun open(kotlin/String, de.connect2x.trixnity.client.media/PlatformMedia, kotlin/String, kotlinx.coroutines/CoroutineScope?): kotlin/Result<de.connect2x.trixnity.messenger.media/MediaPlayer.Item> // de.connect2x.trixnity.messenger.media/WebMediaPlayer.open|open(kotlin.String;de.connect2x.trixnity.client.media.PlatformMedia;kotlin.String;kotlinx.coroutines.CoroutineScope?){}[0]
+    final suspend fun resumeAudioContext() // de.connect2x.trixnity.messenger.media/WebMediaPlayer.resumeAudioContext|resumeAudioContext(){}[0]
+}
+
+// Targets: [js, wasmJs]
+final class de.connect2x.trixnity.messenger.media/WebPlayerItem : de.connect2x.trixnity.messenger.media/AbstractMediaItem { // de.connect2x.trixnity.messenger.media/WebPlayerItem|null[0]
+    constructor <init>(kotlin/String, de.connect2x.trixnity.client.media/PlatformMedia.TemporaryFile, kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.media/WebMediaPlayer, web.html/Audio) // de.connect2x.trixnity.messenger.media/WebPlayerItem.<init>|<init>(kotlin.String;de.connect2x.trixnity.client.media.PlatformMedia.TemporaryFile;kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.media.WebMediaPlayer;web.html.Audio){}[0]
+
+    final val duration // de.connect2x.trixnity.messenger.media/WebPlayerItem.duration|{}duration[0]
+        final fun <get-duration>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/WebPlayerItem.duration.<get-duration>|<get-duration>(){}[0]
+    final val id // de.connect2x.trixnity.messenger.media/WebPlayerItem.id|{}id[0]
+        final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.media/WebPlayerItem.id.<get-id>|<get-id>(){}[0]
+}
+
+// Targets: [js, wasmJs]
 final class de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage : de.connect2x.trixnity.messenger.settings/SettingsStorage { // de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage|null[0]
     constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage.<init>|<init>(kotlin.String){}[0]
 
@@ -16197,6 +16228,9 @@ final class de.connect2x.trixnity.messenger.util/UriHandlerImpl : de.connect2x.t
 
 // Targets: [js, wasmJs]
 final object de.connect2x.trixnity.messenger/JsJodaTimeZoneModule // de.connect2x.trixnity.messenger/JsJodaTimeZoneModule|null[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.util/handleFirst(web.events/EventTarget, kotlin.collections/Map<web.events/EventType<web.events/Event>, kotlin/Function0<kotlin/Unit>>) // de.connect2x.trixnity.messenger.util/handleFirst|handleFirst(web.events.EventTarget;kotlin.collections.Map<web.events.EventType<web.events.Event>,kotlin.Function0<kotlin.Unit>>){}[0]
 
 // Targets: [js, wasmJs]
 final suspend fun (okio/Path).de.connect2x.trixnity.messenger.util/deleteVirtualFileSystemData() // de.connect2x.trixnity.messenger.util/deleteVirtualFileSystemData|deleteVirtualFileSystemData@okio.Path(){}[0]
