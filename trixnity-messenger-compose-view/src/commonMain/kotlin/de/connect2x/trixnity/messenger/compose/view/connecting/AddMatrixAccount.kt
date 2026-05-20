@@ -28,8 +28,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountStat
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
 interface AddMatrixAccountView {
-    @Composable
-    fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel)
+    @Composable fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel)
 }
 
 @Composable
@@ -52,15 +51,13 @@ class AddMatrixAccountViewImpl : AddMatrixAccountView {
                     val isMultiProfile = addMatrixAccountViewModel.isMultiProfile.collectAsState().value
                     Column(
                         Modifier.padding(MaterialTheme.messengerDpConstants.middle),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 Icons.Default.Warning,
                                 i18n.commonWarning(),
-                                tint = MaterialTheme.messengerColors.warning
+                                tint = MaterialTheme.messengerColors.warning,
                             )
                             MiddleSpacer()
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {

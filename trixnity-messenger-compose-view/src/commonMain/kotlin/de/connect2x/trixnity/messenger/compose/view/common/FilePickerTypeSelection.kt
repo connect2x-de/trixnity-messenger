@@ -30,14 +30,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 
-
 interface FilePickerTypeSelectionView {
     @Composable
-    fun create(
-        availableTypes: List<FilePickerType>,
-        onSelect: (FilePickerType) -> Unit,
-        onDismiss: () -> Unit,
-    )
+    fun create(availableTypes: List<FilePickerType>, onSelect: (FilePickerType) -> Unit, onDismiss: () -> Unit)
 }
 
 @Composable
@@ -46,9 +41,7 @@ fun FilePickerTypeSelection(
     onSelect: (FilePickerType) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    DI.get<FilePickerTypeSelectionView>().create(
-        availableTypes, onSelect, onDismiss,
-    )
+    DI.get<FilePickerTypeSelectionView>().create(availableTypes, onSelect, onDismiss)
 }
 
 class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
@@ -60,23 +53,16 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
     ) {
         val i18nView = DI.get<I18nView>()
         val offsetY = with(LocalDensity.current) { -(98.dp).roundToPx() }
-        Popup(
-            alignment = Alignment.CenterEnd,
-            offset = IntOffset(0, offsetY),
-            onDismissRequest = onDismiss,
-        ) {
+        Popup(alignment = Alignment.CenterEnd, offset = IntOffset(0, offsetY), onDismissRequest = onDismiss) {
             Surface(
-                Modifier
-                    .fillMaxWidth()
+                Modifier.fillMaxWidth()
                     .padding(horizontal = 10.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)),
                 color = MaterialTheme.colorScheme.surface,
             ) {
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 20.dp),
+                    Modifier.fillMaxWidth().padding(vertical = 20.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     availableTypes.forEach { pickerType ->
@@ -89,7 +75,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     ) {
                                         Icon(
                                             MaterialTheme.messengerIcons.attachFile,
-                                            i18nView.fileDialogLoadFileButton()
+                                            i18nView.fileDialogLoadFileButton(),
                                         )
                                     }
                                 }
@@ -103,7 +89,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     ) {
                                         Icon(
                                             MaterialTheme.messengerIcons.attachImage,
-                                            i18nView.fileDialogLoadImageButton()
+                                            i18nView.fileDialogLoadImageButton(),
                                         )
                                     }
                                 }
@@ -116,7 +102,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     ) {
                                         Icon(
                                             MaterialTheme.messengerIcons.attachImage,
-                                            i18nView.fileDialogLoadImageOrVideoButton()
+                                            i18nView.fileDialogLoadImageOrVideoButton(),
                                         )
                                     }
                                 }
@@ -129,7 +115,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     ) {
                                         Icon(
                                             MaterialTheme.messengerIcons.recordPhoto,
-                                            i18nView.fileDialogTakeImageButton()
+                                            i18nView.fileDialogTakeImageButton(),
                                         )
                                     }
                                 }
@@ -142,7 +128,7 @@ class FilePickerTypeSelectionViewImpl : FilePickerTypeSelectionView {
                                     ) {
                                         Icon(
                                             MaterialTheme.messengerIcons.recordVideo,
-                                            i18nView.fileDialogTakeVideoButton()
+                                            i18nView.fileDialogTakeVideoButton(),
                                         )
                                     }
                                 }

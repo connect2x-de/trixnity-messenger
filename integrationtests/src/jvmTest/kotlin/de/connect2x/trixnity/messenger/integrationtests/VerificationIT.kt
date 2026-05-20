@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
 import de.connect2x.trixnity.messenger.integrationtests.messenger.login
 import de.connect2x.trixnity.messenger.integrationtests.util.configureTestLogging
@@ -8,18 +9,17 @@ import de.connect2x.trixnity.messenger.integrationtests.util.register
 import de.connect2x.trixnity.messenger.integrationtests.util.runBlockingWithTimeout
 import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import io.ktor.http.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
@@ -35,18 +35,15 @@ class VerificationIT {
 
     private val password = "user$1passw0rd"
 
-    @Container
-    val synapseDocker = synapseDocker()
+    @Container val synapseDocker = synapseDocker()
 
     @BeforeTest
     fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
-        val baseUrl = URLBuilder(
-            protocol = URLProtocol.HTTP,
-            host = synapseDocker.host,
-            port = synapseDocker.firstMappedPort
-        ).build()
+        val baseUrl =
+            URLBuilder(protocol = URLProtocol.HTTP, host = synapseDocker.host, port = synapseDocker.firstMappedPort)
+                .build()
 
         MatrixClientServerApiClientImpl(baseUrl).register("user1", password)
     }

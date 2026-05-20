@@ -5,14 +5,14 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.media.AbstractMediaItem
 import de.connect2x.trixnity.messenger.media.MediaPlayer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.sync.Mutex
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.sync.Mutex
 
 internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) : MediaPlayer {
     override val playingItem: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
@@ -23,7 +23,7 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         id: String,
         media: PlatformMedia,
         mimeType: String,
-        lifecycleScope: CoroutineScope?
+        lifecycleScope: CoroutineScope?,
     ): Result<MediaPlayer.Item> {
         val item = playingItem.value
         if (item != null && item.id == id) {
@@ -33,12 +33,14 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         }
 
         log.debug { "Creating new media item and return" }
-        return Result.success(MediaItemMock(
-            id = id,
-            coroutineScope = CoroutineScope(coroutineContext + SupervisorJob()),
-            operationMutex = operationMutex,
-            currentItemPlaying = playingItem
-        ))
+        return Result.success(
+            MediaItemMock(
+                id = id,
+                coroutineScope = CoroutineScope(coroutineContext + SupervisorJob()),
+                operationMutex = operationMutex,
+                currentItemPlaying = playingItem,
+            )
+        )
     }
 
     override fun close() = Unit
@@ -47,7 +49,7 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         override val id: String,
         coroutineScope: CoroutineScope,
         operationMutex: Mutex,
-        currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
+        currentItemPlaying: MutableStateFlow<AbstractMediaItem?>,
     ) : AbstractMediaItem(coroutineScope, operationMutex, currentItemPlaying) {
         internal val isClosed: AtomicBoolean = AtomicBoolean(false)
         override val duration: Duration = 10.seconds
@@ -57,12 +59,13 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         }
 
         override suspend fun onPlay(duration: Duration): Result<Unit> = Result.success(Unit)
+
         override suspend fun onSeekTo(position: Duration) = Unit
+
         override suspend fun onPause() = Unit
+
         override suspend fun onClose() {
             isClosed.store(true)
         }
-
     }
-
 }

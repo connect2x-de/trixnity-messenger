@@ -37,8 +37,7 @@ val ShowProfileCreation =
     compositionLocalOf<MutableState<Boolean>> { error("There is no ShowProfileCreation defined as compositionLocal") }
 
 interface ProfileSelectionView {
-    @Composable
-    fun create(profileManager: ProfileManager)
+    @Composable fun create(profileManager: ProfileManager)
 }
 
 @Composable
@@ -59,46 +58,33 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
         var focusedItem by remember(profiles.value) { mutableStateOf(profiles.value.keys.firstOrNull()) }
 
         AdaptiveDialogWrapper {
-            AdaptiveDialogHeader {
-                Text(i18n.selectProfileHeader())
-            }
+            AdaptiveDialogHeader { Text(i18n.selectProfileHeader()) }
 
-            AdaptiveDialogScrollContent(
-                scrollState = scrollState,
-                modifier = Modifier.rovingFocusContainer()
-            ) {
+            AdaptiveDialogScrollContent(scrollState = scrollState, modifier = Modifier.rovingFocusContainer()) {
                 profiles.value.entries.forEach { entry ->
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,
-                        modifier = Modifier.rovingFocusItem(
-                            isFocused = focusedItem == entry.key,
-                            onFocus = { focusedItem = entry.key }
-                        ),
-                        leadingContent = {
-                            Icon(Icons.Default.AccountCircle, null)
-                        },
-                        headlineContent = {
-                            Text(entry.value.base.displayName ?: i18n.commonUnknown())
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                profileManager.selectProfile(entry.key)
-                            }
-                        }
+                        modifier =
+                            Modifier.rovingFocusItem(
+                                isFocused = focusedItem == entry.key,
+                                onFocus = { focusedItem = entry.key },
+                            ),
+                        leadingContent = { Icon(Icons.Default.AccountCircle, null) },
+                        headlineContent = { Text(entry.value.base.displayName ?: i18n.commonUnknown()) },
+                        onClick = { coroutineScope.launch { profileManager.selectProfile(entry.key) } },
                     )
                     ThemedHorizontalDivider()
                 }
             }
-            if (multiAccount) AdaptiveDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = {
-                        showProfileCreation.value = true
-                    },
-                ) {
-                    Text(i18n.selectProfileCreateInstead())
+            if (multiAccount)
+                AdaptiveDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { showProfileCreation.value = true },
+                    ) {
+                        Text(i18n.selectProfileCreateInstead())
+                    }
                 }
-            }
         }
     }
 }

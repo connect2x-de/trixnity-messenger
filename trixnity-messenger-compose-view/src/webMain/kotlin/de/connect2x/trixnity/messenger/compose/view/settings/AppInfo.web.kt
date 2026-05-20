@@ -18,12 +18,8 @@ actual fun PlatformAppInfo() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(10.dp).fillMaxWidth()
+        modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Text(
-            text = navigator.userAgent,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Light
-        )
+        Text(text = navigator.userAgent, fontSize = 12.sp, fontWeight = FontWeight.Light)
     }
 }

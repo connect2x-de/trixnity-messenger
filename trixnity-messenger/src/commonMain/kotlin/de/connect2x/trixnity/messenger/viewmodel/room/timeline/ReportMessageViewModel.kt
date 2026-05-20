@@ -2,13 +2,13 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
 
 interface ReportToMessageViewModelFactory {
     fun create(
@@ -18,12 +18,7 @@ interface ReportToMessageViewModelFactory {
         onShowReportMessageDialog: (RoomId, EventId) -> Unit,
         onMessageReportFinished: () -> Unit,
     ): ReportMessageViewModel {
-        return ReportMessageViewModelImpl(
-            viewModelContext,
-            roomId,
-            eventId,
-            onMessageReportFinished,
-        )
+        return ReportMessageViewModelImpl(viewModelContext, roomId, eventId, onMessageReportFinished)
     }
 
     companion object : ReportToMessageViewModelFactory
@@ -31,9 +26,10 @@ interface ReportToMessageViewModelFactory {
 
 interface ReportMessageViewModel {
     val messageReportReason: TextFieldViewModel
-    fun submitReportToMessage()
-    fun closeReportMessageDialog()
 
+    fun submitReportToMessage()
+
+    fun closeReportMessageDialog()
 }
 
 open class ReportMessageViewModelImpl(
@@ -48,15 +44,12 @@ open class ReportMessageViewModelImpl(
     override fun submitReportToMessage() {
         coroutineScope.launch {
             log.info { "Message report to roomId: $roomId eventId: ${eventId.value}" }
-            matrixClient.api.room.reportEvent(
-                roomId = roomId,
-                eventId = eventId.value,
-                reason = messageReportReason.value.text
-            ).fold(onSuccess = {
-                log.info { "successfully message has been reported ${eventId.value}" }
-            }, onFailure = {
-                log.error(it) { "failed to report message ${eventId.value}" }
-            })
+            matrixClient.api.room
+                .reportEvent(roomId = roomId, eventId = eventId.value, reason = messageReportReason.value.text)
+                .fold(
+                    onSuccess = { log.info { "successfully message has been reported ${eventId.value}" } },
+                    onFailure = { log.error(it) { "failed to report message ${eventId.value}" } },
+                )
             closeReportMessageDialog()
         }
     }
@@ -82,5 +75,4 @@ class PreviewReportMessageViewModel : ReportMessageViewModel {
     override fun closeReportMessageDialog() {
         log.trace { "close report message dialog state" }
     }
-
 }

@@ -22,11 +22,8 @@ actual fun PlatformAppInfo() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
-        modifier = Modifier.padding(10.dp).fillMaxWidth()
+        modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
-        Text(
-            text = info,
-            fontSize = 12.sp
-        )
+        Text(text = info, fontSize = 12.sp)
     }
 }

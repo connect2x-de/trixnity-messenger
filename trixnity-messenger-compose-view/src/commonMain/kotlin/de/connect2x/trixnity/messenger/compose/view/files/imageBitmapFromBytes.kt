@@ -18,5 +18,4 @@ fun ByteArray.toImageBitmap(): ImageBitmap? {
         log.error(e) { "Cannot decode image" }
         null
     }
-
 }

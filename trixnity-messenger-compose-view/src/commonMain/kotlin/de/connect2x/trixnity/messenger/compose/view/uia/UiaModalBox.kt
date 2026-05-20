@@ -10,10 +10,8 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 
-
 interface UiaModalBoxView {
-    @Composable
-    fun create(content: @Composable BoxScope.() -> Unit)
+    @Composable fun create(content: @Composable BoxScope.() -> Unit)
 }
 
 @Composable
@@ -25,10 +23,7 @@ class UiaModalBoxViewImpl : UiaModalBoxView {
     @Composable
     override fun create(content: @Composable BoxScope.() -> Unit) {
         ThemedModalDialog(onDismissRequest = {}) {
-            Box(
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                content = content
-            )
+            Box(modifier = Modifier.background(MaterialTheme.colorScheme.background), content = content)
         }
     }
 }

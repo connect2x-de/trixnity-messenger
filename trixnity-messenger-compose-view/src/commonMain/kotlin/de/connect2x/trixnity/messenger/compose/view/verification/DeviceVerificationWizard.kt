@@ -7,8 +7,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 
 interface DeviceVerificationWizardView {
-    @Composable
-    fun create(verificationViewModel: VerificationViewModel)
+    @Composable fun create(verificationViewModel: VerificationViewModel)
 }
 
 @Composable
@@ -19,9 +18,6 @@ fun DeviceVerificationWizard(verificationViewModel: VerificationViewModel) {
 class DeviceVerificationWizardViewImpl : DeviceVerificationWizardView {
     @Composable
     override fun create(verificationViewModel: VerificationViewModel) {
-        Box {
-            DeviceVerificationWizardStepSwitch(verificationViewModel)
-        }
-
+        Box { DeviceVerificationWizardStepSwitch(verificationViewModel) }
     }
 }

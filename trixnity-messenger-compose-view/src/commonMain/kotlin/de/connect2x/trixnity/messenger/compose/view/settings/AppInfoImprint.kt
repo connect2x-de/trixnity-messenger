@@ -23,8 +23,7 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
 interface AppInfoImprintView {
-    @Composable
-    fun create(appInfoViewModel: AppInfoViewModel)
+    @Composable fun create(appInfoViewModel: AppInfoViewModel)
 }
 
 @Composable
@@ -52,14 +51,12 @@ internal fun Imprint(onClose: () -> Unit) {
     }
 
     ThemedAdaptiveDialog(onClose) {
-        AdaptiveDialogHeader(onClose = onClose) {
-            Text(i18n.appInfoImprint())
-        }
+        AdaptiveDialogHeader(onClose = onClose) { Text(i18n.appInfoImprint()) }
         AdaptiveDialogScrollContent {
             RichTextDisplay(
                 content,
                 colors = RichTextColors.default(linkColor = MaterialTheme.messengerColors.link),
-                onLinkClick = { uriHandler.openUri(it) }
+                onLinkClick = { uriHandler.openUri(it) },
             )
         }
     }

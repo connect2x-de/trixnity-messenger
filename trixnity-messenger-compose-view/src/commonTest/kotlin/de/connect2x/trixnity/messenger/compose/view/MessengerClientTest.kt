@@ -49,28 +49,24 @@ class MessengerClientTest {
                         ShowProfileCreation provides showProfileCreation,
                         IsFocusHighlighting provides false,
                     ) {
-                        MessengerTheme {
-                            Profiles()
-                        }
+                        MessengerTheme { Profiles() }
                     }
                 },
                 activeMessenger = { matrixMessenger, rootViewModel ->
                     LaunchedEffect(Unit) {
-                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                            .update<MatrixMessengerSettingsBase> {
-                                it.copy(preferredLang = "EN")
-                            }
+                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>().update<MatrixMessengerSettingsBase> {
+                            it.copy(preferredLang = "EN")
+                        }
                     }
                     CompositionLocalProvider(
                         Platform provides platformType(),
                         DI provides matrixMessenger.di,
                         IsFocusHighlighting provides false,
                     ) {
-                        MessengerTheme {
-                            Client(rootViewModel)
-                        }
+                        MessengerTheme { Client(rootViewModel) }
                     }
-                })
+                },
+            )
         }
 
         composeUiTest.waitForIdle()
@@ -83,6 +79,5 @@ class MessengerClientTest {
 
         createUser(username, password)
         composeUiTest.login(testName, username, password)
-
     }
 }

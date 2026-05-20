@@ -1,23 +1,23 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelPreview.PreviewMode.AWAITING
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelPreview.PreviewMode.ERROR
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModelPreview.PreviewMode.IDLE
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
-import de.connect2x.trixnity.core.MatrixServerException
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
 
 private val POLLING_INTERVAL = 2.seconds // not too low to prevent rate limiting
 
@@ -30,14 +30,7 @@ interface UiaStepFallbackViewModelFactory {
         onCancel: () -> Unit,
         onError: (MatrixServerException) -> Unit,
     ): UiaStepFallbackViewModel {
-        return UiaStepFallbackViewModelImpl(
-            viewModelContext,
-            uiaStep,
-            authenticationType,
-            onNext,
-            onCancel,
-            onError,
-        )
+        return UiaStepFallbackViewModelImpl(viewModelContext, uiaStep, authenticationType, onNext, onCancel, onError)
     }
 
     companion object : UiaStepFallbackViewModelFactory
@@ -48,12 +41,12 @@ interface UiaStepFallbackViewModel {
     val waitForResult: StateFlow<Boolean>
     val error: StateFlow<String?>
     val authenticationTypeString: String
+
     fun openFallbackUrl()
 
-    /**
-     * This is automatically called when [openFallbackUrl] is used.
-     */
+    /** This is automatically called when [openFallbackUrl] is used. */
     fun confirm()
+
     fun cancel()
 }
 
@@ -85,14 +78,17 @@ class UiaStepFallbackViewModelImpl(
             pollingJob = coroutineScope.launch {
                 error.value = null
                 var nextUia: UIA<*>? = null
-                log.debug { "nextUia.state.completed: ${(nextUia as? UIA.Step<*>)?.state?.completed ?: "[]"}, authenticationType: $authenticationType" }
-                while (nextUia !is UIA.Success<*> && (
-                            (nextUia is UIA.Step<*> && nextUia.state.completed.contains(authenticationType)).not()
-                            )
+                log.debug {
+                    "nextUia.state.completed: ${(nextUia as? UIA.Step<*>)?.state?.completed ?: "[]"}, authenticationType: $authenticationType"
+                }
+                while (
+                    nextUia !is UIA.Success<*> &&
+                        ((nextUia is UIA.Step<*> && nextUia.state.completed.contains(authenticationType)).not())
                 ) {
                     log.debug { "nextUia: $nextUia, authenticationType: $authenticationType" }
                     delay(POLLING_INTERVAL)
-                    uiaStep.authenticate(AuthenticationRequest.Fallback)
+                    uiaStep
+                        .authenticate(AuthenticationRequest.Fallback)
                         .onSuccess {
                             if (it is UIA.Error) {
                                 log.error { "error during fallback: ${it.errorResponse.error}" }
@@ -132,10 +128,16 @@ class UiaStepFallbackViewModelPreview(mode: PreviewMode = IDLE) : UiaStepFallbac
     override val waitForResult = MutableStateFlow(mode == AWAITING)
     override val error = MutableStateFlow(if (mode == ERROR) "Something's wrong!" else null)
     override val authenticationTypeString: String = "ReCaptcha"
+
     override fun openFallbackUrl() {}
+
     override fun confirm() {}
+
     override fun cancel() {}
+
     enum class PreviewMode {
-        IDLE, AWAITING, ERROR,
+        IDLE,
+        AWAITING,
+        ERROR,
     }
 }

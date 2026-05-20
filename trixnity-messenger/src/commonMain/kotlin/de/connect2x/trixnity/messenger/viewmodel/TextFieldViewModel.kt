@@ -16,9 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * Interface for a backing text field, managing the state of text and its selection.
- */
+/** Interface for a backing text field, managing the state of text and its selection. */
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
     /**
@@ -26,14 +24,10 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
      *
      * @property text The current text in the text field.
      * @property selection The range of the current selection, or `null` if no selection exists.
-     * @property epoch The current epoch of the State. A higher epoch means, that the state one is likely newer than the other.
-     *           This is useful to prevent unnecessary updates in the UI (depending on the implementation).
+     * @property epoch The current epoch of the State. A higher epoch means, that the state one is likely newer than the
+     *   other. This is useful to prevent unnecessary updates in the UI (depending on the implementation).
      */
-    class State(
-        val text: String,
-        selection: IntRange?,
-        val epoch: ULong,
-    ) {
+    class State(val text: String, selection: IntRange?, val epoch: ULong) {
         val selection: IntRange? = selection?.coerceIn(text)
 
         private fun IntRange.coerceIn(text: String): IntRange =
@@ -45,7 +39,9 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
             }
 
         operator fun component1() = text
+
         operator fun component2() = selection
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null || this::class != other::class) return false
@@ -71,42 +67,31 @@ interface TextFieldViewModel : StateFlow<TextFieldViewModel.State> {
         }
     }
 
-    /**
-     * Use this if you are interested in [State.text] only. Otherwise, use [value].
-     */
+    /** Use this if you are interested in [State.text] only. Otherwise, use [value]. */
     val text: Flow<String>
 
-    /**
-     * Use this if you are interested in [State.text] only. Otherwise, use [value].
-     */
+    /** Use this if you are interested in [State.text] only. Otherwise, use [value]. */
     val textValue: String
 
-    /**
-     * Use this if you are interested in [State.selection] only. Otherwise, use [value].
-     */
+    /** Use this if you are interested in [State.selection] only. Otherwise, use [value]. */
     val selection: Flow<IntRange?>
 
-    /**
-     * Use this if you are interested in [State.selection] only. Otherwise, use [value].
-     */
+    /** Use this if you are interested in [State.selection] only. Otherwise, use [value]. */
     val selectionValue: IntRange?
 
-    /**
-     * The maximum allowed characters in the text field. Everything above the limit will be cut.
-     */
+    /** The maximum allowed characters in the text field. Everything above the limit will be cut. */
     val maxLength: Int
 
     /** null means if there is no error, otherwise String contains the error message */
     val error: Flow<String?>
 
-    /**
-     * Update the state.
-     */
+    /** Update the state. */
     fun update(text: String, selection: IntRange? = null, epoch: ULong? = null)
 }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-open class TextFieldViewModelImpl private constructor(
+open class TextFieldViewModelImpl
+private constructor(
     private val delegate: MutableStateFlow<TextFieldViewModel.State>,
     maxLength: Int,
     isValid: (String) -> String?,
@@ -124,12 +109,16 @@ open class TextFieldViewModelImpl private constructor(
 
     override val text: Flow<String>
         get() = map { it.text }.distinctUntilChanged()
+
     override val textValue: String
         get() = value.text
+
     override val selection: Flow<IntRange?>
         get() = map { it.selection }.distinctUntilChanged()
+
     override val selectionValue: IntRange?
         get() = value.selection
+
     override val maxLength: Int = maxLength
     override val error: Flow<String?> = text.map { isValid(it) }
 
@@ -139,9 +128,8 @@ open class TextFieldViewModelImpl private constructor(
                 TextFieldViewModel.State(
                     epoch = it.epoch + 1u,
                     text = text.take(maxLength),
-                    selection = selection?.let {
-                        selection.first.coerceIn(0..maxLength)..selection.last.coerceIn(0..maxLength)
-                    },
+                    selection =
+                        selection?.let { selection.first.coerceIn(0..maxLength)..selection.last.coerceIn(0..maxLength) },
                 )
             } else {
                 log.trace { "skip update, because epoch $epoch > ${it.epoch}" }
@@ -155,8 +143,11 @@ interface ApprovableTextFieldViewModel : TextFieldViewModel {
     val isEdit: StateFlow<Boolean>
     val isLoading: StateFlow<Boolean>
     override val error: StateFlow<String?>
+
     fun startEdit()
+
     fun cancelEdit()
+
     fun approveEdit()
 }
 
@@ -166,15 +157,13 @@ class ApprovableTextFieldViewModelImpl(
     maxLength: Int,
     private val coroutineScope: CoroutineScope,
     private val onApplyChange: suspend (String) -> Result<*>,
-    private val onCancelEdit: () -> Unit = {}
+    private val onCancelEdit: () -> Unit = {},
 ) : TextFieldViewModelImpl(maxLength), ApprovableTextFieldViewModel {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl")
     }
 
-    private val serverStateValue = serverValue
-        .map { it ?: "" }
-        .stateIn(coroutineScope, Eagerly, "")
+    private val serverStateValue = serverValue.map { it ?: "" }.stateIn(coroutineScope, Eagerly, "")
 
     private val _isEditing = MutableStateFlow(false)
     override val isEdit: StateFlow<Boolean> = _isEditing.asStateFlow()
@@ -218,7 +207,8 @@ class ApprovableTextFieldViewModelImpl(
                     .onFailure {
                         _isLoading.value = false
                         _error.value = it.message
-                    }.onSuccess {
+                    }
+                    .onSuccess {
                         _isEditing.value = false
                         _error.value = null
                     }
@@ -240,20 +230,24 @@ class ApprovableTextFieldViewModelImpl(
 }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-class PreviewApprovableTextFieldViewModel : ApprovableTextFieldViewModel, StateFlow<TextFieldViewModel.State> by
-MutableStateFlow(TextFieldViewModel.State("", null, 0UL)) {
+class PreviewApprovableTextFieldViewModel :
+    ApprovableTextFieldViewModel,
+    StateFlow<TextFieldViewModel.State> by MutableStateFlow(TextFieldViewModel.State("", null, 0UL)) {
     override val isLoading: StateFlow<Boolean> = MutableStateFlow(false)
     override val error: StateFlow<String?> = MutableStateFlow("error")
     override val isEdit: StateFlow<Boolean> = MutableStateFlow(true)
 
     override fun startEdit() {}
+
     override fun cancelEdit() {}
+
     override fun approveEdit() {}
+
     override val text: Flow<String> = flowOf("")
     override var textValue: String = ""
     override val selection: Flow<IntRange?> = flowOf(null)
     override var selectionValue: IntRange? = null
     override val maxLength: Int = 100
-    override fun update(text: String, selection: IntRange?, epoch: ULong?) {
-    }
+
+    override fun update(text: String, selection: IntRange?, epoch: ULong?) {}
 }

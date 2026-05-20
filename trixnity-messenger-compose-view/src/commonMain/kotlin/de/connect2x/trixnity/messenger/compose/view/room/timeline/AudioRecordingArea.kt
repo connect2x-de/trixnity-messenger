@@ -47,15 +47,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.AudioRecordingAreaViewModel
-import kotlinx.datetime.toDateTimePeriod
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.time.Duration
+import kotlinx.datetime.toDateTimePeriod
 
 @TrixnityMessengerPrivateApi
 interface AudioRecordingAreaView {
-    @Composable
-    fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel)
+    @Composable fun RowScope.create(audioRecordingAreaViewModel: AudioRecordingAreaViewModel)
 }
 
 @Composable
@@ -72,13 +71,8 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
 
         @Composable
         fun LoudnessAnimationCircle(currentLoudness: Float) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1.0f, fill = true),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                val nonZeroMinimumValue = 0.0001f 
+            Row(Modifier.fillMaxWidth().weight(1.0f, fill = true), horizontalArrangement = Arrangement.Center) {
+                val nonZeroMinimumValue = 0.0001f
                 var maxLoudness by remember { mutableStateOf(nonZeroMinimumValue) }
                 maxLoudness = max(currentLoudness, maxLoudness)
 
@@ -88,23 +82,15 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                     val bounded = min(1.0f, max(0.2f, amplified))
                     return bounded
                 }
-                val relativeLoudnessAnimated by animateFloatAsState(
-                    adjustedRelativeLoudness(),
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium
+                val relativeLoudnessAnimated by
+                    animateFloatAsState(
+                        adjustedRelativeLoudness(),
+                        animationSpec = spring(stiffness = Spring.StiffnessMedium),
                     )
-                )
                 val color = MaterialTheme.colorScheme.tertiary
-                Canvas(
-                    Modifier
-                        .fillMaxHeight()
-                        .align(Alignment.CenterVertically)
-                ) {
+                Canvas(Modifier.fillMaxHeight().align(Alignment.CenterVertically)) {
                     val maxRadius = size.height / 2
-                    drawCircle(
-                        radius = maxRadius * relativeLoudnessAnimated,
-                        color = color,
-                    )
+                    drawCircle(radius = maxRadius * relativeLoudnessAnimated, color = color)
                 }
             }
         }
@@ -115,24 +101,25 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             fun Duration(duration: Duration) {
                 val secondsAfterWholeMinute = duration.toDateTimePeriod().seconds
                 val zeroPrefix = if (secondsAfterWholeMinute < 10) "0" else ""
-                Text(
-                    duration.inWholeMinutes.toString() + ":" + zeroPrefix + secondsAfterWholeMinute.toString()
-                )
+                Text(duration.inWholeMinutes.toString() + ":" + zeroPrefix + secondsAfterWholeMinute.toString())
             }
 
-            val pulsatingRed = rememberInfiniteTransition().animateColor(
-                Color.Red,
-                Color.Red.copy(alpha = 0f),
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-            )
+            val pulsatingRed =
+                rememberInfiniteTransition()
+                    .animateColor(
+                        Color.Red,
+                        Color.Red.copy(alpha = 0f),
+                        animationSpec =
+                            infiniteRepeatable(
+                                animation = tween(1000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse,
+                            ),
+                    )
             Icon(
                 Icons.Default.Circle,
                 i18n.audioRecordingInProgress(),
                 tint = pulsatingRed.value,
-                modifier = Modifier.padding(start = 7.dp)
+                modifier = Modifier.padding(start = 7.dp),
             )
 
             Duration(recordingState.duration)
@@ -142,14 +129,9 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             Tooltip({ Text(i18n.audioRecordingStop()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.primaryIconButton,
-                    onClick = {
-                        audioRecordingAreaViewModel.recorder?.complete()
-                    },
+                    onClick = { audioRecordingAreaViewModel.recorder?.complete() },
                 ) {
-                    Icon(
-                        Icons.Default.Stop,
-                        i18n.audioRecordingStop(),
-                    )
+                    Icon(Icons.Default.Stop, i18n.audioRecordingStop())
                 }
             }
         }
@@ -163,10 +145,9 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
         fun AudioCapturePreview() {
             @Composable
             fun AudioPlayer(player: MediaPlayerViewModel) {
-                DI.current.get<AudioPlayerView>().CreateWithViewModelDuration(
-                    viewModel = player,
-                    fallbackView = { AudioPlayerFallback() }
-                )
+                DI.current
+                    .get<AudioPlayerView>()
+                    .CreateWithViewModelDuration(viewModel = player, fallbackView = { AudioPlayerFallback() })
             }
 
             @Composable
@@ -177,10 +158,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                         onClick = { audioRecordingAreaViewModel.sendAudioMessage() },
                         modifier = Modifier.padding(start = 15.dp),
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            i18n.audioRecordingSend(),
-                        )
+                        Icon(Icons.AutoMirrored.Filled.Send, i18n.audioRecordingSend())
                     }
                 }
             }
@@ -190,18 +168,11 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
                     style = MaterialTheme.components.destructiveIconButton,
                     onClick = { audioRecordingAreaViewModel.recorder?.close() },
                 ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        i18n.audioRecordingDelete(),
-                    )
+                    Icon(Icons.Default.Delete, i18n.audioRecordingDelete())
                 }
             }
-            
-            Box(
-                modifier = Modifier
-                    .weight(1.0f, fill = true)
-                    .height(40.dp)
-            ) {
+
+            Box(modifier = Modifier.weight(1.0f, fill = true).height(40.dp)) {
                 if (player != null) {
                     AudioPlayer(player)
                 } else {
@@ -213,13 +184,10 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
         }
 
         when (recorderState) {
-            is AudioRecorder.State.Recording ->
-                AudioRecorder(recorderState)
-            is AudioRecorder.State.Completed ->
-                AudioCapturePreview()
-            null, AudioRecorder.State.Ready ->
-                Unit
+            is AudioRecorder.State.Recording -> AudioRecorder(recorderState)
+            is AudioRecorder.State.Completed -> AudioCapturePreview()
+            null,
+            AudioRecorder.State.Ready -> Unit
         }
     }
-    
 }

@@ -3,6 +3,15 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
+import de.connect2x.trixnity.client.flatten
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.i18n.getErrorMessage
@@ -17,6 +26,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
+import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,19 +49,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import de.connect2x.trixnity.client.flatten
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.store.RoomOutboxMessage
-import de.connect2x.trixnity.client.store.originTimestamp
-import de.connect2x.trixnity.client.store.sender
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.utils.concurrentMutableMap
 import org.koin.core.component.get
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 interface OutboxElementHolderViewModelFactory {
     fun create(
@@ -61,18 +61,19 @@ interface OutboxElementHolderViewModelFactory {
         formattedDate: String,
         formattedTime: String,
         onOpenMention: OpenMentionCallback,
-        jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
-    ): OutboxElementHolderViewModel = OutboxElementHolderViewModelImpl(
-        viewModelContext = viewModelContext,
-        key = key,
-        outboxMessageFlow = outboxMessageFlow,
-        roomId = roomId,
-        transactionId = transactionId,
-        formattedDate = formattedDate,
-        formattedTime = formattedTime,
-        onOpenMention = onOpenMention,
-        jumpTo = jumpTo
-    )
+        jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
+    ): OutboxElementHolderViewModel =
+        OutboxElementHolderViewModelImpl(
+            viewModelContext = viewModelContext,
+            key = key,
+            outboxMessageFlow = outboxMessageFlow,
+            roomId = roomId,
+            transactionId = transactionId,
+            formattedDate = formattedDate,
+            formattedTime = formattedTime,
+            onOpenMention = onOpenMention,
+            jumpTo = jumpTo,
+        )
 
     companion object : OutboxElementHolderViewModelFactory
 }
@@ -86,6 +87,7 @@ interface OutboxElementHolderViewModel : BaseTimelineElementHolderViewModel {
     val canAbortSend: StateFlow<Boolean>
 
     fun retrySend()
+
     fun abortSend()
 }
 
@@ -98,7 +100,7 @@ class OutboxElementHolderViewModelImpl(
     override val formattedDate: String,
     override val formattedTime: String,
     onOpenMention: OpenMentionCallback,
-    private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit
+    private val jumpTo: (roomId: RoomId, eventId: EventId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, OutboxElementHolderViewModel {
     private val timeZone = get<TimeZone>()
     private val i18n = get<I18n>()
@@ -112,47 +114,52 @@ class OutboxElementHolderViewModelImpl(
 
     private val elementCache = MutableStateFlow<TimelineElementViewModelWrapper?>(null)
     override val element =
-        outboxMessageFlow.map { outboxMessage ->
-            elementCache.value?.lifecycle?.destroy()
+        outboxMessageFlow
+            .map { outboxMessage ->
+                elementCache.value?.lifecycle?.destroy()
 
-            log.trace { "compute element (outboxMessage=$outboxMessage)" }
-            if (outboxMessage == null) return@map TimelineElementViewModel.Empty
-            val lifecycle = LifecycleRegistry()
-            lifecycle.start()
-            timelineElementViewModelFactorySelector.create(
-                childContextWithOwnLifecycle(key, lifecycle),
-                outboxMessage.content,
-                Result.success(outboxMessage.content),
-                roomId,
-                EventIdOrTransactionId(transactionId),
-                onOpenMention,
-                ignoreReplacedEvents = true,
-            ).also {
-                elementCache.value = TimelineElementViewModelWrapper(it, lifecycle)
+                log.trace { "compute element (outboxMessage=$outboxMessage)" }
+                if (outboxMessage == null) return@map TimelineElementViewModel.Empty
+                val lifecycle = LifecycleRegistry()
+                lifecycle.start()
+                timelineElementViewModelFactorySelector
+                    .create(
+                        childContextWithOwnLifecycle(key, lifecycle),
+                        outboxMessage.content,
+                        Result.success(outboxMessage.content),
+                        roomId,
+                        EventIdOrTransactionId(transactionId),
+                        onOpenMention,
+                        ignoreReplacedEvents = true,
+                    )
+                    .also { elementCache.value = TimelineElementViewModelWrapper(it, lifecycle) }
             }
-        }.stateIn(coroutineScope, Eagerly, null)
+            .stateIn(coroutineScope, Eagerly, null)
 
     override val isReply: StateFlow<Boolean?> =
-        outboxMessageFlow.map { outboxMessage ->
-            if (outboxMessage == null) return@map false
-            val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId
-            return@map repliedEventId != null
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        outboxMessageFlow
+            .map { outboxMessage ->
+                if (outboxMessage == null) return@map false
+                val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId
+                return@map repliedEventId != null
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
-    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
-        flow {
-            emitAll(
-                getReceiptsByEventCache.read { get(roomId) }
-                    ?: getReceiptsByEventCache.write {
-                        getOrPut(roomId) {
-                            matrixClient.user.getAllReceipts(roomId)
-                                .byEventId(userId)
-                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
-                        }
+
+    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> = flow {
+        emitAll(
+            getReceiptsByEventCache.read { get(roomId) }
+                ?: getReceiptsByEventCache.write {
+                    getOrPut(roomId) {
+                        matrixClient.user
+                            .getAllReceipts(roomId)
+                            .byEventId(userId)
+                            .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                     }
-            )
-        }
+                }
+        )
+    }
 
     private data class TimelineElementHolderViewModelWrapper(
         val eventId: EventId,
@@ -163,91 +170,97 @@ class OutboxElementHolderViewModelImpl(
     private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val repliedElementCache = MutableStateFlow<TimelineElementHolderViewModelWrapper?>(null)
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
-        outboxMessageFlow.map { outboxMessage ->
-            repliedElementCache.value?.lifecycle?.destroy()
-            if (outboxMessage == null) return@map null
-            val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId ?: return@map null
-            val repliedElementCacheValue = repliedElementCache.value
-            if (repliedElementCacheValue?.eventId == repliedEventId)
-                return@map repliedElementCacheValue.viewModel
-            val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
-            val timelineEvent = timelineEventFlow.first()
-            repliedElementCache.value?.lifecycle?.destroy()
-            val lifecycle = LifecycleRegistry()
-            lifecycle.start()
-            timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(repliedEventId.full, lifecycle),
-                key = "element",
-                timelineEventFlow = timelineEventFlow,
-                roomId = roomId,
-                eventId = repliedEventId,
-                sender = timelineEvent.sender,
-                formattedDate = formatDate(
-                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                        .toLocalDateTime(timeZone)
-                ),
-                formattedTime = formatTime(
-                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                        .toLocalDateTime(timeZone)
-                ),
-                showLoadingIndicatorBefore = flowOf(false),
-                showLoadingIndicatorAfter = flowOf(false),
-                showUnreadMarker = flowOf(false),
-                ignoreReplacedEvents = true,
-                getReceipts = ::getReceipts,
-                onMessageReplace = { _, _ -> },
-                onMessageReply = { _, _ -> },
-                onMessageReport = { _, _ -> },
-                onOpenMention = { _, _ -> },
-                onOpenMetadata = {},
-                jumpTo = jumpTo
-            ).also {
-                repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
+        outboxMessageFlow
+            .map { outboxMessage ->
+                repliedElementCache.value?.lifecycle?.destroy()
+                if (outboxMessage == null) return@map null
+                val repliedEventId = outboxMessage.content.relatesTo?.replyTo?.eventId ?: return@map null
+                val repliedElementCacheValue = repliedElementCache.value
+                if (repliedElementCacheValue?.eventId == repliedEventId) return@map repliedElementCacheValue.viewModel
+                val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, repliedEventId).filterNotNull()
+                val timelineEvent = timelineEventFlow.first()
+                repliedElementCache.value?.lifecycle?.destroy()
+                val lifecycle = LifecycleRegistry()
+                lifecycle.start()
+                timelineElementHolderViewModelFactory
+                    .create(
+                        viewModelContext = childContextWithOwnLifecycle(repliedEventId.full, lifecycle),
+                        key = "element",
+                        timelineEventFlow = timelineEventFlow,
+                        roomId = roomId,
+                        eventId = repliedEventId,
+                        sender = timelineEvent.sender,
+                        formattedDate =
+                            formatDate(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        formattedTime =
+                            formatTime(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        showLoadingIndicatorBefore = flowOf(false),
+                        showLoadingIndicatorAfter = flowOf(false),
+                        showUnreadMarker = flowOf(false),
+                        ignoreReplacedEvents = true,
+                        getReceipts = ::getReceipts,
+                        onMessageReplace = { _, _ -> },
+                        onMessageReply = { _, _ -> },
+                        onMessageReport = { _, _ -> },
+                        onOpenMention = { _, _ -> },
+                        onOpenMetadata = {},
+                        jumpTo = jumpTo,
+                    )
+                    .also {
+                        repliedElementCache.value = TimelineElementHolderViewModelWrapper(repliedEventId, it, lifecycle)
+                    }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val initials = get<Initials>()
     override val sender: StateFlow<UserInfoElement?> =
-        matrixClient.user.getById(roomId, userId).map { user ->
-            user.toUserInfoElement(coroutineScope, matrixClient, initials, userId, config.maxMediaSizeInMemory)
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        matrixClient.user
+            .getById(roomId, userId)
+            .map { user ->
+                user.toUserInfoElement(coroutineScope, matrixClient, initials, userId, config.maxMediaSizeInMemory)
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val isByMe: Boolean = true
 
-    override val isSent: StateFlow<Boolean> = outboxMessageFlow
-        .map { it == null || it.sentAt != null }
-        .stateIn(coroutineScope, WhileSubscribed(), true)
+    override val isSent: StateFlow<Boolean> =
+        outboxMessageFlow.map { it == null || it.sentAt != null }.stateIn(coroutineScope, WhileSubscribed(), true)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val previousSentTimelineEventFlow =
         combine(
-            matrixClient.room.getOutbox(roomId).flatten(),
-            matrixClient.room.getLastTimelineEvents(roomId)
-                .filterNotNull()
-                .flatMapLatest { lastTimelineEvents ->
-                    timelineElementViewModelFactorySelector.nextSupportedTimelineEvent(
-                        lastTimelineEvents,
-                        filter = {
-                            it.event.unsigned?.transactionId != transactionId
-                        }
-                    ).filterNotNull()
+                matrixClient.room.getOutbox(roomId).flatten(),
+                matrixClient.room.getLastTimelineEvents(roomId).filterNotNull().flatMapLatest { lastTimelineEvents ->
+                    timelineElementViewModelFactorySelector
+                        .nextSupportedTimelineEvent(
+                            lastTimelineEvents,
+                            filter = { it.event.unsigned?.transactionId != transactionId },
+                        )
+                        .filterNotNull()
+                },
+            ) { outbox, nextSupportedTimelineEvent ->
+                val firstOutboxElement = outbox.firstOrNull {
+                    it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId
                 }
-        ) { outbox, nextSupportedTimelineEvent ->
-            val firstOutboxElement =
-                outbox.firstOrNull { it.transactionId != nextSupportedTimelineEvent.event.unsigned?.transactionId }
 
-            if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent
-            else null
-        }.shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
+                if (firstOutboxElement?.transactionId == transactionId) nextSupportedTimelineEvent else null
+            }
+            .shareIn(coroutineScope, whileSubscribedWithTimeout, replay = 1)
 
     override val isFirstInUserSequence: StateFlow<Boolean?> =
-        previousSentTimelineEventFlow.map { previousSentTimelineEvent ->
-            when {
-                previousSentTimelineEvent == null -> false
-                previousSentTimelineEvent.sender == matrixClient.userId -> false
-                else -> true
+        previousSentTimelineEventFlow
+            .map { previousSentTimelineEvent ->
+                when {
+                    previousSentTimelineEvent == null -> false
+                    previousSentTimelineEvent.sender == matrixClient.userId -> false
+                    else -> true
+                }
             }
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false).asStateFlow()
 
@@ -264,46 +277,47 @@ class OutboxElementHolderViewModelImpl(
                         thisTimestamp - previousTimestamp > config.showBigGapBeforeThreshold
                     }
                 }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val uploadProgress: StateFlow<FileTransferProgressElement?> =
-        outboxMessageFlow.flatMapLatest { outboxMessage ->
-            outboxMessage?.mediaUploadProgress?.map {
-                val total = it?.total
-                if (total == null) {
-                    null
-                } else {
-                    FileTransferProgressElement(
-                        percent = if (total > 0) {
-                            it.transferred / total.toFloat()
-                        } else {
-                            0f
-                        },
-                        formattedProgress = formatProgress(it)
-                    )
-                }
-            } ?: flowOf(null)
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+        outboxMessageFlow
+            .flatMapLatest { outboxMessage ->
+                outboxMessage?.mediaUploadProgress?.map {
+                    val total = it?.total
+                    if (total == null) {
+                        null
+                    } else {
+                        FileTransferProgressElement(
+                            percent =
+                                if (total > 0) {
+                                    it.transferred / total.toFloat()
+                                } else {
+                                    0f
+                                },
+                            formattedProgress = formatProgress(it),
+                        )
+                    }
+                } ?: flowOf(null)
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-    override val sendError: StateFlow<String?> = outboxMessageFlow.map { outboxMessage ->
-        outboxMessage?.sendError?.getErrorMessage(i18n)
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val sendError: StateFlow<String?> =
+        outboxMessageFlow
+            .map { outboxMessage -> outboxMessage?.sendError?.getErrorMessage(i18n) }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val canAbortSend: StateFlow<Boolean> = MutableStateFlow(true)
-    override val canRetrySend: StateFlow<Boolean> = outboxMessageFlow.map { it?.sendError != null }
-        .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
+    override val canRetrySend: StateFlow<Boolean> =
+        outboxMessageFlow.map { it?.sendError != null }.stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override fun abortSend() {
-        coroutineScope.launch {
-            matrixClient.room.cancelSendMessage(roomId = roomId, transactionId = transactionId)
-        }
+        coroutineScope.launch { matrixClient.room.cancelSendMessage(roomId = roomId, transactionId = transactionId) }
     }
 
     override fun retrySend() {
-        coroutineScope.launch {
-            matrixClient.room.retrySendMessage(roomId = roomId, transactionId = transactionId)
-        }
+        coroutineScope.launch { matrixClient.room.retrySendMessage(roomId = roomId, transactionId = transactionId) }
     }
 
     override fun jumpTo() {

@@ -21,10 +21,8 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.customClicka
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 
-
 interface LegalFooterView {
-    @Composable
-    fun create()
+    @Composable fun create()
 }
 
 @Composable
@@ -57,10 +55,12 @@ class LegalFooterViewImpl : LegalFooterView {
 @Composable
 private fun TooltipText(text: String, tooltip: String, onClick: () -> Unit) {
     Tooltip(tooltip = { Text(tooltip) }) {
-        Text(text, Modifier.customClickable(onClick = onClick).semantics {
-            this.text = AnnotatedString(tooltip)
-            role = Role.Button
-        })
+        Text(
+            text,
+            Modifier.customClickable(onClick = onClick).semantics {
+                this.text = AnnotatedString(tooltip)
+                role = Role.Button
+            },
+        )
     }
 }
-

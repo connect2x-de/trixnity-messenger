@@ -17,8 +17,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTex
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 
 interface ServerInputFieldView {
-    @Composable
-    fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel)
+    @Composable fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel)
 }
 
 @Composable
@@ -36,12 +35,12 @@ class ServerInputFieldViewImpl : ServerInputFieldView {
             value = serverUrl,
             singleLine = true,
             onValueChange = { serverUrl = it },
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrectEnabled = false,
-                keyboardType = KeyboardType.Uri
-            ),
-
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Uri,
+                ),
             modifier = Modifier.fillMaxWidth(),
             label = { Text(i18n.addMatrixClientServerMatrix()) },
         )

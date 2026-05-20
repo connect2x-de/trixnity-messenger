@@ -14,35 +14,34 @@ import androidx.work.workDataOf
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
-class SyncAndProcessPendingWorker(
-    private val context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
+class SyncAndProcessPendingWorker(private val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
     companion object {
         const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.fcm.SyncAndProcessPendingWorker"
 
         fun enqueueUniquePeriodicWork(context: Context, interval: Duration) {
             val serviceEnabled =
                 try {
-                    context.packageManager.getServiceInfo(
-                        ComponentName(
-                            context,
-                            TrixnityMessengerFirebaseMessagingService::class.java
-                        ), 0
-                    ).enabled
+                    context.packageManager
+                        .getServiceInfo(
+                            ComponentName(context, TrixnityMessengerFirebaseMessagingService::class.java),
+                            0,
+                        )
+                        .enabled
                 } catch (_: PackageManager.NameNotFoundException) {
                     false
                 }
             if (serviceEnabled.not()) return
-            val workRequest = PeriodicWorkRequestBuilder<SyncAndProcessPendingWorker>(interval.toJavaDuration())
-                .setConstraints(
-                    Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.CONNECTED)
-                        .setRequiresBatteryNotLow(true)
-                        .build()
-                )
-                .setInputData(workDataOf("interval" to interval.inWholeSeconds))
-                .build()
+            val workRequest =
+                PeriodicWorkRequestBuilder<SyncAndProcessPendingWorker>(interval.toJavaDuration())
+                    .setConstraints(
+                        Constraints.Builder()
+                            .setRequiredNetworkType(NetworkType.CONNECTED)
+                            .setRequiresBatteryNotLow(true)
+                            .build()
+                    )
+                    .setInputData(workDataOf("interval" to interval.inWholeSeconds))
+                    .build()
             WorkManager.getInstance(context)
                 .enqueueUniquePeriodicWork(UNIQUE_WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, workRequest)
         }

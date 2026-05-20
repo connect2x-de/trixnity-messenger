@@ -11,7 +11,7 @@ sealed interface SecretByteArray {
     data class AesHmacSha2(
         val iv: String, // base64 encoded
         val ciphertext: String, // base64 encoded
-        val mac: String // base64 encoded
+        val mac: String, // base64 encoded
     ) : SecretByteArray
 
     /**
@@ -20,9 +20,7 @@ sealed interface SecretByteArray {
      */
     @Serializable
     @SerialName("unencrypted")
-    data class Unencrypted(
-        val value: @Serializable(ByteArrayBase64Serializer::class) ByteArray
-    ) : SecretByteArray {
+    data class Unencrypted(val value: @Serializable(ByteArrayBase64Serializer::class) ByteArray) : SecretByteArray {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null || this::class != other::class) return false

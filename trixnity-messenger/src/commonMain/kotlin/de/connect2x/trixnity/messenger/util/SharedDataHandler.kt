@@ -8,8 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 sealed interface SharedData {
     data class SingleFile(val file: FileDescriptor) : SharedData
+
     data class MultipleFiles(val files: List<FileDescriptor>) : SharedData
+
     data class PlainText(val text: String) : SharedData
+
     data class Url(val url: String, val icon: FileDescriptor?) : SharedData
 }
 
@@ -19,9 +22,8 @@ interface SharedDataHandler : StateFlow<SharedData?> {
 }
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
-open class SharedDataHandlerImpl(
-    protected val flow: MutableStateFlow<SharedData?> = MutableStateFlow(null)
-) : SharedDataHandler, StateFlow<SharedData?> by flow {
+open class SharedDataHandlerImpl(protected val flow: MutableStateFlow<SharedData?> = MutableStateFlow(null)) :
+    SharedDataHandler, StateFlow<SharedData?> by flow {
     override fun onShare(files: SharedData?) {
         flow.tryEmit(files)
     }

@@ -25,8 +25,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModel
 
 interface UiaDummyStepView {
-    @Composable
-    fun create(uiaStepDummyViewModel: UiaStepDummyViewModel)
+    @Composable fun create(uiaStepDummyViewModel: UiaStepDummyViewModel)
 }
 
 @Composable
@@ -42,21 +41,14 @@ class UiaDummyStepViewImpl : UiaDummyStepView {
 
         val error = uiaStepDummyViewModel.error.collectAsState().value
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaPasswordTitle())
                 if (error != null) {
                     ErrorView(error)
                 }
                 if (isSubmitting) LoadingSpinner()
                 Spacer(Modifier.height(20.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepDummyViewModel::cancel,

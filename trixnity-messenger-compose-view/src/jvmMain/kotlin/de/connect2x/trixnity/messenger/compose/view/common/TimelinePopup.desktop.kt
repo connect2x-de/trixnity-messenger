@@ -24,7 +24,7 @@ actual fun TimelinePopup(
     onDismiss: () -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val expandedState = remember { MutableTransitionState(false) }
     expandedState.targetState = isOpen
@@ -33,19 +33,14 @@ actual fun TimelinePopup(
         Popup(
             onDismissRequest = onDismiss,
             alignment = if (isByMe) Alignment.BottomEnd else Alignment.BottomStart,
-            properties = PopupProperties(
-                focusable = true,
-            ),
+            properties = PopupProperties(focusable = true),
         ) {
             AnimatedVisibility(
                 visibleState = expandedState,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
-                ThemedSurface(
-                    style = MaterialTheme.components.popup,
-                    modifier = Modifier.size(320.dp, 240.dp),
-                ) {
+                ThemedSurface(style = MaterialTheme.components.popup, modifier = Modifier.size(320.dp, 240.dp)) {
                     content()
                 }
             }

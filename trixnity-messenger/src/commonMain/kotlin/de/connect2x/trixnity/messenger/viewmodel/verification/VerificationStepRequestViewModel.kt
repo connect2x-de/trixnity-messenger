@@ -15,9 +15,8 @@ interface VerificationStepRequestViewModelFactory {
         onRequestAccept: () -> Unit,
         theirUserId: UserId?,
         fromDeviceId: String,
-    ): VerificationStepRequestViewModel = VerificationStepRequestViewModelImpl(
-        viewModelContext, onRequestAccept, theirUserId, fromDeviceId,
-    )
+    ): VerificationStepRequestViewModel =
+        VerificationStepRequestViewModelImpl(viewModelContext, onRequestAccept, theirUserId, fromDeviceId)
 
     companion object : VerificationStepRequestViewModelFactory
 }
@@ -44,34 +43,33 @@ open class VerificationStepRequestViewModelImpl(
     override val ourUserId: UserId = userId
 
     override val ourDisplayName: StateFlow<String> =
-        matrixClient.profile.map { it?.get(ProfileField.DisplayName)?.value ?: userId.full }
+        matrixClient.profile
+            .map { it?.get(ProfileField.DisplayName)?.value ?: userId.full }
             .stateIn(coroutineScope, WhileSubscribed(), userId.full)
 
     override val theirDisplayName: StateFlow<String?> =
         flow {
-            emit(theirUserId?.let { userId ->
-                matrixClient.api.user.getProfileField(userId, ProfileField.DisplayName)
-                    .fold({ it.value }, { theirUserId?.full })
-            })
-        }
+                emit(
+                    theirUserId?.let { userId ->
+                        matrixClient.api.user
+                            .getProfileField(userId, ProfileField.DisplayName)
+                            .fold({ it.value }, { theirUserId?.full })
+                    }
+                )
+            }
             .stateIn(coroutineScope, WhileSubscribed(), theirUserId?.full)
 
     override val ourDeviceDisplayName: StateFlow<String> =
-        flow {
-            emit(matrixClient.api.device.getDevice(matrixClient.deviceId).fold({ it }, { null }))
-        }
+        flow { emit(matrixClient.api.device.getDevice(matrixClient.deviceId).fold({ it }, { null })) }
             .map { it?.displayName ?: matrixClient.deviceId }
             .stateIn(coroutineScope, WhileSubscribed(), matrixClient.deviceId)
 
     override val theirDeviceDisplayName: StateFlow<String> =
-        flow {
-            emit(matrixClient.api.device.getDevice(theirDeviceId).fold({ it }, { null }))
-        }
+        flow { emit(matrixClient.api.device.getDevice(theirDeviceId).fold({ it }, { null })) }
             .map { it?.displayName ?: theirDeviceId }
             .stateIn(coroutineScope, WhileSubscribed(), theirDeviceId)
 
-    override val isFromOwnAccount: Boolean =
-        ourUserId == theirUserId
+    override val isFromOwnAccount: Boolean = ourUserId == theirUserId
 
     override fun next() {
         onRequestAccept()

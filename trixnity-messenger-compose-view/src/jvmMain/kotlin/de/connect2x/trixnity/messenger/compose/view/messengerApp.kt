@@ -32,26 +32,20 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import de.connect2x.trixnity.messenger.util.defaultUriHandler
+import java.awt.GraphicsEnvironment
+import java.awt.Taskbar
+import java.awt.dnd.DropTarget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import okio.FileSystem
-import java.awt.GraphicsEnvironment
-import java.awt.Taskbar
-import java.awt.dnd.DropTarget
 
-fun messengerApp(
-    matrixMultiMessenger: MatrixMultiMessenger,
-    lifecycle: LifecycleRegistry
-) {
+fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: LifecycleRegistry) {
     application(exitProcessOnExit = false) { // Make sure this unblocks and returns after application is closed
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
         val width = gd.displayMode.width
         val height = gd.displayMode.height
-        val windowState = rememberWindowState(
-            width = min(1600.dp, width.dp),
-            height = min(1000.dp, height.dp)
-        )
+        val windowState = rememberWindowState(width = min(1600.dp, width.dp), height = min(1000.dp, height.dp))
         val escapeKeyPressed = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
         LifecycleController(lifecycle, windowState)
 
@@ -65,7 +59,7 @@ fun messengerApp(
                     escapeKeyPressed.tryEmit(Unit)
                     false
                 } else false
-            }
+            },
         ) {
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,
@@ -73,49 +67,41 @@ fun messengerApp(
                 activeMessengerOnce = { matrixMessenger, _ ->
                     window.rootPane.dropTarget = DropTarget()
                     window.rootPane.dropTarget.addDropTargetListener(
-                        DragAndDrop(
-                            matrixMessenger.defaultDragAndDropHandler,
-                            matrixMessenger.di.get<FileSystem>()
-                        )
+                        DragAndDrop(matrixMessenger.defaultDragAndDropHandler, matrixMessenger.di.get<FileSystem>())
                     )
                     // Launch this onto the messenger's coroutine scope so it gets shut down properly
                     matrixMultiMessenger.di.get<CoroutineScope>().launch {
-                        matrixMultiMessenger.defaultUriHandler.collect {
-                            window.rootPane.requestFocus()
-                        }
+                        matrixMultiMessenger.defaultUriHandler.collect { window.rootPane.requestFocus() }
                     }
                 },
                 activeMessenger = { matrixMessenger, rootViewModel ->
                     val unreadMessages = matrixMessenger.notificationCount.collectAsState()
                     val trayState = rememberTrayState()
                     if (isTraySupported) { // e.g., for GNOME this is false
-                        Tray(
-                            state = trayState,
-                            icon = MessengerTrayIcon(unreadMessages.value),
-                        )
+                        Tray(state = trayState, icon = MessengerTrayIcon(unreadMessages.value))
                     }
                     if (Taskbar.isTaskbarSupported()) {
                         if (Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE)) {
                             Taskbar.getTaskbar().iconImage =
-                                MessengerTrayIcon(unreadMessages.value, iconSize = 1024f).toAwtImage(
-                                    Density(1f),
-                                    LayoutDirection.Ltr
-                                )
+                                MessengerTrayIcon(unreadMessages.value, iconSize = 1024f)
+                                    .toAwtImage(Density(1f), LayoutDirection.Ltr)
                         }
                     }
 
                     val isFocusHighlighting =
-                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                            .collectAsState().value.base.isFocusHighlighting
+                        matrixMessenger.di
+                            .get<MatrixMessengerSettingsHolder>()
+                            .collectAsState()
+                            .value
+                            .base
+                            .isFocusHighlighting
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
                         DI provides matrixMessenger.di,
                         IsFocusHighlighting provides isFocusHighlighting,
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
-                        MessengerTheme {
-                            Client(rootViewModel)
-                        }
+                        MessengerTheme { Client(rootViewModel) }
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->
@@ -127,11 +113,9 @@ fun messengerApp(
                         IsFocusHighlighting provides false,
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
-                        MessengerTheme {
-                            Profiles()
-                        }
+                        MessengerTheme { Profiles() }
                     }
-                }
+                },
             )
         }
     }

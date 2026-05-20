@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
@@ -7,15 +10,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import org.koin.core.component.get
-import kotlin.reflect.KClass
 
 interface VideoRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Video> {
     override fun create(
@@ -45,24 +45,34 @@ class VideoRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId,
     onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.FileBased.Video, FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(
-    viewModelContext,
-    content,
-    roomId,
-    eventIdOrTransactionId,
-    onOpenMention,
-) {
+) :
+    RoomMessageTimelineElementViewModel.FileBased.Video,
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.Video>(
+        viewModelContext,
+        content,
+        roomId,
+        eventIdOrTransactionId,
+        onOpenMention,
+    ) {
     override val duration: Long? = content.info?.duration
 
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val thumbnail: StateFlow<ByteArray?> = flow {
-        emit(
-            thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
-        )
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val thumbnail: StateFlow<ByteArray?> =
+        flow {
+                emit(
+                    thumbnails.loadThumbnail(
+                        coroutineScope,
+                        matrixClient,
+                        content,
+                        thumbnailProgressFlow,
+                        maxMediaSizeInMemory,
+                    )
+                )
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height

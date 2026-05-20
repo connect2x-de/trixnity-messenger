@@ -1,6 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.verification
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.AlreadyCrossSigned
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.crypto.key.RecoveryKeyInvalidException
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
@@ -22,17 +33,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.key
-import de.connect2x.trixnity.client.verification
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKey
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase
-import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.AlreadyCrossSigned
-import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
-import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.NoCrossSigningEnabled
-import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.PreconditionsNotMet
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.core.component.get
 
 interface SelfVerificationViewModelFactory {
@@ -62,14 +62,23 @@ interface SelfVerificationViewModel {
     val isSetup: StateFlow<Boolean>
 
     fun waitForAvailableVerificationMethods()
+
     fun launchVerification(selfVerificationMethod: SelfVerificationMethod)
+
     fun verifyWithRecoveryKey(recoveryKey: String)
+
     fun verifyWithPassphrase(passphrase: String)
+
     fun backToChoose()
+
     fun backToHelp()
+
     fun resetRecoveryWarning()
+
     fun resetRecovery()
+
     fun closeMessenger()
+
     fun close()
 }
 
@@ -94,31 +103,28 @@ open class SelfVerificationViewModelImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val isVerified: StateFlow<Boolean?> =
-        matrixClients.map { it[userId] }.filterNotNull()
-            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }.flatMapLatest { it }
+        matrixClients
+            .map { it[userId] }
+            .filterNotNull()
+            .map { it.key.getTrustLevel(userId, it.deviceId).map { it.isVerified } }
+            .flatMapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-
     override val isSetup =
-        get<MatrixMessengerSettingsHolder>().map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
-            .stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(), false
-            )
+        get<MatrixMessengerSettingsHolder>()
+            .map { it.base.accounts[userId]?.base?.accountSetupFinished == false }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     @OptIn(FlowPreview::class)
     private val verificationMethods =
-        matrixClient.verification.getSelfVerificationMethods()
+        matrixClient.verification
+            .getSelfVerificationMethods()
             .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     override val verificationMethodsLoaded: StateFlow<Boolean?> =
-        verificationMethods.map { verificationMethods ->
-            verificationMethods !is PreconditionsNotMet
-        }.stateIn(
-            coroutineScope,
-            SharingStarted.WhileSubscribed(),
-            null
-        )
+        verificationMethods
+            .map { verificationMethods -> verificationMethods !is PreconditionsNotMet }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun waitForAvailableVerificationMethods() {
         showVerificationHelp.value = false
@@ -152,13 +158,10 @@ open class SelfVerificationViewModelImpl(
         when (selfVerificationMethod) {
             is SelfVerificationMethod.CrossSignedDeviceVerification -> {
                 coroutineScope.launch {
-                    selfVerificationMethod.createDeviceVerification()
-                        .onSuccess {
-                            log.debug { "successfully created a device verification" }
-                        }
-                        .onFailure {
-                            log.error(it) { "device verification failed" }
-                        }
+                    selfVerificationMethod
+                        .createDeviceVerification()
+                        .onSuccess { log.debug { "successfully created a device verification" } }
+                        .onFailure { log.error(it) { "device verification failed" } }
                     log.debug { "close self verification view" }
                     onCloseSelfVerification(true)
                 }
@@ -181,21 +184,23 @@ open class SelfVerificationViewModelImpl(
         coroutineScope.launch {
             log.debug { "verify" }
             showRecoveryKeyMethod.value?.let { recoveryKeyMethod ->
-                verifyAccount.verify(recoveryKeyMethod, recoveryKey).fold(
-                    onSuccess = {
-                        log.debug { "successfully verified with recovery key" }
-                        onCloseSelfVerification(true)
-                    },
-                    onFailure = {
-                        if (it is RecoveryKeyInvalidException) {
-                            log.debug { "recovery key is wrong: ${it.message}" }
-                            recoveryKeyWrong.value = true
-                        } else {
-                            log.error(it) { "Cannot verify with recovery key." }
-                            error.value = i18n.selfVerificationErrorMasterKey()
-                        }
-                    }
-                )
+                verifyAccount
+                    .verify(recoveryKeyMethod, recoveryKey)
+                    .fold(
+                        onSuccess = {
+                            log.debug { "successfully verified with recovery key" }
+                            onCloseSelfVerification(true)
+                        },
+                        onFailure = {
+                            if (it is RecoveryKeyInvalidException) {
+                                log.debug { "recovery key is wrong: ${it.message}" }
+                                recoveryKeyWrong.value = true
+                            } else {
+                                log.error(it) { "Cannot verify with recovery key." }
+                                error.value = i18n.selfVerificationErrorMasterKey()
+                            }
+                        },
+                    )
             }
         }
     }
@@ -206,21 +211,23 @@ open class SelfVerificationViewModelImpl(
 
         coroutineScope.launch {
             showPassphraseMethod.value?.let { passphraseMethod ->
-                verifyAccount.verify(passphraseMethod, passphrase).fold(
-                    onSuccess = {
-                        log.debug { "successfully verified with passphrase" }
-                        onCloseSelfVerification(true)
-                    },
-                    onFailure = {
-                        // internally, the passphrase is used to re-create the recovery key
-                        if (it is RecoveryKeyInvalidException) {
-                            passphraseWrong.value = true
-                        } else {
-                            log.error(it) { "Cannot verify with passphrase." }
-                            error.value = i18n.selfVerificationErrorMasterPassphrase()
-                        }
-                    }
-                )
+                verifyAccount
+                    .verify(passphraseMethod, passphrase)
+                    .fold(
+                        onSuccess = {
+                            log.debug { "successfully verified with passphrase" }
+                            onCloseSelfVerification(true)
+                        },
+                        onFailure = {
+                            // internally, the passphrase is used to re-create the recovery key
+                            if (it is RecoveryKeyInvalidException) {
+                                passphraseWrong.value = true
+                            } else {
+                                log.error(it) { "Cannot verify with passphrase." }
+                                error.value = i18n.selfVerificationErrorMasterPassphrase()
+                            }
+                        },
+                    )
             }
         }
     }
@@ -265,7 +272,9 @@ open class SelfVerificationViewModelImpl(
         BackCallback(priority = BackHandler.PRIORITY_VERIFICATION) {
             when {
                 showVerificationHelp.value -> close()
-                (showResetRecoveryWarning.value || showPassphraseMethod.value != null || showRecoveryKeyMethod.value != null) -> backToChoose()
+                (showResetRecoveryWarning.value ||
+                    showPassphraseMethod.value != null ||
+                    showRecoveryKeyMethod.value != null) -> backToChoose()
 
                 else -> backToHelp()
             }

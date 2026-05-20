@@ -5,13 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.rendering.PDFRenderer
@@ -19,20 +19,14 @@ import org.apache.pdfbox.rendering.PDFRenderer
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
 
-actual suspend fun getPlatformPDFReader(
-    media: PlatformMedia,
-    onError: (String?) -> Unit,
-): PDFReader {
+actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader {
     val reader = PlatformPDFReader(media, onError)
     reader.initialize()
 
     return reader
 }
 
-class PlatformPDFReader(
-    val media: PlatformMedia,
-    val onError: (String?) -> Unit,
-) : PDFReader {
+class PlatformPDFReader(val media: PlatformMedia, val onError: (String?) -> Unit) : PDFReader {
     private val document = MutableStateFlow<Pair<PDDocument, PDFRenderer>?>(null)
     override val documentWidth: MutableState<Int?> = mutableStateOf(null)
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
@@ -70,14 +64,11 @@ class PlatformPDFReader(
         document.value = null
     }
 
-
     override suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap? {
         val renderer = document.first { it != null }?.second
         return renderer?.renderImageWithDPI(pageId, dpi)?.let {
             log.debug {
-                "render pdf page $pageId " +
-                        "to bitmap (${it.width}x${it.height}) " +
-                        "at scale factor: $dpi "
+                "render pdf page $pageId " + "to bitmap (${it.width}x${it.height}) " + "at scale factor: $dpi "
             }
             it.toComposeImageBitmap()
         }

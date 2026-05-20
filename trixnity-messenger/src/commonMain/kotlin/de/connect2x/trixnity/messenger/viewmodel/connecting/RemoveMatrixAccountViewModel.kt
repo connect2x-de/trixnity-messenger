@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -10,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import de.connect2x.trixnity.core.model.UserId
 
 interface RemoveMatrixAccountViewModelFactory {
     fun create(
@@ -18,11 +18,7 @@ interface RemoveMatrixAccountViewModelFactory {
         userId: UserId,
         onRemoveCompleted: () -> Unit,
     ): RemoveMatrixAccountViewModel {
-        return RemoveMatrixAccountViewModelImpl(
-            viewModelContext,
-            userId,
-            onRemoveCompleted,
-        )
+        return RemoveMatrixAccountViewModelImpl(viewModelContext, userId, onRemoveCompleted)
     }
 
     companion object : RemoveMatrixAccountViewModelFactory
@@ -33,6 +29,7 @@ interface RemoveMatrixAccountViewModel {
     val error: StateFlow<String?>
 
     fun tryAgain(force: Boolean = false)
+
     fun close()
 }
 
@@ -47,9 +44,7 @@ class RemoveMatrixAccountViewModelImpl(
     private val logoutMutex = Mutex()
 
     init {
-        coroutineScope.launch {
-            logout()
-        }
+        coroutineScope.launch { logout() }
     }
 
     override fun close() {
@@ -60,18 +55,18 @@ class RemoveMatrixAccountViewModelImpl(
         if (logoutMutex.isLocked) return
         logoutMutex.withLock {
             _error.value = null
-            matrixClients.logout(userId)
+            matrixClients
+                .logout(userId)
                 .onSuccess {
                     log.debug { "logout completed" }
                     onRemoveCompleted()
                 }
                 .onFailure { e ->
                     if (force) {
-                        matrixClients.remove(userId)
-                            .onFailure {
-                                log.error(it) { "cannot remove account $userId (force=$force)" }
-                                _error.value = i18n.logoutFailure()
-                            }
+                        matrixClients.remove(userId).onFailure {
+                            log.error(it) { "cannot remove account $userId (force=$force)" }
+                            _error.value = i18n.logoutFailure()
+                        }
                     } else {
                         log.error(e) { "cannot log out of account $userId" }
                         _error.value = i18n.logoutFailure()
@@ -81,8 +76,6 @@ class RemoveMatrixAccountViewModelImpl(
     }
 
     override fun tryAgain(force: Boolean) {
-        coroutineScope.launch {
-            logout(force)
-        }
+        coroutineScope.launch { logout(force) }
     }
 }

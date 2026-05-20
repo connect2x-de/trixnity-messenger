@@ -36,23 +36,17 @@ fun RoomTimeAndUnreadMessagesCounter(roomListElementViewModel: RoomListElementVi
         modifier = Modifier,
         enabled = notificationCount != null || isUnread == true,
     ) {
-        Column(
-            modifier = Modifier,
-            horizontalAlignment = Alignment.End
-        ) {
+        Column(modifier = Modifier, horizontalAlignment = Alignment.End) {
             Row {
                 RoomListElementSymbols(roomListElementViewModel)
                 VerySmallSpacer()
-                Box(Modifier.alpha(actionVisibility)) {
-                    RoomTime(roomListElementViewModel)
-                }
+                Box(Modifier.alpha(actionVisibility)) { RoomTime(roomListElementViewModel) }
             }
             VerySmallSpacer()
             NotificationAndUnreadMarker(notificationCount, isUnread)
         }
     }
 }
-
 
 @Composable
 fun LastMessage(lastMessage: String?, usersTyping: String?) {

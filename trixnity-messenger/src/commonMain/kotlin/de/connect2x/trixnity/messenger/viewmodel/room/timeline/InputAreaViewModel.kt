@@ -26,6 +26,7 @@ import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
+import de.connect2x.trixnity.core.util.Reference as TrixnityReference
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -44,6 +45,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.NonCancellable
@@ -63,13 +66,13 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -81,16 +84,12 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.html.HtmlGenerator.TagRenderer
 import org.intellij.markdown.parser.MarkdownParser
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
-import de.connect2x.trixnity.core.util.Reference as TrixnityReference
 
 private sealed interface SubstringType {
     suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String
 
     data class Text(val text: String) : SubstringType {
-        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String =
-            this.text
+        override suspend fun format(matrixClient: MatrixClient, roomId: RoomId): String = this.text
     }
 
     data class Reference(val reference: TrixnityReference) : SubstringType {
@@ -103,9 +102,9 @@ private sealed interface SubstringType {
 
                 is TrixnityReference.Room -> {
                     val alias =
-                        matrixClient.room.getState<CanonicalAliasEventContent>(reference.roomId)
-                            .first()
-                            ?.content?.run { alias ?: aliases?.firstOrNull() }
+                        matrixClient.room.getState<CanonicalAliasEventContent>(reference.roomId).first()?.content?.run {
+                            alias ?: aliases?.firstOrNull()
+                        }
                     val anchorContent = alias?.full ?: reference.roomId.full
                     """<a href="$uri">$anchorContent</a>"""
                 }
@@ -165,13 +164,21 @@ interface InputAreaViewModel {
     val audio: AudioRecordingAreaViewModel
 
     fun selectMention(userId: UserId)
+
     fun sendMessage()
+
     fun selectAttachment()
+
     fun closeAttachmentDialog()
+
     fun onAttachmentFileSelect(file: FileDescriptor)
+
     fun replaceMessage(roomId: RoomId, eventId: EventId)
+
     fun cancelReplace()
+
     fun replyMessage(roomId: RoomId, eventId: EventId)
+
     fun cancelReply()
 }
 
@@ -192,7 +199,8 @@ open class InputAreaViewModelImpl(
     private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
 
     override val isAllowedToSendMessages: StateFlow<Boolean> =
-        matrixClient.user.canSendEvent<RoomMessageEventContent>(roomId)
+        matrixClient.user
+            .canSendEvent<RoomMessageEventContent>(roomId)
             .stateIn(coroutineScope, WhileSubscribed(), false)
     override val textField = TextFieldViewModelImpl(maxLength = 20_000)
     override val isSendEnabled: StateFlow<Boolean> =
@@ -208,10 +216,7 @@ open class InputAreaViewModelImpl(
 
     @Suppress("unused")
     private val completeAudioRecordingOnReplace =
-        isReplace
-            .filter { it }
-            .onEach { audio.recorder?.complete() }
-            .launchIn(coroutineScope)
+        isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
 
     private val currentReply = MutableStateFlow<Pair<RoomId, EventId>?>(null)
     override val isReply: StateFlow<Boolean> =
@@ -221,10 +226,8 @@ open class InputAreaViewModelImpl(
 
     override val useMarkdown = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel =
-        get<AudioRecordingAreaViewModelFactory>().create(
-            childContext("audioRecordingAreaViewModel"),
-            ::sendAudioMessage
-        )
+        get<AudioRecordingAreaViewModelFactory>()
+            .create(childContext("audioRecordingAreaViewModel"), ::sendAudioMessage)
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -233,33 +236,65 @@ open class InputAreaViewModelImpl(
             node: ASTNode,
             tagName: CharSequence,
             vararg attributes: CharSequence?,
-            autoClose: Boolean
-        ): CharSequence = when (tagName) {
-            // Recommended Tag Whitelist
-            // https://spec.matrix.org/v1.13/client-server-api/#mroommessage-msgtypes
-            "del", "h1", "h2", "h3", "h4", "h5", "h6",
-            "blockquote", "p", "a", "ul", "ol", "sup",
-            "sub", "li", "b", "i", "u", "strong", "em",
-            "s", "code", "hr", "br", "div", "table",
-            "thead", "tbody", "tr", "th", "td", "caption",
-            "pre", "span", "img", "details", "summary" ->
-                buildString {
-                    append("<$tagName")
-                    attributes.forEach { attribute ->
-                        if (attribute != null) {
-                            append(" $attribute")
+            autoClose: Boolean,
+        ): CharSequence =
+            when (tagName) {
+                // Recommended Tag Whitelist
+                // https://spec.matrix.org/v1.13/client-server-api/#mroommessage-msgtypes
+                "del",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "blockquote",
+                "p",
+                "a",
+                "ul",
+                "ol",
+                "sup",
+                "sub",
+                "li",
+                "b",
+                "i",
+                "u",
+                "strong",
+                "em",
+                "s",
+                "code",
+                "hr",
+                "br",
+                "div",
+                "table",
+                "thead",
+                "tbody",
+                "tr",
+                "th",
+                "td",
+                "caption",
+                "pre",
+                "span",
+                "img",
+                "details",
+                "summary" ->
+                    buildString {
+                        append("<$tagName")
+                        attributes.forEach { attribute ->
+                            if (attribute != null) {
+                                append(" $attribute")
+                            }
+                        }
+
+                        if (autoClose) {
+                            append(" />")
+                        } else {
+                            append(">")
                         }
                     }
 
-                    if (autoClose) {
-                        append(" />")
-                    } else {
-                        append(">")
-                    }
-                }
-
-            else -> ""
-        }
+                else -> ""
+            }
 
         override fun closeTag(tagName: CharSequence): CharSequence = if (tagName == "body") "" else "</$tagName>"
 
@@ -267,54 +302,35 @@ open class InputAreaViewModelImpl(
     }
 
     override val listOfMentions: StateFlow<List<UserInfoElement>?> =
-        textField.map { textFieldValue ->
-            val userIdLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
-            if (userIdLocalPartBeforeCursor != null) {
-                _listOfMentionsLoading.value = true
-                val listOfUsers = listOfUsers(userIdLocalPartBeforeCursor)
-                _listOfMentionsLoading.value = false
-                listOfUsers
-            } else null
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        textField
+            .map { textFieldValue ->
+                val userIdLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
+                if (userIdLocalPartBeforeCursor != null) {
+                    _listOfMentionsLoading.value = true
+                    val listOfUsers = listOfUsers(userIdLocalPartBeforeCursor)
+                    _listOfMentionsLoading.value = false
+                    listOfUsers
+                } else null
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
     private val draftMutex: Mutex = Mutex()
 
     init {
-        coroutineScope.launch {
-            isStillTyping.debounce(3.seconds).collect {
-                userIsNotTyping()
-            }
-        }
-        coroutineScope.launch {
-            textField.collect {
-                if (it.text.isEmpty()) userIsNotTyping()
-                else typing()
-            }
-        }
+        coroutineScope.launch { isStillTyping.debounce(3.seconds).collect { userIsNotTyping() } }
+        coroutineScope.launch { textField.collect { if (it.text.isEmpty()) userIsNotTyping() else typing() } }
         coroutineScope.launch {
             if (enableMessageDrafts) {
                 loadDraftIntoTextField()
-                textField
-                    .debounce(2.seconds)
-                    .collect {
-                        draftMutex.withLock {
-                            saveAsDraft()
-                        }
-                    }
+                textField.debounce(2.seconds).collect { draftMutex.withLock { saveAsDraft() } }
             } else {
                 matrixClient.room.deleteDraftMessage(roomId)
             }
         }
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
-                get<CoroutineScope>().launch {
-                    withContext(NonCancellable) {
-                        draftMutex.withLock {
-                            saveAsDraft()
-                        }
-                    }
-                }
+                get<CoroutineScope>().launch { withContext(NonCancellable) { draftMutex.withLock { saveAsDraft() } } }
             }
         }
     }
@@ -345,10 +361,7 @@ open class InputAreaViewModelImpl(
     }
 
     private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
-        val event =
-            matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-                .filterNotNull()
-                .first()
+        val event = matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second).filterNotNull().first()
         reply(event)
     }
 
@@ -378,37 +391,39 @@ open class InputAreaViewModelImpl(
 
     private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
-        val userReferences =
-            references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
-        val formattedReferences = references.filterValues { it !is TrixnityReference.Link }.entries.withIndex()
-            .windowed(
-                size = 2,
-                partialWindows = true
-            ) { mentionWindow ->
-                val first = mentionWindow[0]
-                val second = mentionWindow.getOrNull(1)
+        val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+        val formattedReferences =
+            references
+                .filterValues { it !is TrixnityReference.Link }
+                .entries
+                .withIndex()
+                .windowed(size = 2, partialWindows = true) { mentionWindow ->
+                    val first = mentionWindow[0]
+                    val second = mentionWindow.getOrNull(1)
 
-                listOfNotNull(
-                    if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
-                    else null,
-                    SubstringType.Reference(first.value.value),
-                    if (second == null) SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
-                    else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start))
-                )
-            }.flatten()
-            .map { substring ->
-                substring.format(matrixClient, roomId)
-            }.joinToString("")
-            .ifBlank { text }
+                    listOfNotNull(
+                        if (first.index == 0) SubstringType.Text(text.substring(0 until first.value.key.first))
+                        else null,
+                        SubstringType.Reference(first.value.value),
+                        if (second == null)
+                            SubstringType.Text(text.substring(first.value.key.last + 1 until text.length))
+                        else SubstringType.Text(text.substring(first.value.key.last + 1 until second.value.key.start)),
+                    )
+                }
+                .flatten()
+                .map { substring -> substring.format(matrixClient, roomId) }
+                .joinToString("")
+                .ifBlank { text }
 
         val formattedBody =
             when (useMarkdown.value) {
                 true ->
                     HtmlGenerator(
-                        formattedReferences,
-                        markdownParser.buildMarkdownTreeFromString(formattedReferences),
-                        markdownFlavourDescriptor
-                    ).generateHtml(HtmlTagRenderer())
+                            formattedReferences,
+                            markdownParser.buildMarkdownTreeFromString(formattedReferences),
+                            markdownFlavourDescriptor,
+                        )
+                        .generateHtml(HtmlTagRenderer())
 
                 false -> formattedReferences
             }
@@ -436,7 +451,6 @@ open class InputAreaViewModelImpl(
         matrixClient.room.setDraftMessage(roomId = roomId, builder = getMessageBuilder(text))
     }
 
-
     override fun selectMention(userId: UserId) {
         if (listOfMentions.value?.any { it.userId == userId } != true) return
         val textFieldValue = textField.value
@@ -445,11 +459,12 @@ open class InputAreaViewModelImpl(
         if (userIdLocalPartBeforeCursor != null && selection != null) {
             val userIdStart = selection.last - userIdLocalPartBeforeCursor.length - 2 // 1 for @ and 1 for cursor
             textField.update(
-                text = buildString {
-                    append(text.substring(0..userIdStart))
-                    append(userId)
-                    append(text.substring(selection.last.coerceAtMost(text.length)))
-                },
+                text =
+                    buildString {
+                        append(text.substring(0..userIdStart))
+                        append(userId)
+                        append(text.substring(selection.last.coerceAtMost(text.length)))
+                    },
                 selection = IntRange(userIdStart + userId.full.length + 1),
             )
         }
@@ -457,7 +472,8 @@ open class InputAreaViewModelImpl(
 
     private fun TextFieldViewModel.State.mentionBeforeCursor() =
         if (text.isNotEmpty() && selection != null && selection.firstIsLast() && selection.first != 0) {
-            text.substring(0..(selection.last - 1).coerceIn(0..text.lastIndex))
+            text
+                .substring(0..(selection.last - 1).coerceIn(0..text.lastIndex))
                 .takeLast(50)
                 .takeIf { it.contains('@') }
                 ?.substringAfterLast('@')
@@ -503,17 +519,16 @@ open class InputAreaViewModelImpl(
     override fun replaceMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "edit message $eventId" }
         coroutineScope.launch {
-            matrixClient.room.getTimelineEvent(roomId, eventId).first()?.content?.getOrNull()
-                ?.let { roomEventContent ->
-                    when (roomEventContent) {
-                        is TextBased -> {
-                            currentReplace.value = roomId to eventId
-                            textField.update(roomEventContent.bodyWithoutFallback)
-                        }
-
-                        else -> log.warn { "cannot edit anything besides TextBased" }
+            matrixClient.room.getTimelineEvent(roomId, eventId).first()?.content?.getOrNull()?.let { roomEventContent ->
+                when (roomEventContent) {
+                    is TextBased -> {
+                        currentReplace.value = roomId to eventId
+                        textField.update(roomEventContent.bodyWithoutFallback)
                     }
-                } ?: log.warn { "cannot get timeline event content of $eventId" }
+
+                    else -> log.warn { "cannot edit anything besides TextBased" }
+                }
+            } ?: log.warn { "cannot get timeline event content of $eventId" }
         }
     }
 
@@ -527,19 +542,20 @@ open class InputAreaViewModelImpl(
     }
 
     private val getReceiptsByEventCache = concurrentMutableMap<RoomId, Flow<Map<EventId, Set<UserId>>>>()
-    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> =
-        flow {
-            emitAll(
-                getReceiptsByEventCache.read { get(roomId) }
-                    ?: getReceiptsByEventCache.write {
-                        getOrPut(roomId) {
-                            matrixClient.user.getAllReceipts(roomId)
-                                .byEventId(userId)
-                                .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
-                        }
+
+    private fun getReceipts(roomId: RoomId): Flow<Map<EventId, Set<UserId>>> = flow {
+        emitAll(
+            getReceiptsByEventCache.read { get(roomId) }
+                ?: getReceiptsByEventCache.write {
+                    getOrPut(roomId) {
+                        matrixClient.user
+                            .getAllReceipts(roomId)
+                            .byEventId(userId)
+                            .stateIn(coroutineScope, WhileSubscribed(), emptyMap())
                     }
-            )
-        }
+                }
+        )
+    }
 
     private data class TimelineElementHolderViewModelWrapper(
         val roomId: RoomId,
@@ -551,47 +567,52 @@ open class InputAreaViewModelImpl(
     private val timelineElementHolderViewModelFactory = get<TimelineElementHolderViewModelFactory>()
     private val repliedElementCache = MutableStateFlow<TimelineElementHolderViewModelWrapper?>(null)
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> =
-        currentReply.map { roomIdAndEventId ->
-            if (roomIdAndEventId == null) return@map null
-            val (roomId, eventId) = roomIdAndEventId
-            val repliedElementCacheValue = repliedElementCache.value
-            if (repliedElementCacheValue?.roomId == roomId && repliedElementCacheValue.eventId == eventId)
-                return@map repliedElementCacheValue.viewModel
-            val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull()
-            val timelineEvent = timelineEventFlow.first()
-            repliedElementCache.value?.lifecycle?.destroy()
-            val lifecycle = LifecycleRegistry()
-            lifecycle.start()
-            timelineElementHolderViewModelFactory.create(
-                viewModelContext = childContextWithOwnLifecycle(eventId.full, lifecycle),
-                key = "element",
-                timelineEventFlow = timelineEventFlow,
-                roomId = roomId,
-                eventId = eventId,
-                sender = timelineEvent.sender,
-                formattedDate = formatDate(
-                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                        .toLocalDateTime(timeZone)
-                ),
-                formattedTime = formatTime(
-                    Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                        .toLocalDateTime(timeZone)
-                ),
-                showLoadingIndicatorBefore = flowOf(false),
-                showLoadingIndicatorAfter = flowOf(false),
-                showUnreadMarker = flowOf(false),
-                getReceipts = ::getReceipts,
-                onMessageReplace = { _, _ -> },
-                onMessageReply = { _, _ -> },
-                onMessageReport = { _, _ -> },
-                onOpenMention = { _, _ -> },
-                onOpenMetadata = {},
-                jumpTo = { _, _ -> },
-                ignoreReplacedEvents = true,
-            ).also {
-                repliedElementCache.value = TimelineElementHolderViewModelWrapper(roomId, eventId, it, lifecycle)
+        currentReply
+            .map { roomIdAndEventId ->
+                if (roomIdAndEventId == null) return@map null
+                val (roomId, eventId) = roomIdAndEventId
+                val repliedElementCacheValue = repliedElementCache.value
+                if (repliedElementCacheValue?.roomId == roomId && repliedElementCacheValue.eventId == eventId)
+                    return@map repliedElementCacheValue.viewModel
+                val timelineEventFlow = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull()
+                val timelineEvent = timelineEventFlow.first()
+                repliedElementCache.value?.lifecycle?.destroy()
+                val lifecycle = LifecycleRegistry()
+                lifecycle.start()
+                timelineElementHolderViewModelFactory
+                    .create(
+                        viewModelContext = childContextWithOwnLifecycle(eventId.full, lifecycle),
+                        key = "element",
+                        timelineEventFlow = timelineEventFlow,
+                        roomId = roomId,
+                        eventId = eventId,
+                        sender = timelineEvent.sender,
+                        formattedDate =
+                            formatDate(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        formattedTime =
+                            formatTime(
+                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toLocalDateTime(timeZone)
+                            ),
+                        showLoadingIndicatorBefore = flowOf(false),
+                        showLoadingIndicatorAfter = flowOf(false),
+                        showUnreadMarker = flowOf(false),
+                        getReceipts = ::getReceipts,
+                        onMessageReplace = { _, _ -> },
+                        onMessageReply = { _, _ -> },
+                        onMessageReport = { _, _ -> },
+                        onOpenMention = { _, _ -> },
+                        onOpenMetadata = {},
+                        jumpTo = { _, _ -> },
+                        ignoreReplacedEvents = true,
+                    )
+                    .also {
+                        repliedElementCache.value =
+                            TimelineElementHolderViewModelWrapper(roomId, eventId, it, lifecycle)
+                    }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override fun replyMessage(roomId: RoomId, eventId: EventId) {
         log.debug { "reply to message ${eventId}" }
@@ -608,24 +629,25 @@ open class InputAreaViewModelImpl(
     }
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
     private suspend fun listOfUsers(search: String): List<UserInfoElement> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
-        return allUsers
-            .entries.asFlow()
+        return allUsers.entries
+            .asFlow()
             .map { users -> users.value.first() }
             .filterNotNull()
             .filter { roomUser ->
                 val userId = roomUser.userId
-                userId != matrixClient.userId && (
-                        roomUser.name.contains(search, ignoreCase = true) ||
-                                userId.localpart.contains(search, ignoreCase = true) ||
-                                userId.domain.contains(search, ignoreCase = true)
-                        )
+                userId != matrixClient.userId &&
+                    (roomUser.name.contains(search, ignoreCase = true) ||
+                        userId.localpart.contains(search, ignoreCase = true) ||
+                        userId.domain.contains(search, ignoreCase = true))
             }
             .take(10)
             .map { roomUser ->
                 roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxMediaSizeInMemory)
-            }.toList()
+            }
+            .toList()
     }
 
     private suspend fun typing() {
@@ -635,7 +657,8 @@ open class InputAreaViewModelImpl(
             try {
                 if (messengerSettings[userId].first()?.base?.typingIsPublic == true) {
                     // TODO after 30_000s is set to false on server, but not re-set to true by client again!
-                    //  maybe consider using something like `lastTyping: StateFlow<Instant>` instead of 2 fields (isTyping, isStillTyping)
+                    //  maybe consider using something like `lastTyping: StateFlow<Instant>` instead of 2 fields
+                    // (isTyping, isStillTyping)
                     matrixClient.api.room.setTyping(roomId, matrixClient.userId, true, 30_000)
                 }
             } catch (exc: Exception) {
@@ -659,6 +682,7 @@ open class InputAreaViewModelImpl(
 }
 
 private fun IntRange(value: Int) = IntRange(value, value)
+
 private fun IntRange.firstIsLast() = first == last
 
 class PreviewInputAreaViewModel : InputAreaViewModel {
@@ -675,30 +699,21 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 
-    override fun selectMention(userId: UserId) {
-    }
+    override fun selectMention(userId: UserId) {}
 
-    override fun sendMessage() {
-    }
+    override fun sendMessage() {}
 
-    override fun selectAttachment() {
-    }
+    override fun selectAttachment() {}
 
-    override fun closeAttachmentDialog() {
-    }
+    override fun closeAttachmentDialog() {}
 
-    override fun onAttachmentFileSelect(file: FileDescriptor) {
-    }
+    override fun onAttachmentFileSelect(file: FileDescriptor) {}
 
-    override fun replaceMessage(roomId: RoomId, eventId: EventId) {
-    }
+    override fun replaceMessage(roomId: RoomId, eventId: EventId) {}
 
-    override fun cancelReplace() {
-    }
+    override fun cancelReplace() {}
 
-    override fun replyMessage(roomId: RoomId, eventId: EventId) {
-    }
+    override fun replyMessage(roomId: RoomId, eventId: EventId) {}
 
-    override fun cancelReply() {
-    }
+    override fun cancelReply() {}
 }

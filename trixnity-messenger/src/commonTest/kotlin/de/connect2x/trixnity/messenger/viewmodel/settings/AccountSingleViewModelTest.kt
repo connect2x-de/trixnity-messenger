@@ -32,15 +32,15 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class AccountSingleViewModelTest {
     private val ownUserId = UserId("bob", "localhost")
@@ -54,28 +54,21 @@ class AccountSingleViewModelTest {
 
     init {
         resetMocks(matrixClientMock, mediaServiceMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { mediaServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
         val profile = Profile(ProfileField.AvatarUrl("mxc://localhost/123456"))
         every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientMock.userId } returns ownUserId
-        every { matrixClientMock.serverData } returns MutableStateFlow(
-            ServerData(
-                versions = GetVersions.Response(),
-                mediaConfig = GetMediaConfig.Response(),
-                capabilities = GetCapabilities.Response(
-                    capabilities = Capabilities(
-                        setOf(
-                            Capability.ProfileFields(enabled = true),
-                        )
-                    )
-                ),
+        every { matrixClientMock.serverData } returns
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities =
+                        GetCapabilities.Response(
+                            capabilities = Capabilities(setOf(Capability.ProfileFields(enabled = true)))
+                        ),
+                )
             )
-        )
     }
 
     @BeforeTest
@@ -88,12 +81,14 @@ class AccountSingleViewModelTest {
         // do NOT move this block into the init block as it will break in iOS tests
         val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
         every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker =
-            everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Bobby")) }
-        setDisplayNameMocker calls {
-            profile.value += ProfileField.DisplayName((it.args[0] as ProfileField.DisplayName).value)
-            Result.success(Unit)
+        setDisplayNameMocker = everySuspend {
+            matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Bobby"))
         }
+        setDisplayNameMocker calls
+            {
+                profile.value += ProfileField.DisplayName((it.args[0] as ProfileField.DisplayName).value)
+                Result.success(Unit)
+            }
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -122,8 +117,9 @@ class AccountSingleViewModelTest {
     fun `show error when new display name cannot be set`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
         every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker =
-            everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
+        setDisplayNameMocker = everySuspend {
+            matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby"))
+        }
         setDisplayNameMocker calls { Result.failure(RuntimeException("Oh no!")) }
         everySuspend {
             mediaServiceMock.getThumbnail(
@@ -152,14 +148,11 @@ class AccountSingleViewModelTest {
     fun `display an error message when the user has not enough rights to change the display name`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.DisplayName("Bob")))
         every { matrixClientMock.profile } returns profile
-        setDisplayNameMocker =
-            everySuspend { matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby")) }
-        setDisplayNameMocker returns Result.failure(
-            MatrixServerException(
-                HttpStatusCode.Forbidden,
-                ErrorResponse.Forbidden("")
-            )
-        )
+        setDisplayNameMocker = everySuspend {
+            matrixClientMock.setProfileField(ProfileField.DisplayName(value = "Nobby"))
+        }
+        setDisplayNameMocker returns
+            Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("")))
         everySuspend {
             mediaServiceMock.getThumbnail(
                 "mxc://localhost/123456",
@@ -184,19 +177,11 @@ class AccountSingleViewModelTest {
     }
 
     private fun TestScope.accountSingleViewModel(): AccountSingleViewModelImpl {
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(
-                    mapOf(
-                        ownUserId to matrixClientMock
-                    )
-                )
-            )
-        }.koin
+        val di =
+            koinApplication { modules(createTestDefaultTrixnityMessengerModules(mapOf(ownUserId to matrixClientMock))) }
+                .koin
         return AccountSingleViewModelImpl(
-            viewModelContext = testViewModelContext(
-                di = di,
-            ),
+            viewModelContext = testViewModelContext(di = di),
             userId = ownUserId,
             error = error,
             showAccountSetup = mock(),

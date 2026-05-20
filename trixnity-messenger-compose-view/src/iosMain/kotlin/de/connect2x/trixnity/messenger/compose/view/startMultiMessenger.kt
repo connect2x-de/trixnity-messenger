@@ -13,24 +13,18 @@ import kotlinx.coroutines.runBlocking
 import platform.Foundation.NSStringFromClass
 import platform.UIKit.UIApplicationMain
 
-// inspired from https://github.com/JetBrains/compose-multiplatform-core/blob/jb-main/compose/mpp/demo/src/uikitMain/kotlin/androidx/compose/mpp/demo/main.uikit.kt
+// inspired from
+// https://github.com/JetBrains/compose-multiplatform-core/blob/jb-main/compose/mpp/demo/src/uikitMain/kotlin/androidx/compose/mpp/demo/main.uikit.kt
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
-fun startMultiMessenger(
-    args: List<String>,
-    configuration: MatrixMultiMessengerConfiguration.() -> Unit,
-) {
+fun startMultiMessenger(args: List<String>, configuration: MatrixMultiMessengerConfiguration.() -> Unit) {
     MatrixMultiMessengerService.configuration = {
         addViewProvider()
         configuration()
     }
-    runBlocking {
-        MatrixMultiMessengerService.init()
-    }
+    runBlocking { MatrixMultiMessengerService.init() }
     memScoped {
         val argc = args.size
         val argv = args.map { it.cstr.ptr }.toCValues()
-        autoreleasepool {
-            UIApplicationMain(argc, argv, null, NSStringFromClass(ApplicationDelegate))
-        }
+        autoreleasepool { UIApplicationMain(argc, argv, null, NSStringFromClass(ApplicationDelegate)) }
     }
 }

@@ -15,15 +15,13 @@ fun ThemedPopup(
     offset: IntOffset = IntOffset(0, 0),
     onDismissRequest: (() -> Unit)? = null,
     properties: PopupProperties = PopupProperties(),
-    content: @Composable (() -> Unit)
+    content: @Composable (() -> Unit),
 ) {
     val localDensity = LocalDensity.current
     val localToolbar = LocalTextToolbar.current
     Popup(alignment, offset, onDismissRequest, properties) {
         CompositionLocalProvider(LocalDensity provides localDensity) {
-            CompositionLocalProvider(LocalTextToolbar provides localToolbar) {
-                content()
-            }
+            CompositionLocalProvider(LocalTextToolbar provides localToolbar) { content() }
         }
     }
 }

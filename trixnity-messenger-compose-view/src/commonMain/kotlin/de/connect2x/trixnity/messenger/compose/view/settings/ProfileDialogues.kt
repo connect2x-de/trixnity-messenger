@@ -32,46 +32,56 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewMo
 fun ProfileDialogues(
     profilesSettingsViewModel: ProfilesSettingsViewModel,
     profilesSettingsSingleViewModel: ProfilesSettingsSingleViewModel,
-    profilesDialogueController: ProfilesDialogueController
+    profilesDialogueController: ProfilesDialogueController,
 ) {
 
     val openedDialogueType = profilesDialogueController.openedDialogueType.value
-    val profiles =
-        profilesSettingsViewModel.profiles.collectAsState().value
+    val profiles = profilesSettingsViewModel.profiles.collectAsState().value
     val profileName = profilesSettingsSingleViewModel.profileName.value
 
     when (openedDialogueType) {
-        ProfileDialogue.RENAME -> RenameProfileDialogue(
-            onConfirm = { profilesSettingsSingleViewModel.changeProfileName(); profilesDialogueController.closeOpenedDialogue() },
-            onCancel = { profilesDialogueController.closeOpenedDialogue() },
-            profileNameTextField = profilesSettingsSingleViewModel.profileNameTextField,
-            profileName = profileName,
-            error = profilesSettingsSingleViewModel.profileNameError.collectAsState().value,
-        )
+        ProfileDialogue.RENAME ->
+            RenameProfileDialogue(
+                onConfirm = {
+                    profilesSettingsSingleViewModel.changeProfileName()
+                    profilesDialogueController.closeOpenedDialogue()
+                },
+                onCancel = { profilesDialogueController.closeOpenedDialogue() },
+                profileNameTextField = profilesSettingsSingleViewModel.profileNameTextField,
+                profileName = profileName,
+                error = profilesSettingsSingleViewModel.profileNameError.collectAsState().value,
+            )
 
         ProfileDialogue.SELECT -> {
             val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
-            val activeProfileName =
-                profiles[activeProfile]?.profileName?.collectAsState()?.value ?: ""
+            val activeProfileName = profiles[activeProfile]?.profileName?.collectAsState()?.value ?: ""
             SelectProfileDialogue(
-                onConfirm = { profilesSettingsSingleViewModel.selectProfile(); profilesDialogueController.closeOpenedDialogue() },
+                onConfirm = {
+                    profilesSettingsSingleViewModel.selectProfile()
+                    profilesDialogueController.closeOpenedDialogue()
+                },
                 onCancel = { profilesDialogueController.closeOpenedDialogue() },
-                profileName = profileName
+                profileName = profileName,
             )
         }
 
-        ProfileDialogue.DELETE -> DeleteProfileDialogue(
-            onConfirm = { profilesSettingsSingleViewModel.deleteProfile(); profilesDialogueController.closeOpenedDialogue() },
-            onCancel = { profilesDialogueController.closeOpenedDialogue() },
-            profileName = profileName
-        )
+        ProfileDialogue.DELETE ->
+            DeleteProfileDialogue(
+                onConfirm = {
+                    profilesSettingsSingleViewModel.deleteProfile()
+                    profilesDialogueController.closeOpenedDialogue()
+                },
+                onCancel = { profilesDialogueController.closeOpenedDialogue() },
+                profileName = profileName,
+            )
 
-        ProfileDialogue.CREATE -> ProfileCreation(
-            textFieldViewModel = profilesSettingsViewModel.profileCreationTextField,
-            error = profilesSettingsViewModel.profileCreationError.collectAsState().value,
-            onFinish = { profilesDialogueController.closeOpenedDialogue() },
-            onCreate = { profilesSettingsViewModel.createProfile() }
-        )
+        ProfileDialogue.CREATE ->
+            ProfileCreation(
+                textFieldViewModel = profilesSettingsViewModel.profileCreationTextField,
+                error = profilesSettingsViewModel.profileCreationError.collectAsState().value,
+                onFinish = { profilesDialogueController.closeOpenedDialogue() },
+                onCreate = { profilesSettingsViewModel.createProfile() },
+            )
 
         null -> {}
     }
@@ -89,17 +99,10 @@ fun RenameProfileDialogue(
     var newName by profileNameTextField.collectAsTextFieldValueState()
 
     ThemedModalDialog(onCancel) {
-        ModalDialogHeader {
-            Text(i18n.profileRenameDialogueHeader())
-        }
+        ModalDialogHeader { Text(i18n.profileRenameDialogueHeader()) }
         ModalDialogContent {
             Text(i18n.profileRenameDialogueBody(profileName), style = MaterialTheme.typography.titleMedium)
-            OutlinedTextField(
-                value = newName,
-                onValueChange = { newName = it },
-                isError = error != null,
-                maxLines = 1,
-            )
+            OutlinedTextField(value = newName, onValueChange = { newName = it }, isError = error != null, maxLines = 1)
             if (error != null) {
                 Spacer(Modifier.size(5.dp))
                 Text(color = MaterialTheme.colorScheme.error, text = error)
@@ -109,22 +112,16 @@ fun RenameProfileDialogue(
             onConfirm = { onConfirm() },
             onCancel = onCancel,
             confirmText = i18n.profileRenameDialogueConfirm(),
-            enableConfirm = (error == null)
+            enableConfirm = (error == null),
         )
     }
 }
 
 @Composable
-fun SelectProfileDialogue(
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
-    profileName: String
-) {
+fun SelectProfileDialogue(onConfirm: () -> Unit, onCancel: () -> Unit, profileName: String) {
     val i18n = DI.get<I18nView>()
     ThemedModalDialog(onCancel) {
-        ModalDialogHeader {
-            Text(i18n.profileSelectDialogueHeader(profileName))
-        }
+        ModalDialogHeader { Text(i18n.profileSelectDialogueHeader(profileName)) }
         DialogueFooter(onConfirm, onCancel, i18n.commonConfirm())
     }
 }
@@ -133,12 +130,8 @@ fun SelectProfileDialogue(
 fun DeleteProfileDialogue(onConfirm: () -> Unit, onCancel: () -> Unit, profileName: String) {
     val i18n = DI.get<I18nView>()
     ThemedModalDialog(onCancel) {
-        ModalDialogHeader {
-            Text(i18n.profileDeleteDialogueHeader(profileName))
-        }
-        ModalDialogContent {
-            Text(i18n.profileDeleteDialogueBody(), style = MaterialTheme.typography.titleMedium)
-        }
+        ModalDialogHeader { Text(i18n.profileDeleteDialogueHeader(profileName)) }
+        ModalDialogContent { Text(i18n.profileDeleteDialogueBody(), style = MaterialTheme.typography.titleMedium) }
         DialogueFooter(onConfirm, onCancel, i18n.profileDeleteDialogueConfirm())
     }
 }
@@ -148,21 +141,12 @@ private fun DialogueFooter(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     confirmText: String,
-    enableConfirm: Boolean = true
+    enableConfirm: Boolean = true,
 ) {
     val i18n = DI.get<I18nView>()
     ModalDialogFooter {
-        ThemedButton(
-            style = MaterialTheme.components.commonButton,
-            onClick = onCancel,
-        ) {
-            Text(i18n.actionCancel())
-        }
-        ThemedButton(
-            style = MaterialTheme.components.primaryButton,
-            enabled = enableConfirm,
-            onClick = onConfirm,
-        ) {
+        ThemedButton(style = MaterialTheme.components.commonButton, onClick = onCancel) { Text(i18n.actionCancel()) }
+        ThemedButton(style = MaterialTheme.components.primaryButton, enabled = enableConfirm, onClick = onConfirm) {
             Text(confirmText)
         }
     }
@@ -171,6 +155,7 @@ private fun DialogueFooter(
 class ProfilesDialogueController {
     var openedDialogueType: MutableState<ProfileDialogue?> = mutableStateOf(null)
     var openedDialogueProfileId: MutableState<String?> = mutableStateOf(null)
+
     fun openRenameDialogue(profileId: String) {
         openedDialogueType.value = ProfileDialogue.RENAME
         openedDialogueProfileId.value = profileId
@@ -186,7 +171,7 @@ class ProfilesDialogueController {
         openedDialogueProfileId.value = profileId
     }
 
-    //The profile Id is not acctually used inside the create Profile Dialogue, but makes the code simpler
+    // The profile Id is not acctually used inside the create Profile Dialogue, but makes the code simpler
     fun openCreateDialogue(profileId: String?) {
         openedDialogueType.value = ProfileDialogue.CREATE
         openedDialogueProfileId.value = profileId
@@ -199,5 +184,8 @@ class ProfilesDialogueController {
 }
 
 enum class ProfileDialogue {
-    RENAME, DELETE, SELECT, CREATE
+    RENAME,
+    DELETE,
+    SELECT,
+    CREATE,
 }

@@ -14,22 +14,14 @@ import androidx.compose.ui.unit.Dp
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
 @Immutable
-data class DividerStyle(
-    val thickness: Dp,
-    val color: Color,
-    val padding: PaddingValues,
-) {
+data class DividerStyle(val thickness: Dp, val color: Color, val padding: PaddingValues) {
     companion object {
         @Composable
         fun default(
             thickness: Dp = DividerDefaults.Thickness,
             color: Color = DividerDefaults.color,
             padding: PaddingValues = PaddingValues(),
-        ) = DividerStyle(
-            thickness = thickness,
-            color = color,
-            padding = padding,
-        )
+        ) = DividerStyle(thickness = thickness, color = color, padding = padding)
     }
 }
 

@@ -21,7 +21,7 @@ private fun RoomListElementPreview() {
             roomListElementViewModel = roomElementViewModel,
             roomListViewModel = PreviewRoomListViewModel(),
             index = 0,
-            showRoomTime = true
+            showRoomTime = true,
         )
     }
 }

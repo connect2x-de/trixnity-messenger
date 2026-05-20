@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -14,6 +19,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.getContentRules
 import de.connect2x.trixnity.messenger.viewmodel.util.getServerDefaultRules
 import de.connect2x.trixnity.messenger.viewmodel.util.toNotificationSettings
 import de.connect2x.trixnity.messenger.viewmodel.util.toPushRuleSet
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.TimeoutCancellationException
@@ -37,18 +43,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.getAccountData
-import de.connect2x.trixnity.clientserverapi.model.push.SetPushRule
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.PushRulesEventContent
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
 
 interface NotificationSettingsSingleAccountViewModelFactory {
-    fun create(
-        viewModelContext: MatrixClientViewModelContext,
-    ): NotificationSettingsSingleAccountViewModel =
+    fun create(viewModelContext: MatrixClientViewModelContext): NotificationSettingsSingleAccountViewModel =
         NotificationSettingsSingleAccountViewModelImpl(viewModelContext)
 
     companion object : NotificationSettingsSingleAccountViewModelFactory
@@ -59,10 +57,13 @@ data class AccountNotificationSettings(
     val sound: Sound = Sound(),
     val activity: Activity = Activity(),
     val mention: Mention = Mention(),
-    val keywords: Set<String> = setOf()
+    val keywords: Set<String> = setOf(),
 ) {
     enum class DefaultLevel {
-        NONE, MENTION, DM, ROOM;
+        NONE,
+        MENTION,
+        DM,
+        ROOM,
     }
 
     data class Sound(
@@ -72,17 +73,9 @@ data class AccountNotificationSettings(
         val call: Boolean = true,
     )
 
-    data class Activity(
-        val invite: Boolean = true,
-        val status: Boolean = false,
-        val notice: Boolean = false,
-    )
+    data class Activity(val invite: Boolean = true, val status: Boolean = false, val notice: Boolean = false)
 
-    data class Mention(
-        val user: Boolean = true,
-        val room: Boolean = true,
-        val keyword: Boolean = true,
-    )
+    data class Mention(val user: Boolean = true, val room: Boolean = true, val keyword: Boolean = true)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -93,9 +86,7 @@ data class AccountNotificationSettings(
         if (defaultLevel != other.defaultLevel) return false
         if (sound != other.sound) return false
         if (activity != other.activity) return false
-        val unifiedMention =
-            if (keywords.isEmpty() && mention.keyword) mention.copy(keyword = false)
-            else mention
+        val unifiedMention = if (keywords.isEmpty() && mention.keyword) mention.copy(keyword = false) else mention
         val unifiedOtherMention =
             if (other.keywords.isEmpty() && other.mention.keyword) other.mention.copy(keyword = false)
             else other.mention
@@ -106,40 +97,39 @@ data class AccountNotificationSettings(
     }
 }
 
-data class DeviceNotificationSettings(
-    val playSound: Boolean = true,
-    val showDetails: Boolean = true,
-)
+data class DeviceNotificationSettings(val playSound: Boolean = true, val showDetails: Boolean = true)
 
 interface NotificationSettingsSingleAccountViewModel {
-    data class NotificationProviderViewModel(
-        val id: String,
-        val displayName: String,
-    )
+    data class NotificationProviderViewModel(val id: String, val displayName: String)
 
     val account: UserId
 
     val enabledForThisDevice: StateFlow<Boolean>
+
     fun toggleEnabledForThisDevice()
+
     val availableProviders: List<NotificationProviderViewModel>
     val selectedProvider: StateFlow<NotificationProviderViewModel?>
+
     fun selectProvider(id: String)
 
     val notificationHandlerId: String
     val notificationPermissionsNecessary: StateFlow<Boolean>
 
     val deviceSettings: StateFlow<DeviceNotificationSettings>
+
     fun updateDeviceSettings(settings: DeviceNotificationSettings)
 
     val accountSettings: StateFlow<AccountNotificationSettings>
+
     fun updateAccountSettings(settings: AccountNotificationSettings)
+
     val accountSettingsIsUpdating: StateFlow<Boolean>
     val updateAccountSettingsError: StateFlow<String?>
 }
 
-class NotificationSettingsSingleAccountViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
-) : MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
+class NotificationSettingsSingleAccountViewModelImpl(viewModelContext: MatrixClientViewModelContext) :
+    MatrixClientViewModelContext by viewModelContext, NotificationSettingsSingleAccountViewModel {
     override val account: UserId = userId
     private val i18n = get<I18n>()
     private val notificationProviders = get<NotificationProviders>()
@@ -152,40 +142,44 @@ class NotificationSettingsSingleAccountViewModelImpl(
             .stateIn(coroutineScope, Eagerly, false)
 
     override val availableProviders: List<NotificationProviderViewModel> =
-        notificationProviders.filter { it.canBeEnabled && it !is NoOpNotificationProvider }
+        notificationProviders
+            .filter { it.canBeEnabled && it !is NoOpNotificationProvider }
             .map { NotificationProviderViewModel(it.id, it.displayName) }
 
     private val changeProviderMutex = Mutex()
+
     override fun toggleEnabledForThisDevice() {
         coroutineScope.launch {
             changeProviderMutex.withLock {
                 if (enabledForThisDevice.value) {
                     notificationProviders.forEach { it.disable(account) }
                 } else {
-                    notificationProviders.firstOrNull { it.canBeEnabled }
-                        ?.enable(account)
+                    notificationProviders.firstOrNull { it.canBeEnabled }?.enable(account)
                 }
             }
         }
     }
 
     override val selectedProvider: StateFlow<NotificationProviderViewModel?> =
-        combine(notificationProviders.map { notificationProvider ->
-            notificationProvider.isEnabled(account).map { notificationProvider to it }
-        }
-        ) { it }
+        combine(
+                notificationProviders.map { notificationProvider ->
+                    notificationProvider.isEnabled(account).map { notificationProvider to it }
+                }
+            ) {
+                it
+            }
             .filterNot { it.none { (_, enabled) -> enabled } } // prevent flickering when selecting a new provider
             .map { notificationProvidersEnabled ->
                 val firstEnabledNotificationProvider =
                     notificationProvidersEnabled
                         .firstOrNull { it.first !is NoOpNotificationProvider && it.second }
-                        ?.first
-                        ?: return@map null
+                        ?.first ?: return@map null
                 NotificationProviderViewModel(
                     firstEnabledNotificationProvider.id,
-                    firstEnabledNotificationProvider.displayName
+                    firstEnabledNotificationProvider.displayName,
                 )
-            }.stateIn(coroutineScope, WhileSubscribed(), null)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override fun selectProvider(id: String) {
         coroutineScope.launch {
@@ -201,25 +195,24 @@ class NotificationSettingsSingleAccountViewModelImpl(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notificationPermissionsNecessary: StateFlow<Boolean> =
-        enabledForThisDevice.transformLatest { enabled ->
-            if (enabled.not()) emit(false)
-            else {
-                while (currentCoroutineContext().isActive) {
-                    val hasPermissions = notificationHandlers.global.hasPermissions
-                    delay(1.seconds)
-                    emit(hasPermissions.not())
+        enabledForThisDevice
+            .transformLatest { enabled ->
+                if (enabled.not()) emit(false)
+                else {
+                    while (currentCoroutineContext().isActive) {
+                        val hasPermissions = notificationHandlers.global.hasPermissions
+                        delay(1.seconds)
+                        emit(hasPermissions.not())
+                    }
                 }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val deviceSettings: StateFlow<DeviceNotificationSettings> =
-        settingsHolder[account].filterNotNull().map { it.notification }
-            .map {
-                DeviceNotificationSettings(
-                    playSound = it.playSound,
-                    showDetails = it.showDetails,
-                )
-            }
+        settingsHolder[account]
+            .filterNotNull()
+            .map { it.notification }
+            .map { DeviceNotificationSettings(playSound = it.playSound, showDetails = it.showDetails) }
             .stateIn(coroutineScope, WhileSubscribed(), DeviceNotificationSettings())
 
     override fun updateDeviceSettings(settings: DeviceNotificationSettings) {
@@ -237,7 +230,8 @@ class NotificationSettingsSingleAccountViewModelImpl(
     override val updateAccountSettingsError: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override val accountSettings: StateFlow<AccountNotificationSettings> =
-        matrixClient.user.getAccountData<PushRulesEventContent>()
+        matrixClient.user
+            .getAccountData<PushRulesEventContent>()
             .map { it?.global }
             .filterNotNull()
             .map { it.toNotificationSettings() }
@@ -246,96 +240,98 @@ class NotificationSettingsSingleAccountViewModelImpl(
     @OptIn(FlowPreview::class)
     override fun updateAccountSettings(settings: AccountNotificationSettings) {
         if (accountSettingsIsUpdating.getAndUpdate { true }.not()) {
-            coroutineScope.launch {
-                updateAccountSettingsError.value = null
+            coroutineScope
+                .launch {
+                    updateAccountSettingsError.value = null
 
-                val currentPushRuleSet =
-                    matrixClient.user.getAccountData<PushRulesEventContent>()
-                        .map { it?.global }
-                        .first()
-                if (currentPushRuleSet?.toNotificationSettings() == settings) {
-                    log.debug { "no change in settings" }
-                    return@launch
-                }
-                val newPushRuleSet = settings.toPushRuleSet(userId)
+                    val currentPushRuleSet =
+                        matrixClient.user.getAccountData<PushRulesEventContent>().map { it?.global }.first()
+                    if (currentPushRuleSet?.toNotificationSettings() == settings) {
+                        log.debug { "no change in settings" }
+                        return@launch
+                    }
+                    val newPushRuleSet = settings.toPushRuleSet(userId)
 
-                val currentServerDefaultRules = currentPushRuleSet?.getServerDefaultRules().orEmpty()
-                val currentContentRules = currentPushRuleSet?.getContentRules().orEmpty()
+                    val currentServerDefaultRules = currentPushRuleSet?.getServerDefaultRules().orEmpty()
+                    val currentContentRules = currentPushRuleSet?.getContentRules().orEmpty()
 
-                val newServerDefaultRules = newPushRuleSet.getServerDefaultRules()
-                val newContentRules = newPushRuleSet.getContentRules()
+                    val newServerDefaultRules = newPushRuleSet.getServerDefaultRules()
+                    val newContentRules = newPushRuleSet.getContentRules()
 
-                val updatedServerDefaultRules =
-                    newServerDefaultRules.values.toSet() - currentServerDefaultRules.values.toSet()
-                val updatedContentRules = newContentRules.values.toSet() - currentContentRules.values.toSet()
-                val deletedContentRules = currentContentRules - newContentRules.keys
+                    val updatedServerDefaultRules =
+                        newServerDefaultRules.values.toSet() - currentServerDefaultRules.values.toSet()
+                    val updatedContentRules = newContentRules.values.toSet() - currentContentRules.values.toSet()
+                    val deletedContentRules = currentContentRules - newContentRules.keys
 
-                log.debug { "update push rules" }
-                try {
-                    coroutineScope {
-                        updatedServerDefaultRules.forEach { rule ->
-                            if (rule.enabled != currentServerDefaultRules[rule.ruleId]?.enabled) {
-                                log.trace { "set enabled of push rule ${rule.ruleId} to ${rule.enabled}" }
+                    log.debug { "update push rules" }
+                    try {
+                        coroutineScope {
+                            updatedServerDefaultRules.forEach { rule ->
+                                if (rule.enabled != currentServerDefaultRules[rule.ruleId]?.enabled) {
+                                    log.trace { "set enabled of push rule ${rule.ruleId} to ${rule.enabled}" }
+                                    launch {
+                                        matrixClient.api.push
+                                            .setPushRuleEnabled(
+                                                scope = "global",
+                                                kind = rule.kind,
+                                                ruleId = rule.ruleId,
+                                                enabled = rule.enabled,
+                                            )
+                                            .getOrThrow()
+                                    }
+                                }
+                                if (rule.actions != currentServerDefaultRules[rule.ruleId]?.actions)
+                                    launch {
+                                        log.trace { "set actions of push rule ${rule.ruleId} to ${rule.actions}" }
+                                        matrixClient.api.push
+                                            .setPushRuleActions(
+                                                scope = "global",
+                                                kind = rule.kind,
+                                                ruleId = rule.ruleId,
+                                                actions = rule.actions,
+                                            )
+                                            .getOrThrow()
+                                    }
+                            }
+                            updatedContentRules.forEach { rule ->
                                 launch {
-                                    matrixClient.api.push.setPushRuleEnabled(
-                                        scope = "global",
-                                        kind = rule.kind,
-                                        ruleId = rule.ruleId,
-                                        enabled = rule.enabled,
-                                    ).getOrThrow()
+                                    log.trace { "add content push rule ${rule.ruleId}" }
+                                    matrixClient.api.push
+                                        .setPushRule(
+                                            scope = "global",
+                                            kind = rule.kind,
+                                            ruleId = rule.ruleId,
+                                            pushRule =
+                                                SetPushRule.Request(actions = rule.actions, pattern = rule.pattern),
+                                        )
+                                        .getOrThrow()
                                 }
                             }
-                            if (rule.actions != currentServerDefaultRules[rule.ruleId]?.actions)
+                            deletedContentRules.values.forEach { rule ->
                                 launch {
-                                    log.trace { "set actions of push rule ${rule.ruleId} to ${rule.actions}" }
-                                    matrixClient.api.push.setPushRuleActions(
-                                        scope = "global",
-                                        kind = rule.kind,
-                                        ruleId = rule.ruleId,
-                                        actions = rule.actions,
-                                    ).getOrThrow()
+                                    log.trace { "delete content push rule ${rule.ruleId}" }
+                                    matrixClient.api.push
+                                        .deletePushRule(scope = "global", kind = rule.kind, ruleId = rule.ruleId)
+                                        .getOrThrow()
                                 }
-                        }
-                        updatedContentRules.forEach { rule ->
-                            launch {
-                                log.trace { "add content push rule ${rule.ruleId}" }
-                                matrixClient.api.push.setPushRule(
-                                    scope = "global",
-                                    kind = rule.kind,
-                                    ruleId = rule.ruleId,
-                                    pushRule = SetPushRule.Request(
-                                        actions = rule.actions,
-                                        pattern = rule.pattern,
-                                    )
-                                ).getOrThrow()
                             }
                         }
-                        deletedContentRules.values.forEach { rule ->
-                            launch {
-                                log.trace { "delete content push rule ${rule.ruleId}" }
-                                matrixClient.api.push.deletePushRule(
-                                    scope = "global",
-                                    kind = rule.kind,
-                                    ruleId = rule.ruleId,
-                                ).getOrThrow()
-                            }
+                        matrixClient.user
+                            .getAccountData<PushRulesEventContent>()
+                            .map { it?.global }
+                            .timeout(10.seconds)
+                            .first { it?.toNotificationSettings() == settings }
+                    } catch (exception: Exception) {
+                        log.warn(exception) { "there was an error updating the notification settings" }
+                        if (exception is TimeoutCancellationException) {
+                            updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
+                        } else {
+                            updateAccountSettingsError.value =
+                                i18n.updateNotificationSettingsError(exception.message ?: "")
                         }
-                    }
-                    matrixClient.user.getAccountData<PushRulesEventContent>()
-                        .map { it?.global }
-                        .timeout(10.seconds)
-                        .first {
-                            it?.toNotificationSettings() == settings
-                        }
-                } catch (exception: Exception) {
-                    log.warn(exception) { "there was an error updating the notification settings" }
-                    if (exception is TimeoutCancellationException) {
-                        updateAccountSettingsError.value = i18n.updateNotificationSettingsTimeoutError()
-                    } else {
-                        updateAccountSettingsError.value = i18n.updateNotificationSettingsError(exception.message ?: "")
                     }
                 }
-            }.invokeOnCompletion { accountSettingsIsUpdating.value = false }
+                .invokeOnCompletion { accountSettingsIsUpdating.value = false }
         }
     }
 }

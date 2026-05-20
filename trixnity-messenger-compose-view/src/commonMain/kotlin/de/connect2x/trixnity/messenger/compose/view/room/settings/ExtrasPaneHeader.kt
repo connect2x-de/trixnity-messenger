@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.HeaderBackButtonType
 
-
 @Composable
 fun ExtrasPaneHeader(
     title: String,
@@ -20,15 +19,9 @@ fun ExtrasPaneHeader(
     additionalButtons: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(
-        Modifier.fillMaxSize(),
-    ) {
+    Box(Modifier.fillMaxSize()) {
         Column {
-            Header(
-                onBack, title,
-                backButtonType = backButtonType,
-                additionalButtons = additionalButtons,
-            )
+            Header(onBack, title, backButtonType = backButtonType, additionalButtons = additionalButtons)
             if (error != null) ErrorView(error)
             content()
         }

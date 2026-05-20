@@ -2,21 +2,21 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.client.verification.ActiveVerificationState
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.ActiveVerifications
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.verification.ActiveVerificationState
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.VerificationRequest
 import org.koin.core.component.get
-import kotlin.reflect.KClass
 
 interface VerificationRequestRoomMessageTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationRequest> {
@@ -34,7 +34,8 @@ interface VerificationRequestRoomMessageTimelineElementViewModelFactory :
                 eventIdOrTransactionId.eventId,
                 content,
                 onOpenMention,
-            ) else null
+            )
+        else null
 
     override val supports: KClass<VerificationRequest>
         get() = VerificationRequest::class
@@ -48,7 +49,8 @@ class VerificationRequestRoomMessageTimelineElementViewModelImpl(
     private val eventId: EventId,
     content: VerificationRequest,
     onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.VerificationRequest,
+) :
+    RoomMessageTimelineElementViewModel.VerificationRequest,
     RoomMessageTimelineElementViewModelImpl<VerificationRequest>(viewModelContext, content, roomId, onOpenMention) {
     private val activeVerifications = get<ActiveVerifications>()
 
@@ -60,17 +62,16 @@ class VerificationRequestRoomMessageTimelineElementViewModelImpl(
             routerKey = "userVerification-$eventId",
             onRedoSelfVerification = {},
         )
-    override val stack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
-        router.stack
+    override val stack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> = router.stack
 
     init {
         coroutineScope.launch {
-            val activeVerification =
-                activeVerifications.getActiveVerification(matrixClient, roomId, eventId)
+            val activeVerification = activeVerifications.getActiveVerification(matrixClient, roomId, eventId)
             isActive.value = activeVerification != null
             activeVerification?.state?.collectLatest { verificationState ->
-                if (verificationState is ActiveVerificationState.Done ||
-                    verificationState is ActiveVerificationState.Cancel
+                if (
+                    verificationState is ActiveVerificationState.Done ||
+                        verificationState is ActiveVerificationState.Cancel
                 ) {
                     isActive.value = false
                     router.closeVerification()
@@ -83,8 +84,6 @@ class VerificationRequestRoomMessageTimelineElementViewModelImpl(
     }
 
     override fun cancel() {
-        coroutineScope.launch {
-            activeVerifications.getActiveVerification(matrixClient, roomId, eventId)?.cancel()
-        }
+        coroutineScope.launch { activeVerifications.getActiveVerification(matrixClient, roomId, eventId)?.cancel() }
     }
 }

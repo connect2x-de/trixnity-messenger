@@ -27,13 +27,14 @@ fun Modifier.focusHighlighting(
     interactionSource: MutableInteractionSource,
     color: Color = MaterialTheme.colorScheme.onSurface,
     shape: Shape = RectangleShape,
-): Modifier = focusHighlighting(
-    hasFocus = interactionSource.collectIsFocusedAsState().value,
-    isFocusHighlightingActive = IsFocusHighlighting.current,
-    borderWidth = MaterialTheme.messengerFocusIndicator.borderWidth,
-    color = color,
-    shape = shape,
-)
+): Modifier =
+    focusHighlighting(
+        hasFocus = interactionSource.collectIsFocusedAsState().value,
+        isFocusHighlightingActive = IsFocusHighlighting.current,
+        borderWidth = MaterialTheme.messengerFocusIndicator.borderWidth,
+        color = color,
+        shape = shape,
+    )
 
 @Stable
 fun Modifier.focusHighlighting(
@@ -43,6 +44,5 @@ fun Modifier.focusHighlighting(
     color: Color,
     shape: Shape = RectangleShape,
 ): Modifier {
-    return if (!hasFocus || !isFocusHighlightingActive) this
-    else border(borderWidth, color, shape)
+    return if (!hasFocus || !isFocusHighlightingActive) this else border(borderWidth, color, shape)
 }

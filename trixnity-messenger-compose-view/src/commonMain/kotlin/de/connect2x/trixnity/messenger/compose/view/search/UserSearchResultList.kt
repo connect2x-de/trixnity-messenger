@@ -99,10 +99,11 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                         scope.items(state.users, key = { user -> user.userId.full }) { user ->
                             UserElement(
                                 user,
-                                modifier = Modifier.rovingFocusItem(
-                                    isFocused = { focusedItem.value == user.userId.full },
-                                    onFocus = { focusedItem.value = user.userId.full },
-                                ),
+                                modifier =
+                                    Modifier.rovingFocusItem(
+                                        isFocused = { focusedItem.value == user.userId.full },
+                                        onFocus = { focusedItem.value = user.userId.full },
+                                    ),
                                 onClick = { userClickReaction(user) },
                             )
                         }
@@ -113,22 +114,13 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     }
 }
 
-
 @Composable
-private fun UserElement(
-    user: SearchUserElement,
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
+private fun UserElement(user: SearchUserElement, modifier: Modifier, onClick: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val presence by user.presence.collectAsState()
 
     ThemedListItemButton(
-        leadingContent = {
-            ThemedUserAvatar(user.initials, user.image) {
-                AvatarPresenceBadge(presence)
-            }
-        },
+        leadingContent = { ThemedUserAvatar(user.initials, user.image) { AvatarPresenceBadge(presence) } },
         headlineContent = {
             Text(
                 user.displayName,
@@ -140,11 +132,7 @@ private fun UserElement(
         supportingContent = {
             if (user.doesNotExist) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Warning,
-                        "warning",
-                        tint = MaterialTheme.messengerColors.warning
-                    )
+                    Icon(Icons.Default.Warning, "warning", tint = MaterialTheme.messengerColors.warning)
                     VerySmallSpacer()
                     Text(i18n.userSearchUserDoesNotExist())
                 }

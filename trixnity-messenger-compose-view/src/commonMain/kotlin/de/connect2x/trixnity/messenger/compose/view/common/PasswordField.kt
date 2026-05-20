@@ -28,9 +28,8 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.autofill
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
-
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -49,19 +48,18 @@ fun PasswordField(
         label = label,
         enabled = enabled,
         singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .autofill(AutofillType.Password) {
-                password.value = TextFieldValue(it)
-            }
-            .then(modifier),
+        modifier =
+            Modifier.fillMaxWidth()
+                .autofill(AutofillType.Password) { password.value = TextFieldValue(it) }
+                .then(modifier),
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.None,
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
+        keyboardOptions =
+            KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+            ),
         trailingIcon = {
             Tooltip({ Text(if (passwordVisible.value) i18n.passwordVisibilityOff() else i18n.passwordVisibility()) }) {
                 ThemedIconButton(
@@ -72,6 +70,6 @@ fun PasswordField(
                     else Icon(Icons.Default.Visibility, i18n.passwordVisibility())
                 }
             }
-        }
+        },
     )
 }

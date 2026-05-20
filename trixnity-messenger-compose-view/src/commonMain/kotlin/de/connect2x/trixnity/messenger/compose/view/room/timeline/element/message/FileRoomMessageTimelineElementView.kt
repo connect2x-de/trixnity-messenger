@@ -37,8 +37,7 @@ import kotlin.reflect.KClass
 interface FileRoomMessageTimelineElementView : TimelineElementView<File>
 
 class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementView {
-    override val supports: KClass<File> =
-        File::class
+    override val supports: KClass<File> = File::class
 
     override suspend fun waitFor(element: File) {
         // NO-OP (has default size)
@@ -47,29 +46,16 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: File,
-        index: Int,
-    ) {
-        FileBasedRoomMessageTimelineElement(
-            holder, element, index = index,
-        ) { showActionMenu, onSave ->
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: File, index: Int) {
+        FileBasedRoomMessageTimelineElement(holder, element, index = index) { showActionMenu, onSave ->
             MessageFile(element, showActionMenu, onSave)
         }
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: File,
-        index: Int,
-    ) {
-        FileBasedRoomMessageTimelineElement(
-            holder, element,
-            isPreview = true,
-            index = index,
-        ) { showActionMenu, onSave ->
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: File, index: Int) {
+        FileBasedRoomMessageTimelineElement(holder, element, isPreview = true, index = index) { showActionMenu, onSave
+            ->
             MessageFile(element, showActionMenu, onSave)
         }
     }
@@ -95,10 +81,8 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: File
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: File): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: File, i18n: I18nView): String {
         return "${i18n.commonFile()}, ${element.name} ${element.size}"
@@ -106,34 +90,17 @@ class FileRoomMessageTimelineElementViewImpl : FileRoomMessageTimelineElementVie
 }
 
 @Composable
-internal fun MessageFile(
-    element: File,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
-) {
+internal fun MessageFile(element: File, showActionMenu: () -> Unit, onSave: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Row(
-        Modifier.pointerInput(Unit) {
-            detectTapGestures(
-                onTap = { onSave() },
-                onLongPress = { showActionMenu() },
-            )
-        }
+        Modifier.pointerInput(Unit) { detectTapGestures(onTap = { onSave() }, onLongPress = { showActionMenu() }) }
             .padding(10.dp)
     ) {
-        Box(
-            Modifier
-                .align(Alignment.CenterVertically)
-                .clip(CircleShape)
-                .background(Color.LightGray)
-        ) {
+        Box(Modifier.align(Alignment.CenterVertically).clip(CircleShape).background(Color.LightGray)) {
             Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.padding(10.dp))
         }
         Spacer(Modifier.size(10.dp))
-        FileInfo(
-            element,
-            Modifier.align(Alignment.CenterVertically)
-        )
+        FileInfo(element, Modifier.align(Alignment.CenterVertically))
     }
 }
 
@@ -151,17 +118,12 @@ internal fun FileReplyElement(
         interactionSource = interactionSource,
         content = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    Icons.Default.Attachment,
-                    i18n.commonAttachment(),
-                    Modifier.size(30.dp),
-                    tint = Color.DarkGray,
-                )
+                Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.size(30.dp), tint = Color.DarkGray)
                 FileName(element.name)
                 if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }
             }
-        }
+        },
     )
 }

@@ -14,28 +14,23 @@ import web.events.addEventListener
 import web.events.removeEventListener
 import web.window.window
 
-class UriHandlerImpl private constructor(
-    urlHandlerFlow: Flow<String>
-) : UriHandler, Flow<String> by urlHandlerFlow {
+class UriHandlerImpl private constructor(urlHandlerFlow: Flow<String>) : UriHandler, Flow<String> by urlHandlerFlow {
 
-    constructor(config: MatrixMessengerBaseConfiguration) : this(
+    constructor(
+        config: MatrixMessengerBaseConfiguration
+    ) : this(
         callbackFlow {
-            val eventListener = EventHandler {
+                val eventListener = EventHandler { trySend(document.URL) }
+                window.addEventListener(EventType("locationchange"), eventListener)
+                window.addEventListener(EventType("load"), eventListener)
                 trySend(document.URL)
+                awaitClose {
+                    window.removeEventListener(EventType("locationchange"), eventListener)
+                    window.removeEventListener(EventType("load"), eventListener)
+                }
             }
-            window.addEventListener(EventType("locationchange"), eventListener)
-            window.addEventListener(EventType("load"), eventListener)
-            trySend(document.URL)
-            awaitClose {
-                window.removeEventListener(EventType("locationchange"), eventListener)
-                window.removeEventListener(EventType("load"), eventListener)
-            }
-        }.filter(uriFilter(config))
+            .filter(uriFilter(config))
     )
 }
 
-actual fun platformUriHandlerModule(): Module = module {
-    single<UriHandler> {
-        UriHandlerImpl(get())
-    }
-}
+actual fun platformUriHandlerModule(): Module = module { single<UriHandler> { UriHandlerImpl(get()) } }

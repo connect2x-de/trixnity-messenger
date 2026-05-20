@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
-import de.connect2x.trixnity.messenger.notification.platformNotificationHandlersModule
 import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
@@ -185,6 +184,7 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTi
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccount
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerifyAccountImpl
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.datetime.TimeZone
 import org.koin.core.module.Module
@@ -193,116 +193,117 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import kotlin.time.Clock
 
-fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
-    {
-        module {
-            single<Clock> { Clock.System }
-            single<TimeZone> { TimeZone.currentSystemDefault() }
-            single<MatrixClientFactory> {
-                MatrixClientFactoryImpl(
-                    secretByteArrays = get(),
-                    createRepositoriesModule = get(),
-                    createMediaStoreModule = get(),
-                    createCryptoDriverModule = get(),
-                    appCoroutineContext = get<CoroutineScope>().coroutineContext,
-                    messengerConfiguration = get(),
-                )
+fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
+    listOf(
+        {
+            module {
+                single<Clock> { Clock.System }
+                single<TimeZone> { TimeZone.currentSystemDefault() }
+                single<MatrixClientFactory> {
+                    MatrixClientFactoryImpl(
+                        secretByteArrays = get(),
+                        createRepositoriesModule = get(),
+                        createMediaStoreModule = get(),
+                        createCryptoDriverModule = get(),
+                        appCoroutineContext = get<CoroutineScope>().coroutineContext,
+                        messengerConfiguration = get(),
+                    )
+                }
+                single<MatrixClients> {
+                        MatrixClientsImpl(
+                            matrixClientFactory = get(),
+                            deleteAccountData = get(),
+                            settings = get(),
+                            config = get(),
+                            secretByteArrays = get(),
+                            i18n = get(),
+                        )
+                    }
+                    .apply {
+                        bind<AutoCloseable>()
+                        bind<Worker>()
+                    }
+
+                single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
+                single<Initials> { InitialsImpl(get()) }
+                single<VerifyAccount> { VerifyAccountImpl() }
+
+                single<Languages> { DefaultLanguages }
+                single<I18n> { I18n(get(), get(), get(), get()) }
+                single<RoomName> { RoomNameImpl(get(), get()) }
+                single<RoomTopic> { RoomTopicImpl() }
+                single<RoomInviter> { RoomInviterImpl }
+                single<UserBlocking> { UserBlockingImpl() }
+                single<EnterRoom> { EnterRoomImpl() }
+                single<LeaveRoom> { LeaveRoomImpl() }
+
+                single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
+                single<Thumbnails> { ThumbnailsImpl() }
+                single<IsOneToOneRoom> { IsOneToOneRoomImpl }
+                single<ActiveVerifications> { ActiveVerificationsImpl() }
+                single<RoomPresence> { RoomPresenceImpl }
+                single<Search> { SearchImpl(get(), get(), get()) }
+                single<RunInitialSync> { RunInitialSyncImpl }
+                single<DragAndDropHandler> { DragAndDropHandlerBase() }
+                single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
+                single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
+                single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
+
+                single<RootViewModelFactory> { RootViewModelFactory }
+                single<MainViewModelFactory> { MainViewModelFactory }
+
+                single<AuthorizeUia> { AuthorizeUiaImpl() }
+                single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
+                single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
+                single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
+                single<UiaStepOAuth2ViewModelFactory> { UiaStepOAuth2ViewModelFactory }
+                single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
+                single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
+                single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
+                single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
+
+                single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
+                single<SharedDataHandler> { SharedDataHandlerImpl() }
+
+                single<BackHandler> { BackHandlerImpl() }
             }
-            single<MatrixClients> {
-                MatrixClientsImpl(
-                    matrixClientFactory = get(),
-                    deleteAccountData = get(),
-                    settings = get(),
-                    config = get(),
-                    secretByteArrays = get(),
-                    i18n = get(),
-                )
-            }.apply {
-                bind<AutoCloseable>()
-                bind<Worker>()
-            }
+        },
+        ::connectingViewModels,
+        ::syncViewModels,
+        ::roomListViewModels,
+        ::settingsViewModels,
+        ::timelineElementViewModels,
+        ::timelineViewModels,
+        ::verificationViewModels,
+        ::roomViewModels,
+        ::roomSettingsViewModels,
+        ::mediaViewModels,
+        ::exportModule,
+        ::notificationModule,
 
-            single<TimelineEventContentToString> { TimelineEventContentToStringImpl(get()) }
-            single<Initials> { InitialsImpl(get()) }
-            single<VerifyAccount> { VerifyAccountImpl() }
-
-            single<Languages> { DefaultLanguages }
-            single<I18n> { I18n(get(), get(), get(), get()) }
-            single<RoomName> { RoomNameImpl(get(), get()) }
-            single<RoomTopic> { RoomTopicImpl() }
-            single<RoomInviter> { RoomInviterImpl }
-            single<UserBlocking> { UserBlockingImpl() }
-            single<EnterRoom> { EnterRoomImpl() }
-            single<LeaveRoom> { LeaveRoomImpl() }
-
-            single<DownloadManager> { DownloadManagerImpl(get<CoroutineScope>().coroutineContext) }
-            single<Thumbnails> { ThumbnailsImpl() }
-            single<IsOneToOneRoom> { IsOneToOneRoomImpl }
-            single<ActiveVerifications> { ActiveVerificationsImpl() }
-            single<RoomPresence> { RoomPresenceImpl }
-            single<Search> { SearchImpl(get(), get(), get()) }
-            single<RunInitialSync> { RunInitialSyncImpl }
-            single<DragAndDropHandler> { DragAndDropHandlerBase() }
-            single<AccountSetupViewModelFactory> { AccountSetupViewModelFactory }
-            single<MatrixMarkdownFlavour> { MatrixMarkdownFlavourImpl() }
-            single<InformationMarkdownFlavour> { InformationMarkdownFlavourImpl() }
-
-            single<RootViewModelFactory> { RootViewModelFactory }
-            single<MainViewModelFactory> { MainViewModelFactory }
-
-            single<AuthorizeUia> { AuthorizeUiaImpl() }
-            single<UiaActionConfirmationViewModelFactory> { UiaActionConfirmationViewModelFactory }
-            single<UiaStepDummyViewModelFactory> { UiaStepDummyViewModelFactory }
-            single<UiaStepPasswordViewModelFactory> { UiaStepPasswordViewModelFactory }
-            single<UiaStepOAuth2ViewModelFactory> { UiaStepOAuth2ViewModelFactory }
-            single<UiaStepRegistrationTokenViewModelFactory> { UiaStepRegistrationTokenViewModelFactory }
-            single<UiaStepEmailIdentityViewModelFactory> { UiaStepEmailIdentityViewModelFactory }
-            single<UiaStepMsisdnViewModelFactory> { UiaStepMsisdnViewModelFactory }
-            single<UiaStepFallbackViewModelFactory> { UiaStepFallbackViewModelFactory }
-
-            single<ShareDataViewModelFactory> { ShareDataViewModelFactory }
-            single<SharedDataHandler> { SharedDataHandlerImpl() }
-
-            single<BackHandler> { BackHandlerImpl() }
-        }
-    },
-    ::connectingViewModels,
-    ::syncViewModels,
-    ::roomListViewModels,
-    ::settingsViewModels,
-    ::timelineElementViewModels,
-    ::timelineViewModels,
-    ::verificationViewModels,
-    ::roomViewModels,
-    ::roomSettingsViewModels,
-    ::mediaViewModels,
-    ::exportModule,
-    ::notificationModule,
-
-    // Platform-specific implementations:
-    ::platformModule,
-    ::platformPathsModule,
-    ::platformStringsModule,
-    ::platformCreateRepositoriesModuleModule,
-    ::platformCreateMediaStoreModuleModule,
-    ::createCryptoDriverModuleModule,
-    ::secretsModule,
-    ::platformGetSystemLangModule,
-    ::platformDeleteAccountDataModule,
-    ::platformMatrixMessengerSettingsHolderModule,
-    ::platformSendLogToDevsModule,
-    ::platformGetDefaultDisplayNameModule,
-    ::platformIsNetworkAvailableModule,
-    ::platformCloseAppModule,
-    ::platformMinimizeAppModule,
-    ::platformUriHandlerModule,
-    ::platformUriCallerModule,
-    ::platformDeleteProfileDataModule,
-    ::platformProcessImageUploadModule,
-    ::platformGetImageDimensionsModule,
-)
+        // Platform-specific implementations:
+        ::platformModule,
+        ::platformPathsModule,
+        ::platformStringsModule,
+        ::platformCreateRepositoriesModuleModule,
+        ::platformCreateMediaStoreModuleModule,
+        ::createCryptoDriverModuleModule,
+        ::secretsModule,
+        ::platformGetSystemLangModule,
+        ::platformDeleteAccountDataModule,
+        ::platformMatrixMessengerSettingsHolderModule,
+        ::platformSendLogToDevsModule,
+        ::platformGetDefaultDisplayNameModule,
+        ::platformIsNetworkAvailableModule,
+        ::platformCloseAppModule,
+        ::platformMinimizeAppModule,
+        ::platformUriHandlerModule,
+        ::platformUriCallerModule,
+        ::platformDeleteProfileDataModule,
+        ::platformProcessImageUploadModule,
+        ::platformGetImageDimensionsModule,
+    )
 
 /*
  * Factories for view models: Provide your own factory to
@@ -310,9 +311,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> = listO
  */
 
 private fun connectingViewModels() = module {
-    single<MatrixClientInitializationViewModelFactory> {
-        MatrixClientInitializationViewModelFactory
-    }
+    single<MatrixClientInitializationViewModelFactory> { MatrixClientInitializationViewModelFactory }
     single<RemoveMatrixAccountViewModelFactory> { RemoveMatrixAccountViewModelFactory }
     single<MatrixClientInitializationFailureViewModelFactory> { MatrixClientInitializationFailureViewModelFactory }
     single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
@@ -322,9 +321,7 @@ private fun connectingViewModels() = module {
     single<RegisterMatrixAccountViewModelFactory> { RegisterMatrixAccountViewModelFactory }
 }
 
-private fun syncViewModels() = module {
-    single<SyncViewModelFactory> { SyncViewModelFactory }
-}
+private fun syncViewModels() = module { single<SyncViewModelFactory> { SyncViewModelFactory } }
 
 private fun roomListViewModels() = module {
     single<AccountViewModelFactory> { AccountViewModelFactory }
@@ -355,34 +352,76 @@ private fun settingsViewModels() = module {
 }
 
 inline fun <reified F : TimelineElementViewModelFactory<*>> Module.timelineElementViewModelFactory(
-    noinline definition: Scope.(ParametersHolder) -> F,
+    noinline definition: Scope.(ParametersHolder) -> F
 ) = single<F>(named<F>(), definition = definition).bind<TimelineElementViewModelFactory<*>>()
 
 private fun timelineElementViewModels() = module {
     // Message:
-    timelineElementViewModelFactory<FileRoomMessageTimelineElementViewModelFactory> { FileRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<ImageRoomMessageTimelineElementViewModelFactory> { ImageRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VideoRoomMessageTimelineElementViewModelFactory> { VideoRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<AudioRoomMessageTimelineElementViewModelFactory> { AudioRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> { TextRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<NoticeRoomMessageTimelineElementViewModelFactory> { NoticeRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<EmoteRoomMessageTimelineElementViewModelFactory> { EmoteRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> { LocationRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> { VerificationRequestRoomMessageTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VerificationDoneTimelineElementViewModelFactory> { VerificationDoneTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<VerificationCancelTimelineElementViewModelFactory> { VerificationCancelTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<FileRoomMessageTimelineElementViewModelFactory> {
+        FileRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<ImageRoomMessageTimelineElementViewModelFactory> {
+        ImageRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<VideoRoomMessageTimelineElementViewModelFactory> {
+        VideoRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<AudioRoomMessageTimelineElementViewModelFactory> {
+        AudioRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<TextRoomMessageTimelineElementViewModelFactory> {
+        TextRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<NoticeRoomMessageTimelineElementViewModelFactory> {
+        NoticeRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<EmoteRoomMessageTimelineElementViewModelFactory> {
+        EmoteRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<LocationRoomMessageTimelineElementViewModelFactory> {
+        LocationRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<VerificationRequestRoomMessageTimelineElementViewModelFactory> {
+        VerificationRequestRoomMessageTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<VerificationDoneTimelineElementViewModelFactory> {
+        VerificationDoneTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<VerificationCancelTimelineElementViewModelFactory> {
+        VerificationCancelTimelineElementViewModelFactory
+    }
 
     // State:
-    timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> { CreateStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<NameStateTimelineElementViewModelFactory> { NameStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<TopicStateTimelineElementViewModelFactory> { TopicStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<AvatarStateTimelineElementViewModelFactory> { AvatarStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<MemberStateTimelineElementViewModelFactory> { MemberStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<CanonicalAliasStateTimelineElementViewModelFactory> { CanonicalAliasStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> { HistoryVisibilityStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> { EncryptionStateTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> { PowerLevelsTimelineElementViewModelFactory }
-    timelineElementViewModelFactory<TombstoneStateTimelineElementViewModelFactory> { TombstoneStateTimelineElementViewModelFactory }
+    timelineElementViewModelFactory<CreateStateTimelineElementViewModelFactory> {
+        CreateStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<NameStateTimelineElementViewModelFactory> {
+        NameStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<TopicStateTimelineElementViewModelFactory> {
+        TopicStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<AvatarStateTimelineElementViewModelFactory> {
+        AvatarStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<MemberStateTimelineElementViewModelFactory> {
+        MemberStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<CanonicalAliasStateTimelineElementViewModelFactory> {
+        CanonicalAliasStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<HistoryVisibilityStateTimelineElementViewModelFactory> {
+        HistoryVisibilityStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<EncryptionStateTimelineElementViewModelFactory> {
+        EncryptionStateTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<PowerLevelsTimelineElementViewModelFactory> {
+        PowerLevelsTimelineElementViewModelFactory
+    }
+    timelineElementViewModelFactory<TombstoneStateTimelineElementViewModelFactory> {
+        TombstoneStateTimelineElementViewModelFactory
+    }
 
     // Common:
     timelineElementViewModelFactory<RedactedTimelineElementViewModelFactory> { RedactedTimelineElementViewModelFactory }

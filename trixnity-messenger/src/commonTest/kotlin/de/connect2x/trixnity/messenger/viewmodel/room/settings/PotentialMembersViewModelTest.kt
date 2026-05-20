@@ -26,6 +26,8 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -34,8 +36,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class PotentialMembersViewModelTest {
     val roomId = RoomId("!room")
@@ -63,12 +63,7 @@ class PotentialMembersViewModelTest {
             roomsApiClientMock,
             userServiceMock,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { userServiceMock } }) }.koin
         syncStateMocker = every { matrixClientMock.syncState }
         syncStateMocker returns MutableStateFlow(SyncState.STARTED)
         every { matrixClientMock.userId } returns userId1
@@ -86,178 +81,133 @@ class PotentialMembersViewModelTest {
     @Test
     fun `room has no members » filter users by search term`() = runTest {
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(emptyMap())
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "user1",
-                any(),
-                any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(
-                    SearchUsers.Response.SearchUser(userId = userId1),
+        everySuspend { usersApiClientMock.searchUsers("user1", any(), any()) } returns
+            Result.success(SearchUsers.Response(false, listOf(SearchUsers.Response.SearchUser(userId = userId1))))
+        everySuspend { usersApiClientMock.searchUsers("us", any(), any()) } returns
+            Result.success(
+                SearchUsers.Response(
+                    false,
+                    listOf(
+                        SearchUsers.Response.SearchUser(userId = userId1),
+                        SearchUsers.Response.SearchUser(userId = userId2),
+                        SearchUsers.Response.SearchUser(userId = userId3),
+                    ),
                 )
             )
-        )
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "us",
-                any(),
-                any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(
-                    SearchUsers.Response.SearchUser(userId = userId1),
-                    SearchUsers.Response.SearchUser(userId = userId2),
-                    SearchUsers.Response.SearchUser(userId = userId3),
-                )
-            )
-        )
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "user3",
-                any(),
-                any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(SearchUsers.Response.SearchUser(userId = userId3))
-            )
-        )
+        everySuspend { usersApiClientMock.searchUsers("user3", any(), any()) } returns
+            Result.success(SearchUsers.Response(false, listOf(SearchUsers.Response.SearchUser(userId = userId3))))
 
         val cut = createPotentialMembersViewModel()
         val searchHandler = cut.searchHandler
 
         searchHandler.searchTerm.update("us")
         searchHandler.foundUsers.first {
-            it == listOf(
-                Search.SearchUserElementImpl(
-                    userId = userId2,
-                    displayName = userId2.full,
-                    initials = "U",
-                ), Search.SearchUserElementImpl(
-                    userId = userId3,
-                    displayName = userId3.full,
-                    initials = "U",
+            it ==
+                listOf(
+                    Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
+                    Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U"),
                 )
-            )
         }
         searchHandler.searchTerm.update("user3")
         searchHandler.foundUsers.first {
-            it == listOf(
-                Search.SearchUserElementImpl(
-                    userId = userId3,
-                    displayName = userId3.full,
-                    initials = "U",
-                )
-            )
+            it == listOf(Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U"))
         }
         searchHandler.searchTerm.update("user1")
-        searchHandler.foundUsers.first {
-            it == emptyList<SearchUserElement>()
-        }
+        searchHandler.foundUsers.first { it == emptyList<SearchUserElement>() }
     }
 
-
     fun setupRoomHasMembers() {
-        val memberEvent1 = StateEvent(
-            MemberEventContent(membership = Membership.JOIN),
-            EventId("event1"),
-            userId1,
-            roomId,
-            123,
-            null,
-            "",
-        )
-        val memberEvent2 = StateEvent(
-            MemberEventContent(membership = Membership.INVITE),
-            EventId("event2"),
-            userId1,
-            roomId,
-            123,
-            null,
-            "",
-        )
-        val memberEvent3 = StateEvent(
-            MemberEventContent(membership = Membership.LEAVE),
-            EventId("event3"),
-            userId1,
-            roomId,
-            123,
-            null,
-            "",
-        )
+        val memberEvent1 =
+            StateEvent(
+                MemberEventContent(membership = Membership.JOIN),
+                EventId("event1"),
+                userId1,
+                roomId,
+                123,
+                null,
+                "",
+            )
+        val memberEvent2 =
+            StateEvent(
+                MemberEventContent(membership = Membership.INVITE),
+                EventId("event2"),
+                userId1,
+                roomId,
+                123,
+                null,
+                "",
+            )
+        val memberEvent3 =
+            StateEvent(
+                MemberEventContent(membership = Membership.LEAVE),
+                EventId("event3"),
+                userId1,
+                roomId,
+                123,
+                null,
+                "",
+            )
 
         val roomUser4 = RoomUser(roomId, userId4, "user1a", memberEvent1)
         val roomUser5 = RoomUser(roomId, userId5, "user5", memberEvent2)
         val roomUser6 = RoomUser(roomId, userId6, "user6", memberEvent3)
 
-        every { userServiceMock.getAll(roomId) } returns MutableStateFlow(
-            mapOf(
-                roomUser4.userId to flowOf(roomUser4),
-                roomUser5.userId to flowOf(roomUser5),
-                roomUser6.userId to flowOf(roomUser6),
+        every { userServiceMock.getAll(roomId) } returns
+            MutableStateFlow(
+                mapOf(
+                    roomUser4.userId to flowOf(roomUser4),
+                    roomUser5.userId to flowOf(roomUser5),
+                    roomUser6.userId to flowOf(roomUser6),
+                )
             )
-        )
     }
 
     @Test
     fun `room has members » filter users by search term + do not show users who are already in the room`() = runTest {
         setupRoomHasMembers()
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "us",
-                any(),
-                any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(
-                    SearchUsers.Response.SearchUser(userId = userId1),
-                    SearchUsers.Response.SearchUser(userId = userId2),
-                    SearchUsers.Response.SearchUser(userId = userId3),
-                    SearchUsers.Response.SearchUser(userId = userId4),
-                    SearchUsers.Response.SearchUser(userId = userId5),
-                    SearchUsers.Response.SearchUser(userId = userId6),
+        everySuspend { usersApiClientMock.searchUsers("us", any(), any()) } returns
+            Result.success(
+                SearchUsers.Response(
+                    false,
+                    listOf(
+                        SearchUsers.Response.SearchUser(userId = userId1),
+                        SearchUsers.Response.SearchUser(userId = userId2),
+                        SearchUsers.Response.SearchUser(userId = userId3),
+                        SearchUsers.Response.SearchUser(userId = userId4),
+                        SearchUsers.Response.SearchUser(userId = userId5),
+                        SearchUsers.Response.SearchUser(userId = userId6),
+                    ),
                 )
             )
-        )
         val cut = createPotentialMembersViewModel()
         val searchHandler = cut.searchHandler
 
         searchHandler.searchTerm.update("us")
         searchHandler.foundUsers.first {
-            it == listOf(
-                Search.SearchUserElementImpl(
-                    userId = userId2,
-                    displayName = userId2.full,
-                    initials = "U",
-                ), Search.SearchUserElementImpl(
-                    userId = userId3,
-                    displayName = userId3.full,
-                    initials = "U",
-                ), Search.SearchUserElementImpl(
-                    userId = userId6,
-                    displayName = userId6.full,
-                    initials = "U",
+            it ==
+                listOf(
+                    Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
+                    Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U"),
+                    Search.SearchUserElementImpl(userId = userId6, displayName = userId6.full, initials = "U"),
                 )
-            )
         }
     }
 
     private fun TestScope.createPotentialMembersViewModel(): PotentialMembersViewModel {
         return PotentialMembersViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        ),
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    )
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
             roomId = roomId,
         )
     }

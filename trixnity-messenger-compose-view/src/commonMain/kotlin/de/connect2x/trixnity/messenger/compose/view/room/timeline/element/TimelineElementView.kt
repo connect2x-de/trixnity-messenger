@@ -17,19 +17,9 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
 
     fun isFocusable(): Boolean
 
-    @Composable
-    fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: V,
-        index: Int,
-    )
+    @Composable fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: V, index: Int)
 
-    @Composable
-    fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: V,
-        index: Int,
-    )
+    @Composable fun createAsPreview(holder: TimelineElementHolderViewModel, element: V, index: Int)
 
     @Composable
     fun createReplyInTimeline(
@@ -47,11 +37,7 @@ interface TimelineElementView<V : TimelineElementViewModel<*>> {
         interactionSource: MutableInteractionSource,
     )
 
-    @Composable
-    fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: V,
-    ): ClipEntry?
+    @Composable fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: V): ClipEntry?
 
     /**
      * Optional label for accessibility. This is read to a user when the timeline element is focused in the timeline.
@@ -66,7 +52,6 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
     override val supports: KClass<TimelineElementViewModel.Empty>
         get() = TimelineElementViewModel.Empty::class
 
-
     override suspend fun waitFor(element: TimelineElementViewModel<*>) {}
 
     override fun isFocusable(): Boolean = false
@@ -76,16 +61,14 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
         holder: BaseTimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
         index: Int,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun createAsPreview(
         holder: TimelineElementHolderViewModel,
         element: TimelineElementViewModel<*>,
         index: Int,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun createReplyInSendMessage(
@@ -93,8 +76,7 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
         element: TimelineElementViewModel<*>,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun getClipEntry(
@@ -108,6 +90,5 @@ object EmptyTimelineElementView : TimelineElementView<TimelineElementViewModel<*
         element: TimelineElementViewModel<*>,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 }

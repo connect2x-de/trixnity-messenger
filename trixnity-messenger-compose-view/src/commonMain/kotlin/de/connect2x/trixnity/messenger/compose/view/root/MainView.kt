@@ -16,8 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 val IsSinglePane = compositionLocalOf<Boolean> { error("compositionLocal not defined") }
 
 interface MainView {
-    @Composable
-    fun create(mainViewModel: MainViewModel)
+    @Composable fun create(mainViewModel: MainViewModel)
 }
 
 @Composable

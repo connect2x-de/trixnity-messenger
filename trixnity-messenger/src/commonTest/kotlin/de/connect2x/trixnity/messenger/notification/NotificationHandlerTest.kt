@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.notification
 
 import de.connect2x.sysnotify.NotificationHandler
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -16,16 +17,15 @@ import dev.mokkery.mock
 import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.core.model.UserId
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class NotificationHandlerTest {
 
@@ -44,31 +44,28 @@ class NotificationHandlerTest {
         resetMocks(notificationHandler)
         multiSettings = createTestMatrixMultiMessengerSettingsHolder()
         callbackParam = null
-        notificationProviders = listOf(
-            NotificationProviderMock(),
-            NotificationProviderMock(),
-        )
-        cut = NotificationHandlersImpl(
-            MatrixMessengerConfiguration(),
-            NotificationProviders(notificationProviders) { throw IllegalStateException() },
-            multiSettings,
-            matrixClients,
-            { callbackParam = it }
-        ) { _, _, _, _ ->
-            notificationHandler
-        }
+        notificationProviders = listOf(NotificationProviderMock(), NotificationProviderMock())
+        cut =
+            NotificationHandlersImpl(
+                MatrixMessengerConfiguration(),
+                NotificationProviders(notificationProviders) { throw IllegalStateException() },
+                multiSettings,
+                matrixClients,
+                { callbackParam = it },
+            ) { _, _, _, _ ->
+                notificationHandler
+            }
     }
 
     @Test
     fun `continuouslyRequestPermissions - missing permission and notification enabled - request`() = runTest {
-        everySuspend { notificationHandler.requestPermissions(any()) } calls { (callback: (Boolean) -> Unit) ->
-            callback(true)
-        }
+        everySuspend { notificationHandler.requestPermissions(any()) } calls
+            { (callback: (Boolean) -> Unit) ->
+                callback(true)
+            }
         every { notificationHandler.hasPermissions } returns false
 
-        backgroundScope.launch {
-            cut.continuouslyRequestPermissions()
-        }
+        backgroundScope.launch { cut.continuouslyRequestPermissions() }
 
         delay(100.milliseconds)
         callbackParam shouldBe null
@@ -82,14 +79,13 @@ class NotificationHandlerTest {
 
     @Test
     fun `continuouslyRequestPermissions - has permission - nothing`() = runTest {
-        everySuspend { notificationHandler.requestPermissions(any()) } calls { (callback: (Boolean) -> Unit) ->
-            callback(true)
-        }
+        everySuspend { notificationHandler.requestPermissions(any()) } calls
+            { (callback: (Boolean) -> Unit) ->
+                callback(true)
+            }
         every { notificationHandler.hasPermissions } returns true
 
-        backgroundScope.launch {
-            cut.continuouslyRequestPermissions()
-        }
+        backgroundScope.launch { cut.continuouslyRequestPermissions() }
 
         delay(100.milliseconds)
         callbackParam shouldBe null
@@ -103,14 +99,13 @@ class NotificationHandlerTest {
 
     @Test
     fun `continuouslyRequestPermissions - notification disabled - nothing`() = runTest {
-        everySuspend { notificationHandler.requestPermissions(any()) } calls { (callback: (Boolean) -> Unit) ->
-            callback(true)
-        }
+        everySuspend { notificationHandler.requestPermissions(any()) } calls
+            { (callback: (Boolean) -> Unit) ->
+                callback(true)
+            }
         every { notificationHandler.hasPermissions } returns false
 
-        backgroundScope.launch {
-            cut.continuouslyRequestPermissions()
-        }
+        backgroundScope.launch { cut.continuouslyRequestPermissions() }
 
         delay(100.milliseconds)
         callbackParam shouldBe null
@@ -123,9 +118,11 @@ class NotificationHandlerTest {
         override val displayName: String = "mock"
         override val canBeEnabled: Boolean = true
         override val isEnabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
         override fun isEnabled(userId: UserId): Flow<Boolean> = flowOf(false)
+
         override suspend fun enable(userId: UserId) {}
+
         override suspend fun disable(userId: UserId) {}
     }
-
 }

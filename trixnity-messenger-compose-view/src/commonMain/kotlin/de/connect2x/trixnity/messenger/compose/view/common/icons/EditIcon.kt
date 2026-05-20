@@ -9,9 +9,5 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun EditIcon(icon: ImageVector, description: String) {
-    Icon(
-        icon,
-        description,
-        Modifier.padding(10.dp),
-    )
+    Icon(icon, description, Modifier.padding(10.dp))
 }

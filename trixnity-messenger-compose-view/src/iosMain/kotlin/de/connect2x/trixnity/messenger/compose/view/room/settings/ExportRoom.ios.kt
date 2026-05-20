@@ -14,12 +14,12 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.r
 @Composable
 internal actual fun SelectExportDestination(
     properties: FileBasedExportRoomProperties?,
-    result: (Destination?) -> Unit
+    result: (Destination?) -> Unit,
 ) {
     // TODO this does save it in the app bundle and not locally on the phone so the user has access to it!
     // TODO NSLocalDomainMask should return a system directory, but this is null
-    val documentsPath = NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, true)
-        .firstOrNull() as? String
+    val documentsPath =
+        NSSearchPathForDirectoriesInDomains(NSDownloadsDirectory, NSUserDomainMask, true).firstOrNull() as? String
     if (documentsPath == null) {
         log.debug { "cannot export, as directory is not accessible " }
         result(null)

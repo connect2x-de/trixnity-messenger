@@ -5,9 +5,5 @@ import io.ktor.client.engine.okhttp.*
 import okhttp3.ConnectionSpec
 
 actual fun platformHttpEngine(): HttpClientEngine {
-    return OkHttp.create {
-        config {
-            connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.MODERN_TLS))
-        }
-    }
+    return OkHttp.create { config { connectionSpecs(listOf(ConnectionSpec.CLEARTEXT, ConnectionSpec.MODERN_TLS)) } }
 }

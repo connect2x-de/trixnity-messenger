@@ -6,15 +6,16 @@ import de.connect2x.trixnity.messenger.compose.view.connecting.RegisterNewAccoun
 import de.connect2x.trixnity.messenger.compose.view.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PreviewRegisterMatrixAccountViewModel
 
-
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun RegisterNewAccountPreview() {
     InitMessengerPreview {
         val registerNewAccountViewModel = PreviewRegisterMatrixAccountViewModel()
-//        registerNewAccountViewModel.serverUrlValidation.update { ServerUrlValidation.None }
-//        registerNewAccountViewModel.registrationOptions.update { listOf(AuthenticationType.RegistrationToken) }
-//        registerNewAccountViewModel.registrationState.update { RegisterNewAccountViewModel.RegistrationState.Error("Oh no") }
+        //        registerNewAccountViewModel.serverUrlValidation.update { ServerUrlValidation.None }
+        //        registerNewAccountViewModel.registrationOptions.update { listOf(AuthenticationType.RegistrationToken)
+        // }
+        //        registerNewAccountViewModel.registrationState.update {
+        // RegisterNewAccountViewModel.RegistrationState.Error("Oh no") }
         RegisterNewAccount(registerNewAccountViewModel)
     }
 }

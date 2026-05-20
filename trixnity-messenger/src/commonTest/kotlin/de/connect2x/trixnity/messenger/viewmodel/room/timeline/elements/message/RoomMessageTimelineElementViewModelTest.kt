@@ -1,21 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
-import de.connect2x.trixnity.messenger.configureTestLogging
-import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
-import de.connect2x.trixnity.messenger.firstNotNullWithClue
-import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
-import dev.mokkery.answering.returns
-import dev.mokkery.every
-import dev.mokkery.mock
-import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
@@ -30,12 +14,28 @@ import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.firstNotNullWithClue
+import de.connect2x.trixnity.messenger.resetMocks
+import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
+import dev.mokkery.answering.returns
+import dev.mokkery.every
 import dev.mokkery.matcher.any
-import org.koin.dsl.koinApplication
-import org.koin.dsl.module
+import dev.mokkery.mock
+import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 
 @Suppress("NonAsciiCharacters")
 class RoomMessageTimelineElementViewModelTest {
@@ -45,46 +45,53 @@ class RoomMessageTimelineElementViewModelTest {
 
     val roomId = RoomId("!bathroom:example")
     val roomAliasId = RoomAliasId("bathroom", "example")
-    val roomInfoElement = RoomInfoElement(
-        roomAliasId.full, roomId, "#", null
-    )
+    val roomInfoElement = RoomInfoElement(roomAliasId.full, roomId, "#", null)
     val room = Room(roomId)
 
     val meUserId = UserId("tester", "example")
     val meName = "Tester"
-    val meRoomUser = RoomUser(
-        roomId, meUserId, meName, event = ClientEvent.RoomEvent.StateEvent(
-            content = MemberEventContent(membership = Membership.JOIN),
-            id = EventId("\$spawned"),
-            roomId = roomId,
-            sender = meUserId,
-            stateKey = meUserId.full,
-            originTimestamp = 0,
+    val meRoomUser =
+        RoomUser(
+            roomId,
+            meUserId,
+            meName,
+            event =
+                ClientEvent.RoomEvent.StateEvent(
+                    content = MemberEventContent(membership = Membership.JOIN),
+                    id = EventId("\$spawned"),
+                    roomId = roomId,
+                    sender = meUserId,
+                    stateKey = meUserId.full,
+                    originTimestamp = 0,
+                ),
         )
-    )
     val meUserInfoElement = UserInfoElement(meUserId, meName, "T")
 
     init {
         resetMocks(matrixClientMock, userServiceMock, roomServiceMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { userServiceMock }
-                    single { roomServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { userServiceMock }
+                            single { roomServiceMock }
+                        }
+                    )
+                }
+                .koin
 
         every { roomServiceMock.getAll() } returns flowOf(mapOf(roomId to flowOf()))
-        every { roomServiceMock.getState(roomId, CanonicalAliasEventContent::class, any()) } returns flowOf(
-            ClientEvent.RoomEvent.StateEvent(
-                content = CanonicalAliasEventContent(roomAliasId, setOf()),
-                id = EventId("\$alias"),
-                sender = meUserId,
-                roomId = roomId,
-                originTimestamp = 0,
-                stateKey = "key"
+        every { roomServiceMock.getState(roomId, CanonicalAliasEventContent::class, any()) } returns
+            flowOf(
+                ClientEvent.RoomEvent.StateEvent(
+                    content = CanonicalAliasEventContent(roomAliasId, setOf()),
+                    id = EventId("\$alias"),
+                    sender = meUserId,
+                    roomId = roomId,
+                    originTimestamp = 0,
+                    stateKey = "key",
+                )
             )
-        )
         every { roomServiceMock.getById(roomId) } returns flowOf(room)
 
         every { userServiceMock.getById(roomId, meUserId) } returns flowOf(meRoomUser)
@@ -119,28 +126,23 @@ class RoomMessageTimelineElementViewModelTest {
         cut.mentionsInBody[7..23]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
     }
 
-
     private fun TestScope.roomMessageTimelineElementViewModel(
         body: String = "Amazing Message!",
         formattedBody: String? = null,
     ): RoomMessageTimelineElementViewModel<*> {
         return TextRoomMessageTimelineElementViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(meUserId to matrixClientMock)
-                        )
-                    )
-                }.koin,
-                userId = meUserId,
-            ),
-            content = RoomMessageEventContent.TextBased.Text(
-                body,
-                formattedBody = formattedBody
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(createTestDefaultTrixnityMessengerModules(mapOf(meUserId to matrixClientMock)))
+                            }
+                            .koin,
+                    userId = meUserId,
+                ),
+            content = RoomMessageEventContent.TextBased.Text(body, formattedBody = formattedBody),
             roomId = roomId,
-            onOpenMention = { _, _ -> }
+            onOpenMention = { _, _ -> },
         )
     }
 }

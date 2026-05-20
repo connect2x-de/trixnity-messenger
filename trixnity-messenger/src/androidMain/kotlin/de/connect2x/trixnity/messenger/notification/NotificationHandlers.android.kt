@@ -17,30 +17,24 @@ import org.koin.dsl.module
 
 actual fun platformNotificationHandlersModule(): Module = module {
     single<NotificationHandlers> {
-        val config = get<MatrixMessengerConfiguration>()
-        NotificationHandlersImpl(
-            config = config,
-            notificationProviders = get(),
-            multiSettings = getOrNull(),
-            matrixClients = get(),
-        ) { name, id, appId, contributesToCounter ->
-            NotificationHandler(
-                name = name,
-                id = id,
-                appId = appId,
-                contributesToCounter = contributesToCounter
-            ).withContext { get<ContextGetter>()() }
-                .withActivity { get<ActivityGetter>()() }
-                .withActivationIntent { _, notification ->
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        notification.callbackData?.toUri(),
-                    )
-                }
-                .withChannel()
+            val config = get<MatrixMessengerConfiguration>()
+            NotificationHandlersImpl(
+                config = config,
+                notificationProviders = get(),
+                multiSettings = getOrNull(),
+                matrixClients = get(),
+            ) { name, id, appId, contributesToCounter ->
+                NotificationHandler(name = name, id = id, appId = appId, contributesToCounter = contributesToCounter)
+                    .withContext { get<ContextGetter>()() }
+                    .withActivity { get<ActivityGetter>()() }
+                    .withActivationIntent { _, notification ->
+                        Intent(Intent.ACTION_VIEW, notification.callbackData?.toUri())
+                    }
+                    .withChannel()
+            }
         }
-    }.apply {
-        bind<AutoCloseable>()
-        bind<Worker>()
-    }
+        .apply {
+            bind<AutoCloseable>()
+            bind<Worker>()
+        }
 }

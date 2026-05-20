@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.media
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.start
-import com.arkivanov.essenty.lifecycle.stop
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.model.UserId
@@ -11,31 +10,25 @@ import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.media.MediaPlayer
 import de.connect2x.trixnity.messenger.platformModule
-import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
-import org.koin.dsl.koinApplication
-import org.koin.dsl.module
 import kotlin.collections.plus
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 
 class MediaPlayerViewModelTest {
 
@@ -163,26 +156,21 @@ class MediaPlayerViewModelTest {
 
     private fun TestScope.viewModelContext(
         mediaPlayer: MediaPlayer?,
-        coroutineContext: CoroutineContext
+        coroutineContext: CoroutineContext,
     ): MatrixClientViewModelContext {
         return testMatrixClientViewModelContext(
             coroutineContext = coroutineContext,
             userId = me,
-            di = koinApplication {
-                allowOverride(true)
-                modules(
-                    createTestDefaultTrixnityMessengerModules(
-                        mapOf(me to matrixClientMock)
-                    ) + module {
-                        mediaPlayer?.let { player ->
-                            single<MediaPlayer> { player }
-                        }
+            di =
+                koinApplication {
+                        allowOverride(true)
+                        modules(
+                            createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) +
+                                module { mediaPlayer?.let { player -> single<MediaPlayer> { player } } }
+                        )
                     }
-                )
-            }.koin.also {
-                if (mediaPlayer == null)
-                    it.unloadModules(listOf(platformModule()))
-            }
+                    .koin
+                    .also { if (mediaPlayer == null) it.unloadModules(listOf(platformModule())) },
         )
     }
 
@@ -190,19 +178,17 @@ class MediaPlayerViewModelTest {
         id: String,
         mimeType: String,
         mediaPlayer: MediaPlayer?,
-        viewModelContext: MatrixClientViewModelContext = viewModelContext(
-            mediaPlayer,
-            backgroundScope.coroutineContext
-        ),
+        viewModelContext: MatrixClientViewModelContext =
+            viewModelContext(mediaPlayer, backgroundScope.coroutineContext),
         acquireFile: suspend () -> Result<PlatformMedia> = {
             Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
-        }
-    ): MediaPlayerViewModel = MediaPlayerViewModelImpl(
-        viewModelContext = viewModelContext,
-        id = id,
-        mimeType = mimeType,
-        initialDurationOptional = null,
-        acquireFile = acquireFile
-    )
-
+        },
+    ): MediaPlayerViewModel =
+        MediaPlayerViewModelImpl(
+            viewModelContext = viewModelContext,
+            id = id,
+            mimeType = mimeType,
+            initialDurationOptional = null,
+            acquireFile = acquireFile,
+        )
 }

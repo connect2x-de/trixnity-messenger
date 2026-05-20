@@ -16,30 +16,25 @@ import web.html.Image
 
 actual fun platformGetImageDimensionsModule(): Module = module {
     single<GetImageDimensions> {
-        GetImageDimensions { byteArrayFlow, maxSize, mimeType ->
-            getImageDimensions(byteArrayFlow, maxSize, mimeType)
-        }
+        GetImageDimensions { byteArrayFlow, maxSize, mimeType -> getImageDimensions(byteArrayFlow, maxSize, mimeType) }
     }
 }
 
 suspend fun getImageDimensions(
     byteArrayFlow: ByteArrayFlow,
     maxMediaSize: Long,
-    mimeType: ContentType?
+    mimeType: ContentType?,
 ): Pair<Int?, Int?> {
     val base64String = byteArrayFlow.toByteArray(maxMediaSize)?.encodeBase64()
     return base64String?.let {
         val image = Image()
         image.src = "data:$mimeType;base64,${byteArrayFlow.toByteArray().encodeBase64()}"
         Promise(
-            executor = { resolve, _ ->
-                image.addEventListener(
-                    type = EventType("load"),
-                    handler = EventHandler { resolve(null) }
-                )
-            }
-        ).await()
+                executor = { resolve, _ ->
+                    image.addEventListener(type = EventType("load"), handler = EventHandler { resolve(null) })
+                }
+            )
+            .await()
         image.width to image.height
     } ?: (null to null)
 }
-

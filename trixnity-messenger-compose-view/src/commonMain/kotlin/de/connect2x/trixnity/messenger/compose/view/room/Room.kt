@@ -25,13 +25,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import kotlinx.coroutines.flow.map
 
-
 const val TIMELINE_WEIGHT = 0.6f
 const val SETTINGS_WEIGHT = 1f - TIMELINE_WEIGHT
 
 interface RoomView {
-    @Composable
-    fun create(roomViewModel: RoomViewModel)
+    @Composable fun create(roomViewModel: RoomViewModel)
 }
 
 @Composable
@@ -45,35 +43,37 @@ class RoomViewImpl : RoomView {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val isSinglePane = this@BoxWithConstraints.maxWidth < TWO_PANE_THRESHOLD.dp
 
-            val isSettingsShown = remember {
-                roomViewModel.extrasStack.toFlow().map { it.active.configuration is ExtrasRouter.Config.RoomSettings }
-            }.collectAsState(initial = false).value
-            val isExtrasShown = remember {
-                roomViewModel.extrasStack.toFlow().map { it.active.configuration !is ExtrasRouter.Config.None }
-            }.collectAsState(initial = false).value
+            val isSettingsShown =
+                remember {
+                        roomViewModel.extrasStack.toFlow().map {
+                            it.active.configuration is ExtrasRouter.Config.RoomSettings
+                        }
+                    }
+                    .collectAsState(initial = false)
+                    .value
+            val isExtrasShown =
+                remember {
+                        roomViewModel.extrasStack.toFlow().map { it.active.configuration !is ExtrasRouter.Config.None }
+                    }
+                    .collectAsState(initial = false)
+                    .value
 
             Row(modifier = Modifier.fillMaxSize()) {
 
                 // Timeline Column
-                if (!isExtrasShown || !isSinglePane) Box(
-                    modifier = Modifier
-                        .weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)
-                ) {
-                    RoomContentSwitch(roomViewModel.timelineStack, !isSettingsShown, !isExtrasShown)
-                }
+                if (!isExtrasShown || !isSinglePane)
+                    Box(modifier = Modifier.weight(if (isSinglePane) 1F else TIMELINE_WEIGHT)) {
+                        RoomContentSwitch(roomViewModel.timelineStack, !isSettingsShown, !isExtrasShown)
+                    }
 
                 // Pane Divider
-                if (isExtrasShown && !isSinglePane) VerticalDivider(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp)
-                )
+                if (isExtrasShown && !isSinglePane) VerticalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
 
                 // Extras Pane
                 if (isExtrasShown) {
                     ThemedSurface(
                         style = MaterialTheme.components.details,
-                        modifier = Modifier.weight(if (isSinglePane) 1F else SETTINGS_WEIGHT)
+                        modifier = Modifier.weight(if (isSinglePane) 1F else SETTINGS_WEIGHT),
                     ) {
                         ExtrasPaneContentSwitch(roomViewModel.extrasStack, isSinglePane)
                     }

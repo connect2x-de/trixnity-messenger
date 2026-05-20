@@ -55,9 +55,7 @@ class StringsTest {
     @Test
     fun forEachGraphInAsciiString() {
         val string = "Hello"
-        graphemeProvider(string).forEachIndexed { index, graph ->
-            graph shouldBe string[index].toString()
-        }
+        graphemeProvider(string).forEachIndexed { index, graph -> graph shouldBe string[index].toString() }
     }
 
     @Test

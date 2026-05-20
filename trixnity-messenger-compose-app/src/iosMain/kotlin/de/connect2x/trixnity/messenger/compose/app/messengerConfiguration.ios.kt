@@ -9,13 +9,6 @@ import platform.Foundation.NSUserDomainMask
 
 private val log = Logger("de.connect2x.trixnity.messenger.compose.app.messengerConfiguration")
 
-internal actual fun getDevRootPath(): RootPath? = RootPath(
-    (NSSearchPathForDirectoriesInDomains(
-        NSDocumentDirectory,
-        NSUserDomainMask,
-        true
-    )[0] as String)
-        .toPath()
-).also {
-    log.debug { "Root DEV path: $it" }
-}
+internal actual fun getDevRootPath(): RootPath? =
+    RootPath((NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true)[0] as String).toPath())
+        .also { log.debug { "Root DEV path: $it" } }

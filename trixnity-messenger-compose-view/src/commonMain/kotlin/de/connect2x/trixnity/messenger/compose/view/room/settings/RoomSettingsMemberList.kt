@@ -50,8 +50,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsMemberListView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -66,8 +65,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val i18n = DI.get<I18nView>()
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
-        val memberListElementViewModels =
-            memberListViewModel.elements.collectAsState().value
+        val memberListElementViewModels = memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
         Column {
@@ -79,63 +77,56 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
-                trailingContent = if (hasPowerToInvite) {
-                    {
-                        Tooltip(
-                            tooltip = { Text(i18n.addMembers()) }
-                        ) {
-                            ThemedIconButton(
-                                style = MaterialTheme.components.commonIconButton,
-                                onClick = { roomSettingsViewModel.openAddMembersView() },
-                            ) {
-                                Icon(
-                                    Icons.Default.PersonAdd,
-                                    i18n.addMembers(),
-                                )
+                trailingContent =
+                    if (hasPowerToInvite) {
+                        {
+                            Tooltip(tooltip = { Text(i18n.addMembers()) }) {
+                                ThemedIconButton(
+                                    style = MaterialTheme.components.commonIconButton,
+                                    onClick = { roomSettingsViewModel.openAddMembersView() },
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, i18n.addMembers())
+                                }
                             }
                         }
-                    }
-                } else null
+                    } else null,
             )
 
             FlowRow(Modifier.fillMaxWidth()) {
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.JOIN)
-                ) {
-                    Text(i18n.settingsRoomMemberListJoined(), Modifier.semantics {
-                        text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.JOIN)) {
+                    Text(
+                        i18n.settingsRoomMemberListJoined(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.KNOCK)
-                ) {
-                    Text(i18n.settingsRoomMemberListKnocking(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.KNOCK)) {
+                    Text(
+                        i18n.settingsRoomMemberListKnocking(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.INVITE)
-                ) {
-                    Text(i18n.settingsRoomMemberListInvited(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.INVITE)) {
+                    Text(
+                        i18n.settingsRoomMemberListInvited(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.BAN)
-                ) {
-                    Text(i18n.settingsRoomMemberListBanned(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.BAN)) {
+                    Text(
+                        i18n.settingsRoomMemberListBanned(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
+                        },
+                    )
                 }
             }
 
@@ -147,10 +138,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
 }
 
 @Composable
-fun MemberList(
-    memberListViewModel: MemberListViewModel,
-    onClickUser: (UserId) -> Unit,
-) {
+fun MemberList(memberListViewModel: MemberListViewModel, onClickUser: (UserId) -> Unit) {
     val members by memberListViewModel.elements.collectAsState()
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
@@ -159,40 +147,30 @@ fun MemberList(
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .rovingFocusContainer(
-                    listState = state,
-                    focusedItem = focusedItem
-                )
-                .semantics {
-                    collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
-                },
-            state
+            Modifier.fillMaxWidth().rovingFocusContainer(listState = state, focusedItem = focusedItem).semantics {
+                collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
+            },
+            state,
         ) {
             itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { index, member ->
                 RoomSettingsMemberListElement(
                     memberListViewModel,
                     member.memberUserId,
                     member,
-                    modifier = Modifier
-                        .rovingFocusItem(
-                            isFocused = { focusedItem.value == member.memberUserId.full },
-                            onFocus = { focusedItem.value = member.memberUserId.full },
-                        )
-                        .semantics {
-                            collectionItemInfo =
-                                CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
-                        },
-                    onClick = {
-                        onClickUser(member.memberUserId)
-                    },
+                    modifier =
+                        Modifier.rovingFocusItem(
+                                isFocused = { focusedItem.value == member.memberUserId.full },
+                                onFocus = { focusedItem.value = member.memberUserId.full },
+                            )
+                            .semantics {
+                                collectionItemInfo =
+                                    CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                            },
+                    onClick = { onClickUser(member.memberUserId) },
                 )
             }
             if (showLoadingSpinner) {
-                item(key = "loadingSpinner") {
-                    LoadingSpinner()
-                }
+                item(key = "loadingSpinner") { LoadingSpinner() }
             }
         }
         if (state.canScrollForward || state.canScrollBackward) {

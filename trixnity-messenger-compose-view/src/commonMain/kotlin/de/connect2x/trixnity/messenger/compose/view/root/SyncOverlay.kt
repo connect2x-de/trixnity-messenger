@@ -25,18 +25,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.AccountSync
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModel
 
 interface SyncOverlayView {
-    @Composable
-    fun create(syncViewModel: SyncViewModel)
+    @Composable fun create(syncViewModel: SyncViewModel)
 }
 
 @Composable
@@ -51,26 +50,20 @@ class SyncOverlayViewImpl : SyncOverlayView {
         val i18n = DI.get<I18nView>()
         val accountSyncStates by syncViewModel.accountSyncStates.collectAsState()
 
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiaryContainer).clickable { }) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.tertiaryContainer).clickable {}) {
             Box(Modifier.align(Alignment.Center).padding(20.dp)) {
                 Box(
-                    Modifier
-                        .align(Alignment.Center)
+                    Modifier.align(Alignment.Center)
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.primary)
                         .sizeIn(maxWidth = 500.dp)
                 ) {
                     Column(
-                        Modifier
-                            .align(Alignment.Center)
-                            .padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        Modifier.align(Alignment.Center).padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onPrimary) {
-                            Text(
-                                i18n.syncOverlayTitle(),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
+                            Text(i18n.syncOverlayTitle(), style = MaterialTheme.typography.titleMedium)
                             accountSyncStates?.entries?.map { (userId, accountSync) ->
                                 Spacer(Modifier.size(20.dp))
                                 when (accountSync) {
@@ -83,14 +76,17 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                                 )
                                                 Text(i18n.syncOverlayInitialSync())
                                                 Text(
-                                                    text = i18n.syncOverlayInitialSyncInfo(DI.get<MatrixMessengerConfiguration>().appName),
+                                                    text =
+                                                        i18n.syncOverlayInitialSyncInfo(
+                                                            DI.get<MatrixMessengerConfiguration>().appName
+                                                        ),
                                                     style = MaterialTheme.typography.bodySmall,
                                                 )
                                             }
                                             Spacer(Modifier.size(20.dp))
                                             ThemedProgressIndicator(
                                                 Modifier.padding(horizontal = 20.dp),
-                                                MaterialTheme.components.circularProgressIndicator
+                                                MaterialTheme.components.circularProgressIndicator,
                                             )
                                         }
                                     }
@@ -100,13 +96,13 @@ class SyncOverlayViewImpl : SyncOverlayView {
                                             Text(
                                                 userId.full,
                                                 style = MaterialTheme.typography.titleSmall,
-                                                modifier = Modifier.weight(1.0f, fill = true)
+                                                modifier = Modifier.weight(1.0f, fill = true),
                                             )
                                             Spacer(Modifier.size(20.dp))
                                             Icon(
                                                 Icons.Default.CheckCircle,
                                                 i18n.commonDone(),
-                                                Modifier.padding(end = 25.dp)
+                                                Modifier.padding(end = 25.dp),
                                             )
                                         }
                                     }

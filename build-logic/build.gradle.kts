@@ -1,6 +1,5 @@
-import org.gradle.kotlin.dsl.`kotlin-dsl`
 import de.connect2x.conventions.applyKtfmt
-
+import org.gradle.kotlin.dsl.`kotlin-dsl`
 
 plugins {
     `kotlin-dsl`
@@ -14,7 +13,6 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 }
-
 
 gradlePlugin {
     plugins {

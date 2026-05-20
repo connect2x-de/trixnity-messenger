@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.integrationtests
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.integrationtests.messenger.MatrixMessengerWithRoot
@@ -22,23 +26,19 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.http.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import okio.FileSystem
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
@@ -55,19 +55,16 @@ class AccountsIT {
     private val password = "user$1passw0rd"
     private lateinit var baseUrl: Url
 
-    @Container
-    val synapseDocker = synapseDocker()
+    @Container val synapseDocker = synapseDocker()
 
     @BeforeTest
     fun beforeEach(): Unit = runBlockingWithTimeout {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
 
-        baseUrl = URLBuilder(
-            protocol = URLProtocol.HTTP,
-            host = synapseDocker.host,
-            port = synapseDocker.firstMappedPort
-        ).build()
+        baseUrl =
+            URLBuilder(protocol = URLProtocol.HTTP, host = synapseDocker.host, port = synapseDocker.firstMappedPort)
+                .build()
 
         MatrixClientServerApiClientImpl(baseUrl).register("user1", password)
         MatrixClientServerApiClientImpl(baseUrl).register("user2", password)
@@ -91,11 +88,12 @@ class AccountsIT {
         messenger.verifyAccountsArePresent("user1")
 
         log.info { "login as user2" }
-        val recoveryKey = messenger.createNewAccount(
-            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-            username = "user2",
-            password = password,
-        )
+        val recoveryKey =
+            messenger.createNewAccount(
+                serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+                username = "user2",
+                password = password,
+            )
         messenger.verifyAccountsArePresent("user1", "user2")
         log.info { "logout as user2" }
         messenger.deleteAccount("user2")
@@ -134,14 +132,12 @@ class AccountsIT {
         filesSystem.exists(accountPath) shouldBe true
 
         log.info { "delete device" }
-        matrixClient.api.device.deleteDevice(matrixClient.deviceId).getOrThrow()
+        matrixClient.api.device
+            .deleteDevice(matrixClient.deviceId)
+            .getOrThrow()
             .shouldBeInstanceOf<UIA.Step<*>>()
-            .authenticate(
-                AuthenticationRequest.Password(
-                    IdentifierType.User("user1"),
-                    password
-                )
-            ).getOrThrow()
+            .authenticate(AuthenticationRequest.Password(IdentifierType.User("user1"), password))
+            .getOrThrow()
             .shouldBeInstanceOf<UIA.Success<*>>()
 
         messenger.root.stack.waitFor(RootRouter.Wrapper.AddMatrixAccount::class)

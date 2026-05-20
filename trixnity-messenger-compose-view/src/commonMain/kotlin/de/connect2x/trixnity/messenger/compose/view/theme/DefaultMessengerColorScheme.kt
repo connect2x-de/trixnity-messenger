@@ -11,8 +11,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.theme.DefaultMessengerColorSchemeKt")
 
 internal interface MessengerColorScheme {
-    @Stable
-    fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme
+    @Stable fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme
 }
 
 internal class MessengerColorSchemeImpl(
@@ -24,11 +23,9 @@ internal class MessengerColorSchemeImpl(
     @Stable
     override fun create(isDarkMode: Boolean, isHighContrast: Boolean, accentColor: Color): ColorScheme =
         if (isDarkMode) {
-            if (isHighContrast) themeDarkContrast.create(accentColor)
-            else themeDark.create(accentColor)
+            if (isHighContrast) themeDarkContrast.create(accentColor) else themeDark.create(accentColor)
         } else {
-            if (isHighContrast) themeLightContrast.create(accentColor)
-            else themeLight.create(accentColor)
+            if (isHighContrast) themeLightContrast.create(accentColor) else themeLight.create(accentColor)
         }
 }
 
@@ -38,9 +35,10 @@ internal val DefaultMessengerColorScheme: ColorScheme
     get() {
         val settings = CurrentThemeSettings
         log.debug { "theme: $settings" }
-        return DI.get<MessengerColorScheme>().create(
-            isDarkMode = settings.isDarkMode(),
-            isHighContrast = settings.isHighContrast,
-            accentColor = settings.accentColor ?: DI.get<DefaultAccentColor>().value
-        )
+        return DI.get<MessengerColorScheme>()
+            .create(
+                isDarkMode = settings.isDarkMode(),
+                isHighContrast = settings.isHighContrast,
+                accentColor = settings.accentColor ?: DI.get<DefaultAccentColor>().value,
+            )
     }

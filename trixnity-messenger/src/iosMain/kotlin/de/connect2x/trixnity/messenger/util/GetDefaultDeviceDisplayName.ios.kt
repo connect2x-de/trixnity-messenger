@@ -7,8 +7,6 @@ import org.koin.dsl.module
 actual fun platformGetDefaultDisplayNameModule(): Module = module {
     single<GetDefaultDeviceDisplayName> {
         val config = get<MatrixMessengerBaseConfiguration>()
-        GetDefaultDeviceDisplayName {
-            "${config.appName} (iOS)"
-        }
+        GetDefaultDeviceDisplayName { "${config.appName} (iOS)" }
     }
 }

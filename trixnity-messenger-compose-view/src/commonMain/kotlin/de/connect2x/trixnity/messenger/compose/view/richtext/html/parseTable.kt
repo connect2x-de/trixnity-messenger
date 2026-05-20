@@ -9,11 +9,7 @@ internal data class TableContent(
 )
 
 internal fun parseTable(node: RichText.Block): TableContent =
-    TableContent(
-        headers = parseTableHeader(node),
-        rows = parseTableRows(node),
-        captions = parseTableCaption(node),
-    )
+    TableContent(headers = parseTableHeader(node), rows = parseTableRows(node), captions = parseTableCaption(node))
 
 internal fun parseTableHeader(node: RichText): List<RichText> =
     when (node) {
@@ -35,11 +31,10 @@ internal fun parseTableRows(node: RichText): List<List<RichText>> =
 
 internal fun parseTableRows(node: RichText.Block): List<List<RichText>> {
     return when (node.tag) {
-        "thead", "tfoot" -> emptyList()
+        "thead",
+        "tfoot" -> emptyList()
         "tr" -> listOf(parseTableRow(node))
-        else -> node.children.flatMap {
-            parseTableRows(it)
-        }
+        else -> node.children.flatMap { parseTableRows(it) }
     }
 }
 
@@ -51,7 +46,8 @@ internal fun parseTableRow(node: RichText): List<RichText> =
 
 internal fun parseTableRow(node: RichText.Block): List<RichText> =
     when (node.tag) {
-        "td", "th" -> listOf(node)
+        "td",
+        "th" -> listOf(node)
         else -> node.children.flatMap { parseTableRow(it) }
     }
 

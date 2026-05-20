@@ -25,6 +25,8 @@ import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.withMatrixMessengerFromService
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -37,26 +39,22 @@ import kotlinx.serialization.json.putJsonObject
 import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.unifiedpush.android.connector.UnifiedPush
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 @Serializable
 @NestedSettingsView("notification", "provider", "unifiedpush")
-data class MatrixMultiMessengerNotificationProviderUnifiedPushSettings(
-    val pusher: PusherSettings? = null,
-) : SettingsView<MatrixMultiMessengerSettings>
+data class MatrixMultiMessengerNotificationProviderUnifiedPushSettings(val pusher: PusherSettings? = null) :
+    SettingsView<MatrixMultiMessengerSettings>
 
-val MatrixMultiMessengerSettings.notificationProviderUnifiedPush
-        by settingsView<MatrixMultiMessengerSettings, MatrixMultiMessengerNotificationProviderUnifiedPushSettings>()
+val MatrixMultiMessengerSettings.notificationProviderUnifiedPush by
+    settingsView<MatrixMultiMessengerSettings, MatrixMultiMessengerNotificationProviderUnifiedPushSettings>()
 
 @Serializable
 @NestedSettingsView("notification", "provider", "unifiedpush")
-data class MatrixMessengerNotificationProviderUnifiedPushSettings(
-    val pusher: PusherSettings? = null,
-) : SettingsView<MatrixMessengerSettings>
+data class MatrixMessengerNotificationProviderUnifiedPushSettings(val pusher: PusherSettings? = null) :
+    SettingsView<MatrixMessengerSettings>
 
-val MatrixMessengerSettings.notificationProviderUnifiedPush
-        by settingsView<MatrixMessengerSettings, MatrixMessengerNotificationProviderUnifiedPushSettings>()
+val MatrixMessengerSettings.notificationProviderUnifiedPush by
+    settingsView<MatrixMessengerSettings, MatrixMessengerNotificationProviderUnifiedPushSettings>()
 
 @Serializable
 @NestedSettingsView("notification", "provider", "unifiedpush")
@@ -65,9 +63,8 @@ data class MatrixMessengerAccountNotificationProviderUnifiedPushSettings(
     val deliveredPusher: PusherSettings? = null,
 ) : SettingsView<MatrixMessengerAccountSettings>
 
-val MatrixMessengerAccountSettings.notificationProviderUnifiedPush
-        by settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderUnifiedPushSettings>()
-
+val MatrixMessengerAccountSettings.notificationProviderUnifiedPush by
+    settingsView<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationProviderUnifiedPushSettings>()
 
 data class UnifiedPushNotificationProviderConfig(
     val pushAppId: String,
@@ -85,15 +82,16 @@ class UnifiedPushNotificationProvider(
     coroutineScope: CoroutineScope,
     private val contextGetter: ContextGetter,
     private val activityGetter: ActivityGetter,
-) : PushNotificationProvider(
-    pushAppId = config.pushAppId,
-    config = messengerConfig,
-    multiSettings = multiSettings,
-    settings = settings,
-    getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
-    matrixClients = matrixClients,
-    coroutineScope = coroutineScope,
-) {
+) :
+    PushNotificationProvider(
+        pushAppId = config.pushAppId,
+        config = messengerConfig,
+        multiSettings = multiSettings,
+        settings = settings,
+        getDefaultDeviceDisplayName = getDefaultDeviceDisplayName,
+        matrixClients = matrixClients,
+        coroutineScope = coroutineScope,
+    ) {
     companion object {
         private val log =
             Logger("de.connect2x.trixnity.messenger.notification.unifiedpush.UnifiedPushNotificationProvider")
@@ -102,35 +100,26 @@ class UnifiedPushNotificationProvider(
     override val id = "de.connect2x.trixnity.messenger.notification.unifiedpush"
     override val displayName: String = "UnifiedPush"
 
-    override val canBeEnabled: Boolean get() = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
+    override val canBeEnabled: Boolean
+        get() = UnifiedPush.getDistributors(contextGetter()).isNotEmpty()
 
     override val currentPusherSettings =
         (multiSettings?.map { s -> s.notificationProviderUnifiedPush.pusher }
-            ?: settings.map { s -> s.notificationProviderUnifiedPush.pusher })
+                ?: settings.map { s -> s.notificationProviderUnifiedPush.pusher })
             .shareIn(coroutineScope, SharingStarted.Eagerly, replay = 1)
     override val MatrixMessengerAccountSettings.pusherSettings: PusherAccountSettings
         get() = notificationProviderUnifiedPush.run {
-            PusherAccountSettings(
-                enabled = enabled,
-                deliveredPusher = deliveredPusher,
-            )
+            PusherAccountSettings(enabled = enabled, deliveredPusher = deliveredPusher)
         }
 
     override suspend fun MatrixMessengerSettingsHolder.updatePusherSettings(
         account: UserId,
-        updater: (PusherAccountSettings) -> PusherAccountSettings
+        updater: (PusherAccountSettings) -> PusherAccountSettings,
     ) {
         update<MatrixMessengerAccountNotificationProviderUnifiedPushSettings>(account) {
-            val updateResult = updater(
-                PusherAccountSettings(
-                    enabled = it.enabled,
-                    deliveredPusher = it.deliveredPusher,
-                )
-            )
-            it.copy(
-                enabled = updateResult.enabled,
-                deliveredPusher = updateResult.deliveredPusher,
-            )
+            val updateResult =
+                updater(PusherAccountSettings(enabled = it.enabled, deliveredPusher = it.deliveredPusher))
+            it.copy(enabled = updateResult.enabled, deliveredPusher = updateResult.deliveredPusher)
         }
     }
 
@@ -143,7 +132,7 @@ class UnifiedPushNotificationProvider(
         )
         SyncAndProcessPendingWorker.enqueueUniquePeriodicWork(
             context = activity,
-            interval = config.periodicSyncInterval
+            interval = config.periodicSyncInterval,
         )
         UnifiedPush.tryUseCurrentOrDefaultDistributor(context = activity) { success ->
             if (!success) {
@@ -165,63 +154,60 @@ class UnifiedPushNotificationProvider(
         UnifiedPush.unregister(context = activity)
     }
 
-    override suspend fun getPusherCustomFields(profile: String?, account: UserId): JsonObject =
-        buildJsonObject {
-            putJsonObject("default_payload") {
-                profile?.let { put("profile", it) }
-                put("account", account.full)
-            }
+    override suspend fun getPusherCustomFields(profile: String?, account: UserId): JsonObject = buildJsonObject {
+        putJsonObject("default_payload") {
+            profile?.let { put("profile", it) }
+            put("account", account.full)
         }
+    }
 }
 
 internal suspend fun <T> withUnifiedPushNotificationProvider(
     context: Context,
-    block: suspend (UnifiedPushNotificationProvider) -> T
-): T = withMatrixMessengerFromService(context) {
-    val unifiedPushNotificationProvider = it.di.get<UnifiedPushNotificationProvider>()
-    block(unifiedPushNotificationProvider)
-}
+    block: suspend (UnifiedPushNotificationProvider) -> T,
+): T =
+    withMatrixMessengerFromService(context) {
+        val unifiedPushNotificationProvider = it.di.get<UnifiedPushNotificationProvider>()
+        block(unifiedPushNotificationProvider)
+    }
 
 private fun unifiedPushNotificationProviderModule() = module {
     single<UnifiedPushNotificationProvider> {
-        UnifiedPushNotificationProvider(
-            config = get(),
-            messengerConfig = get(),
-            multiSettings = getOrNull(),
-            settings = get(),
-            getDefaultDeviceDisplayName = get(),
-            matrixClients = get(),
-            coroutineScope = get(),
-            contextGetter = get(),
-            activityGetter = get(),
-        )
-    }.apply {
-        bind<NotificationProvider>()
-        bind<Worker>()
-    }
+            UnifiedPushNotificationProvider(
+                config = get(),
+                messengerConfig = get(),
+                multiSettings = getOrNull(),
+                settings = get(),
+                getDefaultDeviceDisplayName = get(),
+                matrixClients = get(),
+                coroutineScope = get(),
+                contextGetter = get(),
+                activityGetter = get(),
+            )
+        }
+        .apply {
+            bind<NotificationProvider>()
+            bind<Worker>()
+        }
 }
 
 private fun unifiedPushNotificationProviderConfigModule(
     pushAppId: String,
     pushUrl: String,
-    periodicSyncInterval: Duration
-) = module {
-    single { UnifiedPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) }
-}
+    periodicSyncInterval: Duration,
+) = module { single { UnifiedPushNotificationProviderConfig(pushAppId, pushUrl, periodicSyncInterval) } }
 
 fun MatrixMultiMessengerConfiguration.addUnifiedPushNotificationProvider(
     pushAppId: String,
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
-    modulesFactories += {
-        unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
-    }
+    modulesFactories += { unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval) }
     messengerConfiguration {
         addUnifiedPushNotificationProvider(
             pushAppId = pushAppId,
             pushUrl = pushUrl,
-            periodicSyncInterval = periodicSyncInterval
+            periodicSyncInterval = periodicSyncInterval,
         )
     }
 }
@@ -231,8 +217,6 @@ fun MatrixMessengerConfiguration.addUnifiedPushNotificationProvider(
     pushUrl: String,
     periodicSyncInterval: Duration = 15.minutes,
 ) {
-    modulesFactories += {
-        unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval)
-    }
+    modulesFactories += { unifiedPushNotificationProviderConfigModule(pushAppId, pushUrl, periodicSyncInterval) }
     modulesFactories += ::unifiedPushNotificationProviderModule
 }

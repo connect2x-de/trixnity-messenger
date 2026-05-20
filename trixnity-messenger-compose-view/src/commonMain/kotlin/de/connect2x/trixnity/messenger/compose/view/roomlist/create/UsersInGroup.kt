@@ -37,8 +37,7 @@ import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface UsersInGroupView {
-    @Composable
-    fun create(userSearchHandler: UserSearchHandler)
+    @Composable fun create(userSearchHandler: UserSearchHandler)
 }
 
 @Composable
@@ -69,10 +68,12 @@ class UsersInGroupViewImpl : UsersInGroupView {
                             key(groupUser.userId) {
                                 Column(
                                     Modifier.requiredWidth(60.dp)
-                                        .then(if (isMobile) Modifier.clickable {
-                                            userSearchHandler.unselectUser(groupUser)
-                                        } else Modifier),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                        .then(
+                                            if (isMobile)
+                                                Modifier.clickable { userSearchHandler.unselectUser(groupUser) }
+                                            else Modifier
+                                        ),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
                                 ) {
                                     val presence = groupUser.presence.collectAsState().value
                                     ThemedUserAvatar(
@@ -84,7 +85,7 @@ class UsersInGroupViewImpl : UsersInGroupView {
                                             ThemedIconButton(
                                                 style = MaterialTheme.components.primaryIconButton,
                                                 size = 15.dp,
-                                                onClick = { userSearchHandler.unselectUser(groupUser) }
+                                                onClick = { userSearchHandler.unselectUser(groupUser) },
                                             ) {
                                                 Icon(Icons.Default.Close, i18n.commonRemove())
                                             }
@@ -93,7 +94,7 @@ class UsersInGroupViewImpl : UsersInGroupView {
                                     Text(
                                         groupUser.displayName,
                                         maxLines = 3,
-                                        style = MaterialTheme.typography.labelMedium
+                                        style = MaterialTheme.typography.labelMedium,
                                     )
                                 }
                             }

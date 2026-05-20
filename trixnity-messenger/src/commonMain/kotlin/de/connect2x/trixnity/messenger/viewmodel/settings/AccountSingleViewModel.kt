@@ -33,17 +33,10 @@ interface ProfileSingleViewModelFactory {
         showAccountSetup: () -> Unit,
         removeAccount: () -> Unit,
     ): AccountSingleViewModel {
-        return AccountSingleViewModelImpl(
-            viewModelContext,
-            userId,
-            error,
-            showAccountSetup,
-            removeAccount,
-        )
+        return AccountSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
     }
 
-    @Suppress("DEPRECATION")
-    companion object : ProfileSingleViewModelFactory
+    @Suppress("DEPRECATION") companion object : ProfileSingleViewModelFactory
 }
 
 interface AccountSingleViewModelFactory {
@@ -54,13 +47,7 @@ interface AccountSingleViewModelFactory {
         showAccountSetup: () -> Unit,
         removeAccount: () -> Unit,
     ): AccountSingleViewModel {
-        return AccountSingleViewModelImpl(
-            viewModelContext,
-            userId,
-            error,
-            showAccountSetup,
-            removeAccount,
-        )
+        return AccountSingleViewModelImpl(viewModelContext, userId, error, showAccountSetup, removeAccount)
     }
 
     companion object : AccountSingleViewModelFactory
@@ -77,8 +64,11 @@ interface AccountSingleViewModel {
     val openAvatarCutter: MutableStateFlow<Boolean>
 
     fun cancelEditDisplayName()
+
     fun saveDisplayName()
+
     fun logout()
+
     fun resetSetup()
 }
 
@@ -92,39 +82,45 @@ class AccountSingleViewModelImpl(
     private val matrixClient = getMatrixClient(userId)
     private val initialsComputation = get<Initials>()
 
-    override val displayName = matrixClient.profile.map { it?.get(ProfileField.DisplayName)?.value ?: "" }
-        .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
+    override val displayName =
+        matrixClient.profile
+            .map { it?.get(ProfileField.DisplayName)?.value ?: "" }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, userId.localpart)
     override val canChangeDisplayName: StateFlow<Boolean> =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
+        matrixClient.serverData
+            .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    override val avatar = matrixClient.profile.map { profile ->
-        profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
-            avatarUrl.value?.let { avatarUrl ->
-                matrixClient.media.getThumbnail(
-                    avatarUrl,
-                    avatarSize().toLong(),
-                    avatarSize().toLong()
-                ).fold(
-                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                    onFailure = {
-                        log.error(it) { "Cannot load user avatar." }
-                        error.value = i18n.profileLoadError()
-                        null
+    override val avatar =
+        matrixClient.profile
+            .map { profile ->
+                profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
+                    avatarUrl.value?.let { avatarUrl ->
+                        matrixClient.media
+                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                            .fold(
+                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                onFailure = {
+                                    log.error(it) { "Cannot load user avatar." }
+                                    error.value = i18n.profileLoadError()
+                                    null
+                                },
+                            )
                     }
-                )
+                }
             }
-        }
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, null)
 
     override val canChangeAvatar =
-        matrixClient.serverData.map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
+        matrixClient.serverData
+            .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val initials = matrixClient.profile.map {
-        it?.get(ProfileField.DisplayName)?.value?.let { initialsComputation.compute(it) } ?: ""
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, "")
+    override val initials =
+        matrixClient.profile
+            .map { it?.get(ProfileField.DisplayName)?.value?.let { initialsComputation.compute(it) } ?: "" }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, "")
 
     override val editDisplayName =
         TextFieldViewModelImpl(maxLength = 1_000, matrixClient.profile.value?.displayName ?: "")
@@ -132,9 +128,7 @@ class AccountSingleViewModelImpl(
     override val openAvatarCutter = MutableStateFlow(false)
 
     override fun cancelEditDisplayName() {
-        editDisplayName.also {
-            it.update(displayName.value)
-        }
+        editDisplayName.also { it.update(displayName.value) }
     }
 
     override fun saveDisplayName() {
@@ -144,15 +138,14 @@ class AccountSingleViewModelImpl(
                 val matrixClient = getMatrixClient(userId)
                 if (matrixClient.serverData.value?.capabilities?.capabilities?.profileFields?.enabled ?: true) {
                     log.debug { "set new display name in account $userId: $newDisplayName" }
-                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName))
-                        .onFailure {
-                            log.error(it) { "Cannot set display name." }
-                            if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
-                                error.value = i18n.profileNameForbidden()
-                            } else {
-                                error.value = i18n.profileNameError()
-                            }
+                    matrixClient.setProfileField(ProfileField.DisplayName(newDisplayName)).onFailure {
+                        log.error(it) { "Cannot set display name." }
+                        if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                            error.value = i18n.profileNameForbidden()
+                        } else {
+                            error.value = i18n.profileNameError()
                         }
+                    }
                 } else {
                     log.warn { "Missing server capability to set the display name." }
                 }

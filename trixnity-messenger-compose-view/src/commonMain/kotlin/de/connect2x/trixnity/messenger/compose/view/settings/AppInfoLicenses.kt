@@ -32,8 +32,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAdapt
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoLicensesView {
-    @Composable
-    fun create(appInfoViewModel: AppInfoViewModel)
+    @Composable fun create(appInfoViewModel: AppInfoViewModel)
 }
 
 @Composable
@@ -62,16 +61,11 @@ internal fun Licenses(onClose: () -> Unit) {
         val focusedItem = remember(libraries) { mutableStateOf(libraries.libraries.firstOrNull()?.uniqueId) }
 
         ThemedAdaptiveDialog(onClose) {
-            AdaptiveDialogHeader(onClose = onClose) {
-                Text(i18n.appInfoLicenses())
-            }
+            AdaptiveDialogHeader(onClose = onClose) { Text(i18n.appInfoLicenses()) }
 
             AdaptiveDialogScrollContent(scrollState = listState) {
                 LazyColumn(
-                    modifier = Modifier.rovingFocusContainer(
-                        listState = listState,
-                        focusedItem = focusedItem
-                    ),
+                    modifier = Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem),
                     verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
                     state = listState,
                 ) {
@@ -79,16 +73,14 @@ internal fun Licenses(onClose: () -> Unit) {
                         val interactionSource = remember { MutableInteractionSource() }
                         LibraryItem(
                             library = library,
-                            modifier = Modifier
-                                .focusHighlighting(interactionSource)
-                                .rovingFocusItem(
-                                    isFocused = { focusedItem.value == library.uniqueId },
-                                    onFocus = { focusedItem.value = library.uniqueId }
-                                )
-                                .clickable(interactionSource, LocalIndication.current) {
-                                    openLibrary = library
-                                }
-                                .buttonPointerModifier(),
+                            modifier =
+                                Modifier.focusHighlighting(interactionSource)
+                                    .rovingFocusItem(
+                                        isFocused = { focusedItem.value == library.uniqueId },
+                                        onFocus = { focusedItem.value = library.uniqueId },
+                                    )
+                                    .clickable(interactionSource, LocalIndication.current) { openLibrary = library }
+                                    .buttonPointerModifier(),
                             style = style,
                         )
                     }
@@ -97,12 +89,8 @@ internal fun Licenses(onClose: () -> Unit) {
         }
         openLibrary?.let { library ->
             ThemedAdaptiveDialog({ openLibrary = null }) {
-                AdaptiveDialogHeader(onClose = { openLibrary = null }) {
-                    Text(library.name)
-                }
-                AdaptiveDialogScrollContent {
-                    Text(library.licenses.firstOrNull()?.licenseContent ?: "")
-                }
+                AdaptiveDialogHeader(onClose = { openLibrary = null }) { Text(library.name) }
+                AdaptiveDialogScrollContent { Text(library.licenses.firstOrNull()?.licenseContent ?: "") }
             }
         }
     }

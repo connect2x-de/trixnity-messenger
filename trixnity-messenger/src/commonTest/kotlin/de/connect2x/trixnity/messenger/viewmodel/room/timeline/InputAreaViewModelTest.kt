@@ -47,6 +47,12 @@ import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.core.toByteArray
+import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -60,12 +66,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 @Suppress("NonAsciiCharacters")
 class InputAreaViewModelTest {
@@ -108,13 +108,14 @@ class InputAreaViewModelTest {
     val alvin2RoomUser = roomUser(alvin2UserId, "Alvina")
     val zoopUserId = UserId("@completelyDifferent:anotherplanet")
     val zoopRoomUser = roomUser(zoopUserId, "Zoop")
-    val messageEvent = MessageEvent(
-        content = RoomMessageEventContent.TextBased.Text("Hello"),
-        id = eventId,
-        sender = aliceUserId,
-        roomId = roomId,
-        originTimestamp = 0L,
-    )
+    val messageEvent =
+        MessageEvent(
+            content = RoomMessageEventContent.TextBased.Text("Hello"),
+            id = eventId,
+            sender = aliceUserId,
+            roomId = roomId,
+            originTimestamp = 0L,
+        )
 
     var formattedBody: String? = null
     var body = ""
@@ -133,47 +134,48 @@ class InputAreaViewModelTest {
             onMessageReplToFinishedMock,
             audioRecorder,
             audioRecordingArea,
-            audioRecordingAreaViewModelFactory
+            audioRecordingAreaViewModelFactory,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                    single { mediaServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { mediaServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns ourUserId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomsApiClientMock
 
-        canSendEventMocker = every {
-            userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>())
-        }
+        canSendEventMocker = every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) }
 
         canSendEventMocker returns flowOf(true)
         everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } returns ""
-        every {
-            roomServiceMock.getTimelineEvent(any(), eventId, any())
-        } returns flowOf(
-            TimelineEvent(
-                event = messageEvent,
-                content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        every { roomServiceMock.getTimelineEvent(any(), eventId, any()) } returns
+            flowOf(
+                TimelineEvent(
+                    event = messageEvent,
+                    content = Result.success(RoomMessageEventContent.TextBased.Text("Hello")),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId, isDirect = true))
         allRoomUsersMock = every { userServiceMock.getAll(roomId) }
-        allRoomUsersMock returns MutableStateFlow(
-            mapOf(
-                aliceUserId to flowOf(aliceRoomUser),
-                alvinUserId to flowOf(alvinRoomUser),
-                ourUserId to flowOf(bobRoomUser),
-                zoopUserId to flowOf(zoopRoomUser),
+        allRoomUsersMock returns
+            MutableStateFlow(
+                mapOf(
+                    aliceUserId to flowOf(aliceRoomUser),
+                    alvinUserId to flowOf(alvinRoomUser),
+                    ourUserId to flowOf(bobRoomUser),
+                    zoopUserId to flowOf(zoopRoomUser),
+                )
             )
-        )
         every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
         every { userServiceMock.getById(roomId, alvinUserId) } returns MutableStateFlow(alvinRoomUser)
         every { userServiceMock.getById(roomId, alvin2UserId) } returns MutableStateFlow(alvin2RoomUser)
@@ -182,65 +184,63 @@ class InputAreaViewModelTest {
 
         every { roomServiceMock.getDraftMessage(any()) } returns draftMessage
 
-        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls {
-            val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
-            val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
-            requireNotNull(content) { "you must add some sort of content for set a draft" }
-            draftMessage.value = RoomOutboxMessage(
-                roomId = roomId,
-                transactionId = "0",
-                content = content,
-                createdAt = Clock.System.now(),
-                sentAt = null,
-                eventId = null,
-                sendError = null,
-                keepMediaInCache = true,
-                isDraft = true,
-            )
-            "0"
-        }
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val builder = it.arg<(suspend MessageBuilder.() -> Unit)>(2)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                requireNotNull(content) { "you must add some sort of content for set a draft" }
+                draftMessage.value =
+                    RoomOutboxMessage(
+                        roomId = roomId,
+                        transactionId = "0",
+                        content = content,
+                        createdAt = Clock.System.now(),
+                        sentAt = null,
+                        eventId = null,
+                        sendError = null,
+                        keepMediaInCache = true,
+                        isDraft = true,
+                    )
+                "0"
+            }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
 
-        every { audioRecordingAreaViewModelFactory.create(any(), any()) } returns
-                audioRecordingArea
+        every { audioRecordingAreaViewModelFactory.create(any(), any()) } returns audioRecordingArea
         every { audioRecordingArea.recorder } returns audioRecorder
         every { audioRecorder.complete() } returns Unit
 
-        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
-            val roomId = it.arg<RoomId>(0)
-            val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
-            val builder = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId)
-            val message = builder.build(builderFunction)
+        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls
+            {
+                val roomId = it.arg<RoomId>(0)
+                val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
+                val builder = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId)
+                val message = builder.build(builderFunction)
 
-            if (message is RoomMessageEventContent.TextBased) {
-                formattedBody = message.formattedBody
-                body = message.body
-            }
-
-            ""
-        }
-
-        everySuspend { roomServiceMock.sendDraftMessage(any()) } calls {
-            val content = draftMessage.value?.content
-            if (content != null) {
-                if (content is RoomMessageEventContent.TextBased) {
-                    body = content.body
-                    formattedBody = content.formattedBody
+                if (message is RoomMessageEventContent.TextBased) {
+                    formattedBody = message.formattedBody
+                    body = message.body
                 }
-                draftMessage.value = null
+
+                ""
             }
-            "0"
-        }
 
-        everySuspend {
-            mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any())
-        } returns Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
+        everySuspend { roomServiceMock.sendDraftMessage(any()) } calls
+            {
+                val content = draftMessage.value?.content
+                if (content != null) {
+                    if (content is RoomMessageEventContent.TextBased) {
+                        body = content.body
+                        formattedBody = content.formattedBody
+                    }
+                    draftMessage.value = null
+                }
+                "0"
+            }
 
-        everySuspend {
-            roomsApiClientMock.setTyping(
-                any(), any(), any(), any(),
-            )
-        } returns Result.success(Unit)
+        everySuspend { mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any()) } returns
+            Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
+
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), any(), any()) } returns Result.success(Unit)
     }
 
     @BeforeTest
@@ -271,9 +271,7 @@ class InputAreaViewModelTest {
         }
         cut.textField.update("")
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.replayCache[0] shouldBe false
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.replayCache[0] shouldBe false }
     }
 
     @Test
@@ -284,9 +282,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("I want to write!")
 
-        eventually(300.milliseconds) {
-            cut.isAllowedToSendMessages.value shouldBe false
-        }
+        eventually(300.milliseconds) { cut.isAllowedToSendMessages.value shouldBe false }
     }
 
     @Test
@@ -314,9 +310,7 @@ class InputAreaViewModelTest {
 
         cut.replaceMessage(roomId, eventId)
 
-        eventually(300.milliseconds) {
-            cut.isReplace.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isReplace.value shouldBe true }
 
         cut.textField.update("Hello World!")
         cut.sendMessage()
@@ -326,9 +320,7 @@ class InputAreaViewModelTest {
             cut.textField.textValue shouldBe ""
         }
 
-        verify {
-            onMessageEditFinishedMock.invoke(roomId, eventId)
-        }
+        verify { onMessageEditFinishedMock.invoke(roomId, eventId) }
     }
 
     @Test
@@ -338,9 +330,7 @@ class InputAreaViewModelTest {
 
         cut.replaceMessage(roomId, eventId)
 
-        eventually(300.milliseconds) {
-            cut.isReplace.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isReplace.value shouldBe true }
 
         cut.cancelReplace()
 
@@ -349,43 +339,35 @@ class InputAreaViewModelTest {
             cut.textField.textValue shouldBe ""
         }
 
-        verify {
-            onMessageEditFinishedMock.invoke(roomId, eventId)
-        }
+        verify { onMessageEditFinishedMock.invoke(roomId, eventId) }
     }
 
     @Test
     fun `set 'is typing' when message was changed and is not empty`() = runTest {
         var setTypingWasCalled = false
-        everySuspend {
-            roomsApiClientMock.setTyping(roomId, ourUserId, true, any())
-        } calls {
-            setTypingWasCalled = true
-            Result.success(Unit)
-        }
+        everySuspend { roomsApiClientMock.setTyping(roomId, ourUserId, true, any()) } calls
+            {
+                setTypingWasCalled = true
+                Result.success(Unit)
+            }
 
         val cut = inputAreaViewModel()
         subscribe(cut)
 
         cut.textField.update("a")
 
-        eventually(300.milliseconds) {
-            setTypingWasCalled shouldBe true
-        }
+        eventually(300.milliseconds) { setTypingWasCalled shouldBe true }
     }
 
     @Test
     fun `keep 'is typing' when message changes at least once every 3 seconds`() = runTest {
         var setTypingCancelWasCalled = false
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any())
-        } calls {
-            setTypingCancelWasCalled = true
-            Result.success(Unit)
-        }
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any())
-        } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), false, any()) } calls
+            {
+                setTypingCancelWasCalled = true
+                Result.success(Unit)
+            }
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), true, any()) } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -413,61 +395,47 @@ class InputAreaViewModelTest {
     @Test
     fun `set isNotTyping when the message is cleared`() = runTest {
         var setTypingCancelWasCalled = false
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any())
-        } calls {
-            setTypingCancelWasCalled = true
-            Result.success(Unit)
-        }
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any())
-        } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), false, any()) } calls
+            {
+                setTypingCancelWasCalled = true
+                Result.success(Unit)
+            }
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), true, any()) } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
         subscribe(cut)
 
         cut.textField.update("a")
 
-        eventually(300.milliseconds) {
-            setTypingCancelWasCalled shouldBe false
-        }
+        eventually(300.milliseconds) { setTypingCancelWasCalled shouldBe false }
         delay(100.milliseconds)
 
         cut.textField.update("")
 
-        eventually(300.milliseconds) {
-            setTypingCancelWasCalled shouldBe true
-        }
+        eventually(300.milliseconds) { setTypingCancelWasCalled shouldBe true }
     }
 
     @Test
     fun `set 'is not typing' when the message has been sent`() = runTest {
         var setTypingCancelWasCalled = false
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), false, any())
-        } calls {
-            setTypingCancelWasCalled = true
-            Result.success(Unit)
-        }
-        everySuspend {
-            roomsApiClientMock.setTyping(any(), any(), true, any())
-        } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), false, any()) } calls
+            {
+                setTypingCancelWasCalled = true
+                Result.success(Unit)
+            }
+        everySuspend { roomsApiClientMock.setTyping(any(), any(), true, any()) } returns Result.success(Unit)
 
         val cut = inputAreaViewModel()
         subscribe(cut)
 
         cut.textField.update("a")
 
-        eventually(300.milliseconds) {
-            setTypingCancelWasCalled shouldBe false
-        }
+        eventually(300.milliseconds) { setTypingCancelWasCalled shouldBe false }
         delay(100.milliseconds)
 
         cut.sendMessage()
 
-        eventually(300.milliseconds) {
-            setTypingCancelWasCalled shouldBe true
-        }
+        eventually(300.milliseconds) { setTypingCancelWasCalled shouldBe true }
     }
 
     @Test
@@ -477,9 +445,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! at")
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
     }
 
     @Test
@@ -495,15 +461,11 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
 
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe emptyList()
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -526,9 +488,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe emptyList()
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -538,9 +498,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello!\n\nThis is great.\n@Zoo", IntRange(30, 30))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
     }
 
     @Test
@@ -567,15 +525,11 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
 
         cut.textField.update("Hello! @another", IntRange(15, 15))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
     }
 
     @Test
@@ -585,15 +539,11 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @ce and @Zoop", IntRange(10, 10)) // search in name
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
 
-        cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) //search in userId
+        cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) // search in userId
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
     }
 
     @Test
@@ -603,15 +553,11 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Ali it goes on...")
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(11, 11))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(10, 10))
 
@@ -621,24 +567,21 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello!\n @Ali it goes on...", IntRange(12, 12))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
 
         cut.textField.update("Hello!\n @Ali @Zoo it goes on...", IntRange(17, 17))
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
     }
 
     @Test
     fun `set the loading flag correctly true when still loading and false when loading has finished`() = runTest {
         val roomUsers = MutableSharedFlow<Map<UserId, Flow<RoomUser>>>()
-        allRoomUsersMock returns roomUsers.transform {
-            delay(50.milliseconds)
-            emit(it)
-        }
+        allRoomUsersMock returns
+            roomUsers.transform {
+                delay(50.milliseconds)
+                emit(it)
+            }
 
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -650,11 +593,7 @@ class InputAreaViewModelTest {
             cut.listOfMentions.value shouldBe null
         }
 
-        roomUsers.emit(
-            mapOf(
-                zoopUserId to flowOf(zoopRoomUser),
-            )
-        )
+        roomUsers.emit(mapOf(zoopUserId to flowOf(zoopRoomUser)))
 
         eventually(300.milliseconds) {
             cut.listOfMentionsLoading.value shouldBe false
@@ -703,9 +642,7 @@ class InputAreaViewModelTest {
         delay(50.milliseconds)
         cut.selectMention(zoopUserId)
 
-        eventually(300.milliseconds) {
-            cut.textField.textValue shouldBe "@Ali ${zoopUserId.full} @Alv"
-        }
+        eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali ${zoopUserId.full} @Alv" }
 
         cut.textField.update("@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv", IntRange(20, 20))
 
@@ -726,53 +663,52 @@ class InputAreaViewModelTest {
 
         cut.selectMention(zoopUserId)
 
-        eventually(300.milliseconds) {
-            cut.textField.textValue shouldBe "@Ali Zo Alv"
-        }
+        eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali Zo Alv" }
     }
 
     @Test
     fun `convert markdown to HTML`() = runTest {
-        val markdown = """
+        val markdown =
+            """
             # The train station and Sony
-            
+
             ## Origins
-            
+
             There once was an amazing train station. It was so amazing that people in Germany began to say
-            
+
             > I only understand train station
-            
+
             But then the Playstation arrived and people adopted it *fast* so the Deutsche Bahn gave up and neglected
             the development of their railway network.
-            
+
             ## Story time
-            
+
             One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
             its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.
-            
+
             The Playstation overlords didn't like **that** 😠 so they started filing copyright cases on YouTube.
             This annoyed the following people:
-            
+
             - the pirates as they couldn't sail now
             - the airports as they were overfilled with pirates now
-            
+
             So ✨ `the coders` ✨ started greeting the world for which they used magic glyphs Computers could understand
             for example:
-            
+
             ```
             fun main() {
                 println("Hello World 👋👋👋")
             }
             ```
-            
+
             The empire of Playstation however is based on a group of coders developing the devilish Unix flavour.
             The republic of Germany does not rely on them due to ~~ancient~~ traditionally proven technology for which the people of
             the Tube mock them. There are three Locations which get endorsed by them for their advanced technology:
-            
+
             1. North America
             2. China
             3. Baltics
-            
+
             The Deutsch Bahn didn't like that. So they rolled out the Deutschlandticket and began modernising their
             infrastructure. This way the people of the Tube are able to produce more Europe Transport > America Transport
             video and ignore the technological issues. 
@@ -780,9 +716,11 @@ class InputAreaViewModelTest {
             At this point I forgot what the story was about but I markdown complete now. 
             Hope you had a good read? It's mostly non-sense
             Checkout [Tammy](https://gitlab.com/connect2x/tammy) btw :^)
-        """.trimIndent()
+            """
+                .trimIndent()
 
-        val html = """
+        val html =
+            """
             <h1>The train station and Sony</h1><h2>Origins</h2><p>There once was an amazing train station. It was so amazing that people in Germany began to say</p><blockquote><p>I only understand train station</p></blockquote><p>But then the Playstation arrived and people adopted it <em>fast</em> so the Deutsche Bahn gave up and neglected
             <br />the development of their railway network.</p><h2>Story time</h2><p>One day the people of the Playstation started adopting other forms of media such as YouTube. Due to 
             <br />its relation to Tubes through whom trains drive, YouTube encourage people to embrace trains again.</p><p>The Playstation overlords didn't like <strong>that</strong> 😠 so they started filing copyright cases on YouTube.
@@ -797,7 +735,8 @@ class InputAreaViewModelTest {
             <br />video and ignore the technological issues.</p><p>At this point I forgot what the story was about but I markdown complete now. 
             <br />Hope you had a good read? It's mostly non-sense
             <br />Checkout <a href="https://gitlab.com/connect2x/tammy">Tammy</a> btw :^)</p>
-        """.trimIndent()
+            """
+                .trimIndent()
         val cut = inputAreaViewModel()
         subscribe(cut)
 
@@ -823,15 +762,14 @@ class InputAreaViewModelTest {
 
         cut.textField.update("https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O.")
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.value shouldBe true }
 
         cut.sendMessage()
 
         eventually(300.milliseconds) {
             body shouldBe "https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O."
-            formattedBody shouldBe "<p><a href=\"https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O\">https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O</a>.</p>"
+            formattedBody shouldBe
+                "<p><a href=\"https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O\">https://en.m.wikipedia.org/wiki/The_Rise_and_Fall_of_D.O.D.O</a>.</p>"
         }
     }
 
@@ -840,20 +778,22 @@ class InputAreaViewModelTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
 
-        cut.textField.update("Hiii ${aliceUserId.full} und ${alvinUserId.full}\nund ${alvin2UserId.full} und ${alvinUserId.full} zusammen!")
+        cut.textField.update(
+            "Hiii ${aliceUserId.full} und ${alvinUserId.full}\nund ${alvin2UserId.full} und ${alvinUserId.full} zusammen!"
+        )
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.value shouldBe true }
 
         cut.sendMessage()
 
         eventually(300.milliseconds) {
             println(formattedBody)
-            formattedBody shouldBe """
+            formattedBody shouldBe
+                """
                 <p>Hiii <a href="matrix:u/alice:hallo.com">Alice</a> und <a href="matrix:u/alvin:example.org">Alvin</a>
                 <br />und <a href="matrix:u/alvin:example.orgg">Alvina</a> und <a href="matrix:u/alvin:example.org">Alvin</a> zusammen!</p>
-            """.trimIndent()
+                """
+                    .trimIndent()
         }
     }
 
@@ -864,9 +804,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update(aliceUserId.full)
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.value shouldBe true }
 
         cut.sendMessage()
 
@@ -882,14 +820,13 @@ class InputAreaViewModelTest {
 
         cut.textField.update("${aliceUserId.full} ${alvinUserId.full} hii!")
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.value shouldBe true }
 
         cut.sendMessage()
 
         eventually(300.milliseconds) {
-            formattedBody shouldBe """<p><a href="matrix:u/alice:hallo.com">Alice</a> <a href="matrix:u/alvin:example.org">Alvin</a> hii!</p>"""
+            formattedBody shouldBe
+                """<p><a href="matrix:u/alice:hallo.com">Alice</a> <a href="matrix:u/alvin:example.org">Alvin</a> hii!</p>"""
         }
     }
 
@@ -900,9 +837,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hi ${aliceUserId.full}")
 
-        eventually(300.milliseconds) {
-            cut.isSendEnabled.value shouldBe true
-        }
+        eventually(300.milliseconds) { cut.isSendEnabled.value shouldBe true }
 
         cut.sendMessage()
 
@@ -924,9 +859,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("@", 0..0)
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
     }
 
     @Test
@@ -942,30 +875,22 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Allu @", 5..5)
 
-        eventually(300.milliseconds) {
-            cut.listOfMentions.value shouldBe null
-        }
+        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
     }
 
     @Test
     fun `draft Message is loaded into text field on creation`() = runTest {
-        roomServiceMock.setDraftMessage(roomId) {
-            text("champagner")
-        }
+        roomServiceMock.setDraftMessage(roomId) { text("champagner") }
 
         val cut = inputAreaViewModel()
         subscribe(cut)
 
-        eventually(300.milliseconds) {
-            cut.textField.textValue shouldBe "champagner"
-        }
+        eventually(300.milliseconds) { cut.textField.textValue shouldBe "champagner" }
     }
 
     @Test
     fun `draft Message is updated automatically with text field`() = runTest {
-        roomServiceMock.setDraftMessage(roomId) {
-            text("hi")
-        }
+        roomServiceMock.setDraftMessage(roomId) { text("hi") }
 
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -981,9 +906,7 @@ class InputAreaViewModelTest {
 
     @Test
     fun `previous DraftMessage is deleted when saving empty draft`() = runTest {
-        roomServiceMock.setDraftMessage(roomId) {
-            text("hi")
-        }
+        roomServiceMock.setDraftMessage(roomId) { text("hi") }
 
         val cut = inputAreaViewModel()
         subscribe(cut)
@@ -992,9 +915,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("")
 
-        eventually(3.seconds) {
-            draftMessage.value shouldBe null
-        }
+        eventually(3.seconds) { draftMessage.value shouldBe null }
     }
 
     @Test
@@ -1007,17 +928,13 @@ class InputAreaViewModelTest {
 
         delay(20)
 
-        roomServiceMock.setDraftMessage(roomId) {
-            text("hi")
-        }
+        roomServiceMock.setDraftMessage(roomId) { text("hi") }
 
         delay(20)
 
         lifecycleRegistry.destroy()
 
-        eventually(500.milliseconds) {
-            draftMessage.value shouldBe null
-        }
+        eventually(500.milliseconds) { draftMessage.value shouldBe null }
     }
 
     @Test
@@ -1032,37 +949,40 @@ class InputAreaViewModelTest {
         verify { audioRecorder.complete() }
     }
 
-    private fun roomUser(userId: UserId, name: String) = RoomUser(
-        roomId, userId, name, StateEvent(
-            content = MemberEventContent(membership = Membership.JOIN),
-            id = EventId("123"),
-            sender = userId,
-            roomId = roomId,
-            originTimestamp = 0L,
-            stateKey = "",
+    private fun roomUser(userId: UserId, name: String) =
+        RoomUser(
+            roomId,
+            userId,
+            name,
+            StateEvent(
+                content = MemberEventContent(membership = Membership.JOIN),
+                id = EventId("123"),
+                sender = userId,
+                roomId = roomId,
+                originTimestamp = 0L,
+                stateKey = "",
+            ),
         )
-    )
 
-    private suspend fun TestScope.inputAreaViewModel(lifecycleRegistry: LifecycleRegistry? = null): InputAreaViewModelImpl {
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(
-                    mapOf(UserId("test", "server") to matrixClientMock)
-                ) + module {
-                    single<AudioRecordingAreaViewModelFactory> {
-                        audioRecordingAreaViewModelFactory
-                    }
-                },
-
-            )
-        }.koin
+    private suspend fun TestScope.inputAreaViewModel(
+        lifecycleRegistry: LifecycleRegistry? = null
+    ): InputAreaViewModelImpl {
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(UserId("test", "server") to matrixClientMock)) +
+                            module { single<AudioRecordingAreaViewModelFactory> { audioRecordingAreaViewModelFactory } }
+                    )
+                }
+                .koin
         di.get<MatrixMessengerSettingsHolder>().create(UserId("test", "server"), MatrixMessengerAccountSettingsBase())
         return InputAreaViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = di,
-                userId = UserId("test", "server"),
-                componentContext = DefaultComponentContext(lifecycleRegistry ?: LifecycleRegistry())
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di = di,
+                    userId = UserId("test", "server"),
+                    componentContext = DefaultComponentContext(lifecycleRegistry ?: LifecycleRegistry()),
+                ),
             roomId = roomId,
             onMessageReplaceFinished = onMessageEditFinishedMock,
             onMessageReplyFinished = onMessageReplToFinishedMock,

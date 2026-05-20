@@ -13,8 +13,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsPowerlevelView {
-    @Composable
-    fun create(model: RoomSettingsViewModel)
+    @Composable fun create(model: RoomSettingsViewModel)
 }
 
 @Composable
@@ -27,21 +26,13 @@ class RoomSettingsPowerlevelViewImpl : RoomSettingsPowerlevelView {
     override fun create(model: RoomSettingsViewModel) {
         val i18n = DI.get<I18nView>()
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                onClick = { model.openPowerLevelView() },
-            ) {
-                Text(
-                    text = i18n.changePowerLevelHeader(),
-                    style = MaterialTheme.typography.labelLarge
-                )
+            ThemedButton(style = MaterialTheme.components.primaryButton, onClick = { model.openPowerLevelView() }) {
+                Text(text = i18n.changePowerLevelHeader(), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
 }
 
 class RoomSettingsPowerlevelViewImplEmpty : RoomSettingsPowerlevelView {
-    @Composable
-    override fun create(model: RoomSettingsViewModel) {
-    }
+    @Composable override fun create(model: RoomSettingsViewModel) {}
 }

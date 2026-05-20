@@ -26,7 +26,8 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
         object : CreateRepositoriesModule {
             override suspend fun generateDatabaseKey(): ByteArray? =
-                if (databaseEncryptionEnabled) SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE + EncryptedSQLiteDriver.SALT_SIZE)
+                if (databaseEncryptionEnabled)
+                    SecureRandom.nextBytes(EncryptedSQLiteDriver.KEY_SIZE + EncryptedSQLiteDriver.SALT_SIZE)
                 else null
 
             override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule {
@@ -40,19 +41,16 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
 
             private fun db(userId: UserId, databaseKey: ByteArray?): RoomDatabase.Builder<TrixnityRoomDatabase> =
                 roomDatabaseBuilder<TrixnityRoomDatabase>(
-                    rootPath.forAccountDatabase(userId).resolve("database").toString()
-                ).setDriver(EncryptedSQLiteDriver(databaseKey))
+                        rootPath.forAccountDatabase(userId).resolve("database").toString()
+                    )
+                    .setDriver(EncryptedSQLiteDriver(databaseKey))
         }
     }
 }
 
-internal expect inline fun <reified T : RoomDatabase> Scope.roomDatabaseBuilder(
-    name: String,
-): RoomDatabase.Builder<T>
+internal expect inline fun <reified T : RoomDatabase> Scope.roomDatabaseBuilder(name: String): RoomDatabase.Builder<T>
 
-private class EncryptedSQLiteDriver(
-    key: ByteArray?
-) : SQLiteDriver {
+private class EncryptedSQLiteDriver(key: ByteArray?) : SQLiteDriver {
     private val log = Logger("de.connect2x.trixnity.messenger.EncryptedSQLiteDriver")
 
     companion object {
@@ -60,14 +58,15 @@ private class EncryptedSQLiteDriver(
         const val SALT_SIZE = 16
     }
 
-    private val usePlaintextHeader = when (key?.size) {
-        KEY_SIZE + SALT_SIZE -> true
-        KEY_SIZE -> false
-        null -> null
-        else -> {
-            throw DatabaseAccessException("Invalid key size: want ${KEY_SIZE}, got ${key.size}")
+    private val usePlaintextHeader =
+        when (key?.size) {
+            KEY_SIZE + SALT_SIZE -> true
+            KEY_SIZE -> false
+            null -> null
+            else -> {
+                throw DatabaseAccessException("Invalid key size: want ${KEY_SIZE}, got ${key.size}")
+            }
         }
-    }
 
     init {
         when (usePlaintextHeader) {
@@ -77,8 +76,7 @@ private class EncryptedSQLiteDriver(
         }
     }
 
-    @ExperimentalStdlibApi
-    private val rawKey = key?.toHexString()
+    @ExperimentalStdlibApi private val rawKey = key?.toHexString()
 
     private val driver = SQLitenityCompatDriver(SQLitenityBundledDriver())
 

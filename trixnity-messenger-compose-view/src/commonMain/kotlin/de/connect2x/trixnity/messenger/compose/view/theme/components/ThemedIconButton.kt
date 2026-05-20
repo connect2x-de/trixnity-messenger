@@ -76,14 +76,9 @@ sealed interface IconButtonStyle {
         fun default(
             size: Dp = 40.dp,
             focusedBorder: BorderStroke? = null,
-            colors: IconToggleButtonColors = IconButtonDefaults.iconToggleButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
-        ) = Default(
-            size = size,
-            focusedBorder = focusedBorder,
-            colors = colors,
-        )
+            colors: IconToggleButtonColors =
+                IconButtonDefaults.iconToggleButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+        ) = Default(size = size, focusedBorder = focusedBorder, colors = colors)
 
         @Composable
         fun filled(
@@ -91,12 +86,7 @@ sealed interface IconButtonStyle {
             focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.filledShape,
             colors: IconToggleButtonColors = IconButtonDefaults.filledIconToggleButtonColors(),
-        ) = Filled(
-            size = size,
-            focusedBorder = focusedBorder,
-            shape = shape,
-            colors = colors,
-        )
+        ) = Filled(size = size, focusedBorder = focusedBorder, shape = shape, colors = colors)
 
         @Composable
         fun filledTonal(
@@ -104,52 +94,50 @@ sealed interface IconButtonStyle {
             focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.filledShape,
             colors: IconToggleButtonColors = IconButtonDefaults.filledTonalIconToggleButtonColors(),
-        ) = Filled(
-            size = size,
-            focusedBorder = focusedBorder,
-            shape = shape,
-            colors = colors,
-        )
+        ) = Filled(size = size, focusedBorder = focusedBorder, shape = shape, colors = colors)
 
         @Composable
         fun outlined(
             size: Dp = 40.dp,
             focusedBorder: BorderStroke? = null,
             shape: Shape = IconButtonDefaults.outlinedShape,
-            colors: IconToggleButtonColors = IconButtonDefaults.outlinedIconToggleButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurface,
-            ),
+            colors: IconToggleButtonColors =
+                IconButtonDefaults.outlinedIconToggleButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
             enabledBorder: BorderStroke? = IconButtonDefaults.outlinedIconButtonBorder(true),
             disabledBorder: BorderStroke? = IconButtonDefaults.outlinedIconButtonBorder(false),
-        ) = Outlined(
-            size = size,
-            focusedBorder = focusedBorder,
-            shape = shape,
-            colors = colors,
-            enabledBorder = enabledBorder,
-            disabledBorder = disabledBorder,
-        )
+        ) =
+            Outlined(
+                size = size,
+                focusedBorder = focusedBorder,
+                shape = shape,
+                colors = colors,
+                enabledBorder = enabledBorder,
+                disabledBorder = disabledBorder,
+            )
     }
 }
 
-private fun IconToggleButtonColors.iconButtonColors() = IconButtonColors(
-    containerColor = containerColor,
-    contentColor = contentColor,
-    disabledContainerColor = disabledContainerColor,
-    disabledContentColor = disabledContentColor,
-)
+private fun IconToggleButtonColors.iconButtonColors() =
+    IconButtonColors(
+        containerColor = containerColor,
+        contentColor = contentColor,
+        disabledContainerColor = disabledContainerColor,
+        disabledContentColor = disabledContentColor,
+    )
 
 @Composable
-private fun IconButtonColors.withContentColors() = copy(
-    contentColor = contentColor.withContentColor(),
-    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
-)
+private fun IconButtonColors.withContentColors() =
+    copy(
+        contentColor = contentColor.withContentColor(),
+        disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+    )
 
 @Composable
-private fun IconToggleButtonColors.withContentColors() = copy(
-    contentColor = contentColor.withContentColor(),
-    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
-)
+private fun IconToggleButtonColors.withContentColors() =
+    copy(
+        contentColor = contentColor.withContentColor(),
+        disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+    )
 
 @Composable
 fun ThemedIconButton(
@@ -159,23 +147,24 @@ fun ThemedIconButton(
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
     size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val hasFocus = remember { mutableStateOf(false) }
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = RoundedCornerShape(100))
-        else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke ->
+            if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = RoundedCornerShape(100)) else Modifier
+        } ?: Modifier
 
     when (style) {
         is IconButtonStyle.Default ->
             IconButton(
                 onClick = onClick,
-                modifier = modifier
-                    .requiredSize(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .requiredSize(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
@@ -185,40 +174,42 @@ fun ThemedIconButton(
         is IconButtonStyle.Filled ->
             FilledIconButton(
                 onClick = onClick,
-                modifier = modifier
-                    .requiredSize(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .requiredSize(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
 
         is IconButtonStyle.FilledTonal ->
             FilledTonalIconButton(
                 onClick = onClick,
-                modifier = modifier
-                    .requiredSize(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .requiredSize(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
 
         is IconButtonStyle.Outlined ->
             OutlinedIconButton(
                 onClick = onClick,
-                modifier = modifier
-                    .requiredSize(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus },
+                modifier =
+                    modifier.requiredSize(size).buttonPointerModifier(enabled).onFocusChanged { focusState ->
+                        hasFocus.value = focusState.hasFocus
+                    },
                 enabled = enabled,
                 shape = style.shape,
                 colors = style.colors.iconButtonColors().withContentColors(),
@@ -238,73 +229,76 @@ fun ThemedIconToggleButton(
     style: IconButtonStyle = MaterialTheme.components.commonIconButton,
     size: Dp = style.size,
     interactionSource: MutableInteractionSource? = null,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val hasFocus = remember { mutableStateOf(false) }
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = RoundedCornerShape(100))
-        else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke ->
+            if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = RoundedCornerShape(100)) else Modifier
+        } ?: Modifier
 
     when (style) {
         is IconButtonStyle.Default ->
             IconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier
-                    .size(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .size(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
 
         is IconButtonStyle.Filled ->
             FilledIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier
-                    .size(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .size(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
 
         is IconButtonStyle.FilledTonal ->
             FilledTonalIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier
-                    .size(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
-                    .then(border),
+                modifier =
+                    modifier
+                        .size(size)
+                        .buttonPointerModifier(enabled)
+                        .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus }
+                        .then(border),
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
 
         is IconButtonStyle.Outlined ->
             OutlinedIconToggleButton(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = modifier
-                    .size(size)
-                    .buttonPointerModifier(enabled)
-                    .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus },
+                modifier =
+                    modifier.size(size).buttonPointerModifier(enabled).onFocusChanged { focusState ->
+                        hasFocus.value = focusState.hasFocus
+                    },
                 enabled = enabled,
                 colors = style.colors.withContentColors(),
                 border = style.border(enabled, hasFocus.value),
                 interactionSource = interactionSource,
-                content = content
+                content = content,
             )
     }
 }

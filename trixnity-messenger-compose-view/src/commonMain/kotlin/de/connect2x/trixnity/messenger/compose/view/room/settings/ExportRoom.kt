@@ -43,20 +43,12 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.r
 @Composable
 fun ExportRoomContainer(exportRoomViewModel: ExportRoomViewModel) {
     Box(Modifier.fillMaxWidth().clickable(enabled = false) {}) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-        ) {
-            ExportRoom(exportRoomViewModel)
-        }
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd)) { ExportRoom(exportRoomViewModel) }
     }
 }
 
-
 interface ExportRoomView {
-    @Composable
-    fun create(exportRoomViewModel: ExportRoomViewModel)
+    @Composable fun create(exportRoomViewModel: ExportRoomViewModel)
 }
 
 @Composable
@@ -79,10 +71,11 @@ class ExportRoomViewImpl : ExportRoomView {
         Column {
             Header(
                 onBack = exportRoomViewModel::back,
-                title = i18n.exportRoom(
-                    if (isDirect) i18n.commonChat().capitalize(Locale.current)
-                    else i18n.commonGroup().capitalize(Locale.current)
-                )
+                title =
+                    i18n.exportRoom(
+                        if (isDirect) i18n.commonChat().capitalize(Locale.current)
+                        else i18n.commonGroup().capitalize(Locale.current)
+                    ),
             )
 
             // TODO Range(exportRoomViewModel)
@@ -102,13 +95,13 @@ class ExportRoomViewImpl : ExportRoomView {
                         if (processed == null || total == null)
                             ThemedProgressIndicator(
                                 Modifier.fillMaxWidth(),
-                                MaterialTheme.components.linearProgressIndicator
+                                MaterialTheme.components.linearProgressIndicator,
                             )
                         else
                             ThemedProgressIndicator(
                                 progress = { processed.toFloat() / total },
                                 modifier = Modifier.fillMaxWidth(),
-                                style = MaterialTheme.components.linearProgressIndicator
+                                style = MaterialTheme.components.linearProgressIndicator,
                             )
                         Spacer(Modifier.size(10.dp))
                         Text(state.progressString.collectAsState().value)
@@ -118,7 +111,7 @@ class ExportRoomViewImpl : ExportRoomView {
                         ThemedProgressIndicator(
                             progress = { 1f },
                             modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.components.linearProgressIndicator
+                            style = MaterialTheme.components.linearProgressIndicator,
                         )
                         Spacer(Modifier.size(10.dp))
                         Text(state.progressString)
@@ -136,12 +129,16 @@ class ExportRoomViewImpl : ExportRoomView {
                     style = MaterialTheme.components.destructiveButton,
                     onClick = { exportRoomViewModel.abort() },
                     enabled = isExporting,
-                ) { Text(i18n.exportRoomAbort()) }
+                ) {
+                    Text(i18n.exportRoomAbort())
+                }
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     onClick = { exportRoomViewModel.start() },
                     enabled = canExport && !isExporting,
-                ) { Text(i18n.exportRoomButton()) }
+                ) {
+                    Text(i18n.exportRoomButton())
+                }
             }
         }
     }
@@ -152,27 +149,20 @@ fun ExportRoomProperties(exportRoomViewModel: ExportRoomViewModel) {
     val i18n = DI.get<I18nView>()
     val properties = exportRoomViewModel.properties.collectAsState().value
 
-    val targets = listOf(
-        "txt" to i18n.exportRoomTargetPlainText(),
-        "csv" to i18n.exportRoomTargetCsv(),
-    )
+    val targets = listOf("txt" to i18n.exportRoomTargetPlainText(), "csv" to i18n.exportRoomTargetCsv())
     var selectedIndex by remember { mutableStateOf(0) }
     val selectedTarget = targets.getOrNull(selectedIndex)
 
     ThemedListItemRadioButton(
         selected = selectedIndex == 0,
-        headlineContent = {
-            Text(i18n.exportRoomTargetPlainText(), style = MaterialTheme.typography.labelLarge)
-        },
-        onChange = { selectedIndex = 0 }
+        headlineContent = { Text(i18n.exportRoomTargetPlainText(), style = MaterialTheme.typography.labelLarge) },
+        onChange = { selectedIndex = 0 },
     )
 
     ThemedListItemRadioButton(
         selected = selectedIndex == 1,
-        headlineContent = {
-            Text(i18n.exportRoomTargetCsv(), style = MaterialTheme.typography.labelLarge)
-        },
-        onChange = { selectedIndex = 1 }
+        headlineContent = { Text(i18n.exportRoomTargetCsv(), style = MaterialTheme.typography.labelLarge) },
+        onChange = { selectedIndex = 1 },
     )
 
     Spacer(Modifier.height(16.dp))

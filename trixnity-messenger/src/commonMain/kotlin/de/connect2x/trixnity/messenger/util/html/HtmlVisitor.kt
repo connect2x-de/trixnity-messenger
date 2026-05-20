@@ -8,10 +8,7 @@ import com.fleeksoft.ksoup.parser.Parser
 class HtmlVisitor {
     private val taskQueue = mutableListOf<Task>()
 
-    private data class Task(
-        val node: Node,
-        val acc: MutableList<HtmlNode>,
-    )
+    private data class Task(val node: Node, val acc: MutableList<HtmlNode>)
 
     fun process(nodes: List<Node>): HtmlNode.HtmlElement {
         val children = mutableListOf<HtmlNode>()
@@ -23,22 +20,13 @@ class HtmlVisitor {
             visit(task.node, task.acc)
             task = taskQueue.removeFirstOrNull()
         }
-        return HtmlNode.HtmlElement(
-            tag = "#root",
-            attributes = emptyMap(),
-            children = children,
-        )
+        return HtmlNode.HtmlElement(tag = "#root", attributes = emptyMap(), children = children)
     }
 
     private tailrec fun visit(node: Node, acc: MutableList<HtmlNode>) {
         when (node) {
             is TextNode -> {
-                acc.add(
-                    HtmlNode.TextContent(
-                        content = node.text(),
-                        rawContent = node.getWholeText(),
-                    )
-                )
+                acc.add(HtmlNode.TextContent(content = node.text(), rawContent = node.getWholeText()))
             }
 
             is Element -> {
@@ -62,13 +50,10 @@ class HtmlVisitor {
     }
 
     companion object {
-        fun process(nodes: List<Node>): HtmlNode.HtmlElement =
-            HtmlVisitor().process(nodes)
+        fun process(nodes: List<Node>): HtmlNode.HtmlElement = HtmlVisitor().process(nodes)
 
-        fun process(document: String): HtmlNode.HtmlElement =
-            HtmlVisitor().process(parse(document))
+        fun process(document: String): HtmlNode.HtmlElement = HtmlVisitor().process(parse(document))
 
-        private fun parse(document: String): List<Node> =
-            Parser.parseFragment(document, Element("body"), "")
+        private fun parse(document: String): List<Node> = Parser.parseFragment(document, Element("body"), "")
     }
 }

@@ -20,8 +20,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsExportRoomView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -43,7 +42,7 @@ class RoomSettingsExportRoomViewImpl : RoomSettingsExportRoomView {
                 Icon(
                     Icons.Default.Archive,
                     exportRoomText,
-                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
                 )
                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                 Text(exportRoomText)

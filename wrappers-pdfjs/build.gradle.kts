@@ -11,11 +11,7 @@ kotlin {
     withSourcesJar()
     defaultCompilerOptions()
     withWeb {
-        withBrowser {
-            commonWebpackConfig {
-                showProgress = true
-            }
-        }
+        withBrowser { commonWebpackConfig { showProgress = true } }
         useEsModules()
         binaries.library()
         generateTypeScriptDefinitions()

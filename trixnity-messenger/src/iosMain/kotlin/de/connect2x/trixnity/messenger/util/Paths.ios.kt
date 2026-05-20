@@ -15,14 +15,8 @@ actual fun platformPathsModule(): Module = module {
     single { FileSystem.SYSTEM }
     single<RootPath> {
         RootPath(
-            (NSSearchPathForDirectoriesInDomains(
-                NSDocumentDirectory,
-                NSUserDomainMask,
-                true
-            )[0] as String)
-                .toPath()
-        ).also {
-            log.debug { "root directory: ${it.path}" }
-        }
+                (NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true)[0] as String).toPath()
+            )
+            .also { log.debug { "root directory: ${it.path}" } }
     }
 }

@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.toByteArray
 import de.connect2x.trixnity.messenger.util.toNSUrl
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -11,8 +13,6 @@ import kotlinx.cinterop.useContents
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import platform.CoreGraphics.CGContextFillRect
 import platform.CoreGraphics.CGContextRestoreGState
@@ -31,10 +31,8 @@ import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.UIKit.UIImage
 import platform.UIKit.UIImageJPEGRepresentation
 
-actual suspend fun getPlatformPDFReader(
-    media: PlatformMedia,
-    onError: (String?) -> Unit
-): PDFReader = PlatformPDFReader(media, onError).also { it.initialize() }
+actual suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader =
+    PlatformPDFReader(media, onError).also { it.initialize() }
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfTimelineElementDetailsViewKt")
@@ -60,13 +58,14 @@ class PlatformPDFReader(private val media: PlatformMedia, private val onError: (
         }
 
         val pdfFile = requireNotNull(fileResult.getOrNull())
-        val pdfDocument = try {
-            PDFDocument(pdfFile.path.toNSUrl())
-        } catch (_: NullPointerException) {
-            log.error { "Unable to open PDF document: Unable to open PDF file" }
-            onError("Unable to open PDF document")
-            return
-        }
+        val pdfDocument =
+            try {
+                PDFDocument(pdfFile.path.toNSUrl())
+            } catch (_: NullPointerException) {
+                log.error { "Unable to open PDF document: Unable to open PDF file" }
+                onError("Unable to open PDF document")
+                return
+            }
 
         val firstPage = pdfDocument.pageAtIndex(0u)
         if (firstPage == null) {
@@ -106,7 +105,6 @@ class PlatformPDFReader(private val media: PlatformMedia, private val onError: (
         val data = UIGraphicsGetImageFromCurrentImageContext()?.toByteArray() ?: return null
         UIGraphicsEndImageContext()
         return data.decodeToImageBitmap()
-
     }
 
     @OptIn(DelicateCoroutinesApi::class)

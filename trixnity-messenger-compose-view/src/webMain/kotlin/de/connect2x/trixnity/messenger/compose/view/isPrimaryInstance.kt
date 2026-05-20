@@ -4,13 +4,13 @@ package de.connect2x.trixnity.messenger.compose.view
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeoutOrNull
 import web.broadcast.BroadcastChannel
 import web.events.EventHandler
 import web.window.window
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.time.Duration.Companion.milliseconds
 
 private const val BROADCAST_PING: String = "ping!"
 private const val BROADCAST_PONG: String = "pong!"
@@ -20,10 +20,11 @@ private var pingPongChannel: BroadcastChannel? = null
 
 private fun getOrCreatePingPongChannel(appId: String): BroadcastChannel {
     if (pingPongChannel == null) {
-        pingPongChannel = BroadcastChannel("$appId-ping-pong").apply {
-            window.onbeforeunload = EventHandler { close() }
-            log.info { "Created ping-pong broadcast channel" }
-        }
+        pingPongChannel =
+            BroadcastChannel("$appId-ping-pong").apply {
+                window.onbeforeunload = EventHandler { close() }
+                log.info { "Created ping-pong broadcast channel" }
+            }
     }
     return requireNotNull(pingPongChannel) { "Could not obtain ping-pong channel" }
 }

@@ -1,24 +1,24 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepOAuth2ViewModelPreview.PreviewMode.AWAITING
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepOAuth2ViewModelPreview.PreviewMode.ERROR
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepOAuth2ViewModelPreview.PreviewMode.IDLE
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
-import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
-import de.connect2x.trixnity.core.MatrixServerException
 import org.koin.core.component.get
-import kotlin.time.Duration.Companion.seconds
 
 private val POLLING_INTERVAL = 2.seconds // not too low to prevent rate limiting
 
@@ -31,14 +31,7 @@ interface UiaStepOAuth2ViewModelFactory {
         onCancel: () -> Unit,
         onError: (MatrixServerException) -> Unit,
     ): UiaStepOAuth2ViewModel {
-        return UiaStepOAuth2ViewModelImpl(
-            viewModelContext,
-            uiaStep,
-            authenticationType,
-            onNext,
-            onCancel,
-            onError,
-        )
+        return UiaStepOAuth2ViewModelImpl(viewModelContext, uiaStep, authenticationType, onNext, onCancel, onError)
     }
 
     companion object : UiaStepOAuth2ViewModelFactory
@@ -49,12 +42,12 @@ interface UiaStepOAuth2ViewModel {
     val waitForResult: StateFlow<Boolean>
     val error: StateFlow<String?>
     val authenticationTypeString: String
+
     fun openOAuth2Url()
 
-    /**
-     * This is automatically called when [openOAuth2Url] is used.
-     */
+    /** This is automatically called when [openOAuth2Url] is used. */
     fun confirm()
+
     fun cancel()
 }
 
@@ -92,14 +85,17 @@ class UiaStepOAuth2ViewModelImpl(
             pollingJob = coroutineScope.launch {
                 error.value = null
                 var nextUia: UIA<*>? = null
-                log.debug { "nextUia.state.completed: ${(nextUia as? UIA.Step<*>)?.state?.completed ?: "[]"}, authenticationType: $authenticationType" }
-                while (nextUia !is UIA.Success<*> && (
-                            (nextUia is UIA.Step<*> && nextUia.state.completed.contains(authenticationType)).not()
-                            )
+                log.debug {
+                    "nextUia.state.completed: ${(nextUia as? UIA.Step<*>)?.state?.completed ?: "[]"}, authenticationType: $authenticationType"
+                }
+                while (
+                    nextUia !is UIA.Success<*> &&
+                        ((nextUia is UIA.Step<*> && nextUia.state.completed.contains(authenticationType)).not())
                 ) {
                     log.debug { "nextUia: $nextUia, authenticationType: $authenticationType" }
                     delay(POLLING_INTERVAL)
-                    uiaStep.authenticate(AuthenticationRequest.OAuth2)
+                    uiaStep
+                        .authenticate(AuthenticationRequest.OAuth2)
                         .onSuccess {
                             if (it is UIA.Error) {
                                 log.error { "error during oAuth2: ${it.errorResponse.error}" }
@@ -139,10 +135,16 @@ class UiaStepOAuth2ViewModelPreview(mode: PreviewMode = IDLE) : UiaStepOAuth2Vie
     override val waitForResult = MutableStateFlow(mode == AWAITING)
     override val error = MutableStateFlow(if (mode == ERROR) "Something's wrong!" else null)
     override val authenticationTypeString: String = "ReCaptcha"
+
     override fun openOAuth2Url() {}
+
     override fun confirm() {}
+
     override fun cancel() {}
+
     enum class PreviewMode {
-        IDLE, AWAITING, ERROR,
+        IDLE,
+        AWAITING,
+        ERROR,
     }
 }

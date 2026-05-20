@@ -25,25 +25,29 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 
 enum class VerificationLevel {
-    DEVICE, USER, TIMELINE_EVENT
+    DEVICE,
+    USER,
+    TIMELINE_EVENT,
 }
 
 @Composable
 fun VerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
-    Tooltip(tooltip = {
-        when (verificationLevel) {
-            DEVICE -> Text(i18n.verificationVerifiedDevice())
-            USER -> Text(i18n.verificationVerifiedUser())
-            TIMELINE_EVENT -> Box {}
+    Tooltip(
+        tooltip = {
+            when (verificationLevel) {
+                DEVICE -> Text(i18n.verificationVerifiedDevice())
+                USER -> Text(i18n.verificationVerifiedUser())
+                TIMELINE_EVENT -> Box {}
+            }
         }
-    }) {
+    ) {
         Shield(size) {
             Icon(
                 Icons.Default.GppGood,
                 i18n.verificationTrusted(),
                 modifier = Modifier.size(size),
-                tint = MaterialTheme.messengerColors.verificationTrusted
+                tint = MaterialTheme.messengerColors.verificationTrusted,
             )
         }
     }
@@ -52,19 +56,21 @@ fun VerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
 @Composable
 fun NotVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
-    Tooltip(tooltip = {
-        when (verificationLevel) {
-            DEVICE -> Text(i18n.verificationNotVerifiedDevice())
-            USER -> Text(i18n.verificationNotVerifiedUser())
-            TIMELINE_EVENT -> Box { }
+    Tooltip(
+        tooltip = {
+            when (verificationLevel) {
+                DEVICE -> Text(i18n.verificationNotVerifiedDevice())
+                USER -> Text(i18n.verificationNotVerifiedUser())
+                TIMELINE_EVENT -> Box {}
+            }
         }
-    }) {
+    ) {
         Shield(size) {
             Icon(
                 Icons.Default.GppBad,
                 i18n.verificationNotTrusted(),
                 modifier = Modifier.size(size),
-                tint = MaterialTheme.messengerColors.verificationUntrusted
+                tint = MaterialTheme.messengerColors.verificationUntrusted,
             )
         }
     }
@@ -73,19 +79,21 @@ fun NotVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
 @Composable
 fun NeutralVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
-    Tooltip(tooltip = {
-        when (verificationLevel) {
-            DEVICE -> Box { }
-            USER -> Text(i18n.verificationNeutralUser())
-            TIMELINE_EVENT -> Box { }
+    Tooltip(
+        tooltip = {
+            when (verificationLevel) {
+                DEVICE -> Box {}
+                USER -> Text(i18n.verificationNeutralUser())
+                TIMELINE_EVENT -> Box {}
+            }
         }
-    }) {
+    ) {
         Shield(size) {
             Icon(
                 Icons.Default.Shield,
                 i18n.verificationNotVerifiedYet(),
                 modifier = Modifier.size(size),
-                tint = MaterialTheme.messengerColors.verificationNeutral
+                tint = MaterialTheme.messengerColors.verificationNeutral,
             )
         }
     }
@@ -94,18 +102,8 @@ fun NeutralVerifiedIcon(verificationLevel: VerificationLevel, size: Dp = 24.dp) 
 @Composable
 private fun Shield(size: Dp, content: @Composable () -> Unit) {
     Box(contentAlignment = Alignment.Center) {
-        Icon(
-            Icons.Default.Shield,
-            "",
-            modifier = Modifier.size(size + 2.dp),
-            tint = Color.Black,
-        )
-        Icon(
-            Icons.Default.Shield,
-            "",
-            modifier = Modifier.size(size - 4.dp),
-            tint = Color.White,
-        )
+        Icon(Icons.Default.Shield, "", modifier = Modifier.size(size + 2.dp), tint = Color.Black)
+        Icon(Icons.Default.Shield, "", modifier = Modifier.size(size - 4.dp), tint = Color.White)
         content()
     }
 }

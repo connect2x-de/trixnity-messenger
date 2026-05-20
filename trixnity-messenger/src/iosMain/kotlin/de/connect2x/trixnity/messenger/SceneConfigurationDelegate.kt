@@ -11,9 +11,7 @@ import platform.UIKit.UISceneSession
 import platform.UIKit.UISceneSessionRole
 import platform.UIKit.UIWindowScene
 
-/**
- * Connects [WindowSceneDelegate] as [UIWindowScene] for [ApplicationDelegateProtocol]
- */
+/** Connects [WindowSceneDelegate] as [UIWindowScene] for [ApplicationDelegateProtocol] */
 object SceneConfigurationDelegate : ApplicationDelegateProtocol {
 
     override fun configurationForConnecting(
@@ -23,11 +21,9 @@ object SceneConfigurationDelegate : ApplicationDelegateProtocol {
     ): WithDefault<UISceneConfiguration> = WithDefault.Value(makeConfig(sceneSession.role))
 
     @OptIn(BetaInteropApi::class)
-    private fun makeConfig(role: UISceneSessionRole) = UISceneConfiguration(
-        name = null,
-        sessionRole = role,
-    ).apply {
-        delegateClass = WindowSceneDelegate
-        sceneClass = UIWindowScene
-    }
+    private fun makeConfig(role: UISceneSessionRole) =
+        UISceneConfiguration(name = null, sessionRole = role).apply {
+            delegateClass = WindowSceneDelegate
+            sceneClass = UIWindowScene
+        }
 }

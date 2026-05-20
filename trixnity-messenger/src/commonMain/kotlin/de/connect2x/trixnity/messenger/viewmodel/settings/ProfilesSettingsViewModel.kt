@@ -16,14 +16,8 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 interface ProfilesSettingsViewModelFactory {
-    fun create(
-        viewModelContext: ViewModelContext,
-        onCloseProfilesSettings: () -> Unit,
-    ): ProfilesSettingsViewModel {
-        return ProfilesSettingsViewModelImpl(
-            viewModelContext,
-            onCloseProfilesSettings,
-        )
+    fun create(viewModelContext: ViewModelContext, onCloseProfilesSettings: () -> Unit): ProfilesSettingsViewModel {
+        return ProfilesSettingsViewModelImpl(viewModelContext, onCloseProfilesSettings)
     }
 
     companion object : ProfilesSettingsViewModelFactory
@@ -36,9 +30,13 @@ interface ProfilesSettingsViewModel {
     val canChangeMultiProfileMode: StateFlow<Boolean>
     val profileCreationTextField: TextFieldViewModel
     val profileCreationError: StateFlow<String?>
+
     fun createProfile()
+
     fun setMultiProfileEnabled(enabled: Boolean)
+
     fun closeProfile()
+
     fun close()
 }
 
@@ -53,43 +51,46 @@ class ProfilesSettingsViewModelImpl(
     override val activeProfile: StateFlow<String?> = profileManager.activeProfile
 
     override val profiles: StateFlow<Map<String, ProfilesSettingsSingleViewModel>> =
-        profileManager.profiles.map {
-            it.mapValues { (profileId, _) ->
-                this@ProfilesSettingsViewModelImpl.get<ProfilesSettingsSingleViewModelFactory>()
-                    .create(
-                        viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl),
-                        profileId
-                    )
+        profileManager.profiles
+            .map {
+                it.mapValues { (profileId, _) ->
+                    this@ProfilesSettingsViewModelImpl.get<ProfilesSettingsSingleViewModelFactory>()
+                        .create(viewModelContext.childContext(profileId, this@ProfilesSettingsViewModelImpl), profileId)
+                }
             }
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+            .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override val isMultiProfile: StateFlow<Boolean> =
-        (profileManager.isMultiProfileEnabled.map { it == true })
-            .stateIn(coroutineScope, WhileSubscribed(), false)
+        (profileManager.isMultiProfileEnabled.map { it == true }).stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val canChangeMultiProfileMode: StateFlow<Boolean> =
         combine(isMultiProfile, profileManager.profiles.map { it.size > 1 }) {
-            val isMultiProfile = it[0]
-            val moreThanOneProfile = it[1]
-            // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more than
-            // one profiles. In this case, we should still allow the user to enable it.
-            !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
-        }.stateIn(coroutineScope, WhileSubscribed(), true)
+                val isMultiProfile = it[0]
+                val moreThanOneProfile = it[1]
+                // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more
+                // than
+                // one profiles. In this case, we should still allow the user to enable it.
+                !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), true)
 
     override val profileCreationTextField: TextFieldViewModel = TextFieldViewModelImpl(maxLength = 1_000)
     override val profileCreationError: StateFlow<String?> =
         combine(profileManager.profiles, profileCreationTextField) { existingProfiles, currentNewProfileName ->
-            when {
-                existingProfiles.any { (_, settings) -> settings.base.displayName == currentNewProfileName.text } -> i18n.profileCreationDuplicate()
-                else -> null
+                when {
+                    existingProfiles.any { (_, settings) -> settings.base.displayName == currentNewProfileName.text } ->
+                        i18n.profileCreationDuplicate()
+                    else -> null
+                }
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun createProfile() {
         if (profileCreationError.value == null) {
             coroutineScope.launch {
                 profileManager.createProfile(
-                    settings = MatrixMultiMessengerProfileSettingsBase(displayName = profileCreationTextField.value.text)
+                    settings =
+                        MatrixMultiMessengerProfileSettingsBase(displayName = profileCreationTextField.value.text)
                 )
             }
         } else {
@@ -99,9 +100,7 @@ class ProfilesSettingsViewModelImpl(
 
     override fun closeProfile() {
         log.debug { "close profile" }
-        coroutineScope.launch {
-            profileManager.closeProfile()
-        }
+        coroutineScope.launch { profileManager.closeProfile() }
     }
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
@@ -112,4 +111,3 @@ class ProfilesSettingsViewModelImpl(
         onCloseProfilesSettings()
     }
 }
-

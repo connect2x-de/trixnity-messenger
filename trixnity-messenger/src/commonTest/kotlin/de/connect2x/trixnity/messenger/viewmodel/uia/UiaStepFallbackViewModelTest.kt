@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
+import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -14,18 +18,14 @@ import dev.mokkery.verify.VerifyMode.Companion.not
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.http.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
-import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
-import de.connect2x.trixnity.core.ErrorResponse
-import org.koin.dsl.koinApplication
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
 
 class UiaStepFallbackViewModelTest {
     private val onNextMock = mock<(UIA<*>) -> Unit>()
@@ -55,15 +55,16 @@ class UiaStepFallbackViewModelTest {
 
     @Test
     fun `do current stage`() = runTest {
-        val cut = uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
-            Result.success(
-                UIA.Step(
-                    state = UIAState(completed = listOf(AuthenticationType.Recaptcha, AuthenticationType.Password)),
-                    getFallbackUrlCallback = { Url("https://localhost") },
-                    authenticateCallback = { Result.success(UIA.Success(Unit)) },
+        val cut =
+            uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
+                Result.success(
+                    UIA.Step(
+                        state = UIAState(completed = listOf(AuthenticationType.Recaptcha, AuthenticationType.Password)),
+                        getFallbackUrlCallback = { Url("https://localhost") },
+                        authenticateCallback = { Result.success(UIA.Success(Unit)) },
+                    )
                 )
-            )
-        }
+            }
         cut.confirm()
         eventually(3.seconds) {
             cut.waitForResult.value shouldBe false
@@ -73,15 +74,16 @@ class UiaStepFallbackViewModelTest {
 
     @Test
     fun `try to run all stages until completed`() = runTest {
-        val cut = uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
-            Result.success(
-                UIA.Step(
-                    state = UIAState(completed = listOf(AuthenticationType.Recaptcha)),
-                    getFallbackUrlCallback = { Url("https://localhost") },
-                    authenticateCallback = { Result.success(UIA.Success(Unit)) },
+        val cut =
+            uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
+                Result.success(
+                    UIA.Step(
+                        state = UIAState(completed = listOf(AuthenticationType.Recaptcha)),
+                        getFallbackUrlCallback = { Url("https://localhost") },
+                        authenticateCallback = { Result.success(UIA.Success(Unit)) },
+                    )
                 )
-            )
-        }
+            }
         cut.confirm()
         delay(2_300.milliseconds)
         cut.waitForResult.value shouldBe true
@@ -90,16 +92,17 @@ class UiaStepFallbackViewModelTest {
 
     @Test
     fun `show an error if UIA authentication failed`() = runTest {
-        val cut = uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
-            Result.success(
-                UIA.Error(
-                    state = UIAState(completed = listOf(AuthenticationType.EmailIdentity)),
-                    errorResponse = ErrorResponse.Unauthorized("wrong username/password"),
-                    getFallbackUrlCallback = { Url("https://localhost") },
-                    authenticateCallback = { Result.success(UIA.Success(Unit)) },
+        val cut =
+            uiaStepFallbackViewModel(AuthenticationType.Password) { _ ->
+                Result.success(
+                    UIA.Error(
+                        state = UIAState(completed = listOf(AuthenticationType.EmailIdentity)),
+                        errorResponse = ErrorResponse.Unauthorized("wrong username/password"),
+                        getFallbackUrlCallback = { Url("https://localhost") },
+                        authenticateCallback = { Result.success(UIA.Success(Unit)) },
+                    )
                 )
-            )
-        }
+            }
         cut.confirm()
         eventually(3.seconds) {
             cut.waitForResult.value shouldBe true // try for as long as the user needs to complete the request
@@ -122,22 +125,21 @@ class UiaStepFallbackViewModelTest {
     private fun TestScope.uiaStepFallbackViewModel(
         authenticationType: AuthenticationType,
         authenticationCallback: suspend (Any) -> Result<UIA<Unit>>,
-    ) = UiaStepFallbackViewModelImpl(
-        viewModelContext = testViewModelContext(
-            di = koinApplication {
-                modules(
-                    createTestDefaultTrixnityMessengerModules()
-                )
-            }.koin,
-        ),
-        uiaStep = UIA.Step(
-            state = UIAState(),
-            getFallbackUrlCallback = { Url("https://localhost") },
-            authenticateCallback = authenticationCallback,
-        ),
-        authenticationType = authenticationType,
-        onNext = onNextMock,
-        onCancel = onCancelMock,
-        onError = mock(),
-    )
+    ) =
+        UiaStepFallbackViewModelImpl(
+            viewModelContext =
+                testViewModelContext(
+                    di = koinApplication { modules(createTestDefaultTrixnityMessengerModules()) }.koin
+                ),
+            uiaStep =
+                UIA.Step(
+                    state = UIAState(),
+                    getFallbackUrlCallback = { Url("https://localhost") },
+                    authenticateCallback = authenticationCallback,
+                ),
+            authenticationType = authenticationType,
+            onNext = onNextMock,
+            onCancel = onCancelMock,
+            onError = mock(),
+        )
 }

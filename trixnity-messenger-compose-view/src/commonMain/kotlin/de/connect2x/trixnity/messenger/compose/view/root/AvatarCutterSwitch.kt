@@ -7,7 +7,6 @@ import de.connect2x.trixnity.messenger.compose.view.settings.AvatarCutter
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterRouter
 
-
 @Composable
 fun AvatarCutterSwitch(mainViewModel: MainViewModel) {
     Children(stack = mainViewModel.avatarCutterRouterStack) {

@@ -27,8 +27,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsHistoryVisibilityView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -52,9 +51,7 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
 
         Column {
             ThemedListItem(
-                headlineContent = {
-                    Text(i18n.chatHistoryVisibility(), style = MaterialTheme.typography.titleMedium)
-                },
+                headlineContent = { Text(i18n.chatHistoryVisibility(), style = MaterialTheme.typography.titleMedium) },
                 style = MaterialTheme.components.settingsItem,
             )
 
@@ -68,14 +65,20 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                     },
                     Modifier.semantics {
                         focused = false
-                        text = AnnotatedString(
-                            i18n.chatHistoryVisibilitySettings() + ", " + historyVisibility.getStateName(i18n) + " " + i18n.selected()
-                        )
-                    }) {
+                        text =
+                            AnnotatedString(
+                                i18n.chatHistoryVisibilitySettings() +
+                                    ", " +
+                                    historyVisibility.getStateName(i18n) +
+                                    " " +
+                                    i18n.selected()
+                            )
+                    },
+                ) {
                     Text(
                         text = historyVisibility.getStateName(i18n),
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(start = 10.dp)
+                        modifier = Modifier.padding(start = 10.dp),
                     )
                 }
                 return
@@ -83,10 +86,12 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
 
             if (isHistoryVisibilityChanging) {
                 ThemedProgressIndicator(
-                    modifier = Modifier.semantics {
-                        focused = false
-                        text = AnnotatedString(i18n.chatHistoryVisibilitySettings() + ", " + i18n.loading())
-                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                    modifier =
+                        Modifier.semantics {
+                            focused = false
+                            text = AnnotatedString(i18n.chatHistoryVisibilitySettings() + ", " + i18n.loading())
+                        },
+                    style = MaterialTheme.components.extraSmallCircularProgressIndicator,
                 )
                 return
             }
@@ -100,30 +105,36 @@ class RoomSettingsHistoryVisibilityViewImpl : RoomSettingsHistoryVisibilityView 
                                 else historyVisibility.getExplanation(i18n)
                             )
                         },
-                        modifier = Modifier.semantics {
-                            text = AnnotatedString(
-                                i18n.chatHistoryVisibilitySettings() + ", " + historyVisibility.getStateName(i18n) + " " + i18n.selected()
-                            )
-                        }) {
-                        Text(
-                            historyVisibility.getStateName(i18n),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
+                        modifier =
+                            Modifier.semantics {
+                                text =
+                                    AnnotatedString(
+                                        i18n.chatHistoryVisibilitySettings() +
+                                            ", " +
+                                            historyVisibility.getStateName(i18n) +
+                                            " " +
+                                            i18n.selected()
+                                    )
+                            },
+                    ) {
+                        Text(historyVisibility.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                     }
                 },
-                options = visibilities?.associate {
-                    it to RadioSettingOption(
-                        text = it.getStateName(i18n),
-                        explanation = if (isEncrypted) it.getExplanationWhenEncrypted(i18n)
-                        else it.getExplanation(i18n),
-                        enabled = roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) && isHistoryVisibilityChanging.not()
-                    )
-                } ?: mapOf(),
+                options =
+                    visibilities?.associate {
+                        it to
+                            RadioSettingOption(
+                                text = it.getStateName(i18n),
+                                explanation =
+                                    if (isEncrypted) it.getExplanationWhenEncrypted(i18n) else it.getExplanation(i18n),
+                                enabled =
+                                    roomSettingsHistoryVisibilityViewModel.historyVisibilityCanBeChangedTo(it) &&
+                                        isHistoryVisibilityChanging.not(),
+                            )
+                    } ?: mapOf(),
                 set = { roomSettingsHistoryVisibilityViewModel.changeRoomHistoryVisibility(it) },
-                value = historyVisibility
+                value = historyVisibility,
             )
         }
-
     }
 }
-

@@ -11,22 +11,14 @@ import androidx.compose.ui.unit.Dp
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
 @Immutable
-data class ListItemStyle(
-    val colors: ListItemColors,
-    val tonalElevation: Dp,
-    val shadowElevation: Dp,
-) {
+data class ListItemStyle(val colors: ListItemColors, val tonalElevation: Dp, val shadowElevation: Dp) {
     companion object {
         @Composable
         fun default(
             colors: ListItemColors = ListItemDefaults.colors(),
             tonalElevation: Dp = ListItemDefaults.Elevation,
             shadowElevation: Dp = ListItemDefaults.Elevation,
-        ) = ListItemStyle(
-            colors = colors,
-            tonalElevation = tonalElevation,
-            shadowElevation = shadowElevation,
-        )
+        ) = ListItemStyle(colors = colors, tonalElevation = tonalElevation, shadowElevation = shadowElevation)
     }
 }
 
@@ -39,14 +31,15 @@ fun ThemedListItem(
     supportingContent: @Composable (() -> Unit)? = null,
     leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-) = ListItem(
-    headlineContent = headlineContent,
-    modifier = modifier,
-    overlineContent = overlineContent,
-    supportingContent = supportingContent,
-    leadingContent = leadingContent,
-    trailingContent = trailingContent,
-    colors = style.colors,
-    tonalElevation = style.tonalElevation,
-    shadowElevation = style.shadowElevation,
-)
+) =
+    ListItem(
+        headlineContent = headlineContent,
+        modifier = modifier,
+        overlineContent = overlineContent,
+        supportingContent = supportingContent,
+        leadingContent = leadingContent,
+        trailingContent = trailingContent,
+        colors = style.colors,
+        tonalElevation = style.tonalElevation,
+        shadowElevation = style.shadowElevation,
+    )

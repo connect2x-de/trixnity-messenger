@@ -3,6 +3,8 @@ package de.connect2x.trixnity.messenger.viewmodel.room.settings
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -10,14 +12,12 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 interface AddMembersViewModelFactory {
     fun create(
@@ -26,12 +26,7 @@ interface AddMembersViewModelFactory {
         addMembersToRoomViewModel: PotentialMembersViewModel,
         onBack: () -> Unit,
     ): AddMembersViewModel {
-        return AddMembersViewModelImpl(
-            viewModelContext,
-            roomId,
-            addMembersToRoomViewModel,
-            onBack,
-        )
+        return AddMembersViewModelImpl(viewModelContext, roomId, addMembersToRoomViewModel, onBack)
     }
 
     companion object : AddMembersViewModelFactory
@@ -47,13 +42,19 @@ interface AddMembersViewModel {
     val undecryptableHistoryInfo: StateFlow<String?>
 
     fun onUserClick(user: Search.SearchUserElement)
+
     fun addMembers()
+
     fun errorDismiss()
+
     fun back()
 
-    // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same time
+    // IMPORTANT: has to be separate as the renderer will collapse when 2 collectAsState() references change at the same
+    // time
     fun removeUserFromList(user: Search.SearchUserElement)
+
     fun removeUserFromGroup(user: Search.SearchUserElement)
+
     fun addUserToList(user: Search.SearchUserElement)
 }
 
@@ -64,9 +65,7 @@ class AddMembersViewModelImpl(
     private val onBack: () -> Unit,
 ) : AddMembersViewModel, MatrixClientViewModelContext by viewModelContext {
 
-    private val backCallback = BackCallback {
-        onBack()
-    }
+    private val backCallback = BackCallback { onBack() }
 
     init {
         registerBackCallback(backCallback)
@@ -78,8 +77,7 @@ class AddMembersViewModelImpl(
 
     override val groupUsers = potentialMembersViewModel.selectedUsers
     override val canAddMembers =
-        groupUsers.map { it.isNotEmpty() }
-            .stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
+        groupUsers.map { it.isNotEmpty() }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), false)
 
     override val error = MutableStateFlow<String?>(null)
     override val errorCause = MutableStateFlow<String?>(null)
@@ -88,24 +86,26 @@ class AddMembersViewModelImpl(
 
     override val undecryptableHistoryInfo =
         combine(
-        matrixClient.room.getById(roomId).filterNotNull(),
-        matrixClient.room.getState<HistoryVisibilityEventContent>(roomId)
-            .mapNotNull { it?.content?.historyVisibility }
-        ) { room, historyVisibility -> 
-            if (room.encrypted) {
-                when (historyVisibility) {
-                    HistoryVisibilityEventContent.HistoryVisibility.INVITED,
-                    HistoryVisibilityEventContent.HistoryVisibility.SHARED,
-                    HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE->
-                        i18n.addMembersUndecryptableHistoryBeforeInvite()
+                matrixClient.room.getById(roomId).filterNotNull(),
+                matrixClient.room.getState<HistoryVisibilityEventContent>(roomId).mapNotNull {
+                    it?.content?.historyVisibility
+                },
+            ) { room, historyVisibility ->
+                if (room.encrypted) {
+                    when (historyVisibility) {
+                        HistoryVisibilityEventContent.HistoryVisibility.INVITED,
+                        HistoryVisibilityEventContent.HistoryVisibility.SHARED,
+                        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE ->
+                            i18n.addMembersUndecryptableHistoryBeforeInvite()
 
-                    HistoryVisibilityEventContent.HistoryVisibility.JOINED ->
-                        i18n.addMembersUndecryptableHistoryBeforeJoin()
+                        HistoryVisibilityEventContent.HistoryVisibility.JOINED ->
+                            i18n.addMembersUndecryptableHistoryBeforeJoin()
+                    }
+                } else {
+                    null
                 }
-            } else {
-                null
             }
-        }.stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, started = SharingStarted.WhileSubscribed(), null)
 
     override fun addMembers() {
         isAddingMembers.value = true
@@ -114,16 +114,15 @@ class AddMembersViewModelImpl(
         coroutineScope.launch {
             val failedInvitations = mutableListOf<Pair<Search.SearchUserElement, Throwable>>()
             for (user in groupUsers.value) {
-                matrixClient.api.room.inviteUser(roomId, user.userId)
+                matrixClient.api.room
+                    .inviteUser(roomId, user.userId)
                     .fold(
-                        onSuccess = {
-                            log.debug { "user ${user.userId.full} was invited" }
-                        },
+                        onSuccess = { log.debug { "user ${user.userId.full} was invited" } },
                         onFailure = {
                             log.error(it) { "Failed to invite user ${user.userId.full}" }
                             log.trace { it.stackTraceToString() }
                             failedInvitations.add(user to it)
-                        }
+                        },
                     )
             }
             when (failedInvitations.count()) {
@@ -135,13 +134,13 @@ class AddMembersViewModelImpl(
                 1 -> {
                     val throwable = failedInvitations.first().second
                     error.value = i18n.settingsRoomAddMembersErrorSingular(failedInvitations.first().first.displayName)
-                    errorCause.value = when {
-                        potentialMembersViewModel.offline.value ->
-                            i18n.settingsRoomAddMembersErrorOffline()
+                    errorCause.value =
+                        when {
+                            potentialMembersViewModel.offline.value -> i18n.settingsRoomAddMembersErrorOffline()
 
-                        throwable.message != null -> throwable.message
-                        else -> throwable.stackTraceToString().lines().first()
-                    }
+                            throwable.message != null -> throwable.message
+                            else -> throwable.stackTraceToString().lines().first()
+                        }
                 }
 
                 else -> {
@@ -149,21 +148,28 @@ class AddMembersViewModelImpl(
 
                     error.value =
                         i18n.settingsRoomAddMembersErrorPlural(
-                            failedInvitations.joinTo(
-                                StringBuilder(),
-                                limit = failedInvitations.size - 1,
-                                suffix = " " +
-                                        i18n.settingsRoomAddMembersAnd()
-                                        + " \"" + failedInvitations.last().first.displayName + "\""
-                            ) { "\"" + it.first.displayName + "\"" }.toString()
+                            failedInvitations
+                                .joinTo(
+                                    StringBuilder(),
+                                    limit = failedInvitations.size - 1,
+                                    suffix =
+                                        " " +
+                                            i18n.settingsRoomAddMembersAnd() +
+                                            " \"" +
+                                            failedInvitations.last().first.displayName +
+                                            "\"",
+                                ) {
+                                    "\"" + it.first.displayName + "\""
+                                }
+                                .toString()
                         )
-                    errorCause.value = when {
-                        potentialMembersViewModel.offline.value ->
-                            i18n.settingsRoomAddMembersErrorOffline()
+                    errorCause.value =
+                        when {
+                            potentialMembersViewModel.offline.value -> i18n.settingsRoomAddMembersErrorOffline()
 
-                        throwable.message != null -> throwable.message
-                        else -> throwable.stackTraceToString().lines().first()
-                    }
+                            throwable.message != null -> throwable.message
+                            else -> throwable.stackTraceToString().lines().first()
+                        }
                 }
             }
             isAddingMembers.value = false
@@ -199,7 +205,7 @@ class AddMembersViewModelImpl(
         suffix: CharSequence = "",
         limit: Int = -1,
         truncated: CharSequence = "",
-        transform: ((T) -> CharSequence)? = null
+        transform: ((T) -> CharSequence)? = null,
     ): A {
         buffer.append(prefix)
         var count = 0

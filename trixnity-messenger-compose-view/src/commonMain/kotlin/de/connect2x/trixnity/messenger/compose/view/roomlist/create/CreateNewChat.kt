@@ -57,8 +57,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 
 interface CreateNewChatView {
-    @Composable
-    fun create(createNewChatViewModel: CreateNewChatViewModel)
+    @Composable fun create(createNewChatViewModel: CreateNewChatViewModel)
 }
 
 @Composable
@@ -77,9 +76,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val userSearchResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
-        var references by remember {
-            mutableStateOf(listOf<String>())
-        }
+        var references by remember { mutableStateOf(listOf<String>()) }
 
         LaunchedEffect(userSearchResults) {
             if (userSearchResults is SearchResultState.Results) {
@@ -88,27 +85,26 @@ class CreateNewChatViewImpl : CreateNewChatView {
         }
         references.firstOrNull()
 
-        val focusedItem = remember(userSearchResults) {
-            mutableStateOf(
-                if (userSearchResults is SearchResultState.Results) {
-                    userSearchResults.users.firstOrNull()?.userId?.full
-                } else {
-                    null
-                }
-            )
-        }
+        val focusedItem =
+            remember(userSearchResults) {
+                mutableStateOf(
+                    if (userSearchResults is SearchResultState.Results) {
+                        userSearchResults.users.firstOrNull()?.userId?.full
+                    } else {
+                        null
+                    }
+                )
+            }
 
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
             Box(Modifier.fillMaxSize()) {
-                LazyColumn(
-                    Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState
-                ) {
+                LazyColumn(Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState) {
                     item(key = "CreatingIndicator") {
                         if (isCreating) {
                             ThemedProgressIndicator(
                                 Modifier.fillMaxWidth(),
-                                MaterialTheme.components.linearProgressIndicator
+                                MaterialTheme.components.linearProgressIndicator,
                             )
                         }
                     }
@@ -122,7 +118,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
                         userSearchResults,
                         userSearchResultView,
                         this,
-                        focusedItem
+                        focusedItem,
                     )
                 }
 
@@ -138,9 +134,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
         if (error != null) {
             ThemedModalDialog({ createNewChatViewModel.errorDismiss() }) {
-                ModalDialogHeader {
-                    Text(i18n.anErrorHasOccurred())
-                }
+                ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
                 ModalDialogContent {
                     Text(error)
                     if (errorDetails != null) {
@@ -168,26 +162,20 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
     val isCreating by createNewChatViewModel.isCreating.collectAsState()
     val interactionSourceCreateGroup = remember { MutableInteractionSource() }
     val interactionSourceSearchGroup = remember { MutableInteractionSource() }
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier.weight(1.0f, fill = true)
-                .clickable(
-                    enabled = !isCreating,
-                    interactionSource = interactionSourceCreateGroup,
-                    indication = null
-                ) { createNewChatViewModel.createGroup() }
+                .clickable(enabled = !isCreating, interactionSource = interactionSourceCreateGroup, indication = null) {
+                    createNewChatViewModel.createGroup()
+                }
                 .focusHighlighting(interactionSource = interactionSourceCreateGroup)
                 .buttonPointerModifier()
         ) {
             Row(
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ThemedAvatar(avatarSize().dp) {
-                    AvatarContentIcon(Icons.Default.GroupAdd, avatarSize().dp)
-                }
+                ThemedAvatar(avatarSize().dp) { AvatarContentIcon(Icons.Default.GroupAdd, avatarSize().dp) }
                 Spacer(Modifier.size(20.dp))
                 Text(i18n.createNewGroupCreate())
             }
@@ -195,20 +183,17 @@ fun AddOrSearchGroup(createNewChatViewModel: CreateNewChatViewModel) {
         Spacer(Modifier.size(20.dp))
         Box(
             Modifier.weight(1.0f, fill = true)
-                .clickable(
-                    interactionSource = interactionSourceSearchGroup,
-                    indication = null
-                ) { createNewChatViewModel.searchGroup() }
+                .clickable(interactionSource = interactionSourceSearchGroup, indication = null) {
+                    createNewChatViewModel.searchGroup()
+                }
                 .focusHighlighting(interactionSource = interactionSourceSearchGroup)
                 .buttonPointerModifier()
         ) {
             Row(
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ThemedAvatar(avatarSize().dp) {
-                    AvatarContentIcon(Icons.Default.TravelExplore, avatarSize().dp)
-                }
+                ThemedAvatar(avatarSize().dp) { AvatarContentIcon(Icons.Default.TravelExplore, avatarSize().dp) }
                 Spacer(Modifier.size(20.dp))
                 Text(i18n.createNewGroupSearch())
             }

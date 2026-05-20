@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.MSC2448
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
@@ -7,17 +11,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.MSC2448
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased
 import org.koin.core.component.get
-import kotlin.reflect.KClass
 
 interface ImageRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<FileBased.Image> {
     override fun create(
@@ -47,13 +47,15 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     roomId: RoomId,
     eventIdOrTransactionId: EventIdOrTransactionId,
     onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.FileBased.Image, FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(
-    viewModelContext,
-    content,
-    roomId,
-    eventIdOrTransactionId,
-    onOpenMention,
-) {
+) :
+    RoomMessageTimelineElementViewModel.FileBased.Image,
+    FileBasedRoomMessageTimelineElementViewModel<FileBased.Image>(
+        viewModelContext,
+        content,
+        roomId,
+        eventIdOrTransactionId,
+        onOpenMention,
+    ) {
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
@@ -66,17 +68,25 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     override val thumbnailWidth = content.info?.thumbnailInfo?.width
     override val thumbnailHeight = content.info?.thumbnailInfo?.height
 
-    override val thumbnail: StateFlow<ByteArray?> = flow {
-        emit(
-            // TODO needs some sort of retry!
-            thumbnails.loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory)
-                .also { _thumbnailLoading.value = false }
-        )
-    }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+    override val thumbnail: StateFlow<ByteArray?> =
+        flow {
+                emit(
+                    // TODO needs some sort of retry!
+                    thumbnails
+                        .loadThumbnail(
+                            coroutineScope,
+                            matrixClient,
+                            content,
+                            thumbnailProgressFlow,
+                            maxMediaSizeInMemory,
+                        )
+                        .also { _thumbnailLoading.value = false }
+                )
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     override val width: Int? = content.info?.width
     override val height: Int? = content.info?.height
 
-    @MSC2448
-    override val blurhash: String? = content.info?.blurhash
+    @MSC2448 override val blurhash: String? = content.info?.blurhash
 }

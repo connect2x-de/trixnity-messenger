@@ -44,27 +44,44 @@ fun Modifier.customClickable(
         .hoverable(interactionSource, enabled)
         .semantics {
             role?.let { this.role = it }
-            this.onClick(onClickLabel) { onClick(); true }
-            onLongClick?.let { this.onLongClick(onLongClickLabel) { it(); true } }
+            this.onClick(onClickLabel) {
+                onClick()
+                true
+            }
+            onLongClick?.let {
+                this.onLongClick(onLongClickLabel) {
+                    it()
+                    true
+                }
+            }
         }
         .pointerInput(Unit) {
             detectTapGestures(
-                onDoubleTap = if (enabled && onDoubleClick != null) {
-                    { focusRequester.requestFocus(); onDoubleClick() }
-                } else null,
-                onLongPress = if (enabled && onLongClick != null) {
-                    { focusRequester.requestFocus(); onLongClick() }
-                } else null,
+                onDoubleTap =
+                    if (enabled && onDoubleClick != null) {
+                        {
+                            focusRequester.requestFocus()
+                            onDoubleClick()
+                        }
+                    } else null,
+                onLongPress =
+                    if (enabled && onLongClick != null) {
+                        {
+                            focusRequester.requestFocus()
+                            onLongClick()
+                        }
+                    } else null,
                 onPress = { offset ->
                     if (enabled) {
                         focusRequester.requestFocus()
                         val press = PressInteraction.Press(offset)
                         interactionSource.emit(press)
-                        val endInteraction = if (tryAwaitRelease()) {
-                            PressInteraction.Release(press)
-                        } else {
-                            PressInteraction.Cancel(press)
-                        }
+                        val endInteraction =
+                            if (tryAwaitRelease()) {
+                                PressInteraction.Release(press)
+                            } else {
+                                PressInteraction.Cancel(press)
+                            }
                         interactionSource.emit(endInteraction)
                     }
                 },
@@ -72,7 +89,7 @@ fun Modifier.customClickable(
                     if (enabled) {
                         onClick()
                     }
-                }
+                },
             )
         }
         .customKeySelect(interactionSource, enabled, onClick)

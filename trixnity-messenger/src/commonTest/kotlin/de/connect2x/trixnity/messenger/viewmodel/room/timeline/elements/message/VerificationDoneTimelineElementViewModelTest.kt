@@ -31,6 +31,9 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
@@ -39,9 +42,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class VerificationDoneTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
@@ -55,46 +55,53 @@ class VerificationDoneTimelineElementViewModelTest {
 
     init {
         resetMocks(matrixClientMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns userId
 
         every { initialsMock.compute(any()) } calls { (name: String) -> name }
-        every { userServiceMock.getById(roomId, userId) } returns flowOf(
-            RoomUser(
-                roomId,
-                userId,
-                "user",
-                event = ClientEvent.RoomEvent.StateEvent(
-                    content = MemberEventContent(membership = Membership.JOIN),
-                    id = EventId("999"),
-                    roomId = roomId,
-                    sender = otherUserId,
-                    stateKey = userId.full,
-                    originTimestamp = 0,
+        every { userServiceMock.getById(roomId, userId) } returns
+            flowOf(
+                RoomUser(
+                    roomId,
+                    userId,
+                    "user",
+                    event =
+                        ClientEvent.RoomEvent.StateEvent(
+                            content = MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("999"),
+                            roomId = roomId,
+                            sender = otherUserId,
+                            stateKey = userId.full,
+                            originTimestamp = 0,
+                        ),
                 )
             )
-        )
-        every { userServiceMock.getById(roomId, otherUserId) } returns flowOf(
-            RoomUser(
-                roomId,
-                otherUserId,
-                "otherUser",
-                event = ClientEvent.RoomEvent.StateEvent(
-                    content = MemberEventContent(membership = Membership.JOIN),
-                    id = EventId("999"),
-                    roomId = roomId,
-                    sender = userId,
-                    stateKey = otherUserId.full,
-                    originTimestamp = 0,
+        every { userServiceMock.getById(roomId, otherUserId) } returns
+            flowOf(
+                RoomUser(
+                    roomId,
+                    otherUserId,
+                    "otherUser",
+                    event =
+                        ClientEvent.RoomEvent.StateEvent(
+                            content = MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("999"),
+                            roomId = roomId,
+                            sender = userId,
+                            stateKey = otherUserId.full,
+                            originTimestamp = 0,
+                        ),
                 )
             )
-        )
     }
 
     @BeforeTest
@@ -104,52 +111,57 @@ class VerificationDoneTimelineElementViewModelTest {
 
     @Test
     fun `done event is own event - ccnnbvcoriginal request by other user`() = runTest {
-        val verificationDoneEventContent = VerificationDoneEventContent(
-            relatesTo = RelatesTo.Reference(EventId("2")),
-            transactionId = null,
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("1"),
-                    sender = userId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(verificationDoneEventContent),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        val verificationDoneEventContent =
+            VerificationDoneEventContent(relatesTo = RelatesTo.Reference(EventId("2")), transactionId = null)
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("1"),
+                            sender = userId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content = Result.success(verificationDoneEventContent),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("2"),
-                    sender = otherUserId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(
-                    RoomMessageEventContent.VerificationRequest(
-                        fromDevice = "device2",
-                        to = userId,
-                        methods = setOf(),
-                    )
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("2"),
+                            sender = otherUserId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content =
+                        Result.success(
+                            RoomMessageEventContent.VerificationRequest(
+                                fromDevice = "device2",
+                                to = userId,
+                                methods = setOf(),
+                            )
+                        ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
 
         val cut = verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent)
         delay(100.milliseconds)
@@ -161,52 +173,57 @@ class VerificationDoneTimelineElementViewModelTest {
 
     @Test
     fun `done event is not our own event - original request by current user`() = runTest {
-        val verificationDoneEventContent = VerificationDoneEventContent(
-            relatesTo = RelatesTo.Reference(EventId("2")),
-            transactionId = null,
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("1"),
-                    sender = otherUserId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(verificationDoneEventContent),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        val verificationDoneEventContent =
+            VerificationDoneEventContent(relatesTo = RelatesTo.Reference(EventId("2")), transactionId = null)
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("1"),
+                            sender = otherUserId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content = Result.success(verificationDoneEventContent),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("2"),
-                    sender = userId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(
-                    RoomMessageEventContent.VerificationRequest(
-                        fromDevice = "device2",
-                        to = userId,
-                        methods = setOf(),
-                    )
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("2"),
+                            sender = userId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content =
+                        Result.success(
+                            RoomMessageEventContent.VerificationRequest(
+                                fromDevice = "device2",
+                                to = userId,
+                                methods = setOf(),
+                            )
+                        ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
 
         val cut = verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent)
         delay(100.milliseconds)
@@ -216,24 +233,26 @@ class VerificationDoneTimelineElementViewModelTest {
         cut.message.lowercase() shouldContain "successful"
     }
 
-    fun TestScope.verificationDoneEventContentTimelineElementViewModel(verificationDoneEventContent: VerificationDoneEventContent): VerificationDoneTimelineElementViewModelImpl {
+    fun TestScope.verificationDoneEventContentTimelineElementViewModel(
+        verificationDoneEventContent: VerificationDoneEventContent
+    ): VerificationDoneTimelineElementViewModelImpl {
         val result =
             VerificationDoneTimelineElementViewModelImpl(
-                viewModelContext = MatrixClientViewModelContextImpl(
-                    di = koinApplication {
-                        modules(
-                            createTestDefaultTrixnityMessengerModules(
-                                mapOf(userId to matrixClientMock)
-                            ) + module {
-                                single { initialsMock }
-                            }
-                        )
-                    }.koin,
-                    componentContext = DefaultComponentContext(LifecycleRegistry()),
-                    userId = userId,
-                    coroutineContext = backgroundScope.coroutineContext,
-                    name = "VerificationDone"
-                ),
+                viewModelContext =
+                    MatrixClientViewModelContextImpl(
+                        di =
+                            koinApplication {
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)) +
+                                            module { single { initialsMock } }
+                                    )
+                                }
+                                .koin,
+                        componentContext = DefaultComponentContext(LifecycleRegistry()),
+                        userId = userId,
+                        coroutineContext = backgroundScope.coroutineContext,
+                        name = "VerificationDone",
+                    ),
                 content = verificationDoneEventContent,
                 roomId = roomId,
                 eventIdOrTransactionId = EventIdOrTransactionId(eventId = EventId("1")),
@@ -244,5 +263,4 @@ class VerificationDoneTimelineElementViewModelTest {
 
         return result
     }
-
 }

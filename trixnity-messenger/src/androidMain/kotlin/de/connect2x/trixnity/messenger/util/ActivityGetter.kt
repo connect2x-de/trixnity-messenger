@@ -9,7 +9,9 @@ class ActivityGetter(initialValue: (() -> ComponentActivity)?) {
     private val value: AtomicReference<(() -> ComponentActivity)?> = AtomicReference(initialValue)
 
     operator fun invoke(): ComponentActivity =
-        checkNotNull(value.load()) { "ActivityGetter has not been set. Use MatrixMessenger.defaultActivityGetter or MatrixMultiMessenger.defaultActivityGetter to set it." }()
+        checkNotNull(value.load()) {
+            "ActivityGetter has not been set. Use MatrixMessenger.defaultActivityGetter or MatrixMultiMessenger.defaultActivityGetter to set it."
+        }()
 
     operator fun invoke(value: () -> ComponentActivity) {
         this.value.store(value)

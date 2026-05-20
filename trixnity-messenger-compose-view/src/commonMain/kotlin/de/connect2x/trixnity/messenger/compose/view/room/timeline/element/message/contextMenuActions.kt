@@ -60,68 +60,72 @@ internal fun BaseTimelineElementHolderViewModel.contextMenuActions(
                     action = onOpenMetadata,
                 )
             )
-            if (canBeReactedTo) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.AddReaction,
-                    label = i18n.reactMessage(),
-                    action = onReactToMessage,
+            if (canBeReactedTo)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.AddReaction,
+                        label = i18n.reactMessage(),
+                        action = onReactToMessage,
+                    )
                 )
-            )
-            if (canBeRepliedTo) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.AutoMirrored.Filled.Reply,
-                    label = i18n.replyMessage(),
-                    action = ::reply,
+            if (canBeRepliedTo)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.AutoMirrored.Filled.Reply,
+                        label = i18n.replyMessage(),
+                        action = ::reply,
+                    )
                 )
-            )
-            if (canBeEdited) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Edit,
-                    label = i18n.editMessage(),
-                    action = ::replace,
+            if (canBeEdited)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Edit,
+                        label = i18n.editMessage(),
+                        action = ::replace,
+                    )
                 )
-            )
-            if (canBeCopied) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.ContentCopy,
-                    label = i18n.commonCopy(),
-                    action = {
-                        coroutineScope.launch {
-                            clipboard.setClipEntry(clipEntry)
-                        }
-                    },
+            if (canBeCopied)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.ContentCopy,
+                        label = i18n.commonCopy(),
+                        action = { coroutineScope.launch { clipboard.setClipEntry(clipEntry) } },
+                    )
                 )
-            )
-            if (canBeReported) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Report,
-                    label = i18n.reportMessage(),
-                    action = ::report,
+            if (canBeReported)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Report,
+                        label = i18n.reportMessage(),
+                        action = ::report,
+                    )
                 )
-            )
-            if (canBeRedacted) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Delete,
-                    label = i18n.redactMessage(),
-                    action = onRedact,
+            if (canBeRedacted)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Delete,
+                        label = i18n.redactMessage(),
+                        action = onRedact,
+                    )
                 )
-            )
         }
         if (this@contextMenuActions is OutboxElementHolderViewModel) {
-            if (canRetrySend) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Repeat,
-                    label = i18n.retrySendMessage(),
-                    action = ::retrySend,
+            if (canRetrySend)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Repeat,
+                        label = i18n.retrySendMessage(),
+                        action = ::retrySend,
+                    )
                 )
-            )
-            if (canAbortSend) add(
-                BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Cancel,
-                    label = i18n.abortSendMessage(),
-                    action = ::abortSend,
+            if (canAbortSend)
+                add(
+                    BaseTimelineElementHolderContextMenuAction(
+                        icon = Icons.Default.Cancel,
+                        label = i18n.abortSendMessage(),
+                        action = ::abortSend,
+                    )
                 )
-            )
         }
     }
 }

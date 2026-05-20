@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType
 import de.connect2x.trixnity.messenger.compose.view.common.FilePickerType.ATTACHMENT_FILE
@@ -45,11 +46,10 @@ import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.UriFileDescriptor
 import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import de.connect2x.trixnity.client.media.PlatformMedia
 import java.io.File
 import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.DialogsKt")
 
@@ -66,86 +66,85 @@ actual fun SaveFileDialog(
     val hasError = error?.isNotBlank() == true
     if (hasError) {
         ThemedModalDialog(onCloseSaveFileDialog) {
-            ModalDialogHeader {
-                Text(i18n.fileDialogDownloadErrorSave())
-            }
-            ModalDialogContent {
-                Text(error)
-            }
+            ModalDialogHeader { Text(i18n.fileDialogDownloadErrorSave()) }
+            ModalDialogContent { Text(error) }
             ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = onCloseSaveFileDialog,
-                ) {
+                ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onCloseSaveFileDialog) {
                     Text(i18n.actionOk())
                 }
             }
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile({ byteArrayFlow ->
-            withContext(Dispatchers.IO) {
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(
-                        MediaStore.MediaColumns.MIME_TYPE,
-                        mimeType ?: ContentType.Application.OctetStream.toString()
-                    )
-                    if (Build.VERSION.SDK_INT >= 29) {
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-                    }
-                }
-
-                var uri: Uri? = null
-
-                runCatching {
-                    with(context.contentResolver) {
-                        if (Build.VERSION.SDK_INT < 29) {
-                            val permission =
-                                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                            if (permission == PackageManager.PERMISSION_DENIED) {
-                                throw IOException("Insufficient permissions to save files.")
+        if (!hasError)
+            downloadFile(
+                { byteArrayFlow ->
+                    withContext(Dispatchers.IO) {
+                        val values =
+                            ContentValues().apply {
+                                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                                put(
+                                    MediaStore.MediaColumns.MIME_TYPE,
+                                    mimeType ?: ContentType.Application.OctetStream.toString(),
+                                )
+                                if (Build.VERSION.SDK_INT >= 29) {
+                                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                                }
                             }
-                            Uri.fromFile(
-                                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                    .resolve(fileName)
-                            )
-                        } else {
-                            insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                        }?.also {
-                            uri = it // Keep uri reference so it can be removed on failure
-                            openOutputStream(it)?.use { stream ->
-                                byteArrayFlow.collect {
-                                    stream.write(it)
-                                }
-                            }?.also {
-                                uri?.let { uri1 ->
-                                    val intent = Intent().apply {
-                                        action = Intent.ACTION_VIEW
-                                        type = mimeType.toString()
-                                        uri = uri1
-                                    }
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (exc: ActivityNotFoundException) {
-                                        log.error(exc) { "intent could not be called" }
-                                    }
-                                }
-                            } ?: throw IOException("Failed to open output stream.")
-                        } ?: throw IOException("Failed to create new MediaStore record.")
-                    }
-                }.getOrElse {
-                    // Don't leave an orphan entry in the MediaStore
-                    uri?.let { uri ->
-                        context.contentResolver.delete(uri, null, null)
-                    }
 
-                    throw it
-                }
+                        var uri: Uri? = null
 
-                onCloseSaveFileDialog()
-            }
-        }, onCloseSaveFileDialog)
+                        runCatching {
+                                with(context.contentResolver) {
+                                    if (Build.VERSION.SDK_INT < 29) {
+                                            val permission =
+                                                context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                            if (permission == PackageManager.PERMISSION_DENIED) {
+                                                throw IOException("Insufficient permissions to save files.")
+                                            }
+                                            Uri.fromFile(
+                                                Environment.getExternalStoragePublicDirectory(
+                                                        Environment.DIRECTORY_DOWNLOADS
+                                                    )
+                                                    .resolve(fileName)
+                                            )
+                                        } else {
+                                            insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                                        }
+                                        ?.also {
+                                            uri = it // Keep uri reference so it can be removed on failure
+                                            openOutputStream(it)
+                                                ?.use { stream -> byteArrayFlow.collect { stream.write(it) } }
+                                                ?.also {
+                                                    uri?.let { uri1 ->
+                                                        val intent =
+                                                            Intent().apply {
+                                                                action = Intent.ACTION_VIEW
+                                                                type = mimeType.toString()
+                                                                uri = uri1
+                                                            }
+                                                        try {
+                                                            context.startActivity(intent)
+                                                        } catch (exc: ActivityNotFoundException) {
+                                                            log.error(exc) { "intent could not be called" }
+                                                        }
+                                                    }
+                                                } ?: throw IOException("Failed to open output stream.")
+                                        } ?: throw IOException("Failed to create new MediaStore record.")
+                                }
+                            }
+                            .getOrElse {
+                                // Don't leave an orphan entry in the MediaStore
+                                uri?.let { uri -> context.contentResolver.delete(uri, null, null) }
+
+                                throw it
+                            }
+
+                        onCloseSaveFileDialog()
+                    }
+                },
+                onCloseSaveFileDialog,
+            )
     }
 }
 
@@ -159,23 +158,21 @@ actual fun LoadFileDialog(
     val i18n = DI.get<I18n>()
     val visualMediaResult = remember { mutableStateOf<Uri?>(null) }
     val fileAttachmentResult = remember { mutableStateOf<Uri?>(null) }
-    val mediaLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
-        visualMediaResult.value = it
-    }
-    val fileAttachmentLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
-        fileAttachmentResult.value = it
-    }
+    val mediaLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { visualMediaResult.value = it }
+    val fileAttachmentLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { fileAttachmentResult.value = it }
     var showCameraDialog by remember { mutableStateOf<CameraDialogCapturingMode?>(null) }
 
     fun onPickerSelected(pickerType: FilePickerType) {
         when (pickerType) {
             ATTACHMENT_FILE -> fileAttachmentLauncher.launch((arrayOf("*/*")))
 
-            IMAGE_FILE -> mediaLauncher
-                .launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            IMAGE_FILE ->
+                mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
 
-            IMAGE_AND_VIDEO_FILE -> mediaLauncher
-                .launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+            IMAGE_AND_VIDEO_FILE ->
+                mediaLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
 
             PHOTO_CAPTURE -> showCameraDialog = CameraDialogCapturingMode.PHOTO
 
@@ -183,23 +180,11 @@ actual fun LoadFileDialog(
         }
     }
     if (showCameraDialog != null) {
-        showCameraDialog?.let { mode ->
-            CameraDialog(
-                mode,
-                { visualMediaResult.value = it },
-                onCloseLoadFileDialog,
-            )
-        }
+        showCameraDialog?.let { mode -> CameraDialog(mode, { visualMediaResult.value = it }, onCloseLoadFileDialog) }
     } else if (availableTypes.size == 1) {
-        LaunchedEffect(mediaLauncher) {
-            onPickerSelected(availableTypes.first())
-        }
+        LaunchedEffect(mediaLauncher) { onPickerSelected(availableTypes.first()) }
     } else {
-        FilePickerTypeSelection(
-            availableTypes,
-            { onPickerSelected(it) },
-            onCloseLoadFileDialog,
-        )
+        FilePickerTypeSelection(availableTypes, { onPickerSelected(it) }, onCloseLoadFileDialog)
     }
     fileAttachmentResult.value?.let { uri ->
         onFileSelect(UriFileDescriptor(context, uri, i18n))
@@ -211,67 +196,58 @@ actual fun LoadFileDialog(
     }
 }
 
-actual fun filterFilePickerOptionsByAvailability(
-    vararg availablePickerTypes: FilePickerType,
-): List<FilePickerType> = availablePickerTypes.toList() // Allow all picker types.
+actual fun filterFilePickerOptionsByAvailability(vararg availablePickerTypes: FilePickerType): List<FilePickerType> =
+    availablePickerTypes.toList() // Allow all picker types.
 
 // https://medium.com/@dheerubhadoria/capturing-images-from-camera-in-android-with-jetpack-compose-a-step-by-step-guide-64cd7f52e5de
 @Composable
-fun CameraDialog(
-    mode: CameraDialogCapturingMode,
-    onCapture: (Uri) -> Unit,
-    onCloseCameraDialog: () -> Unit,
-) {
+fun CameraDialog(mode: CameraDialogCapturingMode, onCapture: (Uri) -> Unit, onCloseCameraDialog: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val context = LocalContext.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var isPermissionGranted by remember { mutableStateOf(false) }
-    val tempFileName = "camera_capture" + when (mode) {
-        CameraDialogCapturingMode.PHOTO -> ".jpg"
-        CameraDialogCapturingMode.VIDEO -> ".mp4"
-    }
+    val tempFileName =
+        "camera_capture" +
+            when (mode) {
+                CameraDialogCapturingMode.PHOTO -> ".jpg"
+                CameraDialogCapturingMode.VIDEO -> ".mp4"
+            }
     val tempFile = File(context.cacheDir, tempFileName)
-    val tempUri = FileProvider.getUriForFile(
-        context, "${context.packageName}.provider", tempFile,
-    )
+    val tempUri = FileProvider.getUriForFile(context, "${context.packageName}.provider", tempFile)
 
-    val cameraLauncher = when (mode) {
-        CameraDialogCapturingMode.PHOTO -> rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
-            if (isImageSaved) {
-                onCapture(tempUri)
-                // TODO consider removing the temp file
-            } else {
-                onCloseCameraDialog()
-            }
+    val cameraLauncher =
+        when (mode) {
+            CameraDialogCapturingMode.PHOTO ->
+                rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
+                    if (isImageSaved) {
+                        onCapture(tempUri)
+                        // TODO consider removing the temp file
+                    } else {
+                        onCloseCameraDialog()
+                    }
+                }
+
+            CameraDialogCapturingMode.VIDEO ->
+                rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { isImageSaved ->
+                    if (isImageSaved) {
+                        onCapture(tempUri)
+                        // TODO consider removing the temp file
+                    } else {
+                        onCloseCameraDialog()
+                    }
+                }
         }
 
-        CameraDialogCapturingMode.VIDEO -> rememberLauncherForActivityResult(ActivityResultContracts.CaptureVideo()) { isImageSaved ->
-            if (isImageSaved) {
-                onCapture(tempUri)
-                // TODO consider removing the temp file
-            } else {
-                onCloseCameraDialog()
-            }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) isPermissionGranted = true else showPermissionAlert = true
         }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted ->
-        if (granted) isPermissionGranted = true
-        else showPermissionAlert = true
-    }
 
     if (showPermissionAlert) {
         ThemedModalDialog(onCloseCameraDialog) {
-            ModalDialogContent {
-                Text(i18n.cameraDialogAlertNoPermission())
-            }
+            ModalDialogContent { Text(i18n.cameraDialogAlertNoPermission()) }
             ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = onCloseCameraDialog,
-                ) {
+                ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onCloseCameraDialog) {
                     Text(i18n.actionOk())
                 }
             }
@@ -279,18 +255,19 @@ fun CameraDialog(
     }
 
     LaunchedEffect(tempUri, isPermissionGranted) {
-        if (showPermissionAlert.not()) tempUri?.let {
-            val permissionCheckResult =
-                ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                cameraLauncher.launch(it)
-            } else { // Request a permission.
-                permissionLauncher.launch(Manifest.permission.CAMERA)
+        if (showPermissionAlert.not())
+            tempUri?.let {
+                val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    cameraLauncher.launch(it)
+                } else { // Request a permission.
+                    permissionLauncher.launch(Manifest.permission.CAMERA)
+                }
             }
-        }
     }
 }
 
 enum class CameraDialogCapturingMode {
-    PHOTO, VIDEO,
+    PHOTO,
+    VIDEO,
 }

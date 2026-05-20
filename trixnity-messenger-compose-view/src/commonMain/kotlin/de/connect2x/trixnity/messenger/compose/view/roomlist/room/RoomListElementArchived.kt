@@ -31,8 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelec
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface ArchivedRoomListElement {
-    @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    @Composable fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
@@ -55,9 +54,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                 ThemedLabel(i18n.commonArchived())
             },
             roomActions = {
-                Tooltip(
-                    tooltip = { Text(i18n.commonDelete()) }
-                ) {
+                Tooltip(tooltip = { Text(i18n.commonDelete()) }) {
                     ThemedIconButton(
                         style = MaterialTheme.components.commonIconButton,
                         onClick = { showWarning = true },
@@ -65,7 +62,7 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
                         Icon(Icons.Default.Delete, i18n.commonDelete())
                     }
                 }
-            }
+            },
         )
 
         if (showWarning) {
@@ -73,28 +70,23 @@ class ArchivedRoomListElementImpl : ArchivedRoomListElement {
             val isDirect = roomListElementViewModel.isDirect.collectAsState().value
 
             ThemedModalDialog({ showWarning = false }) {
-                ModalDialogHeader {
-                    Text(i18n.forgetRoomWarningHeader())
-                }
+                ModalDialogHeader { Text(i18n.forgetRoomWarningHeader()) }
                 ModalDialogContent {
                     ThemedSelectableText(
-                        text = i18n.formattedForgetRoomWarningBody(
-                            isDirect = isDirect == true,
-                            roomName = roomName
-                        ),
+                        text = i18n.formattedForgetRoomWarningBody(isDirect = isDirect == true, roomName = roomName),
                         selectionStyle = MaterialTheme.components.selectionOnSurface,
                     )
                 }
                 ModalDialogFooter {
-                    ThemedButton(
-                        style = MaterialTheme.components.commonButton,
-                        onClick = { showWarning = false },
-                    ) {
+                    ThemedButton(style = MaterialTheme.components.commonButton, onClick = { showWarning = false }) {
                         Text(i18n.actionCancel())
                     }
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
-                        onClick = { roomListElementViewModel.forgetRoom(); showWarning = false },
+                        onClick = {
+                            roomListElementViewModel.forgetRoom()
+                            showWarning = false
+                        },
                     ) {
                         Text(i18n.actionConfirm())
                     }

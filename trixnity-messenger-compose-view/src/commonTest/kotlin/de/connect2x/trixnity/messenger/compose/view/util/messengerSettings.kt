@@ -21,10 +21,12 @@ import kotlinx.serialization.json.JsonPrimitive
 fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
     val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> =
         MutableStateFlow(MatrixMessengerSettings(mapOf("preferredLang" to JsonPrimitive("en"))))
-    val dummyStorage = object : SettingsStorage {
-        override suspend fun read(): String? = null
-        override suspend fun write(settings: String) {}
-    }
+    val dummyStorage =
+        object : SettingsStorage {
+            override suspend fun read(): String? = null
+
+            override suspend fun write(settings: String) {}
+        }
     val delegate = MatrixMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
     return object : MatrixMessengerSettingsHolder by delegate {
         override fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> = flow {
@@ -38,9 +40,11 @@ fun createTestMatrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
 fun createTestMatrixMultiMessengerSettingsHolder(): MatrixMultiMessengerSettingsHolder {
     val settingsHolder: MutableStateFlow<MatrixMultiMessengerSettings?> =
         MutableStateFlow(MatrixMultiMessengerSettings(mapOf()))
-    val dummyStorage = object : SettingsStorage {
-        override suspend fun read(): String? = null
-        override suspend fun write(settings: String) {}
-    }
+    val dummyStorage =
+        object : SettingsStorage {
+            override suspend fun read(): String? = null
+
+            override suspend fun write(settings: String) {}
+        }
     return MatrixMultiMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
 }

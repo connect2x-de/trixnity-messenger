@@ -39,14 +39,10 @@ interface AudioPlayerView {
     fun Create(
         audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
         viewModel: MediaPlayerViewModel,
-        fallbackView: @Composable () -> Unit
+        fallbackView: @Composable () -> Unit,
     )
 
-    @Composable
-    fun CreateWithViewModelDuration(
-        viewModel: MediaPlayerViewModel,
-        fallbackView: @Composable () -> Unit
-    )
+    @Composable fun CreateWithViewModelDuration(viewModel: MediaPlayerViewModel, fallbackView: @Composable () -> Unit)
 }
 
 class AudioPlayerViewImpl : AudioPlayerView {
@@ -54,7 +50,7 @@ class AudioPlayerViewImpl : AudioPlayerView {
     override fun Create(
         audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
         viewModel: MediaPlayerViewModel,
-        fallbackView: @Composable () -> Unit
+        fallbackView: @Composable () -> Unit,
     ) {
         when (val state = viewModel.state.collectAsState().value) {
             is MediaPlayerViewModel.State.Ready -> PlayableAudioMessage(audio, viewModel)
@@ -65,10 +61,7 @@ class AudioPlayerViewImpl : AudioPlayerView {
     }
 
     @Composable
-    override fun CreateWithViewModelDuration(
-        viewModel: MediaPlayerViewModel,
-        fallbackView: @Composable () -> Unit
-    ) {
+    override fun CreateWithViewModelDuration(viewModel: MediaPlayerViewModel, fallbackView: @Composable () -> Unit) {
         Create(null, viewModel, fallbackView)
     }
 }
@@ -77,16 +70,13 @@ class AudioPlayerViewImpl : AudioPlayerView {
 @Composable
 private fun PlayableAudioMessage(
     audio: RoomMessageTimelineElementViewModel.FileBased.Audio?,
-    viewModel: MediaPlayerViewModel
+    viewModel: MediaPlayerViewModel,
 ) {
     val isPlaying = viewModel.state.collectAsState().value is MediaPlayerViewModel.State.Playing
     val duration = audio?.duration ?: viewModel.duration.collectAsState().value
     val elapsedTime = viewModel.elapsedTime.collectAsState().value
 
-    Row(
-        modifier = Modifier.padding(4.dp).padding(end = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = Modifier.padding(4.dp).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Spacer(Modifier.width(5.dp))
         ThemedIconButton(
             onClick = {
@@ -109,16 +99,12 @@ private fun PlayableAudioMessage(
         Column {
             val playedColor = MaterialTheme.colorScheme.onBackground
             val sliderInteractionSource = remember { MutableInteractionSource() }
-            val sliderColors = MaterialTheme.components.slider.colors.copy(
-                thumbColor = playedColor,
-                activeTrackColor = playedColor
-            )
+            val sliderColors =
+                MaterialTheme.components.slider.colors.copy(thumbColor = playedColor, activeTrackColor = playedColor)
             ThemedSlider(
                 modifier = Modifier.width(250.dp),
                 valueRange = 0F..1F,
-                value = (elapsedTime / duration).let {
-                    if (it.isNaN()) 0 else it
-                }.toFloat(),
+                value = (elapsedTime / duration).let { if (it.isNaN()) 0 else it }.toFloat(),
                 onValueChange = {
                     val elapsedTime = duration.inWholeMilliseconds * it
                     viewModel.seekTo(elapsedTime.toLong().milliseconds)
@@ -130,19 +116,14 @@ private fun PlayableAudioMessage(
                     SliderDefaults.Thumb(
                         interactionSource = sliderInteractionSource,
                         colors = sliderColors,
-                        thumbSize = DpSize(4.dp, 25.dp)
+                        thumbSize = DpSize(4.dp, 25.dp),
                     )
                 },
-                style = MaterialTheme.components.slider.copy(
-                    colors = sliderColors
-                )
+                style = MaterialTheme.components.slider.copy(colors = sliderColors),
             )
 
             Row(Modifier.fillMaxWidth()) {
-                Text(
-                    text = formatDuration(elapsedTime),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Text(text = formatDuration(elapsedTime), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = if (duration == Duration.ZERO) "--:--" else formatDuration(duration),

@@ -2,8 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
@@ -12,6 +10,8 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 interface RoomInviter {
     suspend fun getInviter(matrixClient: MatrixClient, roomId: RoomId): UserId?
@@ -24,7 +24,8 @@ object RoomInviterImpl : RoomInviter {
         return withTimeoutOrNull(3.seconds) {
             try {
                 val result =
-                    matrixClient.room.getState<MemberEventContent>(roomId, stateKey = matrixClient.userId.full)
+                    matrixClient.room
+                        .getState<MemberEventContent>(roomId, stateKey = matrixClient.userId.full)
                         .first { it != null && it.content.membership == Membership.INVITE }
                         ?.sender
                 log.debug { "inviter in $roomId is '$result'" }

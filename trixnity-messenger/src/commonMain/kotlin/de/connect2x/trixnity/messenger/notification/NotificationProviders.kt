@@ -5,6 +5,8 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class NotificationProviders private constructor(private val value: List<NotificationProvider>) :
     List<NotificationProvider> by value {
-    constructor(providers: List<NotificationProvider>, getNoOpNotificationProvider: () -> NoOpNotificationProvider) :
-            this(providers.ifEmpty { listOf(getNoOpNotificationProvider()) })
+    constructor(
+        providers: List<NotificationProvider>,
+        getNoOpNotificationProvider: () -> NoOpNotificationProvider,
+    ) : this(providers.ifEmpty { listOf(getNoOpNotificationProvider()) })
 }

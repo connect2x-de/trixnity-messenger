@@ -40,6 +40,9 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,9 +56,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.JsonPrimitive
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class ShareFilesViewModelTest {
 
@@ -76,12 +76,14 @@ class ShareFilesViewModelTest {
 
     val roomsApiClientMock = mock<RoomApiClient>()
 
-    val i18n = object : I18n(
-        DefaultLanguages,
-        createTestMatrixMessengerSettingsHolder(),
-        GetSystemLang { "en" },
-        TimeZone.of("CET"),
-    ) {}
+    val i18n =
+        object :
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
     var formattedBody: String? = null
     var body = ""
@@ -95,25 +97,28 @@ class ShareFilesViewModelTest {
             matrixClientServerApiClientMock,
             roomsApiClientMock,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                    single { mediaServiceMock }
-                    single<MatrixClients> {
-                        MatrixClientsImpl(
-                            matrixClientFactory = get(),
-                            deleteAccountData = get(),
-                            settings = get(),
-                            config = get(),
-                            secretByteArrays = get(),
-                            i18n = i18n,
-                            matrixClients = MutableStateFlow(mapOf(ourUserId to matrixClientMock))
-                        )
-                    }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { mediaServiceMock }
+                            single<MatrixClients> {
+                                MatrixClientsImpl(
+                                    matrixClientFactory = get(),
+                                    deleteAccountData = get(),
+                                    settings = get(),
+                                    config = get(),
+                                    secretByteArrays = get(),
+                                    i18n = i18n,
+                                    matrixClients = MutableStateFlow(mapOf(ourUserId to matrixClientMock)),
+                                )
+                            }
+                        }
+                    )
+                }
+                .koin
 
         every { matrixClientMock.userId } returns ourUserId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
@@ -122,25 +127,22 @@ class ShareFilesViewModelTest {
         val profile = Profile(ProfileField.DisplayName("Me ^^"))
         every { matrixClientMock.profile } returns MutableStateFlow(profile)
 
-        every { roomServiceMock.getAll() } returns flowOf(
-            mapOf(
-                ourRoomId to flowOf(ourRoom)
-            )
-        )
+        every { roomServiceMock.getAll() } returns flowOf(mapOf(ourRoomId to flowOf(ourRoom)))
         every { roomServiceMock.getById(ourRoomId) } returns MutableStateFlow(ourRoom)
-        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls {
-            val roomId = it.arg<RoomId>(0)
-            val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
-            val builder = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId)
-            val message = builder.build(builderFunction)
+        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls
+            {
+                val roomId = it.arg<RoomId>(0)
+                val builderFunction = it.arg<suspend MessageBuilder.() -> Unit>(2)
+                val builder = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId)
+                val message = builder.build(builderFunction)
 
-            if (message is RoomMessageEventContent.TextBased) {
-                formattedBody = message.formattedBody
-                body = message.body
+                if (message is RoomMessageEventContent.TextBased) {
+                    formattedBody = message.formattedBody
+                    body = message.body
+                }
+
+                ""
             }
-
-            ""
-        }
     }
 
     @BeforeTest
@@ -154,9 +156,7 @@ class ShareFilesViewModelTest {
 
         vm.roomList.selectRoom(ourRoomId)
 
-        eventually(500.milliseconds) {
-            vm.selectedRoomId.value shouldBe ourRoomId
-        }
+        eventually(500.milliseconds) { vm.selectedRoomId.value shouldBe ourRoomId }
 
         vm.send()
 
@@ -170,30 +170,31 @@ class ShareFilesViewModelTest {
         val settings = matrixMessengerSettingsHolder()
         return SharedDataViewModelImpl(
             testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(ourUserId to matrixClientMock), settings
-                        ),
-                    )
-                }.koin,
+                di =
+                    koinApplication {
+                            modules(
+                                createTestDefaultTrixnityMessengerModules(
+                                    mapOf(ourUserId to matrixClientMock),
+                                    settings,
+                                )
+                            )
+                        }
+                        .koin,
                 userId = ourUserId,
-            ), data
-        ) { }
+            ),
+            data,
+        ) {}
     }
 
     private suspend fun matrixMessengerSettingsHolder(): MatrixMessengerSettingsHolder {
-        val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(
-            MatrixMessengerSettings(
-                mapOf(
-                    "preferredLang" to JsonPrimitive("en"),
-                )
-            )
-        )
-        val dummyStorage = object : SettingsStorage {
-            override suspend fun read(): String? = null
-            override suspend fun write(settings: String) {}
-        }
+        val settingsHolder: MutableStateFlow<MatrixMessengerSettings?> =
+            MutableStateFlow(MatrixMessengerSettings(mapOf("preferredLang" to JsonPrimitive("en"))))
+        val dummyStorage =
+            object : SettingsStorage {
+                override suspend fun read(): String? = null
+
+                override suspend fun write(settings: String) {}
+            }
         val delegate = MatrixMessengerSettingsHolderImpl(dummyStorage, settingsHolder)
         delegate.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = ourUserId) }
         return object : MatrixMessengerSettingsHolder by delegate {

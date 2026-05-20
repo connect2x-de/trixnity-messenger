@@ -12,29 +12,18 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-
 interface TimelineElementHolderView {
-    @Composable
-    fun create(
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-        index: Int,
-    )
+    @Composable fun create(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel, index: Int)
 }
 
 @Composable
-fun TimelineElementHolder(
-    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-    index: Int,
-) {
+fun TimelineElementHolder(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel, index: Int) {
     DI.get<TimelineElementHolderView>().create(timelineElementHolderViewModel, index)
 }
 
 class TimelineElementHolderViewImpl : TimelineElementHolderView {
     @Composable
-    override fun create(
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-        index: Int,
-    ) {
+    override fun create(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel, index: Int) {
         Column {
             when (timelineElementHolderViewModel) {
                 is TimelineElementHolderViewModel -> {
@@ -59,10 +48,7 @@ class TimelineElementHolderViewImpl : TimelineElementHolderView {
 }
 
 @Composable
-fun TimelineElementHolderSwitch(
-    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-    index: Int,
-) {
+fun TimelineElementHolderSwitch(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel, index: Int) {
     val element = timelineElementHolderViewModel.element.collectAsState().value ?: return
     TimelineElementSelector(timelineElementHolderViewModel, element, index)
 }

@@ -54,40 +54,27 @@ fun FileBasedDetailsHeader(
     val downloadProgress = element.downloadMediaProgress.collectAsState().value
 
     FlowRow(
-        Modifier
-            .zIndex(99.0f)
-            .fillMaxWidth()
-            .padding(MaterialTheme.messengerDpConstants.small)
-            .onKeyEvent {
-                if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                    onClose()
-                    true
-                } else {
-                    false
-                }
-            },
+        Modifier.zIndex(99.0f).fillMaxWidth().padding(MaterialTheme.messengerDpConstants.small).onKeyEvent {
+            if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
+                onClose()
+                true
+            } else {
+                false
+            }
+        },
         itemVerticalAlignment = Alignment.CenterVertically,
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.weight(1f, true),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            FileBasedDetailsHeaderButton(
-                Icons.Outlined.Close,
-                i18n.commonClose(),
-                onAction = onClose
-            )
+            FileBasedDetailsHeaderButton(Icons.Outlined.Close, i18n.commonClose(), onAction = onClose)
             VerySmallSpacer()
-            Box(
-                Modifier.weight(1f, true),
-                contentAlignment = Alignment.Center
-            ) {
-                Tooltip(tooltip = {
-                    Text(element.name)
-                }) {
+            Box(Modifier.weight(1f, true), contentAlignment = Alignment.Center) {
+                Tooltip(tooltip = { Text(element.name) }) {
                     Text(
                         text = element.name,
                         style = MaterialTheme.typography.bodyMedium,
@@ -101,9 +88,7 @@ fun FileBasedDetailsHeader(
 
         FlowRow(
             horizontalArrangement = Arrangement.Center,
-            verticalArrangement = Arrangement.spacedBy(
-                MaterialTheme.messengerDpConstants.verySmall
-            ),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
             additionalIndicators?.let {
@@ -117,23 +102,20 @@ fun FileBasedDetailsHeader(
                         Icons.Outlined.Download,
                         i18n.downloadMessage(),
                         !configuration.downloadsDisabled,
-                        onSave
+                        onSave,
                     )
                 } else {
                     Box {
                         downloadProgress.percent?.let {
                             ThemedProgressIndicator(
-                                progress = {
-                                    it
-                                }, style = MaterialTheme.components.circularProgressIndicator
+                                progress = { it },
+                                style = MaterialTheme.components.circularProgressIndicator,
                             )
-                        } ?: ThemedProgressIndicator(
-                            style = MaterialTheme.components.circularProgressIndicator
-                        )
+                        } ?: ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         ThemedIconButton(
                             onClick = element::cancelDownloadMedia,
                             modifier = Modifier.buttonPointerModifier(),
-                            style = MaterialTheme.components.commonIconButton
+                            style = MaterialTheme.components.commonIconButton,
                         ) {
                             Icon(Icons.Default.Cancel, i18n.commonCancel())
                         }
@@ -152,12 +134,7 @@ fun FileBasedDetailsHeaderButton(
     onAction: () -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    Tooltip(
-        tooltip = {
-            if (isEnabled) Text(actionDescription)
-            else Text(i18n.commonButtonDisabled())
-        },
-    ) {
+    Tooltip(tooltip = { if (isEnabled) Text(actionDescription) else Text(i18n.commonButtonDisabled()) }) {
         ThemedIconButton(
             enabled = isEnabled,
             style = MaterialTheme.components.fileViewerIconButton,

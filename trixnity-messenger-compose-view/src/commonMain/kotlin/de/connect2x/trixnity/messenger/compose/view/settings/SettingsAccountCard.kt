@@ -14,24 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
-import de.connect2x.trixnity.core.model.UserId
 
 @Composable
-fun SettingsAccountCard(
-    userId: UserId,
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
+fun SettingsAccountCard(userId: UserId, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     ElevatedCard(modifier.padding(bottom = 10.dp)) {
         Column(Modifier.padding(10.dp)) {
-            Text(
-                userId.full,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.focusHighlighting(),
-            )
+            Text(userId.full, style = MaterialTheme.typography.titleMedium, modifier = Modifier.focusHighlighting())
             HorizontalDivider(Modifier.fillMaxWidth().padding(vertical = 10.dp))
             content()
         }
@@ -42,13 +34,11 @@ fun SettingsAccountCard(
 fun SettingsAccountCardWithAdditionalButtons(
     userId: UserId,
     buttons: @Composable () -> Unit,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     ElevatedCard(Modifier.padding(bottom = 10.dp)) {
         Column(Modifier.padding(10.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.weight(1f, true).fillMaxWidth()) {
                     ThemedSelectableText(
                         text = userId.full,

@@ -40,14 +40,15 @@ data class FloatingActionButtonStyle(
             contentColor: Color = contentColorFor(containerColor),
             elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
             focusedBorder: BorderStroke? = null,
-        ) = FloatingActionButtonStyle(
-            size = size,
-            shape = shape,
-            containerColor = containerColor,
-            contentColor = contentColor,
-            elevation = elevation,
-            focusedBorder = focusedBorder,
-        )
+        ) =
+            FloatingActionButtonStyle(
+                size = size,
+                shape = shape,
+                containerColor = containerColor,
+                contentColor = contentColor,
+                elevation = elevation,
+                focusedBorder = focusedBorder,
+            )
     }
 }
 
@@ -65,22 +66,25 @@ fun ThemedFloatingActionButton(
     interactionSource: MutableInteractionSource? = null,
 ) {
     val hasFocus = remember { mutableStateOf(false) }
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = style.shape)
-        else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke ->
+            if (enabled && hasFocus.value) Modifier.border(borderStroke, shape = style.shape) else Modifier
+        } ?: Modifier
 
     Tooltip(tooltip = text, enabled = !expanded) {
         ExtendedFloatingActionButton(
             text = text,
             icon = icon,
-            onClick = if (enabled) onClick else {
-                {}
-            },
-            modifier = modifier
-                .buttonPointerModifier(enabled = enabled)
-                .onFocusEvent { focusState -> hasFocus.value = focusState.isFocused }
-                .then(border),
+            onClick =
+                if (enabled) onClick
+                else {
+                    {}
+                },
+            modifier =
+                modifier
+                    .buttonPointerModifier(enabled = enabled)
+                    .onFocusEvent { focusState -> hasFocus.value = focusState.isFocused }
+                    .then(border),
             expanded = expanded,
             shape = style.shape,
             containerColor = style.containerColor,

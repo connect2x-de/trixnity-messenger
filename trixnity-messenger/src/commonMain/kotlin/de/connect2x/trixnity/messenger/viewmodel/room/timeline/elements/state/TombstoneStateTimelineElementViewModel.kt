@@ -1,17 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state
 
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.TombstoneEventContent
-import kotlin.reflect.KClass
 
 interface TombstoneStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<TombstoneEventContent> {
     override fun create(
@@ -27,8 +27,8 @@ interface TombstoneStateTimelineElementViewModelFactory : TimelineElementViewMod
                 content,
                 roomId,
                 eventIdOrTransactionId.eventId,
-            ) else null
-
+            )
+        else null
 
     override val supports: KClass<TombstoneEventContent>
         get() = TombstoneEventContent::class
@@ -47,5 +47,4 @@ class TombstoneStateTimelineElementViewModelImpl(
     eventId: EventId,
 ) : TombstoneStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     override val changeMessage: StateFlow<String> = MutableStateFlow(i18n.roomUpgraded(content.body))
-
 }

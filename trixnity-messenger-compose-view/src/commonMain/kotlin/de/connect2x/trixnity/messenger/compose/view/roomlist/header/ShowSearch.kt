@@ -17,8 +17,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 interface ShowSearchView {
-    @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    @Composable fun create(roomListViewModel: RoomListViewModel)
 }
 
 @Composable

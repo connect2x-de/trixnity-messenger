@@ -1,4 +1,3 @@
-import com.ncorti.ktfmt.gradle.KtfmtPlugin
 import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.PluginIds
@@ -36,9 +35,8 @@ plugins {
 }
 
 applyKtfmt()
-tasks
-    .named { it == "ktfmtCheck" }
-    .configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
+
+tasks.named { it == "ktfmtCheck" }.configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
 
 updateAbiFilesFromReportZip()
 
@@ -68,7 +66,7 @@ subprojects {
                     setProjectInfo(
                         name = project.name,
                         description = "Multiplatform Kotlin SDK for Matrix messengers",
-                        repository = "connect2x/trixnity-messenger/trixnity-messenger"
+                        repository = "connect2x/trixnity-messenger/trixnity-messenger",
                     )
                     c2xOrganization()
                     licenses {

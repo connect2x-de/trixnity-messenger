@@ -1,5 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key.KeySecretService
+import de.connect2x.trixnity.client.key.KeyTrustService
+import de.connect2x.trixnity.client.verification.ActiveDeviceVerification
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
+import de.connect2x.trixnity.client.verification.VerificationService
+import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
+import de.connect2x.trixnity.crypto.key.RecoveryKeyInvalidException
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
@@ -13,25 +23,15 @@ import dev.mokkery.verify
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.key.KeySecretService
-import de.connect2x.trixnity.client.key.KeyTrustService
-import de.connect2x.trixnity.client.verification.ActiveDeviceVerification
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod
-import de.connect2x.trixnity.client.verification.VerificationService
-import de.connect2x.trixnity.client.verification.VerificationService.SelfVerificationMethods.CrossSigningEnabled
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
-import de.connect2x.trixnity.crypto.key.RecoveryKeyInvalidException
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class SelfVerificationViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
@@ -51,25 +51,20 @@ class SelfVerificationViewModelTest {
     private val onResetRecoveryMock = mock<Function0<Unit>>()
 
     init {
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { verificationServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication { modules(module { single { verificationServiceMock } }) }.koin
 
         every { matrixClientMock.userId } returns UserId("test", "localhost")
-        every { verificationServiceMock.getSelfVerificationMethods() } returns MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(
-                            RuntimeException()
-                        )
-                    },
+        every { verificationServiceMock.getSelfVerificationMethods() } returns
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        }
+                    )
                 )
             )
-        )
     }
 
     @BeforeTest
@@ -108,17 +103,16 @@ class SelfVerificationViewModelTest {
 
     @Test
     fun `show self verification options even if there is only one`() = runTest {
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(
-                            RuntimeException()
-                        )
-                    },
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        }
+                    )
                 )
             )
-        )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -142,16 +136,20 @@ class SelfVerificationViewModelTest {
 
         val deviceVerification =
             SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), setOf(), createDeviceVerification)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    deviceVerification,
-                    SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                        keySecretService, keyTrustService, "", aesHmacSha2Key
-                    ),
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        deviceVerification,
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretService,
+                            keyTrustService,
+                            "",
+                            aesHmacSha2Key,
+                        ),
+                    )
                 )
             )
-        )
         every { onCloseSelfVerificationMock.invoke(any()) } returns Unit
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
@@ -168,16 +166,17 @@ class SelfVerificationViewModelTest {
     fun `show the recovery key UI after choosing the recovery key method`() = runTest {
         val recoveryKeyMethod =
             SelfVerificationMethod.AesHmacSha2RecoveryKey(keySecretService, keyTrustService, "", aesHmacSha2Key)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    },
-                    recoveryKeyMethod,
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        recoveryKeyMethod,
+                    )
                 )
             )
-        )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -190,19 +189,24 @@ class SelfVerificationViewModelTest {
 
     @Test
     fun `show the passphrase UI after choosing the passphrase method`() = runTest {
-        val passphraseMethod = SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(
-            keySecretService, keyTrustService, "", aesHmacSha2Key
-        )
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    },
-                    passphraseMethod,
+        val passphraseMethod =
+            SelfVerificationMethod.AesHmacSha2RecoveryKeyWithPbkdf2Passphrase(
+                keySecretService,
+                keyTrustService,
+                "",
+                aesHmacSha2Key,
+            )
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        passphraseMethod,
+                    )
                 )
             )
-        )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -217,19 +221,19 @@ class SelfVerificationViewModelTest {
     fun `close the modal when the recovery key is correct`() = runTest {
         val recoveryKeyMethod =
             SelfVerificationMethod.AesHmacSha2RecoveryKey(keySecretService, keyTrustService, "", aesHmacSha2Key)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    }, recoveryKeyMethod
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        recoveryKeyMethod,
+                    )
                 )
             )
-        )
         every { onCloseSelfVerificationMock.invoke(any()) } returns Unit
-        everySuspend {
-            verifyAccountMock.verify(any(), "iAmA Reco very Key1")
-        } returns Result.success(Unit)
+        everySuspend { verifyAccountMock.verify(any(), "iAmA Reco very Key1") } returns Result.success(Unit)
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -251,20 +255,21 @@ class SelfVerificationViewModelTest {
     fun `indicate when the recovery key is not correct`() = runTest {
         val recoveryKeyMethod =
             SelfVerificationMethod.AesHmacSha2RecoveryKey(keySecretService, keyTrustService, "", aesHmacSha2Key)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    }, recoveryKeyMethod
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        recoveryKeyMethod,
+                    )
                 )
             )
-        )
         var onCloseMockWasCalled = false
         every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
-        everySuspend { verifyAccountMock.verify(any(), "iAmA Sooo very Wron") } returns Result.failure(
-            RecoveryKeyInvalidException("Nope")
-        )
+        everySuspend { verifyAccountMock.verify(any(), "iAmA Sooo very Wron") } returns
+            Result.failure(RecoveryKeyInvalidException("Nope"))
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -283,20 +288,21 @@ class SelfVerificationViewModelTest {
     fun `display an error message when the verification of the recovery key throws an unexpected error`() = runTest {
         val recoveryKeyMethod =
             SelfVerificationMethod.AesHmacSha2RecoveryKey(keySecretService, keyTrustService, "", aesHmacSha2Key)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    }, recoveryKeyMethod
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        recoveryKeyMethod,
+                    )
                 )
             )
-        )
         var onCloseMockWasCalled = false
         every { onCloseSelfVerificationMock.invoke(any()) } calls { onCloseMockWasCalled = true }
-        everySuspend { verifyAccountMock.verify(any(), "iAmA Reco very Key1") } returns Result.failure(
-            RuntimeException("Oh no!")
-        )
+        everySuspend { verifyAccountMock.verify(any(), "iAmA Reco very Key1") } returns
+            Result.failure(RuntimeException("Oh no!"))
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -317,15 +323,17 @@ class SelfVerificationViewModelTest {
     fun `close any chosen verification method when going back to choose a verification method`() = runTest {
         val recoveryKey =
             SelfVerificationMethod.AesHmacSha2RecoveryKey(keySecretService, keyTrustService, "", aesHmacSha2Key)
-        val selfVerificationMethods = MutableStateFlow(
-            CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
-                        Result.failure(RuntimeException())
-                    }, recoveryKey
+        val selfVerificationMethods =
+            MutableStateFlow(
+                CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), emptySet()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        recoveryKey,
+                    )
                 )
             )
-        )
         every { verificationServiceMock.getSelfVerificationMethods() } returns selfVerificationMethods
 
         val cut = selfVerificationViewModel()
@@ -341,24 +349,21 @@ class SelfVerificationViewModelTest {
 
     private fun TestScope.selfVerificationViewModel(): SelfVerificationViewModelImpl {
         return SelfVerificationViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(
-                                UserId(
-                                    "test", "server"
-                                ) to matrixClientMock
-                            )
-                        ) + module {
-                            single { verifyAccountMock }
-                        })
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    ) + module { single { verifyAccountMock } }
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
             onCloseSelfVerification = onCloseSelfVerificationMock,
             onResetRecovery = onResetRecoveryMock,
         )
     }
-
 }

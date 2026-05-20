@@ -18,6 +18,9 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -26,10 +29,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonPrimitive
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
-
 
 class ProfileSettingsViewModelTest {
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry()
@@ -54,20 +53,17 @@ class ProfileSettingsViewModelTest {
     @Test
     fun `more than one Profile and isMultiProfileEnabled enabled leads to canChangeMultiProfileMode disabled`() =
         runTest {
-            every { profileManagerMock.profiles } returns MutableStateFlow(
-                mapOf(
-                    "0" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Jerry"),
-                        )
-                    ),
-                    "1" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Bob"),
-                        )
+            every { profileManagerMock.profiles } returns
+                MutableStateFlow(
+                    mapOf(
+                        "0" to
+                            MatrixMultiMessengerProfileSettings(
+                                delegate = mapOf("displayName" to JsonPrimitive("Jerry"))
+                            ),
+                        "1" to
+                            MatrixMultiMessengerProfileSettings(delegate = mapOf("displayName" to JsonPrimitive("Bob"))),
                     )
                 )
-            )
 
             every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
             every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(true)
@@ -78,20 +74,17 @@ class ProfileSettingsViewModelTest {
             delay(10)
 
             profileSettingsViewModel.canChangeMultiProfileMode.value shouldBe false
-
         }
 
     @Test
     fun `one Profile and isMultiProfileEnabled enabled leads to canChangeMultiProfileMode enabled`() = runTest {
-        every { profileManagerMock.profiles } returns MutableStateFlow(
-            mapOf(
-                "0" to MatrixMultiMessengerProfileSettings(
-                    delegate = mapOf(
-                        "displayName" to JsonPrimitive("Jerry"),
-                    )
-                ),
+        every { profileManagerMock.profiles } returns
+            MutableStateFlow(
+                mapOf(
+                    "0" to
+                        MatrixMultiMessengerProfileSettings(delegate = mapOf("displayName" to JsonPrimitive("Jerry")))
+                )
             )
-        )
 
         every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
         every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(true)
@@ -102,20 +95,17 @@ class ProfileSettingsViewModelTest {
         delay(10)
 
         profileSettingsViewModel.canChangeMultiProfileMode.value shouldBe true
-
     }
 
     @Test
     fun `one Profile and isMultiProfileEnabled disabled leads to canChangeMultiProfileMode enabled`() = runTest {
-        every { profileManagerMock.profiles } returns MutableStateFlow(
-            mapOf(
-                "0" to MatrixMultiMessengerProfileSettings(
-                    delegate = mapOf(
-                        "displayName" to JsonPrimitive("Jerry"),
-                    )
-                ),
+        every { profileManagerMock.profiles } returns
+            MutableStateFlow(
+                mapOf(
+                    "0" to
+                        MatrixMultiMessengerProfileSettings(delegate = mapOf("displayName" to JsonPrimitive("Jerry")))
+                )
             )
-        )
 
         every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
         every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(false)
@@ -126,25 +116,19 @@ class ProfileSettingsViewModelTest {
         delay(10)
 
         profileSettingsViewModel.canChangeMultiProfileMode.value shouldBe true
-
     }
 
     @Test
     fun `ProfilesSettingsSingleViewModel is created correctly`() = runTest {
-        every { profileManagerMock.profiles } returns MutableStateFlow(
-            mapOf(
-                "0" to MatrixMultiMessengerProfileSettings(
-                    delegate = mapOf(
-                        "displayName" to JsonPrimitive("Jerry"),
-                    )
-                ),
-                "1" to MatrixMultiMessengerProfileSettings(
-                    delegate = mapOf(
-                        "displayName" to JsonPrimitive("Gustav"),
-                    )
-                ),
+        every { profileManagerMock.profiles } returns
+            MutableStateFlow(
+                mapOf(
+                    "0" to
+                        MatrixMultiMessengerProfileSettings(delegate = mapOf("displayName" to JsonPrimitive("Jerry"))),
+                    "1" to
+                        MatrixMultiMessengerProfileSettings(delegate = mapOf("displayName" to JsonPrimitive("Gustav"))),
+                )
             )
-        )
 
         every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
         every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(true)
@@ -176,20 +160,19 @@ class ProfileSettingsViewModelTest {
     @Test
     fun `ProfileCreationTextField text value equal to an existing profile should lead to profileCreationError being not null`() =
         runTest {
-            every { profileManagerMock.profiles } returns MutableStateFlow(
-                mapOf(
-                    "0" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Jerry"),
-                        )
-                    ),
-                    "1" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Gustav"),
-                        )
-                    ),
+            every { profileManagerMock.profiles } returns
+                MutableStateFlow(
+                    mapOf(
+                        "0" to
+                            MatrixMultiMessengerProfileSettings(
+                                delegate = mapOf("displayName" to JsonPrimitive("Jerry"))
+                            ),
+                        "1" to
+                            MatrixMultiMessengerProfileSettings(
+                                delegate = mapOf("displayName" to JsonPrimitive("Gustav"))
+                            ),
+                    )
                 )
-            )
 
             every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
             every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(true)
@@ -198,33 +181,28 @@ class ProfileSettingsViewModelTest {
             subscribe(profileSettingsViewModel)
 
             profileSettingsViewModel.profileCreationTextField.update("Gustav")
-            eventually(1.seconds) {
-                (profileSettingsViewModel.profileCreationError.value == null) shouldBe false
-            }
+            eventually(1.seconds) { (profileSettingsViewModel.profileCreationError.value == null) shouldBe false }
 
             profileSettingsViewModel.profileCreationTextField.update("Jerry")
-            eventually(1.seconds) {
-                (profileSettingsViewModel.profileCreationError.value == null) shouldBe false
-            }
+            eventually(1.seconds) { (profileSettingsViewModel.profileCreationError.value == null) shouldBe false }
         }
 
     @Test
     fun `ProfilesSettingsSingleViewModel profileNameError is not null when new name for renaming already exists except for the active profile`() =
         runTest {
-            every { profileManagerMock.profiles } returns MutableStateFlow(
-                mapOf(
-                    "0" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Jerry"),
-                        )
-                    ),
-                    "1" to MatrixMultiMessengerProfileSettings(
-                        delegate = mapOf(
-                            "displayName" to JsonPrimitive("Gustav"),
-                        )
-                    ),
+            every { profileManagerMock.profiles } returns
+                MutableStateFlow(
+                    mapOf(
+                        "0" to
+                            MatrixMultiMessengerProfileSettings(
+                                delegate = mapOf("displayName" to JsonPrimitive("Jerry"))
+                            ),
+                        "1" to
+                            MatrixMultiMessengerProfileSettings(
+                                delegate = mapOf("displayName" to JsonPrimitive("Gustav"))
+                            ),
+                    )
                 )
-            )
             every { profileManagerMock.activeProfile } returns MutableStateFlow("0")
             every { profileManagerMock.isMultiProfileEnabled } returns MutableStateFlow(true)
 
@@ -232,51 +210,53 @@ class ProfileSettingsViewModelTest {
             subscribe(singleViewModel)
 
             singleViewModel.profileNameTextField.update("Gustav")
-            eventually(1.seconds) {
-                requireNotNull(singleViewModel.profileNameError.value)
-            }
+            eventually(1.seconds) { requireNotNull(singleViewModel.profileNameError.value) }
 
             singleViewModel.profileNameTextField.update("Jerry")
-            eventually(1.seconds) {
-                require(singleViewModel.profileNameError.value == null)
-            }
+            eventually(1.seconds) { require(singleViewModel.profileNameError.value == null) }
         }
 
     private fun TestScope.profileSettingsViewModel(): ProfilesSettingsViewModelImpl {
-        val koin = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)) + module {
-                    single { profileManagerMock }
-                })
-        }.koin
+        val koin =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)) +
+                            module { single { profileManagerMock } }
+                    )
+                }
+                .koin
         koin.createScope<RootViewModelImpl>()
         return ProfilesSettingsViewModelImpl(
-            viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycleRegistry),
-                di = koin,
-                coroutineContext = backgroundScope.coroutineContext,
-                name = "ProfileSettings"
-            ),
-            onCloseProfilesSettings = {}
+            viewModelContext =
+                ViewModelContextImpl(
+                    componentContext = DefaultComponentContext(lifecycleRegistry),
+                    di = koin,
+                    coroutineContext = backgroundScope.coroutineContext,
+                    name = "ProfileSettings",
+                ),
+            onCloseProfilesSettings = {},
         )
     }
 
     private fun TestScope.profileSettingsSingleViewModel(profileId: String): ProfilesSettingsSingleViewModelImpl {
-        val koin = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)) + module {
-                    single { profileManagerMock }
-                })
-        }.koin
+        val koin =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(user to matrixClientMock)) +
+                            module { single { profileManagerMock } }
+                    )
+                }
+                .koin
         koin.createScope<RootViewModelImpl>()
         return ProfilesSettingsSingleViewModelImpl(
-            viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycleRegistry),
-                di = koin,
-                coroutineContext = backgroundScope.coroutineContext,
-                name = "ProfileSettingsSingle"
-            ),
-            profileId = profileId
+            viewModelContext =
+                ViewModelContextImpl(
+                    componentContext = DefaultComponentContext(lifecycleRegistry),
+                    di = koin,
+                    coroutineContext = backgroundScope.coroutineContext,
+                    name = "ProfileSettingsSingle",
+                ),
+            profileId = profileId,
         )
     }
 

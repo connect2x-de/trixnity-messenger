@@ -27,8 +27,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.UserSettingsViewModel
 
 interface UserSettingsView {
-    @Composable
-    fun create(userSettingsViewModel: UserSettingsViewModel, mainViewModel: MainViewModel)
+    @Composable fun create(userSettingsViewModel: UserSettingsViewModel, mainViewModel: MainViewModel)
 }
 
 @Composable

@@ -3551,6 +3551,6 @@ fun previewImageByteArray(): ByteArray {
         -82,
         66,
         96,
-        -126
+        -126,
     )
 }

@@ -9,7 +9,6 @@ import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
-
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
     alias(sharedLibs.plugins.android.library)
@@ -23,9 +22,7 @@ kotlin {
     withSourcesJar()
     defaultCompilerOptions()
     withJvm()
-    withWeb {
-        withBrowser()
-    }
+    withWeb { withBrowser() }
     withIos()
     withAndroid("$group.compose.view.typography.nunito", minSdk = libs.versions.minSdkVersion)
 

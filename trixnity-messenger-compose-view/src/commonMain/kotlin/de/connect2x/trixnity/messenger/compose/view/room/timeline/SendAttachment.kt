@@ -31,19 +31,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 
 interface SendAttachmentView {
-    @Composable
-    fun create(sendAttachmentViewModel: SendAttachmentViewModel)
+    @Composable fun create(sendAttachmentViewModel: SendAttachmentViewModel)
 }
 
 @Composable
@@ -56,8 +55,10 @@ class SendAttachmentViewImpl : SendAttachmentView {
     override fun create(sendAttachmentViewModel: SendAttachmentViewModel) {
         val i18n = DI.get<I18nView>()
         val error = sendAttachmentViewModel.error.collectAsState().value
-        val fileSize = "(" + (sendAttachmentViewModel.file.fileSize?.let { size -> formatSize(size) }
-            ?: i18n.commonUnknown()) + ")"
+        val fileSize =
+            "(" +
+                (sendAttachmentViewModel.file.fileSize?.let { size -> formatSize(size) } ?: i18n.commonUnknown()) +
+                ")"
         val isImage = sendAttachmentViewModel.isImage
         val isVideo = sendAttachmentViewModel.isVideo
         val isAudio = sendAttachmentViewModel.isAudio
@@ -71,8 +72,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
                 ErrorView(error)
             } else {
                 Column(
-                    Modifier
-                        .fillMaxHeight()
+                    Modifier.fillMaxHeight()
                         .padding(horizontal = 20.dp)
                         .weight(1.0f, false)
                         .align(Alignment.CenterHorizontally),
@@ -82,15 +82,12 @@ class SendAttachmentViewImpl : SendAttachmentView {
                     when {
                         isImage ?: false -> {
                             if (fileContent != null) {
-                                LaunchedEffect(isImage) {
-                                    imageBitmap = fileContent.toImageBitmap()
-                                }
+                                LaunchedEffect(isImage) { imageBitmap = fileContent.toImageBitmap() }
                                 imageBitmap?.let {
                                     Image(
                                         it,
                                         i18n.commonAttachment(),
-                                        Modifier
-                                            .align(Alignment.CenterHorizontally)
+                                        Modifier.align(Alignment.CenterHorizontally)
                                             .weight(1.0f, false)
                                             .clip(RoundedCornerShape(8.dp)),
                                         contentScale = ContentScale.Inside,
@@ -106,12 +103,14 @@ class SendAttachmentViewImpl : SendAttachmentView {
                         else -> FileIcon(MaterialTheme.messengerIcons.typeFile, i18n.commonFile())
                     }
                     Spacer(Modifier.size(10.dp))
-                    Text(buildAnnotatedString {
-                        append(sendAttachmentViewModel.file.fileName)
-                        pushStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)))
-                        append(" ")
-                        append(fileSize)
-                    })
+                    Text(
+                        buildAnnotatedString {
+                            append(sendAttachmentViewModel.file.fileName)
+                            pushStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)))
+                            append(" ")
+                            append(fileSize)
+                        }
+                    )
                 }
             }
             Spacer(Modifier.size(20.dp))

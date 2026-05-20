@@ -33,7 +33,7 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 fun BoxScope.DownloadProgress(
     progressElement: FileTransferProgressElement,
     cancel: (() -> Unit)? = null,
-    color: Color = Color.LightGray
+    color: Color = Color.LightGray,
 ) {
     val i18n = DI.get<I18nView>()
     Column(
@@ -43,40 +43,35 @@ fun BoxScope.DownloadProgress(
     ) {
         Surface(
             color = backgroundColor(color),
-            modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
-                .clip(RoundedCornerShape(8.dp))
+            modifier =
+                Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small).clip(RoundedCornerShape(8.dp)),
         ) {
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 progressElement.percent?.let {
                     ThemedProgressIndicator(
                         progress = { it },
                         modifier = Modifier.padding(start = 10.dp),
-                        style = MaterialTheme.components.linearProgressIndicator
+                        style = MaterialTheme.components.linearProgressIndicator,
                     )
-                } ?: ThemedProgressIndicator(
-                    modifier = Modifier.padding(start = 10.dp),
-                    style = MaterialTheme.components.linearProgressIndicator
-                )
+                }
+                    ?: ThemedProgressIndicator(
+                        modifier = Modifier.padding(start = 10.dp),
+                        style = MaterialTheme.components.linearProgressIndicator,
+                    )
 
                 if (cancel != null)
                     Tooltip({ Text(i18n.commonCancel()) }) {
-                        ThemedIconButton(
-                            style = MaterialTheme.components.commonIconButton,
-                            onClick = cancel
-                        ) {
+                        ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = cancel) {
                             Icon(Icons.Default.Cancel, i18n.commonCancel())
                         }
                     }
             }
         }
         Spacer(Modifier.size(10.dp))
-        Surface(
-            color = backgroundColor(color),
-            modifier = Modifier.clip(RoundedCornerShape(8.dp))
-        ) {
+        Surface(color = backgroundColor(color), modifier = Modifier.clip(RoundedCornerShape(8.dp))) {
             Text(progressElement.formattedProgress, color = color, modifier = Modifier.padding(8.dp))
         }
     }
@@ -84,4 +79,3 @@ fun BoxScope.DownloadProgress(
 
 private fun backgroundColor(color: Color) =
     if (color == Color.LightGray) Color.Black.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.8f)
-

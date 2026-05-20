@@ -28,8 +28,8 @@ fun RepliedElement(holder: BaseTimelineElementHolderViewModel) {
             timelineElementViewSelector.createReplyInTimeline(
                 holder = repliedElementHolder,
                 element = element,
-                modifier = Modifier.buttonPointerModifier()
-                    .clickable(interactionSource, LocalIndication.current) {
+                modifier =
+                    Modifier.buttonPointerModifier().clickable(interactionSource, LocalIndication.current) {
                         repliedElementHolder.jumpTo()
                     },
                 interactionSource = interactionSource,

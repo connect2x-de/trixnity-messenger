@@ -5,29 +5,31 @@ import androidx.compose.ui.graphics.Color
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.common.times
 
-private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.theme.ThemeHighContrastLightColorSchemeKt")
+private val log: Logger =
+    Logger("de.connect2x.trixnity.messenger.compose.view.theme.ThemeHighContrastLightColorSchemeKt")
 
 interface ThemeHighContrastLightColorScheme {
     fun create(accentColor: Color): ColorScheme
 }
 
-class ThemeHighContrastLightColorSchemeImpl(
-    private val wrapped: ThemeLightColorScheme,
-) : ThemeHighContrastLightColorScheme {
-    override fun create(accentColor: Color): ColorScheme = makeHighContrastColorScheme(wrapped.create(accentColor))
-        .also { log.debug { "create default high contrast color scheme from light" } }
+class ThemeHighContrastLightColorSchemeImpl(private val wrapped: ThemeLightColorScheme) :
+    ThemeHighContrastLightColorScheme {
+    override fun create(accentColor: Color): ColorScheme =
+        makeHighContrastColorScheme(wrapped.create(accentColor)).also {
+            log.debug { "create default high contrast color scheme from light" }
+        }
 }
 
 interface ThemeHighContrastDarkColorScheme {
     fun create(accentColor: Color): ColorScheme
 }
 
-class ThemeHighContrastDarkColorSchemeImpl(
-    private val wrapped: ThemeDarkColorScheme,
-) : ThemeHighContrastDarkColorScheme {
+class ThemeHighContrastDarkColorSchemeImpl(private val wrapped: ThemeDarkColorScheme) :
+    ThemeHighContrastDarkColorScheme {
     override fun create(accentColor: Color): ColorScheme =
-        makeHighContrastColorScheme(wrapped.create(accentColor), true)
-            .also { log.debug { "create default high contrast color scheme from dark" } }
+        makeHighContrastColorScheme(wrapped.create(accentColor), true).also {
+            log.debug { "create default high contrast color scheme from dark" }
+        }
 }
 
 private fun makeHighContrastColorScheme(scheme: ColorScheme, isDarkTheme: Boolean = false): ColorScheme {

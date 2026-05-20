@@ -29,6 +29,13 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.resetCalls
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -44,14 +51,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
-
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Suppress("NonAsciiCharacters")
@@ -67,58 +66,63 @@ class OutboxElementHolderViewModelTest {
     private val roomServiceMock = mock<RoomService>()
     private val userServiceMock = mock<UserService>()
 
-    private val previousOutboxMessage = RoomOutboxMessage(
-        roomId = roomId,
-        transactionId = "t0",
-        content = TextBased.Text("uhhh..."),
-        createdAt = Instant.fromEpochMilliseconds(123456789L),
-    )
+    private val previousOutboxMessage =
+        RoomOutboxMessage(
+            roomId = roomId,
+            transactionId = "t0",
+            content = TextBased.Text("uhhh..."),
+            createdAt = Instant.fromEpochMilliseconds(123456789L),
+        )
 
-    private val outboxMessage = RoomOutboxMessage(
-        roomId = roomId,
-        transactionId = "t1",
-        content = TextBased.Text("Hi!"),
-        createdAt = Instant.fromEpochMilliseconds(123456799L),
-    )
+    private val outboxMessage =
+        RoomOutboxMessage(
+            roomId = roomId,
+            transactionId = "t1",
+            content = TextBased.Text("Hi!"),
+            createdAt = Instant.fromEpochMilliseconds(123456799L),
+        )
 
     private val outbox = MutableStateFlow<List<RoomOutboxMessage<*>>>(listOf(outboxMessage))
 
     private val scope = TestScope()
-    private val di = koinApplication {
-        modules(
-            scope.createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))
-        )
-    }.koin
+    private val di =
+        koinApplication { modules(scope.createTestDefaultTrixnityMessengerModules(mapOf(us to matrixClientMock))) }.koin
     private val clock by lazy { di.get<Clock>() }
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
-
 
     init {
         Dispatchers.setMain(scope.coroutineDispatcher)
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns us
-        every { userServiceMock.getById(roomId, any()) } calls { params ->
-            val userId = params.args[1] as UserId
-            flowOf(
-                RoomUser(
-                    roomId, userId, userId.full, ClientEvent.RoomEvent.StateEvent(
-                        MemberEventContent(membership = Membership.JOIN),
-                        id = eventId,
-                        sender = userId,
-                        roomId = roomId,
-                        originTimestamp = 0L,
-                        stateKey = userId.full,
+        every { userServiceMock.getById(roomId, any()) } calls
+            { params ->
+                val userId = params.args[1] as UserId
+                flowOf(
+                    RoomUser(
+                        roomId,
+                        userId,
+                        userId.full,
+                        ClientEvent.RoomEvent.StateEvent(
+                            MemberEventContent(membership = Membership.JOIN),
+                            id = eventId,
+                            sender = userId,
+                            roomId = roomId,
+                            originTimestamp = 0L,
+                            stateKey = userId.full,
+                        ),
                     )
                 )
-            )
-        }
+            }
         outbox.value = listOf(outboxMessage)
         every { roomServiceMock.getOutbox(roomId) } returns outbox.map { it.map { flowOf(it) } }
     }
@@ -131,16 +135,15 @@ class OutboxElementHolderViewModelTest {
     @Test
     fun `isFirstInUserSequence » be true when last timeline event is not by us`() = scope.runTest {
         timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = bob) {
-                text("Hi!")
-            }
+            +messageEvent(sender = bob) { text("Hi!") }
             // should be ignored
             +MessageEvent(
-                content = UnknownEventContent(
-                    buildJsonObject { put("dino", JsonPrimitive("yes")) },
-                    EventContentBlocks(),
-                    "m.dino"
-                ),
+                content =
+                    UnknownEventContent(
+                        buildJsonObject { put("dino", JsonPrimitive("yes")) },
+                        EventContentBlocks(),
+                        "m.dino",
+                    ),
                 id = EventId("dino"),
                 sender = us,
                 roomId = roomId,
@@ -156,11 +159,7 @@ class OutboxElementHolderViewModelTest {
     @Test
     fun `isFirstInUserSequence » ignore other outbox messages with transactionId same as last timeline event`() =
         scope.runTest {
-            timeline(roomServiceMock, roomId) {
-                +messageEvent(sender = bob, transactionId = "t0") {
-                    text("Hi!")
-                }
-            }
+            timeline(roomServiceMock, roomId) { +messageEvent(sender = bob, transactionId = "t0") { text("Hi!") } }
             outbox.value = listOf(previousOutboxMessage, outboxMessage)
             val cut = cut()
             backgroundScope.launch { cut.isFirstInUserSequence.collect() }
@@ -170,11 +169,7 @@ class OutboxElementHolderViewModelTest {
 
     @Test
     fun `isFirstInUserSequence » be false when last timeline event is by us`() = scope.runTest {
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = us) {
-                text("Hi!")
-            }
-        }
+        timeline(roomServiceMock, roomId) { +messageEvent(sender = us) { text("Hi!") } }
         val cut = cut()
         backgroundScope.launch { cut.isFirstInUserSequence.collect() }
         delay(500.milliseconds)
@@ -183,19 +178,17 @@ class OutboxElementHolderViewModelTest {
 
     @Test
     fun `isFirstInUserSequence » be false when not first outbox message`() = scope.runTest {
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = us) {
-                text("Hi!")
-            }
-        }
-        outbox.value = listOf(
-            RoomOutboxMessage(
-                roomId = roomId,
-                transactionId = "t0",
-                content = TextBased.Text("Hi!"),
-                createdAt = Instant.fromEpochMilliseconds(123456799L),
-            ), outboxMessage
-        )
+        timeline(roomServiceMock, roomId) { +messageEvent(sender = us) { text("Hi!") } }
+        outbox.value =
+            listOf(
+                RoomOutboxMessage(
+                    roomId = roomId,
+                    transactionId = "t0",
+                    content = TextBased.Text("Hi!"),
+                    createdAt = Instant.fromEpochMilliseconds(123456799L),
+                ),
+                outboxMessage,
+            )
         val cut = cut()
         backgroundScope.launch { cut.isFirstInUserSequence.collect() }
         delay(500.milliseconds)
@@ -204,11 +197,7 @@ class OutboxElementHolderViewModelTest {
 
     @Test
     fun `showSender » always be false`() = scope.runTest {
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(sender = bob) {
-                text("Hi!")
-            }
-        }
+        timeline(roomServiceMock, roomId) { +messageEvent(sender = bob) { text("Hi!") } }
         val cut = cut()
 
         backgroundScope.launch { cut.showSender.collect() }
@@ -218,14 +207,7 @@ class OutboxElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » be true when first in a user sequence`() = scope.runTest {
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = bob,
-                sentAt = clock.now()
-            ) {
-                text("Hi!")
-            }
-        }
+        timeline(roomServiceMock, roomId) { +messageEvent(sender = bob, sentAt = clock.now()) { text("Hi!") } }
         val cut = cut()
 
         backgroundScope.launch { cut.showBigGapBefore.collect() }
@@ -235,14 +217,7 @@ class OutboxElementHolderViewModelTest {
 
     @Test
     fun `showBigGapBefore » false when not first in a user sequence`() = scope.runTest {
-        timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now()
-            ) {
-                text("Hi!")
-            }
-        }
+        timeline(roomServiceMock, roomId) { +messageEvent(sender = us, sentAt = clock.now()) { text("Hi!") } }
         val cut = cut()
 
         backgroundScope.launch { cut.showBigGapBefore.collect() }
@@ -255,10 +230,7 @@ class OutboxElementHolderViewModelTest {
     fun `showBigGapBefore » be true when time gap is large enough`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
-            ) {
+            +messageEvent(sender = us, sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds) {
                 text("Hi!")
             }
         }
@@ -273,12 +245,7 @@ class OutboxElementHolderViewModelTest {
     fun `showBigGapBefore » be false when time gap is not large enough`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now() - config.showBigGapBeforeThreshold
-            ) {
-                text("Hi!")
-            }
+            +messageEvent(sender = us, sentAt = clock.now() - config.showBigGapBeforeThreshold) { text("Hi!") }
         }
         val cut = cut()
         backgroundScope.launch { cut.showBigGapBefore.collect() }
@@ -291,20 +258,11 @@ class OutboxElementHolderViewModelTest {
     fun `showBigGapBefore » skip sent transaction`() = scope.runTest {
         delay(7.days)
         timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
-            ) {
+            +messageEvent(sender = us, sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds) {
                 text("Hi!")
             }
 
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now(),
-                transactionId = "t1"
-            ) {
-                text("Hi!")
-            }
+            +messageEvent(sender = us, sentAt = clock.now(), transactionId = "t1") { text("Hi!") }
         }
         val cut = cut()
 
@@ -317,10 +275,7 @@ class OutboxElementHolderViewModelTest {
     @Test
     fun `showBigGapBefore » don't show if multiple elements in outbox`() = runTest {
         timeline(roomServiceMock, roomId) {
-            +messageEvent(
-                sender = us,
-                sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds
-            ) {
+            +messageEvent(sender = us, sentAt = clock.now() - config.showBigGapBeforeThreshold - 1.seconds) {
                 text("Hi!")
             }
         }
@@ -336,10 +291,7 @@ class OutboxElementHolderViewModelTest {
 
     private fun TestScope.cut(evId: EventId = eventId): OutboxElementHolderViewModel {
         return OutboxElementHolderViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = di,
-                userId = us,
-            ),
+            viewModelContext = testMatrixClientViewModelContext(di = di, userId = us),
             key = "$roomId-$evId",
             roomId = roomId,
             transactionId = outboxMessage.transactionId,
@@ -347,7 +299,7 @@ class OutboxElementHolderViewModelTest {
             formattedDate = "01.01.2000",
             formattedTime = "07:24",
             onOpenMention = mock(),
-            jumpTo = { _, _ -> }
+            jumpTo = { _, _ -> },
         )
     }
 }

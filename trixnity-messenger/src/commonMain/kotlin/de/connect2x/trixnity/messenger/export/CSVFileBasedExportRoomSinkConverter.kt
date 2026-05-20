@@ -17,7 +17,7 @@ data class CSVFileBasedExportRoomProperties(
 ) : FileBasedExportRoomProperties
 
 class CSVFileBasedExportRoomSinkConverterFactory(
-    private val timelineEventContentToString: TimelineEventContentToString,
+    private val timelineEventContentToString: TimelineEventContentToString
 ) : FileBasedExportRoomSinkConverterFactory {
     override fun create(roomId: RoomId, properties: FileBasedExportRoomProperties): FileBasedExportRoomSinkConverter? =
         if (properties is CSVFileBasedExportRoomProperties)
@@ -33,11 +33,12 @@ class CSVFileBasedExportRoomSinkConverter(
 
     private val prefix by lazy {
         listOf(
-            properties.csvDateHeader,
-            properties.csvSenderHeader,
-            properties.csvEventIdHeader,
-            properties.csvContentHeader
-        ).asCsvLine()
+                properties.csvDateHeader,
+                properties.csvSenderHeader,
+                properties.csvEventIdHeader,
+                properties.csvContentHeader,
+            )
+            .asCsvLine()
     }
 
     override suspend fun prefix(): String = prefix
@@ -45,14 +46,14 @@ class CSVFileBasedExportRoomSinkConverter(
     override suspend fun convert(timelineEvent: TimelineEvent, filename: String?): String? {
         val content = timelineEventContentToString(timelineEvent, filename) ?: return null
         return listOf(
-            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toString(),
-            timelineEvent.sender.full,
-            timelineEvent.eventId.full,
-            content,
-        ).asCsvLine()
+                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp).toString(),
+                timelineEvent.sender.full,
+                timelineEvent.eventId.full,
+                content,
+            )
+            .asCsvLine()
     }
 
     private fun List<String>.asCsvLine() =
-        joinToString(separator = properties.delimiter) { "\"'" + it.replace("\"", "\"\"") + "\"" } +
-                "\r\n"
+        joinToString(separator = properties.delimiter) { "\"'" + it.replace("\"", "\"\"") + "\"" } + "\r\n"
 }

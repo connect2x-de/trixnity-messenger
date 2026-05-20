@@ -43,8 +43,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
 interface BlockedContactsSettingsView {
-    @Composable
-    fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel)
+    @Composable fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel)
 }
 
 @Composable
@@ -70,7 +69,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                             i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
                             style = MaterialTheme.typography.titleMedium,
                         )
-                    }
+                    },
                 )
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(
@@ -95,11 +94,8 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
             } else {
                 Box(Modifier.fillMaxSize()) {
                     LazyColumn(
-                        Modifier.fillMaxSize().rovingFocusContainer(
-                            listState = state,
-                            focusedItem = focusedItem
-                        ),
-                        state
+                        Modifier.fillMaxSize().rovingFocusContainer(listState = state, focusedItem = focusedItem),
+                        state,
                     ) {
                         item("header") {
                             ThemedListItem(
@@ -109,12 +105,13 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                         i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
                                         style = MaterialTheme.typography.titleMedium,
                                     )
-                                }
+                                },
                             )
                         }
                         items(userList, key = { value -> value.userId }) { user ->
                             IgnoredUserListElement(
-                                user = user, i18n = i18n,
+                                user = user,
+                                i18n = i18n,
                                 isFocused = { focusedItem.value == user.userId },
                                 onFocus = { focusedItem.value = user.userId },
                             ) {
@@ -140,7 +137,7 @@ fun IgnoredUserListElement(
     i18n: I18nView,
     isFocused: () -> Boolean,
     onFocus: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
 ) {
     ThemedListItem(
         style = MaterialTheme.components.settingsItem,
@@ -152,10 +149,7 @@ fun IgnoredUserListElement(
                 ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
             } else {
                 Tooltip({ Text(i18n.unblockContactDescription()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        onClick = onRemove,
-                    ) {
+                    ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onRemove) {
                         Icon(Icons.Default.RemoveCircle, i18n.unblockContactDescription())
                     }
                 }

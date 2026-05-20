@@ -24,28 +24,16 @@ object WinCredentials : Library {
         credentialRef: PointerByReference,
     ): Boolean
 
-    external fun CredWriteA(
-        credential: Credential,
-        flags: DWORD,
-    ): Boolean
+    external fun CredWriteA(credential: Credential, flags: DWORD): Boolean
 
-    external fun CredFree(
-        credential: Pointer,
-    ): Boolean
+    external fun CredFree(credential: Pointer): Boolean
 
-    external fun CredDeleteA(
-        targetName: String,
-    )
+    external fun CredDeleteA(targetName: String)
 }
-
 
 class Credential(pointer: Pointer?) : Structure(pointer) {
 
-    constructor(
-        targetName: String,
-        credentialBlobSize: Int,
-        credentialBlob: Pointer,
-    ) : this(null) {
+    constructor(targetName: String, credentialBlobSize: Int, credentialBlob: Pointer) : this(null) {
         this.targetName = targetName
         this.credentialBlobSize = credentialBlobSize
         this.credentialBlob = credentialBlob
@@ -55,26 +43,21 @@ class Credential(pointer: Pointer?) : Structure(pointer) {
         read()
     }
 
-    @JvmField
-    var flags: Int = 0
+    @JvmField var flags: Int = 0
 
-    @JvmField
-    var type: Int = 1 // GENERIC
+    @JvmField var type: Int = 1 // GENERIC
 
     lateinit var targetName: String
     lateinit var comment: String
     lateinit var lastWritten: FILETIME
 
-    @JvmField
-    var credentialBlobSize: Int = 0
+    @JvmField var credentialBlobSize: Int = 0
 
     lateinit var credentialBlob: Pointer
 
-    @JvmField
-    var persist: Int = 2 // PERSIST LOCALLY
+    @JvmField var persist: Int = 2 // PERSIST LOCALLY
 
-    @JvmField
-    var attributeCount: Int = 0
+    @JvmField var attributeCount: Int = 0
 
     lateinit var attributes: Pointer
     lateinit var targetAlias: String
@@ -93,7 +76,7 @@ class Credential(pointer: Pointer?) : Structure(pointer) {
             "attributeCount",
             "attributes",
             "targetAlias",
-            "userName"
+            "userName",
         )
     }
 }

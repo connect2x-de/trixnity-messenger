@@ -22,10 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersV
 
 interface SearchUsersSettingsView {
     @Composable
-    fun create(
-        potentialMembersViewModel: PotentialMembersViewModel,
-        onUserClick: (Search.SearchUserElement) -> Unit,
-    )
+    fun create(potentialMembersViewModel: PotentialMembersViewModel, onUserClick: (Search.SearchUserElement) -> Unit)
 }
 
 @Composable
@@ -47,29 +44,24 @@ class SearchUsersSettingsViewImpl : SearchUsersSettingsView {
         val userSearchResults = collectUserSearchResult(potentialMembersViewModel.searchHandler)
 
         Box {
-            val focusedItem = remember(userSearchResults) {
-                mutableStateOf(
-                    if (userSearchResults is SearchResultState.Results) {
-                        userSearchResults.users.firstOrNull()?.userId?.full
-                    } else {
-                        null
-                    }
-                )
-            }
+            val focusedItem =
+                remember(userSearchResults) {
+                    mutableStateOf(
+                        if (userSearchResults is SearchResultState.Results) {
+                            userSearchResults.users.firstOrNull()?.userId?.full
+                        } else {
+                            null
+                        }
+                    )
+                }
 
-            LazyColumn(
-                Modifier.rovingFocusContainer(
-                    listState = listState,
-                    focusedItem = focusedItem
-                ),
-                listState
-            ) {
+            LazyColumn(Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState) {
                 searchUsersLocally(
                     potentialMembersViewModel.searchHandler,
                     { onUserClick(it) },
                     userSearchResults,
                     userSearchResultList,
-                    focusedItem
+                    focusedItem,
                 )
             }
             VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
