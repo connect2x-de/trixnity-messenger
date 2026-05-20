@@ -34,15 +34,11 @@ class WebPlayerItem(
     override val duration: Duration = audio.duration.seconds
     private var updateJob: Job? = null
 
-    // TODO: remove when we have a common way to handle errors while playing
     private val removeErrorEventHandler: () -> Unit = audio.addEventHandler(
         type = Event.ERROR,
         handler = EventHandler {
             log.error { "Playback error: ${audio.error?.message}" }
-            state.value = MediaPlayer.Item.State.Failed("Playback error")
-            coroutineScope.launch {
-                onPause() // this also pauses when in Failed state
-            }
+            setError("Playback error")
         },
     )
 
