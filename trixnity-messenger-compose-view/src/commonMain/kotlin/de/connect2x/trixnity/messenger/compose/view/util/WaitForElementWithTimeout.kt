@@ -50,11 +50,14 @@ internal suspend fun waitForElementWithTimeout(
         }
         launchWithTimeoutHint(message, { "repliedElement" }) {
             val isReply = element.isReply.filterNotNull().first()
-            if (isReply)
+            if (isReply) {
+                val repliedElement = element.repliedElement.filterNotNull().first()
                 timelineElementViewSelector.waitFor(
-                    element.repliedElement.filterNotNull().first()
-                        .element.filterNotNull().first()
+                    repliedElement.element.filterNotNull().first()
                 )
+                repliedElement.sender.filterNotNull().first()
+            }
+
         }
         when (element) {
             is TimelineElementHolderViewModel -> {

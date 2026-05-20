@@ -1481,6 +1481,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun roomDirectoryVisibilityInfo ()Ljava/lang/String;
 	public fun roomEnableEncryptionWarningConfirmation ()Ljava/lang/String;
 	public fun roomEncryption ()Ljava/lang/String;
+	public fun roomEncryptionExplanation ()Ljava/lang/String;
 	public fun roomEndToEndEncryption ()Ljava/lang/String;
 	public fun roomEndToEndEncryptionDescription ()Ljava/lang/String;
 	public fun roomHeaderBlockUser ()Ljava/lang/String;

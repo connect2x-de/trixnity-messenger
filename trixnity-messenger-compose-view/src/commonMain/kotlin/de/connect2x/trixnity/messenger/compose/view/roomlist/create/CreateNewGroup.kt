@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
@@ -69,6 +70,8 @@ fun CreateNewGroup(createNewGroupViewModel: CreateNewGroupViewModel) {
     DI.get<CreateNewGroupView>().create(createNewGroupViewModel)
 }
 
+private val log = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupViewImpl")
+
 class CreateNewGroupViewImpl : CreateNewGroupView {
     @Composable
     override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
@@ -91,9 +94,13 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 
             val roomType = when {
                 isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
+                isPrivate && !isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeUnencrypted()}"
                 !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
                 !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
-                else -> i18n.roomTypeForbidden()
+                else -> {
+                    log.error { "Boolean logic has failed. This should never happen!" }
+                    ""
+                }
             }
             append(roomType)
         }
