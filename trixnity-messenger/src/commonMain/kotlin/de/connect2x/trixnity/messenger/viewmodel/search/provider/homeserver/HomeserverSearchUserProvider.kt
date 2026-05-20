@@ -41,16 +41,13 @@ open class HomeserverSearchUserProvider(
     private val matrixClients: MatrixClients,
     private val matrixMessengerConfiguration: MatrixMessengerConfiguration,
 ) : SearchUserProvider {
-    private val log = Logger("de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider")
+    private val log =
+        Logger("de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider")
 
     override val providerId: String = HOMESERVER_PROVIDER_ID
     override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
 
-    override fun applySettings() {
-        // has no settings
-    }
-
-    override val settings: Map<SettingsId, StateFlow<SearchSetting>> = emptyMap()
+    override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
     override suspend fun search(
         searchTerm: String,
@@ -125,7 +122,12 @@ open class HomeserverSearchUserProvider(
                             .map { searchUser ->
                                 async {
                                     val image =
-                                        getImage(coroutineScope, matrixClient, searchUser.avatarUrl, maxMediaSizeInMemory)
+                                        getImage(
+                                            coroutineScope,
+                                            matrixClient,
+                                            searchUser.avatarUrl,
+                                            maxMediaSizeInMemory
+                                        )
                                     val presence = getPresence(matrixClient, searchUser.userId)
                                         .stateIn(coroutineScope, WhileSubscribed(), null)
 

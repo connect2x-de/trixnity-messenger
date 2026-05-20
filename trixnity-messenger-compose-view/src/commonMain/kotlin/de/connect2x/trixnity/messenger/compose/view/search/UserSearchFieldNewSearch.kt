@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -33,17 +33,17 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
 interface UserSearchFieldNewSearchView {
     @Composable
-    fun RowScope.create(searchUserViewModel: SearchUserViewModel)
+    fun create(searchUserViewModel: SearchUserViewModel)
 }
 
 @Composable
-fun RowScope.UserSearchFieldNewSearch(searchUserViewModel: SearchUserViewModel) {
+fun UserSearchFieldNewSearch(searchUserViewModel: SearchUserViewModel) {
     with(DI.get<UserSearchFieldNewSearchView>()) { create(searchUserViewModel) }
 }
 
 class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
     @Composable
-    override fun RowScope.create(searchUserViewModel: SearchUserViewModel) {
+    override fun create(searchUserViewModel: SearchUserViewModel) {
         val i18n = DI.get<I18nView>()
 
         var userSearchTerm by searchUserViewModel.searchTerm.collectAsTextFieldValueState()
@@ -60,7 +60,7 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
             onValueChange = { userSearchTerm = it },
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
-                .weight(1.0f, fill = true)
+                .fillMaxWidth()
                 .focusRequester(focusRequester),
             leadingIcon = {
                 if (isSearching.values.any { it }) {

@@ -38,7 +38,6 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
 
     @Composable
     override fun create(createNewChatViewModel: CreateNewChatViewModel) {
-        println("------- WOWO =====")
         if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
             val i18n = DI.get<I18nView>()
             val isCreating by createNewChatViewModel.isCreating.collectAsState()

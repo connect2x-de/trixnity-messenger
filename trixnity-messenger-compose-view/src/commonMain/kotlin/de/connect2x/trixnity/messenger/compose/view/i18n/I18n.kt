@@ -3523,6 +3523,21 @@ open class I18nView(
         DE - "$count ungelesene Nachrichten"
     }
 
+    open fun userSearchFilter() = translate {
+        EN - "filter"
+        DE - "Filter"
+    }
+
+    open fun userSearchFilterOptions() = translate {
+        EN - "filter options"
+        DE - "Filteroptionen"
+    }
+
+    open fun userSearchSelectFilter() = translate {
+        EN - "select filter"
+        DE - "Filter auswählen"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
     fun actionMore() = commonMore().capitalize(Locale.current)
     fun actionClose() = commonClose().capitalize(Locale.current)

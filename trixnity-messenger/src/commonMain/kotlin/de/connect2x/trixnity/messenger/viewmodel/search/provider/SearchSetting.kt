@@ -1,7 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.search.provider
 
 /**
- * Holds information on a special search setting, e.g., "city" -> "Berlin".
+ * Holds information on a special search setting, e.g., "city" -> "Berlin". The value itself is delegated to the
+ * provider to perform the search.
  */
 data class SearchSetting(
     /**
@@ -9,7 +10,11 @@ data class SearchSetting(
      */
     val name: String,
     /**
-     * The setting's value. Can be `null` or blank to be interpreted as 'not set'.
+     * In case the value of the search setting has a different representation than the value.
      */
-    val value: String? = null,
+    val getDisplayValue: (String) -> String = { it },
+    /**
+     * The update method to transfer the current value to the [SearchUserProvider].
+     */
+    val setValue: (String?) -> Unit,
 )

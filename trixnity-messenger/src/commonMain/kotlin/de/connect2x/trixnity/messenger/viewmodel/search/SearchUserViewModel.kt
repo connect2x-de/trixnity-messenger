@@ -5,19 +5,19 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -73,9 +73,18 @@ interface SearchUserViewModel {
     val providerSearchActive: StateFlow<List<Boolean>>
 
     /**
+     * The settings of all [SearchUserProvider]s, already combined for the same [SettingsId]s. E.g, "city" that is used
+     * in multiple providers is only listed as one setting here.
+     *
+     * **Attention**: only manipulate [SearchSetting]s of a provider via this map as through merging there is no
+     * guarantee which provider actually provides the value and should be treated as non-deterministic.
+     */
+    val providerSettings: Map<SettingsId, SearchSettingCombined>
+
+    /**
      * Accumulation of all settings the search providers have, e.g., "city: Berlin, country: Germany".
      */
-    val providerSettings: StateFlow<String?>
+    val providerSettingsString: StateFlow<List<String>>
 
     /**
      * (De-)activate a [SearchUserProvider] by its [SearchUserProviderId].
@@ -144,38 +153,55 @@ class SearchUserViewModelImpl(
         } else null
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val providerSettings: StateFlow<String?> = combine(
-        providerSearchActive,
-        combine(searchUserProviders.flatMap { searchUserProvider ->
-            searchUserProvider.settings.values
-        }) { it }
-    ) { active, settings ->
-        log.trace { "provider settings: $active, ${settings.joinToString { it.value ?: "<none>" }}" }
-        searchUserProviders.mapIndexed { index, searchUserProvider -> active[index] to searchUserProvider }
-            .filter { (active, searchUserProvider) ->
-                searchUserProvider.settings.any { setting ->
-                    // look for other active search providers which might have the same setting
-                    val consider =
-                        active || searchUserProviders.any { otherSearchUserProvider ->
-                            otherSearchUserProvider.providerId != searchUserProvider.providerId &&
-                                    otherSearchUserProvider.settings.any { otherSetting -> otherSetting.key == setting.key }
-                        }
-                    val value = setting.value.value
-                    consider && value.value != null && value.value.isNotBlank()
+    override val providerSettings: Map<SettingsId, SearchSettingCombined> = buildMap {
+        searchUserProviders.forEach { searchUserProvider ->
+            searchUserProvider.settings.forEach { (settingsId, setting) ->
+                val existing = get(settingsId)
+                if (existing == null) {
+                    put(
+                        settingsId, SearchSettingCombined(
+                            id = settingsId,
+                            name = setting.name,
+                            sourceDisplayNames = listOf(searchUserProvider.providerDisplayName),
+                            getDisplayValue = setting.getDisplayValue,
+                            setValue = listOf(setting.setValue),
+                        )
+                    )
+                } else {
+                    put(
+                        settingsId, existing.copy(
+                            sourceDisplayNames = existing.sourceDisplayNames + searchUserProvider.providerDisplayName,
+                            setValue = existing.setValue + setting.setValue
+                        )
+                    )
                 }
             }
-            .joinToString { (active, searchUserProvider) ->
-                searchUserProvider.settings
-                    .filter { setting ->
-                        val value = setting.value.value.value
-                        value != null && value.isNotBlank()
-                    }
-                    .values
-                    .joinToString { setting ->
-                        "${setting.value.name}: ${setting.value.value}"
-                    }
+        }
+    }
+
+    override val providerSettingsString: StateFlow<List<String>> = combine(
+        providerSearchActive,
+        combine(providerSettings.map { (settingsId, setting) ->
+            setting.value.map { settingsValue ->
+                Triple(
+                    settingsId,
+                    setting.name,
+                    settingsValue?.let { setting.getDisplayValue(it) },
+                )
             }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        }) { it },
+    ) { active, settings ->
+        log.debug { "provider settings: $active, ${settings.joinToString { "${it.first} -> ${it.second}: ${it.third}" }}" }
+        settings.filter { (settingsId, settingsName, setting) ->
+            setting.isNullOrBlank().not() && searchUserProviders.mapIndexed { index, provider ->
+                active[index]
+                        && provider.settings.entries.any { searchSettings -> searchSettings.key == settingsId }
+            }.isNotEmpty()
+        }.map { (_, settingsName, setting) ->
+            "$settingsName: $setting"
+        }
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
+
 
     override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {
         val index = searchUserProviders.indexOfFirst { it.providerId == providerId }
@@ -197,30 +223,23 @@ class SearchUserViewModelImpl(
 
     init {
         log.debug { "searchUserProviders: $searchUserProviders" }
-
         coroutineScope.launch {
-            val settings2SearchUserProviders = buildMap {
-                searchUserProviders.forEachIndexed { index, searchUserProvider ->
-                    searchUserProvider.settings.keys.forEach { setting ->
-                        getOrPut(setting) { mutableListOf() }.add(index)
-                    }
-                }
-            }
-            combine(searchUserProviders.flatMap { searchUserProvider ->
-                searchUserProvider.settings.values
-            }) { it }.collectLatest { // anything changed in the settings
-                searchUserProviders.forEach { searchUserProvider ->
-                    searchUserProvider.settings.forEach { (settingsId, setting) ->
-                        if (setting.value.value != null && setting.value.value?.isNotBlank() == true) {
-                            settings2SearchUserProviders[settingsId]?.let { hasSetting ->
-                                providerSearchCanBeActive.value = searchUserProviders.mapIndexed { index, _ ->
-                                    hasSetting.contains(index)
-                                }
+            combine(providerSettings.map { (settingsId, setting) ->
+                setting.value.map { Triple(settingsId, setting.name, it) }
+            }) { settings ->
+                val activeSettings = settings.filter { (_, _, setting) -> setting.isNullOrBlank().not() }
+                providerSearchCanBeActive.value = searchUserProviders.map { searchUserProvider ->
+                    if (activeSettings.isEmpty()) {
+                        true
+                    } else {
+                        activeSettings.all { (activeSettingsId, _, _) ->
+                            searchUserProvider.settings.entries.any { (settingsId, setting) ->
+                                settingsId == activeSettingsId
                             }
                         }
                     }
                 }
-            }
+            }.collect { }
         }
         coroutineScope.launch { search() }
     }
@@ -228,7 +247,7 @@ class SearchUserViewModelImpl(
     @OptIn(FlowPreview::class)
     private suspend fun search() {
         combine(
-            providerSettings,
+            providerSettingsString,
             searchTerm
                 .onEach { log.trace { "Searching for user **** (redacted for privacy)" } }
                 .map { it.text }
@@ -247,7 +266,7 @@ class SearchUserViewModelImpl(
             searchUserProviders.mapIndexed { index, searchUserProvider ->
                 log.debug { " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})" }
                 if (searchTerm.isNotBlank()
-                    || searchUserProvider.settings.values.any { flow -> flow.first().value.isNullOrBlank().not() }
+                    || providerSettings.any { entry -> entry.value.value.value.isNullOrBlank().not() }
                 ) {
                     if (providerSearchActive.value[index]) {
                         providerSearchLoading[index].value = true
@@ -335,12 +354,13 @@ class SearchUserViewModelImpl(
     }
 }
 
-class PreviewSearchUserViewModel() : SearchUserViewModel {
+class PreviewSearchUserViewModel : SearchUserViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
     override val searchUserProviders: List<SearchUserProvider> = emptyList()
     override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
     override val providerSearchActive: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
-    override val providerSettings: MutableStateFlow<String?> = MutableStateFlow(null)
+    override val providerSettings: Map<SettingsId, SearchSettingCombined> = emptyMap()
+    override val providerSettingsString: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
     override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {}
     override fun filterUserSearchResult(userSearchResult: UserSearchResult) {}

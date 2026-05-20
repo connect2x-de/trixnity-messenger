@@ -63,7 +63,7 @@ fun SearchUserProviderSettings(
             }
             ThemedButton(
                 onClick = {
-                    searchUserProviders[tabIndex.value].applySettings()
+//                    searchUserProviders[tabIndex.value].applySettings()
                     onDismiss()
                 },
                 style = MaterialTheme.components.primaryButton,

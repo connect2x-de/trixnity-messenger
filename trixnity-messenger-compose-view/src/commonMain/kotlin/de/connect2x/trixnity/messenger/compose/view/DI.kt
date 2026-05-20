@@ -256,6 +256,9 @@ import de.connect2x.trixnity.messenger.compose.view.root.MessengerView
 import de.connect2x.trixnity.messenger.compose.view.root.MessengerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayView
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputSelector
+import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldView
@@ -478,6 +481,10 @@ inline fun <reified F : SearchUserProviderToggleView<*>> Module.searchUserProvid
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<SearchUserProviderToggleView<*>>(named<F>(), definition = definition)
 
+inline fun <reified F : SearchSettingInputView<*>> Module.searchSettingInputView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchSettingInputView<*>>(named<F>(), definition = definition)
+
 fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     // We have to do it here reliably as the order in which modules in a list of Koin modules is evaluated is an
     // implementation detail (current impl reverses the list, but that could change in the future)
@@ -506,6 +513,7 @@ fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfig
 fun searchViewModule() = module {
     single<SearchGroupView> { SearchGroupViewImpl() }
     single<SearchUsersView> { SearchUsersViewImpl() }
+    single<SearchSettingInputSelector> { SearchSettingInputSelectorImpl(getAll()) }
 }
 
 fun roomViewModule() = module {
