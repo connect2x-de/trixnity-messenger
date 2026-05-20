@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
+import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
@@ -28,7 +29,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDialogHeader
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AdaptiveDialogScrollContent
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAdaptiveDialog
-import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoLicensesView {
@@ -55,32 +55,35 @@ internal fun Licenses(onClose: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val licences = DI.get<MatrixMessengerBaseConfiguration>().licenses
     if (licences != null) {
-        val lazyListState = rememberLazyListState()
+        val listState = rememberLazyListState()
         val libraries = remember(licences) { Libs.Builder().withJson(licences).build() }
         var openLibrary by remember { mutableStateOf<Library?>(null) }
 
-        var focusedItem by remember(libraries) { mutableStateOf(libraries.libraries.map { it.uniqueId }.firstOrNull()) }
+        val focusedItem = remember(libraries) { mutableStateOf(libraries.libraries.firstOrNull()?.uniqueId) }
 
         ThemedAdaptiveDialog(onClose) {
             AdaptiveDialogHeader(onClose = onClose) {
                 Text(i18n.appInfoLicenses())
             }
 
-            AdaptiveDialogScrollContent(scrollState = lazyListState) {
+            AdaptiveDialogScrollContent(scrollState = listState) {
                 LazyColumn(
-                    modifier = Modifier.rovingFocusContainer(),
+                    modifier = Modifier.rovingFocusContainer(
+                        listState = listState,
+                        focusedItem = focusedItem
+                    ),
                     verticalArrangement = Arrangement.spacedBy(style.dimensions.itemSpacing),
-                    state = lazyListState,
+                    state = listState,
                 ) {
-                    items(libraries.libraries) { library ->
+                    items(libraries.libraries, { it.uniqueId }) { library ->
                         val interactionSource = remember { MutableInteractionSource() }
                         LibraryItem(
                             library = library,
                             modifier = Modifier
                                 .focusHighlighting(interactionSource)
                                 .rovingFocusItem(
-                                    isFocused = focusedItem == library.uniqueId,
-                                    onFocus = { focusedItem = library.uniqueId },
+                                    isFocused = { focusedItem.value == library.uniqueId },
+                                    onFocus = { focusedItem.value = library.uniqueId }
                                 )
                                 .clickable(interactionSource, LocalIndication.current) {
                                     openLibrary = library

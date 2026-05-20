@@ -193,15 +193,19 @@ class TimelineViewImpl : TimelineView {
                             }
                         }
                         Box {
-                            var focusedElement by remember(
-                                showTypingIndicator,
-                                timelineViewElements.value
-                            ) { mutableStateOf(0) }
+                            val focusedItem = remember {
+                                mutableStateOf(
+                                    timelineViewElements.value.firstOrNull()?.key
+                                )
+                            }
+
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .rovingFocusContainer()
-                                    .semantics {
+                                    .rovingFocusContainer(
+                                        listState = listState,
+                                        focusedItem = focusedItem
+                                    ).semantics {
                                         collectionInfo = CollectionInfo(1, timelineViewElements.value.size)
                                         liveRegion = LiveRegionMode.Polite
                                     },
@@ -221,8 +225,6 @@ class TimelineViewImpl : TimelineView {
                                 if (showTypingIndicator) {
                                     item(key = "typing", contentType = "typing") {
                                         TypingIndicator(timelineViewModel)
-                                        if (focusedElement == 0)
-                                            focusedElement++
                                     }
                                 }
                                 itemsIndexed(
@@ -236,10 +238,12 @@ class TimelineViewImpl : TimelineView {
                                     },
                                 ) { index, timelineViewElement ->
                                     Box(
-                                        Modifier.rovingFocusItem(
-                                            isFocused = focusedElement == index,
-                                            onFocus = { focusedElement = index },
-                                        ).animateItem()
+                                        Modifier
+                                            .rovingFocusItem(
+                                                isFocused = { timelineViewElement.key == focusedItem.value },
+                                                onFocus = { focusedItem.value = timelineViewElement.key }
+                                            )
+                                            .animateItem()
                                             .animateContentSize()
                                     ) {
                                         when (timelineViewElement) {
@@ -252,10 +256,12 @@ class TimelineViewImpl : TimelineView {
 
                                             is TimelineViewElement.Element -> {
                                                 val viewModel = timelineViewElement.viewModel
-                                                // if an empty timeline-event is marked as the focusedElement we cannot tab into the
+                                                // if an empty timeline-event is marked as the focusedItem we cannot tab into the
                                                 // timeline due to it not being focusable so we initially skip all empties
-                                                if (viewModel.element.value is TimelineElementViewModel.Empty && index == focusedElement)
-                                                    focusedElement++
+                                                if (focusedItem.value == timelineViewElement.key && viewModel.element.value is TimelineElementViewModel.Empty) {
+                                                    focusedItem.value = timelineViewElements.value
+                                                        .getOrNull(index + 1)?.key
+                                                }
 
                                                 TimelineElementHolder(viewModel, index)
                                             }

@@ -171,16 +171,22 @@ fun SearchGroupResults(
                 if (foundGroups.isEmpty()) {
                     Text(i18n.searchGroupNotFound())
                 } else {
-                    var focusedItem by remember(foundGroups) {
-                        mutableStateOf(foundGroups.map { it.roomId.full }.firstOrNull())
+                    val focusedItem = remember(foundGroups) {
+                        mutableStateOf(foundGroups.firstOrNull()?.roomId?.full)
                     }
-                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) {
+
+                    LazyColumn(
+                        Modifier.fillMaxSize().rovingFocusContainer(
+                            listState = listState,
+                            focusedItem = focusedItem
+                        ), listState
+                    ) {
                         items(foundGroups, { group -> group.roomId.full }) { group ->
                             SearchGroupResult(
                                 group = group,
                                 modifier = Modifier.rovingFocusItem(
-                                    isFocused = focusedItem == group.roomId.full,
-                                    onFocus = { focusedItem = group.roomId.full },
+                                    isFocused = { focusedItem.value == group.roomId.full },
+                                    onFocus = { focusedItem.value = group.roomId.full }
                                 ),
                                 searchGroupViewModel = searchGroupViewModel,
                                 knockGroupModalShownFor = knockGroupModalShownFor,

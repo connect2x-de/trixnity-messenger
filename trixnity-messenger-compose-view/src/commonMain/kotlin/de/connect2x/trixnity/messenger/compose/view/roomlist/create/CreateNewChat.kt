@@ -75,23 +75,35 @@ class CreateNewChatViewImpl : CreateNewChatView {
         val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
         val searchUsersView = DI.get<SearchUsersView>()
         val userSearchResultView = DI.get<UserSearchResultListView>()
-        val searchUsersResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
+        val userSearchResults = collectUserSearchResult(createNewChatViewModel.createNewRoomViewModel.searchHandler)
         val listState = rememberLazyListState()
         var references by remember {
             mutableStateOf(listOf<String>())
         }
 
-        LaunchedEffect(searchUsersResults) {
-            if (searchUsersResults is SearchResultState.Results) {
-                references = searchUsersResults.users.map { it.userId.full }
+        LaunchedEffect(userSearchResults) {
+            if (userSearchResults is SearchResultState.Results) {
+                references = userSearchResults.users.map { it.userId.full }
             }
         }
         references.firstOrNull()
 
+        val focusedItem = remember(userSearchResults) {
+            mutableStateOf(
+                if (userSearchResults is SearchResultState.Results) {
+                    userSearchResults.users.firstOrNull()?.userId?.full
+                } else {
+                    null
+                }
+            )
+        }
+
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
             Box(Modifier.fillMaxSize()) {
-                LazyColumn(Modifier.rovingFocusContainer(), listState) {
+                LazyColumn(
+                    Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState
+                ) {
                     item(key = "CreatingIndicator") {
                         if (isCreating) {
                             ThemedProgressIndicator(
@@ -107,9 +119,10 @@ class CreateNewChatViewImpl : CreateNewChatView {
                     searchUsersView.create(
                         createNewChatViewModel.createNewRoomViewModel,
                         createNewChatViewModel::onUserClick,
-                        searchUsersResults,
+                        userSearchResults,
                         userSearchResultView,
                         this,
+                        focusedItem
                     )
                 }
 

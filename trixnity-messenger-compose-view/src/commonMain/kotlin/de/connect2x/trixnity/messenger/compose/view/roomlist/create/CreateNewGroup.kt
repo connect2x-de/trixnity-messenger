@@ -139,7 +139,22 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     }
                     val listState = rememberLazyListState()
 
-                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) {
+                    val focusedItem = remember(userSearchResults) {
+                        mutableStateOf(
+                            if (userSearchResults is SearchResultState.Results) {
+                                userSearchResults.users.firstOrNull()?.userId?.full
+                            } else {
+                                null
+                            }
+                        )
+                    }
+
+                    LazyColumn(
+                        Modifier.fillMaxSize().rovingFocusContainer(
+                            listState = listState,
+                            focusedItem = focusedItem
+                        ), listState
+                    ) {
                         item(key = "MoreOptions") {
                             val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
                             val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
@@ -171,7 +186,8 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             { user -> createNewGroupViewModel.onUserClick(user) },
                             userSearchResults,
                             userSearchResultView,
-                            this
+                            this,
+                            focusedItem
                         )
                     }
 

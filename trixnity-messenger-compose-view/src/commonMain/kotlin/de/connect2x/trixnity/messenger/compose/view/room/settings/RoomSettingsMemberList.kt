@@ -22,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
@@ -33,6 +32,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -47,8 +48,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
     @Composable
@@ -156,31 +155,34 @@ fun MemberList(
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
-    var focusedItem by remember(members) { mutableStateOf(members.map { it.memberUserId }.firstOrNull()) }
+    val focusedItem = remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(
             Modifier
                 .fillMaxWidth()
-                .rovingFocusContainer()
+                .rovingFocusContainer(
+                    listState = state,
+                    focusedItem = focusedItem
+                )
                 .semantics {
                     collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
                 },
             state
         ) {
-            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { i, member ->
+            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { index, member ->
                 RoomSettingsMemberListElement(
                     memberListViewModel,
                     member.memberUserId,
                     member,
                     modifier = Modifier
                         .rovingFocusItem(
-                            isFocused = focusedItem == member.memberUserId,
-                            onFocus = { focusedItem = member.memberUserId },
+                            isFocused = { focusedItem.value == member.memberUserId.full },
+                            onFocus = { focusedItem.value = member.memberUserId.full },
                         )
                         .semantics {
                             collectionItemInfo =
-                                CollectionItemInfo(rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                                CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
                         },
                     onClick = {
                         onClickUser(member.memberUserId)

@@ -22,16 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -99,23 +98,33 @@ class RoomListViewImpl : RoomListView {
                     }
                 }
             } else {
-                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState()
-
-                var selectedId by remember {
-                    mutableStateOf(selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId)
+                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
+                val focusedItem = remember(selectedRoomId, allRooms) {
+                    mutableStateOf(
+                        if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
+                            selectedRoomId.full
+                        } else {
+                            allRooms.firstOrNull()?.roomId?.full
+                        }
+                    )
                 }
                 LazyColumn(
                     Modifier
                         .fillMaxSize()
-                        .rovingFocusContainer()
+                        .rovingFocusContainer(
+                            listState = state,
+                            focusedItem = focusedItem,
+                            ignoredKeys = listOf("Spacer")
+                        )
                         .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
                     state,
                 ) {
                     itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
                         Box(
                             Modifier.rovingFocusItem(
-                                isFocused = roomListElement.roomId == selectedId,
-                                onFocus = { selectedId = roomListElement.roomId })
+                                isFocused = { focusedItem.value == roomListElement.roomId.full },
+                                onFocus = { focusedItem.value = roomListElement.roomId.full }
+                            ),
                         ) {
                             RoomListElementContainer(
                                 roomListElement.roomId,
@@ -126,7 +135,7 @@ class RoomListViewImpl : RoomListView {
                         }
 
                     }
-                    item {
+                    item("Spacer") {
                         Spacer(Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2))
                     }
                 }

@@ -201,8 +201,8 @@ fun ColumnScope.ReadersAndReactions(
         }.plus(reactions.byUser).values.sortedByDescending { it.reactions.size }
     }
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-    var focusedItem by remember(allReadersAndReactions) {
-        mutableStateOf(allReadersAndReactions.map { it.sender.userId }.firstOrNull())
+    val focusedItem = remember(allReadersAndReactions) {
+        mutableStateOf(allReadersAndReactions.firstOrNull()?.sender?.userId)
     }
 
     Column(Modifier.heightIn(min = 25.dp, max = 500.dp)) {
@@ -217,13 +217,19 @@ fun ColumnScope.ReadersAndReactions(
                 }
             )
             Box {
-                LazyColumn(Modifier.rovingFocusContainer(), state) {
-                    items(allReadersAndReactions) { eventReaction ->
+                LazyColumn(
+                    Modifier.rovingFocusContainer(
+                        listState = state,
+                        focusedItem = focusedItem
+                    ),
+                    state
+                ) {
+                    items(allReadersAndReactions, { it.sender.userId }) { eventReaction ->
                         UserInfo(
                             eventReaction.sender,
                             Modifier.rovingFocusItem(
-                                isFocused = focusedItem == eventReaction.sender.userId,
-                                onFocus = { focusedItem = eventReaction.sender.userId }
+                                isFocused = { focusedItem.value == eventReaction.sender.userId },
+                                onFocus = { focusedItem.value = eventReaction.sender.userId },
                             ),
                             eventReaction.reactions.keys,
                             onOpenUserProfile = onOpenUserProfile,
