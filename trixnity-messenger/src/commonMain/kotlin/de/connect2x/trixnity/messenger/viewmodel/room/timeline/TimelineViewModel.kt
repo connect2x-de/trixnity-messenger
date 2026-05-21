@@ -508,19 +508,21 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         val outboxTransactionIds =
-            outbox.flatten().map { outboxMessages ->
-                outboxMessages.map { outboxMessage -> outboxMessage.transactionId }
-            }
-        outboxTransactionIds
-            .scan(setOf<String>()) { old, current ->
-                val new = current - old
-                if (new.isNotEmpty()) {
-                    log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
-                    jumpToEndOfTimelineSuspending()
+            outbox
+                .flatten()
+                .map { outboxMessages ->
+                    outboxMessages.associate { outboxMessage ->
+                        outboxMessage.transactionId to outboxMessage.createdAt
+                    }
                 }
-                current.toSet()
+        outboxTransactionIds.scan(mapOf<String, Instant>()) { old, current ->
+            val new = current - old.keys
+            if (new.isNotEmpty()) {
+                log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
+                jumpToEndOfTimelineSuspending(new.minByOrNull { it.value }!!.key.asKey(roomId))
             }
-            .launchIn(coroutineScope)
+            current
+        }.launchIn(coroutineScope)
     }
 
     private fun markLastVisibleEventAsReadWhenItChanges() {
@@ -883,9 +885,7 @@ class TimelineViewModelImpl(
                             val previousLastElement = timelineStateChange.elementsBeforeChange.last()
                             val addedElementsAtEnd =
                                 timelineStateChange.addedElements.isNotEmpty() &&
-                                    timelineStateChange.elementsAfterChange.firstOrNull {
-                                        it.key == previousLastElement.key
-                                    } != null &&
+                                    timelineStateChange.elementsAfterChange.any { it.key == previousLastElement.key } &&
                                     previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
 
                             val wasAtEndOfTimeline =
@@ -932,8 +932,10 @@ class TimelineViewModelImpl(
         }
     }
 
-    private suspend fun jumpToEndOfTimelineSuspending() {
-        val lastEventId = matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull().first()
+    private suspend fun jumpToEndOfTimelineSuspending(outboxElementKey: String? = null) {
+        val lastEventId =
+            matrixClient.room.getById(roomId).map { it?.lastEventId }.filterNotNull()
+                .first()
         val lastTimelineEventKey =
             matrixClient.room.getTimelineEvent(roomId, lastEventId).filterNotNull().first().asKey()
         val lastOutboxElementKey = (elements.value.lastOrNull() as? OutboxElementHolderViewModel)?.key
@@ -941,7 +943,7 @@ class TimelineViewModelImpl(
             log.debug { "last timeline event $lastEventId not part of timeline, therefore re-init timeline" }
             timelineStartFrom.emit(lastEventId)
         }
-        val scrollToKey = lastOutboxElementKey ?: lastTimelineEventKey
+        val scrollToKey = outboxElementKey ?: lastOutboxElementKey ?: lastTimelineEventKey
         log.debug { "jump to end of timeline (key=$scrollToKey)" }
         scrollTo.emit(scrollToKey)
     }
