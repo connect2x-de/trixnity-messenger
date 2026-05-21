@@ -61,6 +61,7 @@ interface AccountSingleViewModel {
     val avatar: StateFlow<ByteArray?>
     val canChangeAvatar: StateFlow<Boolean>
     val canDeleteAvatar: StateFlow<Boolean>
+    val hasAvatarUrl: StateFlow<Boolean>
     val initials: StateFlow<String>
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
@@ -123,8 +124,13 @@ class AccountSingleViewModelImpl(
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val canDeleteAvatar = avatar.map { it != null }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canDeleteAvatar = matrixClient.serverData.map { _ ->
+        canDeleteAvatar()
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val hasAvatarUrl = matrixClient.profile.map { _ ->
+        hasAvatarUrl()
+    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val initials =
         matrixClient.profile
@@ -169,9 +175,7 @@ class AccountSingleViewModelImpl(
     override fun deleteAvatar() {
         coroutineScope.launch {
             val matrixClient = getMatrixClient(userId)
-            val capabilities = matrixClient.serverData.value?.capabilities?.capabilities
-            val hasCapability = capabilities?.profileFields?.enabled ?: true || capabilities.setAvatarUrl.enabled
-            if (hasCapability) {
+            if (hasAvatarUrl() && canDeleteAvatar()) {
                 matrixClient.deleteProfileField(ProfileField.AvatarUrl)
                     .onFailure {
                         log.error(it) { "Cannot delete avatar." }
@@ -185,6 +189,17 @@ class AccountSingleViewModelImpl(
                 log.warn { "Missing server capability to remove the avatar url." }
             }
         }
+    }
 
+    private fun canDeleteAvatar(): Boolean {
+        val capabilities = matrixClient.serverData.value?.capabilities?.capabilities
+        val hasDeleteAvatarCapability = (capabilities?.profileFields?.enabled ?: true)
+                || capabilities.setAvatarUrl.enabled
+
+        return hasDeleteAvatarCapability
+    }
+
+    private fun hasAvatarUrl(): Boolean {
+        return !matrixClient.profile.value?.get(ProfileField.AvatarUrl)?.value.isNullOrBlank()
     }
 }

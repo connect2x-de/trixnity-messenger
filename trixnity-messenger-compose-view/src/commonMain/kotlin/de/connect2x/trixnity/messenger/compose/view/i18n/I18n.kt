@@ -2035,6 +2035,11 @@ open class I18nView(
         DE - "Profilbild löschen"
     }
 
+    open fun profileAvatarDeleteNoPermission() = translate {
+        EN - "You do not have permission to delete your avatar"
+        DE - "Sie haben keine Berechtigung, Ihr Profilbild zu löschen"
+    }
+
     open fun profileYourName() = translate {
         EN - "Your name"
         DE - "Ihr Name"

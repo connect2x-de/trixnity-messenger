@@ -118,6 +118,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
     val avatar = accountSingleViewModel.avatar.collectAsState().value
     val canChangeAvatar = accountSingleViewModel.canChangeAvatar.collectAsState().value
     val canDeleteAvatar = accountSingleViewModel.canDeleteAvatar.collectAsState().value
+    val hasAvatarUrl = accountSingleViewModel.hasAvatarUrl.collectAsState().value
     val initials = accountSingleViewModel.initials.collectAsState().value
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -138,10 +139,14 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
                         }
                     }
                 }
-                if (canDeleteAvatar) {
+                if (hasAvatarUrl) {
                     Box(Modifier.align(Alignment.TopEnd).padding(10.dp)) {
-                        Tooltip({ Text(i18n.profileAvatarDelete()) }) {
+                        Tooltip({
+                            if (canDeleteAvatar) Text(i18n.profileAvatarDelete())
+                            else Text(i18n.profileAvatarDeleteNoPermission())
+                        }) {
                             ThemedIconButton(
+                                enabled = canDeleteAvatar,
                                 style = MaterialTheme.components.secondaryIconButton,
                                 onClick = { accountSingleViewModel.deleteAvatar() },
                             ) {
