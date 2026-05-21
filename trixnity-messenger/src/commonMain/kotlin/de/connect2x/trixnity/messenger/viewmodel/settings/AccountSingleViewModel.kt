@@ -172,7 +172,7 @@ class AccountSingleViewModelImpl(
             val capabilities = matrixClient.serverData.value?.capabilities?.capabilities
             val hasCapability = capabilities?.profileFields?.enabled ?: true || capabilities.setAvatarUrl.enabled
             if (hasCapability) {
-                matrixClient.api.user.deleteProfileField(userId, ProfileField.AvatarUrl)
+                matrixClient.deleteProfileField(ProfileField.AvatarUrl)
                     .onFailure {
                         log.error(it) { "Cannot delete avatar." }
                         if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {

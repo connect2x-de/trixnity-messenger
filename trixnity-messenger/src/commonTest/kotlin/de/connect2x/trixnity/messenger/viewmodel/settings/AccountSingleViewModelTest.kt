@@ -181,16 +181,11 @@ class AccountSingleViewModelTest {
 
     @Test
     fun `delete avatar image and reload profile`() = runTest {
-        // FIXME replace api.user calls with new implementation. also, make the code prettier
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        val userApiMock = mock<UserApiClient>()
-        val apiMock = mock<MatrixClientServerApiClient>()
-        every { matrixClientMock.api } returns apiMock
-        every { apiMock.user } returns userApiMock
-        deleteAvatarMocker = everySuspend { userApiMock.deleteProfileField(ownUserId, ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         deleteAvatarMocker calls {
-            profile.value -= ProfileField.AvatarUrl("")
+            profile.value -= ProfileField.AvatarUrl
             Result.success(Unit)
         }
 
@@ -214,20 +209,16 @@ class AccountSingleViewModelTest {
         cut.deleteAvatar()
         delay(200.milliseconds)
 
-        verifySuspend { userApiMock.deleteProfileField(ownUserId, ProfileField.AvatarUrl) }
+        // after successful deletion avatar must be null
+        verifySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         cut.avatar.value shouldBe null
     }
 
     @Test
     fun `show error when avatar image cannot be deleted`() = runTest {
-        // FIXME implementation
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        val userApiMock = mock<UserApiClient>()
-        val apiMock = mock<MatrixClientServerApiClient>()
-        every { matrixClientMock.api } returns apiMock
-        every { apiMock.user } returns userApiMock
-        deleteAvatarMocker = everySuspend { userApiMock.deleteProfileField(ownUserId, ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         deleteAvatarMocker returns Result.failure(RuntimeException("Something went wrong!"))
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
@@ -256,14 +247,9 @@ class AccountSingleViewModelTest {
 
     @Test
     fun `display an error message when the user has not enough rights to delete the avatar image`() = runTest {
-        // FIXME implementation
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        val userApiMock = mock<UserApiClient>()
-        val apiMock = mock<MatrixClientServerApiClient>()
-        every { matrixClientMock.api } returns apiMock
-        every { apiMock.user } returns userApiMock
-        deleteAvatarMocker = everySuspend { userApiMock.deleteProfileField(ownUserId, ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         deleteAvatarMocker returns Result.failure(
             MatrixServerException(
                 HttpStatusCode.Forbidden,
@@ -297,7 +283,6 @@ class AccountSingleViewModelTest {
 
     @Test
     fun `don't delete avatar image when capabilities are missing`() = runTest {
-        // FIXME implementation
         val capabilities = MutableStateFlow(
             ServerData(
                 versions = GetVersions.Response(),
@@ -315,13 +300,9 @@ class AccountSingleViewModelTest {
         every { matrixClientMock.serverData } returns capabilities
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        val userApiMock = mock<UserApiClient>()
-        val apiMock = mock<MatrixClientServerApiClient>()
-        every { matrixClientMock.api } returns apiMock
-        every { apiMock.user } returns userApiMock
-        deleteAvatarMocker = everySuspend { userApiMock.deleteProfileField(ownUserId, ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         deleteAvatarMocker calls {
-            profile.value -= ProfileField.AvatarUrl("")
+            profile.value -= ProfileField.AvatarUrl
             Result.success(Unit)
         }
 
