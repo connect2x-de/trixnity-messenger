@@ -2,9 +2,12 @@ package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -69,10 +72,11 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
             ) {
                 Icon(Icons.Default.FilterList, i18n.userSearchFilter())
                 Spacer(Modifier.size(10.dp))
-                if (providerSettings.isEmpty()) {
+                val showChips = providerSettings.isNotEmpty() && showFilters.not()
+                AnimatedVisibility(showChips.not()) {
                     Text(text = i18n.userSearchFilterOptions(), style = MaterialTheme.typography.titleSmall)
                 }
-                if (providerSettings.isNotEmpty() && showFilters.not()) {
+                AnimatedVisibility(showChips, enter = fadeIn(), exit = fadeOut()) {
                     SmallSpacer()
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
@@ -84,12 +88,13 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                     }
                     SmallSpacer()
                 }
-                Spacer(Modifier.weight(1.0f, fill = true))
-                Icon(
-                    Icons.Default.ArrowDropDown,
-                    i18n.userSearchSelectFilter(),
-                    modifier = Modifier.rotate(rotateState.value),
-                )
+                Box(Modifier.weight(1f, fill = true), contentAlignment = Alignment.CenterEnd) {
+                    Icon(
+                        Icons.Default.ArrowDropDown,
+                        i18n.userSearchSelectFilter(),
+                        modifier = Modifier.rotate(rotateState.value),
+                    )
+                }
             }
             AnimatedVisibility(visible = showFilters) {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
