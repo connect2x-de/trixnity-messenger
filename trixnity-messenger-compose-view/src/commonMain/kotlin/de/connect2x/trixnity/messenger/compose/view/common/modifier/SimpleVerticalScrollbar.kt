@@ -1,3 +1,5 @@
+package de.connect2x.trixnity.messenger.compose.view.common.modifier
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListState

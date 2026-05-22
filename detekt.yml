@@ -136,7 +136,8 @@ potential-bugs:
   MapGetWithNotNullAssertionOperator:
     active: true
   MissingPackageDeclaration:
-    active: false
+    active: true
+    excludes: [ '**/*.kts' ]
   MissingSuperCall:
     active: true
   MissingUseCall:
