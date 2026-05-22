@@ -80,8 +80,6 @@ interface SearchUserViewModel {
     fun unfilterUserSearchResult(userSearchResult: UserSearchResult)
 }
 
-// FIXME change active should lead to new search being triggered
-
 class SearchUserViewModelImpl(
     matrixClientViewModelContext: MatrixClientViewModelContext,
     private val debounceDuration: Duration = 300.milliseconds,
@@ -97,6 +95,8 @@ class SearchUserViewModelImpl(
                 activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchActive.value)
+    private val triggerSearch = MutableStateFlow<Unit?>(null)
+
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
 
     private val filteredUserSearchResults = MutableStateFlow<List<UserSearchResult>>(emptyList())
@@ -207,6 +207,18 @@ class SearchUserViewModelImpl(
             if (index == providerSearchActive.value.size - 1) emptyList()
             else providerSearchActive.value.subList(index + 1, providerSearchActive.value.size)
         _providerSearchActive.value = _providerSearchActive.value.subList(0, index) + active + rest
+
+        if (active) { // means: re-activating a search provider -> we need to initiate a new search
+            emitTriggerSearch()
+        }
+    }
+
+    private fun emitTriggerSearch() {
+        triggerSearch.value =
+            when (triggerSearch.value) {
+                null -> Unit
+                else -> null
+            }
     }
 
     override val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>> =
@@ -247,6 +259,7 @@ class SearchUserViewModelImpl(
     @OptIn(FlowPreview::class)
     private suspend fun search() {
         combine(
+                triggerSearch,
                 providerSettingsString,
                 searchTerm
                     .onEach { log.trace { "Searching for user **** (redacted for privacy)" } }
@@ -259,8 +272,8 @@ class SearchUserViewModelImpl(
                             it.lowercase()
                         } else it
                     },
-            ) { _, searchTerm ->
-                searchTerm // we just need to react to providerSettings changes
+            ) { _, _, searchTerm ->
+                searchTerm // we just need to react to provider active and providerSettings changes
             }
             .scopedCollectLatest { searchTerm ->
                 log.trace { "search for users in search providers" }

@@ -28,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,8 +48,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusC
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.isMobile
-import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettings
-import de.connect2x.trixnity.messenger.compose.view.roomlist.search.searchResults
+import de.connect2x.trixnity.messenger.compose.view.search.searchResults
 import de.connect2x.trixnity.messenger.compose.view.search.searchTerm
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
@@ -74,21 +72,18 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
             val isCreating by createNewGroupViewModel.isCreating.collectAsState()
             val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
             val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
-
             val searchResultList = createNewGroupViewModel.searchUserViewModel.searchResultList.collectAsState().value
-            val providerSearchActive =
-                createNewGroupViewModel.searchUserViewModel.providerSearchActive.collectAsState().value
-            val searchUserProviderSettings = remember { mutableStateOf(false) }
 
             val roomOptionsString = buildString {
                 append(i18n.roomType())
 
-                val roomType = when {
-                    isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
-                    !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
-                    !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
-                    else -> i18n.roomTypeForbidden()
-                }
+                val roomType =
+                    when {
+                        isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
+                        !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
+                        !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
+                        else -> i18n.roomTypeForbidden()
+                    }
                 append(roomType)
             }
 
@@ -97,18 +92,15 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                     verticalArrangement = Arrangement.SpaceBetween,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Header(createNewGroupViewModel::back, {
-                        Text(
-                            i18n.createNewGroupNewGroup(),
-                            fontWeight = Bold,
-                            fontSize = 16.sp,
-                        )
-                    })
+                    Header(
+                        createNewGroupViewModel::back,
+                        { Text(i18n.createNewGroupNewGroup(), fontWeight = Bold, fontSize = 16.sp) },
+                    )
                     Box(Modifier.fillMaxSize()) {
                         if (isCreating) {
                             ThemedProgressIndicator(
                                 Modifier.fillMaxWidth(),
-                                MaterialTheme.components.linearProgressIndicator
+                                MaterialTheme.components.linearProgressIndicator,
                             )
                         }
                         val listState = rememberLazyListState()
@@ -142,32 +134,18 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                                 VerySmallSpacer()
                                 UsersInGroup(createNewGroupViewModel)
                             }
-                            searchTerm(createNewGroupViewModel.searchUserViewModel) {
-                                searchUserProviderSettings.value = true
-                            }
+                            searchTerm(createNewGroupViewModel.searchUserViewModel)
                             searchResults(
                                 searchUserProviders = createNewGroupViewModel.searchUserViewModel.searchUserProviders,
                                 onUserClick = createNewGroupViewModel::onUserClick,
-                                providerSearchActive = providerSearchActive,
-                                providerSearchSetActive = { index, active ->
-                                    createNewGroupViewModel.searchUserViewModel.setProvider(index, active)
-                                },
                                 searchResultList = searchResultList,
                             )
                         }
 
-                        VerticalScrollbar(
-                            Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                            listState,
-                            false
-                        )
+                        VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
                     }
                 }
-                Box(
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(bottom = 20.dp, end = 20.dp)
-                ) {
+                Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 20.dp, end = 20.dp)) {
                     ThemedFloatingActionButton(
                         expanded = true,
                         enabled = !isCreating && canCreateNewGroup.value,
@@ -179,12 +157,6 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
             }
 
             CreateNewRoomErrorDialog(error, errorDetails, onDismiss = { createNewGroupViewModel.errorDismiss() })
-
-            if (searchUserProviderSettings.value) {
-                SearchUserProviderSettings(createNewGroupViewModel.searchUserViewModel.searchUserProviders) {
-                    searchUserProviderSettings.value = false
-                }
-            }
         }
     }
 }
@@ -208,24 +180,25 @@ private fun UsersInGroup(createNewGroupViewModel: CreateNewGroupNewSearchViewMod
                         key(groupUser.userId) {
                             Column(
                                 Modifier.requiredWidth(60.dp)
-                                    .then(if (isMobile) Modifier.clickable {
-                                        createNewGroupViewModel.removeUserFromGroup(groupUser)
-                                    } else Modifier),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                                    .then(
+                                        if (isMobile)
+                                            Modifier.clickable {
+                                                createNewGroupViewModel.removeUserFromGroup(groupUser)
+                                            }
+                                        else Modifier
+                                    ),
+                                horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 val presence =
-                                    if (groupUser is HomeserverUserSearchResult) groupUser.presence.collectAsState().value
+                                    if (groupUser is HomeserverUserSearchResult)
+                                        groupUser.presence.collectAsState().value
                                     else null
-                                ThemedUserAvatar(
-                                    initials = groupUser.initials,
-                                    image = image,
-                                    presence = presence,
-                                ) {
+                                ThemedUserAvatar(initials = groupUser.initials, image = image, presence = presence) {
                                     Tooltip({ Text(i18n.commonRemove()) }) {
                                         ThemedIconButton(
                                             style = MaterialTheme.components.primaryIconButton,
                                             size = 15.dp,
-                                            onClick = { createNewGroupViewModel.removeUserFromGroup(groupUser) }
+                                            onClick = { createNewGroupViewModel.removeUserFromGroup(groupUser) },
                                         ) {
                                             Icon(Icons.Default.Close, i18n.commonRemove())
                                         }
@@ -234,7 +207,7 @@ private fun UsersInGroup(createNewGroupViewModel: CreateNewGroupNewSearchViewMod
                                 Text(
                                     groupUser.displayName ?: "",
                                     maxLines = 3,
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelMedium,
                                 )
                             }
                         }

@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues

@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.roomlist.search
+package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.runtime.Composable
 import de.connect2x.lognity.api.logger.Logger

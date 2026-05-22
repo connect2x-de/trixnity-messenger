@@ -7,16 +7,15 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
-fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel, onProviderSettingsClicked: () -> Unit) {
+fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel) {
     stickyHeader("searchTerm") {
         Surface(Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp)) {
                 UserSearchFieldNewSearch(searchUserViewModel)
-                SmallSpacer()
                 SearchTermFilterSettings(searchUserViewModel)
+                SearchUserProviderToggles(searchUserViewModel)
             }
         }
     }

@@ -57,6 +57,7 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
     if (
         searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
     ) {
+        SmallSpacer()
         Card(
             modifier =
                 Modifier.clickable(interactionSource, indication = null, onClick = { showFilters = showFilters.not() })

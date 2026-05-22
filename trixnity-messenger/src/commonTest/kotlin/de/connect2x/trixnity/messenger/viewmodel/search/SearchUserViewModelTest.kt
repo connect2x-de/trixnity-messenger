@@ -350,7 +350,7 @@ class SearchUserViewModelTest {
         cut.providerSettings[SettingsIdCity]?.setValue("Berlin")
         cut.setProvider("test-1", false) // provider2 still has city
         delay(10.milliseconds)
-        cut.providerSettingsString.value shouldBe "city: Berlin"
+        cut.providerSettingsString.value shouldBe listOf("city: Berlin")
     }
 
     @Test
@@ -371,6 +371,23 @@ class SearchUserViewModelTest {
         cut.searchTerm.update("changedAgain")
         delay(10.milliseconds)
         cut.searchResultList.value shouldNotBeNull {} shouldBe emptyList() // result is reset until search finishes
+    }
+
+    @Test
+    fun `should do a new search if a provider is re-activated with another search term`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
+
+        cut.setProvider("test-1", active = false)
+        cut.searchTerm.update("martinInProvider1")
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldBe listOf()
+
+        cut.setProvider("test-1", active = true)
+        delay(10.milliseconds)
+        cut.searchResultList.value shouldNotBeNull {} shouldBe listOf(martin)
     }
 
     private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
@@ -448,14 +465,21 @@ class SearchUserViewModelTest {
             coroutineScope: CoroutineScope,
         ): ProviderSearchResult {
             log.debug { "test-1 search" }
-            return if (searchTerm == "u" || searchTerm == "") { // "" for testing filter settings
-                if (city == null || city == "Berlin") {
-                    ProviderSearchResult.Success(listOf(user1))
-                } else {
+            return when (searchTerm) {
+                "u",
+                "" -> { // "" for testing filter settings
+                    if (city == null || city == "Berlin") {
+                        ProviderSearchResult.Success(listOf(user1))
+                    } else {
+                        ProviderSearchResult.Success(listOf())
+                    }
+                }
+                "martinInProvider1" -> {
+                    ProviderSearchResult.Success(listOf(martin))
+                }
+                else -> {
                     ProviderSearchResult.Success(listOf())
                 }
-            } else {
-                ProviderSearchResult.Success(listOf())
             }
         }
     }
