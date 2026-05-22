@@ -101,20 +101,20 @@ class AccountSingleViewModelImpl(
         matrixClient.profile
             .map { profile ->
                 profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
-                    avatarUrl.value?.takeIf {
-                        it.isNotBlank()
-                    }?.let { avatarUrl ->
-                        matrixClient.media
-                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                            .fold(
-                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                                onFailure = {
-                                    log.error(it) { "Cannot load user avatar." }
-                                    error.value = i18n.profileLoadError()
-                                    null
-                                },
-                            )
-                    }
+                    avatarUrl.value
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { avatarUrl ->
+                            matrixClient.media
+                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                                .fold(
+                                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                    onFailure = {
+                                        log.error(it) { "Cannot load user avatar." }
+                                        error.value = i18n.profileLoadError()
+                                        null
+                                    },
+                                )
+                        }
                 }
             }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
@@ -124,14 +124,18 @@ class AccountSingleViewModelImpl(
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val canDeleteAvatar = matrixClient.serverData.map { serverData ->
-        val capabilities = serverData?.capabilities?.capabilities
-        (capabilities?.profileFields?.enabled ?: true) || capabilities.setAvatarUrl.enabled
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canDeleteAvatar =
+        matrixClient.serverData
+            .map { serverData ->
+                val capabilities = serverData?.capabilities?.capabilities
+                (capabilities?.profileFields?.enabled ?: true) || capabilities.setAvatarUrl.enabled
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val hasAvatarUrl = matrixClient.profile.map { profile ->
-        profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank()
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val hasAvatarUrl =
+        matrixClient.profile
+            .map { profile -> profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank() }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val initials =
         matrixClient.profile
@@ -177,15 +181,14 @@ class AccountSingleViewModelImpl(
         coroutineScope.launch {
             val matrixClient = getMatrixClient(userId)
             if (hasAvatarUrl.value && canDeleteAvatar.value) {
-                matrixClient.deleteProfileField(ProfileField.AvatarUrl)
-                    .onFailure {
-                        log.error(it) { "Cannot delete avatar." }
-                        if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
-                            error.value = i18n.profileAvatarDeleteForbidden()
-                        } else {
-                            error.value = i18n.profileAvatarDeleteError()
-                        }
+                matrixClient.deleteProfileField(ProfileField.AvatarUrl).onFailure {
+                    log.error(it) { "Cannot delete avatar." }
+                    if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                        error.value = i18n.profileAvatarDeleteForbidden()
+                    } else {
+                        error.value = i18n.profileAvatarDeleteError()
                     }
+                }
             } else {
                 log.warn { "Missing server capability to remove the avatar url." }
             }

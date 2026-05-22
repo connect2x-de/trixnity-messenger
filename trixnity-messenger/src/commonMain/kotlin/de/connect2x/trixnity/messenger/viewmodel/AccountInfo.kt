@@ -65,19 +65,20 @@ fun MatrixClients.toAccountInfo(
             val serverDisplayNameFlow = matrixClient.profile.map { it?.displayName ?: userId.localpart }
             val avatarFlow =
                 matrixClient.profile.map { profile ->
-                    profile?.avatarUrl?.takeIf {
-                        it.isNotBlank()
-                    }?. let { avatarUrl ->
-                        matrixClient.media
-                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                            .fold(
-                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                                onFailure = {
-                                    log.error(it) { "Cannot load user avatar" }
-                                    null
-                                },
-                            )
-                    }
+                    profile
+                        ?.avatarUrl
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { avatarUrl ->
+                            matrixClient.media
+                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                                .fold(
+                                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                    onFailure = {
+                                        log.error(it) { "Cannot load user avatar" }
+                                        null
+                                    },
+                                )
+                        }
                 }
             combine(serverDisplayNameFlow, settings[userId], avatarFlow) { serverDisplayName, settings, avatar ->
                 AccountInfo(

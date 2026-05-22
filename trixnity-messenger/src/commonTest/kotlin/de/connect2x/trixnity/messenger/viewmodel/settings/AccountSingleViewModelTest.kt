@@ -3,8 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.store.ServerData
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.UserApiClient
 import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
 import de.connect2x.trixnity.clientserverapi.model.server.Capabilities
 import de.connect2x.trixnity.clientserverapi.model.server.Capability
@@ -37,8 +35,6 @@ import io.ktor.http.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -186,13 +182,12 @@ class AccountSingleViewModelTest {
     fun `delete avatar image and reload profile`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend {
-            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
-        }
-        deleteAvatarMocker calls {
-            profile.value -= ProfileField.AvatarUrl
-            Result.success(Unit)
-        }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker calls
+            {
+                profile.value -= ProfileField.AvatarUrl
+                Result.success(Unit)
+            }
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
@@ -226,11 +221,8 @@ class AccountSingleViewModelTest {
     fun `show error when avatar image cannot be deleted`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend {
-            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
-        }
-        deleteAvatarMocker returns
-                Result.failure(RuntimeException("Something went wrong!"))
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker returns Result.failure(RuntimeException("Something went wrong!"))
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
@@ -263,11 +255,11 @@ class AccountSingleViewModelTest {
     fun `display an error message when the user has not enough rights to delete the avatar image`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend {
-            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
-        }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
         deleteAvatarMocker returns
-                Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("You shall not pass")))
+            Result.failure(
+                MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("You shall not pass"))
+            )
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
@@ -298,30 +290,32 @@ class AccountSingleViewModelTest {
 
     @Test
     fun `don't delete avatar image when capabilities are missing`() = runTest {
-        val capabilities = MutableStateFlow(
-            ServerData(
-                versions = GetVersions.Response(),
-                mediaConfig = GetMediaConfig.Response(),
-                capabilities = GetCapabilities.Response(
-                    capabilities = Capabilities(
-                        setOf(
-                            Capability.ProfileFields(enabled = false),
-                            Capability.SetAvatarUrl(enabled = false),
-                        )
-                    )
-                ),
+        val capabilities =
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities =
+                        GetCapabilities.Response(
+                            capabilities =
+                                Capabilities(
+                                    setOf(
+                                        Capability.ProfileFields(enabled = false),
+                                        Capability.SetAvatarUrl(enabled = false),
+                                    )
+                                )
+                        ),
+                )
             )
-        )
         every { matrixClientMock.serverData } returns capabilities
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend {
-            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
-        }
-        deleteAvatarMocker calls {
-            profile.value -= ProfileField.AvatarUrl
-            Result.success(Unit)
-        }
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker calls
+            {
+                profile.value -= ProfileField.AvatarUrl
+                Result.success(Unit)
+            }
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
