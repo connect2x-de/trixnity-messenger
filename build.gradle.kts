@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.PluginIds
 import de.connect2x.conventions.applyKtfmt
@@ -56,7 +55,7 @@ subprojects {
     if (isTrixnityProject || isJsWrapper) {
         if (CI.isCI) apply<DokkaPlugin>()
 
-        apply<MavenPublishPlugin>()
+        apply<com.vanniktech.maven.publish.MavenPublishPlugin>()
         apply<SigningPlugin>()
         defaultPublishing()
 
