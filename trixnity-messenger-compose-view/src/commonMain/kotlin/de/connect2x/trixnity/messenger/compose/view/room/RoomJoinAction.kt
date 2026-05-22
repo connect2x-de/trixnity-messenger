@@ -47,7 +47,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center)) {
                 when (action) {
-                    is JoinRoomActionViewModel.JoinRoomAction.Impossible -> {
+                    is JoinRoomActionViewModel.JoinRoomAction.Private -> {
                         JoinRoomActionModal(
                             i18n.joinRoomActionImpossible(),
                             error,
@@ -81,6 +81,12 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                             onDismiss = action.onDismiss
                         )
                     }
+
+                    is JoinRoomActionViewModel.JoinRoomAction.NotFound -> JoinRoomActionModal(
+                        i18n.joinRoomActionNotFound(),
+                        error,
+                        onDismiss = action.onDismiss
+                    )
 
                     null -> {}
                 }

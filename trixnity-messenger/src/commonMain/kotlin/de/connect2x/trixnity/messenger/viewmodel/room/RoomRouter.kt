@@ -6,8 +6,7 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.trixnity.client.store.membership
-import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -25,7 +24,7 @@ import org.koin.core.component.get
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
-    suspend fun openRoom(userId: UserId, roomId: RoomId)
+    suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>? = null)
     suspend fun closeRoom()
     fun isShown(): Boolean
 
@@ -38,7 +37,7 @@ interface RoomRouter {
         data class View(val userId: UserId, val roomId: String) : Config()
 
         @Serializable
-        data class JoinRoomAction(val userId: UserId, val roomId: String) : Config()
+        data class JoinRoomAction(val userId: UserId, val roomId: String, val via: Set<String>?) : Config()
     }
 
     sealed class Wrapper {
@@ -92,6 +91,7 @@ class RoomRouterImpl(
                 viewModelContext.get<JoinRoomActionViewModelFactory>().create(
                     viewModelContext.childContext("RoomJoinConfirm", componentContext, roomConfig.userId),
                     roomId = RoomId(roomConfig.roomId),
+                    via = roomConfig.via,
                     onOpenRoom = { onOpenRoom(roomConfig.userId, it) },
                     onDismiss = onCloseRoom
                 ).also {
@@ -101,24 +101,19 @@ class RoomRouterImpl(
         }
 
 
-    override suspend fun openRoom(userId: UserId, roomId: RoomId) {
+    override suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>?) {
         val matrixClient = viewModelContext.getMatrixClient(userId)
-//        val encrypted = matrixClient.room.getById(roomId).first()?.encrypted ?: true
-        val memberState = matrixClient.user.getById(roomId, userId).firstOrNull()?.membership
-//        val visibility =
-//            matrixClient.room.getState(roomId, HistoryVisibilityEventContent::class).first()?.content?.historyVisibility
+        val memberState = matrixClient.room.getById(roomId).firstOrNull()?.membership
         when {
             memberState == Membership.JOIN -> {
                 log.debug { "show room: $roomId" }
                 roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
             }
 
-//            visibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE && !encrypted -> {
-//                TODO show preview of timeline
-//            }
+            //TODO show preview of timeline when room is world_readable
 
             else -> {
-                roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full))
+                roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full, via))
             }
         }
     }

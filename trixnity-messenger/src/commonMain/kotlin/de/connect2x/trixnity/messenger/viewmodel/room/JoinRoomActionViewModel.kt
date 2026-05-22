@@ -23,9 +23,10 @@ interface JoinRoomActionViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
+        via: Set<String>?,
         onOpenRoom: (roomId: RoomId) -> Unit,
         onDismiss: () -> Unit
-    ) = JoinRoomActionViewModelImpl(viewModelContext, roomId, onOpenRoom, onDismiss)
+    ) = JoinRoomActionViewModelImpl(viewModelContext, roomId, via, onOpenRoom, onDismiss)
 
     companion object : JoinRoomActionViewModelFactory
 }
@@ -39,13 +40,15 @@ interface JoinRoomActionViewModel {
         data class Knock(val onKnock: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
         data class Restricted(val requiredRooms: Set<RoomId>, val onDismiss: () -> Unit) : JoinRoomAction()
         data class AcceptInvitation(val onAcceptInvite: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
-        data class Impossible(val onDismiss: () -> Unit) : JoinRoomAction()
+        data class Private(val onDismiss: () -> Unit) : JoinRoomAction()
+        data class NotFound(val onDismiss: () -> Unit) : JoinRoomAction()
     }
 }
 
 class JoinRoomActionViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
+    private val via: Set<String>?,
     private val onOpenRoom: (roomId: RoomId) -> Unit,
     private val onDismiss: () -> Unit,
 ) :
@@ -95,14 +98,19 @@ class JoinRoomActionViewModelImpl(
                         log.debug { "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition" }
                         JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
                     } else {
-                        log.debug { "Room $roomId is restricted, but there are no rooms as conditions, showing impossible action" }
-                        JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
+                        log.debug { "Room $roomId is restricted, but there are no rooms as conditions, showing private action" }
+                        JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
                     }
                 }
 
+                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Private -> {
+                    log.debug { "No action to join room $roomId with join rule ${joinRuleContent.joinRule} available, returning private action" }
+                    JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
+                }
+
                 else -> {
-                    log.debug { "No action to join room $roomId with join rule ${joinRuleContent?.joinRule} available, returning impossible action" }
-                    JoinRoomActionViewModel.JoinRoomAction.Impossible(onDismiss)
+                    log.debug { "Room $roomId couldn't be found, showing not found action" }
+                    JoinRoomActionViewModel.JoinRoomAction.NotFound(onDismiss)
                 }
             }
         }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -115,8 +123,8 @@ class JoinRoomActionViewModelImpl(
                 log.debug { "try to join room while not connected" }
                 _error.value = i18n.joinRoomConfirmJoinOffline()
             } else {
-                log.debug { "try to join room $roomId" }
-                matrixClient.api.room.joinRoom(roomId).fold(
+                log.debug { "try to join room $roomId via $via" }
+                matrixClient.api.room.joinRoom(roomId, via).fold(
                     onSuccess = {
                         onOpenRoom(it)
                     },
