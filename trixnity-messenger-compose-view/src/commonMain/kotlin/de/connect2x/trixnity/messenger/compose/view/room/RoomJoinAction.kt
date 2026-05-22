@@ -29,8 +29,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel
 
 interface JoinRoomActionView {
-    @Composable
-    fun create(viewModel: JoinRoomActionViewModel)
+    @Composable fun create(viewModel: JoinRoomActionViewModel)
 }
 
 @Composable
@@ -48,45 +47,43 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
             Column(Modifier.align(Alignment.Center)) {
                 when (action) {
                     is JoinRoomActionViewModel.JoinRoomAction.Private -> {
-                        JoinRoomActionModal(
-                            i18n.joinRoomActionImpossible(),
-                            error,
-                            onDismiss = action.onDismiss
-                        )
+                        JoinRoomActionModal(i18n.joinRoomActionImpossible(), error, onDismiss = action.onDismiss)
                     }
 
-                    is JoinRoomActionViewModel.JoinRoomAction.Join -> JoinRoomActionModal(
-                        i18n.joinRoomActionJoin(),
-                        error,
-                        onConfirm = action.onJoinRoom,
-                        onDismiss = action.onDismiss
-                    )
+                    is JoinRoomActionViewModel.JoinRoomAction.Join ->
+                        JoinRoomActionModal(
+                            i18n.joinRoomActionJoin(),
+                            error,
+                            onConfirm = action.onJoinRoom,
+                            onDismiss = action.onDismiss,
+                        )
 
-                    is JoinRoomActionViewModel.JoinRoomAction.Knock -> JoinRoomActionModal(
-                        i18n.joinRoomActionKnock(),
-                        error,
-                        onConfirm = action.onKnock,
-                        onDismiss = action.onDismiss
-                    )
+                    is JoinRoomActionViewModel.JoinRoomAction.Knock ->
+                        JoinRoomActionModal(
+                            i18n.joinRoomActionKnock(),
+                            error,
+                            onConfirm = action.onKnock,
+                            onDismiss = action.onDismiss,
+                        )
 
-                    is JoinRoomActionViewModel.JoinRoomAction.Restricted -> JoinRoomActionModal(
-                        i18n.joinRoomActionRestricted(action.requiredRooms), error, onDismiss = action.onDismiss
-                    )
+                    is JoinRoomActionViewModel.JoinRoomAction.Restricted ->
+                        JoinRoomActionModal(
+                            i18n.joinRoomActionRestricted(action.requiredRooms),
+                            error,
+                            onDismiss = action.onDismiss,
+                        )
 
                     is JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation -> {
                         JoinRoomActionModal(
                             i18n.joinRoomActionAcceptInvite(),
                             error,
                             onConfirm = action.onAcceptInvite,
-                            onDismiss = action.onDismiss
+                            onDismiss = action.onDismiss,
                         )
                     }
 
-                    is JoinRoomActionViewModel.JoinRoomAction.NotFound -> JoinRoomActionModal(
-                        i18n.joinRoomActionNotFound(),
-                        error,
-                        onDismiss = action.onDismiss
-                    )
+                    is JoinRoomActionViewModel.JoinRoomAction.NotFound ->
+                        JoinRoomActionModal(i18n.joinRoomActionNotFound(), error, onDismiss = action.onDismiss)
 
                     null -> {}
                 }
@@ -100,13 +97,11 @@ private fun JoinRoomActionModal(
     text: String,
     error: String?,
     onConfirm: (() -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)? = null,
 ) {
     val i18n = DI.current.get<I18nView>()
     Box(Modifier.fillMaxWidth(0.5f)) {
-        ThemedSurface(
-            style = MaterialTheme.components.details,
-        ) {
+        ThemedSurface(style = MaterialTheme.components.details) {
             Column(
                 modifier = Modifier.padding(MaterialTheme.messengerDpConstants.middle),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,12 +112,12 @@ private fun JoinRoomActionModal(
                     ThemedSurface(style = MaterialTheme.components.popup) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(MaterialTheme.messengerDpConstants.small)
+                            modifier = Modifier.padding(MaterialTheme.messengerDpConstants.small),
                         ) {
                             Icon(
                                 Icons.Default.Warning,
                                 i18n.commonWarning(),
-                                tint = MaterialTheme.messengerColors.warning
+                                tint = MaterialTheme.messengerColors.warning,
                             )
                             MiddleSpacer()
                             Text(error)
@@ -135,7 +130,7 @@ private fun JoinRoomActionModal(
                         ThemedButton(
                             onClick = onDismiss,
                             modifier = Modifier.buttonPointerModifier(),
-                            style = MaterialTheme.components.secondaryButton
+                            style = MaterialTheme.components.secondaryButton,
                         ) {
                             Text(i18n.actionCancel())
                         }
@@ -143,7 +138,7 @@ private fun JoinRoomActionModal(
                             ThemedButton(
                                 onClick = it,
                                 modifier = Modifier.buttonPointerModifier(),
-                                style = MaterialTheme.components.primaryButton
+                                style = MaterialTheme.components.primaryButton,
                             ) {
                                 Text(i18n.actionConfirm())
                             }

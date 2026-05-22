@@ -74,7 +74,9 @@ interface MainViewModel {
     fun start()
 
     fun closeDetailsAndShowList()
+
     fun onRoomSelected(userId: UserId, id: RoomId, via: Set<String>? = null)
+
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
 
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)

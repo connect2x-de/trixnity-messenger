@@ -12,7 +12,7 @@ data class RoomInfoElement(
     var roomId: RoomId,
     val roomImageInitials: String,
     val roomImage: ByteArray?,
-    val via: Set<String>? = null
+    val via: Set<String>? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -215,30 +215,29 @@ class MainViewModelTest {
         everySuspend { matrixClientMock2.startSync() } returns Unit
         everySuspend { matrixClientMock2.cancelSync() } returns Unit
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
-        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(
-            MarkedUnreadEventContent(false)
-        )
-        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any()) } returns MutableStateFlow(
-            ClientEvent.StrippedStateEvent(
-                JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
-                sender = testUserId,
-                stateKey = ""
-            )
-        )
-        every {
-            userServiceMock.getById(
-                any(),
-                testUserId
-            )
-        } returns MutableStateFlow(
-            RoomUser(
-                testRoomId, testUserId, "", ClientEvent.StrippedStateEvent(
-                    MemberEventContent(membership = Membership.JOIN),
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns
+            flowOf(MarkedUnreadEventContent(false))
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any()) } returns
+            MutableStateFlow(
+                ClientEvent.StrippedStateEvent(
+                    JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
                     sender = testUserId,
-                    stateKey = ""
+                    stateKey = "",
                 )
             )
-        )
+        every { userServiceMock.getById(any(), testUserId) } returns
+            MutableStateFlow(
+                RoomUser(
+                    testRoomId,
+                    testUserId,
+                    "",
+                    ClientEvent.StrippedStateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        sender = testUserId,
+                        stateKey = "",
+                    ),
+                )
+            )
     }
 
     @BeforeTest
@@ -638,12 +637,7 @@ class MainViewModelTest {
     fun `show room join action when trying to open a non joined room`() = runTest {
         val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
-        every {
-            userServiceMock.getById(
-                any(),
-                testUserId
-            )
-        } returns MutableStateFlow(null)
+        every { userServiceMock.getById(any(), testUserId) } returns MutableStateFlow(null)
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -657,16 +651,21 @@ class MainViewModelTest {
     }
 
     private enum class RoomViewTypes {
-        NONE, ROOM, JOIN_ACTION
+        NONE,
+        ROOM,
+        JOIN_ACTION,
     }
 
     private suspend inline infix fun MainViewModel.shouldShowRoomType(type: RoomViewTypes) {
         delay(10.milliseconds)
         assertSoftly {
             when (type) {
-                RoomViewTypes.NONE -> this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
-                RoomViewTypes.ROOM -> this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-                RoomViewTypes.JOIN_ACTION -> this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.JoinRoomAction>()
+                RoomViewTypes.NONE ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+                RoomViewTypes.ROOM ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+                RoomViewTypes.JOIN_ACTION ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.JoinRoomAction>()
             }
         }
     }
@@ -693,81 +692,100 @@ class MainViewModelTest {
         messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = true))
 
         return MainViewModelImpl(
-            viewModelContext = ViewModelContextImpl(
-                componentContext = DefaultComponentContext(lifecycle),
-                di = koinApplication {
-                    allowOverride(true)
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            matrixClients, messengerSettings
-                        ) + module {
-                            single { downloadManagerMock }
-                            single { isNetworkAvailable }
-                            single { runInitialSyncMock }
-                            single<RoomHeaderViewModelFactory> {
-                                object : RoomHeaderViewModelFactory {
-                                    override fun create(
-                                        viewModelContext: MatrixClientViewModelContext,
-                                        selectedRoomId: RoomId,
-                                        onBack: () -> Unit,
-                                        onVerifyUser: () -> Unit,
-                                        onOpenRoomSettings: () -> Unit,
-                                        onOpenUserProfile: (UserId) -> Unit,
-                                    ): RoomHeaderViewModel = roomHeaderViewModelMock
-                                }
-                            }
-                            single<InputAreaViewModelFactory> {
-                                object : InputAreaViewModelFactory {
-                                    override fun create(
-                                        viewModelContext: MatrixClientViewModelContext,
-                                        selectedRoomId: RoomId,
-                                        onMessageReplaceFinished: (RoomId, EventId) -> Unit,
-                                        onMessageReplyFinished: (RoomId, EventId) -> Unit,
-                                        onShowAttachmentSendView: (FileDescriptor) -> Unit,
-                                        onOpenMention: OpenMentionCallback,
-                                    ): InputAreaViewModel = inputAreaViewModelMock
-                                }
-                            }
-                            single<RoomListViewModelFactory> {
-                                object : RoomListViewModelFactory {
-                                    override fun create(
-                                        viewModelContext: ViewModelContext,
-                                        selectedRoomId: StateFlow<RoomId?>,
-                                        onRoomSelected: (UserId, RoomId) -> Unit,
-                                        onStartCreateNewRoom: (UserId) -> Unit,
-                                        onUserSettingsSelected: () -> Unit,
-                                        onShowAccounts: () -> Unit,
-                                        onOpenAppInfo: () -> Unit,
-                                        onSendLogs: () -> Unit,
-                                        onAccountSelected: () -> Unit,
-                                        onStartVerification: (UserId) -> Unit,
-                                        onCloseRoom: () -> Unit,
-                                    ): RoomListViewModel = object : RoomListViewModel {
-                                        override val selectedRoomId: StateFlow<RoomId?> = MutableStateFlow(null)
-                                        override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-                                        override val errorType: MutableStateFlow<ErrorType> =
-                                            MutableStateFlow(ErrorType.JUST_DISMISS)
-                                        override val elements: StateFlow<List<RoomListElementViewModel>> =
-                                            MutableStateFlow(emptyList())
-                                        override val syncStates = MutableStateFlow(UserSyncStates(setOf(), setOf()))
-                                        override val initialSyncFinished: StateFlow<Boolean> = MutableStateFlow(true)
-                                        override val showSearch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-                                        override val searchTerm = TextFieldViewModelImpl(maxLength = 100, "")
-                                        override val searchResultsEmpty: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val canCreateNewRoomWithAccount: StateFlow<Boolean> =
-                                            MutableStateFlow(true)
-                                        override val unverifiedAccounts: StateFlow<List<UserId>> =
-                                            MutableStateFlow(listOf())
-                                        override val closeProfileNeeded: Boolean = false
-                                        override val accountViewModel: AccountViewModel = object : AccountViewModel {
-                                            override val activeAccount: StateFlow<UserId?> = MutableStateFlow(null)
-                                            override val isSingleAccount: StateFlow<Boolean> = MutableStateFlow(false)
-                                            override val accounts: StateFlow<List<AccountInfo>> =
-                                                MutableStateFlow(listOf())
-                                            override val globalNotificationCount: StateFlow<String?> =
-                                                MutableStateFlow(null)
-                                            override val accountNotificationCounts: StateFlow<Map<UserId, String?>> =
-                                                MutableStateFlow(emptyMap())
+                viewModelContext =
+                    ViewModelContextImpl(
+                        componentContext = DefaultComponentContext(lifecycle),
+                        di =
+                            koinApplication {
+                                    allowOverride(true)
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(matrixClients, messengerSettings) +
+                                            module {
+                                                single { downloadManagerMock }
+                                                single { isNetworkAvailable }
+                                                single { runInitialSyncMock }
+                                                single<RoomHeaderViewModelFactory> {
+                                                    object : RoomHeaderViewModelFactory {
+                                                        override fun create(
+                                                            viewModelContext: MatrixClientViewModelContext,
+                                                            selectedRoomId: RoomId,
+                                                            onBack: () -> Unit,
+                                                            onVerifyUser: () -> Unit,
+                                                            onOpenRoomSettings: () -> Unit,
+                                                            onOpenUserProfile: (UserId) -> Unit,
+                                                        ): RoomHeaderViewModel = roomHeaderViewModelMock
+                                                    }
+                                                }
+                                                single<InputAreaViewModelFactory> {
+                                                    object : InputAreaViewModelFactory {
+                                                        override fun create(
+                                                            viewModelContext: MatrixClientViewModelContext,
+                                                            selectedRoomId: RoomId,
+                                                            onMessageReplaceFinished: (RoomId, EventId) -> Unit,
+                                                            onMessageReplyFinished: (RoomId, EventId) -> Unit,
+                                                            onShowAttachmentSendView: (FileDescriptor) -> Unit,
+                                                            onOpenMention: OpenMentionCallback,
+                                                        ): InputAreaViewModel = inputAreaViewModelMock
+                                                    }
+                                                }
+                                                single<RoomListViewModelFactory> {
+                                                    object : RoomListViewModelFactory {
+                                                        override fun create(
+                                                            viewModelContext: ViewModelContext,
+                                                            selectedRoomId: StateFlow<RoomId?>,
+                                                            onRoomSelected: (UserId, RoomId) -> Unit,
+                                                            onStartCreateNewRoom: (UserId) -> Unit,
+                                                            onUserSettingsSelected: () -> Unit,
+                                                            onShowAccounts: () -> Unit,
+                                                            onOpenAppInfo: () -> Unit,
+                                                            onSendLogs: () -> Unit,
+                                                            onAccountSelected: () -> Unit,
+                                                            onStartVerification: (UserId) -> Unit,
+                                                            onCloseRoom: () -> Unit,
+                                                        ): RoomListViewModel =
+                                                            object : RoomListViewModel {
+                                                                override val selectedRoomId: StateFlow<RoomId?> =
+                                                                    MutableStateFlow(null)
+                                                                override val error: MutableStateFlow<String?> =
+                                                                    MutableStateFlow(null)
+                                                                override val errorType: MutableStateFlow<ErrorType> =
+                                                                    MutableStateFlow(ErrorType.JUST_DISMISS)
+                                                                override val elements:
+                                                                    StateFlow<List<RoomListElementViewModel>> =
+                                                                    MutableStateFlow(emptyList())
+                                                                override val syncStates =
+                                                                    MutableStateFlow(UserSyncStates(setOf(), setOf()))
+                                                                override val initialSyncFinished: StateFlow<Boolean> =
+                                                                    MutableStateFlow(true)
+                                                                override val showSearch: MutableStateFlow<Boolean> =
+                                                                    MutableStateFlow(false)
+                                                                override val searchTerm =
+                                                                    TextFieldViewModelImpl(maxLength = 100, "")
+                                                                override val searchResultsEmpty: StateFlow<Boolean> =
+                                                                    MutableStateFlow(false)
+                                                                override val canCreateNewRoomWithAccount:
+                                                                    StateFlow<Boolean> =
+                                                                    MutableStateFlow(true)
+                                                                override val unverifiedAccounts:
+                                                                    StateFlow<List<UserId>> =
+                                                                    MutableStateFlow(listOf())
+                                                                override val closeProfileNeeded: Boolean = false
+                                                                override val accountViewModel: AccountViewModel =
+                                                                    object : AccountViewModel {
+                                                                        override val activeAccount: StateFlow<UserId?> =
+                                                                            MutableStateFlow(null)
+                                                                        override val isSingleAccount:
+                                                                            StateFlow<Boolean> =
+                                                                            MutableStateFlow(false)
+                                                                        override val accounts:
+                                                                            StateFlow<List<AccountInfo>> =
+                                                                            MutableStateFlow(listOf())
+                                                                        override val globalNotificationCount:
+                                                                            StateFlow<String?> =
+                                                                            MutableStateFlow(null)
+                                                                        override val accountNotificationCounts:
+                                                                            StateFlow<Map<UserId, String?>> =
+                                                                            MutableStateFlow(emptyMap())
 
                                                                         override fun selectActiveAccount(
                                                                             userId: UserId?

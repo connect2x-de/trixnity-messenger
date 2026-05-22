@@ -3620,22 +3620,28 @@ open class I18nView(
 
     open fun joinRoomActionKnock() = translate {
         EN - "Without an invitation you need to knock on the room an be let in. Please confirm you want to knock."
-        DE - "Um ohne eine Einladung beizutreten, müssen Sie an dem Raum anklopfen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie an dem Raum anklopfen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
     }
 
     open fun joinRoomActionRestricted(requiredRooms: Set<RoomId>) = translate {
-        EN - "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}"
-        DE - "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()} "
+        EN -
+            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}"
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()} "
     }
 
     open fun joinRoomActionAcceptInvite() = translate {
-        EN - "You need to accept your outstanding invitation to join this room. Please confirm you want to accept the invite."
-        DE - "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, dass Sie die Einladung annehmen möchten."
+        EN -
+            "You need to accept your outstanding invitation to join this room. Please confirm you want to accept the invite."
+        DE -
+            "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, dass Sie die Einladung annehmen möchten."
     }
 
     open fun joinRoomActionNotFound() = translate {
         EN - "Couldn't find the mentioned room. Please check the id to make sure it is correct."
-        DE - "Der Raum konnte nicht gefunden werden. Bitte überprüfen Sie die ID, um sicherzugehen, dass der Raum existiert."
+        DE -
+            "Der Raum konnte nicht gefunden werden. Bitte überprüfen Sie die ID, um sicherzugehen, dass der Raum existiert."
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

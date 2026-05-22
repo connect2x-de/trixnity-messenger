@@ -25,7 +25,7 @@ interface JoinRoomActionViewModelFactory {
         roomId: RoomId,
         via: Set<String>?,
         onOpenRoom: (roomId: RoomId) -> Unit,
-        onDismiss: () -> Unit
+        onDismiss: () -> Unit,
     ) = JoinRoomActionViewModelImpl(viewModelContext, roomId, via, onOpenRoom, onDismiss)
 
     companion object : JoinRoomActionViewModelFactory
@@ -37,10 +37,15 @@ interface JoinRoomActionViewModel {
 
     sealed class JoinRoomAction {
         data class Join(val onJoinRoom: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
+
         data class Knock(val onKnock: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
+
         data class Restricted(val requiredRooms: Set<RoomId>, val onDismiss: () -> Unit) : JoinRoomAction()
+
         data class AcceptInvitation(val onAcceptInvite: () -> Unit, val onDismiss: () -> Unit) : JoinRoomAction()
+
         data class Private(val onDismiss: () -> Unit) : JoinRoomAction()
+
         data class NotFound(val onDismiss: () -> Unit) : JoinRoomAction()
     }
 }
@@ -51,8 +56,7 @@ class JoinRoomActionViewModelImpl(
     private val via: Set<String>?,
     private val onOpenRoom: (roomId: RoomId) -> Unit,
     private val onDismiss: () -> Unit,
-) :
-    JoinRoomActionViewModel, MatrixClientViewModelContext by viewModelContext {
+) : JoinRoomActionViewModel, MatrixClientViewModelContext by viewModelContext {
 
     init {
         val backCallback = BackCallback(onBack = onDismiss)
@@ -61,62 +65,73 @@ class JoinRoomActionViewModelImpl(
 
     override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
         combine(
-            matrixClient.room.getById(roomId).map { it?.membership },
-            matrixClient.room.getState(roomId, JoinRulesEventContent::class).map {
-                it?.content
-            }
-        ) { membership, joinRuleContent ->
-            return@combine when {
-                membership == Membership.JOIN -> {
-                    log.warn { "Already joined room $roomId, no confirmation necessary, returning null and opening room" }
-                    onOpenRoom(roomId)
-                    null
-                }
+                matrixClient.room.getById(roomId).map { it?.membership },
+                matrixClient.room.getState(roomId, JoinRulesEventContent::class).map { it?.content },
+            ) { membership, joinRuleContent ->
+                return@combine when {
+                    membership == Membership.JOIN -> {
+                        log.warn {
+                            "Already joined room $roomId, no confirmation necessary, returning null and opening room"
+                        }
+                        onOpenRoom(roomId)
+                        null
+                    }
 
-                membership == Membership.INVITE -> {
-                    log.debug { "Got an invitation for room $roomId, showing option to accept" }
-                    JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onConfirmJoin, onDismiss)
-                }
+                    membership == Membership.INVITE -> {
+                        log.debug { "Got an invitation for room $roomId, showing option to accept" }
+                        JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onConfirmJoin, onDismiss)
+                    }
 
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> {
-                    log.debug { "Room $roomId is public, showing option to join" }
-                    JoinRoomActionViewModel.JoinRoomAction.Join(::onConfirmJoin, onDismiss)
-                }
+                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> {
+                        log.debug { "Room $roomId is public, showing option to join" }
+                        JoinRoomActionViewModel.JoinRoomAction.Join(::onConfirmJoin, onDismiss)
+                    }
 
-                joinRuleContent?.joinRule?.isKnock
-                    ?: false -> {
-                    log.debug { "Room $roomId is knock, showing option to knock" }
-                    JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
-                }
+                    joinRuleContent?.joinRule?.isKnock ?: false -> {
+                        log.debug { "Room $roomId is knock, showing option to knock" }
+                        JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
+                    }
 
-                //Only show restricted action when there are room join conditions
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
-                    val allowConditionsRooms =
-                        joinRuleContent.allow?.filter { it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership }
-                            ?.map { it.roomId }?.toSet()
-                    if (allowConditionsRooms?.isNotEmpty() ?: false) {
-                        log.debug { "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition" }
-                        JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
-                    } else {
-                        log.debug { "Room $roomId is restricted, but there are no rooms as conditions, showing private action" }
+                    // Only show restricted action when there are room join conditions
+                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
+                        val allowConditionsRooms =
+                            joinRuleContent.allow
+                                ?.filter {
+                                    it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership
+                                }
+                                ?.map { it.roomId }
+                                ?.toSet()
+                        if (allowConditionsRooms?.isNotEmpty() ?: false) {
+                            log.debug {
+                                "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition"
+                            }
+                            JoinRoomActionViewModel.JoinRoomAction.Restricted(allowConditionsRooms, onDismiss)
+                        } else {
+                            log.debug {
+                                "Room $roomId is restricted, but there are no rooms as conditions, showing private action"
+                            }
+                            JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
+                        }
+                    }
+
+                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Private -> {
+                        log.debug {
+                            "No action to join room $roomId with join rule ${joinRuleContent.joinRule} available, returning private action"
+                        }
                         JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
                     }
-                }
 
-                joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Private -> {
-                    log.debug { "No action to join room $roomId with join rule ${joinRuleContent.joinRule} available, returning private action" }
-                    JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
-                }
-
-                else -> {
-                    log.debug { "Room $roomId couldn't be found, showing not found action" }
-                    JoinRoomActionViewModel.JoinRoomAction.NotFound(onDismiss)
+                    else -> {
+                        log.debug { "Room $roomId couldn't be found, showing not found action" }
+                        JoinRoomActionViewModel.JoinRoomAction.NotFound(onDismiss)
+                    }
                 }
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val _error = MutableStateFlow<String?>(null)
     override val error: StateFlow<String?> = _error.asStateFlow()
+
     private fun onConfirmJoin() {
         coroutineScope.launch {
             if (matrixClient.syncState.value == SyncState.ERROR) {
@@ -124,15 +139,15 @@ class JoinRoomActionViewModelImpl(
                 _error.value = i18n.joinRoomConfirmJoinOffline()
             } else {
                 log.debug { "try to join room $roomId via $via" }
-                matrixClient.api.room.joinRoom(roomId, via).fold(
-                    onSuccess = {
-                        onOpenRoom(it)
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot join room." }
-                        _error.value = i18n.roomListInvitationError()
-                    }
-                )
+                matrixClient.api.room
+                    .joinRoom(roomId, via)
+                    .fold(
+                        onSuccess = { onOpenRoom(it) },
+                        onFailure = {
+                            log.error(it) { "Cannot join room." }
+                            _error.value = i18n.roomListInvitationError()
+                        },
+                    )
             }
         }
     }
@@ -144,15 +159,15 @@ class JoinRoomActionViewModelImpl(
                 _error.value = i18n.joinRoomConfirmJoinOffline()
             } else {
                 log.debug { "try to knock on room $roomId" }
-                matrixClient.api.room.knockRoom(roomId).fold(
-                    onSuccess = {
-                        onOpenRoom(it)
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot knock on room." }
-                        _error.value = i18n.roomListInvitationError()
-                    }
-                )
+                matrixClient.api.room
+                    .knockRoom(roomId)
+                    .fold(
+                        onSuccess = { onOpenRoom(it) },
+                        onFailure = {
+                            log.error(it) { "Cannot knock on room." }
+                            _error.value = i18n.roomListInvitationError()
+                        },
+                    )
             }
         }
     }

@@ -24,17 +24,18 @@ import org.koin.core.component.get
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+
     suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>? = null)
+
     suspend fun closeRoom()
+
     fun isShown(): Boolean
 
     @Serializable
     sealed class Config {
-        @Serializable
-        data object None : Config()
+        @Serializable data object None : Config()
 
-        @Serializable
-        data class View(val userId: UserId, val roomId: String) : Config()
+        @Serializable data class View(val userId: UserId, val roomId: String) : Config()
 
         @Serializable
         data class JoinRoomAction(val userId: UserId, val roomId: String, val via: Set<String>?) : Config()
@@ -42,7 +43,9 @@ interface RoomRouter {
 
     sealed class Wrapper {
         data class View(val viewModel: RoomViewModel) : Wrapper()
+
         data class JoinRoomAction(val viewModel: JoinRoomActionViewModel) : Wrapper()
+
         data object None : Wrapper()
     }
 }
@@ -68,38 +71,43 @@ class RoomRouterImpl(
             childFactory = ::createRoomChild,
         )
 
-    private fun createRoomChild(
-        roomConfig: Config,
-        componentContext: ComponentContext,
-    ): Wrapper =
+    private fun createRoomChild(roomConfig: Config, componentContext: ComponentContext): Wrapper =
         when (roomConfig) {
             is Config.None -> Wrapper.None
-            is Config.View -> Wrapper.View(
-                viewModelContext.get<RoomViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("Room", componentContext, roomConfig.userId),
-                    selectedRoomId = RoomId(roomConfig.roomId),
-                    onOpenRoom = onOpenRoom,
-                    onCloseRoom = onCloseRoom,
-                    onOpenMention = onOpenMention,
-                    onOpenAvatarCutter = onOpenAvatarCutter,
-                ).also {
-                    log.debug { "::: created viewModel for ${roomConfig.userId}" }
-                }
-            )
+            is Config.View ->
+                Wrapper.View(
+                    viewModelContext
+                        .get<RoomViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext("Room", componentContext, roomConfig.userId),
+                            selectedRoomId = RoomId(roomConfig.roomId),
+                            onOpenRoom = onOpenRoom,
+                            onCloseRoom = onCloseRoom,
+                            onOpenMention = onOpenMention,
+                            onOpenAvatarCutter = onOpenAvatarCutter,
+                        )
+                        .also { log.debug { "::: created viewModel for ${roomConfig.userId}" } }
+                )
 
-            is Config.JoinRoomAction -> Wrapper.JoinRoomAction(
-                viewModelContext.get<JoinRoomActionViewModelFactory>().create(
-                    viewModelContext.childContext("RoomJoinConfirm", componentContext, roomConfig.userId),
-                    roomId = RoomId(roomConfig.roomId),
-                    via = roomConfig.via,
-                    onOpenRoom = { onOpenRoom(roomConfig.userId, it) },
-                    onDismiss = onCloseRoom
-                ).also {
-                    log.debug { "::: created viewModel for ${roomConfig.userId} room join confirm (room ${roomConfig.roomId}" }
-                },
-            )
+            is Config.JoinRoomAction ->
+                Wrapper.JoinRoomAction(
+                    viewModelContext
+                        .get<JoinRoomActionViewModelFactory>()
+                        .create(
+                            viewModelContext.childContext("RoomJoinAction", componentContext, roomConfig.userId),
+                            roomId = RoomId(roomConfig.roomId),
+                            via = roomConfig.via,
+                            onOpenRoom = { onOpenRoom(roomConfig.userId, it) },
+                            onDismiss = onCloseRoom,
+                        )
+                        .also {
+                            log.debug {
+                                "::: created viewModel for ${roomConfig.userId} room join confirm (room ${roomConfig.roomId}"
+                            }
+                        }
+                )
         }
-
 
     override suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>?) {
         val matrixClient = viewModelContext.getMatrixClient(userId)
@@ -110,7 +118,7 @@ class RoomRouterImpl(
                 roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
             }
 
-            //TODO show preview of timeline when room is world_readable
+            // TODO show preview of timeline when room is world_readable
 
             else -> {
                 roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full, via))
@@ -126,6 +134,6 @@ class RoomRouterImpl(
         when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
-            is Config.JoinRoomAction -> false
+            is Config.JoinRoomAction -> true
         }
 }
