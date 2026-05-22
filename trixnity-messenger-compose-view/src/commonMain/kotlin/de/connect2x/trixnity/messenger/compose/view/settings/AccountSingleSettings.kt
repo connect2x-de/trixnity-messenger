@@ -147,7 +147,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
                         }) {
                             ThemedIconButton(
                                 enabled = canDeleteAvatar,
-                                style = MaterialTheme.components.secondaryIconButton,
+                                style = MaterialTheme.components.destructiveIconButtonFilled,
                                 onClick = { accountSingleViewModel.deleteAvatar() },
                             ) {
                                 Icon(Icons.Default.Delete, i18n.profileAvatarDelete())
