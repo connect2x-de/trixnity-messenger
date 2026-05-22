@@ -7,17 +7,15 @@ import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
 import kotlinx.coroutines.CoroutineScope
 
-fun Modifier.customOnKeyEvent(
-    onKeyEvent: CoroutineScope.(KeyEvent) -> Boolean
-): Modifier = this then CustomKeyInputElement(onKeyEvent = onKeyEvent, onPreKeyEvent = null)
+fun Modifier.customOnKeyEvent(onKeyEvent: CoroutineScope.(KeyEvent) -> Boolean): Modifier =
+    this then CustomKeyInputElement(onKeyEvent = onKeyEvent, onPreKeyEvent = null)
 
-fun Modifier.customOnPreviewKeyEvent(
-    onPreviewKeyEvent: CoroutineScope.(KeyEvent) -> Boolean
-): Modifier = this then CustomKeyInputElement(onKeyEvent = null, onPreKeyEvent = onPreviewKeyEvent)
+fun Modifier.customOnPreviewKeyEvent(onPreviewKeyEvent: CoroutineScope.(KeyEvent) -> Boolean): Modifier =
+    this then CustomKeyInputElement(onKeyEvent = null, onPreKeyEvent = onPreviewKeyEvent)
 
 data class CustomKeyInputElement(
     val onKeyEvent: (CoroutineScope.(KeyEvent) -> Boolean)?,
-    val onPreKeyEvent: (CoroutineScope.(KeyEvent) -> Boolean)?
+    val onPreKeyEvent: (CoroutineScope.(KeyEvent) -> Boolean)?,
 ) : ModifierNodeElement<CustomKeyInputNode>() {
     override fun create() = CustomKeyInputNode(onKeyEvent, onPreKeyEvent)
 
@@ -40,8 +38,9 @@ data class CustomKeyInputElement(
 
 class CustomKeyInputNode(
     var onEvent: (CoroutineScope.(KeyEvent) -> Boolean)?,
-    var onPreEvent: (CoroutineScope.(KeyEvent) -> Boolean)?
+    var onPreEvent: (CoroutineScope.(KeyEvent) -> Boolean)?,
 ) : KeyInputModifierNode, Modifier.Node() {
     override fun onKeyEvent(event: KeyEvent): Boolean = onEvent?.let { coroutineScope.it(event) } ?: false
+
     override fun onPreKeyEvent(event: KeyEvent): Boolean = onPreEvent?.let { coroutineScope.it(event) } ?: false
 }

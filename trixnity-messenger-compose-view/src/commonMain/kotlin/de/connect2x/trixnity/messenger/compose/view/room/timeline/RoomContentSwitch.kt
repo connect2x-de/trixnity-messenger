@@ -16,17 +16,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurfa
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
-
 @Composable
 fun RoomContentSwitch(
     stack: Value<ChildStack<*, TimelineRouter.Wrapper>>,
     showSettingsButton: Boolean,
     showBackButton: Boolean,
 ) {
-    Children(
-        stack = stack,
-        animation = stackAnimation(fade()),
-    ) {
+    Children(stack = stack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is TimelineRouter.Wrapper.View -> RoomContent(child.viewModel, showSettingsButton, showBackButton)
             is TimelineRouter.Wrapper.None -> Box {}
@@ -35,27 +31,16 @@ fun RoomContentSwitch(
 }
 
 @Composable
-fun RoomContent(
-    timelineViewModel: TimelineViewModel,
-    showSettingsButton: Boolean,
-    showBackButton: Boolean,
-) {
+fun RoomContent(timelineViewModel: TimelineViewModel, showSettingsButton: Boolean, showBackButton: Boolean) {
     Column(Modifier.fillMaxSize()) {
         RoomHeader(timelineViewModel.roomHeaderViewModel, showSettingsButton, showBackButton)
-        ThemedSurface(
-            style = MaterialTheme.components.timeline,
-        ) {
-            AttachmentTimelineSwitch(timelineViewModel)
-        }
+        ThemedSurface(style = MaterialTheme.components.timeline) { AttachmentTimelineSwitch(timelineViewModel) }
     }
 }
 
 @Composable
 fun AttachmentTimelineSwitch(timelineViewModel: TimelineViewModel) {
-    Children(
-        stack = timelineViewModel.sendAttachmentStack,
-        animation = stackAnimation(fade()),
-    ) {
+    Children(stack = timelineViewModel.sendAttachmentStack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is TimelineViewModel.Wrapper.View -> SendAttachment(child.viewModel)
             is TimelineViewModel.Wrapper.None -> {

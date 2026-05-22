@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger.viewmodel
 
 import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.runTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 
 class TextFieldViewModelTest {
     @BeforeTest
@@ -33,12 +33,13 @@ class TextFieldViewModelTest {
     fun `should emit an error`() = runTest {
         val errorMsg = "error message"
         val errorText = "err"
-        val cut = TextFieldViewModelImpl(maxLength = 100) {
-            when (it) {
-                errorText -> errorMsg
-                else -> null
+        val cut =
+            TextFieldViewModelImpl(maxLength = 100) {
+                when (it) {
+                    errorText -> errorMsg
+                    else -> null
+                }
             }
-        }
         cut.value.text shouldBe ""
         cut.error.first() shouldBe null
 

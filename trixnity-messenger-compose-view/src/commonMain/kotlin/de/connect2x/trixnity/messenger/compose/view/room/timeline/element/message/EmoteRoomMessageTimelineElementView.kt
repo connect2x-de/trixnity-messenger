@@ -15,8 +15,7 @@ import kotlin.reflect.KClass
 interface EmoteRoomMessageTimelineElementView : TimelineElementView<Emote>
 
 class EmoteRoomMessageTimelineElementViewImpl : EmoteRoomMessageTimelineElementView {
-    override val supports: KClass<Emote> =
-        Emote::class
+    override val supports: KClass<Emote> = Emote::class
 
     override suspend fun waitFor(element: Emote) {
         // NO-OP (has default size)
@@ -25,20 +24,12 @@ class EmoteRoomMessageTimelineElementViewImpl : EmoteRoomMessageTimelineElementV
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Emote,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Emote, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false, index = index)
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Emote,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Emote, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true, index = index)
     }
 
@@ -63,10 +54,8 @@ class EmoteRoomMessageTimelineElementViewImpl : EmoteRoomMessageTimelineElementV
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Emote
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Emote): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Emote, i18n: I18nView): String {
         return "${i18n.commonEmote()}: ${element.body}"

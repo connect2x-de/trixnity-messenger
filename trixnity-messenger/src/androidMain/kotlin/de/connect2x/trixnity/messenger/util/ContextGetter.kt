@@ -9,7 +9,9 @@ class ContextGetter(initialValue: (() -> Context)?) {
     private val value: AtomicReference<(() -> Context)?> = AtomicReference(initialValue)
 
     operator fun invoke(): Context =
-        checkNotNull(value.load()) { "ContextGetter has not been set. Use MatrixMessenger.defaultContextGetter or MatrixMultiMessenger.defaultContextGetter to set it." }()
+        checkNotNull(value.load()) {
+            "ContextGetter has not been set. Use MatrixMessenger.defaultContextGetter or MatrixMultiMessenger.defaultContextGetter to set it."
+        }()
 
     operator fun invoke(value: () -> Context) {
         this.value.store(value)

@@ -47,7 +47,7 @@ interface RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showRoomTime: Boolean
+        showRoomTime: Boolean,
     )
 }
 
@@ -55,12 +55,8 @@ interface RoomListElementView {
 private fun ErrorModalDialog(error: String, onDismiss: () -> Unit) {
     val i18n = DI.get<I18nView>()
     ThemedModalDialog(onDismissRequest = onDismiss) {
-        ModalDialogHeader {
-            Text(i18n.commonError())
-        }
-        ModalDialogContent {
-            Text(error)
-        }
+        ModalDialogHeader { Text(i18n.commonError()) }
+        ModalDialogContent { Text(error) }
         ModalDialogFooter {
             ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onDismiss) {
                 Text(i18n.commonClose())
@@ -74,7 +70,7 @@ fun RoomListElement(
     roomListViewModel: RoomListViewModel,
     roomListElementViewModel: RoomListElementViewModel,
     index: Int,
-    showRoomTime: Boolean
+    showRoomTime: Boolean,
 ) {
     DI.get<RoomListElementView>().create(roomListViewModel, roomListElementViewModel, index, showRoomTime)
 }
@@ -85,7 +81,7 @@ class RoomListElementViewImpl : RoomListElementView {
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
         index: Int,
-        showRoomTime: Boolean
+        showRoomTime: Boolean,
     ) {
         val isInvite = roomListElementViewModel.isInvite.collectAsState().value == true
         val isLeave = roomListElementViewModel.isLeave.collectAsState().value == true
@@ -93,15 +89,12 @@ class RoomListElementViewImpl : RoomListElementView {
         val error by roomListElementViewModel.error.collectAsState()
         roomListElementViewModel.roomName.collectAsState().value
         error?.let { ErrorModalDialog(it, roomListElementViewModel::clearError) }
-        Box(Modifier.semantics {
-            role = Role.Button
-            collectionItemInfo = CollectionItemInfo(
-                rowIndex = index,
-                rowSpan = 1,
-                columnIndex = 0,
-                columnSpan = 1,
-            )
-        }) {
+        Box(
+            Modifier.semantics {
+                role = Role.Button
+                collectionItemInfo = CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+            }
+        ) {
             when {
                 isInvite -> Invite(roomListElementViewModel)
                 isLeave -> ArchivedRoom(roomListElementViewModel)
@@ -117,8 +110,7 @@ fun MatrixClientColor(roomElementViewModel: RoomListElementViewModel) {
     val accountColor = roomElementViewModel.accountColor.collectAsState().value
     Box(Modifier.padding(start = 2.dp, end = 12.dp).fillMaxHeight().padding(vertical = 0.dp)) {
         Box(
-            Modifier
-                .width(if (accountColor != null) 6.dp else 0.dp)
+            Modifier.width(if (accountColor != null) 6.dp else 0.dp)
                 .fillMaxHeight()
                 .background(if (accountColor != null) Color(accountColor) else Color.Transparent)
         )
@@ -135,25 +127,16 @@ fun RoomImage(roomElementViewModel: RoomListElementViewModel) {
     val isPublic = roomElementViewModel.isPublic.collectAsState().value ?: false
     if (isInvite == null || roomImageInitials == null) {
         Box(
-            Modifier
-                .width(avatarSize().dp)
+            Modifier.width(avatarSize().dp)
                 .height(avatarSize().dp)
-                .placeholder(
-                    visible = true,
-                    color = Color.LightGray,
-                    shape = CircleShape,
-                )
+                .placeholder(visible = true, color = Color.LightGray, shape = CircleShape)
         )
     } else {
         if (isInvite) {
-            ThemedAvatar(avatarSize().dp) {
-                AvatarContentIcon(Icons.Default.MapsUgc, avatarSize().dp)
-            }
+            ThemedAvatar(avatarSize().dp) { AvatarContentIcon(Icons.Default.MapsUgc, avatarSize().dp) }
         } else {
             Box {
-                ThemedUserAvatar(roomImageInitials, roomImage, presence) {
-                    AvatarPresenceBadge(presence)
-                }
+                ThemedUserAvatar(roomImageInitials, roomImage, presence) { AvatarPresenceBadge(presence) }
                 if (isPublic) PublicIcon()
             }
         }

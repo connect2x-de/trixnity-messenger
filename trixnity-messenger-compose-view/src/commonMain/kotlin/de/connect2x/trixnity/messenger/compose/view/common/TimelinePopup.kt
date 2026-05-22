@@ -9,5 +9,5 @@ expect fun TimelinePopup(
     onDismiss: () -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 )

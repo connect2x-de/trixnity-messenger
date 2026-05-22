@@ -51,189 +51,214 @@ class RoomListRouter(
     private val onAccountSelected: () -> Unit,
     private val onStartAccountSetup: suspend (userId: UserId) -> Unit,
     private val onStartVerification: (userId: UserId) -> Unit,
-    private val onCloseRoom: () -> Unit
+    private val onCloseRoom: () -> Unit,
 ) {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter")
     }
 
     private val navigation = StackNavigation<Config>()
-    val stack = viewModelContext.childStack(
-        source = navigation,
-        serializer = Config.serializer(),
-        initialConfiguration = Config.RoomList,
-        key = "RoomListRouter",
-        childFactory = ::createChild,
-    )
+    val stack =
+        viewModelContext.childStack(
+            source = navigation,
+            serializer = Config.serializer(),
+            initialConfiguration = Config.RoomList,
+            key = "RoomListRouter",
+            childFactory = ::createChild,
+        )
 
-    fun openRoom(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "go to room $roomId" }
-        selectedRoomId.value = roomId
-        navigation.popSuspending()
-        onRoomSelected(userId, roomId)
-    }
+    fun openRoom(userId: UserId, roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            log.debug { "go to room $roomId" }
+            selectedRoomId.value = roomId
+            navigation.popSuspending()
+            onRoomSelected(userId, roomId)
+        }
 
-    private fun createChild(
-        roomListConfig: Config,
-        componentContext: ComponentContext,
-    ): Wrapper =
+    private fun createChild(roomListConfig: Config, componentContext: ComponentContext): Wrapper =
         when (roomListConfig) {
             is Config.None -> Wrapper.None
-            is Config.RoomList -> Wrapper.List(
-                viewModelContext.get<RoomListViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("RoomList", componentContext),
-                    selectedRoomId = selectedRoomId,
-                    onRoomSelected = onRoomSelected,
-                    onStartCreateNewRoom = ::onStartCreateNewRoom,
-                    onUserSettingsSelected = ::onOpenUserSettings,
-                    onShowAccounts = ::onShowAccounts,
-                    onOpenAppInfo = ::onOpenAppInfo,
-                    onSendLogs = onSendLogs,
-                    onAccountSelected = onAccountSelected,
-                    onStartVerification = onStartVerification,
-                    onCloseRoom = onCloseRoom
+            is Config.RoomList ->
+                Wrapper.List(
+                    viewModelContext
+                        .get<RoomListViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("RoomList", componentContext),
+                            selectedRoomId = selectedRoomId,
+                            onRoomSelected = onRoomSelected,
+                            onStartCreateNewRoom = ::onStartCreateNewRoom,
+                            onUserSettingsSelected = ::onOpenUserSettings,
+                            onShowAccounts = ::onShowAccounts,
+                            onOpenAppInfo = ::onOpenAppInfo,
+                            onSendLogs = onSendLogs,
+                            onAccountSelected = onAccountSelected,
+                            onStartVerification = onStartVerification,
+                            onCloseRoom = onCloseRoom,
+                        )
                 )
-            )
 
-            is Config.CreateNewChat -> Wrapper.CreateNewChat(
-                viewModelContext.get<CreateNewChatViewModelFactory>()
-                    .create(
-                        viewModelContext.childContext(
-                            "CreateNewChat",
-                            componentContext,
-                            roomListConfig.userId,
-                        ),
-                        viewModelContext.get<CreateNewRoomViewModelFactory>()
-                            .create(
-                                viewModelContext.childContext(
-                                    "CreateNewChatRoom",
-                                    componentContext,
-                                    roomListConfig.userId,
+            is Config.CreateNewChat ->
+                Wrapper.CreateNewChat(
+                    viewModelContext
+                        .get<CreateNewChatViewModelFactory>()
+                        .create(
+                            viewModelContext.childContext("CreateNewChat", componentContext, roomListConfig.userId),
+                            viewModelContext
+                                .get<CreateNewRoomViewModelFactory>()
+                                .create(
+                                    viewModelContext.childContext(
+                                        "CreateNewChatRoom",
+                                        componentContext,
+                                        roomListConfig.userId,
+                                    ),
+                                    onRoomCreated = ::openRoom,
                                 ),
-                                onRoomCreated = ::openRoom,
-                            ),
-                        onCreateGroup = ::onCreateGroup,
-                        onSearchGroup = ::onSearchGroup,
-                        onCancel = ::onCancelCreateNewChat,
-                    )
-            )
+                            onCreateGroup = ::onCreateGroup,
+                            onSearchGroup = ::onSearchGroup,
+                            onCancel = ::onCancelCreateNewChat,
+                        )
+                )
 
-            is Config.CreateNewGroup -> Wrapper.CreateNewGroup(
-                viewModelContext.get<CreateNewGroupViewModelFactory>()
-                    .create(
-                        viewModelContext.childContext(
-                            "CreateNewGroup",
-                            componentContext,
-                            roomListConfig.userId,
-                        ),
-                        viewModelContext.get<CreateNewRoomViewModelFactory>()
-                            .create(
-                                viewModelContext.childContext(
-                                    "CreateNewGroupRoom",
-                                    componentContext,
-                                    roomListConfig.userId,
+            is Config.CreateNewGroup ->
+                Wrapper.CreateNewGroup(
+                    viewModelContext
+                        .get<CreateNewGroupViewModelFactory>()
+                        .create(
+                            viewModelContext.childContext("CreateNewGroup", componentContext, roomListConfig.userId),
+                            viewModelContext
+                                .get<CreateNewRoomViewModelFactory>()
+                                .create(
+                                    viewModelContext.childContext(
+                                        "CreateNewGroupRoom",
+                                        componentContext,
+                                        roomListConfig.userId,
+                                    ),
+                                    onRoomCreated = ::onGroupCreated,
                                 ),
-                                onRoomCreated = ::onGroupCreated,
-                            ),
-                        onBack = ::onCancelCreateNewGroup,
-                    )
-            )
-
-            is Config.SearchGroup -> Wrapper.SearchGroup(
-                viewModelContext.get<SearchGroupViewModelFactory>().create(
-                    viewModelContext.childContext(
-                        "SearchGroup",
-                        componentContext,
-                        roomListConfig.userId,
-                    ),
-                    onBack = ::onCancelSearchGroup,
-                    onGroupJoined = ::onGroupJoined,
-                    onGroupKnocked = ::onGroupKnocked
+                            onBack = ::onCancelCreateNewGroup,
+                        )
                 )
-            )
 
-            is Config.UserSettings -> Wrapper.UserSettings(
-                viewModelContext.get<UserSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "UserSettings", componentContext),
-                    onCloseUserSettings = ::onCloseUserSettings,
-                    onShowDeviceSettings = ::onShowDeviceSettings,
-                    onShowAccounts = ::onShowAccounts,
-                    onShowProfilesSettings = ::onShowProfilesSettings,
-                    onShowNotificationsSettings = ::onShowNotificationsSettings,
-                    onShowPrivacySettings = ::onShowPrivacySettings,
-                    onShowAppearanceSettings = ::onShowAppearanceSettings,
+            is Config.SearchGroup ->
+                Wrapper.SearchGroup(
+                    viewModelContext
+                        .get<SearchGroupViewModelFactory>()
+                        .create(
+                            viewModelContext.childContext("SearchGroup", componentContext, roomListConfig.userId),
+                            onBack = ::onCancelSearchGroup,
+                            onGroupJoined = ::onGroupJoined,
+                            onGroupKnocked = ::onGroupKnocked,
+                        )
                 )
-            )
 
-            is Config.DeviceSettings -> Wrapper.DeviceSettings(
-                viewModelContext.get<DeviceSettingsAllAccountsViewModelFactory>()
-                    .create(
-                        viewModelContext = viewModelContext.childContext(name = "DeviceSettings", componentContext),
-                        onCloseDeviceSettings = ::onCloseDeviceSettings,
-                    )
-            )
-
-            is Config.Accounts -> Wrapper.Accounts(
-                viewModelContext.get<AccountsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "Accounts", componentContext),
-                    onCloseAccounts = ::onCloseAccounts,
-                    onOpenAvatarCutter = onOpenAvatarCutter,
-                    onShowAccountSetup = ::onShowAccountSetup,
-                    onRemoveAccount = onRemoveAccount,
-                    onCreateNewAccount = onCreateNewAccount,
+            is Config.UserSettings ->
+                Wrapper.UserSettings(
+                    viewModelContext
+                        .get<UserSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext(name = "UserSettings", componentContext),
+                            onCloseUserSettings = ::onCloseUserSettings,
+                            onShowDeviceSettings = ::onShowDeviceSettings,
+                            onShowAccounts = ::onShowAccounts,
+                            onShowProfilesSettings = ::onShowProfilesSettings,
+                            onShowNotificationsSettings = ::onShowNotificationsSettings,
+                            onShowPrivacySettings = ::onShowPrivacySettings,
+                            onShowAppearanceSettings = ::onShowAppearanceSettings,
+                        )
                 )
-            )
 
-            is Config.ProfilesSettings -> Wrapper.ProfilesSettings(
-                viewModelContext.get<ProfilesSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "Profiles", componentContext),
-                    onCloseProfilesSettings = ::onCloseProfilesSettings,
+            is Config.DeviceSettings ->
+                Wrapper.DeviceSettings(
+                    viewModelContext
+                        .get<DeviceSettingsAllAccountsViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext(name = "DeviceSettings", componentContext),
+                            onCloseDeviceSettings = ::onCloseDeviceSettings,
+                        )
                 )
-            )
 
-            is Config.NotificationsSettings -> Wrapper.NotificationsSettings(
-                viewModelContext.get<NotificationSettingsAllAccountsViewModelFactory>()
-                    .create(
-                        viewModelContext = viewModelContext.childContext(
-                            name = "NotificationsSettings",
-                            componentContext
-                        ),
-                        onBack = ::onCloseNotificationsSettings,
-                    )
-            )
-
-            is Config.PrivacySettings -> Wrapper.PrivacySettings(
-                viewModelContext.get<PrivacySettingsAllAccountsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "PrivacySettings", componentContext),
-                    onClosePrivacySettings = ::onClosePrivacySettings,
-                    onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
+            is Config.Accounts ->
+                Wrapper.Accounts(
+                    viewModelContext
+                        .get<AccountsViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext(name = "Accounts", componentContext),
+                            onCloseAccounts = ::onCloseAccounts,
+                            onOpenAvatarCutter = onOpenAvatarCutter,
+                            onShowAccountSetup = ::onShowAccountSetup,
+                            onRemoveAccount = onRemoveAccount,
+                            onCreateNewAccount = onCreateNewAccount,
+                        )
                 )
-            )
 
-            is Config.AppearanceSettings -> Wrapper.AppearanceSettings(
-                viewModelContext.get<AppearanceSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "AppearanceSettings", componentContext),
-                    onCloseAppearanceSettings = ::onCloseAppearanceSettings,
+            is Config.ProfilesSettings ->
+                Wrapper.ProfilesSettings(
+                    viewModelContext
+                        .get<ProfilesSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext(name = "Profiles", componentContext),
+                            onCloseProfilesSettings = ::onCloseProfilesSettings,
+                        )
                 )
-            )
 
-            is Config.BlockedContactsSettings -> Wrapper.BlockedContactsSettings(
-                viewModelContext.get<BlockedContactsSettingsViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(
-                        "BlockedContactsSettings",
-                        componentContext,
-                        roomListConfig.account
-                    ),
-                    onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
+            is Config.NotificationsSettings ->
+                Wrapper.NotificationsSettings(
+                    viewModelContext
+                        .get<NotificationSettingsAllAccountsViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext(name = "NotificationsSettings", componentContext),
+                            onBack = ::onCloseNotificationsSettings,
+                        )
                 )
-            )
 
-            is Config.AppInfo -> Wrapper.AppInfo(
-                viewModelContext.get<AppInfoViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext(name = "AppInfo", componentContext),
-                    onCloseAppInfo = ::onCloseAppInfo,
+            is Config.PrivacySettings ->
+                Wrapper.PrivacySettings(
+                    viewModelContext
+                        .get<PrivacySettingsAllAccountsViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext(name = "PrivacySettings", componentContext),
+                            onClosePrivacySettings = ::onClosePrivacySettings,
+                            onShowBlockedContactsSettings = ::onShowBlockedContactsSettings,
+                        )
                 )
-            )
+
+            is Config.AppearanceSettings ->
+                Wrapper.AppearanceSettings(
+                    viewModelContext
+                        .get<AppearanceSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext(name = "AppearanceSettings", componentContext),
+                            onCloseAppearanceSettings = ::onCloseAppearanceSettings,
+                        )
+                )
+
+            is Config.BlockedContactsSettings ->
+                Wrapper.BlockedContactsSettings(
+                    viewModelContext
+                        .get<BlockedContactsSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext(
+                                    "BlockedContactsSettings",
+                                    componentContext,
+                                    roomListConfig.account,
+                                ),
+                            onCloseBlockedContactsSettings = ::onCloseBlockedContactsSettings,
+                        )
+                )
+
+            is Config.AppInfo ->
+                Wrapper.AppInfo(
+                    viewModelContext
+                        .get<AppInfoViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext(name = "AppInfo", componentContext),
+                            onCloseAppInfo = ::onCloseAppInfo,
+                        )
+                )
         }
 
     private fun onStartCreateNewRoom(userId: UserId) {
@@ -256,12 +281,13 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupCreated(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "on group created ($roomId)" }
-        navigation.popWhileSuspending { it !is Config.RoomList }
-        selectedRoomId.value = roomId
-        onRoomSelected(userId, roomId)
-    }
+    private fun onGroupCreated(userId: UserId, roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            log.debug { "on group created ($roomId)" }
+            navigation.popWhileSuspending { it !is Config.RoomList }
+            selectedRoomId.value = roomId
+            onRoomSelected(userId, roomId)
+        }
 
     private fun onSearchGroup(userId: UserId) {
         log.debug { "on search group in account $userId" }
@@ -273,17 +299,19 @@ class RoomListRouter(
         navigation.launchPop(viewModelContext.coroutineScope)
     }
 
-    private fun onGroupJoined(userId: UserId, roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "on group joined ($roomId)" }
-        navigation.popWhileSuspending { it !is Config.RoomList }
-        selectedRoomId.value = roomId
-        onRoomSelected(userId, roomId)
-    }
+    private fun onGroupJoined(userId: UserId, roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            log.debug { "on group joined ($roomId)" }
+            navigation.popWhileSuspending { it !is Config.RoomList }
+            selectedRoomId.value = roomId
+            onRoomSelected(userId, roomId)
+        }
 
-    private fun onGroupKnocked(roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        log.debug { "on group knocked ($roomId)" }
-        navigation.popWhileSuspending { it !is Config.RoomList }
-    }
+    private fun onGroupKnocked(roomId: RoomId) =
+        viewModelContext.coroutineScope.launch {
+            log.debug { "on group knocked ($roomId)" }
+            navigation.popWhileSuspending { it !is Config.RoomList }
+        }
 
     private fun onOpenUserSettings() {
         log.debug { "open user settings" }
@@ -404,63 +432,62 @@ class RoomListRouter(
 
     @Serializable
     sealed class Config {
-        @Serializable
-        data object RoomList : Config()
+        @Serializable data object RoomList : Config()
 
-        @Serializable
-        data class CreateNewChat(val userId: UserId) : Config()
+        @Serializable data class CreateNewChat(val userId: UserId) : Config()
 
-        @Serializable
-        data class CreateNewGroup(val userId: UserId) : Config()
+        @Serializable data class CreateNewGroup(val userId: UserId) : Config()
 
-        @Serializable
-        data class SearchGroup(val userId: UserId) : Config()
+        @Serializable data class SearchGroup(val userId: UserId) : Config()
 
-        @Serializable
-        data object UserSettings : Config()
+        @Serializable data object UserSettings : Config()
 
-        @Serializable
-        data object DeviceSettings : Config()
+        @Serializable data object DeviceSettings : Config()
 
-        @Serializable
-        data object Accounts : Config()
+        @Serializable data object Accounts : Config()
 
-        @Serializable
-        data object ProfilesSettings : Config()
+        @Serializable data object ProfilesSettings : Config()
 
-        @Serializable
-        data object NotificationsSettings : Config()
+        @Serializable data object NotificationsSettings : Config()
 
-        @Serializable
-        data object PrivacySettings : Config()
+        @Serializable data object PrivacySettings : Config()
 
-        @Serializable
-        data object AppearanceSettings : Config()
+        @Serializable data object AppearanceSettings : Config()
 
-        @Serializable
-        data class BlockedContactsSettings(val account: UserId) : Config()
+        @Serializable data class BlockedContactsSettings(val account: UserId) : Config()
 
-        @Serializable
-        data object AppInfo : Config()
+        @Serializable data object AppInfo : Config()
 
-        @Serializable
-        data object None : Config()
+        @Serializable data object None : Config()
     }
 
     sealed class Wrapper {
         class List(val viewModel: RoomListViewModel) : Wrapper()
+
         class CreateNewChat(val viewModel: CreateNewChatViewModel) : Wrapper()
+
         class CreateNewGroup(val viewModel: CreateNewGroupViewModel) : Wrapper()
+
         class SearchGroup(val viewModel: SearchGroupViewModel) : Wrapper()
+
         class UserSettings(val viewModel: UserSettingsViewModel) : Wrapper()
+
         class DeviceSettings(val viewModel: DeviceSettingsAllAccountsViewModel) : Wrapper()
+
         class Accounts(val viewModel: AccountsViewModel) : Wrapper()
+
         class ProfilesSettings(val viewModel: ProfilesSettingsViewModel) : Wrapper()
+
         class NotificationsSettings(val viewModel: NotificationSettingsAllAccountsViewModel) : Wrapper()
+
         class PrivacySettings(val viewModel: PrivacySettingsAllAccountsViewModel) : Wrapper()
+
         class AppearanceSettings(val viewModel: AppearanceSettingsViewModel) : Wrapper()
+
         class BlockedContactsSettings(val viewModel: BlockedContactsSettingsViewModel) : Wrapper()
+
         class AppInfo(val viewModel: AppInfoViewModel) : Wrapper()
+
         data object None : Wrapper()
     }
 }

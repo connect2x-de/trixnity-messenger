@@ -34,7 +34,7 @@ class MediaPlayerService : MediaSessionService(), MediaSession.Callback {
     override fun onAddMediaItems(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo,
-        mediaItems: List<MediaItem>
+        mediaItems: List<MediaItem>,
     ): ListenableFuture<List<MediaItem>> =
         Futures.immediateFuture(mediaItems.map { it.buildUpon().setUri(it.mediaId).build() }.toMutableList())
 

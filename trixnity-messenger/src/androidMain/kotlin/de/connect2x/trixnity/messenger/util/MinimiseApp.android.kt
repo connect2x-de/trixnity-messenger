@@ -6,8 +6,6 @@ import org.koin.dsl.module
 actual fun platformMinimizeAppModule(): Module = module {
     single<MinimizeApp> {
         val activityGetter = get<ActivityGetter>()
-        MinimizeApp {
-            activityGetter().moveTaskToBack(true)
-        }
+        MinimizeApp { activityGetter().moveTaskToBack(true) }
     }
 }

@@ -58,14 +58,16 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
-import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 
 interface AccountSingleSettingsView {
     @Composable
     fun create(
         accountSingleViewModel: AccountSingleViewModel,
-        accountsViewModel: AccountsViewModel, // rather cumbersome, but without a message bus the viewmodels need to communicate in the extensions, too
+        accountsViewModel:
+            AccountsViewModel, // rather cumbersome, but without a message bus the viewmodels need to communicate in the
+        // extensions, too
     )
 }
 
@@ -121,7 +123,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
             ThemedUserAvatar(
                 initials = initials,
                 image = avatar,
-                size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp)
+                size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp),
             ) {
                 Box(Modifier.padding(10.dp)) {
                     Tooltip({ Text(i18n.profileAvatarChange()) }) {
@@ -166,8 +168,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel) {
             OutlinedTextField(
                 editDisplayName,
                 { editDisplayName = it },
-                Modifier
-                    .onPreviewKeyEvent {
+                Modifier.onPreviewKeyEvent {
                         if (it.type == KeyEventType.KeyDown) {
                             when (it.key) {
                                 Key.Enter -> {
@@ -186,12 +187,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel) {
                 label = { Text(i18n.profileYourName(), fontWeight = FontWeight.Bold) },
                 singleLine = true,
                 maxLines = 1,
-                keyboardActions = KeyboardActions(onDone = {
-                    done(
-                        editMode,
-                        accountSingleViewModel
-                    )
-                })
+                keyboardActions = KeyboardActions(onDone = { done(editMode, accountSingleViewModel) }),
             )
             Spacer(Modifier.size(10.dp))
         } else {
@@ -220,10 +216,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel) {
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { editMode.value = true },
                 ) {
-                    EditIcon(
-                        Icons.Default.Edit,
-                        i18n.commonEdit(),
-                    )
+                    EditIcon(Icons.Default.Edit, i18n.commonEdit())
                 }
             }
         }
@@ -236,10 +229,7 @@ fun AccountDisplayName(accountSingleViewModel: AccountSingleViewModel) {
     }
 }
 
-private fun done(
-    editMode: MutableState<Boolean>,
-    accountSingleViewModel: AccountSingleViewModel,
-) {
+private fun done(editMode: MutableState<Boolean>, accountSingleViewModel: AccountSingleViewModel) {
     editMode.value = false
     accountSingleViewModel.saveDisplayName()
 }
@@ -256,4 +246,3 @@ fun AccountUserId(accountSingleViewModel: AccountSingleViewModel) {
         ThemedSelectableText(accountSingleViewModel.userId.full, MaterialTheme.components.selectionOnSurface)
     }
 }
-

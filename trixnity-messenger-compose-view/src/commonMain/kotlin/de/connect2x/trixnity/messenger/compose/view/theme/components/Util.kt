@@ -7,11 +7,8 @@ import androidx.compose.ui.graphics.isSpecified
 
 @Composable
 fun Color.withContentColor(enabled: Boolean = true): Color =
-    if (isSpecified) this
-    else if (enabled) LocalContentColor.current
-    else LocalContentColor.current.copy(alpha = 0.38f)
+    if (isSpecified) this else if (enabled) LocalContentColor.current else LocalContentColor.current.copy(alpha = 0.38f)
 
-/**
- * ThemedButtons and ThemedIconButtons map Color.Content to LocalContentColor.current in their local scope
- */
-val Color.Companion.LocalContent get() = Color.Unspecified
+/** ThemedButtons and ThemedIconButtons map Color.Content to LocalContentColor.current in their local scope */
+val Color.Companion.LocalContent
+    get() = Color.Unspecified

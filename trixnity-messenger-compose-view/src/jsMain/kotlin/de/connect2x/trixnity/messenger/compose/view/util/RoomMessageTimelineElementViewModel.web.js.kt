@@ -7,7 +7,6 @@ import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.ClipboardItem as ComposeClipboardItem
 import web.clipboard.ClipboardItem
 
-
 internal actual fun newClipEntry(entries: JsArray<ClipboardItem>): ClipEntry =
     ClipEntry(entries.unsafeCast<Array<ComposeClipboardItem>>())
 

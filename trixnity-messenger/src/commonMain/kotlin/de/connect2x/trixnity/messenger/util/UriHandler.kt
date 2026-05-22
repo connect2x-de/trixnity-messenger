@@ -13,19 +13,14 @@ import org.koin.core.module.Module
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriHandlerKt")
 
-/**
- * There is no common Uri type in Kotlin Multiplatform. Therefore [String] is used.
- */
+/** There is no common Uri type in Kotlin Multiplatform. Therefore [String] is used. */
 interface UriHandler : Flow<String>
 
 open class UriHandlerBase(
     config: MatrixMessengerBaseConfiguration,
     filter: (String) -> Boolean = uriFilter(config),
     protected val urlHandlerFlow: MutableSharedFlow<String> =
-        MutableSharedFlow(
-            replay = 1,
-            onBufferOverflow = BufferOverflow.DROP_OLDEST
-        )
+        MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST),
 ) : UriHandler, Flow<String> by urlHandlerFlow.filter(filter).onEach({ log.info { "handle uri: $it" } })
 
 fun uriFilter(config: MatrixMessengerBaseConfiguration): (String) -> Boolean = {

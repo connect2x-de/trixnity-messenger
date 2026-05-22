@@ -14,8 +14,6 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewAccountViewMode
 @Composable
 private fun AccountAvatarPreview() {
     InitMessengerPreview {
-        Row(Modifier.sizeIn(maxWidth = 300.dp)) {
-            AccountAvatar(accountViewModel = PreviewAccountViewModel())
-        }
+        Row(Modifier.sizeIn(maxWidth = 300.dp)) { AccountAvatar(accountViewModel = PreviewAccountViewModel()) }
     }
 }

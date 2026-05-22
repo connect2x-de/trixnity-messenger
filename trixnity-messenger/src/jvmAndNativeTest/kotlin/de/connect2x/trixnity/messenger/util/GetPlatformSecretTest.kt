@@ -4,21 +4,23 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyProvider
 import de.connect2x.trixnity.messenger.secrets.platformSecretByteArrayKeyProviderModule
 import io.kotest.matchers.shouldBe
+import kotlin.test.Ignore
+import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.Ignore
-import kotlin.test.Test
 
 class GetPlatformSecretTest {
-    val cut = koinApplication {
-        modules(
-            platformSecretByteArrayKeyProviderModule(),
-            module {
-                single { MatrixMessengerConfiguration() }
-            },
-        )
-    }.koin.getAll<SecretByteArrayKeyProvider>().first()
+    val cut =
+        koinApplication {
+                modules(
+                    platformSecretByteArrayKeyProviderModule(),
+                    module { single { MatrixMessengerConfiguration() } },
+                )
+            }
+            .koin
+            .getAll<SecretByteArrayKeyProvider>()
+            .first()
 
     // disabled, because iOSSimulator seems to have no working keychain for this test
     // enable for local testing

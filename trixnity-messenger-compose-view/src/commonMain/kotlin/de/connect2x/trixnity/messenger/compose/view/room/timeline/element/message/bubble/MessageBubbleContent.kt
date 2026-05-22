@@ -41,13 +41,10 @@ private object MessageBubbleMeasurePolicy : MeasurePolicy {
 
     enum class LayoutId {
         MESSAGE,
-        TIMESTAMP
+        TIMESTAMP,
     }
 
-    override fun MeasureScope.measure(
-        measurables: List<Measurable>,
-        constraints: Constraints,
-    ): MeasureResult {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         val spacing = spacing.roundToPx()
         val message = measurables.firstOrNull { it.layoutId == LayoutId.MESSAGE }?.measure(constraints)
         requireNotNull(message) { "Cannot layout message bubble without message content" }
@@ -56,63 +53,34 @@ private object MessageBubbleMeasurePolicy : MeasurePolicy {
             if (message.width + spacing + date.width < constraints.maxWidth) {
                 // add extra padding to bottom that is missing otherwise
                 val height = message.height + 10.dp.roundToPx()
-                layout(
-                    width = message.width + spacing + date.width,
-                    height = height,
-                ) {
+                layout(width = message.width + spacing + date.width, height = height) {
                     message.place(0, 0)
-                    date.place(
-                        message.width + spacing,
-                        height - date.height
-                    )
+                    date.place(message.width + spacing, height - date.height)
                 }
             } else {
-                layout(
-                    width = constraints.maxWidth,
-                    height = message.height + date.height
-                ) {
+                layout(width = constraints.maxWidth, height = message.height + date.height) {
                     message.place(0, 0)
-                    date.place(
-                        constraints.maxWidth - date.width,
-                        message.height
-                    )
+                    date.place(constraints.maxWidth - date.width, message.height)
                 }
             }
-        } ?: layout(
-            message.width,
-            message.height
-        ) {
-            message.place(0, 0)
-        }
+        } ?: layout(message.width, message.height) { message.place(0, 0) }
     }
 
-    override fun IntrinsicMeasureScope.minIntrinsicWidth(
-        measurables: List<IntrinsicMeasurable>,
-        height: Int
-    ): Int {
+    override fun IntrinsicMeasureScope.minIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int {
         val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
         return measurables.sumOf { it.minIntrinsicWidth(height) } + spacing
     }
 
-    override fun IntrinsicMeasureScope.maxIntrinsicWidth(
-        measurables: List<IntrinsicMeasurable>,
-        height: Int
-    ): Int {
+    override fun IntrinsicMeasureScope.maxIntrinsicWidth(measurables: List<IntrinsicMeasurable>, height: Int): Int {
         val spacing = (spacing + 1.dp).roundToPx() // to be _just_ big enough for one line
         return measurables.sumOf { it.maxIntrinsicWidth(height) } + spacing
     }
 
-    override fun IntrinsicMeasureScope.minIntrinsicHeight(
-        measurables: List<IntrinsicMeasurable>,
-        width: Int
-    ): Int {
+    override fun IntrinsicMeasureScope.minIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int {
         return measurables.sumOf { it.minIntrinsicHeight(width) }
     }
 
-    override fun IntrinsicMeasureScope.maxIntrinsicHeight(
-        measurables: List<IntrinsicMeasurable>,
-        width: Int
-    ): Int {
+    override fun IntrinsicMeasureScope.maxIntrinsicHeight(measurables: List<IntrinsicMeasurable>, width: Int): Int {
         return measurables.sumOf { it.maxIntrinsicHeight(width) }
     }
 }
@@ -129,35 +97,24 @@ fun MessageBubbleContent(
     val showSender = holder.showSender.collectAsState().value == true
     val isReplaced = holder.asTimelineElementHolder()?.isReplaced?.collectAsState()?.value == true
     val hasRepliedElement = holder.isReply.collectAsState().value == true
-    val messageBubbleStyle = when {
-        sendError != null -> MaterialTheme.components.messageBubbleError
-        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
-        else -> MaterialTheme.components.messageBubbleOther
-    }
+    val messageBubbleStyle =
+        when {
+            sendError != null -> MaterialTheme.components.messageBubbleError
+            holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+            else -> MaterialTheme.components.messageBubbleOther
+        }
 
-
-    val highlighted = if (highlight) Modifier.border(
-        width = 3.dp,
-        color = MaterialTheme.colorScheme.outline,
-        shape = RoundedCornerShape(8.dp),
-    ) else Modifier
+    val highlighted =
+        if (highlight)
+            Modifier.border(width = 3.dp, color = MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp))
+        else Modifier
     Row {
         if (sendError != null) {
-            Icon(
-                Icons.Default.Warning, "send error",
-                Modifier.padding(5.dp).align(Alignment.CenterVertically)
-            )
+            Icon(Icons.Default.Warning, "send error", Modifier.padding(5.dp).align(Alignment.CenterVertically))
         }
-        Column(
-            Modifier
-                .padding(0.dp)
-                .then(highlighted)
-        ) {
+        Column(Modifier.padding(0.dp).then(highlighted)) {
             if (showSender) {
-                Box(
-                    Modifier
-                        .padding(start = 10.dp, end = 10.dp, top = 5.dp)
-                ) {
+                Box(Modifier.padding(start = 10.dp, end = 10.dp, top = 5.dp)) {
                     val sender = holder.sender.collectAsState().value
                     if (sender == null) {
                         // TODO placeholder instead
@@ -165,11 +122,14 @@ fun MessageBubbleContent(
                     } else {
                         Text(
                             text = sender.name,
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = MaterialTheme.messengerColors.getUserColor(
-                                    sender.userId, messageBubbleStyle.color
-                                )
-                            ),
+                            style =
+                                MaterialTheme.typography.labelLarge.copy(
+                                    color =
+                                        MaterialTheme.messengerColors.getUserColor(
+                                            sender.userId,
+                                            messageBubbleStyle.color,
+                                        )
+                                ),
                         )
                     }
                 }
@@ -177,25 +137,21 @@ fun MessageBubbleContent(
 
             RepliedElement(holder)
 
-            // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking for intrinsic measurements of SubcomposeLayout layouts is not supported."
+            // the hasRepliedElement is needed to avoid layouting already layouted elements which leads to this: "Asking
+            // for intrinsic measurements of SubcomposeLayout layouts is not supported."
             if (needsMaxWidth || hasRepliedElement) {
                 content(showActionMenu)
-                Row(
-                    Modifier.align(Alignment.End).padding(5.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
+                Row(Modifier.align(Alignment.End).padding(5.dp), verticalAlignment = Alignment.Bottom) {
                     MessageBubbleContentInfo(isReplaced, holder)
                 }
             } else {
                 Layout(
                     content = {
-                        Box(Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.MESSAGE)) {
-                            content(showActionMenu)
-                        }
+                        Box(Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.MESSAGE)) { content(showActionMenu) }
                         Row(
-                            modifier = Modifier
-                                .layoutId(MessageBubbleMeasurePolicy.LayoutId.TIMESTAMP)
-                                .padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
+                            modifier =
+                                Modifier.layoutId(MessageBubbleMeasurePolicy.LayoutId.TIMESTAMP)
+                                    .padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
                             verticalAlignment = Alignment.Bottom,
                         ) {
                             MessageBubbleContentInfo(isReplaced, holder)
@@ -207,10 +163,7 @@ fun MessageBubbleContent(
 
             if (sendError != null) {
                 Box(Modifier.padding(start = 10.dp, end = 10.dp)) {
-                    Text(
-                        text = sendError,
-                        style = MaterialTheme.typography.labelSmall,
-                    )
+                    Text(text = sendError, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
@@ -226,14 +179,11 @@ private fun MessageBubbleContentInfo(isReplaced: Boolean, holder: BaseTimelineEl
             Text(
                 i18n.messageBubbleEdited(),
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.paddingFromBaseline(0.dp)
-                    .padding(end = 2.dp),
+                modifier = Modifier.paddingFromBaseline(0.dp).padding(end = 2.dp),
                 maxLines = 1,
             )
         }
-        Box(
-            contentAlignment = Alignment.BottomEnd
-        ) {
+        Box(contentAlignment = Alignment.BottomEnd) {
             Text(
                 holder.formattedTime,
                 style = MaterialTheme.typography.labelSmall,

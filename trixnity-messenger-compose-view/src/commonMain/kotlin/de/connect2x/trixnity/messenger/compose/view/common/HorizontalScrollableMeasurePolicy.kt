@@ -10,24 +10,16 @@ import androidx.compose.ui.unit.Constraints
 object HorizontalScrollableMeasurePolicy : MeasurePolicy {
     object ScrollbarLayoutId
 
-    override fun MeasureScope.measure(
-        measurables: List<Measurable>,
-        constraints: Constraints
-    ): MeasureResult {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         val scrollbar = measurables.firstOrNull { it.layoutId == ScrollbarLayoutId }
         val content = measurables.firstOrNull { it.layoutId != ScrollbarLayoutId }
         val contentResult = content?.measure(constraints)
         if (contentResult == null) {
-            return layout(constraints.minWidth, constraints.minHeight) { }
+            return layout(constraints.minWidth, constraints.minHeight) {}
         } else if (constraints.maxWidth > contentResult.width) {
-            return layout(contentResult.width, contentResult.height) {
-                contentResult.place(0, 0)
-            }
+            return layout(contentResult.width, contentResult.height) { contentResult.place(0, 0) }
         } else {
-            val scrollbarConstraints = constraints.copy(
-                minWidth = contentResult.width,
-                maxWidth = contentResult.width,
-            )
+            val scrollbarConstraints = constraints.copy(minWidth = contentResult.width, maxWidth = contentResult.width)
             val scrollbarResult = scrollbar?.measure(scrollbarConstraints)
             return layout(contentResult.width, contentResult.height) {
                 contentResult.place(0, 0)

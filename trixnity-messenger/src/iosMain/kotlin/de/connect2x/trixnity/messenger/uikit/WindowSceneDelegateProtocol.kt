@@ -9,20 +9,17 @@ import platform.UIKit.UITraitCollection
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
 
-/**
- * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate)
- */
+/** [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate) */
 interface WindowSceneDelegateProtocol : SceneDelegateProtocol {
 
-    /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/window)
-     */
+    /** [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/window) */
     var window: WithDefault<UIWindow?>
         get() = Default
         set(value) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:performactionfor:completionhandler:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:performactionfor:completionhandler:))
      */
     suspend fun performAction(
         windowScene: UIWindowScene,
@@ -30,22 +27,19 @@ interface WindowSceneDelegateProtocol : SceneDelegateProtocol {
     ): WithDefault<Boolean> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:userdidacceptcloudkitsharewith:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:userdidacceptcloudkitsharewith:))
      */
-    fun userDidAcceptCloudKitShare(
-        windowScene: UIWindowScene,
-        cloudKitShareMetadata: CKShareMetadata,
-    ) {
-    }
+    fun userDidAcceptCloudKitShare(windowScene: UIWindowScene, cloudKitShareMetadata: CKShareMetadata) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:didupdate:interfaceorientation:traitcollection:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiwindowscenedelegate/windowscene(_:didupdate:interfaceorientation:traitcollection:))
      */
     fun didUpdateCoordinateSpace(
         windowScene: UIWindowScene,
         previousCoordinateSpace: UICoordinateSpaceProtocol,
         previousInterfaceOrientation: UIInterfaceOrientation,
         previousTraitCollection: UITraitCollection,
-    ) {
-    }
+    ) {}
 }

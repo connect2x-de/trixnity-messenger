@@ -11,14 +11,12 @@ data class Emoji(
     @SerialName("translated_descriptions") val translatedDescriptions: Map<String, String?>,
 )
 
-/**
- * Helper to generate emojis with only German translation.
- */
+/** Helper to generate emojis with only German translation. */
 fun main() {
     String.Companion::class.java.getResourceAsStream("/emojis.json")?.let { jsonStream ->
-        val json = Json {
-            ignoreUnknownKeys = true
-        }.decodeFromString<List<Emoji>>(jsonStream.readBytes().toString(Charsets.UTF_8))
+        val json =
+            Json { ignoreUnknownKeys = true }
+                .decodeFromString<List<Emoji>>(jsonStream.readBytes().toString(Charsets.UTF_8))
         val map =
             """mapOf(${
                 json.joinToString(",") { emoji ->
@@ -31,6 +29,5 @@ fun main() {
                 }
             })"""
         println(map)
-
     }
 }

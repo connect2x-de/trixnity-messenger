@@ -11,10 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
 
 @Composable
 fun UiaSwitch(stack: Value<ChildStack<*, UiaRouter.Wrapper>>) =
-    Children(
-        stack = stack,
-        animation = stackAnimation(fade()),
-    ) {
+    Children(stack = stack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is UiaRouter.Wrapper.None -> Box {}
             is UiaRouter.Wrapper.UiaActionConfirmation -> UiaActionConfirmation(child.viewModel)

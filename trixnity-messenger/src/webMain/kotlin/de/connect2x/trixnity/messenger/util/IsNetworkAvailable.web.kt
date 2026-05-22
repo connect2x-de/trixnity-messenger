@@ -5,7 +5,5 @@ import org.koin.dsl.module
 import web.navigator.navigator
 
 actual fun platformIsNetworkAvailableModule(): Module = module {
-    single<IsNetworkAvailable> {
-        IsNetworkAvailable { navigator.onLine }
-    }
+    single<IsNetworkAvailable> { IsNetworkAvailable { navigator.onLine } }
 }

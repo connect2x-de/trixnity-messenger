@@ -18,8 +18,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
 
 interface OAuth2LoginView {
-    @Composable
-    fun create(oAuth2LoginViewModel: OAuth2LoginViewModel)
+    @Composable fun create(oAuth2LoginViewModel: OAuth2LoginViewModel)
 }
 
 @Composable
@@ -37,26 +36,25 @@ class OAuth2LoginViewImpl : OAuth2LoginView {
         Column(Modifier.defaultMinSize(minHeight = 20.dp)) {
             when (state) {
                 OAuth2LoginViewModel.State.None -> {
-                    val text = when (type) {
-                        OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2Description(oAuth2LoginViewModel.serverUrl)
-                        OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2Description(oAuth2LoginViewModel.serverUrl)
-                    }
+                    val text =
+                        when (type) {
+                            OAuth2LoginViewModel.Type.LOGIN ->
+                                i18n.loginWithOAuth2Description(oAuth2LoginViewModel.serverUrl)
+                            OAuth2LoginViewModel.Type.REGISTER ->
+                                i18n.registerWithOAuth2Description(oAuth2LoginViewModel.serverUrl)
+                        }
                     Text(text)
                 }
 
                 OAuth2LoginViewModel.State.StartLogin,
                 OAuth2LoginViewModel.State.WaitingForRedirect,
                 OAuth2LoginViewModel.State.ResumeLogin -> {
-                    ThemedProgressIndicator(
-                        Modifier.fillMaxWidth(),
-                        MaterialTheme.components.linearProgressIndicator
-                    )
+                    ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
                     SmallSpacer()
                     Text(i18n.loginWithOAuth2Waiting(oAuth2LoginViewModel.serverUrl))
                 }
 
-                is OAuth2LoginViewModel.State.Failure ->
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
+                is OAuth2LoginViewModel.State.Failure -> Text(state.message, color = MaterialTheme.colorScheme.error)
 
                 OAuth2LoginViewModel.State.Success -> {}
             }

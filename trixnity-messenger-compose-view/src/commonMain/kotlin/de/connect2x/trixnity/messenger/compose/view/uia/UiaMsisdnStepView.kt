@@ -23,8 +23,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepMsisdnViewModel
 
 interface UiaMsisdnStepView {
-    @Composable
-    fun create(uiaStepMsisdnViewModel: UiaStepMsisdnViewModel)
+    @Composable fun create(uiaStepMsisdnViewModel: UiaStepMsisdnViewModel)
 }
 
 @Composable
@@ -38,20 +37,13 @@ class UiaMsisdnStepViewImpl : UiaMsisdnStepView {
         val i18n = DI.get<I18nView>()
         val error = uiaStepMsisdnViewModel.error.collectAsState().value
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaMsisdnTitle())
                 if (error != null) {
                     ErrorView(error)
                 }
                 MiddleSpacer()
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepMsisdnViewModel::cancel,
@@ -62,5 +54,4 @@ class UiaMsisdnStepViewImpl : UiaMsisdnStepView {
             }
         }
     }
-
 }

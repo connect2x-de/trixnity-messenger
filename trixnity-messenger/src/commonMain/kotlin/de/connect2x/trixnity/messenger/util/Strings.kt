@@ -15,9 +15,7 @@ interface GraphemeIterable : Iterable<String> {
 
 interface GraphemeIterator : Iterator<String>
 
-fun platformStringsModule(): Module = module {
-    single<GraphemeIterableProvider> { PlatformGraphemeIterableProvider }
-}
+fun platformStringsModule(): Module = module { single<GraphemeIterableProvider> { PlatformGraphemeIterableProvider } }
 
 internal expect fun platformGraphemeIterableProvider(): GraphemeIterableProvider
 
@@ -29,24 +27,22 @@ object PlatformGraphemeIterableProvider : GraphemeIterableProvider {
 
 @Deprecated(
     message = "This cannot be overridden by DI, please use platformStringModule instead",
-    level = DeprecationLevel.WARNING
+    level = DeprecationLevel.WARNING,
 )
 val String.graphCount: Int
     get() = PlatformGraphemeIterableProvider(this).graphemeCount
 
 @Deprecated(
     message = "This cannot be overridden by DI, please use platformStringModule instead",
-    level = DeprecationLevel.WARNING
+    level = DeprecationLevel.WARNING,
 )
 inline fun String.forEachGraph(crossinline consumer: (graph: String, index: Int) -> Boolean) {
-    PlatformGraphemeIterableProvider(this).forEachIndexed { index, graph ->
-        if (!consumer(graph, index)) return
-    }
+    PlatformGraphemeIterableProvider(this).forEachIndexed { index, graph -> if (!consumer(graph, index)) return }
 }
 
 @Deprecated(
     message = "This cannot be overridden by DI, please use platformStringModule instead",
-    level = DeprecationLevel.WARNING
+    level = DeprecationLevel.WARNING,
 )
 @Suppress("DEPRECATION")
 fun String.subGraph(start: Int, end: Int = graphCount - 1): String {
@@ -65,7 +61,7 @@ fun String.subGraph(start: Int, end: Int = graphCount - 1): String {
 
 @Deprecated(
     message = "This cannot be overridden by DI, please use platformStringModule instead",
-    level = DeprecationLevel.WARNING
+    level = DeprecationLevel.WARNING,
 )
 @Suppress("DEPRECATION")
 fun String.firstGraph(): String {

@@ -46,12 +46,7 @@ fun TextBasedRoomMessageTimelineElementView(
     isPreview: Boolean,
     index: Int,
 ) {
-    MessageBubble(
-        holder,
-        needsMaxWidth = false,
-        isPreview = isPreview,
-        index = index,
-    ) { showActionMenu ->
+    MessageBubble(holder, needsMaxWidth = false, isPreview = isPreview, index = index) { showActionMenu ->
         TextRoomMessageTimelineElementView(holder, element, showActionMenu)
     }
 }
@@ -65,13 +60,18 @@ fun TextRoomMessageTimelineElementView(
     // on Desktop and Web, it makes sense to select text and copy it;
     // on Android and iOS, this will consume long tap events, which we use for the context menu
     when (Platform.current) {
-        PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(
-            style = if (holder.isByMe) MaterialTheme.components.selectionOnPrimary else MaterialTheme.components.selectionOnSurface
-        ) {
-            MessageTextContent(holder, element, showActionMenu)
-        }
+        PlatformType.DESKTOP,
+        PlatformType.WEB ->
+            ThemedSelectionContainer(
+                style =
+                    if (holder.isByMe) MaterialTheme.components.selectionOnPrimary
+                    else MaterialTheme.components.selectionOnSurface
+            ) {
+                MessageTextContent(holder, element, showActionMenu)
+            }
 
-        PlatformType.ANDROID, PlatformType.IOS -> MessageTextContent(holder, element, showActionMenu)
+        PlatformType.ANDROID,
+        PlatformType.IOS -> MessageTextContent(holder, element, showActionMenu)
     }
 }
 
@@ -86,10 +86,7 @@ private fun MessageTextContent(
     val content = element.formattedBodyContent
     val sender = holder.sender.collectAsState().value
 
-    Column(
-        Modifier
-            .padding(start = 10.dp, end = 10.dp, top = 10.dp)
-    ) {
+    Column(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)) {
         if (element is RoomMessageTimelineElementViewModel.TextBased.Notice) {
             Row {
                 Icon(Icons.Filled.SmartToy, i18n.automated())
@@ -104,7 +101,6 @@ private fun MessageTextContent(
             Spacer(Modifier.size(5.dp))
         }
 
-
         if (content != null) {
             CompositionLocalProvider(
                 LocalTextStyle provides MaterialTheme.typography.bodyMedium.copy(color = LocalContentColor.current)
@@ -112,20 +108,17 @@ private fun MessageTextContent(
                 RichTextDisplay(
                     document = content,
                     mentions = element.mentionsInFormattedBody,
-                    modifier = Modifier
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onLongPress = { showActionMenu() }
-                            )
-                        },
-                    colors = RichTextColors.default(
-                        linkColor =
-                            if (holder.isByMe) MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
-                            else MaterialTheme.messengerColors.link
-                    ),
+                    modifier = Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { showActionMenu() }) },
+                    colors =
+                        RichTextColors.default(
+                            linkColor =
+                                if (holder.isByMe)
+                                    MaterialTheme.messengerColors.linkByMe // Inherit link color from Messenger colors
+                                else MaterialTheme.messengerColors.link
+                        ),
                     onCopy = null,
                     onLinkClick = { uriCaller.invoke(it, true) },
-                    onMentionClick = element::openMention
+                    onMentionClick = element::openMention,
                 )
             }
         }
@@ -143,9 +136,7 @@ fun TextReplyInTimeline(
         holder = holder,
         modifier = modifier,
         interactionSource = interactionSource,
-        content = {
-            TextReply(element, 4)
-        }
+        content = { TextReply(element, 4) },
     )
 }
 
@@ -160,9 +151,7 @@ fun TextReplyInSendMessage(
         holder = holder,
         modifier = modifier,
         interactionSource = interactionSource,
-        content = {
-            TextReply(element, 2)
-        }
+        content = { TextReply(element, 2) },
     )
 }
 

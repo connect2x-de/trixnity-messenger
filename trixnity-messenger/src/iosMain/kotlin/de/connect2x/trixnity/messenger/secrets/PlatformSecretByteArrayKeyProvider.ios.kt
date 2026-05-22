@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.secrets
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.toByteArray
 import de.connect2x.trixnity.messenger.util.toNSData
@@ -11,7 +12,6 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
 import kotlinx.serialization.json.JsonObject
-import de.connect2x.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -53,37 +53,40 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     try {
                         val appId = config.appId
                         val existingKey = getSecret(appId, id)
-                        val key = when {
-                            existingKey == null -> {
-                                val newKey = SecureRandom.nextBytes(size)
-                                context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
-                                    val query = query(
-                                        kSecClass to kSecClassGenericPassword,
-                                        kSecAttrService to appIdRef,
-                                        kSecAttrAccount to idRef,
-                                        kSecValueData to newKeyRef,
-                                    )
-                                    SecItemAdd(query, null).checkState()
+                        val key =
+                            when {
+                                existingKey == null -> {
+                                    val newKey = SecureRandom.nextBytes(size)
+                                    context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
+                                        val query =
+                                            query(
+                                                kSecClass to kSecClassGenericPassword,
+                                                kSecAttrService to appIdRef,
+                                                kSecAttrAccount to idRef,
+                                                kSecValueData to newKeyRef,
+                                            )
+                                        SecItemAdd(query, null).checkState()
+                                    }
+                                    newKey
                                 }
-                                newKey
-                            }
 
-                            existingKey.size < size -> {
-                                val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
-                                context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
-                                    val query = query(
-                                        kSecClass to kSecClassGenericPassword,
-                                        kSecAttrService to appIdRef,
-                                        kSecAttrAccount to idRef,
-                                        kSecValueData to newKeyRef,
-                                    )
-                                    SecItemAdd(query, null).checkState()
+                                existingKey.size < size -> {
+                                    val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
+                                    context(appId, id, newKey.toNSData()) { (appIdRef, idRef, newKeyRef) ->
+                                        val query =
+                                            query(
+                                                kSecClass to kSecClassGenericPassword,
+                                                kSecAttrService to appIdRef,
+                                                kSecAttrAccount to idRef,
+                                                kSecValueData to newKeyRef,
+                                            )
+                                        SecItemAdd(query, null).checkState()
+                                    }
+                                    newKey
                                 }
-                                newKey
-                            }
 
-                            else -> existingKey.copyOf(size)
-                        }
+                                else -> existingKey.copyOf(size)
+                            }
                         if (getInputKey == null) key
                         else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                     } catch (ex: Exception) {
@@ -95,7 +98,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun rotate(
                 oldExtra: JsonObject?,
                 getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?
+                getNewInputKey: GetKey?,
             ): SecretByteArrayKeyProvider.RotateResult =
                 SecretByteArrayKeyProvider.RotateResult(
                     getOldKey = get(null, getOldInputKey),
@@ -114,40 +117,36 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
 @OptIn(ExperimentalForeignApi::class)
 private fun getSecret(appId: String, id: String) =
     context(appId, id) { (appIdRef, idRef) ->
-        val query = query(
-            kSecClass to kSecClassGenericPassword,
-            kSecAttrService to appIdRef,
-            kSecAttrAccount to idRef,
-            kSecReturnData to kCFBooleanTrue,
-            kSecMatchLimit to kSecMatchLimitOne,
-        )
-        memScoped {
-            val result = alloc<CFTypeRefVar>()
-            SecItemCopyMatching(query, result.ptr).checkState()
-            CFBridgingRelease(result.value) as? NSData
+            val query =
+                query(
+                    kSecClass to kSecClassGenericPassword,
+                    kSecAttrService to appIdRef,
+                    kSecAttrAccount to idRef,
+                    kSecReturnData to kCFBooleanTrue,
+                    kSecMatchLimit to kSecMatchLimitOne,
+                )
+            memScoped {
+                val result = alloc<CFTypeRefVar>()
+                SecItemCopyMatching(query, result.ptr).checkState()
+                CFBridgingRelease(result.value) as? NSData
+            }
         }
-    }?.toByteArray()
+        ?.toByteArray()
 
 @OptIn(ExperimentalForeignApi::class)
 private class Context {
     fun query(vararg pairs: Pair<CFStringRef?, CFTypeRef?>): CFDictionaryRef? {
         val map = mapOf(*pairs)
-        return CFDictionaryCreateMutable(
-            null, map.size.convert(), null, null
-        ).apply {
-            map.entries.forEach { CFDictionaryAddValue(this, it.key, it.value) }
-        }.apply {
-            CFAutorelease(this)
-        }
+        return CFDictionaryCreateMutable(null, map.size.convert(), null, null)
+            .apply { map.entries.forEach { CFDictionaryAddValue(this, it.key, it.value) } }
+            .apply { CFAutorelease(this) }
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 private fun <T> context(vararg values: Any?, block: Context.(List<CFTypeRef?>) -> T): T {
     val custom = arrayOf(*values).map { CFBridgingRetain(it) }
-    return block.invoke(Context(), custom).apply {
-        custom.forEach { CFBridgingRelease(it) }
-    }
+    return block.invoke(Context(), custom).apply { custom.forEach { CFBridgingRelease(it) } }
 }
 
 private fun OSStatus.checkState() {
@@ -158,22 +157,24 @@ private fun OSStatus.checkState() {
             return
         }
 
-        else -> throw IllegalStateException(
-            "Keychain access failed: errorCode=$this " + when (this) {
-                platform.Security.errSecInteractionNotAllowed -> "errSecInteractionNotAllowed"
-                platform.Security.errSecUnimplemented -> "errSecUnimplemented"
-                platform.Security.errSecNotAvailable -> "errSecNotAvailable"
-                platform.Security.errSecAuthFailed -> "errSecAuthFailed"
-                platform.Security.errSecAllocate -> "errSecAllocate"
-                platform.Security.errSecDecode -> "errSecDecode"
-                platform.Security.errSecBadReq -> "errSecBadReq"
-                platform.Security.errSecParam -> "errSecParam"
-                platform.Security.errSecFileTooBig -> "errSecFileTooBig"
-                platform.Security.errSecInvalidKeyLabel -> "errSecInvalidKeyLabel"
-                platform.Security.errSecInvalidAttributeKey -> "errSecInvalidAttributeKey"
-                platform.Security.errSecInvalidKeychain -> "errSecInvalidKeychain"
-                else -> ""
-            }
-        )
+        else ->
+            throw IllegalStateException(
+                "Keychain access failed: errorCode=$this " +
+                    when (this) {
+                        platform.Security.errSecInteractionNotAllowed -> "errSecInteractionNotAllowed"
+                        platform.Security.errSecUnimplemented -> "errSecUnimplemented"
+                        platform.Security.errSecNotAvailable -> "errSecNotAvailable"
+                        platform.Security.errSecAuthFailed -> "errSecAuthFailed"
+                        platform.Security.errSecAllocate -> "errSecAllocate"
+                        platform.Security.errSecDecode -> "errSecDecode"
+                        platform.Security.errSecBadReq -> "errSecBadReq"
+                        platform.Security.errSecParam -> "errSecParam"
+                        platform.Security.errSecFileTooBig -> "errSecFileTooBig"
+                        platform.Security.errSecInvalidKeyLabel -> "errSecInvalidKeyLabel"
+                        platform.Security.errSecInvalidAttributeKey -> "errSecInvalidAttributeKey"
+                        platform.Security.errSecInvalidKeychain -> "errSecInvalidKeychain"
+                        else -> ""
+                    }
+            )
     }
 }

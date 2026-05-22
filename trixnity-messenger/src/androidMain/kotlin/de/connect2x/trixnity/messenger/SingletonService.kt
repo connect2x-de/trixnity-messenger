@@ -9,6 +9,7 @@ import android.os.Binder
 import android.os.IBinder
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,16 +21,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
-open class SingletonService<I : AutoCloseable>(
-    val factory: suspend (Context) -> I,
-) : Service() {
+open class SingletonService<I : AutoCloseable>(val factory: suspend (Context) -> I) : Service() {
 
     private val log = Logger("de.connect2x.trixnity.messenger.SingletonService")
-    private val coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
-        log.error(exception) { "Exception in ${this::class.simpleName} coroutine" }
-    })
+    private val coroutineScope =
+        CoroutineScope(
+            Dispatchers.Default +
+                CoroutineExceptionHandler { _, exception ->
+                    log.error(exception) { "Exception in ${this::class.simpleName} coroutine" }
+                }
+        )
     private var closeSelfJob: Job? = null
 
     private val binder = LocalBinder<I>()
@@ -37,8 +39,7 @@ open class SingletonService<I : AutoCloseable>(
     val instance = _instance.asStateFlow()
 
     inner class LocalBinder<T : AutoCloseable> : Binder() {
-        @Suppress("UNCHECKED_CAST")
-        fun getService(): SingletonService<T> = this@SingletonService as SingletonService<T>
+        @Suppress("UNCHECKED_CAST") fun getService(): SingletonService<T> = this@SingletonService as SingletonService<T>
     }
 
     override fun onCreate() {
@@ -79,7 +80,7 @@ open class SingletonService<I : AutoCloseable>(
 }
 
 open class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>>(
-    private val singletonServiceClass: Class<S>,
+    private val singletonServiceClass: Class<S>
 ) : ServiceConnection {
     private val log = Logger("de.connect2x.trixnity.messenger.SingletonServiceConnection")
     private var coroutineScope: CoroutineScope? = null
@@ -88,20 +89,25 @@ open class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>
     val instance = _instance.asStateFlow()
 
     override fun onServiceConnected(className: ComponentName, rawBinder: IBinder) {
-        @Suppress("UNCHECKED_CAST")
-        val binder = rawBinder as SingletonService<I>.LocalBinder<I>
+        @Suppress("UNCHECKED_CAST") val binder = rawBinder as SingletonService<I>.LocalBinder<I>
         log.debug { "bound ${singletonServiceClass.simpleName}" }
         coroutineScope?.cancel()
-        coroutineScope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
-            log.error(exception) { "Exception in ${singletonServiceClass.simpleName} connection coroutine" }
-        })
-        coroutineScope?.launch {
-            val service = binder.getService()
-            service.instance.collect {
-                log.debug { "instance found in ${singletonServiceClass.simpleName}" }
-                _instance.value = it
+        coroutineScope =
+            CoroutineScope(
+                Dispatchers.Default +
+                    CoroutineExceptionHandler { _, exception ->
+                        log.error(exception) { "Exception in ${singletonServiceClass.simpleName} connection coroutine" }
+                    }
+            )
+        coroutineScope
+            ?.launch {
+                val service = binder.getService()
+                service.instance.collect {
+                    log.debug { "instance found in ${singletonServiceClass.simpleName}" }
+                    _instance.value = it
+                }
             }
-        }?.invokeOnCompletion { _instance.value = null }
+            ?.invokeOnCompletion { _instance.value = null }
     }
 
     override fun onServiceDisconnected(className: ComponentName) {
@@ -122,7 +128,7 @@ open class SingletonServiceConnection<I : AutoCloseable, S : SingletonService<I>
 
 private inline fun <T, reified I : AutoCloseable, reified S : SingletonService<I>> withSingletonServiceConnection(
     context: Context,
-    block: (connection: SingletonServiceConnection<I, S>) -> T
+    block: (connection: SingletonServiceConnection<I, S>) -> T,
 ): T {
     val connection = SingletonServiceConnection(S::class.java)
     connection.bind(context)
@@ -135,8 +141,5 @@ private inline fun <T, reified I : AutoCloseable, reified S : SingletonService<I
 
 internal suspend inline fun <T, reified I : AutoCloseable, reified S : SingletonService<I>> withSingletonService(
     context: Context,
-    block: suspend (instance: I) -> T
-): T = withSingletonServiceConnection<T, I, S>(context) {
-    block(it.instance.filterNotNull().first())
-}
-
+    block: suspend (instance: I) -> T,
+): T = withSingletonServiceConnection<T, I, S>(context) { block(it.instance.filterNotNull().first()) }

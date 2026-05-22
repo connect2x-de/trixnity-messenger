@@ -10,16 +10,10 @@ import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
-data class RadioButtonStyle(
-    val colors: RadioButtonColors,
-) {
+data class RadioButtonStyle(val colors: RadioButtonColors) {
     companion object {
         @Composable
-        fun default(
-            colors: RadioButtonColors = RadioButtonDefaults.colors(),
-        ) = RadioButtonStyle(
-            colors = colors,
-        )
+        fun default(colors: RadioButtonColors = RadioButtonDefaults.colors()) = RadioButtonStyle(colors = colors)
     }
 }
 
@@ -30,12 +24,13 @@ fun ThemedRadioButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     style: RadioButtonStyle = MaterialTheme.components.radioButton,
-    interactionSource: MutableInteractionSource? = null
-) = RadioButton(
-    selected = selected,
-    enabled = enabled,
-    onClick = onClick,
-    modifier = modifier.buttonPointerModifier(enabled),
-    colors = style.colors,
-    interactionSource = interactionSource,
-)
+    interactionSource: MutableInteractionSource? = null,
+) =
+    RadioButton(
+        selected = selected,
+        enabled = enabled,
+        onClick = onClick,
+        modifier = modifier.buttonPointerModifier(enabled),
+        colors = style.colors,
+        interactionSource = interactionSource,
+    )

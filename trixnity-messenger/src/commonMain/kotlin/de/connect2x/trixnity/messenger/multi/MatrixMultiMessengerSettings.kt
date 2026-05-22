@@ -23,40 +23,37 @@ data class MatrixMultiMessengerSettingsBase(
 ) : SettingsView<MatrixMultiMessengerSettings>
 
 @Serializable
-data class MatrixMultiMessengerProfileSettingsBase(
-    val displayName: String? = null,
-) : SettingsView<MatrixMultiMessengerProfileSettings>
+data class MatrixMultiMessengerProfileSettingsBase(val displayName: String? = null) :
+    SettingsView<MatrixMultiMessengerProfileSettings>
 
-data class MatrixMultiMessengerSettings(
-    private val delegate: Map<String, JsonElement>
-) : SettingsImpl<MatrixMultiMessengerSettings>(delegate) {
-    val base by lazy {
-        get<MatrixMultiMessengerSettings, MatrixMultiMessengerSettingsBase>()
-    }
+data class MatrixMultiMessengerSettings(private val delegate: Map<String, JsonElement>) :
+    SettingsImpl<MatrixMultiMessengerSettings>(delegate) {
+    val base by lazy { get<MatrixMultiMessengerSettings, MatrixMultiMessengerSettingsBase>() }
 }
 
 @Serializable(MatrixMultiMessengerProfileSettingsSerializer::class)
-data class MatrixMultiMessengerProfileSettings(
-    private val delegate: Map<String, JsonElement>
-) : SettingsImpl<MatrixMultiMessengerProfileSettings>(delegate) {
+data class MatrixMultiMessengerProfileSettings(private val delegate: Map<String, JsonElement>) :
+    SettingsImpl<MatrixMultiMessengerProfileSettings>(delegate) {
     val base by lazy { get<MatrixMultiMessengerProfileSettings, MatrixMultiMessengerProfileSettingsBase>() }
 }
 
 internal object MatrixMultiMessengerProfileSettingsSerializer :
     JsonDelegateSerializer<MatrixMultiMessengerProfileSettings>(
-        "MatrixMultiMessengerProfileSettingsSerializer", ::MatrixMultiMessengerProfileSettings
+        "MatrixMultiMessengerProfileSettingsSerializer",
+        ::MatrixMultiMessengerProfileSettings,
     )
 
 interface MatrixMultiMessengerSettingsHolder : SettingsHolder<MatrixMultiMessengerSettings>
 
 class MatrixMultiMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-    settings: MutableStateFlow<MatrixMultiMessengerSettings?> = MutableStateFlow(null)
-) : SettingsHolderImpl<MatrixMultiMessengerSettings>(storage, ::MatrixMultiMessengerSettings, settings),
+    settings: MutableStateFlow<MatrixMultiMessengerSettings?> = MutableStateFlow(null),
+) :
+    SettingsHolderImpl<MatrixMultiMessengerSettings>(storage, ::MatrixMultiMessengerSettings, settings),
     MatrixMultiMessengerSettingsHolder
 
 suspend inline fun <reified T : SettingsView<MatrixMultiMessengerSettings>> MatrixMultiMessengerSettingsHolder.update(
-    noinline updater: (T) -> T,
+    noinline updater: (T) -> T
 ) = update(serializer(), updater)
 
 expect fun platformMatrixMultiMessengerSettingsHolderModule(): Module

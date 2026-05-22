@@ -59,36 +59,35 @@ fun MatrixClients.toAccountInfo(
     settings: MatrixMessengerSettingsHolder,
     initials: Initials,
     maxMediaSizeInMemory: Long,
-) =
-    flatMapLatest { matrixClients ->
-        combine(
-            matrixClients.map { (userId, matrixClient) ->
-                val serverDisplayNameFlow = matrixClient.profile.map { it?.displayName ?: userId.localpart }
-                val avatarFlow = matrixClient.profile.map { profile ->
+) = flatMapLatest { matrixClients ->
+    combine(
+        matrixClients.map { (userId, matrixClient) ->
+            val serverDisplayNameFlow = matrixClient.profile.map { it?.displayName ?: userId.localpart }
+            val avatarFlow =
+                matrixClient.profile.map { profile ->
                     profile?.avatarUrl?.let { avatarUrl ->
-                        matrixClient.media.getThumbnail(
-                            avatarUrl,
-                            avatarSize().toLong(),
-                            avatarSize().toLong(),
-                        ).fold(
-                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                            onFailure = { log.error(it) { "Cannot load user avatar" }; null }
-                        )
+                        matrixClient.media
+                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                            .fold(
+                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                onFailure = {
+                                    log.error(it) { "Cannot load user avatar" }
+                                    null
+                                },
+                            )
                     }
                 }
-                combine(
-                    serverDisplayNameFlow,
-                    settings[userId],
-                    avatarFlow
-                ) { serverDisplayName, settings, avatar ->
-                    AccountInfo(
-                        userId = userId,
-                        displayName = settings?.base?.displayName ?: serverDisplayName,
-                        initials = initials.compute(serverDisplayName),
-                        avatar = avatar,
-                        displayColor = settings?.base?.displayColor,
-                    )
-                }
+            combine(serverDisplayNameFlow, settings[userId], avatarFlow) { serverDisplayName, settings, avatar ->
+                AccountInfo(
+                    userId = userId,
+                    displayName = settings?.base?.displayName ?: serverDisplayName,
+                    initials = initials.compute(serverDisplayName),
+                    avatar = avatar,
+                    displayColor = settings?.base?.displayColor,
+                )
             }
-        ) { it.toList() }
+        }
+    ) {
+        it.toList()
     }
+}

@@ -49,8 +49,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListKt")
 
 interface RoomListView {
-    @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    @Composable fun create(roomListViewModel: RoomListViewModel)
 }
 
 @Composable
@@ -83,7 +82,7 @@ class RoomListViewImpl : RoomListView {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Chat,
                                     i18n.accountCreateNewRoom(),
-                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
                                 )
                                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                                 Text(i18n.roomListCreateRoom())
@@ -93,28 +92,26 @@ class RoomListViewImpl : RoomListView {
                 }
             } else if (searchResultsEmpty) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(Modifier.padding(horizontal = 20.dp)) {
-                        Text(i18n.roomListNoSearchResults())
-                    }
+                    Column(Modifier.padding(horizontal = 20.dp)) { Text(i18n.roomListNoSearchResults()) }
                 }
             } else {
                 val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
-                val focusedItem = remember(selectedRoomId, allRooms) {
-                    mutableStateOf(
-                        if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
-                            selectedRoomId.full
-                        } else {
-                            allRooms.firstOrNull()?.roomId?.full
-                        }
-                    )
-                }
+                val focusedItem =
+                    remember(selectedRoomId, allRooms) {
+                        mutableStateOf(
+                            if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
+                                selectedRoomId.full
+                            } else {
+                                allRooms.firstOrNull()?.roomId?.full
+                            }
+                        )
+                    }
                 LazyColumn(
-                    Modifier
-                        .fillMaxSize()
+                    Modifier.fillMaxSize()
                         .rovingFocusContainer(
                             listState = state,
                             focusedItem = focusedItem,
-                            ignoredKeys = listOf("Spacer")
+                            ignoredKeys = listOf("Spacer"),
                         )
                         .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
                     state,
@@ -123,28 +120,18 @@ class RoomListViewImpl : RoomListView {
                         Box(
                             Modifier.rovingFocusItem(
                                 isFocused = { focusedItem.value == roomListElement.roomId.full },
-                                onFocus = { focusedItem.value = roomListElement.roomId.full }
-                            ),
-                        ) {
-                            RoomListElementContainer(
-                                roomListElement.roomId,
-                                roomListViewModel,
-                                roomListElement,
-                                index,
+                                onFocus = { focusedItem.value = roomListElement.roomId.full },
                             )
+                        ) {
+                            RoomListElementContainer(roomListElement.roomId, roomListViewModel, roomListElement, index)
                         }
-
                     }
                     item("Spacer") {
                         Spacer(Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2))
                     }
                 }
             }
-            VerticalScrollbar(
-                Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                state,
-                false,
-            )
+            VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), state, false)
             CreateRoomFloatingButton(roomListViewModel)
         }
 
@@ -159,7 +146,6 @@ class RoomListViewImpl : RoomListView {
         }
     }
 }
-
 
 @Composable
 fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {

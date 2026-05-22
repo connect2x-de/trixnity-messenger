@@ -25,10 +25,7 @@ fun Modifier.simpleVerticalScrollbar(
     val targetAlpha = if (state.isScrollInProgress) 1f else 0f
     val duration = if (state.isScrollInProgress) 300 else 1_000
 
-    val alpha by animateFloatAsState(
-        targetValue = targetAlpha,
-        animationSpec = tween(durationMillis = duration),
-    )
+    val alpha by animateFloatAsState(targetValue = targetAlpha, animationSpec = tween(durationMillis = duration))
 
     // TODO: this does not work when the PDF is zoomed in, since it is not visible
     return drawWithContent {
@@ -44,20 +41,10 @@ fun Modifier.simpleVerticalScrollbar(
             val scrollbarHeight = state.layoutInfo.visibleItemsInfo.size * elementHeight
             val offset = Offset(this.size.width - (width * 1.5f).toPx(), scrollbarOffsetY)
             val size = Size(width.toPx(), scrollbarHeight)
-            if (scrollBarState != null) scrollBarState.value =
-                SimpleVerticalScrollbarState(offset, size, alpha)
-            drawRect(
-                color = color,
-                topLeft = offset,
-                size = size,
-                alpha = alpha,
-            )
+            if (scrollBarState != null) scrollBarState.value = SimpleVerticalScrollbarState(offset, size, alpha)
+            drawRect(color = color, topLeft = offset, size = size, alpha = alpha)
         }
     }
 }
 
-data class SimpleVerticalScrollbarState(
-    val topLeft: Offset,
-    val size: Size,
-    val alpha: Float,
-)
+data class SimpleVerticalScrollbarState(val topLeft: Offset, val size: Size, val alpha: Float)

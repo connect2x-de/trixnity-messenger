@@ -10,7 +10,6 @@ import de.connect2x.trixnity.messenger.compose.view.previews.util.InitMessengerP
 import de.connect2x.trixnity.messenger.compose.view.room.settings.RoomSettingsContainer
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PreviewRoomSettingsViewModel
 
-
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun RoomSettingsPreview() {

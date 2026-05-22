@@ -1,6 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,23 +16,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.canSendEvent
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 
 interface RoomSettingsSecurityViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        error: MutableStateFlow<String?>
-    ): RoomSettingsSecurityViewModel =
-        RoomSettingsSecurityViewModelImpl(
-            viewModelContext,
-            selectedRoomId,
-            error
-        )
+        error: MutableStateFlow<String?>,
+    ): RoomSettingsSecurityViewModel = RoomSettingsSecurityViewModelImpl(viewModelContext, selectedRoomId, error)
 
     companion object : RoomSettingsSecurityViewModelFactory
 }
@@ -39,7 +34,9 @@ interface RoomSettingsSecurityViewModel {
     val isEncryptionWarningOpen: StateFlow<Boolean>
 
     fun openEnableEncryptionWarning()
+
     fun closeEnableEncryptionWarning()
+
     fun enableEncryption()
 }
 
@@ -47,21 +44,25 @@ interface RoomSettingsSecurityViewModel {
 class RoomSettingsSecurityViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val selectedRoomId: RoomId,
-    private val error: MutableStateFlow<String?>
+    private val error: MutableStateFlow<String?>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsSecurityViewModel {
-    override val isChat: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
-        .mapLatest { it?.isDirect == true }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val isEncrypted: StateFlow<Boolean> = matrixClient.room.getById(selectedRoomId)
-        .mapLatest { room -> room?.encrypted == true }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val isChat: StateFlow<Boolean> =
+        matrixClient.room
+            .getById(selectedRoomId)
+            .mapLatest { it?.isDirect == true }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val isEncrypted: StateFlow<Boolean> =
+        matrixClient.room
+            .getById(selectedRoomId)
+            .mapLatest { room -> room?.encrypted == true }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val canEnableEncryption: StateFlow<Boolean> =
-        combine(
-            matrixClient.user.canSendEvent<EncryptionEventContent>(selectedRoomId),
-            isEncrypted
-        ) { canEncrypt, isEncrypted ->
-            return@combine canEncrypt && !isEncrypted
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        combine(matrixClient.user.canSendEvent<EncryptionEventContent>(selectedRoomId), isEncrypted) {
+                canEncrypt,
+                isEncrypted ->
+                return@combine canEncrypt && !isEncrypted
+            }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isEncryptionWarningOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override fun openEnableEncryptionWarning() {
@@ -77,10 +78,9 @@ class RoomSettingsSecurityViewModelImpl(
         if (canEnableEncryption.value) {
             coroutineScope.launch {
                 val roomApiClient = matrixClient.api.room
-                roomApiClient.sendStateEvent(selectedRoomId, EncryptionEventContent())
-                    .onSuccess {
-                        error.value = null
-                    }
+                roomApiClient
+                    .sendStateEvent(selectedRoomId, EncryptionEventContent())
+                    .onSuccess { error.value = null }
                     .onFailure {
                         log.error(it) { "Failed to enable room E2E encryption: ${it.message}" }
                         error.value = i18n.roomEncryptionEnableError()
@@ -100,6 +100,8 @@ class PreviewRoomSettingsSecurityViewModel : RoomSettingsSecurityViewModel {
     override val isEncryptionWarningOpen: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun openEnableEncryptionWarning() {}
+
     override fun closeEnableEncryptionWarning() {}
+
     override fun enableEncryption() {}
 }

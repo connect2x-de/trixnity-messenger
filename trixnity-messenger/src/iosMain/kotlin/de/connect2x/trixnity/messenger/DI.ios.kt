@@ -16,19 +16,17 @@ import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
     single<WindowSceneDelegateProtocol>(named<UrlHandlingUIWindowSceneDelegate>()) {
-        UrlHandlingUIWindowSceneDelegate(checkNotNull(get<UriHandler>() as? UriHandlerImpl) {
-            "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-        })
+        UrlHandlingUIWindowSceneDelegate(
+            checkNotNull(get<UriHandler>() as? UriHandlerImpl) {
+                "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+            }
+        )
     }
-    single<MediaPlayer> {
-        AppleMediaPlayer(get())
-    }
+    single<MediaPlayer> { AppleMediaPlayer(get()) }
 }
 
 fun delegateModule(): Module = module {
-    single<ApplicationDelegateProtocol>(named<SceneConfigurationDelegate>()) {
-        SceneConfigurationDelegate
-    }
+    single<ApplicationDelegateProtocol>(named<SceneConfigurationDelegate>()) { SceneConfigurationDelegate }
 
     single(createdAtStart = true) {
         ApplicationDelegate.delegate = ApplicationDelegateProxy(getAll<ApplicationDelegateProtocol>())

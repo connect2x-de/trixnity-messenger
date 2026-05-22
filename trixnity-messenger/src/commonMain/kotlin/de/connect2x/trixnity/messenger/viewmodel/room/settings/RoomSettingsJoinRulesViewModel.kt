@@ -1,8 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,19 +19,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.canSendEvent
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
-import kotlin.time.Duration.Companion.seconds
 
 interface RoomSettingsJoinRulesViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         selectedRoomId: RoomId,
-        error: MutableStateFlow<String?>
+        error: MutableStateFlow<String?>,
     ): RoomSettingsJoinRulesViewModel {
         return RoomSettingsJoinRulesViewModelImpl(selectedRoomId, viewModelContext, error)
     }
@@ -44,27 +44,30 @@ interface RoomSettingsJoinRulesViewModel {
 class RoomSettingsJoinRulesViewModelImpl(
     private val selectedRoom: RoomId,
     private val viewModelContext: MatrixClientViewModelContext,
-    private val error: MutableStateFlow<String?>
+    private val error: MutableStateFlow<String?>,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsJoinRulesViewModel {
 
     override val availableRoomJoinStates: StateFlow<List<JoinRulesEventContent.JoinRule>?> =
         flowOf(
-            listOf(
-                JoinRulesEventContent.JoinRule.Public,
-                JoinRulesEventContent.JoinRule.Invite,
-                JoinRulesEventContent.JoinRule.Knock,
-                JoinRulesEventContent.JoinRule.Restricted,
-                JoinRulesEventContent.JoinRule.KnockRestricted
+                listOf(
+                    JoinRulesEventContent.JoinRule.Public,
+                    JoinRulesEventContent.JoinRule.Invite,
+                    JoinRulesEventContent.JoinRule.Knock,
+                    JoinRulesEventContent.JoinRule.Restricted,
+                    JoinRulesEventContent.JoinRule.KnockRestricted,
+                )
             )
-        ).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val joinRule: StateFlow<JoinRulesEventContent.JoinRule> =
-        matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
+        matrixClient.room
+            .getState<JoinRulesEventContent>(selectedRoom)
             .map { it?.content?.joinRule ?: JoinRulesEventContent.JoinRule.Public }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), JoinRulesEventContent.JoinRule.Public)
 
     override val canChangeJoinRule: StateFlow<Boolean> =
-        matrixClient.user.canSendEvent<JoinRulesEventContent>(selectedRoom)
+        matrixClient.user
+            .canSendEvent<JoinRulesEventContent>(selectedRoom)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val isJoinRuleChanging = MutableStateFlow(false)
@@ -75,7 +78,8 @@ class RoomSettingsJoinRulesViewModelImpl(
         if (canChangeJoinRule.value && !isJoinRuleChanging.value) {
             isJoinRuleChanging.value = true
             coroutineScope.launch {
-                matrixClient.api.room.sendStateEvent(selectedRoom, JoinRulesEventContent(newJoinRule))
+                matrixClient.api.room
+                    .sendStateEvent(selectedRoom, JoinRulesEventContent(newJoinRule))
                     .onFailure {
                         log.error(it) { "Failed to change room join rules: ${it.message}" }
                         error.value = i18n.settingsRoomJoinRulesChangeError()
@@ -84,8 +88,9 @@ class RoomSettingsJoinRulesViewModelImpl(
                     .onSuccess {
                         error.value = null
                         withTimeoutOrNull(5.seconds) {
-                            matrixClient.room.getState<JoinRulesEventContent>(selectedRoom)
-                                .first { it?.content?.joinRule == newJoinRule }
+                            matrixClient.room.getState<JoinRulesEventContent>(selectedRoom).first {
+                                it?.content?.joinRule == newJoinRule
+                            }
                         }
                         isJoinRuleChanging.value = false
                     }
@@ -94,10 +99,8 @@ class RoomSettingsJoinRulesViewModelImpl(
             log.error { "Insufficient power level to change room join rules" }
             error.value = i18n.settingsRoomJoinRulesInsufficientPowerLevel()
             isJoinRuleChanging.value = false
-
         }
     }
-
 }
 
 class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
@@ -109,7 +112,7 @@ class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
                 JoinRulesEventContent.JoinRule.Invite,
                 JoinRulesEventContent.JoinRule.Knock,
                 JoinRulesEventContent.JoinRule.KnockRestricted,
-                JoinRulesEventContent.JoinRule.Restricted
+                JoinRulesEventContent.JoinRule.Restricted,
             )
         )
     override val canChangeJoinRule: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -120,5 +123,4 @@ class PreviewRoomSettingsJoinRulesViewModel : RoomSettingsJoinRulesViewModel {
     override fun changeJoinRule(newJoinRule: JoinRulesEventContent.JoinRule) {
         joinRule.value = newJoinRule
     }
-
 }

@@ -15,14 +15,12 @@ import de.connect2x.trixnity.messenger.viewmodel.RootRouter
 
 @Composable
 fun RootSwitch(stack: Value<ChildStack<*, RootRouter.Wrapper>>) {
-    Children(
-        stack = stack,
-        animation = stackAnimation(fade()),
-    ) {
+    Children(stack = stack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is RootRouter.Wrapper.None -> Box {}
             is RootRouter.Wrapper.MatrixClientInitialization -> MatrixClientInitialization(child.viewModel)
-            is RootRouter.Wrapper.MatrixClientInitializationFailure -> MatrixClientInitializationFailure(child.viewModel)
+            is RootRouter.Wrapper.MatrixClientInitializationFailure ->
+                MatrixClientInitializationFailure(child.viewModel)
             is RootRouter.Wrapper.Main -> Main(child.viewModel)
             is RootRouter.Wrapper.AddMatrixAccount -> ConnectingWizard(child.viewModel)
             is RootRouter.Wrapper.OAuth2Login -> ConnectingWizard(child.viewModel)

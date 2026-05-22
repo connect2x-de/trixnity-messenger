@@ -37,16 +37,13 @@ data class MatrixMessengerSettingsBase(
     val selectedAccount: UserId? = null, // TODO should be saved via decompose state preservation
     val ssoLoginState: SSOLoginState? = null,
     val oAuth2LoginState: OAuth2LoginState? = null,
-
     val themeMode: ThemeMode = ThemeMode.DEFAULT,
     /**
      * The high contrast mode is an a11y option to have fewer colors and more contrast on all UI elements to improve
      * readability.
      */
     val isHighContrast: Boolean = false,
-    /**
-     * Focused elements are highlighted more to enable better keyboard navigation.
-     */
+    /** Focused elements are highlighted more to enable better keyboard navigation. */
     val isFocusHighlighting: Boolean = false,
     val accentColor: Long? = null,
     val fontSize: Float? = null,
@@ -106,56 +103,49 @@ data class MatrixMessengerAccountSettingsBase(
     val readMarkerIsPublic: Boolean = true,
     val typingIsPublic: Boolean = true,
     val accountSetupFinished: Boolean = false,
-    val redactionWarningIsEnabled: Boolean = true
+    val redactionWarningIsEnabled: Boolean = true,
 ) : SettingsView<MatrixMessengerAccountSettings> {
     companion object {
-        fun withConfigDefaults(
-            displayColor: Long?,
-            config: MatrixMessengerConfiguration,
-        ) = MatrixMessengerAccountSettingsBase(
-            displayColor = displayColor,
-            presenceIsPublic = config.defaultPresenceIsPublic,
-            readMarkerIsPublic = config.defaultReadMarkerIsPublic,
-            typingIsPublic = config.defaultTypingIsPublic,
-            accountSetupFinished = config.useAccountSetupWizard.not(),
-            redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled
-        )
+        fun withConfigDefaults(displayColor: Long?, config: MatrixMessengerConfiguration) =
+            MatrixMessengerAccountSettingsBase(
+                displayColor = displayColor,
+                presenceIsPublic = config.defaultPresenceIsPublic,
+                readMarkerIsPublic = config.defaultReadMarkerIsPublic,
+                typingIsPublic = config.defaultTypingIsPublic,
+                accountSetupFinished = config.useAccountSetupWizard.not(),
+                redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled,
+            )
     }
 }
 
 @Serializable
 @NestedSettingsView("notification")
-data class MatrixMessengerAccountNotificationSettings(
-    val playSound: Boolean = true,
-    val showDetails: Boolean = true,
-) : SettingsView<MatrixMessengerAccountSettings>
+data class MatrixMessengerAccountNotificationSettings(val playSound: Boolean = true, val showDetails: Boolean = true) :
+    SettingsView<MatrixMessengerAccountSettings>
 
-data class MatrixMessengerSettings(
-    private val delegate: Map<String, JsonElement>
-) : SettingsImpl<MatrixMessengerSettings>(delegate) {
+data class MatrixMessengerSettings(private val delegate: Map<String, JsonElement>) :
+    SettingsImpl<MatrixMessengerSettings>(delegate) {
     val base by lazy { get<MatrixMessengerSettings, MatrixMessengerSettingsBase>() }
     val secretByteArrays by lazy { get<MatrixMessengerSettings, SecretByteArraySettings>() }
 }
 
 @Serializable(MatrixMessengerAccountSettingsSerializer::class)
-data class MatrixMessengerAccountSettings(
-    private val delegate: Map<String, JsonElement>
-) : SettingsImpl<MatrixMessengerAccountSettings>(delegate) {
+data class MatrixMessengerAccountSettings(private val delegate: Map<String, JsonElement>) :
+    SettingsImpl<MatrixMessengerAccountSettings>(delegate) {
     val base by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountSettingsBase>() }
     val notification by lazy { get<MatrixMessengerAccountSettings, MatrixMessengerAccountNotificationSettings>() }
 }
 
-internal object MatrixMessengerAccountSettingsSerializer : JsonDelegateSerializer<MatrixMessengerAccountSettings>(
-    "MatrixMessengerAccountSettingsSerializer", ::MatrixMessengerAccountSettings
-)
+internal object MatrixMessengerAccountSettingsSerializer :
+    JsonDelegateSerializer<MatrixMessengerAccountSettings>(
+        "MatrixMessengerAccountSettingsSerializer",
+        ::MatrixMessengerAccountSettings,
+    )
 
 interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings> {
     operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?>
 
-    suspend fun create(
-        userId: UserId,
-        settings: MatrixMessengerAccountSettingsBase
-    )
+    suspend fun create(userId: UserId, settings: MatrixMessengerAccountSettingsBase)
 
     suspend fun update(
         userId: UserId,
@@ -167,60 +157,51 @@ interface MatrixMessengerSettingsHolder : SettingsHolder<MatrixMessengerSettings
 
 class MatrixMessengerSettingsHolderImpl(
     storage: SettingsStorage,
-    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null)
-) : SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
+    settings: MutableStateFlow<MatrixMessengerSettings?> = MutableStateFlow(null),
+) :
+    SettingsHolderImpl<MatrixMessengerSettings>(storage, ::MatrixMessengerSettings, settings),
     MatrixMessengerSettingsHolder {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolderImpl")
     }
 
-    override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> =
-        map { it.base.accounts[userId] }
+    override operator fun get(userId: UserId): Flow<MatrixMessengerAccountSettings?> = map { it.base.accounts[userId] }
 
-    override suspend fun create(
-        userId: UserId,
-        settings: MatrixMessengerAccountSettingsBase,
-    ) = update<MatrixMessengerSettingsBase> {
-        log.debug { "create account settings for $userId" }
-        val accountSettings = MutableSettingsImpl(MatrixMessengerAccountSettings(emptyMap()))
-        accountSettings.set(settings)
-        it.copy(accounts = it.accounts + (userId to MatrixMessengerAccountSettings(accountSettings)))
-    }
+    override suspend fun create(userId: UserId, settings: MatrixMessengerAccountSettingsBase) =
+        update<MatrixMessengerSettingsBase> {
+            log.debug { "create account settings for $userId" }
+            val accountSettings = MutableSettingsImpl(MatrixMessengerAccountSettings(emptyMap()))
+            accountSettings.set(settings)
+            it.copy(accounts = it.accounts + (userId to MatrixMessengerAccountSettings(accountSettings)))
+        }
 
     override suspend fun update(
         userId: UserId,
         updater: MutableSettings<MatrixMessengerAccountSettings>.(MatrixMessengerAccountSettings) -> Unit,
-    ) = update<MatrixMessengerSettingsBase> {
-        log.debug { "update account settings for $userId" }
-        val oldAccounts = it.accounts
-        val oldAccountSettings = oldAccounts[userId] ?: return@update it
-        val newAccountSettings = MutableSettingsImpl(oldAccountSettings)
-        with(newAccountSettings) {
-            updater(oldAccountSettings)
+    ) =
+        update<MatrixMessengerSettingsBase> {
+            log.debug { "update account settings for $userId" }
+            val oldAccounts = it.accounts
+            val oldAccountSettings = oldAccounts[userId] ?: return@update it
+            val newAccountSettings = MutableSettingsImpl(oldAccountSettings)
+            with(newAccountSettings) { updater(oldAccountSettings) }
+            it.copy(accounts = oldAccounts + (userId to MatrixMessengerAccountSettings(newAccountSettings)))
         }
-        it.copy(accounts = oldAccounts + (userId to MatrixMessengerAccountSettings(newAccountSettings)))
-    }
 
-    override suspend fun delete(userId: UserId) = update<MatrixMessengerSettingsBase> {
-        log.debug { "delete account settings for $userId" }
-        val accounts = it.accounts - userId
-        val selectedAccount =
-            if (it.selectedAccount == userId) accounts.keys.firstOrNull()
-            else it.selectedAccount
-        it.copy(
-            accounts = accounts,
-            selectedAccount = selectedAccount,
-        )
-    }
+    override suspend fun delete(userId: UserId) =
+        update<MatrixMessengerSettingsBase> {
+            log.debug { "delete account settings for $userId" }
+            val accounts = it.accounts - userId
+            val selectedAccount = if (it.selectedAccount == userId) accounts.keys.firstOrNull() else it.selectedAccount
+            it.copy(accounts = accounts, selectedAccount = selectedAccount)
+        }
 }
 
 suspend fun <T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.update(
     userId: UserId,
     serializer: KSerializer<T>,
     updater: (T) -> T,
-) = update(userId) {
-    set(updater(it.get(serializer)), serializer)
-}
+) = update(userId) { set(updater(it.get(serializer)), serializer) }
 
 suspend inline fun <reified T : SettingsView<MatrixMessengerAccountSettings>> MatrixMessengerSettingsHolder.update(
     userId: UserId,
@@ -228,7 +209,7 @@ suspend inline fun <reified T : SettingsView<MatrixMessengerAccountSettings>> Ma
 ) = update(userId, serializer(), updater)
 
 suspend inline fun <reified T : SettingsView<MatrixMessengerSettings>> MatrixMessengerSettingsHolder.update(
-    noinline updater: (T) -> T,
+    noinline updater: (T) -> T
 ) = update(serializer(), updater)
 
 expect fun platformMatrixMessengerSettingsHolderModule(): Module

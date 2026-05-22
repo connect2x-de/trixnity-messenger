@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface MatrixClientInitializationFailureViewModelFactory {
@@ -25,7 +25,9 @@ interface MatrixClientInitializationFailureViewModelFactory {
 interface MatrixClientInitializationFailureViewModel {
     val userId: UserId
     val deleteEnabled: Boolean
+
     fun closeApplication()
+
     fun delete()
 }
 

@@ -21,17 +21,15 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
 
-
 @Composable
 fun ProfileList(
     profilesSettingsViewModel: ProfilesSettingsViewModel,
-    profilesDialogueController: ProfilesDialogueController
+    profilesDialogueController: ProfilesDialogueController,
 ) {
     val i18n = DI.get<I18nView>()
     val multiProfileEnabled = profilesSettingsViewModel.isMultiProfile.collectAsState().value
     val activeProfile = profilesSettingsViewModel.activeProfile.collectAsState().value
-    val profiles =
-        profilesSettingsViewModel.profiles.collectAsState().value
+    val profiles = profilesSettingsViewModel.profiles.collectAsState().value
 
     profiles.forEach {
         val profileName = it.value.profileName.collectAsState().value
@@ -44,7 +42,7 @@ fun ProfileList(
                             text = i18n.profilesSettingsListThisProfile() + profileName,
                             fontWeight = FontWeight.Bold,
                             overflow = TextOverflow.Ellipsis,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                 },
@@ -58,7 +56,7 @@ fun ProfileList(
                         }
                         DeleteProfileButton { profilesDialogueController.openDeleteDialogue(it.key) }
                     }
-                }
+                },
             )
         } else {
             ThemedListItemButton(
@@ -68,13 +66,13 @@ fun ProfileList(
                             text = profileName,
                             fontWeight = FontWeight.Normal,
                             overflow = TextOverflow.Ellipsis,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                 },
                 onClick = { profilesDialogueController.openSelectDialogue(it.key) },
                 enabled = true,
-                trailingContent = { DeleteProfileButton { profilesDialogueController.openDeleteDialogue(it.key) } }
+                trailingContent = { DeleteProfileButton { profilesDialogueController.openDeleteDialogue(it.key) } },
             )
         }
         if (profilesDialogueController.openedDialogueProfileId.value == it.key) {
@@ -87,14 +85,8 @@ fun ProfileList(
 fun RenameProfileButton(renameProfile: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Tooltip({ Text(i18n.profileRenameButtonTooltip()) }) {
-        ThemedIconButton(
-            style = MaterialTheme.components.destructiveIconButton,
-            onClick = renameProfile,
-        ) {
-            EditIcon(
-                Icons.Default.Edit,
-                i18n.profileRenameButtonTooltip(),
-            )
+        ThemedIconButton(style = MaterialTheme.components.destructiveIconButton, onClick = renameProfile) {
+            EditIcon(Icons.Default.Edit, i18n.profileRenameButtonTooltip())
         }
     }
 }
@@ -103,14 +95,8 @@ fun RenameProfileButton(renameProfile: () -> Unit) {
 fun DeleteProfileButton(deleteProfile: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Tooltip({ Text(i18n.profileDeleteButtonTooltip()) }) {
-        ThemedIconButton(
-            style = MaterialTheme.components.destructiveIconButton,
-            onClick = deleteProfile,
-        ) {
-            EditIcon(
-                Icons.Default.Delete,
-                i18n.profileDeleteButtonTooltip(),
-            )
+        ThemedIconButton(style = MaterialTheme.components.destructiveIconButton, onClick = deleteProfile) {
+            EditIcon(Icons.Default.Delete, i18n.profileDeleteButtonTooltip())
         }
     }
 }

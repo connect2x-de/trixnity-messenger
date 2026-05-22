@@ -27,9 +27,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.RedactedTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlin.reflect.KClass
 
 interface RedactedTimelineElementView : TimelineElementView<RedactedTimelineElementViewModel>
 
@@ -48,12 +48,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
         element: RedactedTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = false,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, index = index) { _ ->
             RedactedMessageElement(element)
         }
     }
@@ -64,12 +59,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
         element: RedactedTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = true,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = true, index = index) { _ ->
             RedactedMessageElement(element)
         }
     }
@@ -85,9 +75,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                RedactedMessageElement(element)
-            }
+            content = { RedactedMessageElement(element) },
         )
     }
 
@@ -102,16 +90,14 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                RedactedMessageElement(element)
-            }
+            content = { RedactedMessageElement(element) },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: RedactedTimelineElementViewModel
+        element: RedactedTimelineElementViewModel,
     ): ClipEntry? = null
 }
 
@@ -122,9 +108,9 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
     val redactedAt = element.redactedAt.collectAsState().value
     Row(Modifier.padding(10.dp)) {
         Icon(
-            Icons.Outlined.Delete, i18n.commonDeleted(),
-            Modifier.align(Alignment.CenterVertically)
-                .size(MaterialTheme.typography.bodySmall.dp)
+            Icons.Outlined.Delete,
+            i18n.commonDeleted(),
+            Modifier.align(Alignment.CenterVertically).size(MaterialTheme.typography.bodySmall.dp),
         )
         Spacer(Modifier.width(10.dp))
         Text(
@@ -134,5 +120,4 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
             fontStyle = FontStyle.Italic,
         )
     }
-
 }

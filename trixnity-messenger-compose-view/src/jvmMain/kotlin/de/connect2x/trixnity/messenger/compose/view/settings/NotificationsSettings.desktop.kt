@@ -6,6 +6,5 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 
 @Composable
 internal actual fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel,
-) {
-}
+    viewModel: NotificationSettingsSingleAccountViewModel
+) {}

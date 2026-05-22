@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel
 
-import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import kotlinx.coroutines.CoroutineScope
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import kotlinx.coroutines.CoroutineScope
 
 data class RoomInfoElement(
     val name: String,
@@ -53,6 +53,6 @@ suspend fun Room.toRoomInfoElement(
         roomImage =
             this.avatarUrl?.let {
                 matrixClient.media.getMedia(it).getOrNull()?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-            }
+            },
     )
 }

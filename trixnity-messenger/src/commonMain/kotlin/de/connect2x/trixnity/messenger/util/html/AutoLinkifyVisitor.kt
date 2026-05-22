@@ -5,10 +5,7 @@ import de.connect2x.trixnity.core.util.Reference
 class AutoLinkifyVisitor {
     private val taskQueue = mutableListOf<Task>()
 
-    private data class Task(
-        val node: HtmlNode,
-        val acc: MutableList<HtmlNode>,
-    )
+    private data class Task(val node: HtmlNode, val acc: MutableList<HtmlNode>)
 
     fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement {
         val children = mutableListOf<HtmlNode>()
@@ -81,21 +78,21 @@ class AutoLinkifyVisitor {
         HtmlNode.HtmlElement(
             tag = "a",
             attributes = mapOf("href" to match.toLink()),
-            children = listOf(
-                HtmlNode.TextContent(
-                    when (match) {
-                        is Reference.Event -> match.eventId.full
-                        is Reference.Room -> match.roomId.full
-                        is Reference.RoomAlias -> match.roomAliasId.full
-                        is Reference.User -> match.userId.full
-                        is Reference.Link -> match.url
-                    }
-                )
-            ),
+            children =
+                listOf(
+                    HtmlNode.TextContent(
+                        when (match) {
+                            is Reference.Event -> match.eventId.full
+                            is Reference.Room -> match.roomId.full
+                            is Reference.RoomAlias -> match.roomAliasId.full
+                            is Reference.User -> match.userId.full
+                            is Reference.Link -> match.url
+                        }
+                    )
+                ),
         )
 
     companion object {
-        fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =
-            AutoLinkifyVisitor().process(document)
+        fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement = AutoLinkifyVisitor().process(document)
     }
 }

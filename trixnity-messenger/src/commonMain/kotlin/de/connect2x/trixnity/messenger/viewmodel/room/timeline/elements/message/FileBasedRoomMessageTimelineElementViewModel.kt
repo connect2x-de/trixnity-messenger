@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
@@ -18,10 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import org.koin.core.component.get
 
 abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEventContent.FileBased>(
@@ -30,7 +30,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val roomId: RoomId,
     private val eventIdOrTransactionId: EventIdOrTransactionId,
     private val onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.FileBased<C>,
+) :
+    RoomMessageTimelineElementViewModel.FileBased<C>,
     RoomMessageTimelineElementViewModelImpl<C>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.fileName ?: content.body
     override val size: String? = content.info?.size?.let { " (${formatSize(it)})" } ?: ""
@@ -46,7 +47,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     @Deprecated(
         "This will be removed in the future for consistency with downloadMedia behaviour, please use loadMediaResultBytes instead",
-        replaceWith = ReplaceWith("loadMediaResultBytes")
+        replaceWith = ReplaceWith("loadMediaResultBytes"),
     )
     override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
     private val _loadMediaProgress: MutableStateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
@@ -59,9 +60,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
-        coroutineScope.coroutineContext.job.invokeOnCompletion {
-            activeLoadMedia.value?.cancel()
-        }
+        coroutineScope.coroutineContext.job.invokeOnCompletion { activeLoadMedia.value?.cancel() }
     }
 
     override fun loadMedia() {
@@ -70,37 +69,28 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         _loadMediaResultPlatformMedia.value = null
         _loadMediaProgress.value = null
         _loadMediaError.value = null
-        _loadMediaProgress.value = FileTransferProgressElement(
-            0f, formatProgress(
-                FileTransferProgress(
-                    0,
-                    content.info?.size
-                )
-            )
-        )
+        _loadMediaProgress.value =
+            FileTransferProgressElement(0f, formatProgress(FileTransferProgress(0, content.info?.size)))
 
-        coroutineScope.launch {
-            val resultAsync = downloadManager.startDownloadAsync(
-                viewModelContext.matrixClient,
-                content,
-                name,
-                _loadMediaProgress,
-            )
-            activeLoadMedia.value = resultAsync
-            resultAsync.await()
-                .onSuccess {
-                    _loadMediaResultPlatformMedia.value = it
-                    _loadMediaResultBytes.value = it.toByteArray(
-                        coroutineScope,
-                        expectedSize = content.info?.size,
-                        maxSize = maxMediaSizeInMemory
-                    )
-                }.onFailure {
-                    _loadMediaError.value = i18n.mediaCouldNotBeRead()
-                }
-        }.invokeOnCompletion {
-            activeLoadMedia.value = null
-        }
+        coroutineScope
+            .launch {
+                val resultAsync =
+                    downloadManager.startDownloadAsync(viewModelContext.matrixClient, content, name, _loadMediaProgress)
+                activeLoadMedia.value = resultAsync
+                resultAsync
+                    .await()
+                    .onSuccess {
+                        _loadMediaResultPlatformMedia.value = it
+                        _loadMediaResultBytes.value =
+                            it.toByteArray(
+                                coroutineScope,
+                                expectedSize = content.info?.size,
+                                maxSize = maxMediaSizeInMemory,
+                            )
+                    }
+                    .onFailure { _loadMediaError.value = i18n.mediaCouldNotBeRead() }
+            }
+            .invokeOnCompletion { activeLoadMedia.value = null }
     }
 
     override fun cancelLoadMedia() {
@@ -139,25 +129,23 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         _downloadMediaError.value = null
 
         try {
-            val resultAsync = downloadManager.startDownloadAsync(
-                viewModelContext.matrixClient,
-                content,
-                name,
-                _downloadMediaProgress,
-            )
+            val resultAsync =
+                downloadManager.startDownloadAsync(viewModelContext.matrixClient, content, name, _downloadMediaProgress)
 
             activeDownloadMedia.value = resultAsync
             try {
-                resultAsync.await().fold(
-                    onSuccess = {
-                        _downloadMedia.value = it
-                        return Result.success(it)
-                    },
-                    onFailure = {
-                        _downloadMediaError.value = i18n.downloadFailed(it.message)
-                        return Result.failure(it)
-                    }
-                )
+                resultAsync
+                    .await()
+                    .fold(
+                        onSuccess = {
+                            _downloadMedia.value = it
+                            return Result.success(it)
+                        },
+                        onFailure = {
+                            _downloadMediaError.value = i18n.downloadFailed(it.message)
+                            return Result.failure(it)
+                        },
+                    )
             } catch (exc: CancellationException) {
                 log.error(exc) { "media download was cancelled" }
                 return Result.failure(exc)

@@ -8,8 +8,5 @@ sealed interface HtmlNode {
         val rawContent: String? = null,
     ) : HtmlNode
 
-    data class TextContent(
-        val content: String,
-        val rawContent: String? = null,
-    ) : HtmlNode
+    data class TextContent(val content: String, val rawContent: String? = null) : HtmlNode
 }

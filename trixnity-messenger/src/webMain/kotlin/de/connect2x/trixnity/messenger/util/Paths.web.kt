@@ -7,6 +7,16 @@ import de.connect2x.lognity.api.logger.warn
 import js.objects.Object
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
+import kotlin.OptIn
+import kotlin.Throwable
+import kotlin.collections.dropLast
+import kotlin.collections.forEach
+import kotlin.collections.last
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.toList
+import kotlin.text.startsWith
 import okio.Path
 import okio.Path.Companion.toPath
 import org.koin.core.module.Module
@@ -18,22 +28,13 @@ import web.idb.indexedDB
 import web.navigator.navigator
 import web.storage.getDirectory
 import web.storage.localStorage
-import kotlin.OptIn
-import kotlin.Throwable
-import kotlin.collections.dropLast
-import kotlin.collections.forEach
-import kotlin.collections.last
-import kotlin.collections.map
-import kotlin.collections.mapNotNull
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toList
-import kotlin.text.startsWith
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.PathsKt")
 
 actual fun platformPathsModule(): Module = module {
     single<RootPath> {
-        // there is no actual FileSystem in Browsers, but we can name the databases and the keys of local storage entries like a path
+        // there is no actual FileSystem in Browsers, but we can name the databases and the keys of local storage
+        // entries like a path
         RootPath("/vfs".toPath())
     }
 }

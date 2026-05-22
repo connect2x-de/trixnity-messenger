@@ -5,10 +5,12 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.notification
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -26,12 +28,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.notification
 import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 interface MatrixMessenger : AutoCloseable {
     companion object
@@ -47,9 +47,7 @@ interface MatrixMessenger : AutoCloseable {
     suspend fun closeSuspending()
 }
 
-class MatrixMessengerImpl private constructor(
-    override val di: Koin,
-) : MatrixMessenger {
+class MatrixMessengerImpl private constructor(override val di: Koin) : MatrixMessenger {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.MatrixMessengerImpl")
 
@@ -64,18 +62,22 @@ class MatrixMessengerImpl private constructor(
             }
             val coroutineScope =
                 CoroutineScope(
-                    coroutineContext
-                            + CoroutineName("trixnity-messenger-global")
-                            + SupervisorJob(coroutineContext[Job])
-                            + exceptionHandler
+                    coroutineContext +
+                        CoroutineName("trixnity-messenger-global") +
+                        SupervisorJob(coroutineContext[Job]) +
+                        exceptionHandler
                 )
-            val di = koinApplication {
-                modules(module {
-                    single<CoroutineScope> { coroutineScope }
-                    single { config }.bind<MatrixMessengerBaseConfiguration>()
-                })
-                modules(config.modulesFactories.map { it.invoke() })
-            }.koin
+            val di =
+                koinApplication {
+                        modules(
+                            module {
+                                single<CoroutineScope> { coroutineScope }
+                                single { config }.bind<MatrixMessengerBaseConfiguration>()
+                            }
+                        )
+                        modules(config.modulesFactories.map { it.invoke() })
+                    }
+                    .koin
             val settingsHolder = di.getAll<SettingsHolder<*>>()
             settingsHolder.forEach {
                 log.debug { "initialize SettingsHolder ($it)" }
@@ -93,21 +95,18 @@ class MatrixMessengerImpl private constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val notificationCount by lazy {
-        di.get<MatrixClients>().map { it.values }.flatMapLatest { matrixClients ->
-            if (matrixClients.isEmpty()) flowOf(0)
-            else combine(
-                matrixClients.map { it.notification.getCount() }
-            ) {
-                it.sum()
+        di.get<MatrixClients>()
+            .map { it.values }
+            .flatMapLatest { matrixClients ->
+                if (matrixClients.isEmpty()) flowOf(0)
+                else combine(matrixClients.map { it.notification.getCount() }) { it.sum() }
             }
-        }.stateIn(di.get(), SharingStarted.WhileSubscribed(), 0)
+            .stateIn(di.get(), SharingStarted.WhileSubscribed(), 0)
     }
 
     override fun close() {
         di.getAll<AutoCloseable>().forEach { it.close() }
-        di.get<CoroutineScope>().apply {
-            cancel("stopped MatrixMessenger")
-        }
+        di.get<CoroutineScope>().apply { cancel("stopped MatrixMessenger") }
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null) {
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
         }
@@ -123,8 +122,5 @@ class MatrixMessengerImpl private constructor(
 fun MatrixMessenger.createRoot(
     componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
 ): RootViewModel {
-    return di.get<RootViewModelFactory>().create(
-        componentContext = componentContext,
-        di = di,
-    )
+    return di.get<RootViewModelFactory>().create(componentContext = componentContext, di = di)
 }

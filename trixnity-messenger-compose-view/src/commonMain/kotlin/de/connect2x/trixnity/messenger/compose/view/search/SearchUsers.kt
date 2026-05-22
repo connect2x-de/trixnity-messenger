@@ -12,10 +12,6 @@ fun LazyListScope.searchUsersLocally(
     userSearchResultListView: UserSearchResultListView,
     focusedItem: MutableState<String?>,
 ) {
-    stickyHeader(key = "UserSearchField") {
-        UserSearchField(searchHandler)
-    }
-    userSearchResultListView.create(this, searchResults, focusedItem) {
-        onUserClick(it)
-    }
+    stickyHeader(key = "UserSearchField") { UserSearchField(searchHandler) }
+    userSearchResultListView.create(this, searchResults, focusedItem) { onUserClick(it) }
 }

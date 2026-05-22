@@ -17,16 +17,10 @@ internal suspend fun hkdfSha256(
     /**
      * The output `OKM` is calculated as follows:
      *
-     *    N = ceil(L/HashLen) (iterations)
-     *    T = T(1) | T(2) | T(3) | ... | T(N) (block)
-     *    OKM = first L octets of T (output)
+     * N = ceil(L/HashLen) (iterations) T = T(1) | T(2) | T(3) | ... | T(N) (block) OKM = first L octets of T (output)
      *
-     *    where:
-     *    T(0) = empty string (zero length)
-     *    T(1) = HMAC-Hash(PRK, T(0) | info | 0x01)
-     *    T(2) = HMAC-Hash(PRK, T(1) | info | 0x02)
-     *    T(3) = HMAC-Hash(PRK, T(2) | info | 0x03)
-     *    ...
+     * where: T(0) = empty string (zero length) T(1) = HMAC-Hash(PRK, T(0) | info | 0x01) T(2) = HMAC-Hash(PRK, T(1) |
+     * info | 0x02) T(3) = HMAC-Hash(PRK, T(2) | info | 0x03) ...
      */
     val output = ByteArray(iterations * hashLen)
     val iterationArray = ByteArray(1)

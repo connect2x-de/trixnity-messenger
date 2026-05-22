@@ -41,23 +41,24 @@ class AdditionalConnectingWizardStepImpl : AdditionalConnectingWizardStep {
 fun <T : Any> ConnectingWizard(viewModel: T) {
     val i18n = DI.get<I18nView>()
     val additionalConnectingWizardStep = DI.get<AdditionalConnectingWizardStep>()
-    val wizardStep = remember(viewModel, i18n, additionalConnectingWizardStep) {
-        listOf(
-            when (viewModel) {
-                is AddMatrixAccountViewModel -> AddMatrixAccountStep(viewModel, i18n)
+    val wizardStep =
+        remember(viewModel, i18n, additionalConnectingWizardStep) {
+            listOf(
+                when (viewModel) {
+                    is AddMatrixAccountViewModel -> AddMatrixAccountStep(viewModel, i18n)
 
-                is PasswordLoginViewModel -> LoginWithPasswordStep(viewModel, i18n)
+                    is PasswordLoginViewModel -> LoginWithPasswordStep(viewModel, i18n)
 
-                is OAuth2LoginViewModel -> LoginWithOAuth2Step(viewModel, i18n)
+                    is OAuth2LoginViewModel -> LoginWithOAuth2Step(viewModel, i18n)
 
-                is SSOLoginViewModel -> LoginWithSSOStep(viewModel, i18n)
+                    is SSOLoginViewModel -> LoginWithSSOStep(viewModel, i18n)
 
-                is RegisterMatrixAccountViewModel -> RegisterNewAccountStep(viewModel, i18n)
+                    is RegisterMatrixAccountViewModel -> RegisterNewAccountStep(viewModel, i18n)
 
-                else -> additionalConnectingWizardStep.create(viewModel)
-            }
-        )
-    }
+                    else -> additionalConnectingWizardStep.create(viewModel)
+                }
+            )
+        }
 
     return Wizard(wizardStep, wizardId = "ConnectingWizard")
 }
@@ -73,9 +74,7 @@ fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): 
                 i18n.addMatrixClientAnotherMatrixClient()
             }
         },
-        content = {
-            AddMatrixAccount(viewModel)
-        },
+        content = { AddMatrixAccount(viewModel) },
         nextButton = { WizardNavigationButton.None }, // user selects preferred login method directly
         backButton = {
             val hasOtherAccountsOrProfiles = viewModel.hasOtherAccountsOrProfiles.collectAsState().value
@@ -86,7 +85,7 @@ fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): 
                     }
                 }
             } else WizardNavigationButton.None
-        }
+        },
     )
 }
 
@@ -94,15 +93,10 @@ fun LoginWithPasswordStep(viewModel: PasswordLoginViewModel, i18n: I18nView): Wi
     return WizardStep(
         id = PASSWORD_LOGIN,
         title = { i18n.loginAt(viewModel.serverUrl) },
-        content = {
-            PasswordLogin(viewModel)
-        },
+        content = { PasswordLogin(viewModel) },
         backButton = {
             WizardNavigationButton.Custom {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = viewModel::back,
-                ) {
+                ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             }
@@ -119,7 +113,7 @@ fun LoginWithPasswordStep(viewModel: PasswordLoginViewModel, i18n: I18nView): Wi
                     Text(i18n.login())
                 }
             }
-        }
+        },
     )
 }
 
@@ -132,14 +126,9 @@ fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): Wizard
                 OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
             }
         },
-        content = {
-            OAuth2Login(viewModel)
-        },
+        content = { OAuth2Login(viewModel) },
         additionalButton = {
-            ThemedButton(
-                style = MaterialTheme.components.commonButton,
-                onClick = viewModel::back,
-            ) {
+            ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
                 Text(i18n.commonBack().capitalize(Locale.current))
             }
         },
@@ -152,10 +141,11 @@ fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): Wizard
                     enabled = canLogin,
                     onClick = { viewModel.startLogin() },
                 ) {
-                    val text = when (viewModel.type) {
-                        OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
-                        OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
-                    }
+                    val text =
+                        when (viewModel.type) {
+                            OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
+                            OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
+                        }
                     Text(text)
                 }
             }
@@ -167,15 +157,10 @@ fun LoginWithSSOStep(viewModel: SSOLoginViewModel, i18n: I18nView): WizardStep {
     return WizardStep(
         id = SSO_LOGIN,
         title = { i18n.loginAt(viewModel.serverUrl) },
-        content = {
-            SSOLogin(viewModel)
-        },
+        content = { SSOLogin(viewModel) },
         backButton = {
             WizardNavigationButton.Custom {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = viewModel::back,
-                ) {
+                ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             }
@@ -201,15 +186,10 @@ fun RegisterNewAccountStep(viewModel: RegisterMatrixAccountViewModel, i18n: I18n
     return WizardStep(
         id = REGISTER_NEW_ACCOUNT,
         title = { i18n.registrationHeader() },
-        content = {
-            RegisterNewAccount(viewModel)
-        },
+        content = { RegisterNewAccount(viewModel) },
         backButton = {
             WizardNavigationButton.Custom {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = viewModel::back,
-                ) {
+                ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
                     Text(i18n.commonBack().capitalize(Locale.current))
                 }
             }

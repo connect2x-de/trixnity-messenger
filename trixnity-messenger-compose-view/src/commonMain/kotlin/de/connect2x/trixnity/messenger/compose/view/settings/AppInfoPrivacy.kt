@@ -23,8 +23,7 @@ import org.intellij.markdown.html.HtmlGenerator
 import org.intellij.markdown.parser.MarkdownParser
 
 interface AppInfoPrivacyView {
-    @Composable
-    fun create(appInfoViewModel: AppInfoViewModel)
+    @Composable fun create(appInfoViewModel: AppInfoViewModel)
 }
 
 @Composable
@@ -52,9 +51,7 @@ internal fun Privacy(onClose: () -> Unit) {
         AutoLinkifyVisitor.process(HtmlVisitor.process(html))
     }
     ThemedAdaptiveDialog(onClose) {
-        AdaptiveDialogHeader(onClose = onClose) {
-            Text(i18n.appInfoPrivacy())
-        }
+        AdaptiveDialogHeader(onClose = onClose) { Text(i18n.appInfoPrivacy()) }
         AdaptiveDialogScrollContent {
             RichTextDisplay(
                 content,
@@ -63,4 +60,4 @@ internal fun Privacy(onClose: () -> Unit) {
             )
         }
     }
-} 
+}

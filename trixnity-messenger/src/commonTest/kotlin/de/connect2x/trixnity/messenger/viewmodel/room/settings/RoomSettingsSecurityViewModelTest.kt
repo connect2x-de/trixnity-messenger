@@ -26,6 +26,10 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -33,10 +37,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class RoomSettingsSecurityViewModelTest {
     private val roomId = RoomId("!room")
@@ -57,15 +57,22 @@ class RoomSettingsSecurityViewModelTest {
 
     init {
         resetMocks(
-            matrixClientMock, roomServiceMock, userServiceMock, matrixClientServerApiClientMock, roomsApiClientMock
+            matrixClientMock,
+            roomServiceMock,
+            userServiceMock,
+            matrixClientServerApiClientMock,
+            roomsApiClientMock,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { userServiceMock }
-                    single { roomServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { userServiceMock }
+                            single { roomServiceMock }
+                        }
+                    )
+                }
+                .koin
         canSendEventMock = every { userServiceMock.canSendEvent(roomId, EncryptionEventContent::class) }
         roomGetById = every { roomServiceMock.getById(roomId) }
         every { matrixClientMock.userId } returns me
@@ -87,13 +94,9 @@ class RoomSettingsSecurityViewModelTest {
 
         val error: MutableStateFlow<String?> = MutableStateFlow(null)
         val cut = roomSettingsSecurityViewModel(error)
-        eventually(2.seconds) {
-            cut.canEnableEncryption.value shouldBe true
-        }
+        eventually(2.seconds) { cut.canEnableEncryption.value shouldBe true }
         cut.enableEncryption()
-        eventually(2.seconds) {
-            encryptionEventCounter.value shouldBe 1
-        }
+        eventually(2.seconds) { encryptionEventCounter.value shouldBe 1 }
     }
 
     @Test
@@ -104,42 +107,46 @@ class RoomSettingsSecurityViewModelTest {
         mockSendStateEvent(EncryptionEventContent(), encryptionEventCounter)
 
         val cut = roomSettingsSecurityViewModel(MutableStateFlow(null))
-        continually(200.milliseconds) {
-            cut.canEnableEncryption.value shouldBe false
-        }
+        continually(200.milliseconds) { cut.canEnableEncryption.value shouldBe false }
         cut.enableEncryption()
-        continually(200.milliseconds) {
-            encryptionEventCounter.value shouldBe 0
-        }
+        continually(200.milliseconds) { encryptionEventCounter.value shouldBe 0 }
     }
 
     private fun mockSendStateEvent(expectedEvent: StateEventContent, callCounter: MutableStateFlow<Int>) {
-        everySuspend {
-            roomsApiClientMock.sendStateEvent(roomId, expectedEvent, any())
-        } calls {
-            callCounter.value += 1
-            Result.success(EventId("1"))
-        }
+        everySuspend { roomsApiClientMock.sendStateEvent(roomId, expectedEvent, any()) } calls
+            {
+                callCounter.value += 1
+                Result.success(EventId("1"))
+            }
     }
 
-    private fun room(name: String, encrypted: Boolean) = Room(
-        roomId, name = RoomDisplayName(explicitName = name, summary = null), isDirect = false, encrypted = encrypted
-    )
+    private fun room(name: String, encrypted: Boolean) =
+        Room(
+            roomId,
+            name = RoomDisplayName(explicitName = name, summary = null),
+            isDirect = false,
+            encrypted = encrypted,
+        )
 
     private fun TestScope.roomSettingsSecurityViewModel(
         error: MutableStateFlow<String?>
     ): RoomSettingsSecurityViewModelImpl {
         return RoomSettingsSecurityViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        ),
-                    )
-                }.koin, userId = UserId("test", "server")
-            ), selectedRoomId = roomId, error = error
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    )
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
+            selectedRoomId = roomId,
+            error = error,
         )
     }
-
 }

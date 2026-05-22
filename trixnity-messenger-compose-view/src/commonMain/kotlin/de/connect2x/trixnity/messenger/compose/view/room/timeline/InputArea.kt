@@ -92,20 +92,17 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import okio.FileSystem
 import kotlin.math.abs
+import okio.FileSystem
 
 private fun TextFieldValue.insert(insertion: String): TextFieldValue =
     TextFieldValue(
         this.text.substring(0, this.selection.start) + insertion + this.text.substring(this.selection.end),
-        TextRange(
-            this.selection.start + insertion.length - abs(this.selection.end - this.selection.start)
-        )
+        TextRange(this.selection.start + insertion.length - abs(this.selection.end - this.selection.start)),
     )
 
 interface InputAreaView {
-    @Composable
-    fun create(inputAreaViewModel: InputAreaViewModel)
+    @Composable fun create(inputAreaViewModel: InputAreaViewModel)
 }
 
 @Composable
@@ -142,14 +139,9 @@ class InputAreaViewImpl : InputAreaView {
                     Tooltip(i18n.inputAreaStartAudioRecording()) {
                         ThemedIconButton(
                             style = MaterialTheme.components.primaryIconButton,
-                            onClick = {
-                                inputAreaViewModel.audio.recorder?.start()
-                            },
+                            onClick = { inputAreaViewModel.audio.recorder?.start() },
                         ) {
-                            Icon(
-                                Icons.Default.Mic,
-                                i18n.inputAreaStartAudioRecording(),
-                            )
+                            Icon(Icons.Default.Mic, i18n.inputAreaStartAudioRecording())
                         }
                     }
                 }
@@ -162,14 +154,11 @@ class InputAreaViewImpl : InputAreaView {
                     AttachmentButton(inputAreaViewModel, insideTextInputField = false)
                 }
 
-
                 SendButton(inputAreaViewModel)
             }
         }
 
-        ThemedSurface(
-            style = MaterialTheme.components.inputAreaSurface,
-        ) {
+        ThemedSurface(style = MaterialTheme.components.inputAreaSurface) {
             Column(Modifier.fillMaxWidth()) {
                 HorizontalDivider(Modifier.fillMaxWidth())
                 if (isReplyTo) {
@@ -186,7 +175,7 @@ class InputAreaViewImpl : InputAreaView {
                             onDismiss = {
                                 emojisOpen.value = false
                                 focusRequester.requestFocus()
-                            }
+                            },
                         )
                     }
                 }
@@ -199,24 +188,22 @@ class InputAreaViewImpl : InputAreaView {
                 ) {
                     if (canSendMessages) {
                         when (audioRecorderState) {
-                            AudioRecorder.State.Ready ->
-                                TextInput(canRecordAudio = true)
-                            null ->
-                                TextInput(canRecordAudio = false)
-                            is AudioRecorder.State.Recording, is AudioRecorder.State.Completed ->
+                            AudioRecorder.State.Ready -> TextInput(canRecordAudio = true)
+                            null -> TextInput(canRecordAudio = false)
+                            is AudioRecorder.State.Recording,
+                            is AudioRecorder.State.Completed ->
                                 if (isEdit) {
                                     TextInput(canRecordAudio = true)
                                 } else {
                                     AudioRecordingArea(inputAreaViewModel.audio)
                                 }
-
                         }
                     } else {
                         Box(Modifier.fillMaxWidth()) {
                             Text(
                                 i18n.inputAreaCannotSendMessages(),
                                 modifier = Modifier.padding(10.dp).align(Alignment.Center),
-                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.75f)
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.75f),
                             )
                         }
                     }
@@ -233,11 +220,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
     val scrollState = rememberScrollState()
 
     if (listOfMentions?.isNotEmpty() == true || loading) {
-        Box(
-            Modifier
-                .padding(vertical = 10.dp, horizontal = 20.dp)
-                .heightIn(max = 150.dp)
-        ) {
+        Box(Modifier.padding(vertical = 10.dp, horizontal = 20.dp).heightIn(max = 150.dp)) {
             if (loading) {
                 LoadingSpinner(modifier = Modifier.heightIn(min = 150.dp))
             } else {
@@ -246,13 +229,13 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
                         val avatar = userInfoElement.image?.collectAsState(null)?.value
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable {
-                                    inputAreaViewModel.selectMention(userInfoElement.userId)
-                                    focusRequester.requestFocus()
-                                }
-                                .buttonPointerModifier()
-                                .padding(vertical = 5.dp)
+                            modifier =
+                                Modifier.clickable {
+                                        inputAreaViewModel.selectMention(userInfoElement.userId)
+                                        focusRequester.requestFocus()
+                                    }
+                                    .buttonPointerModifier()
+                                    .padding(vertical = 5.dp),
                         ) {
                             ThemedUserAvatar(userInfoElement.initials, avatar)
                             Spacer(Modifier.size(5.dp))
@@ -261,10 +244,7 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
                         }
                     }
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd),
-                    scrollState
-                )
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
             }
         }
     }
@@ -288,16 +268,10 @@ fun RowScope.InputAreaTextField(
 
     val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .weight(1.0f, fill = true)
-    ) {
+    Box(Modifier.fillMaxWidth().weight(1.0f, fill = true)) {
         if (showUploadError.value != null) {
             ThemedModalDialog({ showUploadError.value = null }) {
-                ModalDialogHeader {
-                    Text(i18n.uploadFileErrorTitle())
-                }
+                ModalDialogHeader { Text(i18n.uploadFileErrorTitle()) }
                 ModalDialogContent {
                     Text(
                         when (showUploadError.value) {
@@ -319,11 +293,8 @@ fun RowScope.InputAreaTextField(
         }
         BasicTextField(
             cursorBrush = SolidColor(style.colors.cursorColor),
-            modifier = Modifier
-                .inputFocusNavigation()
-                .focusRequester(focusRequester)
-                .fillMaxWidth()
-                .onPreviewKeyEvent {
+            modifier =
+                Modifier.inputFocusNavigation().focusRequester(focusRequester).fillMaxWidth().onPreviewKeyEvent {
                     if (it.type == KeyEventType.KeyDown) {
                         when {
                             (it.isShiftPressed && it.key == Key.Enter) -> {
@@ -355,21 +326,12 @@ fun RowScope.InputAreaTextField(
                     }
                 },
             value = textField.value,
-            onValueChange = { textFieldValue ->
-                textField.value = textFieldValue
-            },
+            onValueChange = { textFieldValue -> textField.value = textFieldValue },
             interactionSource = interactionSource,
             maxLines = 6,
-            textStyle = style.textStyle.copy(
-                color = style.textColor(
-                    enabled = true,
-                    isError = false,
-                    focused = hasFocus
-                )
-            ),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-            )
+            textStyle =
+                style.textStyle.copy(color = style.textColor(enabled = true, isError = false, focused = hasFocus)),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         ) { innerTextField ->
             @OptIn(ExperimentalMaterial3Api::class)
             OutlinedTextFieldDefaults.DecorationBox(
@@ -382,23 +344,17 @@ fun RowScope.InputAreaTextField(
                 placeholder = {
                     Text(
                         i18n.inputAreaPrompt(),
-                        style = style.textStyle.copy(
-                            color = style.placeholderColor(
-                                enabled = true,
-                                isError = false,
-                                focused = hasFocus
-                            )
-                        ),
+                        style =
+                            style.textStyle.copy(
+                                color = style.placeholderColor(enabled = true, isError = false, focused = hasFocus)
+                            ),
                     )
                 },
                 colors = style.colors,
                 contentPadding = style.contentPadding,
                 suffix = {
-                    if (canRecordAudio)
-                        AttachmentButton(inputAreaViewModel, insideTextInputField = true)
-                    else
-                        Unit
-                }
+                    if (canRecordAudio) AttachmentButton(inputAreaViewModel, insideTextInputField = true) else Unit
+                },
             )
         }
     }
@@ -412,10 +368,7 @@ fun EditButton(inputAreaViewModel: InputAreaViewModel) {
             style = MaterialTheme.components.primaryIconButton,
             onClick = { inputAreaViewModel.cancelReplace() },
         ) {
-            Icon(
-                Icons.Default.EditOff,
-                i18n.inputAreaCancelEdit(),
-            )
+            Icon(Icons.Default.EditOff, i18n.inputAreaCancelEdit())
         }
     }
 }
@@ -430,10 +383,7 @@ fun SendButton(inputAreaViewModel: InputAreaViewModel) {
                 style = MaterialTheme.components.primaryIconButton,
                 onClick = { inputAreaViewModel.sendMessage() },
             ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    i18n.inputAreaSend(),
-                )
+                Icon(Icons.AutoMirrored.Filled.Send, i18n.inputAreaSend())
             }
         }
     }
@@ -449,10 +399,7 @@ fun EmojiButton(emojisOpen: MutableState<Boolean>) {
             onClick = { emojisOpen.value = emojisOpen.value.not() },
             modifier = Modifier.expandable(emojisOpen),
         ) {
-            Icon(
-                Icons.Default.Mood,
-                i18n.inputAreaEmojis(),
-            )
+            Icon(Icons.Default.Mood, i18n.inputAreaEmojis())
         }
     }
 }
@@ -462,16 +409,17 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel, insideTextInputFiel
     val i18n = DI.get<I18nView>()
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
-    if (showAttachmentDialog) LoadFileDialog(
-        filterFilePickerOptionsByAvailability(
-            FilePickerType.ATTACHMENT_FILE,
-            FilePickerType.IMAGE_AND_VIDEO_FILE,
-            FilePickerType.PHOTO_CAPTURE,
-            FilePickerType.VIDEO_CAPTURE,
-        ),
-        inputAreaViewModel::onAttachmentFileSelect,
-        inputAreaViewModel::closeAttachmentDialog,
-    )
+    if (showAttachmentDialog)
+        LoadFileDialog(
+            filterFilePickerOptionsByAvailability(
+                FilePickerType.ATTACHMENT_FILE,
+                FilePickerType.IMAGE_AND_VIDEO_FILE,
+                FilePickerType.PHOTO_CAPTURE,
+                FilePickerType.VIDEO_CAPTURE,
+            ),
+            inputAreaViewModel::onAttachmentFileSelect,
+            inputAreaViewModel::closeAttachmentDialog,
+        )
     val style = MaterialTheme.components.commonIconButton
     AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
         Tooltip({ Text(i18n.inputAreaSelectAttachment()) }) {
@@ -492,10 +440,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel, insideTextInputFiel
                 },
                 size = if (insideTextInputField) 20.dp else style.size,
             ) {
-                Icon(
-                    MaterialTheme.messengerIcons.attachFile,
-                    i18n.inputAreaSelectAttachment(),
-                )
+                Icon(MaterialTheme.messengerIcons.attachFile, i18n.inputAreaSelectAttachment())
             }
         }
     }

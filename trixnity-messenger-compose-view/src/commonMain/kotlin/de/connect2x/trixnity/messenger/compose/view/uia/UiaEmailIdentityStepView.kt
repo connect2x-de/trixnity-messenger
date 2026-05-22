@@ -23,8 +23,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepEmailIdentityViewModel
 
 interface UiaEmailIdentityStepView {
-    @Composable
-    fun create(uiaStepEmailIdentityViewModel: UiaStepEmailIdentityViewModel)
+    @Composable fun create(uiaStepEmailIdentityViewModel: UiaStepEmailIdentityViewModel)
 }
 
 @Composable
@@ -38,20 +37,13 @@ class UiaEmailIdentityStepViewImpl : UiaEmailIdentityStepView {
         val i18n = DI.get<I18nView>()
         val error = uiaStepEmailIdentityViewModel.error.collectAsState().value
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaEmailTitle())
                 if (error != null) {
                     ErrorView(error)
                 }
                 MiddleSpacer()
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepEmailIdentityViewModel::cancel,
@@ -62,5 +54,4 @@ class UiaEmailIdentityStepViewImpl : UiaEmailIdentityStepView {
             }
         }
     }
-
 }

@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
-import de.connect2x.trixnity.messenger.viewmodel.util.MembershipChange
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.viewmodel.util.MembershipChange
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

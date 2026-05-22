@@ -27,11 +27,12 @@ internal enum class MembershipChange {
             when (to) {
                 Membership.INVITE -> INVITE
                 Membership.JOIN -> JOIN
-                Membership.LEAVE -> when (from) {
-                    Membership.BAN -> UNBAN
-                    Membership.INVITE -> if (appliedToSelf) INVITE_REJECT else INVITE_REVOKE
-                    else -> if (appliedToSelf) LEAVE else KICK
-                }
+                Membership.LEAVE ->
+                    when (from) {
+                        Membership.BAN -> UNBAN
+                        Membership.INVITE -> if (appliedToSelf) INVITE_REJECT else INVITE_REVOKE
+                        else -> if (appliedToSelf) LEAVE else KICK
+                    }
 
                 Membership.BAN -> BAN
                 Membership.KNOCK -> KNOCK

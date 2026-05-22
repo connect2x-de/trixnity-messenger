@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Location
 import kotlin.reflect.KClass
 
 interface LocationRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<Location> {
@@ -16,12 +16,7 @@ interface LocationRoomMessageTimelineElementViewModelFactory : TimelineElementVi
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): RoomMessageTimelineElementViewModel.Location? =
-        LocationRoomMessageTimelineElementViewModelImpl(
-            viewModelContext,
-            content,
-            roomId,
-            onOpenMention
-        )
+        LocationRoomMessageTimelineElementViewModelImpl(viewModelContext, content, roomId, onOpenMention)
 
     override val supports: KClass<Location>
         get() = Location::class
@@ -34,7 +29,8 @@ class LocationRoomMessageTimelineElementViewModelImpl(
     content: Location,
     roomId: RoomId,
     onOpenMention: OpenMentionCallback,
-) : RoomMessageTimelineElementViewModel.Location,
+) :
+    RoomMessageTimelineElementViewModel.Location,
     RoomMessageTimelineElementViewModelImpl<Location>(viewModelContext, content, roomId, onOpenMention) {
     override val name: String = content.body
     override val geoUri: String = content.geoUri

@@ -12,21 +12,17 @@ import androidx.compose.ui.node.ModifierNodeElement
 @Composable
 fun Modifier.customIndication(
     interactionSource: InteractionSource,
-    ripple: IndicationNodeFactory = ripple(bounded = true)
-) =
-    then(CustomIndicationElement(interactionSource, ripple))
+    ripple: IndicationNodeFactory = ripple(bounded = true),
+) = then(CustomIndicationElement(interactionSource, ripple))
 
-data class CustomIndicationElement(
-    val interactionSource: InteractionSource,
-    val factory: IndicationNodeFactory,
-) : ModifierNodeElement<CustomIndicationNode>() {
+data class CustomIndicationElement(val interactionSource: InteractionSource, val factory: IndicationNodeFactory) :
+    ModifierNodeElement<CustomIndicationNode>() {
     override fun create() = CustomIndicationNode(factory.create(interactionSource))
+
     override fun update(node: CustomIndicationNode) = node.update(factory.create(interactionSource))
 }
 
-data class CustomIndicationNode(
-    private var delegate: DelegatableNode
-) : DelegatingNode() {
+data class CustomIndicationNode(private var delegate: DelegatableNode) : DelegatingNode() {
     init {
         delegate(delegate)
     }

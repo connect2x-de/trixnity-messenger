@@ -7,10 +7,9 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "schedule"
 
 stages:
-  - changelog
   - build
+  - check
   - test
-  - security
   - publish
   - kmmPublish
 
@@ -64,6 +63,17 @@ services:
     when: never
   - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   - if: '$CI_COMMIT_BRANCH =~ /^v-\d+.\d+.\d+.*/'
+
+check:formatting:
+  stage: check
+  interruptible: true
+  tags: [ "connect2x-linux" ]
+  image: $BUILD_LINUX_IMAGE_NAME
+  needs: [ ]
+  rules:
+    - *if-merge-request
+  script:
+    - gradle ktfmtCheck --stacktrace
 
 build:mac:
   stage: build
@@ -224,8 +234,8 @@ test:integration-test:
       --stacktrace
 
 # requires macOS since it can build/emulate all other targets
-checkAbi:
-  stage: test
+check:abi:
+  stage: check
   interruptible: true
   timeout: 1h
   needs:
@@ -239,8 +249,8 @@ checkAbi:
     - ./gradlew dumpLegacyAbi --stacktrace
     - ./gradlew checkLegacyAbi --stacktrace
 
-security:dependencies:
-  stage: security
+check:vulnerable-dependencies:
+  stage: check
   interruptible: true
   timeout: 30m
   needs: [ ]
@@ -266,9 +276,10 @@ security:dependencies:
     - trivy repo ./ --exit-code 0 --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
     - trivy repo ./ --exit-code 1 --severity CRITICAL
 
-changelog:
-  stage: changelog
+check:changelog:
+  stage: check
   interruptible: true
+  needs: [ ]
   timeout: 5m
   tags: [ "saas-linux-small-amd64" ]
   rules:

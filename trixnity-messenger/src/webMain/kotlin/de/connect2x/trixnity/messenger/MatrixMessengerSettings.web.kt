@@ -9,11 +9,10 @@ import org.koin.dsl.module
 
 actual fun platformMatrixMessengerSettingsHolderModule(): Module = module {
     single<MatrixMessengerSettingsHolder> {
-        val rootPath = get<RootPath>().path
-        MatrixMessengerSettingsHolderImpl(
-            LocalStorageSettingsStorage(
-                name = rootPath.resolve("settings.json").toString()
+            val rootPath = get<RootPath>().path
+            MatrixMessengerSettingsHolderImpl(
+                LocalStorageSettingsStorage(name = rootPath.resolve("settings.json").toString())
             )
-        )
-    }.bind<SettingsHolder<*>>()
+        }
+        .bind<SettingsHolder<*>>()
 }

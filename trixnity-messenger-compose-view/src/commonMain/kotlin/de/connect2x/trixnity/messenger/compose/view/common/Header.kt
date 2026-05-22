@@ -34,7 +34,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyl
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 
-
 @Composable
 fun Header(
     onBack: () -> Unit,
@@ -51,19 +50,11 @@ fun Header(
 }
 
 @Composable
-internal fun HeaderSurface(
-    style: SurfaceStyle = MaterialTheme.components.header,
-    content: @Composable () -> Unit,
-) {
+internal fun HeaderSurface(style: SurfaceStyle = MaterialTheme.components.header, content: @Composable () -> Unit) {
     val localElevation = LocalAbsoluteTonalElevation.current
 
-    CompositionLocalProvider(
-        LocalAbsoluteTonalElevation provides 0.dp
-    ) {
-        ThemedSurface(
-            style = style,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
+    CompositionLocalProvider(LocalAbsoluteTonalElevation provides 0.dp) {
+        ThemedSurface(style = style, modifier = Modifier.fillMaxWidth()) {
             CompositionLocalProvider(
                 LocalAbsoluteTonalElevation provides LocalAbsoluteTonalElevation.current + localElevation
             ) {
@@ -128,5 +119,6 @@ fun Header(
 }
 
 enum class HeaderBackButtonType {
-    CLOSE, BACK,
+    CLOSE,
+    BACK,
 }

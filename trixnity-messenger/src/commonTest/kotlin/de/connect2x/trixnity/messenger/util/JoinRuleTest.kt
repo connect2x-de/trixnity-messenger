@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.kotest.matchers.shouldBe
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import io.kotest.matchers.shouldBe
 import kotlin.test.Test
 
 class JoinRuleTest {

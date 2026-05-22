@@ -15,12 +15,12 @@ actual fun ApplySystemUiTheme(style: SystemUiStyle) {
         if (style.isDarkMode) {
             activity?.enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.dark(style.header.toArgb()),
-                navigationBarStyle = SystemBarStyle.dark(style.footer.toArgb())
+                navigationBarStyle = SystemBarStyle.dark(style.footer.toArgb()),
             )
         } else {
             activity?.enableEdgeToEdge(
                 statusBarStyle = SystemBarStyle.light(style.header.toArgb(), style.header.toArgb()),
-                navigationBarStyle = SystemBarStyle.light(style.footer.toArgb(), style.footer.toArgb())
+                navigationBarStyle = SystemBarStyle.light(style.footer.toArgb(), style.footer.toArgb()),
             )
         }
     }

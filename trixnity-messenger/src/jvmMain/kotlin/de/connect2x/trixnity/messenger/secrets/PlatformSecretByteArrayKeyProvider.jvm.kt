@@ -10,6 +10,7 @@ import com.sun.jna.platform.win32.Kernel32
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.ptr.PointerByReference
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.crypto.core.SecureRandom
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.Credential
 import de.connect2x.trixnity.messenger.util.MacOsCoreFoundation
@@ -21,7 +22,6 @@ import de.connect2x.trixnity.messenger.util.getOs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import de.connect2x.trixnity.crypto.core.SecureRandom
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -38,25 +38,27 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey? {
                 val appId = config.appId
                 return when (getOs()) {
-                    OS.MAC_OS, OS.WINDOWS -> {
+                    OS.MAC_OS,
+                    OS.WINDOWS -> {
                         GetKey { size ->
                             try {
                                 val existingKey = getSecret(appId, id)
-                                val key = when {
-                                    existingKey == null -> {
-                                        val newKey = SecureRandom.nextBytes(size)
-                                        setSecret(appId, id, newKey)
-                                        newKey
-                                    }
+                                val key =
+                                    when {
+                                        existingKey == null -> {
+                                            val newKey = SecureRandom.nextBytes(size)
+                                            setSecret(appId, id, newKey)
+                                            newKey
+                                        }
 
-                                    existingKey.size < size -> {
-                                        val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
-                                        setSecret(appId, id, newKey)
-                                        newKey
-                                    }
+                                        existingKey.size < size -> {
+                                            val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
+                                            setSecret(appId, id, newKey)
+                                            newKey
+                                        }
 
-                                    else -> existingKey.copyOf(size)
-                                }
+                                        else -> existingKey.copyOf(size)
+                                    }
                                 if (getInputKey == null) key
                                 else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                             } catch (exc: Exception) {
@@ -72,7 +74,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun rotate(
                 oldExtra: JsonObject?,
                 getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?
+                getNewInputKey: GetKey?,
             ): SecretByteArrayKeyProvider.RotateResult =
                 SecretByteArrayKeyProvider.RotateResult(
                     getOldKey = get(null, getOldInputKey),
@@ -88,82 +90,103 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
     }
 }
 
-private suspend fun getSecret(appId: String, secretId: String): ByteArray? = withContext(Dispatchers.IO) {
-    when (getOs()) {
-        OS.WINDOWS -> {
-            val targetName = "$appId-$secretId"
-            val credentialRef = PointerByReference()
-            val success = WinCredentials.CredReadA(targetName = targetName, credentialRef = credentialRef)
-            log.debug { "Read secret ('$targetName') from credentials store: $success" }
-            if (success) {
-                try {
-                    val credential = Credential(credentialRef.value)
-                    credential.credentialBlob.getByteArray(0, credential.credentialBlobSize)
-                } finally {
-                    WinCredentials.CredFree(credentialRef.value)
+private suspend fun getSecret(appId: String, secretId: String): ByteArray? =
+    withContext(Dispatchers.IO) {
+        when (getOs()) {
+            OS.WINDOWS -> {
+                val targetName = "$appId-$secretId"
+                val credentialRef = PointerByReference()
+                val success = WinCredentials.CredReadA(targetName = targetName, credentialRef = credentialRef)
+                log.debug { "Read secret ('$targetName') from credentials store: $success" }
+                if (success) {
+                    try {
+                        val credential = Credential(credentialRef.value)
+                        credential.credentialBlob.getByteArray(0, credential.credentialBlobSize)
+                    } finally {
+                        WinCredentials.CredFree(credentialRef.value)
+                    }
+                } else {
+                    when (val error = Kernel32.INSTANCE.GetLastError()) {
+                        Kernel32.ERROR_NOT_FOUND -> {
+                            log.warn {
+                                "Cannot read secret ('$targetName') from credentials store. Cannot find target name '$targetName'"
+                            }
+                            null
+                        }
+
+                        Kernel32.ERROR_NO_SUCH_LOGON_SESSION ->
+                            throw SecretNotFoundException(
+                                "Cannot read secret ('$targetName') from credentials store. The logon session cannot be found."
+                            )
+                        Kernel32.ERROR_INVALID_FLAGS ->
+                            throw SecretNotFoundException(
+                                "Cannot read secret ('$targetName') from credentials store. The provided flags are invalid."
+                            )
+                        else ->
+                            throw SecretNotFoundException(
+                                "Cannot read secret ('$targetName') from credentials store. Unknown error: $error."
+                            )
+                    }
                 }
-            } else {
-                when (val error = Kernel32.INSTANCE.GetLastError()) {
-                    Kernel32.ERROR_NOT_FOUND -> {
-                        log.warn { "Cannot read secret ('$targetName') from credentials store. Cannot find target name '$targetName'" }
-                        null
+            }
+
+            OS.MAC_OS -> {
+                val attributes =
+                    CoreFoundation.INSTANCE.CFDictionaryCreateMutable(null, CoreFoundation.CFIndex(5), null, null)
+                        .apply {
+                            CoreFoundation.INSTANCE.CFDictionarySetValue(
+                                this,
+                                CFStringRef(MacOsSecurity.kSecClass),
+                                CFStringRef(MacOsSecurity.kSecClassGenericPassword),
+                            )
+                            CoreFoundation.INSTANCE.CFDictionarySetValue(
+                                this,
+                                CFStringRef(MacOsSecurity.kSecAttrService),
+                                appId.toCFString(),
+                            )
+                            CoreFoundation.INSTANCE.CFDictionarySetValue(
+                                this,
+                                CFStringRef(MacOsSecurity.kSecAttrAccount),
+                                secretId.toCFString(),
+                            )
+                            CoreFoundation.INSTANCE.CFDictionarySetValue(
+                                this,
+                                CFStringRef(MacOsSecurity.kSecReturnData),
+                                CFBooleanRef(MacOsCoreFoundation.kCFBooleanTrue),
+                            )
+                            CoreFoundation.INSTANCE.CFDictionarySetValue(
+                                this,
+                                CFStringRef(MacOsSecurity.kSecMatchLimit),
+                                CFStringRef(MacOsSecurity.kSecMatchLimitOne),
+                            )
+                        }
+                log.debug { "read secret ('$secretId') from keychain" }
+                val secItem = PointerByReference()
+                val result = MacOsSecurity.SecItemCopyMatching(attributes, secItem)
+
+                CoreFoundation.INSTANCE.CFRelease(attributes)
+                when (result) {
+                    MacOsSecurity.CODE_SUCCESS -> {
+                        log.debug { "Successfully read secret ('$secretId') from keychain." }
+                        val secItemData = CFDataRef(secItem.value)
+                        val secretValue = secItemData.toByteArray()
+                        MacOsSecurity.SecKeychainItemFreeContent(null, secItem.value)
+                        secretValue
                     }
 
-                    Kernel32.ERROR_NO_SUCH_LOGON_SESSION -> throw SecretNotFoundException("Cannot read secret ('$targetName') from credentials store. The logon session cannot be found.")
-                    Kernel32.ERROR_INVALID_FLAGS -> throw SecretNotFoundException("Cannot read secret ('$targetName') from credentials store. The provided flags are invalid.")
-                    else -> throw SecretNotFoundException("Cannot read secret ('$targetName') from credentials store. Unknown error: $error.")
+                    MacOsSecurity.CODE_NOT_FOUND -> null
+                    else -> {
+                        val errorMessage = macOsConvertErrorCodeToMessage(result)
+                        throw SecretNotFoundException(
+                            "Cannot read secret ('$secretId') from keychain. ${errorMessage ?: "Unknown error"}"
+                        )
+                    }
                 }
             }
+
+            OS.LINUX -> throw IllegalStateException("not supported")
         }
-
-        OS.MAC_OS -> {
-            val attributes = CoreFoundation.INSTANCE.CFDictionaryCreateMutable(
-                null,
-                CoreFoundation.CFIndex(5),
-                null,
-                null,
-            ).apply {
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecClass), CFStringRef(MacOsSecurity.kSecClassGenericPassword)
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecAttrService), appId.toCFString()
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecAttrAccount), secretId.toCFString()
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecReturnData), CFBooleanRef(MacOsCoreFoundation.kCFBooleanTrue)
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecMatchLimit), CFStringRef(MacOsSecurity.kSecMatchLimitOne)
-                )
-            }
-            log.debug { "read secret ('$secretId') from keychain" }
-            val secItem = PointerByReference()
-            val result = MacOsSecurity.SecItemCopyMatching(attributes, secItem)
-
-            CoreFoundation.INSTANCE.CFRelease(attributes)
-            when (result) {
-                MacOsSecurity.CODE_SUCCESS -> {
-                    log.debug { "Successfully read secret ('$secretId') from keychain." }
-                    val secItemData = CFDataRef(secItem.value)
-                    val secretValue = secItemData.toByteArray()
-                    MacOsSecurity.SecKeychainItemFreeContent(null, secItem.value)
-                    secretValue
-                }
-
-                MacOsSecurity.CODE_NOT_FOUND -> null
-                else -> {
-                    val errorMessage = macOsConvertErrorCodeToMessage(result)
-                    throw SecretNotFoundException("Cannot read secret ('$secretId') from keychain. ${errorMessage ?: "Unknown error"}")
-                }
-            }
-        }
-
-        OS.LINUX -> throw IllegalStateException("not supported")
     }
-}
 
 private fun setSecret(appId: String, secretId: String, secretValue: ByteArray) {
     when (getOs()) {
@@ -171,46 +194,57 @@ private fun setSecret(appId: String, secretId: String, secretValue: ByteArray) {
             val targetName = "$appId-$secretId"
             val memory = Memory(secretValue.size.toLong())
             memory.write(0, secretValue, 0, secretValue.size)
-            val success = WinCredentials.CredWriteA(
-                Credential(
-                    targetName = targetName,
-                    credentialBlob = memory,
-                    credentialBlobSize = secretValue.size
-                ),
-                WinDef.DWORD(0)
-            )
+            val success =
+                WinCredentials.CredWriteA(
+                    Credential(targetName = targetName, credentialBlob = memory, credentialBlobSize = secretValue.size),
+                    WinDef.DWORD(0),
+                )
             memory.clear()
             log.debug { "Write secret ('$targetName') to credentials store: $success" }
             if (success.not()) {
                 when (val error = Kernel32.INSTANCE.GetLastError()) {
-                    Kernel32.ERROR_NO_SUCH_LOGON_SESSION -> log.error { "Cannot write secret ('$targetName') to credentials store. The logon session cannot be found." }
-                    Kernel32.ERROR_INVALID_PARAMETER -> log.error { "Cannot write secret ('$targetName') to credentials store. Tried to change protected fields of an existing credential." }
-                    Kernel32.ERROR_INVALID_FLAGS -> log.error { "Cannot write secret ('$targetName') to credentials store. The provided flags are invalid." }
-                    else -> log.error { "Cannot write secret ('$targetName') to credentials store. Unknown error: $error." }
+                    Kernel32.ERROR_NO_SUCH_LOGON_SESSION ->
+                        log.error {
+                            "Cannot write secret ('$targetName') to credentials store. The logon session cannot be found."
+                        }
+                    Kernel32.ERROR_INVALID_PARAMETER ->
+                        log.error {
+                            "Cannot write secret ('$targetName') to credentials store. Tried to change protected fields of an existing credential."
+                        }
+                    Kernel32.ERROR_INVALID_FLAGS ->
+                        log.error {
+                            "Cannot write secret ('$targetName') to credentials store. The provided flags are invalid."
+                        }
+                    else ->
+                        log.error { "Cannot write secret ('$targetName') to credentials store. Unknown error: $error." }
                 }
             }
         }
 
         OS.MAC_OS -> {
-            val attributes = CoreFoundation.INSTANCE.CFDictionaryCreateMutable(
-                null,
-                CoreFoundation.CFIndex(4),
-                null,
-                null,
-            ).apply {
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecClass), CFStringRef(MacOsSecurity.kSecClassGenericPassword)
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecAttrService), appId.toCFString()
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecAttrAccount), secretId.toCFString()
-                )
-                CoreFoundation.INSTANCE.CFDictionarySetValue(
-                    this, CFStringRef(MacOsSecurity.kSecValueData), secretValue.toCFData()
-                )
-            }
+            val attributes =
+                CoreFoundation.INSTANCE.CFDictionaryCreateMutable(null, CoreFoundation.CFIndex(4), null, null).apply {
+                    CoreFoundation.INSTANCE.CFDictionarySetValue(
+                        this,
+                        CFStringRef(MacOsSecurity.kSecClass),
+                        CFStringRef(MacOsSecurity.kSecClassGenericPassword),
+                    )
+                    CoreFoundation.INSTANCE.CFDictionarySetValue(
+                        this,
+                        CFStringRef(MacOsSecurity.kSecAttrService),
+                        appId.toCFString(),
+                    )
+                    CoreFoundation.INSTANCE.CFDictionarySetValue(
+                        this,
+                        CFStringRef(MacOsSecurity.kSecAttrAccount),
+                        secretId.toCFString(),
+                    )
+                    CoreFoundation.INSTANCE.CFDictionarySetValue(
+                        this,
+                        CFStringRef(MacOsSecurity.kSecValueData),
+                        secretValue.toCFData(),
+                    )
+                }
             log.debug { "write secret ('$secretId') to keychain" }
             val result = MacOsSecurity.SecItemAdd(attributes, null)
             CoreFoundation.INSTANCE.CFRelease(attributes)
@@ -243,7 +277,7 @@ private fun String.toCFString(): CFStringRef {
     return CoreFoundation.INSTANCE.CFStringCreateWithCharacters(
         null,
         chars,
-        CoreFoundation.CFIndex(chars.size.toLong())
+        CoreFoundation.CFIndex(chars.size.toLong()),
     )
 }
 

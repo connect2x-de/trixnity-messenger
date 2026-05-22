@@ -1,6 +1,22 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.flattenValues
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -28,22 +44,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.flattenValues
-import de.connect2x.trixnity.client.key
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.store.membership
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.getAccountData
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
-import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
-import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
-import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 interface RoomHeaderViewModelFactory {
@@ -75,7 +75,7 @@ data class RoomHeaderInfo(
     val presence: Presence?,
     val isEncrypted: Boolean,
     val isPublic: Boolean,
-    val isLeave: Boolean
+    val isLeave: Boolean,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -116,24 +116,25 @@ interface RoomHeaderViewModel {
     val canVerifyUser: StateFlow<Boolean>
     val knockingMembersCount: StateFlow<Int>
 
-    /**
-     * Is true if this is a direct room and only 2 users are present and not already blocked.
-     */
+    /** Is true if this is a direct room and only 2 users are present and not already blocked. */
     val canBlockUser: StateFlow<Boolean>
 
-    /**
-     * Is true if this is a direct room and only 2 users are present and other user is blocked.
-     */
+    /** Is true if this is a direct room and only 2 users are present and other user is blocked. */
     val canUnblockUser: StateFlow<Boolean>
     val isUserBlocked: StateFlow<Boolean>
 
     val isDirectChat: StateFlow<Boolean>
 
     fun blockUser()
+
     fun unblockUser()
+
     fun verifyUser()
+
     fun openRoomSettings()
+
     fun openUserProfile()
+
     fun back()
 }
 
@@ -155,129 +156,137 @@ open class RoomHeaderViewModelImpl(
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    private val matrixClientStateInfo = combine(
-        matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
-        matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId)
-    ) { a, b ->
-        Pair(a, b)
-    }
+    private val matrixClientStateInfo =
+        combine(
+            matrixClient.room.getState<JoinRulesEventContent>(selectedRoomId),
+            matrixClient.room.getState<HistoryVisibilityEventContent>(selectedRoomId),
+        ) { a, b ->
+            Pair(a, b)
+        }
 
     override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
         combine(
-            matrixClient.room.getById(selectedRoomId),
-            roomName.getRoomName(selectedRoomId, matrixClient),
-            roomTopic.getRoomTopic(selectedRoomId, matrixClient),
-            roomPresence.invoke(matrixClient, selectedRoomId),
-            matrixClientStateInfo
-        ) { room, roomNameElement, roomTopicElement, userPresence, matrixClientStateInfo ->
-            val roomImage = room?.avatarUrl?.let { avatarUrl ->
-                matrixClient.media.getThumbnail(
-                    avatarUrl,
-                    avatarSize().toLong(),
-                    avatarSize().toLong()
-                ).fold(
-                    onSuccess = {
-                        it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                    },
-                    onFailure = { exc ->
-                        if (exc !is CancellationException) {
-                            log.error(exc) { "Cannot load avatar image for room '${roomNameElement}'." }
-                        }
-                        null
+                matrixClient.room.getById(selectedRoomId),
+                roomName.getRoomName(selectedRoomId, matrixClient),
+                roomTopic.getRoomTopic(selectedRoomId, matrixClient),
+                roomPresence.invoke(matrixClient, selectedRoomId),
+                matrixClientStateInfo,
+            ) { room, roomNameElement, roomTopicElement, userPresence, matrixClientStateInfo ->
+                val roomImage =
+                    room?.avatarUrl?.let { avatarUrl ->
+                        matrixClient.media
+                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                            .fold(
+                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                onFailure = { exc ->
+                                    if (exc !is CancellationException) {
+                                        log.error(exc) { "Cannot load avatar image for room '${roomNameElement}'." }
+                                    }
+                                    null
+                                },
+                            )
                     }
+                RoomHeaderInfo(
+                    roomName = roomNameElement,
+                    roomTopic = roomTopicElement,
+                    roomImageInitials = initials.compute(roomNameElement),
+                    roomImage = roomImage,
+                    presence = userPresence,
+                    isEncrypted = room?.encrypted == true,
+                    isPublic =
+                        (matrixClientStateInfo.first?.content?.joinRule == JoinRulesEventContent.JoinRule.Public) ||
+                            (matrixClientStateInfo.second?.content?.historyVisibility ==
+                                HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE),
+                    isLeave = room?.membership?.let { it == Membership.LEAVE } == true,
                 )
             }
-            RoomHeaderInfo(
-                roomName = roomNameElement,
-                roomTopic = roomTopicElement,
-                roomImageInitials = initials.compute(roomNameElement),
-                roomImage = roomImage,
-                presence = userPresence,
-                isEncrypted = room?.encrypted == true,
-                isPublic = (matrixClientStateInfo.first?.content?.joinRule == JoinRulesEventContent.JoinRule.Public) || (matrixClientStateInfo.second?.content?.historyVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE),
-                isLeave = room?.membership?.let { it == Membership.LEAVE } == true
+            .stateIn(
+                coroutineScope,
+                WhileSubscribed(),
+                RoomHeaderInfo(
+                    roomName = "",
+                    roomTopic = "",
+                    roomImageInitials = initials.compute(selectedRoomId.full),
+                    roomImage = null,
+                    presence = Presence.OFFLINE,
+                    isEncrypted = false,
+                    isPublic = true,
+                    isLeave = false,
+                ),
             )
-        }.stateIn(
-            coroutineScope,
-            WhileSubscribed(),
-            RoomHeaderInfo(
-                roomName = "",
-                roomTopic = "",
-                roomImageInitials = initials.compute(selectedRoomId.full),
-                roomImage = null,
-                presence = Presence.OFFLINE,
-                isEncrypted = false,
-                isPublic = true,
-                isLeave = false
-            )
-        )
 
-    override val isDirectChat: StateFlow<Boolean> = get<IsOneToOneRoom>()(matrixClient, selectedRoomId)
-        .stateIn(coroutineScope, Eagerly, false)
+    override val isDirectChat: StateFlow<Boolean> =
+        get<IsOneToOneRoom>()(matrixClient, selectedRoomId).stateIn(coroutineScope, Eagerly, false)
 
-    private val singleDirectUser: SharedFlow<UserId?> = isDirectChat
-        .flatMapLatest { isDirectChat ->
-            if (isDirectChat) matrixClient.user.getAll(selectedRoomId)
-                .map { users ->
-                    val usersWithoutMe = (users.keys - matrixClient.userId)
-                    if (usersWithoutMe.size != 1) return@map null
-                    usersWithoutMe.first()
-                }
-            else emptyFlow()
-        }
-        .shareIn(coroutineScope, Eagerly, replay = 1)
+    private val singleDirectUser: SharedFlow<UserId?> =
+        isDirectChat
+            .flatMapLatest { isDirectChat ->
+                if (isDirectChat)
+                    matrixClient.user.getAll(selectedRoomId).map { users ->
+                        val usersWithoutMe = (users.keys - matrixClient.userId)
+                        if (usersWithoutMe.size != 1) return@map null
+                        usersWithoutMe.first()
+                    }
+                else emptyFlow()
+            }
+            .shareIn(coroutineScope, Eagerly, replay = 1)
 
     override val userTrustLevel: StateFlow<UserTrustLevel?> =
-        singleDirectUser.flatMapLatest { singleDirectUser ->
-            if (singleDirectUser != null) matrixClient.key.getTrustLevel(singleDirectUser)
-            else flowOf(null)
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        singleDirectUser
+            .flatMapLatest { singleDirectUser ->
+                if (singleDirectUser != null) matrixClient.key.getTrustLevel(singleDirectUser) else flowOf(null)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val canVerifyUser: StateFlow<Boolean> =
-        combine(
-            singleDirectUser,
-            userTrustLevel
-        ) { singleDirectUser, userTrustLevel ->
-            val otherUserVerified =
-                userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
-            singleDirectUser != null && otherUserVerified.not()
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
+        combine(singleDirectUser, userTrustLevel) { singleDirectUser, userTrustLevel ->
+                val otherUserVerified = userTrustLevel is UserTrustLevel.CrossSigned && userTrustLevel.verified
+                singleDirectUser != null && otherUserVerified.not()
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
     override val knockingMembersCount: StateFlow<Int> =
-        matrixClient.user.getAll(selectedRoomId).flattenValues().flatMapLatest { users ->
-            flowOf(users.count { user -> user.membership == Membership.KNOCK })
-        }.stateIn(coroutineScope, WhileSubscribed(), 0)
+        matrixClient.user
+            .getAll(selectedRoomId)
+            .flattenValues()
+            .flatMapLatest { users -> flowOf(users.count { user -> user.membership == Membership.KNOCK }) }
+            .stateIn(coroutineScope, WhileSubscribed(), 0)
 
-    override val usersTyping: StateFlow<String?> = matrixClient.room.usersTyping.map { map ->
-        map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) }
-    }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val usersTyping: StateFlow<String?> =
+        matrixClient.room.usersTyping
+            .map { map -> map[selectedRoomId]?.let { typingInfo(matrixClient, selectedRoomId, i18n, it) } }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val canBlockUser: StateFlow<Boolean> = combine(
-        singleDirectUser,
-        matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
-    ) { singleDirectUser, ignoredUserListEventContent ->
-        singleDirectUser != null && (ignoredUserListEventContent?.ignoredUsers?.containsKey(singleDirectUser)?.not()
-            ?: false)
-    }.stateIn(coroutineScope, WhileSubscribed(), false)
+    override val canBlockUser: StateFlow<Boolean> =
+        combine(singleDirectUser, matrixClient.user.getAccountData<IgnoredUserListEventContent>()) {
+                singleDirectUser,
+                ignoredUserListEventContent ->
+                singleDirectUser != null &&
+                    (ignoredUserListEventContent?.ignoredUsers?.containsKey(singleDirectUser)?.not() ?: false)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    override val canUnblockUser: StateFlow<Boolean> = combine(
-        singleDirectUser,
-        matrixClient.user.getAccountData<IgnoredUserListEventContent>(),
-    ) { singleDirectUser, ignoredUserListEventContent ->
-        singleDirectUser != null && (ignoredUserListEventContent?.ignoredUsers?.containsKey(singleDirectUser)) ?: false
-    }.stateIn(coroutineScope, WhileSubscribed(), false)
+    override val canUnblockUser: StateFlow<Boolean> =
+        combine(singleDirectUser, matrixClient.user.getAccountData<IgnoredUserListEventContent>()) {
+                singleDirectUser,
+                ignoredUserListEventContent ->
+                singleDirectUser != null &&
+                    (ignoredUserListEventContent?.ignoredUsers?.containsKey(singleDirectUser)) ?: false
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val isUserBlocked: StateFlow<Boolean> =
-        singleDirectUser.flatMapLatest { singleDirectUser ->
-            if (singleDirectUser != null) userBlocking.isUserBlocked(matrixClient, singleDirectUser) else flowOf(false)
-        }.stateIn(coroutineScope, WhileSubscribed(), false)
-
+        singleDirectUser
+            .flatMapLatest { singleDirectUser ->
+                if (singleDirectUser != null) userBlocking.isUserBlocked(matrixClient, singleDirectUser)
+                else flowOf(false)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override fun openUserProfile() {
         if (isDirectChat.value) {
             coroutineScope.launch {
                 val otherDirectUser = singleDirectUser.first()
-                if (otherDirectUser != null)
-                    onOpenUserProfile(otherDirectUser)
+                if (otherDirectUser != null) onOpenUserProfile(otherDirectUser)
             }
         }
     }
@@ -294,9 +303,7 @@ open class RoomHeaderViewModelImpl(
                 userBlocking.blockUser(
                     matrixClient = matrixClient,
                     userToBlock = singleDirectUser,
-                    onFailure = {
-                        error.value = i18n.blockUserError(singleDirectUser.full)
-                    }
+                    onFailure = { error.value = i18n.blockUserError(singleDirectUser.full) },
                 )
             }
         }
@@ -310,9 +317,7 @@ open class RoomHeaderViewModelImpl(
                 userBlocking.unblockUser(
                     matrixClient = matrixClient,
                     userToUnblock = singleDirectUser,
-                    onFailure = {
-                        error.value = i18n.blockUserError(singleDirectUser.full)
-                    }
+                    onFailure = { error.value = i18n.blockUserError(singleDirectUser.full) },
                 )
             }
         }
@@ -329,18 +334,19 @@ open class RoomHeaderViewModelImpl(
 
 class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
-    override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> = MutableStateFlow(
-        RoomHeaderInfo(
-            roomName = "Dev Channel",
-            roomTopic = "The channel that devs!",
-            roomImageInitials = "DC",
-            roomImage = null,
-            presence = null,
-            isEncrypted = false,
-            isPublic = true,
-            isLeave = false
+    override val roomHeaderInfo: MutableStateFlow<RoomHeaderInfo> =
+        MutableStateFlow(
+            RoomHeaderInfo(
+                roomName = "Dev Channel",
+                roomTopic = "The channel that devs!",
+                roomImageInitials = "DC",
+                roomImage = null,
+                presence = null,
+                isEncrypted = false,
+                isPublic = true,
+                isLeave = false,
+            )
         )
-    )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("is typing...")
     override val userTrustLevel: MutableStateFlow<UserTrustLevel?> = MutableStateFlow(null)
     override val canVerifyUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
@@ -351,9 +357,14 @@ class PreviewRoomHeaderViewModel : RoomHeaderViewModel {
     override val isDirectChat: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun verifyUser() {}
+
     override fun blockUser() {}
+
     override fun unblockUser() {}
+
     override fun openRoomSettings() {}
+
     override fun openUserProfile() {}
+
     override fun back() {}
 }

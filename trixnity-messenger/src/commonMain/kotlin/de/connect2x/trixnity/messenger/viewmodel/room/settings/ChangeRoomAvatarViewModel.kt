@@ -1,6 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -13,17 +20,9 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.canSendEvent
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.AvatarEventContent
 import org.koin.core.component.get
 
-typealias OpenAvatarCutterCallback =
-            (userId: UserId, selectedRoomId: RoomId, avatarPicture: FileDescriptor) -> Unit
+typealias OpenAvatarCutterCallback = (userId: UserId, selectedRoomId: RoomId, avatarPicture: FileDescriptor) -> Unit
 
 interface ChangeRoomAvatarViewModelFactory {
     fun create(
@@ -31,11 +30,7 @@ interface ChangeRoomAvatarViewModelFactory {
         selectedRoomId: RoomId,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
     ): ChangeRoomAvatarViewModel {
-        return ChangeAvatarViewModelImpl(
-            viewModelContext,
-            selectedRoomId,
-            onOpenAvatarCutter,
-        )
+        return ChangeAvatarViewModelImpl(viewModelContext, selectedRoomId, onOpenAvatarCutter)
     }
 
     companion object : ChangeRoomAvatarViewModelFactory
@@ -46,6 +41,7 @@ interface ChangeRoomAvatarViewModel {
     val avatar: StateFlow<ByteArray?>
     val initials: StateFlow<String>
     val openImageSelector: MutableStateFlow<Boolean>
+
     fun openAvatarCutter(file: FileDescriptor)
 }
 
@@ -59,34 +55,37 @@ class ChangeAvatarViewModelImpl(
     private val roomNameComputation = get<RoomName>()
 
     override val canChangeRoomAvatar: StateFlow<Boolean> =
-        matrixClient.user.canSendEvent<AvatarEventContent>(selectedRoomId)
+        matrixClient.user
+            .canSendEvent<AvatarEventContent>(selectedRoomId)
             .stateIn(coroutineScope, Eagerly, false) // Needs to be Eagerly for some use cases.
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val avatar = matrixClient.room.getById(selectedRoomId).map { room ->
-        room?.avatarUrl?.let { avatar ->
-            matrixClient.media.getThumbnail(
-                avatar,
-                avatarSize().toLong(),
-                avatarSize().toLong(),
-            ).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = {
-                    log.error(it) { "Cannot load user avatar." }
-                    null
+    override val avatar =
+        matrixClient.room
+            .getById(selectedRoomId)
+            .map { room ->
+                room?.avatarUrl?.let { avatar ->
+                    matrixClient.media
+                        .getThumbnail(avatar, avatarSize().toLong(), avatarSize().toLong())
+                        .fold(
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onFailure = {
+                                log.error(it) { "Cannot load user avatar." }
+                                null
+                            },
+                        )
                 }
-            )
-        }
-    }.stateIn(coroutineScope, WhileSubscribed(), null)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val initials =
-        roomNameComputation.getRoomName(selectedRoomId, matrixClient)
+        roomNameComputation
+            .getRoomName(selectedRoomId, matrixClient)
             .map { initialsComputation.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), "")
 
     override val openImageSelector: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     override fun openAvatarCutter(file: FileDescriptor) {
         if (canChangeRoomAvatar.value) {
             onOpenAvatarCutter(userId, selectedRoomId, file)
@@ -101,5 +100,6 @@ class PreviewChangeAvatarViewModel : ChangeRoomAvatarViewModel {
     override val avatar: StateFlow<ByteArray?> = MutableStateFlow(null)
     override val initials: StateFlow<String> = MutableStateFlow("T")
     override val openImageSelector: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
     override fun openAvatarCutter(file: FileDescriptor) {}
 }

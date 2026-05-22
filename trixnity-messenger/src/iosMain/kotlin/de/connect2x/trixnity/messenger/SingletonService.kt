@@ -26,4 +26,3 @@ abstract class SingletonService<I : AutoCloseable> : AutoCloseable {
         instance = null
     }
 }
-

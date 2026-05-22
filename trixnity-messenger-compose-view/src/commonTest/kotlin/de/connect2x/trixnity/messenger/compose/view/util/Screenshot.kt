@@ -18,6 +18,5 @@ suspend fun ComposeUiTest.screenshot(testName: String, name: String, surface: St
     val imageName = if (name.endsWith(".jpg")) name else "$name.jpg"
 
     waitUntilExactlyOneExists(hasTestTag(surface), 3_000)
-    onNodeWithTag(surface)
-        .screenshot("screenshots/$platformName/$testName/$imageName")
+    onNodeWithTag(surface).screenshot("screenshots/$platformName/$testName/$imageName")
 }

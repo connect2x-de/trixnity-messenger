@@ -16,26 +16,16 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.richtext.html.parseColor
 
 @Composable
-internal fun InlineContent(
-    content: RichText.InlineSpan,
-    context: RichTextContext,
-    first: Boolean,
-) {
+internal fun InlineContent(content: RichText.InlineSpan, context: RichTextContext, first: Boolean) {
     val i18n = DI.current.get<I18nView>()
 
     val inlineContext = rememberInlineRichTextContext(context)
     val measurer = rememberMentionChipMeasurer(inlineContext, i18n)
 
-    val content = remember(content.children, inlineContext) {
-        buildAnnotatedString {
-            Children(content, inlineContext, first)
-        }
-    }
+    val content =
+        remember(content.children, inlineContext) { buildAnnotatedString { Children(content, inlineContext, first) } }
 
-    CompoundText(
-        content = content,
-        onMeasure = measurer,
-    ) { url, constraints ->
+    CompoundText(content = content, onMeasure = measurer) { url, constraints ->
         val mention = inlineContext.mentions?.get(url)
         if (mention != null) {
             MentionChip(mention, i18n, constraints, onMentionClick = context.onMentionClick)
@@ -46,7 +36,7 @@ internal fun InlineContent(
 internal fun AnnotatedString.Builder.Children(
     node: RichText.Inline.Block,
     context: InlineRichTextContext,
-    first: Boolean
+    first: Boolean,
 ) {
     for (index in node.children.indices) {
         when (val child = node.children[index]) {
@@ -59,7 +49,7 @@ internal fun AnnotatedString.Builder.Children(
 internal fun AnnotatedString.Builder.Children(
     node: RichText.InlineSpan,
     context: InlineRichTextContext,
-    first: Boolean
+    first: Boolean,
 ) {
     for (index in node.children.indices) {
         when (val child = node.children[index]) {
@@ -72,7 +62,7 @@ internal fun AnnotatedString.Builder.Children(
 internal fun AnnotatedString.Builder.inlineContent(
     node: RichText.Inline.Text,
     context: InlineRichTextContext,
-    first: Boolean
+    first: Boolean,
 ) {
     if (context.preformatted && node.rawContent != null) {
         append(node.rawContent)
@@ -84,13 +74,14 @@ internal fun AnnotatedString.Builder.inlineContent(
 internal fun AnnotatedString.Builder.inlineContent(
     node: RichText.Inline.Block,
     context: InlineRichTextContext,
-    first: Boolean
+    first: Boolean,
 ) {
     if (context.preformatted && node.rawContent != null) {
         append(node.rawContent)
     } else {
         when (node.tag) {
-            "del", "s" -> {
+            "del",
+            "s" -> {
                 pushStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
                 Children(node, context, first)
                 pop()
@@ -102,17 +93,18 @@ internal fun AnnotatedString.Builder.inlineContent(
                     pushStringAnnotation(INLINE_CONTENT_TAG, href)
                     Children(node, context, first)
                     pop()
-                } else if (href.startsWith("https:") || href.startsWith("http:")
-                    || href.startsWith("ftp:") || href.startsWith("mailto:")
-                    || href.startsWith("magnet:")
+                } else if (
+                    href.startsWith("https:") ||
+                        href.startsWith("http:") ||
+                        href.startsWith("ftp:") ||
+                        href.startsWith("mailto:") ||
+                        href.startsWith("magnet:")
                 ) {
                     pushLink(
                         LinkAnnotation.Url(
                             url = href,
                             styles = context.textLinkStyles,
-                            linkInteractionListener = {
-                                context.onLinkClick(href)
-                            }
+                            linkInteractionListener = { context.onLinkClick(href) },
                         )
                     )
                     Children(node, context, first)
@@ -134,13 +126,15 @@ internal fun AnnotatedString.Builder.inlineContent(
                 pop()
             }
 
-            "b", "strong" -> {
+            "b",
+            "strong" -> {
                 pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
                 Children(node, context, first)
                 pop()
             }
 
-            "i", "em" -> {
+            "i",
+            "em" -> {
                 pushStyle(SpanStyle(fontStyle = FontStyle.Italic))
                 Children(node, context, first)
                 pop()
@@ -153,11 +147,7 @@ internal fun AnnotatedString.Builder.inlineContent(
             }
 
             "code" -> {
-                pushStyle(
-                    SpanStyle(
-                        fontFamily = FontFamily.Monospace,
-                    )
-                )
+                pushStyle(SpanStyle(fontFamily = FontFamily.Monospace))
                 Children(node, context, first)
                 pop()
             }
@@ -183,16 +173,17 @@ internal fun AnnotatedString.Builder.inlineContent(
                     )
                     Children(node, context, first)
                     pop()
-                } ?: run {
-                    pushStyle(
-                        SpanStyle(
-                            background = parseColor(node.attributes["data-mx-bg-color"] ?: ""),
-                            color = parseColor(node.attributes["data-mx-color"] ?: ""),
-                        )
-                    )
-                    Children(node, context, first)
-                    pop()
                 }
+                    ?: run {
+                        pushStyle(
+                            SpanStyle(
+                                background = parseColor(node.attributes["data-mx-bg-color"] ?: ""),
+                                color = parseColor(node.attributes["data-mx-color"] ?: ""),
+                            )
+                        )
+                        Children(node, context, first)
+                        pop()
+                    }
             }
 
             "img" -> {

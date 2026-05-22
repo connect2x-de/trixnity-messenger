@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepDummyViewModelPreview.PreviewMode.BLANK
@@ -9,9 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import de.connect2x.trixnity.core.MatrixServerException
 import org.koin.core.component.get
 
 interface UiaStepDummyViewModelFactory {
@@ -22,13 +22,7 @@ interface UiaStepDummyViewModelFactory {
         onCancel: () -> Unit,
         onError: (MatrixServerException) -> Unit,
     ): UiaStepDummyViewModel {
-        return UiaStepDummyInputViewModelImpl(
-            viewModelContext,
-            uiaStep,
-            onNext,
-            onCancel,
-            onError,
-        )
+        return UiaStepDummyInputViewModelImpl(viewModelContext, uiaStep, onNext, onCancel, onError)
     }
 
     companion object : UiaStepDummyViewModelFactory
@@ -38,10 +32,9 @@ interface UiaStepDummyViewModel {
     val isLoading: StateFlow<Boolean>
     val error: StateFlow<String?>
 
-    /**
-     * Is called automatically, when the view model appears for the first time.
-     */
+    /** Is called automatically, when the view model appears for the first time. */
     fun next()
+
     fun cancel()
 }
 
@@ -62,29 +55,32 @@ class UiaStepDummyInputViewModelImpl(
 
     override fun next() {
         if (isLoading.getAndUpdate { true }.not()) {
-            coroutineScope.launch {
-                error.value = null
-                val authRequest = AuthenticationRequest.Dummy
-                uiaStep.authenticate(authRequest)
-                    .onSuccess {
-                        if (it is UIA.Error) {
-                            val errorResponse = it.errorResponse
-                            log.error { "error during dummy auth: ${errorResponse.error}" }
-                            error.value = i18n.uiaGenericError(errorResponse.error)
-                        } else {
-                            log.debug { "UIA dummy action was successful -> onNext()" }
-                            onNext(it)
+            coroutineScope
+                .launch {
+                    error.value = null
+                    val authRequest = AuthenticationRequest.Dummy
+                    uiaStep
+                        .authenticate(authRequest)
+                        .onSuccess {
+                            if (it is UIA.Error) {
+                                val errorResponse = it.errorResponse
+                                log.error { "error during dummy auth: ${errorResponse.error}" }
+                                error.value = i18n.uiaGenericError(errorResponse.error)
+                            } else {
+                                log.debug { "UIA dummy action was successful -> onNext()" }
+                                onNext(it)
+                            }
                         }
-                    }
-                    .onFailure { e ->
-                        log.error { "error during dummy auth: $e" }
-                        if (e is MatrixServerException) onError(e)
-                        else error.value = i18n.uiaGenericError(e.message)
-                    }
-            }.invokeOnCompletion {
-                log.debug { "UIA dummy action completed" }
-                isLoading.value = false
-            }
+                        .onFailure { e ->
+                            log.error { "error during dummy auth: $e" }
+                            if (e is MatrixServerException) onError(e)
+                            else error.value = i18n.uiaGenericError(e.message)
+                        }
+                }
+                .invokeOnCompletion {
+                    log.debug { "UIA dummy action completed" }
+                    isLoading.value = false
+                }
         }
     }
 
@@ -96,9 +92,14 @@ class UiaStepDummyInputViewModelImpl(
 class UiaStepDummyViewModelPreview(mode: PreviewMode = BLANK) : UiaStepDummyViewModel {
     override val error = MutableStateFlow(if (mode == ERROR) "Error!" else null)
     override val isLoading = MutableStateFlow(mode == SUBMITTING)
+
     override fun next() {}
+
     override fun cancel() {}
+
     enum class PreviewMode {
-        BLANK, SUBMITTING, ERROR,
+        BLANK,
+        SUBMITTING,
+        ERROR,
     }
 }

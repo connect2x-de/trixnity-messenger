@@ -1,9 +1,5 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.number
-import kotlinx.datetime.toLocalDateTime
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import kotlin.math.abs
 import kotlin.math.pow
@@ -11,9 +7,14 @@ import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 
 fun Float.format(precision: Int = 3, separator: Char = '.') =
-    if (this.isNaN()) "0" else {
+    if (this.isNaN()) "0"
+    else {
         val n = this.toInt()
         "$n$separator${
             abs((this - n) * 10f.pow(precision))
@@ -26,8 +27,7 @@ fun Float.format(precision: Int = 3, separator: Char = '.') =
 fun formatProgress(fileTransferProgress: FileTransferProgress?): String {
     return fileTransferProgress?.let {
         val total = it.total
-        if (total != null) "${formatSize(it.transferred, total)} / ${formatSize(total)}"
-        else formatSize(it.transferred)
+        if (total != null) "${formatSize(it.transferred, total)} / ${formatSize(total)}" else formatSize(it.transferred)
     } ?: ""
 }
 
@@ -84,13 +84,11 @@ fun formatTime(localDateTime: LocalDateTime): String =
         localDateTime.minute.toString().padStart(2, '0')
     }"
 
-fun formatDuration(duration: Duration): String =
-    duration.toComponents { hours, minutes, seconds, _ ->
-        "${
+fun formatDuration(duration: Duration): String = duration.toComponents { hours, minutes, seconds, _ ->
+    "${
             if (hours > 0) {
                 "${hours}:${minutes.toString().padStart(2, '0')}:"
             } else minutes
         }:" +
-                seconds.toString().padStart(2, '0')
-    }
-
+        seconds.toString().padStart(2, '0')
+}

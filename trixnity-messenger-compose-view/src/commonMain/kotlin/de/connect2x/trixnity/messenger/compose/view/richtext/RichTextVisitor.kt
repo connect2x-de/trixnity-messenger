@@ -6,20 +6,11 @@ internal class RichTextVisitor {
     private val taskQueue = mutableListOf<Task>()
 
     private sealed interface Task {
-        data class Block(
-            val node: HtmlNode.HtmlElement,
-            val acc: MutableList<RichText>,
-        ) : Task
+        data class Block(val node: HtmlNode.HtmlElement, val acc: MutableList<RichText>) : Task
 
-        data class Inline(
-            val node: HtmlNode,
-            val acc: MutableList<RichText.Inline>,
-        ) : Task
+        data class Inline(val node: HtmlNode, val acc: MutableList<RichText.Inline>) : Task
 
-        data class InlineSpan(
-            val node: List<RichText.Inline>,
-            val acc: MutableList<RichText>,
-        ) : Task
+        data class InlineSpan(val node: List<RichText.Inline>, val acc: MutableList<RichText>) : Task
     }
 
     fun process(document: HtmlNode.HtmlElement): RichText.Block {
@@ -39,11 +30,7 @@ internal class RichTextVisitor {
             }
             task = taskQueue.removeFirstOrNull()
         }
-        return RichText.Block(
-            tag = document.tag,
-            attributes = document.attributes,
-            children = children,
-        )
+        return RichText.Block(tag = document.tag, attributes = document.attributes, children = children)
     }
 
     private fun visitSpan(node: List<RichText.Inline>, acc: MutableList<RichText>) {
@@ -58,12 +45,7 @@ internal class RichTextVisitor {
     }
 
     private fun visitInline(node: HtmlNode.TextContent, acc: MutableList<RichText.Inline>) {
-        acc.add(
-            RichText.Inline.Text(
-                content = node.content,
-                rawContent = node.rawContent,
-            )
-        )
+        acc.add(RichText.Inline.Text(content = node.content, rawContent = node.rawContent))
     }
 
     private fun visitInline(node: HtmlNode.HtmlElement, acc: MutableList<RichText.Inline>) {
@@ -83,13 +65,7 @@ internal class RichTextVisitor {
 
     private tailrec fun visitBlock(node: HtmlNode.HtmlElement, acc: MutableList<RichText>) {
         val children = mutableListOf<RichText>()
-        acc.add(
-            RichText.Block(
-                tag = node.tag,
-                attributes = node.attributes,
-                children = children,
-            )
-        )
+        acc.add(RichText.Block(tag = node.tag, attributes = node.attributes, children = children))
         val singleChild = node.children.singleOrNull()
         if (singleChild is HtmlNode.HtmlElement && singleChild.tag !in RichText.inline) {
             return visitBlock(singleChild, children)
@@ -131,7 +107,6 @@ internal class RichTextVisitor {
     }
 
     companion object {
-        fun process(document: HtmlNode.HtmlElement): RichText.Block =
-            RichTextVisitor().process(document)
+        fun process(document: HtmlNode.HtmlElement): RichText.Block = RichTextVisitor().process(document)
     }
 }

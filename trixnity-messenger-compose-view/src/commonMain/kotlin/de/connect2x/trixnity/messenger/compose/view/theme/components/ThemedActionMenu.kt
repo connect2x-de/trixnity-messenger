@@ -7,7 +7,6 @@ import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
@@ -35,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,7 +50,6 @@ import androidx.compose.ui.zIndex
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
-import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.expandable
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -70,19 +67,20 @@ fun BoxScope.ThemedActionMenu(
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     openActionMenuIcon: @Composable () -> Unit,
-    actionMenuAnchorModifier: Modifier
+    actionMenuAnchorModifier: Modifier,
 ) {
     when {
         Platform.current.isMobile -> ThemedActionMenuMobile(showActionMenu, actions, additionalContextActions)
-        else -> ThemedActionMenuDefault(
-            hoverInteractionSource,
-            focusInteractionSource,
-            showActionMenu,
-            actions,
-            additionalContextActions,
-            openActionMenuIcon,
-            actionMenuAnchorModifier
-        )
+        else ->
+            ThemedActionMenuDefault(
+                hoverInteractionSource,
+                focusInteractionSource,
+                showActionMenu,
+                actions,
+                additionalContextActions,
+                openActionMenuIcon,
+                actionMenuAnchorModifier,
+            )
     }
 }
 
@@ -95,12 +93,13 @@ private fun BoxScope.ThemedActionMenuDefault(
     actions: List<ThemedActionMenuItem>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     openActionMenuIcon: @Composable () -> Unit,
-    actionMenuAnchorModifier: Modifier
+    actionMenuAnchorModifier: Modifier,
 ) {
     val focus = focusInteractionSource.collectIsFocusedAsState()
     val hover = hoverInteractionSource.collectIsHoveredAsState()
-    val isVisible =
-        remember { MutableTransitionState(showActionMenu.value != ThemedActionMenuState.Closed || focus.value || hover.value) }
+    val isVisible = remember {
+        MutableTransitionState(showActionMenu.value != ThemedActionMenuState.Closed || focus.value || hover.value)
+    }
     LaunchedEffect(showActionMenu.value, focus.value, hover.value) {
         isVisible.targetState = showActionMenu.value != ThemedActionMenuState.Closed || focus.value || hover.value
     }
@@ -109,32 +108,26 @@ private fun BoxScope.ThemedActionMenuDefault(
     val opacity = transition.animateFloat { if (it) 0.1f else 0f }
 
     val i18n = DI.get<I18nView>()
-    val onClose = {
-        showActionMenu.value = ThemedActionMenuState.Closed
-    }
-    Box(
-        modifier = Modifier
-            .zIndex(1f)
-            .then(actionMenuAnchorModifier)
-    ) {
+    val onClose = { showActionMenu.value = ThemedActionMenuState.Closed }
+    Box(modifier = Modifier.zIndex(1f).then(actionMenuAnchorModifier)) {
         Surface(
             shape = CircleShape,
             color = Color.Black.copy(alpha = opacity.value),
-            border = if (IsFocusHighlighting.current && focus.value) {
-                BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
-            } else null,
+            border =
+                if (IsFocusHighlighting.current && focus.value) {
+                    BorderStroke(MaterialTheme.messengerFocusIndicator.borderWidth, MaterialTheme.colorScheme.onSurface)
+                } else null,
             interactionSource = focusInteractionSource,
             onClick = {
                 showActionMenu.value =
-                    if (showActionMenu.value == ThemedActionMenuState.Closed) ThemedActionMenuState.Anchored else ThemedActionMenuState.Closed
+                    if (showActionMenu.value == ThemedActionMenuState.Closed) ThemedActionMenuState.Anchored
+                    else ThemedActionMenuState.Closed
             },
-            modifier = Modifier
-                .size(28.dp)
-                .expandable(showActionMenu.value.isNotClosed())
-                .semantics {
+            modifier =
+                Modifier.size(28.dp).expandable(showActionMenu.value.isNotClosed()).semantics {
                     role = Role.Button
                     contentDescription = i18n.commonContextMenu()
-                }
+                },
         ) {
             transition.AnimatedVisibility(
                 modifier = Modifier.buttonPointerModifier(enabled = true),
@@ -150,7 +143,7 @@ private fun BoxScope.ThemedActionMenuDefault(
             onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
             offset = DpOffset(0.dp, 0.dp),
             modifier = Modifier.sizeIn(maxWidth = 300.dp),
-            style = MaterialTheme.components.contextMenu
+            style = MaterialTheme.components.contextMenu,
         ) {
             additionalContextActions(onClose)
             actions.forEach { action -> action.render { onClose() } }
@@ -160,12 +153,9 @@ private fun BoxScope.ThemedActionMenuDefault(
         Popup(
             offset = (showActionMenu.value as ThemedActionMenuState.Popup).offset,
             onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
-            properties = PopupProperties(focusable = true)
+            properties = PopupProperties(focusable = true),
         ) {
-            ThemedSurface(
-                modifier = Modifier.sizeIn(maxWidth = 300.dp),
-                style = MaterialTheme.components.contextMenu,
-            ) {
+            ThemedSurface(modifier = Modifier.sizeIn(maxWidth = 300.dp), style = MaterialTheme.components.contextMenu) {
                 Column {
                     additionalContextActions(onClose)
                     actions.forEach { action -> action.render { onClose() } }
@@ -185,29 +175,23 @@ private fun ThemedActionMenuMobile(
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(false)
     val onClose = {
-        coroutineScope.launch {
-            bottomSheetState.hide()
-        }.invokeOnCompletion {
-            if (!bottomSheetState.isVisible)
-                showActionMenu.value = ThemedActionMenuState.Closed
-        }
+        coroutineScope
+            .launch { bottomSheetState.hide() }
+            .invokeOnCompletion { if (!bottomSheetState.isVisible) showActionMenu.value = ThemedActionMenuState.Closed }
         Unit
     }
-    //Since there is no distinction between an anchored or a popup based ActionMenu on mobile, only the not closed state is relevant here
-    if (showActionMenu.value.isNotClosed()) ModalBottomSheet(
-        sheetState = bottomSheetState,
-        onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 100.dp)
-                .padding(bottom = 40.dp)
+    // Since there is no distinction between an anchored or a popup based ActionMenu on mobile, only the not closed
+    // state is relevant here
+    if (showActionMenu.value.isNotClosed())
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = { showActionMenu.value = ThemedActionMenuState.Closed },
         ) {
-            additionalContextActions(onClose)
-            actions.forEach { action -> action.render { onClose() } }
+            Column(Modifier.fillMaxWidth().defaultMinSize(minHeight = 100.dp).padding(bottom = 40.dp)) {
+                additionalContextActions(onClose)
+                actions.forEach { action -> action.render { onClose() } }
+            }
         }
-    }
 }
 
 open class ThemedActionMenuItem(
@@ -226,9 +210,7 @@ open class ThemedActionMenuItem(
     }
 
     @Composable
-    internal fun dropDownMenuItem(
-        onClose: () -> Unit,
-    ) {
+    internal fun dropDownMenuItem(onClose: () -> Unit) {
         ThemedDropdownMenuItem(
             leadingIcon = { Icon(icon, contentDescription = null) },
             text = { Text(label) },
@@ -241,20 +223,17 @@ open class ThemedActionMenuItem(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    internal fun bottomSheetItem(
-        onClose: () -> Unit,
-    ) {
+    internal fun bottomSheetItem(onClose: () -> Unit) {
         ThemedListItem(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
+            modifier =
+                Modifier.fillMaxWidth().clickable {
                     action()
                     onClose()
                 },
-            style = MaterialTheme.components.listItem.copy(
-                colors =
-                    ListItemDefaults.colors(containerColor = Color.Transparent)
-            ),
+            style =
+                MaterialTheme.components.listItem.copy(
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                ),
             leadingContent = { Icon(icon, contentDescription = null) },
             headlineContent = { Text(label) },
         )
@@ -263,7 +242,9 @@ open class ThemedActionMenuItem(
 
 interface ThemedActionMenuState {
     data object Anchored : ThemedActionMenuState
+
     data class Popup(val offset: IntOffset) : ThemedActionMenuState
+
     data object Closed : ThemedActionMenuState
 }
 

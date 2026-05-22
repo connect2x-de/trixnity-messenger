@@ -1,11 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.Unknown
 import kotlin.reflect.KClass
 
 interface UnknownRoomMessageTimelineElementViewModelFactory : TimelineElementViewModelFactory<Unknown> {
@@ -16,12 +16,7 @@ interface UnknownRoomMessageTimelineElementViewModelFactory : TimelineElementVie
         eventIdOrTransactionId: EventIdOrTransactionId,
         onOpenMention: OpenMentionCallback,
     ): RoomMessageTimelineElementViewModel.Unknown? =
-        UnknownRoomMessageTimelineElementViewModelImpl(
-            viewModelContext,
-            content,
-            roomId,
-            onOpenMention,
-        )
+        UnknownRoomMessageTimelineElementViewModelImpl(viewModelContext, content, roomId, onOpenMention)
 
     override val supports: KClass<Unknown>
         get() = Unknown::class
@@ -33,8 +28,9 @@ class UnknownRoomMessageTimelineElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     content: Unknown,
     roomId: RoomId,
-    onOpenMention: OpenMentionCallback
-) : RoomMessageTimelineElementViewModel.Unknown,
+    onOpenMention: OpenMentionCallback,
+) :
+    RoomMessageTimelineElementViewModel.Unknown,
     RoomMessageTimelineElementViewModelImpl<Unknown>(viewModelContext, content, roomId, onOpenMention) {
     override val fallbackBody: String = content.body
 }

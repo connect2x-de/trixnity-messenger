@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.icons.BanIcon
 import de.connect2x.trixnity.messenger.compose.view.common.icons.BanIconType
@@ -25,15 +27,13 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import kotlinx.coroutines.flow.StateFlow
-import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.crypto.key.UserTrustLevel
 
 @Composable
 fun RowScope.UserState(
     userTrustLevelFlow: StateFlow<UserTrustLevel?>,
     isUserBlockedFlow: StateFlow<Boolean>,
     membershipFlow: StateFlow<Membership?>? = null,
-    unbannableFlow: StateFlow<Boolean>? = null
+    unbannableFlow: StateFlow<Boolean>? = null,
 ) {
     val userTrustLevel = userTrustLevelFlow.collectAsState().value
     val isUserBlocked = isUserBlockedFlow.collectAsState().value
@@ -68,7 +68,7 @@ fun RowScope.UserState(
                 NeutralVerifiedIcon(VerificationLevel.USER, 16.dp)
             }
 
-            null -> Box { }
+            null -> Box {}
             else -> {
                 NotVerifiedIcon(VerificationLevel.USER, 16.dp)
             }

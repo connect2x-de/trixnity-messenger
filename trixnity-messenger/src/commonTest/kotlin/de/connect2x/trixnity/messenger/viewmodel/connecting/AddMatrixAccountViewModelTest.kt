@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
@@ -19,16 +20,14 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.fail
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.clientserverapi.model.authentication.LoginType
 import org.koin.dsl.koinApplication
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.fail
-
 
 class AddMatrixAccountViewModelTest {
     val onCancelMock = mock<Function0<Unit>>(autoUnit)
@@ -48,47 +47,39 @@ class AddMatrixAccountViewModelTest {
             request.url.host shouldBe "matrix.server.host"
 
             when (request.url.encodedPath) {
-                "/_matrix/client/versions" ->
-                    respondJson(Responses.VERSIONS)
+                "/_matrix/client/versions" -> respondJson(Responses.VERSIONS)
 
-                "/_matrix/client/v3/login" ->
-                    respondJson(Responses.MULTI_LOGIN)
+                "/_matrix/client/v3/login" -> respondJson(Responses.MULTI_LOGIN)
 
-                "/_matrix/client/v3/register" ->
-                    respondJson(Responses.REGISTER, HttpStatusCode.Unauthorized)
+                "/_matrix/client/v3/register" -> respondJson(Responses.REGISTER, HttpStatusCode.Unauthorized)
 
-
-                "/_matrix/client/v1/auth_metadata" ->
-                    respondJson(Responses.AUTH_METADATA)
+                "/_matrix/client/v1/auth_metadata" -> respondJson(Responses.AUTH_METADATA)
 
                 else -> null
             }
         }
         cut.serverUrl.update("server.host")
 
-        cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
-            setOf(
-                AddMatrixAccountMethod.OAuth2("https://matrix.server.host", type = OAuth2LoginViewModel.Type.LOGIN),
-                AddMatrixAccountMethod.Password("https://matrix.server.host"),
-                AddMatrixAccountMethod.SSO(
-                    serverUrl = "https://matrix.server.host",
-                    identityProvider = LoginType.SSO.IdentityProvider(
-                        id = "com.example.idp.github",
-                        name = "GitHub"
+        cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe
+            ServerDiscoveryState.Success(
+                setOf(
+                    AddMatrixAccountMethod.OAuth2("https://matrix.server.host", type = OAuth2LoginViewModel.Type.LOGIN),
+                    AddMatrixAccountMethod.Password("https://matrix.server.host"),
+                    AddMatrixAccountMethod.SSO(
+                        serverUrl = "https://matrix.server.host",
+                        identityProvider =
+                            LoginType.SSO.IdentityProvider(id = "com.example.idp.github", name = "GitHub"),
+                        icon = null,
                     ),
-                    icon = null
-                ),
-                AddMatrixAccountMethod.SSO(
-                    serverUrl = "https://matrix.server.host",
-                    identityProvider = LoginType.SSO.IdentityProvider(
-                        id = "com.example.idp.gitlab",
-                        name = "GitLab"
+                    AddMatrixAccountMethod.SSO(
+                        serverUrl = "https://matrix.server.host",
+                        identityProvider =
+                            LoginType.SSO.IdentityProvider(id = "com.example.idp.gitlab", name = "GitLab"),
+                        icon = null,
                     ),
-                    icon = null
-                ),
-                AddMatrixAccountMethod.Register("https://matrix.server.host"),
+                    AddMatrixAccountMethod.Register("https://matrix.server.host"),
+                )
             )
-        )
     }
 
     @Test
@@ -97,67 +88,60 @@ class AddMatrixAccountViewModelTest {
             request.url.host shouldBe "server.host"
 
             when (request.url.encodedPath) {
-                "/.well-known/matrix/client" ->
-                    respondError(HttpStatusCode.NotFound)
+                "/.well-known/matrix/client" -> respondError(HttpStatusCode.NotFound)
 
-                "/_matrix/client/versions" ->
-                    respondJson(Responses.VERSIONS)
+                "/_matrix/client/versions" -> respondJson(Responses.VERSIONS)
 
-                "/_matrix/client/v3/login" ->
-                    respondJson(Responses.PASSWORD_LOGIN)
+                "/_matrix/client/v3/login" -> respondJson(Responses.PASSWORD_LOGIN)
 
-                "/_matrix/client/v3/register" ->
-                    respondError(HttpStatusCode.Forbidden)
+                "/_matrix/client/v3/register" -> respondError(HttpStatusCode.Forbidden)
 
-                "/_matrix/client/v1/auth_metadata" ->
-                    respondJson(Responses.AUTH_METADATA)
+                "/_matrix/client/v1/auth_metadata" -> respondJson(Responses.AUTH_METADATA)
 
                 else -> null
             }
         }
         cut.serverUrl.update("server.host")
 
-        cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe ServerDiscoveryState.Success(
-            setOf(
-                AddMatrixAccountMethod.OAuth2("https://server.host", type = OAuth2LoginViewModel.Type.LOGIN),
-                AddMatrixAccountMethod.Password("https://server.host")
+        cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe
+            ServerDiscoveryState.Success(
+                setOf(
+                    AddMatrixAccountMethod.OAuth2("https://server.host", type = OAuth2LoginViewModel.Type.LOGIN),
+                    AddMatrixAccountMethod.Password("https://server.host"),
+                )
             )
-        )
 
         cut.selectAddMatrixAccountMethod(AddMatrixAccountMethod.Password("https://server.host"))
 
-        verify {
-            onAddMatrixAccountMethodMock.invoke(AddMatrixAccountMethod.Password("https://server.host"))
-        }
+        verify { onAddMatrixAccountMethodMock.invoke(AddMatrixAccountMethod.Password("https://server.host")) }
     }
 
     private suspend fun TestScope.viewModel(
-        handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData?,
+        handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData?
     ): AddMatrixAccountViewModelImpl {
 
-        val di = koinApplication {
-            modules(createTestDefaultTrixnityMessengerModules())
-        }.koin
+        val di = koinApplication { modules(createTestDefaultTrixnityMessengerModules()) }.koin
 
         di.apply {
             get<MatrixMessengerConfiguration>().apply {
-                httpClientEngine = MockEngine.config {
-                    dispatcher = testDispatcher
-                    addHandler { request ->
-                        async { handler(request) ?: unhandledRequest(request) }.await()
-                    }
-                }.create()
+                httpClientEngine =
+                    MockEngine.config {
+                            dispatcher = testDispatcher
+                            addHandler { request -> async { handler(request) ?: unhandledRequest(request) }.await() }
+                        }
+                        .create()
             }
             get<I18n>().setCurrentLang(DefaultLanguages.EN)
         }
 
         return AddMatrixAccountViewModelImpl(
-            viewModelContext = ViewModelContextImpl(
-                di = di,
-                componentContext = DefaultComponentContext(LifecycleRegistry()),
-                coroutineContext = backgroundScope.coroutineContext,
-                name = "AddMatrixAccount"
-            ),
+            viewModelContext =
+                ViewModelContextImpl(
+                    di = di,
+                    componentContext = DefaultComponentContext(LifecycleRegistry()),
+                    coroutineContext = backgroundScope.coroutineContext,
+                    name = "AddMatrixAccount",
+                ),
             onAddMatrixAccountMethod = onAddMatrixAccountMethodMock,
             onCancel = onCancelMock,
         )
@@ -216,17 +200,17 @@ fun MockRequestHandleScope.respondJson(
     content: String,
     status: HttpStatusCode = HttpStatusCode.OK,
     headers: Headers = headersOf(),
-) = respond(
-    content = content,
-    status = status,
-    headers = HeadersImpl(
-        buildMap {
-            put(HttpHeaders.ContentType, listOf(ContentType.Application.Json.toString()))
-            putAll(headers.toMap())
-        }
+) =
+    respond(
+        content = content,
+        status = status,
+        headers =
+            HeadersImpl(
+                buildMap {
+                    put(HttpHeaders.ContentType, listOf(ContentType.Application.Json.toString()))
+                    putAll(headers.toMap())
+                }
+            ),
     )
-)
 
-fun MockRequestHandleScope.unhandledRequest(
-    request: HttpRequestData,
-): Nothing = fail("unhandled request: $request")
+fun MockRequestHandleScope.unhandledRequest(request: HttpRequestData): Nothing = fail("unhandled request: $request")

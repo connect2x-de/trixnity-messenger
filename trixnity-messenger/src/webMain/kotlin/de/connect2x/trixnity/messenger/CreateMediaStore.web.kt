@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import de.connect2x.trixnity.messenger.util.RootPath
 import de.connect2x.trixnity.client.MediaStoreModule
 import de.connect2x.trixnity.client.media.indexeddb.indexedDB
 import de.connect2x.trixnity.client.media.opfs.opfs
+import de.connect2x.trixnity.messenger.util.RootPath
 import js.objects.unsafeJso
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -23,8 +23,7 @@ actual fun platformCreateMediaStoreModuleModule(): Module = module {
             try {
                 var opfsDirectory = navigator.storage.getDirectory()
                 for (segment in basePath.segments) {
-                    opfsDirectory =
-                        opfsDirectory.getDirectoryHandle(segment, unsafeJso { create = true })
+                    opfsDirectory = opfsDirectory.getDirectoryHandle(segment, unsafeJso { create = true })
                 }
                 MediaStoreModule.opfs(opfsDirectory)
             } catch (error: Throwable) {

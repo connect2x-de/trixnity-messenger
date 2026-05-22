@@ -29,13 +29,8 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.r
 
 @OptIn(ExperimentalTime::class)
 @Composable
-internal fun TableContent(
-    node: RichText.Block,
-    context: RichTextContext,
-) {
-    val table = remember(node) {
-        tryParseTable(node)
-    }
+internal fun TableContent(node: RichText.Block, context: RichTextContext) {
+    val table = remember(node) { tryParseTable(node) }
 
     if (table != null) {
         val scrollState = rememberScrollState()
@@ -50,46 +45,40 @@ internal fun TableContent(
                     DataTable(
                         columns = {
                             for (header in table.headers) {
-                                column {
-                                    TableCell(header, context)
-                                }
+                                column { TableCell(header, context) }
                             }
                         },
-                        footer = if (table.captions.isEmpty()) null else {
-                            @Composable {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    for (caption in table.captions) {
-                                        TableCaption(caption, context)
+                        footer =
+                            if (table.captions.isEmpty()) null
+                            else {
+                                @Composable {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        for (caption in table.captions) {
+                                            TableCaption(caption, context)
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        modifier = Modifier
-                            .horizontalScroll(scrollState)
-                            .padding(8.dp)
+                            },
+                        modifier = Modifier.horizontalScroll(scrollState).padding(8.dp),
                     ) {
                         for (row in table.rows) {
                             row {
                                 for (cell in row) {
-                                    cell {
-                                        TableCell(cell, context)
-                                    }
+                                    cell { TableCell(cell, context) }
                                 }
                             }
                         }
                     }
                     HorizontalScrollbar(
                         Modifier.layoutId(HorizontalScrollableMeasurePolicy.ScrollbarLayoutId),
-                        scrollState
+                        scrollState,
                     )
                 },
-                measurePolicy = HorizontalScrollableMeasurePolicy
+                measurePolicy = HorizontalScrollableMeasurePolicy,
             )
         }
     } else {
-        Column(verticalArrangement = Arrangement.spacedBy(1.em)) {
-            Children(node, context)
-        }
+        Column(verticalArrangement = Arrangement.spacedBy(1.em)) { Children(node, context) }
     }
 }
 
@@ -102,14 +91,12 @@ private fun validateTable(table: TableContent?): Boolean {
 
 private fun tryParseTable(node: RichText.Block): TableContent? =
     try {
-        val table = parseTable(node).let { table ->
-            if (table.headers.isEmpty() && table.rows.isNotEmpty()) {
-                table.copy(
-                    headers = table.rows.first(),
-                    rows = table.rows.drop(1),
-                )
-            } else table
-        }
+        val table =
+            parseTable(node).let { table ->
+                if (table.headers.isEmpty() && table.rows.isNotEmpty()) {
+                    table.copy(headers = table.rows.first(), rows = table.rows.drop(1))
+                } else table
+            }
         if (validateTable(table)) table else null
     } catch (e: Exception) {
         log.warn { "Could not parse table: $e" }

@@ -35,7 +35,7 @@ class SearchUsersViewImpl : SearchUsersView {
                 onUserClick,
                 userSearchResults,
                 userSearchResultListView,
-                focusedItem
+                focusedItem,
             )
         }
     }

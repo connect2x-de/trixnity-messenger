@@ -48,7 +48,7 @@ fun MessengerTheme(
             typography,
             density,
             componentStyles,
-            content
+            content,
         )
 }
 
@@ -65,11 +65,7 @@ class ThemeImpl : Theme {
         componentStyles: ThemeComponents,
         content: @Composable () -> Unit,
     ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            shapes = shapes,
-            typography = typography
-        ) {
+        MaterialTheme(colorScheme = colorScheme, shapes = shapes, typography = typography) {
             CompositionLocalProvider(
                 MessengerColorsProvider provides messengerColors,
                 MessengerDpConstantsProvider provides messengerDpConstants,
@@ -77,9 +73,7 @@ class ThemeImpl : Theme {
                 LocalDensity provides density,
                 SystemDensity provides LocalDensity.current,
             ) {
-                MaterialThemeComponents(componentStyles) {
-                    content()
-                }
+                MaterialThemeComponents(componentStyles) { content() }
             }
         }
     }

@@ -52,18 +52,19 @@ data class SurfaceStyle(
             contentPadding: PaddingValues = PaddingValues(0.dp),
             padding: PaddingValues = PaddingValues(0.dp),
             textStyle: TextStyle? = null,
-        ) = SurfaceStyle(
-            shape = shape,
-            color = color,
-            contentColor = contentColor,
-            tonalElevation = tonalElevation,
-            shadowElevation = shadowElevation,
-            border = border,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            padding = padding,
-            textStyle = textStyle,
-        )
+        ) =
+            SurfaceStyle(
+                shape = shape,
+                color = color,
+                contentColor = contentColor,
+                tonalElevation = tonalElevation,
+                shadowElevation = shadowElevation,
+                border = border,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                padding = padding,
+                textStyle = textStyle,
+            )
     }
 }
 
@@ -72,24 +73,21 @@ fun ThemedSurface(
     modifier: Modifier = Modifier,
     style: SurfaceStyle,
     focused: Boolean = false,
-    content: @Composable BoxScope.() -> Unit
-) = Surface(
-    modifier = modifier.padding(style.padding),
-    shape = style.shape,
-    color = style.color,
-    contentColor = style.contentColor,
-    tonalElevation = style.tonalElevation,
-    shadowElevation = style.shadowElevation,
-    border = if (focused) style.focusedBorder else style.border,
-) {
-    Box(Modifier.padding(style.contentPadding)) {
-        style.textStyle?.let {
-            CompositionLocalProvider(LocalTextStyle provides it) {
-                content()
-            }
-        } ?: content()
+    content: @Composable BoxScope.() -> Unit,
+) =
+    Surface(
+        modifier = modifier.padding(style.padding),
+        shape = style.shape,
+        color = style.color,
+        contentColor = style.contentColor,
+        tonalElevation = style.tonalElevation,
+        shadowElevation = style.shadowElevation,
+        border = if (focused) style.focusedBorder else style.border,
+    ) {
+        Box(Modifier.padding(style.contentPadding)) {
+            style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+        }
     }
-}
 
 @Composable
 fun ThemedSurface(
@@ -98,45 +96,35 @@ fun ThemedSurface(
     modifier: Modifier = Modifier,
     style: SurfaceStyle,
     focused: Boolean = false,
-    content: @Composable BoxScope.() -> Unit
-) = Surface(
-    onClick = onClick,
-    interactionSource = interactionSource,
-    modifier = modifier.padding(style.padding),
-    shape = style.shape,
-    color = style.color,
-    contentColor = style.contentColor,
-    tonalElevation = style.tonalElevation,
-    shadowElevation = style.shadowElevation,
-    border = if (focused) style.focusedBorder else style.border,
-) {
-    Box(Modifier.padding(style.contentPadding)) {
-        style.textStyle?.let {
-            CompositionLocalProvider(LocalTextStyle provides it) {
-                content()
-            }
-        } ?: content()
+    content: @Composable BoxScope.() -> Unit,
+) =
+    Surface(
+        onClick = onClick,
+        interactionSource = interactionSource,
+        modifier = modifier.padding(style.padding),
+        shape = style.shape,
+        color = style.color,
+        contentColor = style.contentColor,
+        tonalElevation = style.tonalElevation,
+        shadowElevation = style.shadowElevation,
+        border = if (focused) style.focusedBorder else style.border,
+    ) {
+        Box(Modifier.padding(style.contentPadding)) {
+            style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+        }
     }
-}
 
 @Composable
-fun Modifier.themedSurface(
-    style: SurfaceStyle,
-    focused: Boolean = false,
-): Modifier {
+fun Modifier.themedSurface(style: SurfaceStyle, focused: Boolean = false): Modifier {
     val shadowElevation = with(LocalDensity.current) { style.shadowElevation.toPx() }
-    val backgroundColor = if (style.color != MaterialTheme.colorScheme.surface) style.color
-    else MaterialTheme.colorScheme.surfaceColorAtElevation(style.tonalElevation)
-    val shadowModifier = Modifier.graphicsLayer(
-        shadowElevation = shadowElevation,
-        shape = style.shape,
-        clip = false
-    )
+    val backgroundColor =
+        if (style.color != MaterialTheme.colorScheme.surface) style.color
+        else MaterialTheme.colorScheme.surfaceColorAtElevation(style.tonalElevation)
+    val shadowModifier = Modifier.graphicsLayer(shadowElevation = shadowElevation, shape = style.shape, clip = false)
 
     val border = if (focused) style.focusedBorder else style.border
 
-    return this
-        .padding(style.padding)
+    return this.padding(style.padding)
         .then(if (shadowElevation > 0f) shadowModifier else Modifier)
         .then(if (border != null) Modifier.border(border, style.shape) else Modifier)
         .background(color = backgroundColor, shape = style.shape)

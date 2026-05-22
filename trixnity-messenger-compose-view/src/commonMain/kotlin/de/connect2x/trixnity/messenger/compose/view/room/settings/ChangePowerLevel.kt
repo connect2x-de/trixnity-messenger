@@ -54,8 +54,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurfa
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModel
 
 interface ChangePowerLevelView {
-    @Composable
-    fun create(model: PowerlevelViewModel)
+    @Composable fun create(model: PowerlevelViewModel)
 }
 
 @Composable
@@ -81,9 +80,7 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
 
             AdaptiveDialogScrollContent {
                 if (!canChangePowerLevels) {
-                    ThemedSurface(style = MaterialTheme.components.sidebar) {
-                        Text(i18n.cannotChangePowerLevels())
-                    }
+                    ThemedSurface(style = MaterialTheme.components.sidebar) { Text(i18n.cannotChangePowerLevels()) }
                     Spacer(Modifier.height(12.dp))
                 }
 
@@ -111,12 +108,14 @@ class ChangePowerLevelViewImpl : ChangePowerLevelView {
                         onClick = { model.resetAll() },
                         enabled = isAnyInputModified,
                         style = MaterialTheme.components.secondaryButton,
-                        content = { Text(i18n.actionCancel()) })
+                        content = { Text(i18n.actionCancel()) },
+                    )
                     ThemedButton(
                         onClick = { model.setPowerLevels() },
                         enabled = !inputError && isAnyInputModified,
                         style = MaterialTheme.components.primaryButton,
-                        content = { Text(i18n.actionConfirm()) })
+                        content = { Text(i18n.actionConfirm()) },
+                    )
                 }
             }
         }
@@ -143,9 +142,13 @@ private fun NewEvent(model: PowerlevelViewModel) {
             ThemedSelect(
                 value = selected,
                 enabled = enabled,
-                onValueChange = { selected = it; input = TextFieldValue(it) },
+                onValueChange = {
+                    selected = it
+                    input = TextFieldValue(it)
+                },
                 options = knownEvents,
-                render = { translateEventHeading(it) })
+                render = { translateEventHeading(it) },
+            )
         }
 
         Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(4.dp), Alignment.CenterVertically) {
@@ -156,12 +159,14 @@ private fun NewEvent(model: PowerlevelViewModel) {
                 enabled = enabled,
                 label = { Text(i18n.newEventTypeLabel()) },
                 isError = isError,
-                supportingText = { Text(errMsg ?: "") })
+                supportingText = { Text(errMsg ?: "") },
+            )
             ThemedButton(
                 style = MaterialTheme.components.primaryButton,
                 enabled = enabled && !isError && input.text != "",
                 onClick = { model.newEventCreate() },
-                content = { Text(i18n.actionCreate()) })
+                content = { Text(i18n.actionCreate()) },
+            )
         }
     }
 }
@@ -173,11 +178,7 @@ private fun ErrorModal(model: PowerlevelViewModel) {
         ThemedModalDialog(onDismissRequest = { model.errorDismiss() }) {
             ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
             ModalDialogContent { Text(error) }
-            ModalDialogFooter {
-                ThemedButton(onClick = { model.errorDismiss() }) {
-                    Text(i18n.actionClose())
-                }
-            }
+            ModalDialogFooter { ThemedButton(onClick = { model.errorDismiss() }) { Text(i18n.actionClose()) } }
         }
     }
 }
@@ -204,12 +205,10 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
     Column(Modifier.fillMaxWidth()) {
         Text(label)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            if (value.canBeRemoved && canChangeAnyPowerlevel) ThemedIconButton(
-                onClick = { value.remove() },
-                Modifier.align(Alignment.CenterVertically)
-            ) {
-                Icon(Icons.Default.Close, i18n.actionRemove())
-            }
+            if (value.canBeRemoved && canChangeAnyPowerlevel)
+                ThemedIconButton(onClick = { value.remove() }, Modifier.align(Alignment.CenterVertically)) {
+                    Icon(Icons.Default.Close, i18n.actionRemove())
+                }
 
             ThemedSelect(
                 modifier = Modifier.widthIn(max = 170.dp),
@@ -236,7 +235,8 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
                         isCustomSelected = false
                         textFieldValue = TextFieldValue(v)
                     }
-                })
+                },
+            )
 
             OutlinedTextField(
                 modifier = Modifier.weight(2f).focusRequester(focusRequester).pointerHoverIcon(PointerIcon.Default),
@@ -250,16 +250,20 @@ private fun PowerLevelInput(label: String, value: PowerlevelViewModel.Value, can
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 trailingIcon = {
                     if (isError && isModified) {
-                        Tooltip(tooltip = { Text(errorMsg) }, content = {
-                            Icon(
-                                imageVector = Icons.Default.Error,
-                                contentDescription = i18n.commonError(),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        })
+                        Tooltip(
+                            tooltip = { Text(errorMsg) },
+                            content = {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = i18n.commonError(),
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                            },
+                        )
                     }
                 },
-                supportingText = { Text(errorMsg) })
+                supportingText = { Text(errorMsg) },
+            )
         }
     }
 }

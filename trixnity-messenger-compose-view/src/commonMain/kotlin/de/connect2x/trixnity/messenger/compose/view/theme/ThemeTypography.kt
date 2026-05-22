@@ -4,8 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 
 interface ThemeTypography {
-    @Composable
-    fun create(): Typography
+    @Composable fun create(): Typography
 
     companion object
 }

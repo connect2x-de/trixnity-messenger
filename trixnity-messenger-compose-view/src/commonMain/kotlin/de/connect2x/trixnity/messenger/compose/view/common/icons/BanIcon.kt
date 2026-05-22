@@ -18,26 +18,30 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 
 enum class BanIconType {
-    Unbannable, NotUnbannable, Default
+    Unbannable,
+    NotUnbannable,
+    Default,
 }
 
 @Composable
 fun BanIcon(type: BanIconType = BanIconType.Default, size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
-    Tooltip(tooltip = {
-        when (type) {
-            BanIconType.NotUnbannable -> i18n.notUnbannable()
-            BanIconType.Unbannable -> i18n.unbannable()
-            BanIconType.Default -> i18n.ban()
+    Tooltip(
+        tooltip = {
+            when (type) {
+                BanIconType.NotUnbannable -> i18n.notUnbannable()
+                BanIconType.Unbannable -> i18n.unbannable()
+                BanIconType.Default -> i18n.ban()
+            }
         }
-    }) {
+    ) {
         Gavel(
             when (type) {
                 BanIconType.NotUnbannable -> Color.Red
                 BanIconType.Unbannable -> Color.Green
                 BanIconType.Default -> MaterialTheme.colorScheme.onSurface
             },
-            size
+            size,
         )
     }
 }
@@ -45,17 +49,7 @@ fun BanIcon(type: BanIconType = BanIconType.Default, size: Dp = 24.dp) {
 @Composable
 private fun Gavel(color: Color, size: Dp) {
     Box(contentAlignment = Alignment.Center) {
-        Icon(
-            Icons.Default.Gavel,
-            "",
-            modifier = Modifier.size(size + 2.dp),
-            tint = Color.Black,
-        )
-        Icon(
-            Icons.Default.Gavel,
-            "",
-            modifier = Modifier.size(size - 4.dp),
-            tint = color,
-        )
+        Icon(Icons.Default.Gavel, "", modifier = Modifier.size(size + 2.dp), tint = Color.Black)
+        Icon(Icons.Default.Gavel, "", modifier = Modifier.size(size - 4.dp), tint = color)
     }
 }

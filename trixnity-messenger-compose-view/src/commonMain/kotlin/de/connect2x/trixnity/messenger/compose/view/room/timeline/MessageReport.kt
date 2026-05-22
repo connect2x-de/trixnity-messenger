@@ -23,23 +23,16 @@ import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.ReportMessageViewModel
 
 @Composable
-fun MessageReport(
-    reportToMessageViewModel: ReportMessageViewModel,
-) {
+fun MessageReport(reportToMessageViewModel: ReportMessageViewModel) {
     val i18n = DI.get<I18nView>()
     remember { FocusRequester() }
     val reason = reportToMessageViewModel.messageReportReason.collectAsTextFieldValueState()
 
     ThemedModalDialog({ reportToMessageViewModel.closeReportMessageDialog() }) {
-        ModalDialogHeader {
-            Text(i18n.reportMessageHeader())
-        }
+        ModalDialogHeader { Text(i18n.reportMessageHeader()) }
         ModalDialogContent {
             OutlinedTextField(
-                modifier = Modifier
-                    .inputFocusNavigation()
-                    .focusOnFirstRender()
-                    .fillMaxWidth(),
+                modifier = Modifier.inputFocusNavigation().focusOnFirstRender().fillMaxWidth(),
                 value = reason.value,
                 onValueChange = { reason.value = it },
                 minLines = 3,

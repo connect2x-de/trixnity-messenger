@@ -13,12 +13,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun ErrorView(errorMessage: String) {
     Box(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.error)) {
-        Text(
-            errorMessage,
-            Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            color = MaterialTheme.colorScheme.onError
-        )
+        Text(errorMessage, Modifier.fillMaxWidth().padding(20.dp), color = MaterialTheme.colorScheme.onError)
     }
 }

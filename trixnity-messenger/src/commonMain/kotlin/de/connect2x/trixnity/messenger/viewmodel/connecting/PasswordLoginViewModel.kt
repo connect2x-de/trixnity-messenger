@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.classicLoginWithPassword
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BackCallback
@@ -17,9 +20,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.classicLoginWithPassword
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
@@ -30,12 +30,7 @@ interface PasswordLoginViewModelFactory {
         onLogin: () -> Unit,
         onBack: () -> Unit,
     ): PasswordLoginViewModel {
-        return PasswordLoginViewModelImpl(
-            viewModelContext,
-            serverUrl,
-            onLogin,
-            onBack,
-        )
+        return PasswordLoginViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
     }
 
     companion object : PasswordLoginViewModelFactory
@@ -51,7 +46,9 @@ interface PasswordLoginViewModel {
     val password: TextFieldViewModel
 
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
+
     fun tryLogin()
+
     fun back()
 }
 
@@ -64,8 +61,8 @@ open class PasswordLoginViewModelImpl(
 
     private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
-    override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val isFirstMatrixClient: StateFlow<Boolean?> =
+        matrixClients.map { it.isEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     final override val username = TextFieldViewModelImpl(maxLength = 1_000)
     final override val password = TextFieldViewModelImpl(maxLength = 1_000)
@@ -74,42 +71,46 @@ open class PasswordLoginViewModelImpl(
         MutableStateFlow(AddMatrixAccountState.None)
 
     override val canLogin: StateFlow<Boolean> =
-        combine(
-            username,
-            password,
-        ) { username, password ->
-            log.trace { "canLogin: username=$username, serverUrl=$serverUrl, password=${if (password.text.isNotBlank()) "***" else ""}" }
-            username.text.isNotBlank() && password.text.isNotBlank() && serverUrl.isNotBlank()
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
+        combine(username, password) { username, password ->
+                log.trace {
+                    "canLogin: username=$username, serverUrl=$serverUrl, password=${if (password.text.isNotBlank()) "***" else ""}"
+                }
+                username.text.isNotBlank() && password.text.isNotBlank() && serverUrl.isNotBlank()
+            }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false) // eagerly because value is used below
 
     override fun tryLogin() {
         coroutineScope.launch {
-            log.debug { "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.text.isNotBlank()) "***" else ""}." }
+            log.debug {
+                "Try to login into $serverUrl with username=${username.value} and password=password=${if (password.value.text.isNotBlank()) "***" else ""}."
+            }
             if (canLogin.value && addMatrixAccountState.value !is AddMatrixAccountState.Connecting) {
                 addMatrixAccountState.value = AddMatrixAccountState.Connecting
                 MatrixClientAuthProviderData.classicLoginWithPassword(
-                    baseUrl = Url(serverUrl),
-                    identifier = IdentifierType.User(username.value.text),
-                    password = password.value.text,
-                    initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                    refreshToken = config.useRefreshTokens,
-                    httpClientEngine = config.httpClientEngine,
-                    httpClientConfig = config.httpClientConfig,
-                ).onClassicLoginFailure(i18n) { message ->
-                    addMatrixAccountState.value = AddMatrixAccountState.Failure(message)
-                }.onSuccess { authProviderData ->
-                    when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
-                        is MatrixClients.CreateResult.Success -> {
-                            addMatrixAccountState.value = AddMatrixAccountState.Success
-                            onLogin()
-                        }
+                        baseUrl = Url(serverUrl),
+                        identifier = IdentifierType.User(username.value.text),
+                        password = password.value.text,
+                        initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+                        refreshToken = config.useRefreshTokens,
+                        httpClientEngine = config.httpClientEngine,
+                        httpClientConfig = config.httpClientConfig,
+                    )
+                    .onClassicLoginFailure(i18n) { message ->
+                        addMatrixAccountState.value = AddMatrixAccountState.Failure(message)
+                    }
+                    .onSuccess { authProviderData ->
+                        when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
+                            is MatrixClients.CreateResult.Success -> {
+                                addMatrixAccountState.value = AddMatrixAccountState.Success
+                                onLogin()
+                            }
 
-                        is MatrixClients.CreateResult.Failure -> {
-                            addMatrixAccountState.value =
-                                AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                            is MatrixClients.CreateResult.Failure -> {
+                                addMatrixAccountState.value =
+                                    AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                            }
                         }
                     }
-                }
             } else {
                 log.warn { "cannot login: canLogin=${canLogin.value}, serverUrl=${serverUrl}" }
             }
@@ -120,9 +121,7 @@ open class PasswordLoginViewModelImpl(
         onBack()
     }
 
-    val backCallback = BackCallback {
-        back()
-    }
+    val backCallback = BackCallback { back() }
 
     init {
         registerBackCallback(backCallback)
@@ -138,10 +137,7 @@ class PreviewPasswordLoginViewModel : PasswordLoginViewModel {
     override val addMatrixAccountState: StateFlow<AddMatrixAccountState> =
         MutableStateFlow(AddMatrixAccountState.Failure("dino"))
 
-    override fun tryLogin() {
-    }
+    override fun tryLogin() {}
 
-    override fun back() {
-    }
-
+    override fun back() {}
 }

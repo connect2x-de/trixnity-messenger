@@ -21,16 +21,14 @@ fun NotificationAndUnreadMarker(
     count: String?,
     isUnread: Boolean? = null,
     size: Dp = MaterialTheme.typography.labelSmall.dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(modifier.size(size)) {
         when {
             count != null -> {
                 Surface(
                     shape = CircleShape,
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = size)
-                        .height(size),
+                    modifier = Modifier.defaultMinSize(minWidth = size).height(size),
                     color = MaterialTheme.colorScheme.primary,
                 ) {
                     Text(
@@ -47,9 +45,7 @@ fun NotificationAndUnreadMarker(
             isUnread == true -> {
                 Surface(
                     shape = CircleShape,
-                    modifier = Modifier
-                        .padding(size / 4)
-                        .size(size / 2),
+                    modifier = Modifier.padding(size / 4).size(size / 2),
                     color = MaterialTheme.colorScheme.primary,
                 ) {}
             }

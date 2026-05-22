@@ -28,14 +28,10 @@ class TrixnityMessengerUnifiedPushService : PushService() {
         super.onDestroy()
     }
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
+    private val json = Json { ignoreUnknownKeys = true }
 
     @Serializable
-    data class UnifiedPushMessage(
-        @SerialName("notification") val notification: Notification,
-    ) {
+    data class UnifiedPushMessage(@SerialName("notification") val notification: Notification) {
         @Serializable
         data class Notification(
             @SerialName("devices") val devices: List<Device> = listOf(),
@@ -43,14 +39,9 @@ class TrixnityMessengerUnifiedPushService : PushService() {
             @SerialName("event_id") val eventId: String? = null,
         ) {
             @Serializable
-            data class Device(
-                @SerialName("app_id") val appId: String,
-                @SerialName("data") val data: Data,
-            ) {
+            data class Device(@SerialName("app_id") val appId: String, @SerialName("data") val data: Data) {
                 @Serializable
-                data class Data(
-                    @SerialName("default_payload") val defaultPayload: DefaultPayload? = null,
-                ) {
+                data class Data(@SerialName("default_payload") val defaultPayload: DefaultPayload? = null) {
                     @Serializable
                     data class DefaultPayload(
                         @SerialName("profile") val profile: String? = null,
@@ -62,12 +53,13 @@ class TrixnityMessengerUnifiedPushService : PushService() {
     }
 
     override fun onMessage(message: PushMessage, instance: String) {
-        val notifications = try {
-            json.decodeFromString<UnifiedPushMessage>(message.content.decodeToString()).notification
-        } catch (e: Exception) {
-            log.warn(e) { "Failed to decode push message: ${message.content.decodeToString()}" }
-            return
-        }
+        val notifications =
+            try {
+                json.decodeFromString<UnifiedPushMessage>(message.content.decodeToString()).notification
+            } catch (e: Exception) {
+                log.warn(e) { "Failed to decode push message: ${message.content.decodeToString()}" }
+                return
+            }
         val data = notifications.devices.firstOrNull()?.data
         OnMessageReceivedWorker.enqueueWork(
             context = applicationContext,
@@ -80,9 +72,7 @@ class TrixnityMessengerUnifiedPushService : PushService() {
 
     override fun onNewEndpoint(endpoint: PushEndpoint, instance: String) {
         log.trace { "onNewToken" }
-        OnNewEndpointWorker.enqueueUniqueWork(
-            context = applicationContext, url = endpoint.url
-        )
+        OnNewEndpointWorker.enqueueUniqueWork(context = applicationContext, url = endpoint.url)
     }
 
     override fun onRegistrationFailed(reason: FailedReason, instance: String) {

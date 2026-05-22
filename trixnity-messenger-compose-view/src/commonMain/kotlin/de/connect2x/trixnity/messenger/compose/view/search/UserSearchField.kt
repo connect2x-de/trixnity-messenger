@@ -31,8 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 
 interface UserSearchFieldView {
-    @Composable
-    fun create(userSearchHandler: UserSearchHandler)
+    @Composable fun create(userSearchHandler: UserSearchHandler)
 }
 
 @Composable
@@ -47,31 +46,27 @@ class UserSearchFieldViewImpl : UserSearchFieldView {
         var userSearchTerm by userSearchHandler.searchTerm.collectAsTextFieldValueState()
         val focusRequester = remember { FocusRequester() }
 
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
         OutlinedTextField(
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .fillMaxWidth()
-                .padding(start = 10.dp, end = 10.dp, top = 20.dp)
-                .focusRequester(focusRequester),
+            modifier =
+                Modifier.background(MaterialTheme.colorScheme.surface)
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 10.dp, top = 20.dp)
+                    .focusRequester(focusRequester),
             leadingIcon = { Icon(Icons.Default.Search, i18n.userSearchSearchPeople()) },
             trailingIcon = {
-                if (userSearchTerm.text.isNotBlank()) Icon(
-                    Icons.Default.Clear,
-                    i18n.commonDelete(),
-                    Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier()
-                )
+                if (userSearchTerm.text.isNotBlank())
+                    Icon(
+                        Icons.Default.Clear,
+                        i18n.commonDelete(),
+                        Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier(),
+                    )
             },
             label = { Text(i18n.userSearchNameOrMatrixId()) },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search,
-                autoCorrectEnabled = false
-            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
             maxLines = 1,
         )
     }

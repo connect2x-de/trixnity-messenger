@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.i18n
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.client.verification.ActiveVerificationState
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationMethod
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.i18n
+import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 interface SelectVerificationMethodViewModelFactory {
@@ -19,7 +19,12 @@ interface SelectVerificationMethodViewModelFactory {
         isDeviceVerification: Boolean,
     ): SelectVerificationMethodViewModel {
         return SelectVerificationMethodViewModelImpl(
-            viewModelContext, verificationContext, verificationMethods, roomId, timelineEventId, isDeviceVerification,
+            viewModelContext,
+            verificationContext,
+            verificationMethods,
+            roomId,
+            timelineEventId,
+            isDeviceVerification,
         )
     }
 
@@ -29,6 +34,7 @@ interface SelectVerificationMethodViewModelFactory {
 interface SelectVerificationMethodViewModel {
     val verificationMethods: List<Pair<VerificationMethod, String>>
     val hasSelection: Boolean
+
     fun acceptVerificationMethod(verificationMethod: VerificationMethod)
 }
 
@@ -62,17 +68,18 @@ open class SelectVerificationMethodViewModelImpl(
 
     override fun acceptVerificationMethod(verificationMethod: VerificationMethod) {
         verificationContext.coroutineScope.launch {
-            activeVerifications.getActiveVerification(matrixClient, roomId, timelineEventId)
-                ?.let { activeVerification ->
-                    val currentVerificationState = activeVerification.state.value
-                    if (currentVerificationState is ActiveVerificationState.Ready) {
-                        log.info { "start verification" }
-                        currentVerificationState.start(verificationMethod)
-                    } else {
-                        log.warn { "accept verification method $verificationMethod, but the current verification state is '$currentVerificationState'" }
+            activeVerifications.getActiveVerification(matrixClient, roomId, timelineEventId)?.let { activeVerification
+                ->
+                val currentVerificationState = activeVerification.state.value
+                if (currentVerificationState is ActiveVerificationState.Ready) {
+                    log.info { "start verification" }
+                    currentVerificationState.start(verificationMethod)
+                } else {
+                    log.warn {
+                        "accept verification method $verificationMethod, but the current verification state is '$currentVerificationState'"
                     }
-                } ?: log.warn { "cannot get active verification for room $roomId and timeline event $timelineEventId" }
+                }
+            } ?: log.warn { "cannot get active verification for room $roomId and timeline event $timelineEventId" }
         }
     }
-
 }

@@ -6,10 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class FontKind {
 
-    @SerialName("system")
-    SYSTEM,
-
-    @SerialName("bundled")
-    BUNDLED,
-
+    @SerialName("system") SYSTEM,
+    @SerialName("bundled") BUNDLED,
 }

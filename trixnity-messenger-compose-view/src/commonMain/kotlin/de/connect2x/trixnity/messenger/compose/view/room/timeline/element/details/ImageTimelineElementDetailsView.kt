@@ -44,9 +44,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.util.SupportedMimeTypes
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
+import kotlin.reflect.KClass
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import kotlin.reflect.KClass
 
 interface ImageTimelineElementDetailsView :
     TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.Image>
@@ -56,8 +56,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
         RoomMessageTimelineElementViewModel.FileBased.Image::class
 
     // JPEG, PNG, BMP, WEBP (based on decodeToImageBitmap())
-    override fun supportsMimeType(mimeType: ContentType): Boolean =
-        SupportedMimeTypes.isSupportedImage(mimeType)
+    override fun supportsMimeType(mimeType: ContentType): Boolean = SupportedMimeTypes.isSupportedImage(mimeType)
 
     @OptIn(ExperimentalResourceApi::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
     @Composable
@@ -82,24 +81,22 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
             offset.value += offsetChange
         }
 
-        LaunchedEffect(Unit) {
-            element.loadMedia()
-        }
+        LaunchedEffect(Unit) { element.loadMedia() }
 
         FileBasedDetailsDialog(element, onSave, onClose, additionalButtons = { ZoomButtons(zoom) }) {
             // we need focus in the box to capture key events
             val focusRequester = remember { FocusRequester() }
             BoxWithConstraints(Modifier.zIndex(0.0f)) {
                 with(LocalDensity.current) {
-                    val bitmap = remember(media) {
-                        media?.toImageBitmap(
-                            width = this@BoxWithConstraints.maxWidth.roundToPx(),
-                            height = this@BoxWithConstraints.maxHeight.roundToPx(),
-                        )
-                    }
+                    val bitmap =
+                        remember(media) {
+                            media?.toImageBitmap(
+                                width = this@BoxWithConstraints.maxWidth.roundToPx(),
+                                height = this@BoxWithConstraints.maxHeight.roundToPx(),
+                            )
+                        }
                     Box(
-                        Modifier
-                            .fillMaxSize()
+                        Modifier.fillMaxSize()
                             .focusRequester(focusRequester)
                             .focusable()
                             .onKeyEvent { keyEvent ->
@@ -122,12 +119,9 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
                                     MaterialTheme.messengerIcons.typeFile,
                                     i18n.commonFile(),
                                     Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = MaterialTheme.colorScheme.error,
                                 )
-                                Text(
-                                    i18n.imageCouldNotBeLoaded(),
-                                    color = Color.White
-                                )
+                                Text(i18n.imageCouldNotBeLoaded(), color = Color.White)
                             }
                         }
                         if (bitmap != null) {
@@ -139,7 +133,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
                                     translationY = offset.value.y
                                     scaleX = zoom.value
                                     scaleY = zoom.value
-                                }
+                                },
                             )
                         }
                         progress?.let {
@@ -151,16 +145,18 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
                             Box(modifier = Modifier.align(Alignment.Center)) {
                                 Column {
                                     Icon(
-                                        MaterialTheme.messengerIcons.typeImage, i18n.commonImage(),
+                                        MaterialTheme.messengerIcons.typeImage,
+                                        i18n.commonImage(),
                                         Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                        tint = MaterialTheme.colorScheme.onBackground
+                                        tint = MaterialTheme.colorScheme.onBackground,
                                     )
                                     if (error != null) {
                                         Text(error, color = MaterialTheme.colorScheme.onBackground)
-                                    } else Text(
-                                        i18n.imageCouldNotBeLoaded(),
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    )
+                                    } else
+                                        Text(
+                                            i18n.imageCouldNotBeLoaded(),
+                                            color = MaterialTheme.colorScheme.onBackground,
+                                        )
                                 }
                             }
                         }

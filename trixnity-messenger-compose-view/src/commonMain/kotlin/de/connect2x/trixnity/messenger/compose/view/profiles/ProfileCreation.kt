@@ -61,9 +61,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
         val canCreateProfile = canCreateProfile
 
         ThemedModalDialog(onFinish) {
-            ModalDialogHeader {
-                Text(i18n.createProfileHeader())
-            }
+            ModalDialogHeader { Text(i18n.createProfileHeader()) }
             ModalDialogContent {
                 Column {
                     Text(i18n.createProfileSelectName(), style = MaterialTheme.typography.titleMedium)
@@ -83,10 +81,7 @@ class ProfileCreationViewImpl : ProfileCreationView {
                 }
             }
             ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = { onFinish() },
-                ) {
+                ThemedButton(style = MaterialTheme.components.commonButton, onClick = { onFinish() }) {
                     Text(i18n.actionCancel())
                 }
                 ThemedButton(

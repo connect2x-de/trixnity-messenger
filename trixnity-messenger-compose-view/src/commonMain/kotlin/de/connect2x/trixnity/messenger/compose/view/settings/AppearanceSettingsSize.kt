@@ -28,6 +28,9 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.resetMinHeaderHeight
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -48,17 +51,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import kotlin.math.round
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 interface AppearanceSettingsSizeView {
-    @Composable
-    fun ColumnScope.create(appearanceSettingsViewModel: AppearanceSettingsViewModel)
+    @Composable fun ColumnScope.create(appearanceSettingsViewModel: AppearanceSettingsViewModel)
 }
 
 @Composable
@@ -76,8 +75,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         // Font size
         val fontSize = appearanceSettingsViewModel.fontSize.collectAsState().value ?: defaultSizes.fontSize
         var newFontSize by remember { mutableStateOf(-1F) }
-        val finalNewFontSize =
-            if (newFontSize != -1F && newFontSize != fontSize) newFontSize else fontSize
+        val finalNewFontSize = if (newFontSize != -1F && newFontSize != fontSize) newFontSize else fontSize
         val fontSizeRange = defaultSizes.maxFontSize.minus(defaultSizes.minFontSize)
         val fontSizeSteps = fontSizeRange.div(0.05).roundToInt()
 
@@ -92,16 +90,17 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
         // Preview
         val systemDensity = SystemDensity.current
         Column(
-            Modifier.padding(end = 10.dp).fillMaxWidth(1.0f).height(200.dp)
+            Modifier.padding(end = 10.dp)
+                .fillMaxWidth(1.0f)
+                .height(200.dp)
                 // remove this from the focus chain and hide it from accessibility
                 .clearAndSetSemantics { hideFromAccessibility() }
-                .focusProperties { onEnter = { cancelFocusChange() } }.focusGroup()
+                .focusProperties { onEnter = { cancelFocusChange() } }
+                .focusGroup()
         ) {
             CompositionLocalProvider(
-                LocalDensity provides Density(
-                    systemDensity.density * finalNewDisplaySize,
-                    systemDensity.fontScale * finalNewFontSize
-                )
+                LocalDensity provides
+                    Density(systemDensity.density * finalNewDisplaySize, systemDensity.fontScale * finalNewFontSize)
             ) {
                 MessagePreviewContent(PreviewTimelineElementViewModel1())
                 MessagePreviewContent(PreviewTimelineElementViewModel2())
@@ -135,13 +134,13 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 Text(
                     text = "${i18n.appearanceFontSizeHeading()}:",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Spacer(Modifier.weight(1.0f))
                 Text(
                     text = "${round(finalNewFontSize * 100).toInt()}%",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
             ThemedSlider(
@@ -149,7 +148,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 onValueChange = { newFontSize = it },
                 steps = fontSizeSteps,
                 valueRange = defaultSizes.minFontSize..defaultSizes.maxFontSize,
-                enabled = !applySystemSizes
+                enabled = !applySystemSizes,
             )
             Spacer(Modifier.height(5.dp))
 
@@ -157,13 +156,13 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 Text(
                     text = "${i18n.appearanceDisplaySizeHeading()}:",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Spacer(Modifier.weight(1.0f))
                 Text(
                     text = "${round(finalNewDisplaySize * 100).toInt()}%",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
             ThemedSlider(
@@ -171,7 +170,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                 onValueChange = { newDisplaySize = it },
                 valueRange = defaultSizes.minDisplaySize..defaultSizes.maxDisplaySize,
                 steps = displaySizeSteps,
-                enabled = !applySystemSizes
+                enabled = !applySystemSizes,
             )
 
             Spacer(Modifier.height(10.dp))
@@ -183,7 +182,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
                     resetMinHeaderHeight()
                     appearanceSettingsViewModel.setDisplaySize(finalNewDisplaySize)
                     appearanceSettingsViewModel.setFontSize(finalNewFontSize)
-                }
+                },
             ) {
                 Text(i18n.appearanceSizesApply())
             }
@@ -195,11 +194,7 @@ class AppearanceSettingsSizeViewImpl : AppearanceSettingsSizeView {
 private fun MessagePreviewContent(messageHolder: TimelineElementHolderViewModel) {
     val element = messageHolder.element.collectAsState().value
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
-    Column {
-        element?.let { element ->
-            timelineElementViewSelector.createAsPreview(messageHolder, element, 0)
-        }
-    }
+    Column { element?.let { element -> timelineElementViewSelector.createAsPreview(messageHolder, element, 0) } }
 }
 
 private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
@@ -208,16 +203,18 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val key: String = eventId.full
     override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
-        MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
-            override val body: String = "Hello everyone!"
-            override val formattedBody: String = "Hello <b/>everyone!"
-            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
-            override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
-                MutableStateFlow(mapOf())
+        MutableStateFlow(
+            object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                override val body: String = "Hello everyone!"
+                override val formattedBody: String = "Hello <b/>everyone!"
+                override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
+                override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                    MutableStateFlow(mapOf())
 
-            override fun openMention(mention: TimelineElementMention) {}
-        })
+                override fun openMention(mention: TimelineElementMention) {}
+            }
+        )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:12"
     override val formattedDate: String = "21.11.2024"
@@ -245,17 +242,29 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val readers: StateFlow<List<UserInfoElement>?> = MutableStateFlow(emptyList())
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
+
     override fun replace() {}
+
     override fun endReplace() {}
+
     override fun redact() {}
+
     override fun acceptRedactionWarning() {}
+
     override fun cancelRedactionWarning() {}
+
     override fun reply() {}
+
     override fun endReply() {}
+
     override fun report() {}
+
     override fun addReaction(reaction: String) {}
+
     override fun removeReaction(reaction: String) {}
+
     override fun openTimelineElementMetadata() {}
+
     override fun jumpTo() {}
 }
 
@@ -265,16 +274,18 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val key: String = eventId.full
     override val isSent: StateFlow<Boolean> = MutableStateFlow(false)
     override val element: MutableStateFlow<TimelineElementViewModel<*>?> =
-        MutableStateFlow(object : RoomMessageTimelineElementViewModel.TextBased.Text {
-            override val body: String = "Hello!"
-            override val formattedBody: String = "Hello!"
-            override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
-            override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
-            override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
-                MutableStateFlow(mapOf())
+        MutableStateFlow(
+            object : RoomMessageTimelineElementViewModel.TextBased.Text {
+                override val body: String = "Hello!"
+                override val formattedBody: String = "Hello!"
+                override val formattedBodyContent: HtmlNode.HtmlElement = HtmlVisitor.process(formattedBody)
+                override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
+                override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
+                    MutableStateFlow(mapOf())
 
-            override fun openMention(mention: TimelineElementMention) {}
-        })
+                override fun openMention(mention: TimelineElementMention) {}
+            }
+        )
     override val isFirstInUserSequence: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val formattedTime: String = "12:24"
     override val formattedDate: String = "21.11.2024"
@@ -302,16 +313,28 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val highlight: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val readers: StateFlow<List<UserInfoElement>?> = MutableStateFlow(emptyList())
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
+
     override fun replace() {}
+
     override fun endReplace() {}
+
     override fun redact() {}
+
     override fun acceptRedactionWarning() {}
+
     override fun cancelRedactionWarning() {}
+
     override fun reply() {}
+
     override fun endReply() {}
+
     override fun report() {}
+
     override fun addReaction(reaction: String) {}
+
     override fun removeReaction(reaction: String) {}
+
     override fun openTimelineElementMetadata() {}
+
     override fun jumpTo() {}
 }

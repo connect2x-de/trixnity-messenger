@@ -12,9 +12,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 @Composable
 fun LoadingSpinner(modifier: Modifier = Modifier) {
     Box(Modifier.fillMaxWidth().then(modifier)) {
-        ThemedProgressIndicator(
-            Modifier.align(Alignment.Center),
-            MaterialTheme.components.circularProgressIndicator
-        )
+        ThemedProgressIndicator(Modifier.align(Alignment.Center), MaterialTheme.components.circularProgressIndicator)
     }
 }

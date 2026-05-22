@@ -24,19 +24,21 @@ fun MatrixMultiMessengerConfiguration.configure() {
 
     appUri = "$appId:"
 
-    modulesFactories += listOf(
-        { composeViewModule(null) },
-        // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at MultiMessenger level!
-        ::platformMatrixMessengerSettingsHolderModule,
-        // TODO there should be a more clean way for I18n
-        ::platformGetSystemLangModule,
-        {
-            module {
-                single<Languages> { DefaultLanguages }
-                single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
-            }
-        },
-    )
+    modulesFactories +=
+        listOf(
+            { composeViewModule(null) },
+            // TODO this needs to be removed and fixed, as there is no MatrixMessengerSettingsHolderImpl at
+            // MultiMessenger level!
+            ::platformMatrixMessengerSettingsHolderModule,
+            // TODO there should be a more clean way for I18n
+            ::platformGetSystemLangModule,
+            {
+                module {
+                    single<Languages> { DefaultLanguages }
+                    single<I18n> { object : I18n(get(), get(), get(), get<TimeZone>()) {} }
+                }
+            },
+        )
 
     // MatrixMultiMessengerConfiguration flavors
     when (BuildConfig.flavor) {

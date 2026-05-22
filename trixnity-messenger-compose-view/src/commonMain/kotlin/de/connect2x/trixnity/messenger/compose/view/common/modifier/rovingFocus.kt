@@ -23,11 +23,10 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 
-
 enum class RovingFocusDirection(internal val directions: List<FocusDirection>) {
     Vertical(listOf(FocusDirection.Up, FocusDirection.Down)),
     Horizontal(listOf(FocusDirection.Left, FocusDirection.Right)),
-    Grid(listOf(FocusDirection.Up, FocusDirection.Down, FocusDirection.Left, FocusDirection.Right));
+    Grid(listOf(FocusDirection.Up, FocusDirection.Down, FocusDirection.Left, FocusDirection.Right)),
 }
 
 @PublishedApi
@@ -41,20 +40,19 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
 ): Modifier {
     val focusManager = LocalFocusManager.current
     val inputModeManager = LocalInputModeManager.current
-    val moveFocus = remember(focusManager, inputModeManager) {
-        { focusDirection: FocusDirection ->
-            inputModeManager.requestInputMode(InputMode.Keyboard)
-            focusManager.moveFocus(focusDirection)
+    val moveFocus =
+        remember(focusManager, inputModeManager) {
+            { focusDirection: FocusDirection ->
+                inputModeManager.requestInputMode(InputMode.Keyboard)
+                focusManager.moveFocus(focusDirection)
+            }
         }
-    }
     var isInternalFocus by remember { mutableStateOf(false) }
 
     return this.moveFocusOnDirection(moveFocus, direction.directions).let { modifier ->
         if (listState != null && focusedItem != null && focusedItemClass != null) {
             modifier
-                .onFocusChanged {
-                    isInternalFocus = it.hasFocus
-                }
+                .onFocusChanged { isInternalFocus = it.hasFocus }
                 .focusProperties {
                     onEnter = {
                         if (requestedFocusDirection.isTab() && !isInternalFocus) {
@@ -65,7 +63,10 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
                                     focusedItem.value = null
                                 } else {
                                     val key =
-                                        if ((requestedFocusDirection == FocusDirection.Previous) xor listState.layoutInfo.reverseLayout) {
+                                        if (
+                                            (requestedFocusDirection == FocusDirection.Previous) xor
+                                                listState.layoutInfo.reverseLayout
+                                        ) {
                                             filteredKeys.last()
                                         } else {
                                             filteredKeys.first()
@@ -87,77 +88,72 @@ internal fun <T : Any> Modifier.rovingFocusContainer(
 }
 
 /**
- * This should be used for containers that stops loading items if they are scrolled out of the viewport (Using the mouse), such as LazyColumns.
- * In that case this will either set listState.layoutInfo.visibleItemsInfo.last().key or listState.layoutInfo.visibleItemsInfo.first().key
- * as the new focusedItem depending on the scroll direction
+ * This should be used for containers that stops loading items if they are scrolled out of the viewport (Using the
+ * mouse), such as LazyColumns. In that case this will either set listState.layoutInfo.visibleItemsInfo.last().key or
+ * listState.layoutInfo.visibleItemsInfo.first().key as the new focusedItem depending on the scroll direction
  */
 @Composable
 inline fun <reified T : Any> Modifier.rovingFocusContainer(
     direction: RovingFocusDirection = RovingFocusDirection.Vertical,
     listState: LazyListState? = null,
     focusedItem: MutableState<T?>,
-    ignoredKeys: List<Any> = emptyList()
-): Modifier = rovingFocusContainer(
-    direction = direction,
-    listState = listState,
-    focusedItem = focusedItem,
-    focusedItemClass = T::class,
-    ignoredKeys = ignoredKeys
-)
+    ignoredKeys: List<Any> = emptyList(),
+): Modifier =
+    rovingFocusContainer(
+        direction = direction,
+        listState = listState,
+        focusedItem = focusedItem,
+        focusedItemClass = T::class,
+        ignoredKeys = ignoredKeys,
+    )
 
 /*
-* When using rovingFocusContainer on lazy loading containers a lazyListState and the current focused Item
-* should additionally be passed as an argument to avoid the hole container being unfocusable,
-* when the focused item is scrolled out of view
+ * When using rovingFocusContainer on lazy loading containers a lazyListState and the current focused Item
+ * should additionally be passed as an argument to avoid the hole container being unfocusable,
+ * when the focused item is scrolled out of view
  */
 @Composable
-fun Modifier.rovingFocusContainer(
-    direction: RovingFocusDirection = RovingFocusDirection.Vertical,
-): Modifier = rovingFocusContainer<Unit>(
-    direction = direction,
-    listState = null,
-    focusedItem = null,
-    focusedItemClass = null,
-    ignoredKeys = emptyList()
-)
+fun Modifier.rovingFocusContainer(direction: RovingFocusDirection = RovingFocusDirection.Vertical): Modifier =
+    rovingFocusContainer<Unit>(
+        direction = direction,
+        listState = null,
+        focusedItem = null,
+        focusedItemClass = null,
+        ignoredKeys = emptyList(),
+    )
 
-fun Modifier.rovingFocusItem(
-    isFocused: () -> Boolean,
-    onFocus: () -> Unit,
-): Modifier = this
-    .focusProperties { onEnter = { if (!isFocused() && requestedFocusDirection.isTab()) cancelFocusChange() } }
-    .focusGroup()
-    .onFocusChanged { if (it.isFocused) onFocus() }
+fun Modifier.rovingFocusItem(isFocused: () -> Boolean, onFocus: () -> Unit): Modifier =
+    this.focusProperties { onEnter = { if (!isFocused() && requestedFocusDirection.isTab()) cancelFocusChange() } }
+        .focusGroup()
+        .onFocusChanged { if (it.isFocused) onFocus() }
 
 /**
- * When using rovingFocusContainer on a lazily loaded container, such as a LazyColumn, isFocused should be provided as a Lambda.
- * This ensures that updates to focusedItem inside rovingFocusContainer are visible to rovingFocusItem before recomposition occurs,
- * since recomposition only happens after the focusManager finishes changing focus.
+ * When using rovingFocusContainer on a lazily loaded container, such as a LazyColumn, isFocused should be provided as a
+ * Lambda. This ensures that updates to focusedItem inside rovingFocusContainer are visible to rovingFocusItem before
+ * recomposition occurs, since recomposition only happens after the focusManager finishes changing focus.
  */
-fun Modifier.rovingFocusItem(
-    isFocused: Boolean,
-    onFocus: () -> Unit,
-): Modifier = this
-    .focusProperties { onEnter = { if (!isFocused && requestedFocusDirection.isTab()) cancelFocusChange() } }
-    .focusGroup()
-    .onFocusChanged { if (it.isFocused) onFocus() }
+fun Modifier.rovingFocusItem(isFocused: Boolean, onFocus: () -> Unit): Modifier =
+    this.focusProperties { onEnter = { if (!isFocused && requestedFocusDirection.isTab()) cancelFocusChange() } }
+        .focusGroup()
+        .onFocusChanged { if (it.isFocused) onFocus() }
 
 private fun Modifier.moveFocusOnDirection(
     moveFocus: (FocusDirection) -> Boolean,
     directions: List<FocusDirection>,
-): Modifier = this
-    .onPreviewKeyEvent { keyEvent ->
-        if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-        val pressedDirection = when (keyEvent.key) {
-            Key.DirectionRight -> FocusDirection.Right
-            Key.DirectionLeft -> FocusDirection.Left
-            Key.DirectionDown -> FocusDirection.Down
-            Key.DirectionUp -> FocusDirection.Up
-            else -> return@onPreviewKeyEvent false
+): Modifier =
+    this.onPreviewKeyEvent { keyEvent ->
+            if (keyEvent.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+            val pressedDirection =
+                when (keyEvent.key) {
+                    Key.DirectionRight -> FocusDirection.Right
+                    Key.DirectionLeft -> FocusDirection.Left
+                    Key.DirectionDown -> FocusDirection.Down
+                    Key.DirectionUp -> FocusDirection.Up
+                    else -> return@onPreviewKeyEvent false
+                }
+            return@onPreviewKeyEvent directions.contains(pressedDirection) && moveFocus(pressedDirection)
         }
-        return@onPreviewKeyEvent directions.contains(pressedDirection) && moveFocus(pressedDirection)
-    }
-    .focusProperties { onExit = { if (directions.contains(requestedFocusDirection)) cancelFocusChange() } }
-    .focusGroup()
+        .focusProperties { onExit = { if (directions.contains(requestedFocusDirection)) cancelFocusChange() } }
+        .focusGroup()
 
 private fun FocusDirection.isTab(): Boolean = this == FocusDirection.Next || this == FocusDirection.Previous

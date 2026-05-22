@@ -14,19 +14,13 @@ import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import kotlinx.coroutines.flow.StateFlow
 
-data class RichTextColors(
-    val linkColor: Color,
-    val spoilerColor: Color,
-) {
+data class RichTextColors(val linkColor: Color, val spoilerColor: Color) {
     companion object {
         @Composable
         fun default(
             linkColor: Color = MaterialTheme.colorScheme.secondary,
             spoilerColor: Color = MaterialTheme.colorScheme.onSurface,
-        ) = RichTextColors(
-            linkColor,
-            spoilerColor,
-        )
+        ) = RichTextColors(linkColor, spoilerColor)
     }
 }
 
@@ -44,28 +38,29 @@ fun RichTextDisplay(
 
     val textColor = LocalTextStyle.current.color
 
-    val context = remember(colors.linkColor) {
-        RichTextContext(
-            mentions = mentions,
-            onCopy = onCopy,
-            onLinkClick = onLinkClick,
-            onMentionClick = onMentionClick,
-            textLinkStyles = TextLinkStyles(
-                style = SpanStyle(color = colors.linkColor),
-                hoveredStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
-                focusedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
-                pressedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
-            ),
-            spoilerStyles = TextLinkStyles(
-                style = SpanStyle(color = colors.spoilerColor, background = colors.spoilerColor),
-                hoveredStyle = SpanStyle(color = textColor, background = Color.Transparent),
-                focusedStyle = SpanStyle(color = textColor, background = Color.Transparent),
-                pressedStyle = SpanStyle(color = textColor, background = Color.Transparent),
+    val context =
+        remember(colors.linkColor) {
+            RichTextContext(
+                mentions = mentions,
+                onCopy = onCopy,
+                onLinkClick = onLinkClick,
+                onMentionClick = onMentionClick,
+                textLinkStyles =
+                    TextLinkStyles(
+                        style = SpanStyle(color = colors.linkColor),
+                        hoveredStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
+                        focusedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
+                        pressedStyle = SpanStyle(color = colors.linkColor, textDecoration = TextDecoration.Underline),
+                    ),
+                spoilerStyles =
+                    TextLinkStyles(
+                        style = SpanStyle(color = colors.spoilerColor, background = colors.spoilerColor),
+                        hoveredStyle = SpanStyle(color = textColor, background = Color.Transparent),
+                        focusedStyle = SpanStyle(color = textColor, background = Color.Transparent),
+                        pressedStyle = SpanStyle(color = textColor, background = Color.Transparent),
+                    ),
             )
-        )
-    }
+        }
 
-    Column(modifier) {
-        BlockContent(richText, context)
-    }
+    Column(modifier) { BlockContent(richText, context) }
 }

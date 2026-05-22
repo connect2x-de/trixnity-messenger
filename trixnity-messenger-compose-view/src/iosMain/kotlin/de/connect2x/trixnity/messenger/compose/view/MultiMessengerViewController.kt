@@ -38,29 +38,16 @@ fun MatrixMultiMessengerConfiguration.addViewProvider() {
 }
 
 private fun viewModule(): Module = module {
-    single<ViewControllerFactory> {
-        ViewControllerFactory {
-            MultiMessengerViewController(it)
-        }
-    }
-    single<WindowSceneDelegateProtocol>(named<WindowConnectingScene>()) {
-        WindowConnectingScene(get())
-    }
+    single<ViewControllerFactory> { ViewControllerFactory { MultiMessengerViewController(it) } }
+    single<WindowSceneDelegateProtocol>(named<WindowConnectingScene>()) { WindowConnectingScene(get()) }
 }
 
-
-private class WindowConnectingScene(
-    private val factory: ViewControllerFactory,
-) : WindowSceneDelegateProtocol {
+private class WindowConnectingScene(private val factory: ViewControllerFactory) : WindowSceneDelegateProtocol {
 
     private val lifecycle = ApplicationLifecycle()
     override var window: WithDefault<UIWindow?> = WithDefault.Value(null)
 
-    override fun willConnect(
-        scene: UIScene,
-        session: UISceneSession,
-        connectionOptions: UISceneConnectionOptions,
-    ) {
+    override fun willConnect(scene: UIScene, session: UISceneSession, connectionOptions: UISceneConnectionOptions) {
         val windowScene = scene as? UIWindowScene ?: return
         val newWindow = UIWindow(windowScene = windowScene)
         val rootViewController = factory(lifecycle)
@@ -73,30 +60,31 @@ private class WindowConnectingScene(
 @Suppress("FunctionName")
 fun MultiMessengerViewController(lifecycle: Lifecycle): UIViewController {
     log.info { "Starting iOS client" }
-    val matrixMultiMessenger = MatrixMultiMessengerService.get()
-        ?: throw IllegalStateException("MatrixMultiMessengerService must be initialized")
+    val matrixMultiMessenger =
+        MatrixMultiMessengerService.get()
+            ?: throw IllegalStateException("MatrixMultiMessengerService must be initialized")
 
     log.debug { "Created MatrixMultiMessenger" }
 
-    return ComposeUIViewController(
-        configure = { enforceStrictPlistSanityCheck = false }
-    ) {
+    return ComposeUIViewController(configure = { enforceStrictPlistSanityCheck = false }) {
         WithProfileSelection(
             matrixMultiMessenger,
             componentContext = DefaultComponentContext(lifecycle),
             activeMessengerOnce = { _, _ -> },
             activeMessenger = { matrixMessenger, rootViewModel ->
                 val isFocusHighlighting =
-                    matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                        .collectAsState().value.base.isFocusHighlighting
+                    matrixMessenger.di
+                        .get<MatrixMessengerSettingsHolder>()
+                        .collectAsState()
+                        .value
+                        .base
+                        .isFocusHighlighting
                 CompositionLocalProvider(
                     Platform provides PlatformType.IOS,
                     DI provides matrixMessenger.di,
                     IsFocusHighlighting provides isFocusHighlighting,
                 ) {
-                    MessengerTheme {
-                        Client(rootViewModel)
-                    }
+                    MessengerTheme { Client(rootViewModel) }
                 }
             },
             nonActiveMessenger = { existingProfiles ->
@@ -107,11 +95,9 @@ fun MultiMessengerViewController(lifecycle: Lifecycle): UIViewController {
                     ShowProfileCreation provides showProfileCreation,
                     IsFocusHighlighting provides false,
                 ) {
-                    MessengerTheme {
-                        Profiles()
-                    }
+                    MessengerTheme { Profiles() }
                 }
-            }
+            },
         )
     }
 }

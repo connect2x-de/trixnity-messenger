@@ -4,6 +4,11 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.assertions.fail
 import io.kotest.assertions.withClue
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,11 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class MediaItemLifecycleTest {
 
@@ -34,11 +34,7 @@ class MediaItemLifecycleTest {
         coroutineScope.cancel()
 
         withClue({ "MediaLifecycleItem was not closed" }) {
-            withContext(Dispatchers.Default.limitedParallelism(1)) {
-                withTimeout(1.seconds) {
-                    cut.isClosed.await()
-                }
-            }
+            withContext(Dispatchers.Default.limitedParallelism(1)) { withTimeout(1.seconds) { cut.isClosed.await() } }
         }
     }
 
@@ -57,8 +53,7 @@ class MediaItemLifecycleTest {
 
         // Validate
         delay(200.milliseconds)
-        if (cut.isClosed.isCompleted)
-            fail("MediaLifecycleItem was closed, but it shouldn't be")
+        if (cut.isClosed.isCompleted) fail("MediaLifecycleItem was closed, but it shouldn't be")
     }
 
     @Test
@@ -73,18 +68,13 @@ class MediaItemLifecycleTest {
 
         // Validate
         delay(200.milliseconds)
-        if (cut.isClosed.isCompleted)
-            fail("MediaLifecycleItem was closed, but it shouldn't be")
+        if (cut.isClosed.isCompleted) fail("MediaLifecycleItem was closed, but it shouldn't be")
 
         // Stop playing and validate again
         cut.state.value = MediaPlayer.Item.State.Ready
         delay(200.milliseconds)
         withClue({ "MediaLifecycleItem was not closed" }) {
-            withContext(Dispatchers.Default.limitedParallelism(1)) {
-                withTimeout(1.seconds) {
-                    cut.isClosed.await()
-                }
-            }
+            withContext(Dispatchers.Default.limitedParallelism(1)) { withTimeout(1.seconds) { cut.isClosed.await() } }
         }
     }
 

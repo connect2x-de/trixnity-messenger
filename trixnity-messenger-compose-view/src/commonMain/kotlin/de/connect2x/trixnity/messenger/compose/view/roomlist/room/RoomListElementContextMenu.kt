@@ -13,18 +13,9 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 internal fun RoomListElementViewModel.RoomListElementContextMenuActions(i18n: I18nView): List<ThemedActionMenuItem> {
     val isUnread = isUnread.collectAsState().value ?: false
     return buildList {
-        if (!isUnread) add(
-            ThemedActionMenuItem(
-                Icons.Default.MarkAsUnread,
-                i18n.markRoomAsUnread(),
-                action = { markUnread() })
-        )
-        if (isUnread) add(
-            ThemedActionMenuItem(
-                Icons.Default.MarkChatRead,
-                i18n.markRoomAsRead(),
-                action = { markRead() }
-            )
-        )
+        if (!isUnread)
+            add(ThemedActionMenuItem(Icons.Default.MarkAsUnread, i18n.markRoomAsUnread(), action = { markUnread() }))
+        if (isUnread)
+            add(ThemedActionMenuItem(Icons.Default.MarkChatRead, i18n.markRoomAsRead(), action = { markRead() }))
     }
 }

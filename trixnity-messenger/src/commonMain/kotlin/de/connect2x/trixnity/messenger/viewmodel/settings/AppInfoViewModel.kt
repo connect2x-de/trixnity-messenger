@@ -7,10 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.component.get
 
 interface AppInfoViewModelFactory {
-    fun create(
-        viewModelContext: ViewModelContext,
-        onCloseAppInfo: () -> Unit,
-    ): AppInfoViewModel {
+    fun create(viewModelContext: ViewModelContext, onCloseAppInfo: () -> Unit): AppInfoViewModel {
         return AppInfoViewModelImpl(viewModelContext, onCloseAppInfo)
     }
 
@@ -22,13 +19,12 @@ interface AppInfoViewModel {
     val showPrivacy: MutableStateFlow<Boolean>
     val showImprint: MutableStateFlow<Boolean>
     val showLicenses: MutableStateFlow<Boolean>
+
     fun close()
 }
 
-open class AppInfoViewModelImpl(
-    viewModelContext: ViewModelContext,
-    private val onCloseAppInfo: () -> Unit,
-) : ViewModelContext by viewModelContext, AppInfoViewModel {
+open class AppInfoViewModelImpl(viewModelContext: ViewModelContext, private val onCloseAppInfo: () -> Unit) :
+    ViewModelContext by viewModelContext, AppInfoViewModel {
     override val version: String? = get<MatrixMessengerConfiguration>().appVersion
     override val showPrivacy = MutableStateFlow(false)
     override val showImprint = MutableStateFlow(false)
@@ -58,6 +54,6 @@ class PreviewAppInfoViewModel : AppInfoViewModel {
     override val showPrivacy: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showImprint: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val showLicenses: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override fun close() {
-    }
+
+    override fun close() {}
 }

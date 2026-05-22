@@ -19,6 +19,11 @@ import dev.mokkery.resetCalls
 import io.kotest.assertions.errorCollector
 import io.kotest.assertions.withClue
 import io.kotest.matchers.nulls.shouldNotBeNull
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -34,11 +39,6 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.core.Koin
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 fun configureTestLogging() {
     Backend.set(TestBackend)
@@ -57,9 +57,7 @@ suspend inline fun <T> Flow<T>.firstWithClue(duration: Duration = 1.seconds, cro
             }
         }
     } finally {
-        repeat(clueCount) {
-            errorCollector.popClue()
-        }
+        repeat(clueCount) { errorCollector.popClue() }
     }
 }
 
@@ -71,22 +69,20 @@ suspend inline fun <T> Flow<T?>.firstNotNullWithClue(duration: Duration = 1.seco
     var clueCount = 0
     return try {
         withClue("waited for $duration but didn't found non null value in flow") {
-            timeout(duration).first {
-                errorCollector.pushClue { "--> expected not null but was $it" }
-                clueCount++
-                it != null
-            }.shouldNotBeNull()
+            timeout(duration)
+                .first {
+                    errorCollector.pushClue { "--> expected not null but was $it" }
+                    clueCount++
+                    it != null
+                }
+                .shouldNotBeNull()
         }
     } finally {
-        repeat(clueCount) {
-            errorCollector.popClue()
-        }
+        repeat(clueCount) { errorCollector.popClue() }
     }
 }
 
-fun runTestWithCoroutineScope(
-    testBody: suspend TestScope.(CoroutineScope) -> Unit
-): TestResult = runTest {
+fun runTestWithCoroutineScope(testBody: suspend TestScope.(CoroutineScope) -> Unit): TestResult = runTest {
     val coroutineScope = CoroutineScope(coroutineContext + Job())
     try {
         testBody(coroutineScope)
@@ -100,70 +96,54 @@ fun resetMocks(vararg mocks: Any) {
     resetAnswers(*mocks)
 }
 
-fun MokkeryMatcherScope.isRoomOf(roomId: RoomId): Room = matches({
-    "isRoomOf($roomId)"
-}) {
-    it.roomId == roomId
-}
+fun MokkeryMatcherScope.isRoomOf(roomId: RoomId): Room = matches({ "isRoomOf($roomId)" }) { it.roomId == roomId }
 
-inline fun <reified T> MokkeryMatcherScope.isNot(
-    others: List<T>,
-): T = matches({
-    "isNot($others)"
-}) {
-    others.contains(it).not()
-}
+inline fun <reified T> MokkeryMatcherScope.isNot(others: List<T>): T =
+    matches({ "isNot($others)" }) { others.contains(it).not() }
 
-fun TestScope.testViewModelContext(di: Koin) = object : ViewModelContext by ViewModelContextImpl(
-    di = di,
-    componentContext = DefaultComponentContext(LifecycleRegistry()),
-    coroutineContext = backgroundScope.coroutineContext,
-    "Test"
-) {
-    override val coroutineScope = backgroundScope
-}
-
+fun TestScope.testViewModelContext(di: Koin) =
+    object :
+        ViewModelContext by ViewModelContextImpl(
+            di = di,
+            componentContext = DefaultComponentContext(LifecycleRegistry()),
+            coroutineContext = backgroundScope.coroutineContext,
+            "Test",
+        ) {
+        override val coroutineScope = backgroundScope
+    }
 
 fun TestScope.testMatrixClientViewModelContext(
     di: Koin,
     userId: UserId,
     coroutineContext: CoroutineContext = backgroundScope.coroutineContext,
-    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry())
+    componentContext: ComponentContext = DefaultComponentContext(LifecycleRegistry()),
 ) =
-    object : MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
-        di = di,
-        componentContext = componentContext,
-        userId = userId,
-        coroutineContext = coroutineContext,
-        "TestMatrixClient"
-    ) {
+    object :
+        MatrixClientViewModelContext by MatrixClientViewModelContextImpl(
+            di = di,
+            componentContext = componentContext,
+            userId = userId,
+            coroutineContext = coroutineContext,
+            "TestMatrixClient",
+        ) {
         override val coroutineScope = backgroundScope
     }
 
-suspend fun <T> continually(
-    duration: Duration,
-    test: suspend () -> T,
-): T {
+suspend fun <T> continually(duration: Duration, test: suspend () -> T): T {
     val iterations = (duration / 25.milliseconds).toInt()
 
     var res: T = test()
     delay(duration)
 
-    repeat(iterations) {
-        res = test()
-    }
+    repeat(iterations) { res = test() }
 
     return res
 }
 
-suspend fun <T> eventually(
-    duration: Duration,
-    test: suspend () -> T,
-): T {
+suspend fun <T> eventually(duration: Duration, test: suspend () -> T): T {
     delay(duration)
     return test()
 }
-
 
 val CoroutineContext.coroutineDispatcher
     get() = this[ContinuationInterceptor] as CoroutineDispatcher
@@ -190,6 +170,9 @@ val CoroutineScope.testScheduler
     get() = testDispatcher.scheduler
 
 fun TestScope.settle() = testScheduler.runCurrent()
+
 fun CoroutineContext.settle() = testScheduler.runCurrent()
+
 fun CoroutineScope.settle() = testScheduler.settle()
+
 suspend fun settle() = currentCoroutineContext().testScheduler.settle()

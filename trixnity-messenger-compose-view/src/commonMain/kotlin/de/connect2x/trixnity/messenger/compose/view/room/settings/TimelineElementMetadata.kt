@@ -72,27 +72,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 interface TimelineElementMetadataView {
-    @Composable
-    fun create(
-        viewModel: TimelineElementMetadataViewModel,
-        isBottomOfStack: Boolean, isSinglePane: Boolean,
-    )
+    @Composable fun create(viewModel: TimelineElementMetadataViewModel, isBottomOfStack: Boolean, isSinglePane: Boolean)
 }
 
 @Composable
 fun TimelineElementMetadata(
     viewModel: TimelineElementMetadataViewModel,
-    isBottomOfStack: Boolean, isSinglePane: Boolean,
+    isBottomOfStack: Boolean,
+    isSinglePane: Boolean,
 ) {
     DI.get<TimelineElementMetadataView>().create(viewModel, isBottomOfStack, isSinglePane)
 }
 
 class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
     @Composable
-    override fun create(
-        viewModel: TimelineElementMetadataViewModel,
-        isBottomOfStack: Boolean, isSinglePane: Boolean,
-    ) {
+    override fun create(viewModel: TimelineElementMetadataViewModel, isBottomOfStack: Boolean, isSinglePane: Boolean) {
         val i18n = DI.get<I18nView>()
 
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
@@ -111,9 +105,7 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                 viewModel.elementHistory.filterNotNull().collect { history ->
                     withContext(Dispatchers.Default) {
                         history.forEach { element ->
-                            launch {
-                                waitForElementWithTimeout(timelineElementViewSelector, element)
-                            }
+                            launch { waitForElementWithTimeout(timelineElementViewSelector, element) }
                         }
                     }
                     elementHistory = history
@@ -136,28 +128,29 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
                         Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
                     }
                 }
-            }
+            },
         ) {
-            if (reactions == null || readers == null || sender == null || lastElement == null || elementHistory.isEmpty()) {
+            if (
+                reactions == null ||
+                    readers == null ||
+                    sender == null ||
+                    lastElement == null ||
+                    elementHistory.isEmpty()
+            ) {
                 LoadingSpinner(Modifier.fillMaxSize())
             } else {
-                Box(
-                    Modifier.fillMaxSize()
-                ) {
+                Box(Modifier.fillMaxSize()) {
                     Column(
                         verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp)).fillMaxSize()
-                            .verticalScroll(scrollState)
+                        modifier =
+                            Modifier.padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp))
+                                .fillMaxSize()
+                                .verticalScroll(scrollState),
                     ) {
                         SubHeading(i18n.timelineElementMetadataSender())
-                        UserInfo(
-                            sender,
-                            onOpenUserProfile = viewModel::openUserProfile,
-                        )
+                        UserInfo(sender, onOpenUserProfile = viewModel::openUserProfile)
                         SubHeading(i18n.timelineElementMetadataMessage())
-                        lastElement?.let {
-                            MessageContentHistorySwitch(it, elementHistory)
-                        }
+                        lastElement?.let { MessageContentHistorySwitch(it, elementHistory) }
                         SmallSpacer()
                         HorizontalDivider()
                         MiddleSpacer()
@@ -172,12 +165,9 @@ class TimelineElementMetadataViewImpl : TimelineElementMetadataView {
 }
 
 @Composable
-fun ColumnScope.SubHeading(heading: String) {// TODO re-use in other components
+fun ColumnScope.SubHeading(heading: String) { // TODO re-use in other components
     MiddleSpacer()
-    Text(
-        text = heading,
-        style = MaterialTheme.typography.titleMedium,
-    )
+    Text(text = heading, style = MaterialTheme.typography.titleMedium)
     SmallSpacer()
 }
 
@@ -191,19 +181,17 @@ fun ColumnScope.ReadersAndReactions(
     val i18n = DI.get<I18nView>()
     val state = rememberLazyListState()
 
-    val allReadersAndReactions = remember(readers, reactions) {
-        readers.associate {
-            it.userId to EventReactions.ByUserInfo(
-                mapOf(),
-                it,
-                false
-            )
-        }.plus(reactions.byUser).values.sortedByDescending { it.reactions.size }
-    }
+    val allReadersAndReactions =
+        remember(readers, reactions) {
+            readers
+                .associate { it.userId to EventReactions.ByUserInfo(mapOf(), it, false) }
+                .plus(reactions.byUser)
+                .values
+                .sortedByDescending { it.reactions.size }
+        }
     val hasReadersOrReactions = allReadersAndReactions.isNotEmpty()
-    val focusedItem = remember(allReadersAndReactions) {
-        mutableStateOf(allReadersAndReactions.firstOrNull()?.sender?.userId)
-    }
+    val focusedItem =
+        remember(allReadersAndReactions) { mutableStateOf(allReadersAndReactions.firstOrNull()?.sender?.userId) }
 
     Column(Modifier.heightIn(min = 25.dp, max = 500.dp)) {
         if (hasReadersOrReactions) {
@@ -214,16 +202,10 @@ fun ColumnScope.ReadersAndReactions(
                         i18n.timelineElementMetadataReadersAndReactions(),
                         style = MaterialTheme.typography.titleMedium,
                     )
-                }
+                },
             )
             Box {
-                LazyColumn(
-                    Modifier.rovingFocusContainer(
-                        listState = state,
-                        focusedItem = focusedItem
-                    ),
-                    state
-                ) {
+                LazyColumn(Modifier.rovingFocusContainer(listState = state, focusedItem = focusedItem), state) {
                     items(allReadersAndReactions, { it.sender.userId }) { eventReaction ->
                         UserInfo(
                             eventReaction.sender,
@@ -281,21 +263,21 @@ private fun UserInfo(
                     maxLines = 1,
                 )
             },
-            supportingContent = if (!hasReactions) null else {
-                {
-                    Text(
-                        compiledReactionsList,
-                        style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
-                        modifier = Modifier.paddingFromBaseline(0.dp),
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                }
-            },
+            supportingContent =
+                if (!hasReactions) null
+                else {
+                    {
+                        Text(
+                            compiledReactionsList,
+                            style = MaterialTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                            modifier = Modifier.paddingFromBaseline(0.dp),
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    }
+                },
             modifier = modifier,
-            onClick = {
-                onOpenUserProfile(userInfo.userId)
-            }
+            onClick = { onOpenUserProfile(userInfo.userId) },
         )
     }
 }
@@ -333,9 +315,7 @@ private fun MessageContent(messageHolder: TimelineElementHolderViewModel) {
     val element = messageHolder.element.collectAsState().value
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
     Column {
-        element?.let { element ->
-            timelineElementViewSelector.createAsPreview(messageHolder, element, index = 0)
-        }
+        element?.let { element -> timelineElementViewSelector.createAsPreview(messageHolder, element, index = 0) }
     }
 }
 
@@ -362,8 +342,8 @@ private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>)
             }
         }
 
-
-        // The max height is required here due to this component being a nested scroll container; no max height results in a crash
+        // The max height is required here due to this component being a nested scroll container; no max height results
+        // in a crash
         Box(Modifier.heightIn(max = 400.dp)) {
             LazyColumn(Modifier.fillMaxWidth().padding(end = 10.dp), state = scrollState) {
                 elementHistoryGrouped.forEach { (date, viewModel) ->
@@ -373,15 +353,13 @@ private fun MessageHistory(elementHistory: List<TimelineElementHolderViewModel>)
                             Spacer(Modifier.height(8.dp))
                         }
                     }
-                    item(viewModel.key) {
-                        MessageContent(viewModel)
-                    }
+                    item(viewModel.key) { MessageContent(viewModel) }
                 }
             }
 
-            // If the scroll bar were always shown it would force the box to its maximum height, creating a lot of empty space.
-            if (canScroll)
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState, false)
+            // If the scroll bar were always shown it would force the box to its maximum height, creating a lot of empty
+            // space.
+            if (canScroll) VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState, false)
         }
     }
 }

@@ -54,18 +54,19 @@ data class ButtonStyle(
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
-        ) = ButtonStyle(
-            shape = shape,
-            colors = colors,
-            elevation = null,
-            enabledBorder = null,
-            disabledBorder = null,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            textStyle = textStyle,
-            iconSize = iconSize,
-            iconSpacing = iconSpacing,
-        )
+        ) =
+            ButtonStyle(
+                shape = shape,
+                colors = colors,
+                elevation = null,
+                enabledBorder = null,
+                disabledBorder = null,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                textStyle = textStyle,
+                iconSize = iconSize,
+                iconSpacing = iconSpacing,
+            )
 
         @Composable
         fun outlined(
@@ -78,18 +79,19 @@ data class ButtonStyle(
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
-        ) = ButtonStyle(
-            shape = shape,
-            colors = colors,
-            elevation = null,
-            enabledBorder = enabledBorder,
-            disabledBorder = disabledBorder,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            textStyle = textStyle,
-            iconSize = iconSize,
-            iconSpacing = iconSpacing,
-        )
+        ) =
+            ButtonStyle(
+                shape = shape,
+                colors = colors,
+                elevation = null,
+                enabledBorder = enabledBorder,
+                disabledBorder = disabledBorder,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                textStyle = textStyle,
+                iconSize = iconSize,
+                iconSpacing = iconSpacing,
+            )
 
         @Composable
         fun filled(
@@ -101,18 +103,19 @@ data class ButtonStyle(
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
-        ) = ButtonStyle(
-            shape = shape,
-            colors = colors,
-            elevation = elevation,
-            enabledBorder = null,
-            disabledBorder = null,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            textStyle = textStyle,
-            iconSize = iconSize,
-            iconSpacing = iconSpacing,
-        )
+        ) =
+            ButtonStyle(
+                shape = shape,
+                colors = colors,
+                elevation = elevation,
+                enabledBorder = null,
+                disabledBorder = null,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                textStyle = textStyle,
+                iconSize = iconSize,
+                iconSpacing = iconSpacing,
+            )
 
         @Composable
         fun filledTonal(
@@ -124,18 +127,19 @@ data class ButtonStyle(
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
-        ) = ButtonStyle(
-            shape = shape,
-            colors = colors,
-            elevation = elevation,
-            enabledBorder = null,
-            disabledBorder = null,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            textStyle = textStyle,
-            iconSize = iconSize,
-            iconSpacing = iconSpacing,
-        )
+        ) =
+            ButtonStyle(
+                shape = shape,
+                colors = colors,
+                elevation = elevation,
+                enabledBorder = null,
+                disabledBorder = null,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                textStyle = textStyle,
+                iconSize = iconSize,
+                iconSpacing = iconSpacing,
+            )
 
         @Composable
         fun elevated(
@@ -147,26 +151,28 @@ data class ButtonStyle(
             textStyle: TextStyle? = MaterialTheme.typography.labelLarge,
             iconSize: Dp = ButtonDefaults.IconSize,
             iconSpacing: Dp = ButtonDefaults.IconSpacing,
-        ) = ButtonStyle(
-            shape = shape,
-            colors = colors,
-            elevation = elevation,
-            enabledBorder = null,
-            disabledBorder = null,
-            focusedBorder = focusedBorder,
-            contentPadding = contentPadding,
-            textStyle = textStyle,
-            iconSize = iconSize,
-            iconSpacing = iconSpacing,
-        )
+        ) =
+            ButtonStyle(
+                shape = shape,
+                colors = colors,
+                elevation = elevation,
+                enabledBorder = null,
+                disabledBorder = null,
+                focusedBorder = focusedBorder,
+                contentPadding = contentPadding,
+                textStyle = textStyle,
+                iconSize = iconSize,
+                iconSpacing = iconSpacing,
+            )
     }
 }
 
 @Composable
-private fun ButtonColors.withContentColors() = copy(
-    contentColor = contentColor.withContentColor(),
-    disabledContentColor = disabledContentColor.withContentColor(enabled = false),
-)
+private fun ButtonColors.withContentColors() =
+    copy(
+        contentColor = contentColor.withContentColor(),
+        disabledContentColor = disabledContentColor.withContentColor(enabled = false),
+    )
 
 @Composable
 fun ThemedButton(
@@ -175,16 +181,17 @@ fun ThemedButton(
     enabled: Boolean = true,
     style: ButtonStyle = MaterialTheme.components.secondaryButton,
     interactionSource: MutableInteractionSource? = null,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     val textStyle = LocalTextStyle.current.merge(style.textStyle)
     val hasFocus = remember { mutableStateOf(false) }
 
     Button(
         onClick = onClick,
-        modifier = modifier
-            .buttonPointerModifier(enabled)
-            .onFocusChanged { focusState -> hasFocus.value = focusState.hasFocus },
+        modifier =
+            modifier.buttonPointerModifier(enabled).onFocusChanged { focusState ->
+                hasFocus.value = focusState.hasFocus
+            },
         enabled = enabled,
         shape = style.shape,
         colors = style.colors.withContentColors(),
@@ -193,8 +200,6 @@ fun ThemedButton(
         contentPadding = style.contentPadding,
         interactionSource = interactionSource,
     ) {
-        CompositionLocalProvider(LocalTextStyle provides textStyle) {
-            content()
-        }
+        CompositionLocalProvider(LocalTextStyle provides textStyle) { content() }
     }
 }

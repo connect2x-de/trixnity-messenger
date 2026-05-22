@@ -15,8 +15,8 @@ import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import java.time.Duration
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
     alias(sharedLibs.plugins.kotlin.multiplatform)
@@ -28,6 +28,7 @@ plugins {
 }
 
 configureJava(sharedLibs.versions.targetJvm)
+
 registerCoverageTask("koverXmlReportJvm")
 
 kotlin {
@@ -35,9 +36,7 @@ kotlin {
     defaultCompilerOptions()
     withAndroidLibrary()
     withJvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
+        testRuns["test"].executionTask.configure { useJUnitPlatform() }
         tasks.withType<Test>().configureEach {
             if (!CI.isCI) {
                 maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
@@ -46,9 +45,7 @@ kotlin {
     }
     withWeb {
         withBrowser {
-            commonWebpackConfig {
-                showProgress = true
-            }
+            commonWebpackConfig { showProgress = true }
             testTask {
                 useKarma {
                     useConfigDirectory(rootDir.resolve("karma.config.d"))
@@ -71,9 +68,7 @@ kotlin {
     }
     applyDefaultHierarchyTemplate {
         common {
-            group("ios") {
-                withIos()
-            }
+            group("ios") { withIos() }
             group("jvmAndNative") {
                 withJvm()
                 withAndroidTarget()
@@ -134,11 +129,7 @@ kotlin {
                 api(libs.trixnity.client.media.okio)
             }
         }
-        named("jvmAndAndroidMain") {
-            dependencies {
-                api(sharedLibs.lognity.slf4j)
-            }
-        }
+        named("jvmAndAndroidMain") { dependencies { api(sharedLibs.lognity.slf4j) } }
         jvmMain {
             kotlin.srcDirs("src/icu4j/kotlin")
             dependencies {
@@ -180,37 +171,23 @@ kotlin {
         }
         androidUnitTest {
             kotlin.srcDirs("src/icu4j/kotlin")
-            dependencies {
-                implementation(libs.icu4j)
-            }
+            dependencies { implementation(libs.icu4j) }
         }
     }
 }
 
 android {
-    sourceSets {
-        named("main") {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        }
-    }
+    sourceSets { named("main") { manifest.srcFile("src/androidMain/AndroidManifest.xml") } }
     buildTypes {
-        debug {
-            isDefault = true
-        }
-        release {
-            isMinifyEnabled = false
-        }
+        debug { isDefault = true }
+        release { isMinifyEnabled = false }
     }
 }
 
-dependencies {
-    implementation(sharedLibs.ktor.client.logging)
-}
+dependencies { implementation(sharedLibs.ktor.client.logging) }
 
 skie {
-    analytics {
-        disableUpload.set(true)
-    }
+    analytics { disableUpload.set(true) }
     build {
         produceDistributableFramework()
         enableConcurrentSkieCompilation = true

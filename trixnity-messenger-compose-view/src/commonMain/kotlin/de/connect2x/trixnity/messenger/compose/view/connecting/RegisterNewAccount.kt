@@ -22,10 +22,8 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 
-
 interface RegisterNewAccountView {
-    @Composable
-    fun create(registerMatrixAccountViewModel: RegisterMatrixAccountViewModel)
+    @Composable fun create(registerMatrixAccountViewModel: RegisterMatrixAccountViewModel)
 }
 
 @Composable
@@ -45,26 +43,21 @@ class RegisterNewAccountViewImpl : RegisterNewAccountView {
                 ErrorView(error)
             }
             Spacer(Modifier.size(20.dp))
-            val tabToNextAndEnterSend =
-                TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
+            val tabToNextAndEnterSend = TabInTextField(canRegisterNewUser, registerMatrixAccountViewModel::register)
             MatrixUsername(
                 username = registerMatrixAccountViewModel.username.collectAsTextFieldValueState(),
                 label = i18n.registrationUsername(),
                 enabled = true,
             ) {
-                Tooltip({ Text(i18n.profileUserNameInfo()) }) {
-                    Icon(
-                        Icons.Default.Info,
-                        i18n.profileUserNameInfo(),
-                    )
-                }
+                Tooltip({ Text(i18n.profileUserNameInfo()) }) { Icon(Icons.Default.Info, i18n.profileUserNameInfo()) }
             }
             Spacer(Modifier.size(20.dp))
             PasswordField(
                 password = registerMatrixAccountViewModel.password.collectAsTextFieldValueState(),
                 modifier = tabToNextAndEnterSend,
-            ) { Text(i18n.registrationPassword()) }
+            ) {
+                Text(i18n.registrationPassword())
+            }
         }
     }
 }
-

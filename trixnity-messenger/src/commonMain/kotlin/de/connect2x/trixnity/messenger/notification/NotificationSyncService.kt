@@ -28,6 +28,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.utils.toByteArray
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.milliseconds
 
 class NotificationSyncService(
     private val matrixClients: MatrixClients,
@@ -47,7 +47,7 @@ class NotificationSyncService(
     private val settings: MatrixMessengerSettingsHolder,
     private val roomName: RoomName,
     private val getNotificationIcon: GetNotificationIcon?,
-    private val i18n: I18n
+    private val i18n: I18n,
 ) : Worker {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationService")
@@ -71,34 +71,38 @@ class NotificationSyncService(
             val notificationsEnabled: Boolean,
             val notificationSettings: MatrixMessengerAccountNotificationSettings,
         )
-        matrixClients.flatMapLatest { matrixClients ->
-            combine(matrixClients.map { (userId, matrixClient) ->
+        matrixClients
+            .flatMapLatest { matrixClients ->
                 combine(
-                    combine(notificationProviders.map { it.isEnabled(userId) }) { it.any { it } },
-                    settings[userId].filterNotNull().map { it.notification },
-                ) { notificationsEnabled, notificationSettings ->
-                    SyncNotificationsForAccountData(
-                        account = userId,
-                        matrixClient = matrixClient,
-                        notificationsEnabled = notificationsEnabled,
-                        notificationSettings = notificationSettings,
-                    )
-                }
-            }) {
-                it.toList()
-            }
-        }.scopedCollectLatest { syncNotificationsForAccountData ->
-            syncNotificationsForAccountData.forEach { syncNotificationsForAccount ->
-                launch {
-                    syncNotificationsForAccount(
-                        notificationSettings = syncNotificationsForAccount.notificationSettings,
-                        notificationHandler = notificationHandlers[syncNotificationsForAccount.account],
-                        matrixClient = syncNotificationsForAccount.matrixClient,
-                        notificationsEnabled = syncNotificationsForAccount.notificationsEnabled,
-                    )
+                    matrixClients.map { (userId, matrixClient) ->
+                        combine(
+                            combine(notificationProviders.map { it.isEnabled(userId) }) { it.any { it } },
+                            settings[userId].filterNotNull().map { it.notification },
+                        ) { notificationsEnabled, notificationSettings ->
+                            SyncNotificationsForAccountData(
+                                account = userId,
+                                matrixClient = matrixClient,
+                                notificationsEnabled = notificationsEnabled,
+                                notificationSettings = notificationSettings,
+                            )
+                        }
+                    }
+                ) {
+                    it.toList()
                 }
             }
-        }
+            .scopedCollectLatest { syncNotificationsForAccountData ->
+                syncNotificationsForAccountData.forEach { syncNotificationsForAccount ->
+                    launch {
+                        syncNotificationsForAccount(
+                            notificationSettings = syncNotificationsForAccount.notificationSettings,
+                            notificationHandler = notificationHandlers[syncNotificationsForAccount.account],
+                            matrixClient = syncNotificationsForAccount.matrixClient,
+                            notificationsEnabled = syncNotificationsForAccount.notificationsEnabled,
+                        )
+                    }
+                }
+            }
     }
 
     private suspend fun syncNotificationsForAccount(
@@ -109,29 +113,29 @@ class NotificationSyncService(
     ) {
         if (notificationsEnabled) {
             log.debug { "listen for new notifications for ${matrixClient.userId}" }
-            matrixClient.notification.getAllUpdates()
-                .collect { notificationUpdate ->
-                    if (notificationSettings.showDetails) {
-                        notificationUpdate.send(
-                            playSound = notificationSettings.playSound,
-                            notificationHandler = notificationHandler,
-                            matrixClient = matrixClient
-                        )
-                    } else {
-                        try {
-                            notificationHandler.push(
-                                tag = "NO_DETAILS_PLACEHOLDER",
-                                notification = Notification(
+            matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
+                if (notificationSettings.showDetails) {
+                    notificationUpdate.send(
+                        playSound = notificationSettings.playSound,
+                        notificationHandler = notificationHandler,
+                        matrixClient = matrixClient,
+                    )
+                } else {
+                    try {
+                        notificationHandler.push(
+                            tag = "NO_DETAILS_PLACEHOLDER",
+                            notification =
+                                Notification(
                                     title = i18n.newMessageTitle(),
                                     description = i18n.newMessageDescription(),
                                     playSound = notificationSettings.playSound,
                                 ),
-                            )
-                        } catch (e: Throwable) {
-                            log.error(e) { "failed to push placeholder notification" }
-                        }
+                        )
+                    } catch (e: Throwable) {
+                        log.error(e) { "failed to push placeholder notification" }
                     }
                 }
+            }
         } else {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
             try {
@@ -155,14 +159,15 @@ class NotificationSyncService(
                 try {
                     notificationHandler.push(
                         tag = id,
-                        notification = Notification(
-                            title = notificationData.title,
-                            description = notificationData.description,
-                            icon = notificationData.icon,
-                            statusIcon = statusIcon,
-                            callbackData = notificationData.callbackData,
-                            playSound = playSound,
-                        )
+                        notification =
+                            Notification(
+                                title = notificationData.title,
+                                description = notificationData.description,
+                                icon = notificationData.icon,
+                                statusIcon = statusIcon,
+                                callbackData = notificationData.callbackData,
+                                playSound = playSound,
+                            ),
                     )
                 } catch (e: Throwable) {
                     log.error(e) { "failed to push notification (tag=$id)" }
@@ -175,14 +180,15 @@ class NotificationSyncService(
                 try {
                     notificationHandler.update(
                         tag = id,
-                        notification = Notification(
-                            title = notificationData.title,
-                            description = notificationData.description,
-                            icon = notificationData.icon,
-                            statusIcon = statusIcon,
-                            callbackData = notificationData.callbackData,
-                            playSound = false,
-                        )
+                        notification =
+                            Notification(
+                                title = notificationData.title,
+                                description = notificationData.description,
+                                icon = notificationData.icon,
+                                statusIcon = statusIcon,
+                                callbackData = notificationData.callbackData,
+                                playSound = false,
+                            ),
                     )
                 } catch (e: Throwable) {
                     log.error(e) { "failed to update notification (tag=$id)" }
@@ -217,7 +223,9 @@ class NotificationSyncService(
                 val timelineEventContent = timelineEvent.content?.getOrNull() ?: timelineEvent.event.content
                 val messageBody = (timelineEventContent as? RoomMessageEventContent)?.body
                 if (messageBody == null) {
-                    log.debug { "notification message content ${timelineEventContent::class.simpleName} is not supported" }
+                    log.debug {
+                        "notification message content ${timelineEventContent::class.simpleName} is not supported"
+                    }
                     return null
                 }
                 val sender = matrixClient.user.getById(timelineEvent.roomId, timelineEvent.sender).first()
@@ -233,7 +241,10 @@ class NotificationSyncService(
                 val stateEventContent = stateEvent.content
                 val roomName = stateEvent.roomId?.let { roomName.getRoomName(it, matrixClient) }?.first()
                 when (stateEventContent) {
-                    is MemberEventContent if stateEventContent.membership == Membership.INVITE && stateEvent.stateKey == matrixClient.userId.full -> {
+                    is MemberEventContent if
+                        stateEventContent.membership == Membership.INVITE &&
+                            stateEvent.stateKey == matrixClient.userId.full
+                     -> {
                         title = roomName ?: i18n.newInvite()
                         description = if (roomName != null) i18n.newInvite() else null
                     }
@@ -243,19 +254,24 @@ class NotificationSyncService(
                         description = if (roomName != null) i18n.newActivity() else null
                     }
                 }
-                senderAvatar = stateEvent.roomId.takeIf { getNotificationIcon != null }?.let { roomId ->
-                    matrixClient.user.getById(roomId, stateEvent.sender).first()?.avatarUrl
-                }
+                senderAvatar =
+                    stateEvent.roomId
+                        .takeIf { getNotificationIcon != null }
+                        ?.let { roomId -> matrixClient.user.getById(roomId, stateEvent.sender).first()?.avatarUrl }
                 roomId = stateEvent.roomId
             }
         }
-        val icon = senderAvatar
-            ?.let {
-                withTimeoutOrNull(300.milliseconds) {
-                    matrixClient.media.getThumbnail(it, avatarSize().toLong(), avatarSize().toLong())
-                        .getOrNull()?.toByteArray(config.maxMediaSizeInMemory)
+        val icon =
+            senderAvatar
+                ?.let {
+                    withTimeoutOrNull(300.milliseconds) {
+                        matrixClient.media
+                            .getThumbnail(it, avatarSize().toLong(), avatarSize().toLong())
+                            .getOrNull()
+                            ?.toByteArray(config.maxMediaSizeInMemory)
+                    }
                 }
-            }?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
+                ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
         val callbackData =
             if (roomId != null)
                 buildString {
@@ -263,11 +279,6 @@ class NotificationSyncService(
                     append(roomId.full.trimStart(RoomId.sigilCharacter))
                 }
             else null
-        return NotificationData(
-            title = title,
-            description = description,
-            icon = icon,
-            callbackData = callbackData,
-        )
+        return NotificationData(title = title, description = description, icon = icon, callbackData = callbackData)
     }
 }

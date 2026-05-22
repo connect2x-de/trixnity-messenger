@@ -32,12 +32,8 @@ fun ZoomButtons(scale: MutableState<Float>, minScale: Float = 0.2f, maxScale: Fl
 fun ZoomButtons(onZoom: (factor: Float) -> Unit, enabled: Boolean = true) {
     val i18n = DI.get<I18nView>()
 
-    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomIn, i18n.commonZoomIn(), isEnabled = enabled) {
-        onZoom(1.2f)
-    }
-    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut(), isEnabled = enabled) {
-        onZoom(0.8f)
-    }
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomIn, i18n.commonZoomIn(), isEnabled = enabled) { onZoom(1.2f) }
+    FileBasedDetailsHeaderButton(Icons.Outlined.ZoomOut, i18n.commonZoomOut(), isEnabled = enabled) { onZoom(0.8f) }
 }
 
 fun Modifier.zoomModifier(
@@ -45,58 +41,49 @@ fun Modifier.zoomModifier(
     canZoom: MutableState<Boolean>,
     zoom: MutableState<Float>,
     minScale: Float? = 0.2f,
-    maxScale: Float? = 4f
+    maxScale: Float? = 4f,
 ): Modifier {
     return this.then(
         Modifier.pointerInput(Unit) {
             awaitPointerEventScope {
                 while (true) {
-                    awaitPointerEvent(pass = PointerEventPass.Final)
-                        .changes
-                        .forEach {
-                            focusRequester.requestFocus() // otherwise, key events will be lost
-                            if (canZoom.value) {
-                                val delta = 0.1f * -it.scrollDelta.y
-                                zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
-                            }
+                    awaitPointerEvent(pass = PointerEventPass.Final).changes.forEach {
+                        focusRequester.requestFocus() // otherwise, key events will be lost
+                        if (canZoom.value) {
+                            val delta = 0.1f * -it.scrollDelta.y
+                            zoom.value = (zoom.value + delta).coerceIn(minScale, maxScale)
                         }
+                    }
                 }
             }
         }
     )
 }
 
-/**
- * Overload to be used with a [TransformableState] that the zoom inputs are relayed to
- */
+/** Overload to be used with a [TransformableState] that the zoom inputs are relayed to */
 fun Modifier.zoomModifier(
     focusRequester: FocusRequester,
     canZoom: MutableState<Boolean>,
     state: TransformableState,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ): Modifier {
     return this.then(
         Modifier.pointerInput(Unit) {
             awaitPointerEventScope {
                 while (true) {
-                    awaitPointerEvent(pass = PointerEventPass.Final)
-                        .changes
-                        .forEach {
-                            if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
-                                val delta = 0.1f * -it.scrollDelta.y
-                                scope.launch {
-                                    state.transform {
-                                        val deltaMultiplier = 1 + delta
-                                        this.transformBy(
-                                            deltaMultiplier,
-                                        )
-                                    }
+                    awaitPointerEvent(pass = PointerEventPass.Final).changes.forEach {
+                        if (it.scrollDelta.y.toInt() != 0 && canZoom.value) {
+                            val delta = 0.1f * -it.scrollDelta.y
+                            scope.launch {
+                                state.transform {
+                                    val deltaMultiplier = 1 + delta
+                                    this.transformBy(deltaMultiplier)
                                 }
                             }
                         }
+                    }
                 }
             }
         }
     )
 }
-

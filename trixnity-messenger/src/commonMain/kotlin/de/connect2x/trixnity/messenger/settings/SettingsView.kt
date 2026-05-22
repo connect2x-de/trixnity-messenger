@@ -1,21 +1,21 @@
 package de.connect2x.trixnity.messenger.settings
 
+import kotlin.reflect.KProperty
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
-import kotlin.reflect.KProperty
 
 interface SettingsView<S : Settings<S>>
 
 fun <S : Settings<S>, T : SettingsView<S>> Settings<S>.getValues(serializer: KSerializer<T>): JsonObject? {
-    val keys = serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()
-        ?.let { listOf(it.key) + it.otherKeys }
+    val keys =
+        serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()?.let {
+            listOf(it.key) + it.otherKeys
+        }
     val parent = JsonObject(this)
-    val newValues =
-        if (keys != null) getJsonChild(parent, keys)
-        else parent
+    val newValues = if (keys != null) getJsonChild(parent, keys) else parent
     return newValues
 }
 
@@ -34,8 +34,10 @@ inline fun <S : Settings<S>, reified T : SettingsView<S>> Settings<S>.getOrNull(
 
 @OptIn(ExperimentalSerializationApi::class)
 fun <S : Settings<S>, T : SettingsView<S>> MutableSettings<S>.set(value: T, serializer: KSerializer<T>) {
-    val keys = serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()
-        ?.let { listOf(it.key) + it.otherKeys }
+    val keys =
+        serializer.descriptor.annotations.filterIsInstance<NestedSettingsView>().firstOrNull()?.let {
+            listOf(it.key) + it.otherKeys
+        }
     val newValues = SettingsJson.encodeToJsonElement(serializer, value) as? JsonObject
     if (newValues != null) {
         if (keys != null) putAll(putJsonChild(JsonObject(this), newValues, keys))
@@ -48,17 +50,14 @@ inline fun <S : Settings<S>, reified T : SettingsView<S>> MutableSettings<S>.set
 inline fun <S : Settings<S>, reified T : SettingsView<S>> settingsView(): SettingsViewDelegate<S, T> =
     SettingsViewDelegate(serializer())
 
-class SettingsViewDelegate<S : Settings<S>, T : SettingsView<S>>(
-    private val serializer: KSerializer<T>
-) {
+class SettingsViewDelegate<S : Settings<S>, T : SettingsView<S>>(private val serializer: KSerializer<T>) {
     operator fun getValue(settings: S, property: KProperty<*>): T = settings.get(serializer)
 }
 
 /**
  * Allows to define a view on the settings.
- **
+ * *
  * For example, when `key="dino"` the result would be:
- *
  * ```json
  * {
  *     "dino": {
@@ -71,7 +70,6 @@ class SettingsViewDelegate<S : Settings<S>, T : SettingsView<S>>(
  * Nesting is also allowed.
  *
  * For example, when `key="dino","unicorn"` the result would be:
- *
  * ```json
  * {
  *     "dino": {

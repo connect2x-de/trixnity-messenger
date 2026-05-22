@@ -34,9 +34,11 @@ internal fun OptionSetting(
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(optionText) },
-            supportingContent = if (optionExplanation == null) null else {
-                { Text(optionExplanation) }
-            },
+            supportingContent =
+                if (optionExplanation == null) null
+                else {
+                    { Text(optionExplanation) }
+                },
             selected = optionValue,
             enabled = enabled && optionEnabled,
             onChange = optionToggle,
@@ -64,9 +66,11 @@ internal fun ColumnScope.CollapsableOptionSetting(
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = { Text(optionText) },
-                supportingContent = if (optionExplanation == null) null else {
-                    { Text(optionExplanation) }
-                },
+                supportingContent =
+                    if (optionExplanation == null) null
+                    else {
+                        { Text(optionExplanation) }
+                    },
                 selected = optionValue,
                 enabled = enabled && optionEnabled,
                 onChange = optionToggle,

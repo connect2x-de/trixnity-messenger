@@ -19,29 +19,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 
-
 @Composable
-fun BoxScope.FileContentOverlay(
-    hoverMessage: State<Boolean>,
-    overlay: (@Composable BoxScope.() -> Unit)?,
-) {
+fun BoxScope.FileContentOverlay(hoverMessage: State<Boolean>, overlay: (@Composable BoxScope.() -> Unit)?) {
     overlay?.let {
-        val boxAlpha: Float by animateFloatAsState(
-            targetValue = if (hoverMessage.value) 1f else 0f,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = LinearEasing,
+        val boxAlpha: Float by
+            animateFloatAsState(
+                targetValue = if (hoverMessage.value) 1f else 0f,
+                animationSpec = tween(durationMillis = 500, easing = LinearEasing),
             )
-        )
-        Box(
-            Modifier
-                .align(Alignment.BottomEnd)
-                .alpha(boxAlpha)
-                .padding(5.dp)
-        ) {
+        Box(Modifier.align(Alignment.BottomEnd).alpha(boxAlpha).padding(5.dp)) {
             Box(
-                Modifier
-                    .clip(RoundedCornerShape(14.dp))
+                Modifier.clip(RoundedCornerShape(14.dp))
                     .background(MaterialTheme.messengerColors.metaDataPreviewBackground)
                     .padding(6.dp)
             ) {

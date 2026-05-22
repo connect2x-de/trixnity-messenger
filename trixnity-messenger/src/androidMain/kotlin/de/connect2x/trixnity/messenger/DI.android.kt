@@ -20,10 +20,6 @@ actual fun platformModule(): Module = module {
             to.single<ActivityGetter> { from.get() }
         }
     }
-    single<MediaPlayer> {
-        AndroidMediaPlayer(get(), get())
-    }
-    single<PlatformAudioRecorder> {
-        AndroidAudioRecorder(get(), get(), get(), get(), get())
-    }
+    single<MediaPlayer> { AndroidMediaPlayer(get(), get()) }
+    single<PlatformAudioRecorder> { AndroidAudioRecorder(get(), get(), get(), get(), get()) }
 }

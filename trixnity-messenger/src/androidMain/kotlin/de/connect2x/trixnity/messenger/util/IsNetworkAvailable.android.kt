@@ -14,7 +14,7 @@ actual fun platformIsNetworkAvailableModule(): Module = module {
                 contextGetter().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
             networkCapabilities != null &&
-                    networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         }
     }
 }

@@ -41,29 +41,23 @@ internal data class CompoundTextContext(
     val measurer: TextMeasurer,
 ) {
     @Stable
-    fun measure(
-        text: String,
-        style: TextStyle = textStyle,
-    ) = measurer.measure(
-        text = text,
-        style = style,
-        layoutDirection = layoutDirection,
-        density = density,
-    )
+    fun measure(text: String, style: TextStyle = textStyle) =
+        measurer.measure(text = text, style = style, layoutDirection = layoutDirection, density = density)
 
     @Stable
     fun measure(
         text: AnnotatedString,
         placeholders: List<AnnotatedString.Range<Placeholder>>,
         constraints: Constraints,
-    ) = measurer.measure(
-        text = text,
-        style = textStyle,
-        placeholders = placeholders,
-        constraints = constraints,
-        layoutDirection = layoutDirection,
-        density = density,
-    )
+    ) =
+        measurer.measure(
+            text = text,
+            style = textStyle,
+            placeholders = placeholders,
+            constraints = constraints,
+            layoutDirection = layoutDirection,
+            density = density,
+        )
 }
 
 @Composable
@@ -73,41 +67,34 @@ internal fun CompoundText(
     onMeasure: CompoundTextContext.(String, Constraints) -> Placeholder?,
     onRender: @Composable (String, Constraints) -> Unit,
 ) {
-    val replaceables = remember(content) {
-        content.getStringAnnotations(INLINE_CONTENT_TAG, 0, content.length)
-    }
+    val replaceables = remember(content) { content.getStringAnnotations(INLINE_CONTENT_TAG, 0, content.length) }
 
     val density = LocalDensity.current
-    val textStyle = LocalTextStyle.current.copy(
-        lineHeight = TextUnit.Unspecified,
-        color = LocalContentColor.current,
-    )
+    val textStyle = LocalTextStyle.current.copy(lineHeight = TextUnit.Unspecified, color = LocalContentColor.current)
     val layoutDirection = LocalLayoutDirection.current
     val measurer = rememberTextMeasurer()
 
-    val context = remember(density, textStyle, layoutDirection, measurer) {
-        CompoundTextContext(density, textStyle, layoutDirection, measurer)
-    }
+    val context =
+        remember(density, textStyle, layoutDirection, measurer) {
+            CompoundTextContext(density, textStyle, layoutDirection, measurer)
+        }
 
     BoxWithConstraints {
         val containerConstraints = constraints
 
-        val inlineContent = remember(replaceables, context, onMeasure, containerConstraints) {
-            buildMap {
-                for (replaceable in replaceables) {
-                    val measurement = context.onMeasure(replaceable.item, containerConstraints)
-                    if (measurement != null) {
-                        put(replaceable.item, InlineTextContent(measurement, {}))
+        val inlineContent =
+            remember(replaceables, context, onMeasure, containerConstraints) {
+                buildMap {
+                    for (replaceable in replaceables) {
+                        val measurement = context.onMeasure(replaceable.item, containerConstraints)
+                        if (measurement != null) {
+                            put(replaceable.item, InlineTextContent(measurement, {}))
+                        }
                     }
                 }
             }
-        }
-        val placeholders = remember(inlineContent, content) {
-            content.resolveInlineContent(inlineContent)
-        }
-        val policy = remember(content, placeholders, context) {
-            MentionMeasurePolicy(content, placeholders, context)
-        }
+        val placeholders = remember(inlineContent, content) { content.resolveInlineContent(inlineContent) }
+        val policy = remember(content, placeholders, context) { MentionMeasurePolicy(content, placeholders, context) }
         if (content.isNotBlank()) {
             Box(modifier) {
                 BasicText(
@@ -140,24 +127,23 @@ internal class MentionMeasurePolicy(
     private val placeholders: List<Pair<String, AnnotatedString.Range<Placeholder>>>,
     private val context: CompoundTextContext,
 ) : MeasurePolicy {
-    override fun MeasureScope.measure(
-        measurables: List<Measurable>,
-        constraints: Constraints
-    ): MeasureResult {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         val textLayout = context.measure(text, placeholders = placeholders.map { it.second }, constraints)
         return layout(textLayout.size.width, textLayout.size.height) {
             for (index in measurables.indices) {
                 val placeholder = textLayout.placeholderRects[index]
                 val measurable = measurables[index]
                 if (placeholder != null) {
-                    measurable.measure(
-                        Constraints(
-                            minWidth = placeholder.width.roundToInt(),
-                            maxWidth = placeholder.width.roundToInt(),
-                            minHeight = placeholder.height.roundToInt(),
-                            maxHeight = placeholder.height.roundToInt(),
+                    measurable
+                        .measure(
+                            Constraints(
+                                minWidth = placeholder.width.roundToInt(),
+                                maxWidth = placeholder.width.roundToInt(),
+                                minHeight = placeholder.height.roundToInt(),
+                                maxHeight = placeholder.height.roundToInt(),
+                            )
                         )
-                    ).place(placeholder.left.roundToInt(), placeholder.top.roundToInt())
+                        .place(placeholder.left.roundToInt(), placeholder.top.roundToInt())
                 }
             }
         }
@@ -165,17 +151,13 @@ internal class MentionMeasurePolicy(
 }
 
 internal fun AnnotatedString.resolveInlineContent(
-    inlineContent: Map<String, InlineTextContent>,
+    inlineContent: Map<String, InlineTextContent>
 ): List<Pair<String, AnnotatedString.Range<Placeholder>>> =
-    getStringAnnotations(INLINE_CONTENT_TAG, 0, text.length)
-        .mapNotNull { annotation ->
-            inlineContent[annotation.item]?.let { inlineTextContent ->
-                Pair(
-                    annotation.item, AnnotatedString.Range(
-                        inlineTextContent.placeholder,
-                        annotation.start,
-                        annotation.end
-                    )
-                )
-            }
+    getStringAnnotations(INLINE_CONTENT_TAG, 0, text.length).mapNotNull { annotation ->
+        inlineContent[annotation.item]?.let { inlineTextContent ->
+            Pair(
+                annotation.item,
+                AnnotatedString.Range(inlineTextContent.placeholder, annotation.start, annotation.end),
+            )
         }
+    }

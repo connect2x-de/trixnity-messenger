@@ -15,8 +15,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 
 interface CloseProfileView {
-    @Composable
-    fun create(closeProfile: () -> Unit)
+    @Composable fun create(closeProfile: () -> Unit)
 }
 
 @Composable
@@ -31,10 +30,7 @@ class CloseProfileViewImpl : CloseProfileView {
 
         Box {
             Tooltip({ Text(i18n.accountCloseProfile()) }) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.destructiveIconButton,
-                    onClick = { closeProfile() },
-                ) {
+                ThemedIconButton(style = MaterialTheme.components.destructiveIconButton, onClick = { closeProfile() }) {
                     Icon(Icons.AutoMirrored.Filled.Logout, i18n.accountCloseProfile())
                 }
             }

@@ -59,7 +59,7 @@ actual fun OutlinedTextFieldWithToolbar(
     minLines: Int,
     interactionSource: MutableInteractionSource?,
     shape: Shape,
-    colors: TextFieldColors
+    colors: TextFieldColors,
 ) {
     val textToolBar = LocalTextToolbar.current
     val clipboard = LocalClipboard.current
@@ -67,20 +67,10 @@ actual fun OutlinedTextFieldWithToolbar(
     val scope = rememberCoroutineScope()
     val interactionSource = remember { MutableInteractionSource() }
 
-    var layoutCoordinates by remember {
-        mutableStateOf<LayoutCoordinates?>(
-            null
-        )
-    }
+    var layoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val valueState = remember { mutableStateOf(value) }
-    LaunchedEffect(value) {
-        valueState.value = value
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            textToolBar.hide()
-        }
-    }
+    LaunchedEffect(value) { valueState.value = value }
+    DisposableEffect(Unit) { onDispose { textToolBar.hide() } }
     LaunchedEffect(value.selection) {
         if (!value.selection.collapsed) {
             layoutCoordinates?.let { showToolbar(valueState, onValueChange, textToolBar, it, scope, clipboard) }
@@ -102,15 +92,14 @@ actual fun OutlinedTextFieldWithToolbar(
                 textToolBar.hide()
             }
         },
-        modifier = modifier
-            .onFocusChanged {
-                if (!it.hasFocus) {
-                    textToolBar.hide()
+        modifier =
+            modifier
+                .onFocusChanged {
+                    if (!it.hasFocus) {
+                        textToolBar.hide()
+                    }
                 }
-            }
-            .onGloballyPositioned {
-                layoutCoordinates = it
-            },
+                .onGloballyPositioned { layoutCoordinates = it },
         enabled = enabled,
         readOnly = readOnly,
         textStyle = textStyle,
@@ -139,58 +128,55 @@ private fun showToolbar(
     textToolBar: TextToolbar,
     layoutCoordinates: LayoutCoordinates,
     scope: CoroutineScope,
-    clipboard: Clipboard
+    clipboard: Clipboard,
 ) {
     val rect = layoutCoordinates.boundsInWindow()
     rect.let {
         textToolBar.showMenu(
-            rect = it, onCopyRequested = {
+            rect = it,
+            onCopyRequested = {
                 scope.launch {
                     clipboard.setClipEntry(
-                        ClipEntry(
-                            ClipData.newPlainText(
-                                "Popup TextField Content", valueState.value.getSelectedText()
-                            )
-                        )
+                        ClipEntry(ClipData.newPlainText("Popup TextField Content", valueState.value.getSelectedText()))
                     )
                 }
-            }, onPasteRequested = {
+            },
+            onPasteRequested = {
                 scope.launch {
-                    clipboard.getClipEntry()?.clipData?.getItemAt(
-                        0
-                    )?.text?.also {
+                    clipboard.getClipEntry()?.clipData?.getItemAt(0)?.text?.also {
                         val newCursorPos = valueState.value.selection.start + it.length
                         onValueChange(
                             valueState.value.copy(
-                                text = StringBuilder(valueState.value.text).deleteRange(
-                                    valueState.value.selection.start, valueState.value.selection.end
-                                ).insert(valueState.value.selection.start, it.toString()).toString(),
-                                selection = TextRange(newCursorPos)
+                                text =
+                                    StringBuilder(valueState.value.text)
+                                        .deleteRange(valueState.value.selection.start, valueState.value.selection.end)
+                                        .insert(valueState.value.selection.start, it.toString())
+                                        .toString(),
+                                selection = TextRange(newCursorPos),
                             )
                         )
                     }
                 }
-            }, onCutRequested = {
+            },
+            onCutRequested = {
                 val selectedText = valueState.value.getSelectedText()
                 onValueChange(
                     valueState.value.copy(
-                        text = StringBuilder(valueState.value.text).delete(
-                            valueState.value.selection.start, valueState.value.selection.end
-                        ).toString(), selection = TextRange(valueState.value.selection.start)
-                    ),
+                        text =
+                            StringBuilder(valueState.value.text)
+                                .delete(valueState.value.selection.start, valueState.value.selection.end)
+                                .toString(),
+                        selection = TextRange(valueState.value.selection.start),
+                    )
                 )
                 scope.launch {
-                    clipboard.setClipEntry(
-                        ClipEntry(
-                            ClipData.newPlainText(
-                                "Popup TextField Content", selectedText
-                            )
-                        )
-                    )
+                    clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Popup TextField Content", selectedText)))
                 }
-            }, onSelectAllRequested = {
+            },
+            onSelectAllRequested = {
                 onValueChange(valueState.value.copy(selection = TextRange(0, valueState.value.text.length)))
-            }, onAutofillRequested = null
+            },
+            onAutofillRequested = null,
         )
     }
 }

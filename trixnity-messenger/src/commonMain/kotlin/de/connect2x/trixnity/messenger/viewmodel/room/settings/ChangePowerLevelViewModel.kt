@@ -1,6 +1,15 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.client.user.PowerLevel.Companion.compareTo
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
@@ -18,15 +27,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.client.user.PowerLevel.Companion.compareTo
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 
 interface ChangePowerLevelViewModelFactory {
     fun create(
@@ -35,12 +35,7 @@ interface ChangePowerLevelViewModelFactory {
         selectedRoomId: RoomId,
         targetUser: UserId,
     ): ChangePowerLevelViewModel {
-        return ChangePowerLevelViewModelImpl(
-            viewModelContext,
-            error,
-            selectedRoomId,
-            targetUser,
-        )
+        return ChangePowerLevelViewModelImpl(viewModelContext, error, selectedRoomId, targetUser)
     }
 
     companion object : ChangePowerLevelViewModelFactory
@@ -62,17 +57,23 @@ interface ChangePowerLevelViewModel {
     val changingPowerLevelDialogInput: TextFieldViewModel
 
     fun openChangingRoleWarningDialog(role: Role)
+
     fun closeChangingRoleWarningDialog()
 
     fun openChangingPowerLevelDialog()
+
     fun closeChangingPowerLevelDialog()
 
     fun openPowerLevelHelp()
+
     fun closePowerLevelHelp()
 
     fun setRoleToUser()
+
     fun setRoleToModerator()
+
     fun setRoleToAdmin()
+
     fun setPowerLevelTo(level: Long)
 
     enum class Role {
@@ -101,71 +102,60 @@ open class ChangePowerLevelViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ChangePowerLevelViewModel {
 
     private val _canSetPowerLevelToMax =
-        matrixClient.user.canSetPowerLevelToMax(selectedRoomId, targetUser)
+        matrixClient.user
+            .canSetPowerLevelToMax(selectedRoomId, targetUser)
             .map { it?.level }
             .shareIn(coroutineScope, Eagerly, 1)
     override val canSetPowerLevelToMax =
-        _canSetPowerLevelToMax
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        _canSetPowerLevelToMax.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val combineSetPowerLevelToMaxAndCurrentPowerLevel =
-        combine(
-            canSetPowerLevelToMax,
-            matrixClient.user.getPowerLevel(selectedRoomId, targetUser)
-        ) { maxPowerLevel, targetUserPowerLevel ->
-            maxPowerLevel to targetUserPowerLevel
-        }.shareIn(coroutineScope, started = SharingStarted.WhileSubscribed(), 1)
+        combine(canSetPowerLevelToMax, matrixClient.user.getPowerLevel(selectedRoomId, targetUser)) {
+                maxPowerLevel,
+                targetUserPowerLevel ->
+                maxPowerLevel to targetUserPowerLevel
+            }
+            .shareIn(coroutineScope, started = SharingStarted.WhileSubscribed(), 1)
 
     internal fun canSetPowerLevelToRole(role: Role) = // internal for test only
-        combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (canSetPowerLevelToMax, currentPowerLevel) ->
+    combineSetPowerLevelToMaxAndCurrentPowerLevel.map { (canSetPowerLevelToMax, currentPowerLevel) ->
             log.trace { "role=$role canSetPowerLevelToMax=$canSetPowerLevelToMax currentPowerLevel=$currentPowerLevel" }
             currentPowerLevel is PowerLevel.User &&
-                    canSetPowerLevelToMax != null &&
-                    currentPowerLevel != role.getMinPowerLevel() &&
-                    canSetPowerLevelToMax >= role.getMinPowerLevel()
+                canSetPowerLevelToMax != null &&
+                currentPowerLevel != role.getMinPowerLevel() &&
+                canSetPowerLevelToMax >= role.getMinPowerLevel()
         }
 
+    override val canSetRoleToUser =
+        canSetPowerLevelToRole(Role.USER).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canSetRoleToModerator =
+        canSetPowerLevelToRole(Role.MODERATOR).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val canSetRoleToAdmin =
+        canSetPowerLevelToRole(Role.ADMIN).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val canSetRoleToUser = canSetPowerLevelToRole(Role.USER)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val canSetRoleToModerator = canSetPowerLevelToRole(Role.MODERATOR)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-    override val canSetRoleToAdmin = canSetPowerLevelToRole(Role.ADMIN)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
-
-    override val changingRoleWarningDialogOpen =
-        MutableStateFlow<Role?>(null)
+    override val changingRoleWarningDialogOpen = MutableStateFlow<Role?>(null)
 
     override val changingPowerLevelDialogOpen = MutableStateFlow(false)
 
     override val changingPowerLevelDialogInput = TextFieldViewModelImpl(maxLength = 10)
 
     override val changingPowerLevelDialogError =
-        combine(
-            canSetPowerLevelToMax,
-            changingPowerLevelDialogInput.text,
-        ) { canSetPowerLevelToMax, text ->
-            if (text.isEmpty()) {
-                null
-            } else {
-                validateNewPowerLevelInput(
-                    text,
-                    maxPowerLevel = canSetPowerLevelToMax,
-                    i18n
-                )
+        combine(canSetPowerLevelToMax, changingPowerLevelDialogInput.text) { canSetPowerLevelToMax, text ->
+                if (text.isEmpty()) {
+                    null
+                } else {
+                    validateNewPowerLevelInput(text, maxPowerLevel = canSetPowerLevelToMax, i18n)
+                }
             }
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val showPowerLevelHelp = MutableStateFlow(false)
 
-    override fun setRoleToUser() =
-        setUserToPowerLevel(Role.USER.getMinPowerLevel())
+    override fun setRoleToUser() = setUserToPowerLevel(Role.USER.getMinPowerLevel())
 
-    override fun setRoleToModerator() =
-        setUserToPowerLevel(Role.MODERATOR.getMinPowerLevel())
+    override fun setRoleToModerator() = setUserToPowerLevel(Role.MODERATOR.getMinPowerLevel())
 
-    override fun setRoleToAdmin() =
-        setUserToPowerLevel(Role.ADMIN.getMinPowerLevel())
+    override fun setRoleToAdmin() = setUserToPowerLevel(Role.ADMIN.getMinPowerLevel())
 
     override fun setPowerLevelTo(level: Long) = setUserToPowerLevel(PowerLevel.User(level))
 
@@ -197,44 +187,39 @@ open class ChangePowerLevelViewModelImpl(
         coroutineScope.launch {
             val canSetPowerLevelToMax = _canSetPowerLevelToMax.first() ?: return@launch
             if (powerLevel !is PowerLevel.User || powerLevel.level > canSetPowerLevelToMax) {
-                log.warn { "cannot set powerlevel of user $targetUser to $powerLevel in room $selectedRoomId because the power level is too high (max=$canSetPowerLevelToMax)" }
+                log.warn {
+                    "cannot set powerlevel of user $targetUser to $powerLevel in room $selectedRoomId because the power level is too high (max=$canSetPowerLevelToMax)"
+                }
                 return@launch
             }
             if (matrixClient.syncState.value == SyncState.ERROR) {
                 error.value = i18n.settingsRoomMemberListChangePowerLevelErrorOffline()
             } else {
                 val oldPowerLevelsEventContent =
-                    matrixClient.room.getState<PowerLevelsEventContent>(
-                        roomId = selectedRoomId,
-                        stateKey = ""
-                    ).first()?.content ?: PowerLevelsEventContent()
+                    matrixClient.room
+                        .getState<PowerLevelsEventContent>(roomId = selectedRoomId, stateKey = "")
+                        .first()
+                        ?.content ?: PowerLevelsEventContent()
                 val newUsers = oldPowerLevelsEventContent.users.plus(targetUser to powerLevel.level)
 
-                matrixClient.api.room.sendStateEvent(
-                    roomId = selectedRoomId,
-                    oldPowerLevelsEventContent.copy(users = newUsers)
-                )
+                matrixClient.api.room
+                    .sendStateEvent(roomId = selectedRoomId, oldPowerLevelsEventContent.copy(users = newUsers))
                     .fold(
-                        onSuccess = {
-                            error.value = null
-                        },
+                        onSuccess = { error.value = null },
                         onFailure = {
                             if (it is CancellationException) {
                                 return@launch
                             }
                             log.error(it) { "cannot set user $targetUser to role $powerLevel in room $selectedRoomId" }
                             error.value = i18n.settingsRoomMemberListChangePowerLevelError(targetUser.full)
-                        })
+                        },
+                    )
             }
             changingPowerLevelDialogInput.update("")
         }
     }
 
-    private fun validateNewPowerLevelInput(
-        input: String,
-        maxPowerLevel: Long?,
-        i18n: I18n
-    ): String? {
+    private fun validateNewPowerLevelInput(input: String, maxPowerLevel: Long?, i18n: I18n): String? {
         val powerLevel = input.toLongOrNull()
         return when {
             maxPowerLevel == null -> i18n.settingsRoomMemberListChangePowerLevelInputValidationNotEntitled()

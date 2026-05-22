@@ -7,9 +7,7 @@ import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import kotlinx.coroutines.flow.map
 
 @Composable
-fun collectUserSearchResult(
-    userSearchHandler: UserSearchHandler,
-): SearchResultState {
+fun collectUserSearchResult(userSearchHandler: UserSearchHandler): SearchResultState {
     val users = userSearchHandler.foundUsers.collectAsState().value
     val waitForResults = userSearchHandler.waitForUserResults.collectAsState().value
     val searchWasApplied =

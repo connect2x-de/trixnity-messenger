@@ -25,5 +25,4 @@ open class VerificationStepRejectedViewModelImpl(
     override fun ok() {
         onVerificationRejectedOk()
     }
-
 }

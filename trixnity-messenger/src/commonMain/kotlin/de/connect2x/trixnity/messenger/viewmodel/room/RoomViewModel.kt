@@ -4,22 +4,22 @@ import com.arkivanov.decompose.Child
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
-import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
-import kotlinx.coroutines.launch
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.None as ExtrasNone
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Config.RoomSettings
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter.Wrapper.None as ExtrasWrapperNone
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Config.None as TimelineNone
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouter.Wrapper.None as TimelineWrapperNone
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineRouterImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import kotlinx.coroutines.launch
 
 interface RoomViewModelFactory {
     fun create(
@@ -29,52 +29,37 @@ interface RoomViewModelFactory {
         onCloseRoom: () -> Unit,
         onOpenMention: OpenMentionCallback,
         onOpenAvatarCutter: OpenAvatarCutterCallback,
-    ): RoomViewModel = RoomViewModelImpl(
-        viewModelContext = viewModelContext,
-        roomId = selectedRoomId,
-        onOpenRoom = onOpenRoom,
-        onCloseRoom = onCloseRoom,
-        onOpenMention = onOpenMention,
-        onOpenAvatarCutter = onOpenAvatarCutter,
-    )
+    ): RoomViewModel =
+        RoomViewModelImpl(
+            viewModelContext = viewModelContext,
+            roomId = selectedRoomId,
+            onOpenRoom = onOpenRoom,
+            onCloseRoom = onCloseRoom,
+            onOpenMention = onOpenMention,
+            onOpenAvatarCutter = onOpenAvatarCutter,
+        )
 
     companion object : RoomViewModelFactory
 }
 
-/**
- * The view model that is active when a room is selected from the room list.
- */
+/** The view model that is active when a room is selected from the room list. */
 interface RoomViewModel {
-    /**
-     * Holds the content of the messenger timeline related to the selected room.
-     */
+    /** Holds the content of the messenger timeline related to the selected room. */
     val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>>
 
-    /**
-     * Holds the content of the selected details or settings related to the selected room.
-     */
+    /** Holds the content of the selected details or settings related to the selected room. */
     val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>>
 
-    /**
-     * Requests to close the currently selected room.
-     */
+    /** Requests to close the currently selected room. */
     fun closeRoom()
 
-    /**
-     * Opens [RoomSettings.Main] and replaces any other currently active extras configs.
-     */
+    /** Opens [RoomSettings.Main] and replaces any other currently active extras configs. */
     fun openRoomSettings()
 
-    /**
-     * Opens [ExtrasRouter.Config.Details.UserProfile]
-     * for the [userId] and currently selected room.
-     */
+    /** Opens [ExtrasRouter.Config.Details.UserProfile] for the [userId] and currently selected room. */
     fun openUserProfile(userId: UserId)
 
-    /**
-     * Opens [ExtrasRouter.Config.Details.TimelineElementMetadata]
-     * for the [eventId] and currently selected room.
-     */
+    /** Opens [ExtrasRouter.Config.Details.TimelineElementMetadata] for the [eventId] and currently selected room. */
     fun openTimelineElementMetadata(eventId: EventId)
 }
 
@@ -103,26 +88,26 @@ open class RoomViewModelImpl(
         onOpenTimelineElementMetadata(eventId)
     }
 
-    private val extrasRouter: ExtrasRouter = ExtrasRouterImpl(
-        viewModelContext = viewModelContext,
-        onOpenRoom = onOpenRoom,
-        onCloseRoom = ::onCloseRoom,
-        onOpenAvatarCutter = onOpenAvatarCutter,
-        onOpenMention = onOpenMention,
-    )
-    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
-        extrasRouter.stack
+    private val extrasRouter: ExtrasRouter =
+        ExtrasRouterImpl(
+            viewModelContext = viewModelContext,
+            onOpenRoom = onOpenRoom,
+            onCloseRoom = ::onCloseRoom,
+            onOpenAvatarCutter = onOpenAvatarCutter,
+            onOpenMention = onOpenMention,
+        )
+    override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> = extrasRouter.stack
 
-    private val timelineRouter: TimelineRouter = TimelineRouterImpl(
-        viewModelContext = viewModelContext,
-        onOpenRoomSettings = ::onOpenRoomSettings,
-        onOpenUserProfile = ::onOpenUserProfile,
-        onOpenMetadata = ::onOpenTimelineElementMetadata,
-        onOpenMention = onOpenMention,
-        onCloseRoom = ::onCloseRoom,
-    )
-    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
-        timelineRouter.stack
+    private val timelineRouter: TimelineRouter =
+        TimelineRouterImpl(
+            viewModelContext = viewModelContext,
+            onOpenRoomSettings = ::onOpenRoomSettings,
+            onOpenUserProfile = ::onOpenUserProfile,
+            onOpenMetadata = ::onOpenTimelineElementMetadata,
+            onOpenMention = onOpenMention,
+            onCloseRoom = ::onCloseRoom,
+        )
+    override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> = timelineRouter.stack
 
     init {
         log.debug { "create RoomViewModel for: ${roomId.full} " }
@@ -133,44 +118,28 @@ open class RoomViewModelImpl(
         this.onCloseRoom.invoke()
     }
 
-    private fun onOpenRoomSettings() =
-        coroutineScope.launch {
-            extrasRouter.openRoomSettings(roomId)
-        }
+    private fun onOpenRoomSettings() = coroutineScope.launch { extrasRouter.openRoomSettings(roomId) }
 
-    private fun onOpenUserProfile(userId: UserId) =
-        coroutineScope.launch {
-            extrasRouter.openUserProfile(userId, roomId)
-        }
+    private fun onOpenUserProfile(userId: UserId) = coroutineScope.launch {
+        extrasRouter.openUserProfile(userId, roomId)
+    }
 
-    private fun onOpenTimelineElementMetadata(eventId: EventId) =
-        coroutineScope.launch {
-            extrasRouter.openTimelineElementMetadata(eventId, roomId)
-        }
+    private fun onOpenTimelineElementMetadata(eventId: EventId) = coroutineScope.launch {
+        extrasRouter.openTimelineElementMetadata(eventId, roomId)
+    }
 }
 
 class PreviewRoomViewModel : RoomViewModel {
     override val timelineStack: Value<ChildStack<TimelineRouter.Config, TimelineRouter.Wrapper>> =
-        MutableValue(
-            ChildStack(
-                active = Child.Created(
-                    configuration = TimelineNone,
-                    instance = TimelineWrapperNone,
-                )
-            )
-        )
+        MutableValue(ChildStack(active = Child.Created(configuration = TimelineNone, instance = TimelineWrapperNone)))
     override val extrasStack: Value<ChildStack<ExtrasRouter.Config, ExtrasRouter.Wrapper>> =
-        MutableValue(
-            ChildStack(
-                active = Child.Created(
-                    configuration = ExtrasNone,
-                    instance = ExtrasWrapperNone,
-                )
-            )
-        )
+        MutableValue(ChildStack(active = Child.Created(configuration = ExtrasNone, instance = ExtrasWrapperNone)))
 
     override fun closeRoom() {}
+
     override fun openRoomSettings() {}
+
     override fun openUserProfile(userId: UserId) {}
+
     override fun openTimelineElementMetadata(eventId: EventId) {}
 }

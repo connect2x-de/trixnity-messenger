@@ -44,8 +44,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsAl
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
 
 interface NotificationsSettingsView {
-    @Composable
-    fun create(notificationsSettingsViewModel: NotificationSettingsAllAccountsViewModel)
+    @Composable fun create(notificationsSettingsViewModel: NotificationSettingsAllAccountsViewModel)
 }
 
 @Composable
@@ -69,19 +68,14 @@ class NotificationsSettingsViewImpl : NotificationsSettingsView {
                         NotificationSettingsSingleAccount(notificationSettingsSingleAccount)
                     }
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    scroll,
-                )
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
             }
         }
     }
 }
 
 @Composable
-fun NotificationSettingsSingleAccount(
-    viewModel: NotificationSettingsSingleAccountViewModel,
-) {
+fun NotificationSettingsSingleAccount(viewModel: NotificationSettingsSingleAccountViewModel) {
     SettingsAccountCard(viewModel.account) {
         DeviceNotificationSettings(viewModel)
         SmallSpacer()
@@ -91,13 +85,11 @@ fun NotificationSettingsSingleAccount(
 
 @Composable
 internal expect fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel,
+    viewModel: NotificationSettingsSingleAccountViewModel
 )
 
 @Composable
-fun ColumnScope.DeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
-) {
+fun ColumnScope.DeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
     val i18n = DI.get<I18nView>()
     val deviceSettings = viewModel.deviceSettings.collectAsState().value
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
@@ -130,12 +122,13 @@ fun ColumnScope.DeviceNotificationSettings(
         RadioSetting(
             text = i18n.notificationsSettingsProvider(),
             icon = Icons.Default.CloudDownload,
-            options = availableProviders.associate { provider ->
-                provider.id to RadioSettingOption(text = provider.displayName)
-            },
+            options =
+                availableProviders.associate { provider ->
+                    provider.id to RadioSettingOption(text = provider.displayName)
+                },
             value = selectedProvider.id,
             set = { viewModel.selectProvider(it) },
-            enabled = enabledForThisDevice
+            enabled = enabledForThisDevice,
         )
         SmallSpacer()
     }
@@ -143,27 +136,30 @@ fun ColumnScope.DeviceNotificationSettings(
     CollapsableOptionSetting(
         text = i18n.notificationsSettingsPlatform(),
         icon = Icons.Default.Devices,
-        options = listOf(
-            OptionSettingOption(
-                text = i18n.notificationsSettingsPlatformPlaySound(),
-                value = deviceSettings.playSound,
-                toggle = { viewModel.updateDeviceSettings(deviceSettings.copy(playSound = !deviceSettings.playSound)) },
-                enabled = enabledForThisDevice
+        options =
+            listOf(
+                OptionSettingOption(
+                    text = i18n.notificationsSettingsPlatformPlaySound(),
+                    value = deviceSettings.playSound,
+                    toggle = {
+                        viewModel.updateDeviceSettings(deviceSettings.copy(playSound = !deviceSettings.playSound))
+                    },
+                    enabled = enabledForThisDevice,
+                ),
+                OptionSettingOption(
+                    text = i18n.notificationsSettingsPlatformShowDetails(),
+                    value = deviceSettings.showDetails,
+                    toggle = {
+                        viewModel.updateDeviceSettings(deviceSettings.copy(showDetails = !deviceSettings.showDetails))
+                    },
+                    enabled = enabledForThisDevice,
+                ),
             ),
-            OptionSettingOption(
-                text = i18n.notificationsSettingsPlatformShowDetails(),
-                value = deviceSettings.showDetails,
-                toggle = { viewModel.updateDeviceSettings(deviceSettings.copy(showDetails = !deviceSettings.showDetails)) },
-                enabled = enabledForThisDevice
-            ),
-        ),
     )
 }
 
 @Composable
-fun ColumnScope.AccountNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel,
-) {
+fun ColumnScope.AccountNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
     val i18n = DI.get<I18nView>()
     val enabledForThisDevice by viewModel.enabledForThisDevice.collectAsState()
     val accountSettings by viewModel.accountSettings.collectAsState()
@@ -171,33 +167,40 @@ fun ColumnScope.AccountNotificationSettings(
     val canChangeAccountSettings = !accountSettingsIsUpdating && enabledForThisDevice
 
     RadioSetting(
-        text = i18n.notificationsSettingsAccountDefaultLevel(
-            when (accountSettings.defaultLevel) {
-                AccountNotificationSettings.DefaultLevel.ROOM -> i18n.notificationsSettingsAccountDefaultLevelRoom()
-                AccountNotificationSettings.DefaultLevel.DM -> i18n.notificationsSettingsAccountDefaultLevelDM()
-                AccountNotificationSettings.DefaultLevel.MENTION -> i18n.notificationsSettingsAccountDefaultLevelMention()
-                else -> i18n.notificationsSettingsAccountDefaultLevelNone()
-            }
-        ),
+        text =
+            i18n.notificationsSettingsAccountDefaultLevel(
+                when (accountSettings.defaultLevel) {
+                    AccountNotificationSettings.DefaultLevel.ROOM -> i18n.notificationsSettingsAccountDefaultLevelRoom()
+                    AccountNotificationSettings.DefaultLevel.DM -> i18n.notificationsSettingsAccountDefaultLevelDM()
+                    AccountNotificationSettings.DefaultLevel.MENTION ->
+                        i18n.notificationsSettingsAccountDefaultLevelMention()
+                    else -> i18n.notificationsSettingsAccountDefaultLevelNone()
+                }
+            ),
         icon = Icons.Filled.AlternateEmail,
-        options = mapOf(
-            AccountNotificationSettings.DefaultLevel.ROOM to RadioSettingOption(
-                text = i18n.notificationsSettingsAccountDefaultLevelRoom(),
-                style = MaterialTheme.typography.labelLarge
+        options =
+            mapOf(
+                AccountNotificationSettings.DefaultLevel.ROOM to
+                    RadioSettingOption(
+                        text = i18n.notificationsSettingsAccountDefaultLevelRoom(),
+                        style = MaterialTheme.typography.labelLarge,
+                    ),
+                AccountNotificationSettings.DefaultLevel.DM to
+                    RadioSettingOption(
+                        text = i18n.notificationsSettingsAccountDefaultLevelDM(),
+                        style = MaterialTheme.typography.labelLarge,
+                    ),
+                AccountNotificationSettings.DefaultLevel.MENTION to
+                    RadioSettingOption(
+                        text = i18n.notificationsSettingsAccountDefaultLevelMention(),
+                        style = MaterialTheme.typography.labelLarge,
+                    ),
+                AccountNotificationSettings.DefaultLevel.NONE to
+                    RadioSettingOption(
+                        text = i18n.notificationsSettingsAccountDefaultLevelNone(),
+                        style = MaterialTheme.typography.labelLarge,
+                    ),
             ),
-            AccountNotificationSettings.DefaultLevel.DM to RadioSettingOption(
-                text = i18n.notificationsSettingsAccountDefaultLevelDM(),
-                style = MaterialTheme.typography.labelLarge
-            ),
-            AccountNotificationSettings.DefaultLevel.MENTION to RadioSettingOption(
-                text = i18n.notificationsSettingsAccountDefaultLevelMention(),
-                style = MaterialTheme.typography.labelLarge
-            ),
-            AccountNotificationSettings.DefaultLevel.NONE to RadioSettingOption(
-                text = i18n.notificationsSettingsAccountDefaultLevelNone(),
-                style = MaterialTheme.typography.labelLarge
-            ),
-        ),
         enabled = canChangeAccountSettings,
         value = accountSettings.defaultLevel,
         set = { viewModel.updateAccountSettings(accountSettings.copy(defaultLevel = it)) },
@@ -207,34 +210,43 @@ fun ColumnScope.AccountNotificationSettings(
 
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountSound(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Default.NotificationsActive
+        icon = Icons.Default.NotificationsActive,
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountSoundRoom()) },
             selected = accountSettings.sound.room,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.ROOM,
-            onChange = { viewModel.updateAccountSettings(accountSettings.copy(sound = accountSettings.sound.copy(room = !accountSettings.sound.room))) },
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.ROOM,
+            onChange = {
+                viewModel.updateAccountSettings(
+                    accountSettings.copy(sound = accountSettings.sound.copy(room = !accountSettings.sound.room))
+                )
+            },
         )
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountSoundDM()) },
             selected = accountSettings.sound.dm,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.DM,
-            onChange = { viewModel.updateAccountSettings(accountSettings.copy(sound = accountSettings.sound.copy(dm = !accountSettings.sound.dm))) },
+            enabled =
+                canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.DM,
+            onChange = {
+                viewModel.updateAccountSettings(
+                    accountSettings.copy(sound = accountSettings.sound.copy(dm = !accountSettings.sound.dm))
+                )
+            },
         )
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountSoundMention()) },
             selected = accountSettings.sound.mention,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
             onChange = {
                 viewModel.updateAccountSettings(
-                    accountSettings.copy(
-                        sound = accountSettings.sound.copy(
-                            mention = !accountSettings.sound.mention
-                        )
-                    )
+                    accountSettings.copy(sound = accountSettings.sound.copy(mention = !accountSettings.sound.mention))
                 )
             },
         )
@@ -242,27 +254,33 @@ fun ColumnScope.AccountNotificationSettings(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountSoundCall()) },
             selected = accountSettings.sound.call,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
-            onChange = { viewModel.updateAccountSettings(accountSettings.copy(sound = accountSettings.sound.copy(call = !accountSettings.sound.call))) },
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
+            onChange = {
+                viewModel.updateAccountSettings(
+                    accountSettings.copy(sound = accountSettings.sound.copy(call = !accountSettings.sound.call))
+                )
+            },
         )
     }
 
     SmallSpacer()
     ExpandableSection(
         heading = { Text(i18n.notificationsSettingsAccountOthers(), style = MaterialTheme.typography.titleSmall) },
-        icon = Icons.Default.Notifications
+        icon = Icons.Default.Notifications,
     ) {
         ThemedListItemSwitch(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountActivityInvite()) },
             selected = accountSettings.activity.invite,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
             onChange = {
                 viewModel.updateAccountSettings(
                     accountSettings.copy(
-                        activity = accountSettings.activity.copy(
-                            invite = !accountSettings.activity.invite
-                        )
+                        activity = accountSettings.activity.copy(invite = !accountSettings.activity.invite)
                     )
                 )
             },
@@ -272,13 +290,13 @@ fun ColumnScope.AccountNotificationSettings(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountActivityStatus()) },
             selected = accountSettings.activity.status,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
             onChange = {
                 viewModel.updateAccountSettings(
                     accountSettings.copy(
-                        activity = accountSettings.activity.copy(
-                            status = !accountSettings.activity.status
-                        )
+                        activity = accountSettings.activity.copy(status = !accountSettings.activity.status)
                     )
                 )
             },
@@ -288,13 +306,13 @@ fun ColumnScope.AccountNotificationSettings(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountActivityNotice()) },
             selected = accountSettings.activity.notice,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel > AccountNotificationSettings.DefaultLevel.NONE,
             onChange = {
                 viewModel.updateAccountSettings(
                     accountSettings.copy(
-                        activity = accountSettings.activity.copy(
-                            notice = !accountSettings.activity.notice
-                        )
+                        activity = accountSettings.activity.copy(notice = !accountSettings.activity.notice)
                     )
                 )
             },
@@ -304,14 +322,12 @@ fun ColumnScope.AccountNotificationSettings(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountMentionUser(viewModel.account)) },
             selected = accountSettings.mention.user,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
             onChange = {
                 viewModel.updateAccountSettings(
-                    accountSettings.copy(
-                        mention = accountSettings.mention.copy(
-                            user = !accountSettings.mention.user
-                        )
-                    )
+                    accountSettings.copy(mention = accountSettings.mention.copy(user = !accountSettings.mention.user))
                 )
             },
         )
@@ -320,14 +336,12 @@ fun ColumnScope.AccountNotificationSettings(
             style = MaterialTheme.components.settingsItem,
             headlineContent = { Text(i18n.notificationsSettingsAccountMentionRoom()) },
             selected = accountSettings.mention.room,
-            enabled = canChangeAccountSettings && accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
+            enabled =
+                canChangeAccountSettings &&
+                    accountSettings.defaultLevel >= AccountNotificationSettings.DefaultLevel.MENTION,
             onChange = {
                 viewModel.updateAccountSettings(
-                    accountSettings.copy(
-                        mention = accountSettings.mention.copy(
-                            room = !accountSettings.mention.room
-                        )
-                    )
+                    accountSettings.copy(mention = accountSettings.mention.copy(room = !accountSettings.mention.room))
                 )
             },
         )

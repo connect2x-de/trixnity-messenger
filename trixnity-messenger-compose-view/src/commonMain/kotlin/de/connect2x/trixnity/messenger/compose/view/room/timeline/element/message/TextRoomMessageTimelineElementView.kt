@@ -15,8 +15,7 @@ import kotlin.reflect.KClass
 interface TextRoomMessageTimelineElementView : TimelineElementView<Text>
 
 class TextRoomMessageTimelineElementViewImpl : TextRoomMessageTimelineElementView {
-    override val supports: KClass<Text> =
-        Text::class
+    override val supports: KClass<Text> = Text::class
 
     override suspend fun waitFor(element: Text) {
         // NO-OP (has default size)
@@ -25,20 +24,12 @@ class TextRoomMessageTimelineElementViewImpl : TextRoomMessageTimelineElementVie
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Text,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Text, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false, index = index)
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Text,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Text, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true, index = index)
     }
 
@@ -63,10 +54,8 @@ class TextRoomMessageTimelineElementViewImpl : TextRoomMessageTimelineElementVie
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Text
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Text): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Text, i18n: I18nView): String {
         return element.body

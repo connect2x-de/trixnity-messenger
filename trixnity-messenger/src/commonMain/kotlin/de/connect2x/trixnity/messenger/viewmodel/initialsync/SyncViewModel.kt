@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.initialsync
 
+import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.IsNetworkAvailable
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
@@ -9,19 +11,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.SyncState
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 enum class AccountSync {
-    INITIAL_SYNC, DONE,
+    INITIAL_SYNC,
+    DONE,
 }
 
 interface SyncViewModelFactory {
-    fun create(
-        viewModelContext: ViewModelContext,
-        onSyncDone: () -> Unit,
-    ): SyncViewModel =
+    fun create(viewModelContext: ViewModelContext, onSyncDone: () -> Unit): SyncViewModel =
         SyncViewModelImpl(viewModelContext, onSyncDone)
 
     companion object : SyncViewModelFactory
@@ -31,10 +29,8 @@ interface SyncViewModel {
     val accountSyncStates: StateFlow<Map<UserId, AccountSync>?>
 }
 
-open class SyncViewModelImpl(
-    viewModelContext: ViewModelContext,
-    private val onSyncDone: () -> Unit,
-) : SyncViewModel, ViewModelContext by viewModelContext {
+open class SyncViewModelImpl(viewModelContext: ViewModelContext, private val onSyncDone: () -> Unit) :
+    SyncViewModel, ViewModelContext by viewModelContext {
 
     override val accountSyncStates: MutableStateFlow<Map<UserId, AccountSync>?> = MutableStateFlow(null)
     private val isNetworkAvailable = get<IsNetworkAvailable>()
@@ -48,10 +44,10 @@ open class SyncViewModelImpl(
         if (isNetworkAvailable()) {
             coroutineScope {
                 val matrixClients = matrixClients.value
-                val initialSyncUsers = matrixClients
-                    .filterNot { (_, matrixClient) ->
-                        matrixClient.initialSyncDone.value
-                    }.mapValues { AccountSync.INITIAL_SYNC }
+                val initialSyncUsers =
+                    matrixClients
+                        .filterNot { (_, matrixClient) -> matrixClient.initialSyncDone.value }
+                        .mapValues { AccountSync.INITIAL_SYNC }
                 accountSyncStates.value = initialSyncUsers
 
                 matrixClients
@@ -66,9 +62,7 @@ open class SyncViewModelImpl(
                             }
                             launch {
                                 matrixClient.initialSyncDone.first { it }
-                                accountSyncStates.update {
-                                    it.orEmpty() + (userId to AccountSync.DONE)
-                                }
+                                accountSyncStates.update { it.orEmpty() + (userId to AccountSync.DONE) }
                             }
                         }
                     }
@@ -80,10 +74,11 @@ open class SyncViewModelImpl(
 }
 
 class PreviewSyncViewModel : SyncViewModel {
-    override val accountSyncStates: StateFlow<Map<UserId, AccountSync>?> = MutableStateFlow(
-        mapOf(
-            UserId("@martin:localhorst.local") to AccountSync.DONE,
-            UserId("@martin:local.local") to AccountSync.INITIAL_SYNC,
+    override val accountSyncStates: StateFlow<Map<UserId, AccountSync>?> =
+        MutableStateFlow(
+            mapOf(
+                UserId("@martin:localhorst.local") to AccountSync.DONE,
+                UserId("@martin:local.local") to AccountSync.INITIAL_SYNC,
+            )
         )
-    )
 }

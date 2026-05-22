@@ -26,6 +26,10 @@ import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -35,28 +39,18 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class NotificationSettingsSingleAccountViewModelBaseTest {
     private val userId = UserId("alice", "dino.unicorn")
 
-    private val sampleSettings = AccountNotificationSettings(
-        defaultLevel = AccountNotificationSettings.DefaultLevel.MENTION, sound = AccountNotificationSettings.Sound(
-            room = false,
-            dm = false,
-            mention = false,
-            call = false,
-        ), activity = AccountNotificationSettings.Activity(
-            invite = false,
-            status = false,
-            notice = false,
-        ), mention = AccountNotificationSettings.Mention(
-            user = false, room = false, keyword = false
-        ), keywords = setOf("alice1")
-    )
+    private val sampleSettings =
+        AccountNotificationSettings(
+            defaultLevel = AccountNotificationSettings.DefaultLevel.MENTION,
+            sound = AccountNotificationSettings.Sound(room = false, dm = false, mention = false, call = false),
+            activity = AccountNotificationSettings.Activity(invite = false, status = false, notice = false),
+            mention = AccountNotificationSettings.Mention(user = false, room = false, keyword = false),
+            keywords = setOf("alice1"),
+        )
 
     private val samplePushRuleSet = sampleSettings.toPushRuleSet(userId)
 
@@ -76,45 +70,32 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
 
         continueHandlePushRuleRequest.value = false
         pushRulesEventContentState.value = samplePushRuleSet
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { userServiceMock } }) }.koin
         every { matrixClientMock.userId } returns userId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.push } returns pushApiClientMock
-        every {
-            userServiceMock.getAccountData(
-                PushRulesEventContent::class,
-                ""
-            )
-        } returns pushRulesEventContentState.map { PushRulesEventContent((it)) }
-        everySuspend {
-            pushApiClientMock.setPushRule(any(), any(), any(), any(), any(), any())
-        } calls {
-            continueHandlePushRuleRequest.first { it }
-            Result.success(Unit)
-        }
-        everySuspend {
-            pushApiClientMock.deletePushRule(any(), any(), any())
-        } calls {
-            continueHandlePushRuleRequest.first { it }
-            Result.success(Unit)
-        }
-        everySuspend {
-            pushApiClientMock.setPushRuleActions(any(), any(), any(), any())
-        } calls {
-            continueHandlePushRuleRequest.first { it }
-            Result.success(Unit)
-        }
-        everySuspend {
-            pushApiClientMock.setPushRuleEnabled(any(), any(), any(), any())
-        } calls {
-            continueHandlePushRuleRequest.first { it }
-            Result.success(Unit)
-        }
+        every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
+            pushRulesEventContentState.map { PushRulesEventContent((it)) }
+        everySuspend { pushApiClientMock.setPushRule(any(), any(), any(), any(), any(), any()) } calls
+            {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+        everySuspend { pushApiClientMock.deletePushRule(any(), any(), any()) } calls
+            {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+        everySuspend { pushApiClientMock.setPushRuleActions(any(), any(), any(), any()) } calls
+            {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
+        everySuspend { pushApiClientMock.setPushRuleEnabled(any(), any(), any(), any()) } calls
+            {
+                continueHandlePushRuleRequest.first { it }
+                Result.success(Unit)
+            }
     }
 
     @BeforeTest
@@ -131,18 +112,17 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
     @Test
     fun `update settings`() = runTest {
         val cut = createCut()
-        backgroundScope.launch { cut.accountSettings.collect { } }
+        backgroundScope.launch { cut.accountSettings.collect {} }
 
         delay(500.milliseconds)
         cut.accountSettings.value shouldBe sampleSettings
 
-        val newSettings = sampleSettings.copy(
-            sound = sampleSettings.sound.copy(
-                call = true,
-            ), activity = sampleSettings.activity.copy(
-                notice = true,
-            ), keywords = setOf("alice2")
-        )
+        val newSettings =
+            sampleSettings.copy(
+                sound = sampleSettings.sound.copy(call = true),
+                activity = sampleSettings.activity.copy(notice = true),
+                keywords = setOf("alice2"),
+            )
         cut.updateAccountSettings(newSettings)
 
         cut.accountSettingsIsUpdating.value shouldBe true
@@ -156,15 +136,14 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
 
         verifySuspend {
             pushApiClientMock.setPushRule(
-                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice2",
-                pushRule = SetPushRule.Request(
-                    actions = actions(notify = true, highlight = true), pattern = "alice2"
-                ),
-                beforeRuleId = null, afterRuleId = null,
+                scope = "global",
+                kind = PushRuleKind.CONTENT,
+                ruleId = "alice2",
+                pushRule = SetPushRule.Request(actions = actions(notify = true, highlight = true), pattern = "alice2"),
+                beforeRuleId = null,
+                afterRuleId = null,
             )
-            pushApiClientMock.deletePushRule(
-                scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice1",
-            )
+            pushApiClientMock.deletePushRule(scope = "global", kind = PushRuleKind.CONTENT, ruleId = "alice1")
             pushApiClientMock.setPushRuleEnabled(
                 scope = "global",
                 kind = PushRuleKind.OVERRIDE,
@@ -185,13 +164,12 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
     fun `update settings with timeout`() = runTest {
         val cut = createCut()
         cut.accountSettings.firstWithClue(sampleSettings)
-        val newSettings = sampleSettings.copy(
-            sound = sampleSettings.sound.copy(
-                call = true,
-            ), activity = sampleSettings.activity.copy(
-                notice = true,
-            ), keywords = setOf("alice2")
-        )
+        val newSettings =
+            sampleSettings.copy(
+                sound = sampleSettings.sound.copy(call = true),
+                activity = sampleSettings.activity.copy(notice = true),
+                keywords = setOf("alice2"),
+            )
 
         cut.updateAccountSettings(newSettings)
 
@@ -206,18 +184,11 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
     }
 
     private fun TestScope.createCut(): NotificationSettingsSingleAccountViewModel {
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(
-                    mapOf(userId to matrixClientMock)
-                )
-            )
-        }.koin
+        val di =
+            koinApplication { modules(createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock))) }
+                .koin
         return NotificationSettingsSingleAccountViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = di,
-                userId = userId,
-            )
+            viewModelContext = testMatrixClientViewModelContext(di = di, userId = userId)
         )
     }
 
@@ -226,9 +197,10 @@ class NotificationSettingsSingleAccountViewModelBaseTest {
         sound: Boolean = false,
         soundType: String = "default",
         highlight: Boolean = false,
-    ): Set<PushAction> = setOfNotNull(
-        if (notify) PushAction.Notify else null,
-        if (sound) PushAction.SetSoundTweak(soundType) else null,
-        if (highlight) PushAction.SetHighlightTweak() else null,
-    )
+    ): Set<PushAction> =
+        setOfNotNull(
+            if (notify) PushAction.Notify else null,
+            if (sound) PushAction.SetSoundTweak(soundType) else null,
+            if (highlight) PushAction.SetHighlightTweak() else null,
+        )
 }

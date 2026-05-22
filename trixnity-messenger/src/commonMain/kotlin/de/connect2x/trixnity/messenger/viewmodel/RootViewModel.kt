@@ -5,20 +5,18 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaRouter
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.Koin
-import kotlin.coroutines.CoroutineContext
 
 interface RootViewModelFactory {
-    fun create(
-        componentContext: ComponentContext,
-        di: Koin,
-    ): RootViewModel = RootViewModelImpl(
-        componentContext = componentContext,
-        di = di,
-        coroutineContext = di.get<CoroutineScope>().coroutineContext
-    )
+    fun create(componentContext: ComponentContext, di: Koin): RootViewModel =
+        RootViewModelImpl(
+            componentContext = componentContext,
+            di = di,
+            coroutineContext = di.get<CoroutineScope>().coroutineContext,
+        )
 
     companion object : RootViewModelFactory
 }
@@ -36,8 +34,9 @@ class RootViewModelImpl(
     private val uiaRouter = UiaRouter(ViewModelContextImpl(di, componentContext, coroutineContext, "UIA"))
     override val uiaStack = uiaRouter.stack
 
-    private val router = RootRouter(
-        viewModelContext = ViewModelContextImpl(di, componentContext, coroutineContext, "Root"),
-    ).apply { showInitialization() }
+    private val router =
+        RootRouter(viewModelContext = ViewModelContextImpl(di, componentContext, coroutineContext, "Root")).apply {
+            showInitialization()
+        }
     override val stack: Value<ChildStack<Config, RootRouter.Wrapper>> = router.stack
 }

@@ -9,18 +9,15 @@ interface Initials {
 
     @Deprecated(
         message = "This cannot be overridden by DI, please use platformStringModule instead",
-        level = DeprecationLevel.WARNING
+        level = DeprecationLevel.WARNING,
     )
     companion object : Initials by InitialsImpl(PlatformGraphemeIterableProvider)
 }
 
-class InitialsImpl(
-    private val graphemeIterableProvider: GraphemeIterableProvider
-) : Initials {
+class InitialsImpl(private val graphemeIterableProvider: GraphemeIterableProvider) : Initials {
     override fun compute(name: String): String {
-        val graphs = name.split(matchBlankSpace)
-            .mapNotNull { graphemeIterableProvider(it).firstOrNull() }
-            .map { it.uppercase() }
+        val graphs =
+            name.split(matchBlankSpace).mapNotNull { graphemeIterableProvider(it).firstOrNull() }.map { it.uppercase() }
 
         if (graphs.isEmpty()) return ""
         return graphs.take(2).joinToString(separator = "")

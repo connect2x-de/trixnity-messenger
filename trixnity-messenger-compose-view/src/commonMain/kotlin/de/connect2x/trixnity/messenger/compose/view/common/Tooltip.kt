@@ -36,13 +36,12 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.TooltipStyle
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,9 +64,7 @@ fun Tooltip(
         hoverShowDelay = hoverShowDelay,
         hoverHideDelay = hoverHideDelay,
     ) {
-        Box(Modifier.semantics(true) { text = AnnotatedString(tooltip) }) {
-            content()
-        }
+        Box(Modifier.semantics(true) { text = AnnotatedString(tooltip) }) { content() }
     }
 }
 
@@ -120,49 +117,40 @@ fun Tooltip(
     }
 
     val escapeKeyPressed = EscapeKeyPressed.current
-    LaunchedEffect(Unit) {
-        escapeKeyPressed.collect {
-            hideTooltip()
-        }
-    }
+    LaunchedEffect(Unit) { escapeKeyPressed.collect { hideTooltip() } }
 
     TooltipBox(
-        modifier = modifier
-            .tooltipGestures(
-                enabled = enabled,
-                state = tooltipState,
-                longPressDelay = longPressDelay,
-                showTooltip = showTooltip,
-                hideTooltip = hideTooltip,
-            )
-            .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
+        modifier =
+            modifier
+                .tooltipGestures(
+                    enabled = enabled,
+                    state = tooltipState,
+                    longPressDelay = longPressDelay,
+                    showTooltip = showTooltip,
+                    hideTooltip = hideTooltip,
+                )
+                .tooltipAnchorSemantics(i18n.commonShowTooltip(), enabled, tooltipState, scope),
         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-        tooltip = {
-            TooltipSurface(
-                showTooltip = showTooltip,
-                hideTooltip = hideTooltip,
-            ) { tooltip() }
-        },
+        tooltip = { TooltipSurface(showTooltip = showTooltip, hideTooltip = hideTooltip) { tooltip() } },
         state = tooltipState,
         enableUserInput = false,
     ) {
         Box(
-            Modifier
-                .onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                        if (enabled) {
-                            scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                                delay(hoverShowDelay)
-                                tooltipState.show()
-                            }
-                        }
-                    } else {
+            Modifier.onFocusChanged { focusState ->
+                if (focusState.isFocused) {
+                    if (enabled) {
                         scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                            delay(hoverHideDelay)
-                            tooltipState.dismiss()
+                            delay(hoverShowDelay)
+                            tooltipState.show()
                         }
                     }
+                } else {
+                    scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                        delay(hoverHideDelay)
+                        tooltipState.dismiss()
+                    }
                 }
+            }
         ) {
             content()
         }
@@ -175,50 +163,47 @@ private fun TooltipSurface(
     style: TooltipStyle = MaterialTheme.components.tooltip,
     showTooltip: () -> Unit,
     hideTooltip: () -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.pointerInput(Unit) {
-            coroutineScope {
-                awaitPointerEventScope {
-                    val pass = PointerEventPass.Main
-                    while (true) {
-                        val event = awaitPointerEvent(pass)
-                        val inputType = event.changes[0].type
-                        if (inputType == PointerType.Mouse) {
-                            when (event.type) {
-                                PointerEventType.Enter -> {
-                                    showTooltip()
-                                }
+        modifier =
+            Modifier.pointerInput(Unit) {
+                coroutineScope {
+                    awaitPointerEventScope {
+                        val pass = PointerEventPass.Main
+                        while (true) {
+                            val event = awaitPointerEvent(pass)
+                            val inputType = event.changes[0].type
+                            if (inputType == PointerType.Mouse) {
+                                when (event.type) {
+                                    PointerEventType.Enter -> {
+                                        showTooltip()
+                                    }
 
-                                PointerEventType.Exit -> {
-                                    hideTooltip()
+                                    PointerEventType.Exit -> {
+                                        hideTooltip()
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-        },
+            },
         shape = style.shape,
         color = style.colors.containerColor,
         tonalElevation = style.tonalElevation,
-        shadowElevation = style.shadowElevation
+        shadowElevation = style.shadowElevation,
     ) {
         Box(
-            modifier = Modifier
-                .sizeIn(
-                    minWidth = 40.dp,
-                    maxWidth = 600.dp,
-                    minHeight = 24.dp
-                )
-                .padding(8.dp, 4.dp)
-                .padding(style.contentPadding)
+            modifier =
+                Modifier.sizeIn(minWidth = 40.dp, maxWidth = 600.dp, minHeight = 24.dp)
+                    .padding(8.dp, 4.dp)
+                    .padding(style.contentPadding)
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides style.colors.contentColor,
                 LocalTextStyle provides style.textStyle,
-                content = content
+                content = content,
             )
         }
     }

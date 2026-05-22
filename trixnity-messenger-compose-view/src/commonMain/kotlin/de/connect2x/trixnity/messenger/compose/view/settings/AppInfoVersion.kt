@@ -18,8 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.settings.AppInfoViewKt")
 
 interface AppInfoVersionView {
-    @Composable
-    fun create(appInfoViewModel: AppInfoViewModel)
+    @Composable fun create(appInfoViewModel: AppInfoViewModel)
 }
 
 @Composable

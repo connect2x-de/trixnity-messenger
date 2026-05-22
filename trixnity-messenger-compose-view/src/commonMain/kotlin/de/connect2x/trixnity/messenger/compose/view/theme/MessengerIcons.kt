@@ -14,7 +14,6 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
 
-
 interface MessengerIcons {
     val typeAudio: ImageVector
     val typeVideo: ImageVector
@@ -37,10 +36,7 @@ object DefaultMessengerIcons : MessengerIcons {
     override val recordVideo: ImageVector = Icons.Default.Videocam
 }
 
-internal val MessengerIconsProvider =
-    staticCompositionLocalOf<MessengerIcons> { error("compositionLocal not defined") }
+internal val MessengerIconsProvider = staticCompositionLocalOf<MessengerIcons> { error("compositionLocal not defined") }
 
 val MaterialTheme.messengerIcons: MessengerIcons
-    @Composable
-    @ReadOnlyComposable
-    get() = MessengerIconsProvider.current
+    @Composable @ReadOnlyComposable get() = MessengerIconsProvider.current

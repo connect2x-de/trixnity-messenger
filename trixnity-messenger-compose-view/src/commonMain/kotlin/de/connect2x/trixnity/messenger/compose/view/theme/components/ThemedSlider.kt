@@ -21,19 +21,11 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
-data class SliderStyle(
-    val colors: SliderColors,
-    val focusedBorder: BorderStroke?,
-) {
+data class SliderStyle(val colors: SliderColors, val focusedBorder: BorderStroke?) {
     companion object {
         @Composable
-        fun default(
-            colors: SliderColors = SliderDefaults.colors(),
-            focusedBorder: BorderStroke? = null,
-        ) = SliderStyle(
-            colors = colors,
-            focusedBorder = focusedBorder,
-        )
+        fun default(colors: SliderColors = SliderDefaults.colors(), focusedBorder: BorderStroke? = null) =
+            SliderStyle(colors = colors, focusedBorder = focusedBorder)
     }
 }
 
@@ -48,13 +40,13 @@ fun ThemedSlider(
     @IntRange(from = 0) steps: Int = 0,
     onValueChangeFinished: (() -> Unit)? = null,
     style: SliderStyle = MaterialTheme.components.slider,
-    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
     val hasFocus = interactionSource.collectIsFocusedAsState().value
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (enabled && hasFocus) Modifier.border(borderStroke)
-        else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke ->
+            if (enabled && hasFocus) Modifier.border(borderStroke) else Modifier
+        } ?: Modifier
 
     Slider(
         value,
@@ -76,7 +68,8 @@ fun ThemedSlider(
                         true
                     }
 
-                    Key.DirectionLeft, Key.DirectionDown -> {
+                    Key.DirectionLeft,
+                    Key.DirectionDown -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
                             val stepSize = range / steps
@@ -85,7 +78,8 @@ fun ThemedSlider(
                         true
                     }
 
-                    Key.DirectionRight, Key.DirectionUp -> {
+                    Key.DirectionRight,
+                    Key.DirectionUp -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
                             val stepSize = range / steps
@@ -119,22 +113,18 @@ fun ThemedSlider(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     @IntRange(from = 0) steps: Int = 0,
     thumb: @Composable (SliderState) -> Unit = {
-        SliderDefaults.Thumb(
-            interactionSource = interactionSource,
-            colors = style.colors,
-            enabled = enabled
-        )
+        SliderDefaults.Thumb(interactionSource = interactionSource, colors = style.colors, enabled = enabled)
     },
     track: @Composable (SliderState) -> Unit = { sliderState ->
         SliderDefaults.Track(colors = style.colors, enabled = enabled, sliderState = sliderState)
     },
-    valueRange: ClosedFloatingPointRange<Float> = 0f..1f
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
 ) {
     val hasFocus = interactionSource.collectIsFocusedAsState().value
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (enabled && hasFocus) Modifier.border(borderStroke)
-        else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke ->
+            if (enabled && hasFocus) Modifier.border(borderStroke) else Modifier
+        } ?: Modifier
 
     Slider(
         value,
@@ -156,7 +146,8 @@ fun ThemedSlider(
                         true
                     }
 
-                    Key.DirectionLeft, Key.DirectionDown -> {
+                    Key.DirectionLeft,
+                    Key.DirectionDown -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
                             val stepSize = range / steps
@@ -165,7 +156,8 @@ fun ThemedSlider(
                         true
                     }
 
-                    Key.DirectionRight, Key.DirectionUp -> {
+                    Key.DirectionRight,
+                    Key.DirectionUp -> {
                         if (event.type == KeyEventType.KeyDown) {
                             val range = valueRange.endInclusive - valueRange.start
                             val stepSize = range / steps

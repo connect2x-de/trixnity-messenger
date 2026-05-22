@@ -5,8 +5,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface JoinedRoomListView {
-    @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel, showRoomTime: Boolean)
+    @Composable fun create(roomListElementViewModel: RoomListElementViewModel, showRoomTime: Boolean)
 }
 
 @Composable
@@ -21,9 +20,7 @@ class JoinedRoomListViewImpl : JoinedRoomListView {
         RoomListElementBase(
             roomListElementViewModel,
             roomDetails = { RoomNameAndLastMessage(roomListElementViewModel) },
-            roomActions = {
-                RoomTimeAndUnreadMessagesCounter(roomListElementViewModel, showRoomTime)
-            }
+            roomActions = { RoomTimeAndUnreadMessagesCounter(roomListElementViewModel, showRoomTime) },
         )
     }
 }

@@ -50,10 +50,15 @@ interface CreateNewChatViewModel {
     val isCreating: StateFlow<Boolean>
     val error: StateFlow<String?>
     val errorDetails: StateFlow<String?>
+
     fun onUserClick(user: SearchUserElement)
+
     fun createGroup()
+
     fun searchGroup()
+
     fun errorDismiss()
+
     fun cancel()
 }
 
@@ -63,26 +68,22 @@ open class CreateNewChatViewModelImpl(
     private val onCreateGroup: (UserId) -> Unit,
     private val onSearchGroup: (UserId) -> Unit,
     private val onCancel: () -> Unit,
-) : CreateNewChatViewModel,
-    MatrixClientViewModelContext by viewModelContext {
+) : CreateNewChatViewModel, MatrixClientViewModelContext by viewModelContext {
     private val createNewRoomErrorFormatter = CreateNewRoomErrorFormatter(get())
 
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
-        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+        HistoryVisibilityEventContent.HistoryVisibility.entries -
+            HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
 
-    private val backCallback = BackCallback {
-        cancel()
-    }
+    private val backCallback = BackCallback { cancel() }
 
     init {
         registerBackCallback(backCallback)
-        coroutineScope.launch {
-            getAllDirectRooms()
-        }
+        coroutineScope.launch { getAllDirectRooms() }
     }
 
     override fun createGroup() {
@@ -106,23 +107,25 @@ open class CreateNewChatViewModelImpl(
             val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
             if (
                 existingRoomIds?.isNotEmpty() == true &&
-                existingRoomIds.any {
-                    val room = matrixClient.room.getById(it).first()
-                    room != null && (room.membership == Membership.JOIN || room.membership == Membership.INVITE)
-                }
+                    existingRoomIds.any {
+                        val room = matrixClient.room.getById(it).first()
+                        room != null && (room.membership == Membership.JOIN || room.membership == Membership.INVITE)
+                    }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
                 // check whether the user left the room; if so, do NOT re-use the room
-                existingRoomIds.find {
-                    val membership = matrixClient.user.getById(it, userId).first()?.membership
-                    (membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK)
-                            && (matrixClient.user.getAll(it).firstOrNull()?.size ?: 0) == 2
-                }?.let { roomId ->
-                    log.info { "go to existing room with $userId" }
-                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
-                } ?: run {
-                    createNewRoom(userId)
-                }
+                existingRoomIds
+                    .find {
+                        val membership = matrixClient.user.getById(it, userId).first()?.membership
+                        (membership == Membership.JOIN ||
+                            membership == Membership.INVITE ||
+                            membership == Membership.KNOCK) &&
+                            (matrixClient.user.getAll(it).firstOrNull()?.size ?: 0) == 2
+                    }
+                    ?.let { roomId ->
+                        log.info { "go to existing room with $userId" }
+                        createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
+                    } ?: run { createNewRoom(userId) }
             } else {
                 createNewRoom(userId)
             }
@@ -147,36 +150,39 @@ open class CreateNewChatViewModelImpl(
 
         log.info { "create new room with $userId" }
         val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
-        val historyVisibility = optionalRoomHistoryVisibility.value?.let {
-            listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
-        } ?: emptyList()
-        matrixClient.api.room.createRoom(
-            isDirect = true,
-            invite = setOf(userId),
-            initialState = encryption + historyVisibility,
-            preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
-        ).fold(
-            onSuccess = { roomId ->
-                log.debug { "created room ${roomId.full}" }
-                createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
-            },
-            onFailure = {
-                log.error(it) { "Cannot create room." }
-                createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
-                createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
-            }
-        )
+        val historyVisibility =
+            optionalRoomHistoryVisibility.value?.let {
+                listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+            } ?: emptyList()
+        matrixClient.api.room
+            .createRoom(
+                isDirect = true,
+                invite = setOf(userId),
+                initialState = encryption + historyVisibility,
+                preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE,
+            )
+            .fold(
+                onSuccess = { roomId ->
+                    log.debug { "created room ${roomId.full}" }
+                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
+                },
+                onFailure = {
+                    log.error(it) { "Cannot create room." }
+                    createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
+                    createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
+                },
+            )
 
         _isCreating.value = false
     }
-
 }
 
 class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
     override val createNewRoomViewModel: CreateNewRoomViewModel = PreviewCreateNewRoomViewModel()
 
     override val availableRoomHistoryVisibilities: List<HistoryVisibilityEventContent.HistoryVisibility> =
-        HistoryVisibilityEventContent.HistoryVisibility.entries - HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+        HistoryVisibilityEventContent.HistoryVisibility.entries -
+            HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
     override val optionalRoomHistoryVisibility: MutableStateFlow<HistoryVisibilityEventContent.HistoryVisibility?> =
         MutableStateFlow(null)
     override val isCreating: StateFlow<Boolean> = MutableStateFlow(false)
@@ -184,9 +190,12 @@ class PreviewCreateNewChatViewModel : CreateNewChatViewModel {
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
 
     override fun onUserClick(user: SearchUserElement) {}
-    override fun createGroup() {}
-    override fun searchGroup() {}
-    override fun errorDismiss() {}
-    override fun cancel() {}
 
+    override fun createGroup() {}
+
+    override fun searchGroup() {}
+
+    override fun errorDismiss() {}
+
+    override fun cancel() {}
 }

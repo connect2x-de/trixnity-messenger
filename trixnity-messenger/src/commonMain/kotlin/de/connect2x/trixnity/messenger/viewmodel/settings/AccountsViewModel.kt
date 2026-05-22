@@ -53,10 +53,15 @@ interface AccountsViewModel {
     val canChangeMultiProfileMode: StateFlow<Boolean>
 
     fun close()
+
     fun errorDismiss()
+
     fun openAvatarCutter(userId: UserId, file: FileDescriptor)
+
     fun closeAvatarCutter()
+
     fun createNewAccount()
+
     fun setMultiProfileEnabled(enabled: Boolean)
 }
 
@@ -75,42 +80,56 @@ class AccountsViewModelImpl(
     override val error = MutableStateFlow<String?>(null)
     override val openAvatarCutter: StateFlow<UserId?>
     override val isMultiProfile: StateFlow<Boolean> =
-        (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false))
-            .stateIn(coroutineScope, WhileSubscribed(), false)
+        (profileManager?.isMultiProfileEnabled?.map { it != null && it } ?: flowOf(false)).stateIn(
+            coroutineScope,
+            WhileSubscribed(),
+            false,
+        )
 
     // If there is more than one profile the user cannot disable multi-profile mode
     override val canChangeMultiProfileMode: StateFlow<Boolean> =
         combine(isMultiProfile, profileManager?.profiles?.map { it.size > 1 } ?: flowOf(false)) {
-            val isMultiProfile = it[0]
-            val moreThanOneProfile = it[1]
-            // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more than
-            // one profiles. In this case, we should still allow the user to enable it.
-            !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
-        }.stateIn(coroutineScope, WhileSubscribed(), true)
+                val isMultiProfile = it[0]
+                val moreThanOneProfile = it[1]
+                // Technically, we could encounter a case where the multi-profile mode is disabled, but there are more
+                // than
+                // one profiles. In this case, we should still allow the user to enable it.
+                !isMultiProfile || (isMultiProfile && !moreThanOneProfile)
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), true)
 
-    private val backCallback = BackCallback {
-        close()
-    }
+    private val backCallback = BackCallback { close() }
 
     init {
         registerBackCallback(backCallback)
-        accountSingleViewModels = matrixClients.scopedMapLatest { matrixClients ->
-            matrixClients.map { (userId, _) ->
-                this@AccountsViewModelImpl.get<AccountSingleViewModelFactory>().create(
-                    viewModelContext.childContext("account-settings-${userId.full}", userId),
-                    userId,
-                    error,
-                    showAccountSetup = { onShowAccountSetup(userId) },
-                    removeAccount = { onRemoveAccount(userId) },
-                )
-            }
-        }.stateIn(coroutineScope, WhileSubscribed(), emptyList())
+        accountSingleViewModels =
+            matrixClients
+                .scopedMapLatest { matrixClients ->
+                    matrixClients.map { (userId, _) ->
+                        this@AccountsViewModelImpl.get<AccountSingleViewModelFactory>()
+                            .create(
+                                viewModelContext.childContext("account-settings-${userId.full}", userId),
+                                userId,
+                                error,
+                                showAccountSetup = { onShowAccountSetup(userId) },
+                                removeAccount = { onRemoveAccount(userId) },
+                            )
+                    }
+                }
+                .stateIn(coroutineScope, WhileSubscribed(), emptyList())
 
-        openAvatarCutter = accountSingleViewModels.flatMapLatest { profilesOfAccounts ->
-            combine(profilesOfAccounts.map { profileOfAccount -> profileOfAccount.openAvatarCutter.map { profileOfAccount.userId to it } }) { list ->
-                list.find { (_, openAvatarChooser) -> openAvatarChooser }?.first
-            }
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, null)
+        openAvatarCutter =
+            accountSingleViewModels
+                .flatMapLatest { profilesOfAccounts ->
+                    combine(
+                        profilesOfAccounts.map { profileOfAccount ->
+                            profileOfAccount.openAvatarCutter.map { profileOfAccount.userId to it }
+                        }
+                    ) { list ->
+                        list.find { (_, openAvatarChooser) -> openAvatarChooser }?.first
+                    }
+                }
+                .stateIn(coroutineScope, SharingStarted.Eagerly, null)
     }
 
     override fun close() {

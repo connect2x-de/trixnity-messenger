@@ -6,8 +6,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 
 interface TimelineElementViewFactorySelector<T> {
     @Composable
-    fun rememberFactory(element: TimelineElementViewModel<*>): T =
-        remember(element) { selectFactory(element) }
+    fun rememberFactory(element: TimelineElementViewModel<*>): T = remember(element) { selectFactory(element) }
 
     fun selectFactory(element: TimelineElementViewModel<*>): T
 }

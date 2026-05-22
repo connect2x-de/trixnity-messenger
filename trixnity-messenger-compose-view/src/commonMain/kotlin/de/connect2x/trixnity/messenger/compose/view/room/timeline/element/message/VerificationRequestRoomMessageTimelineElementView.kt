@@ -59,8 +59,7 @@ import kotlin.reflect.KClass
 interface VerificationRequestRoomMessageTimelineElementView : TimelineElementView<VerificationRequest>
 
 class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationRequestRoomMessageTimelineElementView {
-    override val supports: KClass<VerificationRequest> =
-        VerificationRequest::class
+    override val supports: KClass<VerificationRequest> = VerificationRequest::class
 
     override suspend fun waitFor(element: VerificationRequest) {
         // NO-OP (has default size)
@@ -78,11 +77,7 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: VerificationRequest,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: VerificationRequest, index: Int) {
         UserVerification(holder, element)
     }
 
@@ -92,8 +87,7 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
         element: VerificationRequest,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun createReplyInSendMessage(
@@ -101,66 +95,48 @@ class VerificationRequestRoomMessageTimelineElementViewImpl : VerificationReques
         element: VerificationRequest,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: VerificationRequest
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: VerificationRequest): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: VerificationRequest, i18n: I18nView): String {
-        return i18n.userVerificationStarted(i18n.commonUnknown()) // TODO we cannot react to changes here, as the a11yLabel is set once during building the compose graph
+        return i18n.userVerificationStarted(
+            i18n.commonUnknown()
+        ) // TODO we cannot react to changes here, as the a11yLabel is set once during building the compose graph
     }
 }
 
 @Composable
-private fun UserVerification(
-    holder: BaseTimelineElementHolderViewModel,
-    element: VerificationRequest,
-) {
+private fun UserVerification(holder: BaseTimelineElementHolderViewModel, element: VerificationRequest) {
     val i18n = DI.get<I18nView>()
     val sender = holder.sender.collectAsState().value
     val isActive = element.isActive.collectAsState().value == true
     ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
         if (isActive) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .padding(20.dp)
-            ) {
+            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).padding(20.dp)) {
                 Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Shield, "")
                         Spacer(Modifier.size(10.dp))
                         Text(
                             text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
+                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp),
                         )
-                        Tooltip(
-                            tooltip = { Text(i18n.commonCancel()) }
-                        ) {
+                        Tooltip(tooltip = { Text(i18n.commonCancel()) }) {
                             ThemedIconButton(
                                 style = MaterialTheme.components.destructiveIconButton,
                                 onClick = element::cancel,
                             ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    i18n.commonCancel(),
-                                )
+                                Icon(Icons.Default.Close, i18n.commonCancel())
                             }
                         }
                     }
                     Children(stack = element.stack) {
                         when (val child = it.instance) {
-                            is VerificationRouter.Wrapper.Verification -> UserVerificationStepSwitch(
-                                child.viewModel
-                            )
+                            is VerificationRouter.Wrapper.Verification -> UserVerificationStepSwitch(child.viewModel)
 
                             is VerificationRouter.Wrapper.None -> Box {}
                         }
@@ -171,23 +147,19 @@ private fun UserVerification(
     }
 }
 
-
 @Composable
 private fun UserVerificationStepSwitch(viewModel: VerificationViewModel) {
     Column {
-        Children(
-            stack = viewModel.stack,
-            animation = stackAnimation(fade())
-        ) {
+        Children(stack = viewModel.stack, animation = stackAnimation(fade())) {
             Spacer(Modifier.size(20.dp))
             Box {
                 when (val child = it.instance) {
                     is VerificationViewModel.Wrapper.Request -> UserVerificationRequest(child.viewModel)
                     is VerificationViewModel.Wrapper.Wait -> DeviceVerificationWaitForOther(viewModel::cancel)
-                    is VerificationViewModel.Wrapper.SelectVerificationMethod -> SelectVerificationMethod(child.viewModel)
+                    is VerificationViewModel.Wrapper.SelectVerificationMethod ->
+                        SelectVerificationMethod(child.viewModel)
                     is VerificationViewModel.Wrapper.AcceptSasStart -> AcceptSasStart(child.viewModel)
-                    is VerificationViewModel.Wrapper.CompareEmojisOrNumbers ->
-                        CompareEmojisOrNumbers(child.viewModel)
+                    is VerificationViewModel.Wrapper.CompareEmojisOrNumbers -> CompareEmojisOrNumbers(child.viewModel)
 
                     is VerificationViewModel.Wrapper.Success -> UserVerificationSuccess()
                     is VerificationViewModel.Wrapper.Rejected -> VerificationRejected(child.viewModel)

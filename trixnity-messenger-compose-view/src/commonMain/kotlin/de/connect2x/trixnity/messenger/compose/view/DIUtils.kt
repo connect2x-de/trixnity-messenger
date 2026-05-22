@@ -10,7 +10,8 @@ import org.koin.core.parameter.ParametersDefinition
 import org.koin.core.parameter.emptyParametersHolder
 import org.koin.core.qualifier.Qualifier
 
-// inspired by https://github.com/InsertKoinIO/koin/blob/main/projects/compose/koin-compose/src/commonMain/kotlin/org/koin/compose/Inject.kt#L36
+// inspired by
+// https://github.com/InsertKoinIO/koin/blob/main/projects/compose/koin-compose/src/commonMain/kotlin/org/koin/compose/Inject.kt#L36
 @Composable
 inline fun <reified T : Any> ProvidableCompositionLocal<Koin>.get(
     qualifier: Qualifier? = null,
@@ -18,11 +19,7 @@ inline fun <reified T : Any> ProvidableCompositionLocal<Koin>.get(
 ): T {
     val di = current
     val currentParameters by rememberUpdatedState(parameters)
-    return remember(qualifier) {
-        di.get(qualifier) {
-            currentParameters?.invoke() ?: emptyParametersHolder()
-        }
-    }
+    return remember(qualifier) { di.get(qualifier) { currentParameters?.invoke() ?: emptyParametersHolder() } }
 }
 
 @Composable
@@ -32,9 +29,5 @@ inline fun <reified T : Any> ProvidableCompositionLocal<Koin>.getOrNull(
 ): T? {
     val di = current
     val currentParameters by rememberUpdatedState(parameters)
-    return remember(qualifier) {
-        di.getOrNull(qualifier) {
-            currentParameters?.invoke() ?: emptyParametersHolder()
-        }
-    }
+    return remember(qualifier) { di.getOrNull(qualifier) { currentParameters?.invoke() ?: emptyParametersHolder() } }
 }

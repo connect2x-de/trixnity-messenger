@@ -35,6 +35,11 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.fail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,12 +51,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.fail
-
 
 @Suppress("NonAsciiCharacters")
 class MatrixClientsTest {
@@ -90,37 +89,45 @@ class MatrixClientsTest {
     }
 
     init {
-        createMatrixClient calls {
-            val userId = it.args[0] as? UserId
-            createCalled = true
-            createCalledCount++
-            val matrixClient = when (userId) {
-                userId1 -> matrixClientMock1
-                userId2 -> matrixClientMock2
-                else -> fail("unconfigured repositories module $userId")
+        createMatrixClient calls
+            {
+                val userId = it.args[0] as? UserId
+                createCalled = true
+                createCalledCount++
+                val matrixClient =
+                    when (userId) {
+                        userId1 -> matrixClientMock1
+                        userId2 -> matrixClientMock2
+                        else -> fail("unconfigured repositories module $userId")
+                    }
+                Result.success(matrixClient)
             }
-            Result.success(matrixClient)
-        }
 
-        loadMatrixClient calls {
-            val userId = it.args[0] as? UserId
-            loadCalled = true
-            loadCalledCount++
-            val matrixClient = when (userId) {
-                userId1 -> matrixClientMock1
-                userId2 -> matrixClientMock2
-                else -> fail("unconfigured repositories module $userId")
+        loadMatrixClient calls
+            {
+                val userId = it.args[0] as? UserId
+                loadCalled = true
+                loadCalledCount++
+                val matrixClient =
+                    when (userId) {
+                        userId1 -> matrixClientMock1
+                        userId2 -> matrixClientMock2
+                        else -> fail("unconfigured repositories module $userId")
+                    }
+                Result.success(matrixClient)
             }
-            Result.success(matrixClient)
-        }
 
-        val state = koinApplication {
-            modules(module {
-                single<CoroutineScope> {
-                    CoroutineScope(EmptyCoroutineContext).also { it.coroutineContext.job.cancel() }
+        val state =
+            koinApplication {
+                    modules(
+                        module {
+                            single<CoroutineScope> {
+                                CoroutineScope(EmptyCoroutineContext).also { it.coroutineContext.job.cancel() }
+                            }
+                        }
+                    )
                 }
-            })
-        }.koin
+                .koin
         every { matrixClientMock1.di } returns state
 
         every { matrixClientMock1.userId } returns userId1
@@ -128,10 +135,11 @@ class MatrixClientsTest {
         loginState = MutableStateFlow(MatrixClient.LoginState.LOGGED_IN)
         every { matrixClientMock1.loginState } returns loginState
         every { matrixClientMock2.loginState } returns loginState
-        everySuspend { matrixClientMock1.logout() } calls {
-            logoutCalled = true
-            Result.success(Unit)
-        }
+        everySuspend { matrixClientMock1.logout() } calls
+            {
+                logoutCalled = true
+                Result.success(Unit)
+            }
         everySuspend { secretByteArrays.set(any(), any()) } returns Unit
         everySuspend { secretByteArrays.get(any()) } returns null
         everySuspend {
@@ -144,16 +152,11 @@ class MatrixClientsTest {
                 initialDeviceDisplayName = any(),
                 refreshToken = any(),
             )
-        } calls { args ->
-            val username = args.args[0] as User
-            Result.success(
-                Login.Response(
-                    UserId(username.user, "server"),
-                    accessToken = "",
-                    deviceId = "",
-                )
-            )
-        }
+        } calls
+            { args ->
+                val username = args.args[0] as User
+                Result.success(Login.Response(UserId(username.user, "server"), accessToken = "", deviceId = ""))
+            }
         every { matrixClientServerApiClient.authentication } returns authenticationApiClient
         everySuspend { authenticationApiClient.logout() } returns Result.success(Unit)
         every { matrixClientMock1.close() } returns Unit
@@ -193,10 +196,7 @@ class MatrixClientsTest {
         createCalled shouldBe true
         createCalledCount shouldBe 2
 
-        cut.value shouldBe mapOf(
-            userId1 to matrixClientMock1,
-            userId2 to matrixClientMock2,
-        )
+        cut.value shouldBe mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
     }
 
     @Test
@@ -223,16 +223,8 @@ class MatrixClientsTest {
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
         val result = cut.initFromStore()
 
-        result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(
-                userId1,
-                userId2,
-            ), mapOf()
-        )
-        cut.value shouldBe mapOf(
-            userId1 to matrixClientMock1,
-            userId2 to matrixClientMock2,
-        )
+        result shouldBe MatrixClients.InitFromStoreResult(setOf(userId1, userId2), mapOf())
+        cut.value shouldBe mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
         loadCalled shouldBe true
     }
 
@@ -241,18 +233,11 @@ class MatrixClientsTest {
         val cut = createCut()
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        mutableMatrixClients.value = mapOf(
-            userId1 to matrixClientMock1,
-        )
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1)
         val result = cut.initFromStore()
 
-        result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(userId2), mapOf()
-        )
-        cut.value shouldBe mapOf(
-            userId1 to matrixClientMock1,
-            userId2 to matrixClientMock2,
-        )
+        result shouldBe MatrixClients.InitFromStoreResult(setOf(userId2), mapOf())
+        cut.value shouldBe mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
         loadCalledCount shouldBe 1
     }
 
@@ -264,9 +249,11 @@ class MatrixClientsTest {
 
         val result = cut.initFromStore()
 
-        result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(), mapOf(userId1 to MatrixClientInitializationException.DatabaseAccessException())
-        )
+        result shouldBe
+            MatrixClients.InitFromStoreResult(
+                setOf(),
+                mapOf(userId1 to MatrixClientInitializationException.DatabaseAccessException()),
+            )
         cut.value shouldBe mapOf()
     }
 
@@ -298,10 +285,11 @@ class MatrixClientsTest {
 
         val result = cut.initFromStore()
 
-        result shouldBe MatrixClients.InitFromStoreResult(
-            setOf(),
-            mapOf(id to MatrixClientInitializationException.DatabaseAccessException())
-        )
+        result shouldBe
+            MatrixClients.InitFromStoreResult(
+                setOf(),
+                mapOf(id to MatrixClientInitializationException.DatabaseAccessException()),
+            )
         cut.value shouldBe mapOf()
 
         cut.remove(id)
@@ -313,16 +301,11 @@ class MatrixClientsTest {
         val cut = createCut()
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        mutableMatrixClients.value = mapOf(
-            userId1 to matrixClientMock1,
-            userId2 to matrixClientMock2,
-        )
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
 
         cut.logout(userId1) shouldBe Result.success(Unit)
 
-        cut.value shouldBe mapOf(
-            userId2 to matrixClientMock2,
-        )
+        cut.value shouldBe mapOf(userId2 to matrixClientMock2)
         logoutCalled shouldBe true
         settings.value.base.accounts.keys shouldBe setOf(userId2)
         verifySuspend {
@@ -331,15 +314,12 @@ class MatrixClientsTest {
         }
     }
 
-
     @Test
     fun `external logout » remove matrix client`() = runTest {
         val cut = createCut()
         backgroundScope.launch { cut.doWork() }
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
-        mutableMatrixClients.value = mapOf(
-            userId1 to matrixClientMock1,
-        )
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1)
 
         loginState.value = MatrixClient.LoginState.LOGGED_OUT
 
@@ -358,16 +338,11 @@ class MatrixClientsTest {
         val cut = createCut()
         settings.create(userId1, MatrixMessengerAccountSettingsBase())
         settings.create(userId2, MatrixMessengerAccountSettingsBase())
-        mutableMatrixClients.value = mapOf(
-            userId1 to matrixClientMock1,
-            userId2 to matrixClientMock2,
-        )
+        mutableMatrixClients.value = mapOf(userId1 to matrixClientMock1, userId2 to matrixClientMock2)
 
         cut.remove(userId1) shouldBe Result.success(Unit)
 
-        cut.value shouldBe mapOf(
-            userId2 to matrixClientMock2,
-        )
+        cut.value shouldBe mapOf(userId2 to matrixClientMock2)
         logoutCalled shouldBe false
         settings.value.base.accounts.keys shouldBe setOf(userId2)
         verifySuspend {
@@ -377,51 +352,45 @@ class MatrixClientsTest {
         }
     }
 
+    private fun TestScope.createCut(): MatrixClientsImpl =
+        MatrixClientsImpl(
+            matrixClientFactory = matrixClientFactory,
+            deleteAccountData = deleteAccountData,
+            settings = settings,
+            config =
+                MatrixMessengerConfiguration().apply {
+                    httpClientEngine = MockEngine.create {
+                        dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
+                        addHandler { request ->
+                            when (request.url.fullPath) {
+                                "/_matrix/client/v3/account/whoami" -> {
+                                    val userId =
+                                        request.headers["Authorization"]?.removePrefix("Bearer ")?.let { UserId(it) }
+                                    if (userId == null) respond("no Authorization header", HttpStatusCode.Unauthorized)
+                                    else
+                                        respond(
+                                            """{"user_id":"${userId.full}","device_id":"deviceId"}""",
+                                            HttpStatusCode.OK,
+                                            headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                                        )
+                                }
 
-    private fun TestScope.createCut(): MatrixClientsImpl = MatrixClientsImpl(
-        matrixClientFactory = matrixClientFactory,
-        deleteAccountData = deleteAccountData,
-        settings = settings,
-        config = MatrixMessengerConfiguration().apply {
-            httpClientEngine = MockEngine.create {
-                dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
-                addHandler { request ->
-                    when (request.url.fullPath) {
-                        "/_matrix/client/v3/account/whoami" -> {
-                            val userId = request.headers["Authorization"]?.removePrefix("Bearer ")?.let { UserId(it) }
-                            if (userId == null)
-                                respond(
-                                    "no Authorization header",
-                                    HttpStatusCode.Unauthorized
-                                )
-                            else
-                                respond(
-                                    """{"user_id":"${userId.full}","device_id":"deviceId"}""",
-                                    HttpStatusCode.OK,
-                                    headersOf(
-                                        HttpHeaders.ContentType,
-                                        ContentType.Application.Json.toString(),
-                                    )
-                                )
-                        }
-
-                        else -> {
-                            respond(
-                                "unknown ${request.url.fullPath}",
-                                HttpStatusCode.BadRequest
-                            )
+                                else -> {
+                                    respond("unknown ${request.url.fullPath}", HttpStatusCode.BadRequest)
+                                }
+                            }
                         }
                     }
-                }
-            }
-        },
-        secretByteArrays = secretByteArrays,
-        i18n = object : I18n(
-            DefaultLanguages,
-            createTestMatrixMessengerSettingsHolder(),
-            GetSystemLang { "en" },
-            TimeZone.of("CET"),
-        ) {},
-        matrixClients = mutableMatrixClients,
-    )
+                },
+            secretByteArrays = secretByteArrays,
+            i18n =
+                object :
+                    I18n(
+                        DefaultLanguages,
+                        createTestMatrixMessengerSettingsHolder(),
+                        GetSystemLang { "en" },
+                        TimeZone.of("CET"),
+                    ) {},
+            matrixClients = mutableMatrixClients,
+        )
 }

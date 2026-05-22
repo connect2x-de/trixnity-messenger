@@ -4,5 +4,5 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun platformSendLogToDevsModule(): Module = module {
-    //TODO
+    // TODO
 }

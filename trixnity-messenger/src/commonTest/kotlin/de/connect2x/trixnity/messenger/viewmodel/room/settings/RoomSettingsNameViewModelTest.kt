@@ -26,6 +26,10 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.reflect.KClass
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -36,10 +40,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 class RoomSettingsNameViewModelTest {
     private val roomId = RoomId("!room")
@@ -55,16 +55,17 @@ class RoomSettingsNameViewModelTest {
     private var roomGetById: BlockingAnsweringScope<Flow<Room?>>
 
     init {
-        resetMocks(
-            matrixClientMock, roomServiceMock, userServiceMock, matrixClientServerApiMock, roomsApiClientMock
-        )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                })
-        }.koin
+        resetMocks(matrixClientMock, roomServiceMock, userServiceMock, matrixClientServerApiMock, roomsApiClientMock)
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns me
         every { matrixClientMock.api } returns matrixClientServerApiMock
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
@@ -72,9 +73,7 @@ class RoomSettingsNameViewModelTest {
         roomGetById = every { roomServiceMock.getById(roomId) }
         roomGetById returns MutableStateFlow(room(""))
 
-        canSendEventMocker = every {
-            userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>())
-        }
+        canSendEventMocker = every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) }
         canSendEventMocker returns flowOf(true)
     }
 
@@ -94,14 +93,10 @@ class RoomSettingsNameViewModelTest {
 
         val viewModel = roomSettingsNameViewModel()
         backgroundScope.launch { viewModel.canChangeRoomName.collect() }
-        eventually(2.seconds) {
-            viewModel.canChangeRoomName.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomName.value shouldBe true }
 
         canSendEvent.value = false
-        eventually(2.seconds) {
-            viewModel.canChangeRoomName.value shouldBe false
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomName.value shouldBe false }
     }
 
     @Test
@@ -112,9 +107,7 @@ class RoomSettingsNameViewModelTest {
         } returns MutableStateFlow(null)
         roomGetById returns MutableStateFlow<Room?>(room("room name"))
         val viewModel = roomSettingsNameViewModel()
-        eventually(2.seconds) {
-            viewModel.roomName.textValue shouldBe "room name"
-        }
+        eventually(2.seconds) { viewModel.roomName.textValue shouldBe "room name" }
     }
 
     @Test
@@ -140,12 +133,11 @@ class RoomSettingsNameViewModelTest {
 
     private fun mockSendToHomeServer(expectedRequestContent: NameEventContent): MockHomeServerHandle {
         val handle = MockHomeServerHandle()
-        everySuspend {
-            roomsApiClientMock.sendStateEvent(roomId, expectedRequestContent, any())
-        } calls {
-            handle.numCallsToHomeServer.value += 1
-            Result.success(EventId("1"))
-        }
+        everySuspend { roomsApiClientMock.sendStateEvent(roomId, expectedRequestContent, any()) } calls
+            {
+                handle.numCallsToHomeServer.value += 1
+                Result.success(EventId("1"))
+            }
         return handle
     }
 
@@ -153,16 +145,19 @@ class RoomSettingsNameViewModelTest {
 
     private fun TestScope.roomSettingsNameViewModel(): RoomSettingsNameViewModelImpl {
         return RoomSettingsNameViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        )
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    )
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
             selectedRoomId = roomId,
         )
     }

@@ -37,7 +37,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 
-
 @Composable
 fun ApprovableTextField(
     viewModel: ApprovableTextFieldViewModel,
@@ -62,7 +61,7 @@ fun ApprovableTextField(
     }
 
     Column {
-        if(textCaption != null){
+        if (textCaption != null) {
             Text(text = textCaption, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.size(10.dp))
         }
@@ -70,10 +69,7 @@ fun ApprovableTextField(
             isLoading -> LoadingSpinner()
 
             isEditable -> {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     if (isEdit) {
                         Tooltip({ Text(i18n.commonCancel()) }) {
                             ThemedIconButton(
@@ -90,17 +86,14 @@ fun ApprovableTextField(
                         onValueChange = { value = it },
                         enabled = isEdit,
                         placeholder = { Text(textPlaceholder) },
-                        modifier = modifier
-                            .weight(1.0f, fill = true)
-                            .pointerInput(Unit) {
-                                detectTapGestures(onPress = {
-                                    if (!isEdit) viewModel.startEdit()
-                                })
-                            }
-                            .focusable(enabled = true, interactionSource = interactionSource),
-                        colors = TextFieldDefaults.colors(
-                            disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
-                        ),
+                        modifier =
+                            modifier
+                                .weight(1.0f, fill = true)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(onPress = { if (!isEdit) viewModel.startEdit() })
+                                }
+                                .focusable(enabled = true, interactionSource = interactionSource),
+                        colors = TextFieldDefaults.colors(disabledTextColor = MaterialTheme.colorScheme.surfaceTint),
                         keyboardOptions = keyboardOptions,
                     )
                     if (isEdit) {
@@ -119,11 +112,7 @@ fun ApprovableTextField(
 
             else -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = {},
-                        enabled = false,
-                    )
+                    OutlinedTextField(value = value, onValueChange = {}, enabled = false)
                     HelpIcon(textInfoCannotChange)
                 }
             }

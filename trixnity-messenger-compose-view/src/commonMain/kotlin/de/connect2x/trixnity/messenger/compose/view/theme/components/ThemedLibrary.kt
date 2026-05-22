@@ -28,13 +28,6 @@ data class LibraryStyle(
             dimensions: LibraryDimensions = LibraryDefaults.libraryDimensions(),
             textStyles: LibraryTextStyles = LibraryDefaults.libraryTextStyles(),
             shapes: LibraryShapes = LibraryDefaults.libraryShapes(),
-        ) = LibraryStyle(
-            typography,
-            colors,
-            padding,
-            dimensions,
-            textStyles,
-            shapes,
-        )
+        ) = LibraryStyle(typography, colors, padding, dimensions, textStyles, shapes)
     }
 }

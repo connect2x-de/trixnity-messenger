@@ -22,9 +22,7 @@ fun matrixMessengerFactoryModule(): Module = module {
                 configuration()
                 modulesFactories += {
                     module {
-                        single<RootPath> {
-                            RootPath(rootPath.resolve(profileId))
-                        }
+                        single<RootPath> { RootPath(rootPath.resolve(profileId)) }
                         copyMultiMessengerSingletons.forEach { it.copy(from = this@single, to = this) }
                     }
                 }

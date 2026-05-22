@@ -51,22 +51,22 @@ fun ThemedListItemRadioButton(
                 enabled = enabled,
                 interactionSource = interactionSource,
                 onClick = { onChange(!selected) },
-                modifier = Modifier.minimumInteractiveComponentSize().focusProperties {
-                    canFocus = false
-                },
+                modifier = Modifier.minimumInteractiveComponentSize().focusProperties { canFocus = false },
                 style = controlStyle,
             )
         },
         style = style,
-        modifier = modifier
-            .then(focusedBorder)
-            .selectable(
-                selected = selected,
-                onClick = { onChange(!selected) },
-                enabled = enabled,
-                role = Role.RadioButton,
-                interactionSource = interactionSource,
-                indication = LocalIndication.current
-            ).buttonPointerModifier(enabled),
+        modifier =
+            modifier
+                .then(focusedBorder)
+                .selectable(
+                    selected = selected,
+                    onClick = { onChange(!selected) },
+                    enabled = enabled,
+                    role = Role.RadioButton,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                )
+                .buttonPointerModifier(enabled),
     )
 }

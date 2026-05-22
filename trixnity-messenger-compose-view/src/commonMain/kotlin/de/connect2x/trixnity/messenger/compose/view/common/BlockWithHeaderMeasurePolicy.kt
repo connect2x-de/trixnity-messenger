@@ -10,19 +10,14 @@ import androidx.compose.ui.unit.Constraints
 object BlockWithHeaderMeasurePolicy : MeasurePolicy {
     object HeaderLayoutId
 
-    override fun MeasureScope.measure(
-        measurables: List<Measurable>,
-        constraints: Constraints
-    ): MeasureResult {
+    override fun MeasureScope.measure(measurables: List<Measurable>, constraints: Constraints): MeasureResult {
         val header = measurables.firstOrNull { it.layoutId == HeaderLayoutId }
         val content = measurables.first { it.layoutId != HeaderLayoutId }
         val contentResult = content.measure(constraints)
         val headerResult =
             header?.measure(constraints.copy(minWidth = contentResult.width, maxWidth = contentResult.width))
         return if (headerResult == null) {
-            layout(contentResult.width, contentResult.height) {
-                contentResult.place(0, 0)
-            }
+            layout(contentResult.width, contentResult.height) { contentResult.place(0, 0) }
         } else {
             layout(contentResult.width, headerResult.height + contentResult.height) {
                 headerResult.place(0, 0)

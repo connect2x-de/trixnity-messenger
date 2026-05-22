@@ -34,13 +34,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
 
-
 interface MessageReactionsView {
     @Composable
     fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         reactionsOpen: MutableState<Boolean>,
-        modifier: Modifier
+        modifier: Modifier,
     )
 }
 
@@ -48,7 +47,7 @@ interface MessageReactionsView {
 fun MessageReactions(
     timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
     reactionsOpen: MutableState<Boolean>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     DI.get<MessageReactionsView>().create(timelineElementHolderViewModel, reactionsOpen, modifier)
 }
@@ -59,21 +58,17 @@ class MessageReactionsViewImpl : MessageReactionsView {
     override fun create(
         timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
         reactionsOpen: MutableState<Boolean>,
-        modifier: Modifier
+        modifier: Modifier,
     ) {
         if (timelineElementHolderViewModel !is TimelineElementHolderViewModel) {
             return
         }
         val reactions = timelineElementHolderViewModel.reactions.collectAsState().value?.byReaction.orEmpty()
-        val reactionList = remember(reactions) {
-            reactions.entries.sortedByDescending { it.value.size }.map { it.key }
-        }
+        val reactionList = remember(reactions) { reactions.entries.sortedByDescending { it.value.size }.map { it.key } }
 
         EmojiPopup(
             isOpen = reactionsOpen.value,
-            onDismiss = {
-                reactionsOpen.value = false
-            },
+            onDismiss = { reactionsOpen.value = false },
             onSelect = {
                 reactionsOpen.value = false
                 timelineElementHolderViewModel.addReaction(it)
@@ -120,18 +115,13 @@ private fun MessageReactionList(
                     onRemoveReaction = { onRemoveReaction(reaction) },
                 )
             }
-            MessageAddReactionButton(
-                onClick = onOpenReactions,
-                i18n.reactMessage()
-            )
+            MessageAddReactionButton(onClick = onOpenReactions, i18n.reactMessage())
         }
     }
 }
 
 @Composable
-internal fun MessageReactionDisplay(
-    reaction: String,
-) {
+internal fun MessageReactionDisplay(reaction: String) {
     with(LocalDensity.current) {
         Text(
             text = reaction,
@@ -139,7 +129,7 @@ internal fun MessageReactionDisplay(
             overflow = TextOverflow.Ellipsis,
             softWrap = false,
             modifier = Modifier.widthIn(0.dp, LocalTextStyle.current.fontSize.times(10).toDp()),
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -182,11 +172,7 @@ internal fun MessageReactionButton(
 
 @Composable
 internal fun MessageAddReactionButton(onClick: () -> Unit, label: String) {
-    ThemedButton(
-        onClick = onClick,
-        style = MaterialTheme.components.reactionButton,
-        modifier = buttonModifier,
-    ) {
+    ThemedButton(onClick = onClick, style = MaterialTheme.components.reactionButton, modifier = buttonModifier) {
         Icon(
             Icons.Outlined.AddReaction,
             contentDescription = label,

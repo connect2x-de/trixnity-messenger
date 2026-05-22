@@ -2,12 +2,6 @@ package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
-import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
-import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
@@ -16,6 +10,12 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.FileBasedInfo
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
+import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
+import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 
 interface Thumbnails { // TODO this as part of the DI just adds complexity
     suspend fun loadThumbnail(
@@ -95,7 +95,9 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         maxMediaSizeInMemory: Long,
     ): ByteArray?
 
-    fun mapProgressToProgressElement(thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>): Flow<FileTransferProgressElement?>
+    fun mapProgressToProgressElement(
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>
+    ): Flow<FileTransferProgressElement?>
 }
 
 class ThumbnailsImpl : Thumbnails {
@@ -117,138 +119,156 @@ class ThumbnailsImpl : Thumbnails {
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
         maxMediaSizeInMemory: Long,
     ): ByteArray? {
-        log.debug { "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $fileUrl" }
-        val thumbnail = (thumbnailFile?.let { // encrypted thumbnail
-            matrixClient.media.getEncryptedMedia(
-                thumbnailFile,
-                thumbnailProgressFlow
-            ).fold(
-                onSuccess = {
-                    it.toByteArray(
-                        coroutineScope,
-                        expectedSize = thumbnailInfo?.size,
-                        maxSize = maxMediaSizeInMemory
-                    )
-                },
-                onFailure = {
-                    thumbnailProgressFlow.emit(null)
-                    if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
-                        matrixClient.media.getEncryptedMedia(file, thumbnailProgressFlow).fold(
-                            onSuccess = {
-                                it.toByteArray(
-                                    coroutineScope,
-                                    expectedSize = fileInfo?.size,
-                                    maxSize = maxMediaSizeInMemory
-                                )
-                            },
-                            onFailure = {
-                                log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
-                                thumbnailProgressFlow.emit(null)
+        log.debug {
+            "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $fileUrl"
+        }
+        val thumbnail =
+            (thumbnailFile?.let { // encrypted thumbnail
+                matrixClient.media
+                    .getEncryptedMedia(thumbnailFile, thumbnailProgressFlow)
+                    .fold(
+                        onSuccess = {
+                            it.toByteArray(
+                                coroutineScope,
+                                expectedSize = thumbnailInfo?.size,
+                                maxSize = maxMediaSizeInMemory,
+                            )
+                        },
+                        onFailure = {
+                            thumbnailProgressFlow.emit(null)
+                            if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
+                                matrixClient.media
+                                    .getEncryptedMedia(file, thumbnailProgressFlow)
+                                    .fold(
+                                        onSuccess = {
+                                            it.toByteArray(
+                                                coroutineScope,
+                                                expectedSize = fileInfo?.size,
+                                                maxSize = maxMediaSizeInMemory,
+                                            )
+                                        },
+                                        onFailure = {
+                                            log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
+                                            thumbnailProgressFlow.emit(null)
+                                            null
+                                        },
+                                    )
+                            } else {
                                 null
                             }
-                        )
-                    } else {
-                        null
-                    }
-                }
-            )
-        } ?: thumbnailUrl?.let { // unencrypted thumbnail
-            matrixClient.media.getThumbnail(
-                thumbnailUrl,
-                400L,
-                300L,
-                ThumbnailResizingMethod.SCALE,
-                progress = thumbnailProgressFlow
-            ).fold(
-                onSuccess = {
-                    it.toByteArray(
-                        coroutineScope,
-                        expectedSize = thumbnailInfo?.size,
-                        maxSize = maxMediaSizeInMemory
+                        },
                     )
-                },
-                onFailure = {  // fallback: real image
-                    thumbnailProgressFlow.emit(null)
-                    if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
-                        matrixClient.media.getMedia(fileUrl, thumbnailProgressFlow).fold(
-                            onSuccess = {
-                                it.toByteArray(
-                                    coroutineScope,
-                                    expectedSize = fileInfo?.size,
-                                    maxSize = maxMediaSizeInMemory
-                                )
-                            },
-                            onFailure = {
-                                log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
-                                thumbnailProgressFlow.emit(null)
-                                null
-                            }
-                        )
-                    } else {
-                        null
-                    }
-                }
-            )
-        } ?: file?.let { // encrypted file
-            if (sizeInBytes <= maxMediaSizeInMemory) {
-                matrixClient.media.getEncryptedMedia(file, thumbnailProgressFlow).fold(
-                    onSuccess = {
-                        it.toByteArray(
-                            coroutineScope,
-                            expectedSize = fileInfo?.size,
-                            maxSize = maxMediaSizeInMemory
-                        )
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
-                        thumbnailProgressFlow.emit(null)
-                        null
-                    }
-                )
-            } else {
-                log.warn {
-                    "there is no thumbnail for ${file.url}, but the file itself is considered too big to download as a thumbnail, so return `null`. " +
-                            "Maybe the size of the file itself is undefined, so we assume it is too big to download."
-                }
-                null
             }
-        } ?: fileUrl?.let { // unencrypted file
-            // try to get server to generate thumbnail for us
-            matrixClient.media.getThumbnail(
-                fileUrl,
-                400L,
-                300L,
-                ThumbnailResizingMethod.SCALE,
-                progress = thumbnailProgressFlow
-            ).fold(
-                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                onFailure = {
-                    thumbnailProgressFlow.emit(null)
-                    // otherwise, see if the image itself is ok
-                    if (sizeInBytes <= maxMediaSizeInMemory) {
-                        matrixClient.media.getMedia(fileUrl, thumbnailProgressFlow).fold(
+                ?: thumbnailUrl?.let { // unencrypted thumbnail
+                    matrixClient.media
+                        .getThumbnail(
+                            thumbnailUrl,
+                            400L,
+                            300L,
+                            ThumbnailResizingMethod.SCALE,
+                            progress = thumbnailProgressFlow,
+                        )
+                        .fold(
                             onSuccess = {
                                 it.toByteArray(
                                     coroutineScope,
-                                    expectedSize = fileInfo?.size,
-                                    maxSize = maxMediaSizeInMemory
+                                    expectedSize = thumbnailInfo?.size,
+                                    maxSize = maxMediaSizeInMemory,
                                 )
                             },
-                            onFailure = {
-                                log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
+                            onFailure = { // fallback: real image
                                 thumbnailProgressFlow.emit(null)
-                                null
-                            }
+                                if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
+                                    matrixClient.media
+                                        .getMedia(fileUrl, thumbnailProgressFlow)
+                                        .fold(
+                                            onSuccess = {
+                                                it.toByteArray(
+                                                    coroutineScope,
+                                                    expectedSize = fileInfo?.size,
+                                                    maxSize = maxMediaSizeInMemory,
+                                                )
+                                            },
+                                            onFailure = {
+                                                log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
+                                                thumbnailProgressFlow.emit(null)
+                                                null
+                                            },
+                                        )
+                                } else {
+                                    null
+                                }
+                            },
                         )
+                }
+                ?: file?.let { // encrypted file
+                    if (sizeInBytes <= maxMediaSizeInMemory) {
+                        matrixClient.media
+                            .getEncryptedMedia(file, thumbnailProgressFlow)
+                            .fold(
+                                onSuccess = {
+                                    it.toByteArray(
+                                        coroutineScope,
+                                        expectedSize = fileInfo?.size,
+                                        maxSize = maxMediaSizeInMemory,
+                                    )
+                                },
+                                onFailure = {
+                                    log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
+                                    thumbnailProgressFlow.emit(null)
+                                    null
+                                },
+                            )
                     } else {
                         log.warn {
-                            "there is no thumbnail for $fileUrl, but the file itself is considered too big to download as a thumbnail, so return `null`. " +
-                                    "Maybe the size of the file itself is undefined, so we assume it is too big to download."
+                            "there is no thumbnail for ${file.url}, but the file itself is considered too big to download as a thumbnail, so return `null`. " +
+                                "Maybe the size of the file itself is undefined, so we assume it is too big to download."
                         }
                         null
                     }
+                }
+                ?: fileUrl?.let { // unencrypted file
+                    // try to get server to generate thumbnail for us
+                    matrixClient.media
+                        .getThumbnail(
+                            fileUrl,
+                            400L,
+                            300L,
+                            ThumbnailResizingMethod.SCALE,
+                            progress = thumbnailProgressFlow,
+                        )
+                        .fold(
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onFailure = {
+                                thumbnailProgressFlow.emit(null)
+                                // otherwise, see if the image itself is ok
+                                if (sizeInBytes <= maxMediaSizeInMemory) {
+                                    matrixClient.media
+                                        .getMedia(fileUrl, thumbnailProgressFlow)
+                                        .fold(
+                                            onSuccess = {
+                                                it.toByteArray(
+                                                    coroutineScope,
+                                                    expectedSize = fileInfo?.size,
+                                                    maxSize = maxMediaSizeInMemory,
+                                                )
+                                            },
+                                            onFailure = {
+                                                log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
+                                                thumbnailProgressFlow.emit(null)
+                                                null
+                                            },
+                                        )
+                                } else {
+                                    log.warn {
+                                        "there is no thumbnail for $fileUrl, but the file itself is considered too big to download as a thumbnail, so return `null`. " +
+                                            "Maybe the size of the file itself is undefined, so we assume it is too big to download."
+                                    }
+                                    null
+                                }
+                            },
+                        )
                 })
-        })
         return thumbnail
     }
 
@@ -259,12 +279,13 @@ class ThumbnailsImpl : Thumbnails {
                 null
             } else {
                 FileTransferProgressElement(
-                    percent = if (total > 0) {
-                        it.transferred / total.toFloat()
-                    } else {
-                        0f
-                    },
-                    formattedProgress = formatProgress(it)
+                    percent =
+                        if (total > 0) {
+                            it.transferred / total.toFloat()
+                        } else {
+                            0f
+                        },
+                    formattedProgress = formatProgress(it),
                 )
             }
         }

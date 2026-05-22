@@ -61,8 +61,7 @@ import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface CreateNewGroupView {
-    @Composable
-    fun create(createNewGroupViewModel: CreateNewGroupViewModel)
+    @Composable fun create(createNewGroupViewModel: CreateNewGroupViewModel)
 }
 
 @Composable
@@ -92,68 +91,61 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val roomOptionsString = buildString {
             append(i18n.roomType())
 
-            val roomType = when {
-                isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
-                isPrivate && !isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeUnencrypted()}"
-                !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
-                !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
-                else -> {
-                    log.error { "Boolean logic has failed. This should never happen!" }
-                    ""
+            val roomType =
+                when {
+                    isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
+                    isPrivate && !isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeUnencrypted()}"
+                    !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
+                    !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
+                    else -> {
+                        log.error { "Boolean logic has failed. This should never happen!" }
+                        ""
+                    }
                 }
-            }
             append(roomType)
         }
 
-        var references by remember {
-            mutableStateOf(listOf<String>())
-        }
+        var references by remember { mutableStateOf(listOf<String>()) }
 
         LaunchedEffect(userSearchResults, selectedUsers.value) {
             if (userSearchResults is SearchResultState.Results) {
                 references =
-                    userSearchResults.users.map { it.userId.full }.minus(selectedUsers.value.map { it.userId.full }
-                        .toSet())
+                    userSearchResults.users
+                        .map { it.userId.full }
+                        .minus(selectedUsers.value.map { it.userId.full }.toSet())
             }
         }
         references.firstOrNull()
 
         Box(Modifier.fillMaxSize()) {
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Header(createNewGroupViewModel::back, {
-                    Text(
-                        i18n.createNewGroupNewGroup(),
-                        fontWeight = Bold,
-                        fontSize = 16.sp,
-                    )
-                })
+            Column(verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
+                Header(
+                    createNewGroupViewModel::back,
+                    { Text(i18n.createNewGroupNewGroup(), fontWeight = Bold, fontSize = 16.sp) },
+                )
                 Box(Modifier.fillMaxSize()) {
                     if (isCreating) {
                         ThemedProgressIndicator(
                             Modifier.fillMaxWidth(),
-                            MaterialTheme.components.linearProgressIndicator
+                            MaterialTheme.components.linearProgressIndicator,
                         )
                     }
                     val listState = rememberLazyListState()
 
-                    val focusedItem = remember(userSearchResults) {
-                        mutableStateOf(
-                            if (userSearchResults is SearchResultState.Results) {
-                                userSearchResults.users.firstOrNull()?.userId?.full
-                            } else {
-                                null
-                            }
-                        )
-                    }
+                    val focusedItem =
+                        remember(userSearchResults) {
+                            mutableStateOf(
+                                if (userSearchResults is SearchResultState.Results) {
+                                    userSearchResults.users.firstOrNull()?.userId?.full
+                                } else {
+                                    null
+                                }
+                            )
+                        }
 
                     LazyColumn(
-                        Modifier.fillMaxSize().rovingFocusContainer(
-                            listState = listState,
-                            focusedItem = focusedItem
-                        ), listState
+                        Modifier.fillMaxSize().rovingFocusContainer(listState = listState, focusedItem = focusedItem),
+                        listState,
                     ) {
                         item(key = "MoreOptions") {
                             val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
@@ -175,34 +167,22 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             OptionalRoomNameInput(optionalRoomName)
                             Spacer(Modifier.height(15.dp))
                         }
-                        item(key = "RoomTopic") {
-                            OptionalRoomTopicInput(optionalRoomTopic)
-                        }
-                        item(key = "UsersInGroup") {
-                            UsersInGroup(createNewGroupViewModel)
-                        }
+                        item(key = "RoomTopic") { OptionalRoomTopicInput(optionalRoomTopic) }
+                        item(key = "UsersInGroup") { UsersInGroup(createNewGroupViewModel) }
                         userSearchView.create(
                             createNewGroupViewModel.createNewRoomViewModel,
                             { user -> createNewGroupViewModel.onUserClick(user) },
                             userSearchResults,
                             userSearchResultView,
                             this,
-                            focusedItem
+                            focusedItem,
                         )
                     }
 
-                    VerticalScrollbar(
-                        Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                        listState,
-                        false
-                    )
+                    VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
                 }
             }
-            Box(
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(bottom = 20.dp, end = 20.dp)
-            ) {
+            Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 20.dp, end = 20.dp)) {
                 ThemedFloatingActionButton(
                     expanded = true,
                     enabled = !isCreating && canCreateNewGroup.value,
@@ -215,9 +195,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 
         if (error != null) {
             ThemedModalDialog({ createNewGroupViewModel.errorDismiss() }) {
-                ModalDialogHeader {
-                    Text(i18n.anErrorHasOccurred())
-                }
+                ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
                 ModalDialogContent {
                     Text(error)
                     if (errorDetails != null) {
@@ -240,38 +218,26 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
 }
 
 @Composable
-fun OptionalRoomNameInput(
-    value: MutableState<TextFieldValue>,
-) {
+fun OptionalRoomNameInput(value: MutableState<TextFieldValue>) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
         label = { Text(i18n.optionalGroupNameLabel()) },
-        modifier = Modifier
-            .inputFocusNavigation()
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
+        modifier = Modifier.inputFocusNavigation().fillMaxWidth().padding(horizontal = 10.dp),
         maxLines = 2,
     )
 }
 
 @Composable
-fun OptionalRoomTopicInput(
-    value: MutableState<TextFieldValue>,
-) {
+fun OptionalRoomTopicInput(value: MutableState<TextFieldValue>) {
     val i18n = DI.get<I18nView>()
     OutlinedTextField(
         value = value.value,
         onValueChange = { value.value = it },
         label = { Text(i18n.optionalGroupTopicLabel()) },
-        modifier = Modifier
-            .inputFocusNavigation()
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
-        ),
+        modifier = Modifier.inputFocusNavigation().fillMaxWidth().padding(horizontal = 10.dp),
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         maxLines = 2,
     )
 }

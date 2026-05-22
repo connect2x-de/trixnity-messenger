@@ -13,12 +13,11 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.TombstoneStateTimelineElementViewModel
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlin.reflect.KClass
 
 interface TombstoneStateTimelineElementView : TimelineElementView<TombstoneStateTimelineElementViewModel>
-
 
 class TombstoneStateTimelineElementViewImpl : TombstoneStateTimelineElementView {
     override val supports: KClass<TombstoneStateTimelineElementViewModel> =
@@ -53,15 +52,13 @@ class TombstoneStateTimelineElementViewImpl : TombstoneStateTimelineElementView 
         holder: TimelineElementHolderViewModel,
         element: TombstoneStateTimelineElementViewModel,
         modifier: Modifier,
-        interactionSource: MutableInteractionSource
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
@@ -70,22 +67,20 @@ class TombstoneStateTimelineElementViewImpl : TombstoneStateTimelineElementView 
         holder: TimelineElementHolderViewModel,
         element: TombstoneStateTimelineElementViewModel,
         modifier: Modifier,
-        interactionSource: MutableInteractionSource
+        interactionSource: MutableInteractionSource,
     ) {
         ReferencedMessagePill(
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: TombstoneStateTimelineElementViewModel
+        element: TombstoneStateTimelineElementViewModel,
     ): ClipEntry? = null
 }
 
@@ -97,5 +92,3 @@ private fun StateElement(element: TombstoneStateTimelineElementViewModel) {
         IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
     }
 }
-
-

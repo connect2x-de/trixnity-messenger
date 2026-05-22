@@ -7,9 +7,7 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestResult
 
 @OptIn(ExperimentalTestApi::class)
-expect fun runComposeUiTest(
-    block:  suspend ComposeUiTestWithBackgroundScope.() -> Unit
-): TestResult
+expect fun runComposeUiTest(block: suspend ComposeUiTestWithBackgroundScope.() -> Unit): TestResult
 
 @OptIn(ExperimentalTestApi::class)
 data class ComposeUiTestWithBackgroundScope(

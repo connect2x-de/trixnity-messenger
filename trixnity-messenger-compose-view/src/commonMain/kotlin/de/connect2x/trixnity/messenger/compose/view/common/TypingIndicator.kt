@@ -19,30 +19,25 @@ fun TypingIndicator(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle = TextStyle.Default,
-    cycleDuration: Int = 1000 // Milliseconds
+    cycleDuration: Int = 1000, // Milliseconds
 ) {
     // Create an infinite transition
     val transition = rememberInfiniteTransition(label = "Dots Transition")
 
     // Define the animated value for the number of visible dots
-    val visibleDotsCount = transition.animateValue(
-        initialValue = 0,
-        targetValue = 4,
-        typeConverter = Int.VectorConverter,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = cycleDuration,
-                easing = LinearEasing
-            ),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "Visible Dots Count"
-    )
+    val visibleDotsCount =
+        transition.animateValue(
+            initialValue = 0,
+            targetValue = 4,
+            typeConverter = Int.VectorConverter,
+            animationSpec =
+                infiniteRepeatable(
+                    animation = tween(durationMillis = cycleDuration, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart,
+                ),
+            label = "Visible Dots Count",
+        )
 
     // Display the text with dynamically changing dots based on the animation
-    Text(
-        text = text + ".".repeat(visibleDotsCount.value),
-        modifier = modifier,
-        style = style
-    )
+    Text(text = text + ".".repeat(visibleDotsCount.value), modifier = modifier, style = style)
 }

@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.util.MembershipChange
+import kotlin.reflect.KClass
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
-import kotlin.reflect.KClass
 
 interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<MemberEventContent> {
     override fun create(
@@ -42,12 +42,8 @@ interface MemberStateTimelineElementViewModelFactory : TimelineElementViewModelF
         onOpenMention: OpenMentionCallback,
     ): MemberStateTimelineElementViewModel? =
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
-            MemberStateTimelineElementViewModelImpl(
-                viewModelContext,
-                content,
-                roomId,
-                eventIdOrTransactionId.eventId,
-            ) else null
+            MemberStateTimelineElementViewModelImpl(viewModelContext, content, roomId, eventIdOrTransactionId.eventId)
+        else null
 
     override val supports: KClass<MemberEventContent>
         get() = MemberEventContent::class
@@ -63,15 +59,16 @@ interface MemberStateTimelineElementViewModel : State<MemberEventContent> {
 private enum class UserInfoChangeEvent {
     CHANGE_AVATAR,
     REMOVE_DISPLAY_NAME,
-    CHANGE_DISPLAY_NAME
+    CHANGE_DISPLAY_NAME,
 }
 
 private sealed class ChangeEvent(open val event: StateEvent<*>) {
     data class Membership(val kind: MembershipChange, override val event: StateEvent<*>) : ChangeEvent(event)
+
     data class UserInfo(
         val kind: UserInfoChangeEvent,
         override val event: StateEvent<*>,
-        val previousContent: MemberEventContent
+        val previousContent: MemberEventContent,
     ) : ChangeEvent(event)
 
     data class NoPreviousContent(val kind: MembershipChange, override val event: StateEvent<*>) : ChangeEvent(event)
@@ -93,30 +90,17 @@ class MemberStateTimelineElementViewModelImpl(
             val previousContent = event.unsigned?.previousContent
             if (previousContent is MemberEventContent) {
                 val membershipEvent =
-                    ChangeEvent.Membership(
-                        membershipChangedEvent(event, content, previousContent),
-                        event
-                    )
+                    ChangeEvent.Membership(membershipChangedEvent(event, content, previousContent), event)
                 when {
-                    content.membership != previousContent.membership ->
-                        membershipEvent
+                    content.membership != previousContent.membership -> membershipEvent
 
                     content.avatarUrl != previousContent.avatarUrl ->
                         ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_AVATAR, event, previousContent)
 
                     content.displayName != previousContent.displayName -> {
                         if (content.displayName == null)
-                            ChangeEvent.UserInfo(
-                                UserInfoChangeEvent.REMOVE_DISPLAY_NAME,
-                                event,
-                                previousContent
-                            )
-                        else
-                            ChangeEvent.UserInfo(
-                                UserInfoChangeEvent.CHANGE_DISPLAY_NAME,
-                                event,
-                                previousContent
-                            )
+                            ChangeEvent.UserInfo(UserInfoChangeEvent.REMOVE_DISPLAY_NAME, event, previousContent)
+                        else ChangeEvent.UserInfo(UserInfoChangeEvent.CHANGE_DISPLAY_NAME, event, previousContent)
                     }
 
                     else -> {
@@ -130,14 +114,12 @@ class MemberStateTimelineElementViewModelImpl(
             }
         }
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override val changeMessage =
-        changeEvent.filterNotNull()
+        changeEvent
+            .filterNotNull()
             .flatMapConcat { changeEvent ->
-                matrixClient.user.getById(roomId, changeEvent.event.sender).map { sender ->
-                    Pair(changeEvent, sender)
-                }
+                matrixClient.user.getById(roomId, changeEvent.event.sender).map { sender -> Pair(changeEvent, sender) }
             }
             .flatMapLatest { (changeEvent, sender) ->
                 val event = changeEvent.event
@@ -157,19 +139,18 @@ class MemberStateTimelineElementViewModelImpl(
                                 flowOf(
                                     i18n.eventChangeDisplayName(
                                         changeEvent.previousContent.displayName ?: event.sender.full,
-                                        content.displayName
+                                        content.displayName,
                                     )
                                 )
                         }
 
-                    is ChangeEvent.Membership ->
-                        membershipChangedText(event, content, senderName, changeEvent.kind)
+                    is ChangeEvent.Membership -> membershipChangedText(event, content, senderName, changeEvent.kind)
 
                     is ChangeEvent.NoPreviousContent ->
                         membershipChangedText(event, content, senderName, changeEvent.kind)
                 }
-            }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
-
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private data class UndecryptableHistoryInfoData(
         val changeEvent: ChangeEvent,
@@ -181,53 +162,51 @@ class MemberStateTimelineElementViewModelImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     override val undecryptableHistoryInfo =
         combine(
-            changeEvent.filterNotNull(),
-            matrixClient.room.getById(roomId).filterNotNull()
-                .flatMapLatest { room ->
+                changeEvent.filterNotNull(),
+                matrixClient.room.getById(roomId).filterNotNull().flatMapLatest { room ->
                     val previousRoomId = room.previousRoomId
                     if (previousRoomId == null) flowOf(null to room)
                     else matrixClient.room.getById(previousRoomId).map { it to room }
                 },
-            matrixClient.room.getState<HistoryVisibilityEventContent>(roomId)
-                .mapNotNull { it?.content?.historyVisibility }
-        ) { changeEvent, (previousRoom, room), historyVisibility ->
-            UndecryptableHistoryInfoData(changeEvent, previousRoom, room, historyVisibility)
-        }.flatMapLatest { (changeEvent, previousRoom, room, historyVisibility) ->
-            val affectedUser = UserId(changeEvent.event.stateKey)
-            val currentUserAffected = matrixClient.userId == affectedUser
-            if (room.encrypted && currentUserAffected && previousRoom?.membership != Membership.JOIN) {
-                when (historyVisibility) {
-                    HistoryVisibilityEventContent.HistoryVisibility.INVITED,
-                    HistoryVisibilityEventContent.HistoryVisibility.SHARED,
-                    HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> {
-                        val invited =
-                            changeEvent is ChangeEvent.NoPreviousContent && changeEvent.kind == MembershipChange.INVITE
-                        if (invited) {
-                            flowOf(
-                                i18n.eventChangeUndecryptableHistoryInfo()
-                            )
-                        } else {
-                            flowOf()
-                        }
-
-                    }
-
-                    HistoryVisibilityEventContent.HistoryVisibility.JOINED -> {
-                        val joined =
-                            changeEvent is ChangeEvent.Membership && changeEvent.kind == MembershipChange.JOIN
-                        if (joined) {
-                            flowOf(
-                                i18n.eventChangeUndecryptableHistoryInfo()
-                            )
-                        } else {
-                            flowOf()
-                        }
-                    }
-                }
-            } else {
-                flowOf()
+                matrixClient.room.getState<HistoryVisibilityEventContent>(roomId).mapNotNull {
+                    it?.content?.historyVisibility
+                },
+            ) { changeEvent, (previousRoom, room), historyVisibility ->
+                UndecryptableHistoryInfoData(changeEvent, previousRoom, room, historyVisibility)
             }
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            .flatMapLatest { (changeEvent, previousRoom, room, historyVisibility) ->
+                val affectedUser = UserId(changeEvent.event.stateKey)
+                val currentUserAffected = matrixClient.userId == affectedUser
+                if (room.encrypted && currentUserAffected && previousRoom?.membership != Membership.JOIN) {
+                    when (historyVisibility) {
+                        HistoryVisibilityEventContent.HistoryVisibility.INVITED,
+                        HistoryVisibilityEventContent.HistoryVisibility.SHARED,
+                        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> {
+                            val invited =
+                                changeEvent is ChangeEvent.NoPreviousContent &&
+                                    changeEvent.kind == MembershipChange.INVITE
+                            if (invited) {
+                                flowOf(i18n.eventChangeUndecryptableHistoryInfo())
+                            } else {
+                                flowOf()
+                            }
+                        }
+
+                        HistoryVisibilityEventContent.HistoryVisibility.JOINED -> {
+                            val joined =
+                                changeEvent is ChangeEvent.Membership && changeEvent.kind == MembershipChange.JOIN
+                            if (joined) {
+                                flowOf(i18n.eventChangeUndecryptableHistoryInfo())
+                            } else {
+                                flowOf()
+                            }
+                        }
+                    }
+                } else {
+                    flowOf()
+                }
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
     private fun membershipChangedEvent(
         event: StateEvent<*>,
@@ -246,59 +225,38 @@ class MemberStateTimelineElementViewModelImpl(
         event: StateEvent<*>,
         content: MemberEventContent,
         senderName: String,
-        stateTransition: MembershipChange
+        stateTransition: MembershipChange,
     ): Flow<String> {
         val affectedUser = UserId(event.stateKey)
         val affectedUsernameFlow =
-            matrixClient.user.getById(event.roomId, affectedUser)
-                .map { user -> user?.name ?: affectedUser.full }
+            matrixClient.user.getById(event.roomId, affectedUser).map { user -> user?.name ?: affectedUser.full }
         val isDirectFlow = matrixClient.room.getById(event.roomId).filterNotNull().map { it.isDirect }
         return combine(affectedUsernameFlow, isDirectFlow) { affectedUsername, isDirect ->
-            val groupOrChatDative =
-                if (isDirect) i18n.eventChangeChatDative()
-                else i18n.eventChangeGroupDative()
+            val groupOrChatDative = if (isDirect) i18n.eventChangeChatDative() else i18n.eventChangeGroupDative()
             val groupOrChatAccusative =
-                if (isDirect) i18n.eventChangeChatAccusative()
-                else i18n.eventChangeGroupAccusative()
+                if (isDirect) i18n.eventChangeChatAccusative() else i18n.eventChangeGroupAccusative()
 
             when (stateTransition) {
-                MembershipChange.INVITE ->
-                    i18n.eventChangeInvite(affectedUsername, senderName, content.reason)
+                MembershipChange.INVITE -> i18n.eventChangeInvite(affectedUsername, senderName, content.reason)
 
-                MembershipChange.JOIN ->
-                    i18n.eventChangeJoin(affectedUsername, groupOrChatDative)
+                MembershipChange.JOIN -> i18n.eventChangeJoin(affectedUsername, groupOrChatDative)
 
-                MembershipChange.BAN -> i18n.eventChangeBan(
-                    affectedUsername,
-                    senderName,
-                    groupOrChatDative,
-                    content.reason
-                )
+                MembershipChange.BAN ->
+                    i18n.eventChangeBan(affectedUsername, senderName, groupOrChatDative, content.reason)
 
-                MembershipChange.KNOCK ->
-                    i18n.eventChangeKnock(affectedUsername, groupOrChatDative, content.reason)
+                MembershipChange.KNOCK -> i18n.eventChangeKnock(affectedUsername, groupOrChatDative, content.reason)
 
-                MembershipChange.UNBAN ->
-                    i18n.eventChangeUnban(affectedUsername, senderName, content.reason)
+                MembershipChange.UNBAN -> i18n.eventChangeUnban(affectedUsername, senderName, content.reason)
 
-                MembershipChange.INVITE_REJECT ->
-                    i18n.eventChangeRejected(affectedUsername, content.reason)
+                MembershipChange.INVITE_REJECT -> i18n.eventChangeRejected(affectedUsername, content.reason)
 
-                MembershipChange.INVITE_REVOKE ->
-                    i18n.eventChangeRevoked(affectedUsername, senderName, content.reason)
+                MembershipChange.INVITE_REVOKE -> i18n.eventChangeRevoked(affectedUsername, senderName, content.reason)
 
-                MembershipChange.LEAVE ->
-                    i18n.eventChangeLeave(affectedUsername, groupOrChatAccusative)
+                MembershipChange.LEAVE -> i18n.eventChangeLeave(affectedUsername, groupOrChatAccusative)
 
                 MembershipChange.KICK ->
-                    i18n.eventChangeKick(
-                        affectedUsername,
-                        senderName,
-                        groupOrChatDative,
-                        content.reason
-                    )
+                    i18n.eventChangeKick(affectedUsername, senderName, groupOrChatDative, content.reason)
             }
         }
     }
 }
-

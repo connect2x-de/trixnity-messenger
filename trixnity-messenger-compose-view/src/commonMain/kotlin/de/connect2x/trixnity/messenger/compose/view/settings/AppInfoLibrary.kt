@@ -77,6 +77,6 @@ internal fun LibraryItem(
                 }
             }
         },
-        actions = {}
+        actions = {},
     )
 }

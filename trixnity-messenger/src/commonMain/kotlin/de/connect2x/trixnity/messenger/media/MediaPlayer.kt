@@ -1,9 +1,9 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.client.media.PlatformMedia
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.time.Duration
 
 interface MediaPlayer : AutoCloseable {
     val playingItem: StateFlow<Item?>
@@ -15,16 +15,16 @@ interface MediaPlayer : AutoCloseable {
      * When the item trying to be opened is the same item as being currently played, this function returns the item
      * currently playing.
      *
-     * @param id             the unique identifier for the media created
-     * @param media          the platform media containing a file
-     * @param mimeType       the mime type of the platform media
-     * @return               the created media item or an error
+     * @param id the unique identifier for the media created
+     * @param media the platform media containing a file
+     * @param mimeType the mime type of the platform media
+     * @return the created media item or an error
      */
     suspend fun open(
         id: String,
         media: PlatformMedia,
         mimeType: String,
-        lifecycleScope: CoroutineScope? = null
+        lifecycleScope: CoroutineScope? = null,
     ): Result<Item>
 
     interface Item : MediaItemLifecycle {
@@ -44,17 +44,19 @@ interface MediaPlayer : AutoCloseable {
          * player.
          */
         suspend fun pause()
+
         suspend fun seekTo(position: Duration)
 
         sealed interface State {
             /**
-             * Ready is the state of the media player item when the media is currently not being played and the item has no
-             * failure.
+             * Ready is the state of the media player item when the media is currently not being played and the item has
+             * no failure.
              */
             object Ready : State
+
             object Playing : State
+
             class Failed(val message: String) : State
         }
     }
-
 }

@@ -24,10 +24,8 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 
-
 interface PasswordLoginView {
-    @Composable
-    fun create(passwordLoginViewModel: PasswordLoginViewModel)
+    @Composable fun create(passwordLoginViewModel: PasswordLoginViewModel)
 }
 
 @Composable
@@ -57,7 +55,9 @@ class PasswordLoginViewImpl : PasswordLoginView {
                 password = password,
                 enabled = passwordLoginViewModel.addMatrixAccountState.collectAsState().value.inputEnabled(),
                 modifier = tabToNextAndEnterSend,
-            ) { Text(i18n.addMatrixClientPassword()) }
+            ) {
+                Text(i18n.addMatrixClientPassword())
+            }
             Spacer(Modifier.height(20.dp))
             PasswordLoginState(state)
         }
@@ -69,13 +69,10 @@ fun PasswordLoginState(state: AddMatrixAccountState) {
     Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
         when (state) {
             AddMatrixAccountState.None -> {}
-            AddMatrixAccountState.Connecting -> ThemedProgressIndicator(
-                Modifier.fillMaxWidth(),
-                MaterialTheme.components.linearProgressIndicator
-            )
+            AddMatrixAccountState.Connecting ->
+                ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
 
-            is AddMatrixAccountState.Failure ->
-                Text(state.message, color = MaterialTheme.colorScheme.error)
+            is AddMatrixAccountState.Failure -> Text(state.message, color = MaterialTheme.colorScheme.error)
 
             AddMatrixAccountState.Success -> {}
         }

@@ -7,25 +7,21 @@ import org.koin.dsl.module
 
 fun notificationModule(): Module = module {
     single<NotificationSyncService> {
-        NotificationSyncService(
-            matrixClients = get(),
-            notificationHandlers = get(),
-            notificationProviders = get(),
-            config = get(),
-            settings = get(),
-            roomName = get(),
-            getNotificationIcon = getOrNull(),
-            i18n = get()
-        )
-    }.bind<Worker>()
-    single<NotificationProviders> {
-        NotificationProviders(
-            getAll<NotificationProvider>()
-        ) {
-            NoOpNotificationProvider(
+            NotificationSyncService(
+                matrixClients = get(),
+                notificationHandlers = get(),
+                notificationProviders = get(),
+                config = get(),
                 settings = get(),
-                coroutineScope = get()
+                roomName = get(),
+                getNotificationIcon = getOrNull(),
+                i18n = get(),
             )
+        }
+        .bind<Worker>()
+    single<NotificationProviders> {
+        NotificationProviders(getAll<NotificationProvider>()) {
+            NoOpNotificationProvider(settings = get(), coroutineScope = get())
         }
     }
     includes(platformNotificationHandlersModule())

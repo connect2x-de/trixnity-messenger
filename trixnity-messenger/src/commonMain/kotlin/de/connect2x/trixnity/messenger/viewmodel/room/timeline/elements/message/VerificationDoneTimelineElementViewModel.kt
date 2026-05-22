@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.store.sender
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
@@ -14,28 +18,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.store.sender
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.key.verification.VerificationDoneEventContent
 import org.koin.core.component.get
 
-/**
- * Verification done events are sent 2 times (one is our own, the other by our peer).
- */
+/** Verification done events are sent 2 times (one is our own, the other by our peer). */
 interface VerificationDoneTimelineElementViewModel : TimelineElementViewModel.Message<VerificationDoneEventContent> {
-    /**
-     * Signifies whether this is our own done event. `null` means the value has not been computed.
-     */
+    /** Signifies whether this is our own done event. `null` means the value has not been computed. */
     val isOwn: StateFlow<Boolean?>
 
-    /**
-     * The original user who initiated the verification.
-     */
+    /** The original user who initiated the verification. */
     val verificationStartedBy: StateFlow<UserInfoElement?>
     val message: String
 }
-
 
 interface VerificationDoneTimelineElementViewModelFactory :
     TimelineElementViewModelFactory<VerificationDoneEventContent> {
@@ -44,14 +37,9 @@ interface VerificationDoneTimelineElementViewModelFactory :
         content: VerificationDoneEventContent,
         roomId: RoomId,
         eventIdOrTransactionId: EventIdOrTransactionId,
-        onOpenMention: OpenMentionCallback
+        onOpenMention: OpenMentionCallback,
     ): VerificationDoneTimelineElementViewModel? {
-        return VerificationDoneTimelineElementViewModelImpl(
-            viewModelContext,
-            content,
-            roomId,
-            eventIdOrTransactionId,
-        )
+        return VerificationDoneTimelineElementViewModelImpl(viewModelContext, content, roomId, eventIdOrTransactionId)
     }
 
     override val supports: kotlin.reflect.KClass<VerificationDoneEventContent>
@@ -71,16 +59,18 @@ class VerificationDoneTimelineElementViewModelImpl(
 
     override val isOwn: StateFlow<Boolean?> =
         flow {
-            emit(
-                eventIdOrTransactionId.eventIdOrNull()?.let { eventId ->
-                    matrixClient.room.getTimelineEvent(roomId, eventId)
-                        .filterNotNull().first().sender == matrixClient.userId
-                } ?: false
-            )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+                emit(
+                    eventIdOrTransactionId.eventIdOrNull()?.let { eventId ->
+                        matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first().sender ==
+                            matrixClient.userId
+                    } ?: false
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val verificationStartedBy: StateFlow<UserInfoElement?> =
-        matrixClient.verificationStartedBy(content, roomId, coroutineScope, initials)
+        matrixClient
+            .verificationStartedBy(content, roomId, coroutineScope, initials)
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val message: String

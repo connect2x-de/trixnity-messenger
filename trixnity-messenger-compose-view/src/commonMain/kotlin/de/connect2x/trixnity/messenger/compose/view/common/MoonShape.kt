@@ -12,23 +12,13 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 
 class MoonShape : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
         val center = size.center
         val radius = size.minDimension / 2f
-        val mainCircle = Path().apply {
-            addOval(Rect(center, radius))
-        }
+        val mainCircle = Path().apply { addOval(Rect(center, radius)) }
         val initialOffset = center - Offset(-radius * 0.55f, radius * 0.55f)
-        val subtractCircle = Path().apply {
-            addOval(Rect(initialOffset, radius * 0.55f))
-        }
-        val moonToSunPath = Path().apply {
-            op(mainCircle, subtractCircle, PathOperation.Difference)
-        }
+        val subtractCircle = Path().apply { addOval(Rect(initialOffset, radius * 0.55f)) }
+        val moonToSunPath = Path().apply { op(mainCircle, subtractCircle, PathOperation.Difference) }
         return Outline.Generic(moonToSunPath)
     }
 }
