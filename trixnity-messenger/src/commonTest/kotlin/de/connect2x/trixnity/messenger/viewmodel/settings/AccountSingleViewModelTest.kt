@@ -37,8 +37,11 @@ import io.ktor.http.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
@@ -183,7 +186,9 @@ class AccountSingleViewModelTest {
     fun `delete avatar image and reload profile`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend {
+            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
+        }
         deleteAvatarMocker calls {
             profile.value -= ProfileField.AvatarUrl
             Result.success(Unit)
@@ -203,6 +208,9 @@ class AccountSingleViewModelTest {
         } returns Result.success(initialAvatar)
 
         val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
 
@@ -218,8 +226,11 @@ class AccountSingleViewModelTest {
     fun `show error when avatar image cannot be deleted`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
-        deleteAvatarMocker returns Result.failure(RuntimeException("Something went wrong!"))
+        deleteAvatarMocker = everySuspend {
+            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
+        }
+        deleteAvatarMocker returns
+                Result.failure(RuntimeException("Something went wrong!"))
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
@@ -235,6 +246,9 @@ class AccountSingleViewModelTest {
         } returns Result.success(initialAvatar)
 
         val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
 
@@ -249,13 +263,11 @@ class AccountSingleViewModelTest {
     fun `display an error message when the user has not enough rights to delete the avatar image`() = runTest {
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
-        deleteAvatarMocker returns Result.failure(
-            MatrixServerException(
-                HttpStatusCode.Forbidden,
-                ErrorResponse.Forbidden("You shall not pass")
-            )
-        )
+        deleteAvatarMocker = everySuspend {
+            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
+        }
+        deleteAvatarMocker returns
+                Result.failure(MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("You shall not pass")))
 
         val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         val initialAvatarValue = initialAvatar.toByteArray()
@@ -271,6 +283,9 @@ class AccountSingleViewModelTest {
         } returns Result.success(initialAvatar)
 
         val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
 
@@ -300,7 +315,9 @@ class AccountSingleViewModelTest {
         every { matrixClientMock.serverData } returns capabilities
         val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
         every { matrixClientMock.profile } returns profile
-        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker = everySuspend {
+            matrixClientMock.deleteProfileField(ProfileField.AvatarUrl)
+        }
         deleteAvatarMocker calls {
             profile.value -= ProfileField.AvatarUrl
             Result.success(Unit)
@@ -320,6 +337,9 @@ class AccountSingleViewModelTest {
         } returns Result.success(initialAvatar)
 
         val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
 

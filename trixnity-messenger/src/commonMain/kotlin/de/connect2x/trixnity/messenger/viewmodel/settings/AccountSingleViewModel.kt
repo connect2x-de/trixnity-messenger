@@ -124,12 +124,13 @@ class AccountSingleViewModelImpl(
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val canDeleteAvatar = matrixClient.serverData.map { _ ->
-        canDeleteAvatar()
+    override val canDeleteAvatar = matrixClient.serverData.map { serverData ->
+        val capabilities = serverData?.capabilities?.capabilities
+        (capabilities?.profileFields?.enabled ?: true) || capabilities.setAvatarUrl.enabled
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val hasAvatarUrl = matrixClient.profile.map { _ ->
-        hasAvatarUrl()
+    override val hasAvatarUrl = matrixClient.profile.map { profile ->
+        profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank()
     }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val initials =
@@ -175,7 +176,7 @@ class AccountSingleViewModelImpl(
     override fun deleteAvatar() {
         coroutineScope.launch {
             val matrixClient = getMatrixClient(userId)
-            if (hasAvatarUrl() && canDeleteAvatar()) {
+            if (hasAvatarUrl.value && canDeleteAvatar.value) {
                 matrixClient.deleteProfileField(ProfileField.AvatarUrl)
                     .onFailure {
                         log.error(it) { "Cannot delete avatar." }
@@ -189,17 +190,5 @@ class AccountSingleViewModelImpl(
                 log.warn { "Missing server capability to remove the avatar url." }
             }
         }
-    }
-
-    private fun canDeleteAvatar(): Boolean {
-        val capabilities = matrixClient.serverData.value?.capabilities?.capabilities
-        val hasDeleteAvatarCapability = (capabilities?.profileFields?.enabled ?: true)
-                || capabilities.setAvatarUrl.enabled
-
-        return hasDeleteAvatarCapability
-    }
-
-    private fun hasAvatarUrl(): Boolean {
-        return !matrixClient.profile.value?.get(ProfileField.AvatarUrl)?.value.isNullOrBlank()
     }
 }
