@@ -7,13 +7,11 @@ import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import kotlinx.coroutines.flow.MutableStateFlow
 import de.connect2x.trixnity.messenger.viewmodel.search.PreviewSearchUserViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelImpl
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.component.get
-import kotlin.coroutines.EmptyCoroutineContext.get
 
 interface CreateNewRoomViewModelFactory {
     fun create(

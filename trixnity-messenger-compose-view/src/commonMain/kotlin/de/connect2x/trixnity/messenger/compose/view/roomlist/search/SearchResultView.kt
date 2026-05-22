@@ -7,8 +7,7 @@ import kotlin.reflect.KClass
 interface SearchResultView<V : UserSearchResult> {
     val supports: KClass<out V>
 
-    @Composable
-    fun create(userSearchResult: V, showOrigin: Boolean, onClick: (V) -> Unit)
+    @Composable fun create(userSearchResult: V, showOrigin: Boolean, onClick: (V) -> Unit)
 }
 
 object EmptySearchResultView : SearchResultView<UserSearchResult> {
@@ -19,6 +18,4 @@ object EmptySearchResultView : SearchResultView<UserSearchResult> {
     override fun create(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) {
         // TODO empty
     }
-
-
 }

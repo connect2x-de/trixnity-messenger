@@ -7,15 +7,14 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchSettingCombined
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.reflect.KClass
 
 interface SearchSettingInputSelector {
     @Composable
     fun create(searchSettingCombined: SearchSettingCombined) =
         rememberFactory(searchSettingCombined).create(searchSettingCombined)
-
 
     @Composable
     private fun rememberFactory(element: SearchSettingCombined): SearchSettingInputView<*> =
@@ -29,14 +28,12 @@ fun SearchSettingInputSelector(searchSettingCombined: SearchSettingCombined) {
     with(DI.get<SearchSettingInputSelector>()) { create(searchSettingCombined) }
 }
 
-class SearchSettingInputSelectorImpl(
-    private val factories: List<SearchSettingInputView<*>>,
-) : SearchSettingInputSelector {
+class SearchSettingInputSelectorImpl(private val factories: List<SearchSettingInputView<*>>) :
+    SearchSettingInputSelector {
     private val log =
         Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchSettingInputSelectorImpl")
 
-    private val factoryMapping =
-        MutableStateFlow<Map<KClass<out SettingsId>, SearchSettingInputView<*>>>(emptyMap())
+    private val factoryMapping = MutableStateFlow<Map<KClass<out SettingsId>, SearchSettingInputView<*>>>(emptyMap())
 
     override fun selectFactory(element: SearchSettingCombined): SearchSettingInputView<*> {
         val target = element.id
@@ -48,7 +45,7 @@ class SearchSettingInputSelectorImpl(
                         ?: run {
                             log.warn {
                                 "There are no registered view for ${target::class.simpleName}. " +
-                                        "This can be a missing view in the DI."
+                                    "This can be a missing view in the DI."
                             }
                             EmptySearchSettingInputView
                         }
@@ -57,5 +54,3 @@ class SearchSettingInputSelectorImpl(
             }
     }
 }
-
-

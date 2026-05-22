@@ -7,16 +7,12 @@ import kotlin.reflect.KClass
 interface SearchUserProviderSettingsView<S : SearchUserProvider> {
     val supports: KClass<out S>
 
-    @Composable
-    fun create(searchUserProvider: SearchUserProvider)
+    @Composable fun create(searchUserProvider: SearchUserProvider)
 }
 
 object EmptySearchUserProviderSettingsView : SearchUserProviderSettingsView<SearchUserProvider> {
     override val supports: KClass<SearchUserProvider>
         get() = SearchUserProvider::class
 
-    @Composable
-    override fun create(searchUserProvider: SearchUserProvider) {
-    }
-
+    @Composable override fun create(searchUserProvider: SearchUserProvider) {}
 }

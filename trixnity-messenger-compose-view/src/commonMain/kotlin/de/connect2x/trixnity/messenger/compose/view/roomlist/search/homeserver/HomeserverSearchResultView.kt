@@ -7,10 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Expand
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +24,6 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchProviderIcon
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchResultView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
 import kotlin.reflect.KClass
@@ -48,29 +43,15 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
         val presence = userSearchResult.presence.collectAsState().value
         val expanded = remember { mutableStateOf(false) }
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .clickable(onClick = { onClick(userSearchResult) })
-                .buttonPointerModifier()
-        ) {
+        Box(Modifier.fillMaxWidth().clickable(onClick = { onClick(userSearchResult) }).buttonPointerModifier()) {
             Row(
                 Modifier.padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 Box {
-                    Box(
-                        Modifier
-                            .align(Alignment.Center)
-                            .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
-                    ) {
-                        ThemedUserAvatar(
-                            userSearchResult.initials,
-                            image,
-                        ) {
-                            AvatarPresenceBadge(presence)
-                        }
+                    Box(Modifier.align(Alignment.Center).padding(top = 10.dp, bottom = 10.dp, end = 10.dp)) {
+                        ThemedUserAvatar(userSearchResult.initials, image) { AvatarPresenceBadge(presence) }
                     }
                     if (showOrigin) {
                         SearchProviderIcon(modifier = Modifier.align(Alignment.TopEnd)) {

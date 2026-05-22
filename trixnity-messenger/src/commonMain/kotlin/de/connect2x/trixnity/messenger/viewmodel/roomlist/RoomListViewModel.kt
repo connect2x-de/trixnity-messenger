@@ -32,7 +32,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel.User
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.util.isVerified
-import io.ktor.http.Url
+import io.ktor.http.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant

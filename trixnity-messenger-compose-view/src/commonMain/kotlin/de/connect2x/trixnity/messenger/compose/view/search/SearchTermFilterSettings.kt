@@ -48,37 +48,29 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
     val providerSettings by searchUserViewModel.providerSettingsString.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
-    val rotateState = animateFloatAsState(
-        targetValue = if (showFilters) 180F else 0F,
-    )
+    val rotateState = animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
     val interactionSource = remember { MutableInteractionSource() }
 
-    if (searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }) {
+    if (
+        searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
+    ) {
         Card(
             modifier =
-                Modifier.clickable(interactionSource, indication = null, onClick = {
-                    showFilters = showFilters.not()
-                })
+                Modifier.clickable(interactionSource, indication = null, onClick = { showFilters = showFilters.not() })
                     .focusHighlighting(interactionSource)
                     .buttonPointerModifier(),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .buttonPointerModifier(),
+                modifier = Modifier.fillMaxWidth().padding(16.dp).buttonPointerModifier(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Default.FilterList, i18n.userSearchFilter())
                 Spacer(Modifier.size(10.dp))
                 if (providerSettings.isEmpty()) {
-                    Text(
-                        text = i18n.userSearchFilterOptions(),
-                        style = MaterialTheme.typography.titleSmall
-                    )
+                    Text(text = i18n.userSearchFilterOptions(), style = MaterialTheme.typography.titleSmall)
                 }
                 if (providerSettings.isNotEmpty() && showFilters.not()) {
                     SmallSpacer()
@@ -87,35 +79,27 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
                     ) {
                         providerSettings.forEach { setting ->
-                            ThemedInfoChip(label = {
-                                Text(setting, style = MaterialTheme.typography.bodySmall)
-                            })
+                            ThemedInfoChip(label = { Text(setting, style = MaterialTheme.typography.bodySmall) })
                         }
                     }
                     SmallSpacer()
                 }
                 Spacer(Modifier.weight(1.0f, fill = true))
                 Icon(
-                    Icons.Default.ArrowDropDown, i18n.userSearchSelectFilter(),
-                    modifier = Modifier.rotate(rotateState.value)
+                    Icons.Default.ArrowDropDown,
+                    i18n.userSearchSelectFilter(),
+                    modifier = Modifier.rotate(rotateState.value),
                 )
             }
-            AnimatedVisibility(
-                visible = showFilters,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    searchUserViewModel.providerSettings.values.groupBy { searchSettingCombined -> searchSettingCombined.sourceDisplayNames }
+            AnimatedVisibility(visible = showFilters) {
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    searchUserViewModel.providerSettings.values
+                        .groupBy { searchSettingCombined -> searchSettingCombined.sourceDisplayNames }
                         .forEach { (sources, settings) ->
                             Column(Modifier.padding(bottom = 10.dp)) {
                                 Text(sources.joinToString(), style = MaterialTheme.typography.bodyMediumEmphasized)
                                 SmallSpacer()
-                                settings.forEach { setting ->
-                                    SearchSettingInputSelector(setting)
-                                }
+                                settings.forEach { setting -> SearchSettingInputSelector(setting) }
                             }
                         }
                 }

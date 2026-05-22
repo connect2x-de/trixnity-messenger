@@ -16,25 +16,17 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
     override val supports: KClass<out HomeserverSearchUserProvider> = HomeserverSearchUserProvider::class
 
     @Composable
-    override fun create(
-        searchUserProvider: SearchUserProvider,
-        active: Boolean,
-        setActive: () -> Unit
-    ) {
+    override fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) {
         ThemedFilterChip(
             selected = active,
             onClick = setActive,
-            label = {
-                Text(searchUserProvider.providerDisplayName)
-            },
-            trailingIcon = {
-                Icon(HomeHealth, contentDescription = null)
-            },
+            label = { Text(searchUserProvider.providerDisplayName) },
+            trailingIcon = { Icon(HomeHealth, contentDescription = null) },
             leadingIcon = {
                 if (active) {
                     Icon(Icons.Default.Check, contentDescription = null)
                 }
-            }
+            },
         )
     }
 }

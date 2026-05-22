@@ -13,12 +13,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurfa
 @Composable
 fun BoxScope.SearchProviderIcon(modifier: Modifier = Modifier, icon: @Composable () -> Unit) {
     ThemedSurface(
-        style = SurfaceStyle.default(
-            shape = CircleShape,
-            shadowElevation = 2.dp,
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            contentPadding = PaddingValues(2.dp),
-        ),
+        style =
+            SurfaceStyle.default(
+                shape = CircleShape,
+                shadowElevation = 2.dp,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                contentPadding = PaddingValues(2.dp),
+            ),
         modifier = modifier,
     ) {
         icon()

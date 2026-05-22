@@ -10,7 +10,7 @@ data class HomeserverUserSearchResult(
     override val displayName: String,
     override val initials: String,
     override val image: StateFlow<ByteArray?>,
-    val presence: StateFlow<Presence?>
+    val presence: StateFlow<Presence?>,
 ) : UserSearchResult {
 
     override val id: String = userId.full

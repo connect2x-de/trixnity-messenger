@@ -12,14 +12,8 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
 fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel, onProviderSettingsClicked: () -> Unit) {
     stickyHeader("searchTerm") {
-        Surface(
-            Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-            ) {
+        Surface(Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 5.dp)) {
                 UserSearchFieldNewSearch(searchUserViewModel)
                 SmallSpacer()
                 SearchTermFilterSettings(searchUserViewModel)
@@ -27,4 +21,3 @@ fun LazyListScope.searchTerm(searchUserViewModel: SearchUserViewModel, onProvide
         }
     }
 }
-

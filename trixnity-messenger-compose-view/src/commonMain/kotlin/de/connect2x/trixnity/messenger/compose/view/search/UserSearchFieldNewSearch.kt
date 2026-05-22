@@ -32,8 +32,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 
 interface UserSearchFieldNewSearchView {
-    @Composable
-    fun create(searchUserViewModel: SearchUserViewModel)
+    @Composable fun create(searchUserViewModel: SearchUserViewModel)
 }
 
 @Composable
@@ -51,17 +50,13 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
 
         val focusRequester = remember { FocusRequester() }
 
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
         OutlinedTextField(
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+            modifier =
+                Modifier.background(MaterialTheme.colorScheme.surface).fillMaxWidth().focusRequester(focusRequester),
             leadingIcon = {
                 if (isSearching.values.any { it }) {
                     ThemedProgressIndicator(Modifier, MaterialTheme.components.smallCircularProgressIndicator)
@@ -70,19 +65,16 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
                 }
             },
             trailingIcon = {
-                if (userSearchTerm.text.isNotBlank()) Icon(
-                    Icons.Default.Clear,
-                    i18n.commonDelete(),
-                    Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier()
-                )
+                if (userSearchTerm.text.isNotBlank())
+                    Icon(
+                        Icons.Default.Clear,
+                        i18n.commonDelete(),
+                        Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier(),
+                    )
             },
             label = { Text(i18n.userSearchNameOrMatrixId()) },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search,
-                autoCorrectEnabled = false
-            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
             maxLines = 1,
         )
     }
-
 }

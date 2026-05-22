@@ -23,13 +23,15 @@ import org.koin.core.component.get
 
 interface CreateNewChatNewSearchViewModel : CreateNewChatViewModel {
     val searchUserViewModel: SearchUserViewModel
+
     fun onUserClick(user: UserSearchResult)
 }
 
 class CreateNewChatNewSearchViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val createNewChatViewModel: CreateNewChatViewModel,
-) : CreateNewChatNewSearchViewModel,
+) :
+    CreateNewChatNewSearchViewModel,
     CreateNewChatViewModel by createNewChatViewModel,
     MatrixClientViewModelContext by viewModelContext {
 
@@ -46,23 +48,25 @@ class CreateNewChatNewSearchViewModelImpl(
             val existingRoomIds = createNewRoomViewModel.existingDirectRooms.value[userId]
             if (
                 existingRoomIds?.isNotEmpty() == true &&
-                existingRoomIds.any {
-                    val room = matrixClient.room.getById(it).first()
-                    room != null && (room.membership == Membership.JOIN || room.membership == Membership.INVITE)
-                }
+                    existingRoomIds.any {
+                        val room = matrixClient.room.getById(it).first()
+                        room != null && (room.membership == Membership.JOIN || room.membership == Membership.INVITE)
+                    }
             ) {
                 log.debug { "Check whether there is already existing room with $userId" }
                 // check whether the user left the room; if so, do NOT re-use the room
-                existingRoomIds.find {
-                    val membership = matrixClient.user.getById(it, userId).first()?.membership
-                    (membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK)
-                            && (matrixClient.user.getAll(it).firstOrNull()?.size ?: 0) == 2
-                }?.let { roomId ->
-                    log.info { "go to existing room with $userId" }
-                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
-                } ?: run {
-                    createNewRoom(userId)
-                }
+                existingRoomIds
+                    .find {
+                        val membership = matrixClient.user.getById(it, userId).first()?.membership
+                        (membership == Membership.JOIN ||
+                            membership == Membership.INVITE ||
+                            membership == Membership.KNOCK) &&
+                            (matrixClient.user.getAll(it).firstOrNull()?.size ?: 0) == 2
+                    }
+                    ?.let { roomId ->
+                        log.info { "go to existing room with $userId" }
+                        createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
+                    } ?: run { createNewRoom(userId) }
             } else {
                 createNewRoom(userId)
             }
@@ -77,25 +81,28 @@ class CreateNewChatNewSearchViewModelImpl(
 
         log.info { "create new room with $userId" }
         val encryption = listOf(InitialStateEvent(EncryptionEventContent(), ""))
-        val historyVisibility = optionalRoomHistoryVisibility.value?.let {
-            listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
-        } ?: emptyList()
-        matrixClient.api.room.createRoom(
-            isDirect = true,
-            invite = setOf(userId),
-            initialState = encryption + historyVisibility,
-            preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
-        ).fold(
-            onSuccess = { roomId ->
-                log.debug { "created room ${roomId.full}" }
-                createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
-            },
-            onFailure = {
-                log.error(it) { "Cannot create room." }
-                createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
-                createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
-            }
-        )
+        val historyVisibility =
+            optionalRoomHistoryVisibility.value?.let {
+                listOf(InitialStateEvent(content = HistoryVisibilityEventContent(it), ""))
+            } ?: emptyList()
+        matrixClient.api.room
+            .createRoom(
+                isDirect = true,
+                invite = setOf(userId),
+                initialState = encryption + historyVisibility,
+                preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE,
+            )
+            .fold(
+                onSuccess = { roomId ->
+                    log.debug { "created room ${roomId.full}" }
+                    createNewRoomViewModel.onRoomCreated(matrixClient.userId, roomId)
+                },
+                onFailure = {
+                    log.error(it) { "Cannot create room." }
+                    createNewRoomViewModel.error.value = createNewRoomErrorFormatter.error(it, isChat = true)
+                    createNewRoomViewModel.errorDetails.value = createNewRoomErrorFormatter.errorDetails(it)
+                },
+            )
 
         _isCreating.value = false
     }

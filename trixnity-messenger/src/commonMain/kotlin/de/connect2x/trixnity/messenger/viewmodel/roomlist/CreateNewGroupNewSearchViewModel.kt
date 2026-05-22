@@ -11,16 +11,21 @@ import kotlinx.coroutines.flow.asStateFlow
 interface CreateNewGroupNewSearchViewModel : CreateNewGroupViewModel {
     val searchUserViewModel: SearchUserViewModel
     val groupUsersNewSearch: StateFlow<List<UserSearchResult>>
+
     fun onUserClick(user: UserSearchResult)
+
     fun removeUserFromList(user: UserSearchResult)
+
     fun removeUserFromGroup(user: UserSearchResult)
+
     fun addUserToList(user: UserSearchResult)
 }
 
 class CreateNewGroupNewSearchViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     createNewGroupViewModel: CreateNewGroupViewModel,
-) : CreateNewGroupNewSearchViewModel,
+) :
+    CreateNewGroupNewSearchViewModel,
     CreateNewGroupViewModel by createNewGroupViewModel,
     ViewModelContext by viewModelContext {
     override val searchUserViewModel: SearchUserViewModel =

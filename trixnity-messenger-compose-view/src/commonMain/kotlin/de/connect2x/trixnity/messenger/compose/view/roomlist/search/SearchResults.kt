@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
@@ -35,7 +33,7 @@ fun LazyListScope.searchResults(
                     SearchResultSelector(
                         userSearchResult = searchResult,
                         showOrigin = searchUserProviders.size > 1,
-                        onClick = { onUserClick(it) }
+                        onClick = { onUserClick(it) },
                     )
                 }
             }
@@ -50,12 +48,8 @@ private fun LazyListScope.searchOptions(
 ) {
     if (searchUserProviders.size > 1) {
         item("searchOptions") {
-            Box(
-                modifier = Modifier.padding(horizontal = 10.dp),
-            ) {
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
+            Box(modifier = Modifier.padding(horizontal = 10.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     searchUserProviders.forEachIndexed { index, searchUserProvider ->
                         SearchUserProviderToggleSelector(searchUserProvider, providerSearchActive[index]) {
                             providerSearchSetActive(searchUserProvider.providerId, providerSearchActive[index].not())

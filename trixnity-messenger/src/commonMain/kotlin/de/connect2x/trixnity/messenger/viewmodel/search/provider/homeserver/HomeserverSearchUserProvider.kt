@@ -54,18 +54,17 @@ open class HomeserverSearchUserProvider(
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): ProviderSearchResult {
-        return matrixClients.value[activeAccount]
-            ?.let { matrixClient ->
-                val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
-                coroutineScope {
-                    val userId = UserId(searchTerm)
-                    if (userId.isValid()) {
-                        searchMxId(matrixClient, userId, coroutineScope, maxMediaSizeInMemory)
-                    } else {
-                        searchUser(matrixClient, searchTerm, coroutineScope, maxMediaSizeInMemory)
-                    }
+        return matrixClients.value[activeAccount]?.let { matrixClient ->
+            val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
+            coroutineScope {
+                val userId = UserId(searchTerm)
+                if (userId.isValid()) {
+                    searchMxId(matrixClient, userId, coroutineScope, maxMediaSizeInMemory)
+                } else {
+                    searchUser(matrixClient, searchTerm, coroutineScope, maxMediaSizeInMemory)
                 }
             }
+        }
             ?: run {
                 log.error { "No active MatrixClient found. This is something unexpected and should not happen." }
                 ProviderSearchResult.Failure("No MatrixClient found.")
@@ -76,20 +75,19 @@ open class HomeserverSearchUserProvider(
         matrixClient: MatrixClient,
         userId: UserId,
         coroutineScope: CoroutineScope,
-        maxMediaSizeInMemory: Long
+        maxMediaSizeInMemory: Long,
     ): ProviderSearchResult.Success {
-        val profile = matrixClient.api.user.getProfile(userId)
-            .onFailure { exc ->
-                log.error(exc) { "Cannot access user profile for $userId." }
-            }
-            .getOrNull()
+        val profile =
+            matrixClient.api.user
+                .getProfile(userId)
+                .onFailure { exc -> log.error(exc) { "Cannot access user profile for $userId." } }
+                .getOrNull()
         val image = getImage(coroutineScope, matrixClient, profile?.avatarUrl, maxMediaSizeInMemory)
 
-        val presence = getPresence(matrixClient, userId)
-            .map { presence ->
-                presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
-            }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        val presence =
+            getPresence(matrixClient, userId)
+                .map { presence -> presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence }
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
         return ProviderSearchResult.Success(
             listOf(
@@ -111,7 +109,8 @@ open class HomeserverSearchUserProvider(
         maxMediaSizeInMemory: Long,
     ): ProviderSearchResult =
         // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
-        matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, 100) // FIXME set limit?
+        matrixClient.api.user
+            .searchUsers(searchTerm, i18n.currentLang.code, 100) // FIXME set limit?
             .fold( // TODO get correct language
                 onSuccess = { response ->
                     log.trace { "got users $searchTerm" }
@@ -126,17 +125,18 @@ open class HomeserverSearchUserProvider(
                                             coroutineScope,
                                             matrixClient,
                                             searchUser.avatarUrl,
-                                            maxMediaSizeInMemory
+                                            maxMediaSizeInMemory,
                                         )
-                                    val presence = getPresence(matrixClient, searchUser.userId)
-                                        .stateIn(coroutineScope, WhileSubscribed(), null)
+                                    val presence =
+                                        getPresence(matrixClient, searchUser.userId)
+                                            .stateIn(coroutineScope, WhileSubscribed(), null)
 
                                     HomeserverUserSearchResult(
                                         userId = searchUser.userId,
                                         displayName = searchUser.displayName ?: "",
                                         initials = initials.compute(searchUser.displayName ?: searchUser.userId.full),
                                         image = image,
-                                        presence = presence
+                                        presence = presence,
                                     )
                                 }
                             }
@@ -148,7 +148,7 @@ open class HomeserverSearchUserProvider(
                 onFailure = {
                     log.error(it) { "search for users resulted in error" }
                     ProviderSearchResult.Failure("Error fetching users.")
-                }
+                },
             )
 
     private fun getImage(
@@ -159,16 +159,17 @@ open class HomeserverSearchUserProvider(
     ): StateFlow<ByteArray?> {
         return avatarUrl?.let { avatarUrl ->
             flow {
-                // TODO some sort of retry (see retryLoopFlow)
-                emit(
-                    matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong()).fold(
-                        onSuccess = {
-                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                        },
-                        onFailure = { null }
+                    // TODO some sort of retry (see retryLoopFlow)
+                    emit(
+                        matrixClient.media
+                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                            .fold(
+                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                onFailure = { null },
+                            )
                     )
-                )
-            }.stateIn(coroutineScope, WhileSubscribed(), null)
+                }
+                .stateIn(coroutineScope, WhileSubscribed(), null)
         } ?: MutableStateFlow(null)
     }
 

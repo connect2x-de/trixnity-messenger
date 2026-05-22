@@ -6,15 +6,13 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.reflect.KClass
 
 interface SearchUserProviderSettingsViewSelector {
     @Composable
-    fun create(searchUserProvider: SearchUserProvider) =
-        rememberFactory(searchUserProvider).create(searchUserProvider)
-
+    fun create(searchUserProvider: SearchUserProvider) = rememberFactory(searchUserProvider).create(searchUserProvider)
 
     @Composable
     private fun rememberFactory(element: SearchUserProvider): SearchUserProviderSettingsView<*> =
@@ -24,16 +22,16 @@ interface SearchUserProviderSettingsViewSelector {
 }
 
 @Composable
-fun SearchUserProviderSettingsSelector(
-    searchUserProvider: SearchUserProvider,
-) {
+fun SearchUserProviderSettingsSelector(searchUserProvider: SearchUserProvider) {
     with(DI.get<SearchUserProviderSettingsViewSelector>()) { create(searchUserProvider) }
 }
 
-class SearchUserProviderSettingsViewSelectorImpl(
-    private val factories: List<SearchUserProviderSettingsView<*>>,
-) : SearchUserProviderSettingsViewSelector {
-    private val log = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelectorImpl")
+class SearchUserProviderSettingsViewSelectorImpl(private val factories: List<SearchUserProviderSettingsView<*>>) :
+    SearchUserProviderSettingsViewSelector {
+    private val log =
+        Logger(
+            "de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderSettingsViewSelectorImpl"
+        )
 
     private val factoryMapping =
         MutableStateFlow<Map<KClass<out SearchUserProvider>, SearchUserProviderSettingsView<*>>>(emptyMap())
@@ -47,7 +45,7 @@ class SearchUserProviderSettingsViewSelectorImpl(
                         ?: run {
                             log.warn {
                                 "There are no registered view for ${element::class.simpleName}. " +
-                                        "This can be a missing view in the DI."
+                                    "This can be a missing view in the DI."
                             }
                             EmptySearchUserProviderSettingsView
                         }

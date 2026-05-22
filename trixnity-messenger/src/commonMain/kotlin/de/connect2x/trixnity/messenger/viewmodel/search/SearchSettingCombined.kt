@@ -12,35 +12,23 @@ import kotlinx.coroutines.flow.asStateFlow
  * Also holds the [value] of the setting and distributes it to every [SearchSetting].
  */
 data class SearchSettingCombined(
-    /**
-     * The id of the setting.
-     */
+    /** The id of the setting. */
     val id: SettingsId,
-    /**
-     * The name of the setting for the UI. Should be i18nized.
-     */
+    /** The name of the setting for the UI. Should be i18nized. */
     val name: String,
-    /**
-     * The display names of the providers that provide this setting. Are used to group the filter options.
-     */
+    /** The display names of the providers that provide this setting. Are used to group the filter options. */
     val sourceDisplayNames: List<String>,
     internal val getDisplayValue: (String) -> String,
     internal val setValue: List<(String?) -> Unit>,
 ) {
     private val _value = MutableStateFlow<String?>(null)
 
-    /**
-     * The current value of the setting. Can only be updated via [setValue].
-     */
+    /** The current value of the setting. Can only be updated via [setValue]. */
     val value: StateFlow<String?> = _value.asStateFlow()
 
-    /**
-     * Updates the [value] and distributes it to every [SearchSetting].
-     */
+    /** Updates the [value] and distributes it to every [SearchSetting]. */
     fun setValue(newValue: String?) {
-        setValue.forEach { function ->
-            function(newValue)
-        }
+        setValue.forEach { function -> function(newValue) }
         _value.value = newValue
     }
 }

@@ -22,23 +22,18 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 
 @Composable
-fun SearchUserProviderSettings(
-    searchUserProviders: List<SearchUserProvider>,
-    onDismiss: () -> Unit,
-) {
+fun SearchUserProviderSettings(searchUserProviders: List<SearchUserProvider>, onDismiss: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val tabIndex = remember { mutableStateOf(0) }
 
-    ThemedModalDialog(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.heightIn(min = 200.dp),
-    ) {
+    ThemedModalDialog(onDismissRequest = onDismiss, modifier = Modifier.heightIn(min = 200.dp)) {
         ModalDialogHeader {
             Text("Search Settings") // FIXME i18n
         }
         ModalDialogContent {
-            val searchUserProvidersWithFilters =
-                searchUserProviders.filter { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
+            val searchUserProvidersWithFilters = searchUserProviders.filter { searchUserProvider ->
+                searchUserProvider.settings.isNotEmpty()
+            }
             if (searchUserProvidersWithFilters.size > 1) {
                 TabRow(tabIndex.value) {
                     searchUserProvidersWithFilters.mapIndexed { index, searchUserProvider ->
@@ -55,15 +50,12 @@ fun SearchUserProviderSettings(
             }
         }
         ModalDialogFooter {
-            ThemedButton(
-                style = MaterialTheme.components.commonButton,
-                onClick = { onDismiss() },
-            ) {
+            ThemedButton(style = MaterialTheme.components.commonButton, onClick = { onDismiss() }) {
                 Text(i18n.actionCancel())
             }
             ThemedButton(
                 onClick = {
-//                    searchUserProviders[tabIndex.value].applySettings()
+                    //                    searchUserProviders[tabIndex.value].applySettings()
                     onDismiss()
                 },
                 style = MaterialTheme.components.primaryButton,

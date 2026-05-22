@@ -8,15 +8,12 @@ import kotlin.reflect.KClass
 interface SearchSettingInputView<S : SettingsId> {
     val supports: KClass<out S>
 
-    @Composable
-    fun create(searchSettingCombined: SearchSettingCombined)
+    @Composable fun create(searchSettingCombined: SearchSettingCombined)
 }
 
 object EmptySearchSettingInputView : SearchSettingInputView<SettingsId> {
     override val supports: KClass<SettingsId>
         get() = SettingsId::class
 
-    @Composable
-    override fun create(searchSettingCombined: SearchSettingCombined) {
-    }
+    @Composable override fun create(searchSettingCombined: SearchSettingCombined) {}
 }

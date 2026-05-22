@@ -7,15 +7,12 @@ import kotlin.reflect.KClass
 interface SearchUserProviderToggleView<S : SearchUserProvider> {
     val supports: KClass<out S>
 
-    @Composable
-    fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit)
+    @Composable fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit)
 }
 
 object EmptySearchUserProviderToggleView : SearchUserProviderToggleView<SearchUserProvider> {
     override val supports: KClass<SearchUserProvider>
         get() = SearchUserProvider::class
 
-    @Composable
-    override fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) {
-    }
+    @Composable override fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) {}
 }

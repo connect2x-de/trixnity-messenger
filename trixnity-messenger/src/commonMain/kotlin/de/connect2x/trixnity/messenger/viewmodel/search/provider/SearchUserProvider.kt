@@ -14,36 +14,24 @@ interface SettingsId
  * Other places could be an LDAP or central registry for users.
  */
 interface SearchUserProvider {
-    /**
-     * A unique identifier for the provider.
-     */
+    /** A unique identifier for the provider. */
     val providerId: SearchUserProviderId
 
-    /**
-     * A display name. Can contain line breaks (\n).
-     */
+    /** A display name, e.g. "homeserver", "LDAP", etc. */
     val providerDisplayName: String
 
-//    /**
-//     * The [SettingsId] allows the usage of settings/filters in multiple providers. E.g., a setting could be a filter
-//     * for "city" in multiple providers.
-//     *
-//     * When a setting has a value that is not blank, all providers that do not have the setting are automatically
-//     * disabled (as searching and filtering for the setting does not make sense in this provider).
-//     */
-//    val settings: Map<SettingsId, MutableStateFlow<SearchSetting>>
-
+    /**
+     * The [SettingsId] allows the usage of settings/filters in multiple providers. E.g., a setting could be a filter
+     * for "city" in multiple providers.
+     *
+     * When a setting has a value that is not blank, all providers that do not have the setting are automatically
+     * disabled (as searching and filtering for the setting does not make sense in this provider).
+     */
     val settings: Map<SettingsId, SearchSetting>
 
     /**
      * Do the actual search in the search provider. The provider is responsible to include any [settings] it might have
      * defined (e.g., "city" -> "Berlin" and thus results only from Berlin should be returned).
      */
-    suspend fun search(
-        searchTerm: String,
-        activeAccount: UserId,
-        coroutineScope: CoroutineScope,
-    ): ProviderSearchResult
-
-    // internal state for filters (use in extensions of this interface and in the UI cast to the appropriate subtype)
+    suspend fun search(searchTerm: String, activeAccount: UserId, coroutineScope: CoroutineScope): ProviderSearchResult
 }
