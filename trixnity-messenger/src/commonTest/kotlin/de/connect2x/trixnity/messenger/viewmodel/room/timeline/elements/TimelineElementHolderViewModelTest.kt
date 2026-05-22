@@ -27,9 +27,11 @@ import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.Mentions
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -40,6 +42,7 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.calls
@@ -159,8 +162,8 @@ class TimelineElementHolderViewModelTest {
     private val settings = createTestMatrixMessengerSettingsHolder()
     private val di =
         koinApplication {
-                modules(scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings))
-            }
+            modules(scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings))
+        }
             .koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
 
@@ -168,13 +171,13 @@ class TimelineElementHolderViewModelTest {
         resetCalls(matrixClientMock, roomServiceMock, userServiceMock, roomApiClientMock)
         every { matrixClientMock.di } returns
             koinApplication {
-                    modules(
-                        module {
-                            single { roomServiceMock }
-                            single { userServiceMock }
-                        }
-                    )
-                }
+                modules(
+                    module {
+                        single { roomServiceMock }
+                        single { userServiceMock }
+                    },
+                )
+            }
                 .koin
         every { matrixClientMock.userId } returns usId
         every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns
@@ -198,7 +201,7 @@ class TimelineElementHolderViewModelTest {
                             originTimestamp = 0L,
                             stateKey = userId.full,
                         ),
-                    )
+                    ),
                 )
             }
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns flowOf(null)
@@ -358,9 +361,9 @@ class TimelineElementHolderViewModelTest {
 
                                     override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                                 },
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
         timeline(roomServiceMock, roomId) { +timelineEvent }
         val cut = cut()
@@ -388,9 +391,9 @@ class TimelineElementHolderViewModelTest {
 
                                     override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                                 },
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
         timeline(roomServiceMock, roomId) { +timelineEvent }
         val cut = cut()
@@ -437,7 +440,7 @@ class TimelineElementHolderViewModelTest {
         }
         replacement.value =
             mapOf(
-                replaceEventId to flowOf(TimelineEventRelation(roomId, replaceEventId, RelationType.Replace, eventId))
+                replaceEventId to flowOf(TimelineEventRelation(roomId, replaceEventId, RelationType.Replace, eventId)),
             )
         eventually(100.milliseconds) { cut.isRead.value shouldBe false }
     }
@@ -599,6 +602,59 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
+    fun `element » shortly wait for decryption before create wait view model`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        val timeline = timeline(roomServiceMock, roomId) {
+            +MessageEvent(
+                content = MegolmEncryptedMessageEventContent(MegolmMessageValue("ciphertext"), sessionId = "sessionId"),
+                id = eventId,
+                sender = aliceId,
+                roomId = roomId,
+                originTimestamp = 1234,
+            )
+        }
+        val event = timeline.eventsInStore.value[0]
+        val eventHolder = cut(
+            timelineEvent = event.value, timelineEventFlow = event,
+        )
+        backgroundScope.launch { eventHolder.element.collect() }
+        val eventElement = eventHolder.element
+        delay(99.milliseconds)
+        eventElement.value shouldBe null
+        delay(2.milliseconds)
+        eventElement.value.shouldBeInstanceOf<EncryptedWaitTimelineElementViewModel>()
+    }
+
+    @Test
+    fun `element » shortly wait for decryption and create view model when successful`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        var timelineEvent: MutableStateFlow<TimelineEvent>? = null
+        timeline(roomServiceMock, roomId) {
+            timelineEvent = +MessageEvent(
+                content = MegolmEncryptedMessageEventContent(MegolmMessageValue("ciphertext"), sessionId = "sessionId"),
+                id = eventId,
+                sender = aliceId,
+                roomId = roomId,
+                originTimestamp = 1234,
+            )
+        }
+        requireNotNull(timelineEvent)
+        val eventHolder = cut(
+            timelineEvent = timelineEvent.value, timelineEventFlow = timelineEvent,
+        )
+        backgroundScope.launch { eventHolder.element.collect() }
+        val eventElement = eventHolder.element
+        delay(20.milliseconds)
+        eventElement.value shouldBe null
+        timelineEvent.update {
+            it.copy(content = Result.success(TextBased.Text("dino!")))
+        }
+
+        delay(2.milliseconds)
+        eventElement.value.shouldBeInstanceOf<RoomMessageTimelineElementViewModel.TextBased.Text>()
+    }
+
+    @Test
     fun `element » not create a new viewModel when a new message is sent afterwards`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         val timeline =
@@ -645,9 +701,9 @@ class TimelineElementHolderViewModelTest {
 
                                     override fun copyWith(relatesTo: RelatesTo?): MessageEventContent = this
                                 },
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
         timeline(roomServiceMock, roomId) { +timelineEvent }
         val cut = cut(eventId = eventId)
@@ -661,8 +717,8 @@ class TimelineElementHolderViewModelTest {
         every { roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace) } returns
             flowOf(
                 mapOf(
-                    EventId("0") to flowOf(TimelineEventRelation(roomId, EventId("0"), RelationType.Replace, eventId))
-                )
+                    EventId("0") to flowOf(TimelineEventRelation(roomId, EventId("0"), RelationType.Replace, eventId)),
+                ),
             )
         timeline(roomServiceMock, roomId) {
             +timelineEvent
@@ -686,9 +742,9 @@ class TimelineElementHolderViewModelTest {
                             TextBased.Text("", relatesTo = RelatesTo.Replace(eventId)),
                             createdAt = Clock.System.now(),
                             sendError = sendError,
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
         every { roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace) } returns
             flowOf(mapOf())
