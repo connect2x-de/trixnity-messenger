@@ -4,5 +4,5 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.js.Js
 
 actual fun platformHttpEngine(): HttpClientEngine {
-    return Js.create {  }
+    return Js.create {}
 }

@@ -28,11 +28,11 @@ internal object JsGraphemeIterableProvider : GraphemeIterableProvider {
     }
 }
 
-private class JsGaphemeIterable(
-    inner: String
-) : GraphemeIterable {
-    val segments = Segmenter("en".toJsString(), unsafeJso { granularity = Granularity.grapheme })
-        .segment(inner).unsafeCast<Segments>()
+private class JsGaphemeIterable(inner: String) : GraphemeIterable {
+    val segments =
+        Segmenter("en".toJsString(), unsafeJso { granularity = Granularity.grapheme })
+            .segment(inner)
+            .unsafeCast<Segments>()
 
     override fun iterator(): GraphemeIterator = JsGaphemeIterator(iterator(segments))
 
@@ -42,21 +42,19 @@ private class JsGaphemeIterable(
 
 private class JsGaphemeIterator(val inner: Iterator<SegmentData>) : GraphemeIterator {
     override fun next(): String = inner.next().segment
+
     override fun hasNext(): Boolean = inner.hasNext()
 }
 
-private fun <T: JsAny?> iterator(iterable: JsIterable<T>) : Iterator<T>
-    = iterable.unsafeCast<JsIterableFixed<T>>().iterator()
+private fun <T : JsAny?> iterator(iterable: JsIterable<T>): Iterator<T> =
+    iterable.unsafeCast<JsIterableFixed<T>>().iterator()
 
 private external interface JsIterableFixed<out T : JsAny?> : JsAny
 
 private operator fun <T : JsAny?> JsIterableFixed<T>.get(
-    key: Symbol.iterator,
-): Function<JsIterableFixed<T>, JsIterator<T>> = checkNotNull(
-    Reflect.get(
-        this, key
-    )
-).unsafeCast<Function<JsIterableFixed<T>, JsIterator<T>>>()
+    key: Symbol.iterator
+): Function<JsIterableFixed<T>, JsIterator<T>> =
+    checkNotNull(Reflect.get(this, key)).unsafeCast<Function<JsIterableFixed<T>, JsIterator<T>>>()
 
 private external interface Function<C : JsAny, R : JsAny?> : JsAny {
     fun call(thisArg: C): R
@@ -65,8 +63,9 @@ private external interface Function<C : JsAny, R : JsAny?> : JsAny {
 private operator fun <T : JsAny?> JsIterableFixed<T>.iterator(): Iterator<T> {
     val iterator = this[Symbol.iterator].call(this)
     return generateSequence {
-        val result = iterator.next()
-        if (isYield(result)) result else null
-    }.map { it.value }
+            val result = iterator.next()
+            if (isYield(result)) result else null
+        }
+        .map { it.value }
         .iterator()
 }

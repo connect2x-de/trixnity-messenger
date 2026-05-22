@@ -29,37 +29,28 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewMod
 fun RoomListElementBase(
     roomListElementViewModel: RoomListElementViewModel,
     roomDetails: @Composable ColumnScope.() -> Unit,
-    roomActions: @Composable ColumnScope.() -> Unit
+    roomActions: @Composable ColumnScope.() -> Unit,
 ) {
     val isLoaded = roomListElementViewModel.isLoaded.collectAsState().value
 
     Row(modifier = Modifier.height(IntrinsicSize.Min).fillMaxWidth()) {
         MatrixClientColor(roomListElementViewModel)
         Row(
-            Modifier
-                .heightIn(min = 72.dp)
+            Modifier.heightIn(min = 72.dp)
                 .padding(top = 10.dp, bottom = 10.dp, end = 10.dp)
                 .placeholder(
                     visible = !isLoaded,
                     color = Color.LightGray,
                     shape = RoundedCornerShape(8.dp),
-                    highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD))
-                ).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+                    highlight = PlaceholderHighlight.fade(highlightColor = Color(0xFFDDDDDD)),
+                )
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.clearAndSetSemantics {}) {
-                RoomImage(roomListElementViewModel)
-            }
+            Box(Modifier.clearAndSetSemantics {}) { RoomImage(roomListElementViewModel) }
             Spacer(Modifier.size(10.dp))
-            Column(
-                Modifier.weight(1.0f, true),
-                verticalArrangement = Arrangement.Center
-            ) {
-                roomDetails()
-            }
-            Column(Modifier, verticalArrangement = Arrangement.Center) {
-                roomActions()
-            }
+            Column(Modifier.weight(1.0f, true), verticalArrangement = Arrangement.Center) { roomDetails() }
+            Column(Modifier, verticalArrangement = Arrangement.Center) { roomActions() }
         }
     }
 }

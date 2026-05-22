@@ -3,14 +3,10 @@ package de.connect2x.trixnity.messenger.secrets
 import kotlinx.serialization.json.JsonObject
 
 interface SecretByteArrayKeyProvider {
-    /**
-     * Unique id to identify, where this key is needed.
-     */
+    /** Unique id to identify, where this key is needed. */
     val id: String
 
-    /**
-     * The position in the key provider chain.
-     */
+    /** The position in the key provider chain. */
     val level: Int
 
     /**
@@ -20,11 +16,7 @@ interface SecretByteArrayKeyProvider {
      */
     suspend fun get(extra: JsonObject?, getInputKey: GetKey?): GetKey?
 
-    data class RotateResult(
-        val getOldKey: GetKey?,
-        val getNewKey: GetKey?,
-        val newExtra: JsonObject?,
-    )
+    data class RotateResult(val getOldKey: GetKey?, val getNewKey: GetKey?, val newExtra: JsonObject?)
 
     suspend fun rotate(oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?): RotateResult
 

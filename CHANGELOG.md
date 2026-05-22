@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - UI: Add proper rendering for "All accounts" avatar
+- SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
+- SDK: Ability for rovingFocusContainer to change focused item for lazy loading containers
+- CI, INTERNAL: Add and enforce ktfmt formatting
 
 ### Changed
 
@@ -19,7 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Some containers not being focusable, when selected item was out of view
 - SDK: Slow compilation times
+- UI,A11y: Some containers not being focusable, when selected item was out of view
+- UI: Flickering in timeline when sending a reply
+- UI,SDK: It is no longer possible to create encrypted public rooms
+- UI,SDK: It is now possible to create unencrypted private rooms
 
 ### Security
 

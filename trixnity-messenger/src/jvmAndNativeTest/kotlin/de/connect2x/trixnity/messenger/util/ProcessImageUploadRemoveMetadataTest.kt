@@ -5,10 +5,10 @@ import de.connect2x.trixnity.utils.readByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import okio.Path
 import okio.Path.Companion.toPath
-import kotlin.test.Test
 
 class ProcessImageUploadRemoveMetadataTest {
     @Test
@@ -31,16 +31,15 @@ class ProcessImageUploadRemoveMetadataTest {
         fileSystem.readByteArrayFlow(path)?.let { original ->
             val stripped = cut(original.toByteArray())
             val strippedMetadata = Kim.readMetadata(stripped)
-            strippedMetadata shouldNotBeNull {
-                val exifDirectories = exif?.directories
-                exifDirectories?.onEach { exifDirectory ->
-                    exifDirectory.entries.isEmpty() shouldBe true
+            strippedMetadata shouldNotBeNull
+                {
+                    val exifDirectories = exif?.directories
+                    exifDirectories?.onEach { exifDirectory -> exifDirectory.entries.isEmpty() shouldBe true }
+                    exif?.makerNoteDirectory shouldBe null
+                    exif?.geoTiffDirectory shouldBe null
+                    iptc?.records.isNullOrEmpty() shouldBe true
+                    xmp shouldBe null
                 }
-                exif?.makerNoteDirectory shouldBe null
-                exif?.geoTiffDirectory shouldBe null
-                iptc?.records.isNullOrEmpty() shouldBe true
-                xmp shouldBe null
-            }
         }
     }
 }

@@ -45,6 +45,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -63,15 +65,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.TimeZone
 import org.koin.core.component.get
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 interface RoomListElementViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
         onRoomSelected: () -> Unit,
-        onCloseRoom: () -> Unit
+        onCloseRoom: () -> Unit,
     ): RoomListElementViewModel = RoomListElementViewModelImpl(viewModelContext, roomId, onRoomSelected, onCloseRoom)
 
     companion object : RoomListElementViewModelFactory
@@ -102,12 +102,19 @@ interface RoomListElementViewModel {
     val rejectInvitationInProgress: StateFlow<Boolean>
 
     fun unknock()
+
     fun acceptInvitation()
+
     fun rejectInvitation()
+
     fun rejectInvitationAndBlockInviter()
+
     fun forgetRoom()
+
     fun clearError()
+
     fun markUnread()
+
     fun markRead()
 }
 
@@ -116,7 +123,7 @@ open class RoomListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     override val roomId: RoomId,
     private val onRoomSelected: () -> Unit,
-    private val onRoomClose: () -> Unit
+    private val onRoomClose: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, RoomListElementViewModel {
     private val roomInviter = get<RoomInviter>()
     private val roomPresence = get<RoomPresence>()
@@ -127,45 +134,42 @@ open class RoomListElementViewModelImpl(
     private val userBlocking = get<UserBlocking>()
     private val leaveRoom = get<LeaveRoom>()
 
-    private val roomFlow = matrixClient.room.getById(roomId).filterNotNull()
-        .shareIn(coroutineScope, WhileSubscribed(), 1)
+    private val roomFlow =
+        matrixClient.room.getById(roomId).filterNotNull().shareIn(coroutineScope, WhileSubscribed(), 1)
 
     override val accountColor: StateFlow<Long?> =
-        get<MatrixMessengerSettingsHolder>().map {
-            if (it.base.accounts.size > 1) {
-                it.base.accounts[userId]?.base?.displayColor
-            } else null
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        get<MatrixMessengerSettingsHolder>()
+            .map {
+                if (it.base.accounts.size > 1) {
+                    it.base.accounts[userId]?.base?.displayColor
+                } else null
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
     override val account: UserId = matrixClient.userId
     override val error = MutableStateFlow<String?>(null)
     override val isDirect: StateFlow<Boolean?> =
-        roomFlow.map { it.isDirect }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow.map { it.isDirect }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val isInvite: StateFlow<Boolean?> =
-        roomFlow.map { it.membership == Membership.INVITE }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow.map { it.membership == Membership.INVITE }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val isKnock: StateFlow<Boolean?> =
-        roomFlow.map { it.membership == Membership.KNOCK }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow.map { it.membership == Membership.KNOCK }.stateIn(coroutineScope, WhileSubscribed(), null)
     override val isLeave: StateFlow<Boolean?> =
-        roomFlow.map { it.membership == Membership.LEAVE }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow.map { it.membership == Membership.LEAVE }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
-            if (isInvite) {
-                room.roomId
-            } else {
-                null
+                if (isInvite) {
+                    room.roomId
+                } else {
+                    null
+                }
             }
-        }.flatMapLatest { roomId ->
-            if (roomId != null) {
-                roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
-                    matrixClient.user.getById(roomId, inviterUserId)
-                        .filterNotNull()
-                        .map {
+            .flatMapLatest { roomId ->
+                if (roomId != null) {
+                    roomInviter.getInviter(matrixClient, roomId)?.let { inviterUserId ->
+                        matrixClient.user.getById(roomId, inviterUserId).filterNotNull().map {
                             it.toUserInfoElement(
                                 coroutineScope,
                                 matrixClient,
@@ -174,132 +178,143 @@ open class RoomListElementViewModelImpl(
                                 maxMediaSizeInMemory,
                             )
                         }
-                } ?: flowOf(null)
-            } else {
-                flowOf(null)
+                    } ?: flowOf(null)
+                } else {
+                    flowOf(null)
+                }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isEncrypted: StateFlow<Boolean?> =
-        roomFlow.map { it.encrypted }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow.map { it.encrypted }.stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isPublic: StateFlow<Boolean?> =
         combine(
-            matrixClient.room.getState<HistoryVisibilityEventContent>(roomId).map {
-                it?.content?.historyVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
-            },
-            matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
-                it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
+                matrixClient.room.getState<HistoryVisibilityEventContent>(roomId).map {
+                    it?.content?.historyVisibility == HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE
+                },
+                matrixClient.room.getState<JoinRulesEventContent>(roomId).map {
+                    it?.content?.joinRule == JoinRulesEventContent.JoinRule.Public
+                },
+            ) { a, b ->
+                a || b
             }
-        ) { a, b -> a || b }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomName: StateFlow<String?> =
-        roomNameCalculations.getRoomName(roomId, matrixClient).map { it }
+        roomNameCalculations
+            .getRoomName(roomId, matrixClient)
+            .map { it }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomImageInitials: StateFlow<String?> =
-        roomNameCalculations.getRoomName(roomId, matrixClient, formatted = false)
+        roomNameCalculations
+            .getRoomName(roomId, matrixClient, formatted = false)
             .map { initials.compute(it) }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomImage: StateFlow<ByteArray?> =
-        roomFlow.map { room ->
-            room.avatarUrl?.let { avatarUrl ->
-                matrixClient.media.getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                    .fold(
-                        onSuccess = {
-                            it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                        },
-                        onFailure = {
-                            log.error(it) { "Cannot load user avatar." }
-                            null
-                        }
-                    )
+        roomFlow
+            .map { room ->
+                room.avatarUrl?.let { avatarUrl ->
+                    matrixClient.media
+                        .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                        .fold(
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onFailure = {
+                                log.error(it) { "Cannot load user avatar." }
+                                null
+                            },
+                        )
+                }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val draftFlow = if (get<MatrixMessengerConfiguration>().features.enableMessageDrafts) {
-        matrixClient.room.getDraftMessage(roomId)
-    } else {
-        flowOf(null)
-    }
+    private val draftFlow =
+        if (get<MatrixMessengerConfiguration>().features.enableMessageDrafts) {
+            matrixClient.room.getDraftMessage(roomId)
+        } else {
+            flowOf(null)
+        }
 
     private val lastRelevantTimelineEventMessage =
-        roomFlow.flatMapLatest { room ->
-            val lastRelevantEventId = room.lastRelevantEventId
-            if (lastRelevantEventId != null)
-                matrixClient.room.getTimelineEvent(
-                    roomId = roomId,
-                    eventId = lastRelevantEventId,
-                )
-            else flowOf(null)
-        }.distinctUntilChanged()
+        roomFlow
+            .flatMapLatest { room ->
+                val lastRelevantEventId = room.lastRelevantEventId
+                if (lastRelevantEventId != null)
+                    matrixClient.room.getTimelineEvent(roomId = roomId, eventId = lastRelevantEventId)
+                else flowOf(null)
+            }
+            .distinctUntilChanged()
             .flatMapLatest { lastTimelineEvent ->
                 if (lastTimelineEvent != null) {
                     combine(
                         matrixClient.user.getById(roomId, lastTimelineEvent.event.sender),
-                        matrixClient.room.getById(roomId).map { it?.isDirect == true }
-                            .distinctUntilChanged(),
-                        draftFlow
+                        matrixClient.room.getById(roomId).map { it?.isDirect == true }.distinctUntilChanged(),
+                        draftFlow,
                     ) { lastTimelineEventSender, isDirect, draftMessage ->
                         val draftMessageContent = getDraftMessageContent(draftMessage)
                         val message = timelineEventTypeDescription(lastTimelineEvent)
                         val isByMe = matrixClient.userId == lastTimelineEvent.event.sender
-                        val sender = if (isByMe) {
-                            i18n.roomListYou()
-                        } else {
-                            lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
-                        }
+                        val sender =
+                            if (isByMe) {
+                                i18n.roomListYou()
+                            } else {
+                                lastTimelineEventSender?.name ?: lastTimelineEvent.event.sender.full
+                            }
                         if (draftMessageContent != null) "${i18n.roomListDraft()}: $draftMessageContent"
-                        else if (isDirect && isByMe.not()) message
-                        else "${sender}: $message"
+                        else if (isDirect && isByMe.not()) message else "${sender}: $message"
                     }
                 } else flowOf("")
-            }.shareIn(coroutineScope, WhileSubscribed(), 1)
+            }
+            .shareIn(coroutineScope, WhileSubscribed(), 1)
 
     override val lastMessage: StateFlow<String?> =
         combine(lastRelevantTimelineEventMessage, isInvite.filterNotNull()) { message, isInvite ->
-            if (isInvite) {
-                val inviter = roomNameCalculations.getInviterName(roomId, matrixClient)
-                i18n.roomListInvitationFrom(inviter)
-            } else {
-                message
+                if (isInvite) {
+                    val inviter = roomNameCalculations.getInviterName(roomId, matrixClient)
+                    i18n.roomListInvitationFrom(inviter)
+                } else {
+                    message
+                }
             }
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val usersTyping: StateFlow<String?> = matrixClient.room.usersTyping.map { map ->
-        map[roomId]?.let { typingInfo(matrixClient, roomId, i18n, it) }
-    }.stateIn(coroutineScope, WhileSubscribed(), null)
+    override val usersTyping: StateFlow<String?> =
+        matrixClient.room.usersTyping
+            .map { map -> map[roomId]?.let { typingInfo(matrixClient, roomId, i18n, it) } }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val time: StateFlow<String?> =
-        roomFlow.map { room ->
-            room.lastRelevantEventTimestamp?.let {
-                formatTimestamp(it, clock, timeZone)
-            } ?: matrixClient.room.getState<CreateEventContent>(roomId).first()
-                ?.originTimestamp?.let { Instant.fromEpochMilliseconds(it) }
-                ?.let { formatTimestamp(it, clock, timeZone) }
-            ?: ""
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        roomFlow
+            .map { room ->
+                room.lastRelevantEventTimestamp?.let { formatTimestamp(it, clock, timeZone) }
+                    ?: matrixClient.room
+                        .getState<CreateEventContent>(roomId)
+                        .first()
+                        ?.originTimestamp
+                        ?.let { Instant.fromEpochMilliseconds(it) }
+                        ?.let { formatTimestamp(it, clock, timeZone) }
+                    ?: ""
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isUnread: StateFlow<Boolean?> =
-        matrixClient.notification.isUnread(roomId)
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        matrixClient.notification.isUnread(roomId).stateIn(coroutineScope, WhileSubscribed(), null)
 
-    override val notificationCount: StateFlow<String?> = matrixClient.notification.getCount(roomId)
-        .map(::getNotificationDisplayCount)
-        .stateIn(coroutineScope, WhileSubscribed(), null)
+    override val notificationCount: StateFlow<String?> =
+        matrixClient.notification
+            .getCount(roomId)
+            .map(::getNotificationDisplayCount)
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val presence: StateFlow<Presence?> =
-        roomPresence.invoke(matrixClient, roomId)
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomPresence.invoke(matrixClient, roomId).stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val isLoaded: StateFlow<Boolean> =
-        combine(
-            roomName,
-            isInvite,
-            lastMessage
-        ) { roomName, isInvite, lastMessage -> roomName != null && isInvite != null && lastMessage != null }
+        combine(roomName, isInvite, lastMessage) { roomName, isInvite, lastMessage ->
+                roomName != null && isInvite != null && lastMessage != null
+            }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
     override val rejectInvitationInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -328,15 +343,15 @@ open class RoomListElementViewModelImpl(
                 error.value = i18n.roomListInvitationOffline()
             } else {
                 log.debug { "try to join room $roomId" }
-                matrixClient.api.room.joinRoom(roomId).fold(
-                    onSuccess = {
-                        onRoomSelected()
-                    },
-                    onFailure = {
-                        log.error(it) { "Cannot join room." }
-                        error.value = i18n.roomListInvitationError()
-                    }
-                )
+                matrixClient.api.room
+                    .joinRoom(roomId)
+                    .fold(
+                        onSuccess = { onRoomSelected() },
+                        onFailure = {
+                            log.error(it) { "Cannot join room." }
+                            error.value = i18n.roomListInvitationError()
+                        },
+                    )
             }
         }
     }
@@ -346,7 +361,7 @@ open class RoomListElementViewModelImpl(
             rejectInvitationInProgress.value = true
             rejectInvitationSuspend(
                 onSuccess = { rejectInvitationInProgress.value = false },
-                onFailure = { rejectInvitationInProgress.value = false }
+                onFailure = { rejectInvitationInProgress.value = false },
             )
         }
     }
@@ -364,14 +379,14 @@ open class RoomListElementViewModelImpl(
                         log.debug { "Blocked user $inviter" }
                         rejectInvitationSuspend(
                             onSuccess = { rejectInvitationInProgress.value = false },
-                            onFailure = { rejectInvitationInProgress.value = false }
+                            onFailure = { rejectInvitationInProgress.value = false },
                         )
                     },
                     onFailure = {
                         log.error { "Cannot block user $inviter" }
                         error.value = i18n.blockUserError(inviter.full)
                         rejectInvitationInProgress.value = false
-                    }
+                    },
                 )
             }
         }
@@ -400,17 +415,16 @@ open class RoomListElementViewModelImpl(
     override fun markUnread() {
         coroutineScope.launch {
             markReadAndUnreadMock.withLock {
-                if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
-                        .firstOrNull()?.unread != true
+                if (
+                    matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class).firstOrNull()?.unread !=
+                        true
                 ) {
-                    matrixClient.api.room.setAccountData(MarkedUnreadEventContent(true), roomId, userId).fold(
-                        onSuccess = {
-                            log.info { "Marked room $roomId as unread" }
-                        },
-                        onFailure = {
-                            log.error(it) { "Couldn't mark room $roomId as unread" }
-                        }
-                    )
+                    matrixClient.api.room
+                        .setAccountData(MarkedUnreadEventContent(true), roomId, userId)
+                        .fold(
+                            onSuccess = { log.info { "Marked room $roomId as unread" } },
+                            onFailure = { log.error(it) { "Couldn't mark room $roomId as unread" } },
+                        )
                 }
             }
         }
@@ -423,37 +437,47 @@ open class RoomListElementViewModelImpl(
         coroutineScope.launch {
             markReadAndUnreadMock.withLock {
                 launch {
-                    if (matrixClient.room.getAccountData(roomId, MarkedUnreadEventContent::class)
-                            .firstOrNull()?.unread == true
+                    if (
+                        matrixClient.room
+                            .getAccountData(roomId, MarkedUnreadEventContent::class)
+                            .firstOrNull()
+                            ?.unread == true
                     ) {
-                        matrixClient.api.room.setAccountData(MarkedUnreadEventContent(false), roomId, userId).fold(
-                            onSuccess = {
-                                log.info { "Marked room $roomId as read" }
-                            },
-                            onFailure = {
-                                log.error(it) { "Couldn't mark room $roomId as read" }
-                            }
-                        )
+                        matrixClient.api.room
+                            .setAccountData(MarkedUnreadEventContent(false), roomId, userId)
+                            .fold(
+                                onSuccess = { log.info { "Marked room $roomId as read" } },
+                                onFailure = { log.error(it) { "Couldn't mark room $roomId as read" } },
+                            )
                     } else {
                         log.debug { "Not setting room $roomId as not unread, since it already has that state" }
                     }
                 }
                 launch {
-                    val lastTimelineEvent =
-                        matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
+                    val lastTimelineEvent = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
                     val ownReceipts =
-                        matrixClient.user.getReceiptsById(roomId, matrixClient.userId).first()?.receipts?.run {
-                            setOfNotNull(get(ReceiptType.Read)?.eventId, get(ReceiptType.PrivateRead)?.eventId)
-                        }.orEmpty()
+                        matrixClient.user
+                            .getReceiptsById(roomId, matrixClient.userId)
+                            .first()
+                            ?.receipts
+                            ?.run {
+                                setOfNotNull(get(ReceiptType.Read)?.eventId, get(ReceiptType.PrivateRead)?.eventId)
+                            }
+                            .orEmpty()
                     if (lastTimelineEvent != null && ownReceipts.contains(lastTimelineEvent).not()) {
-                        matrixClient.api.room.setReadMarkers(
-                            roomId = roomId,
-                            read = if (readMarkerIsPublic.firstOrNull() == true) lastTimelineEvent else null,
-                            fullyRead = lastTimelineEvent,
-                            privateRead = lastTimelineEvent,
-                        )
-                            .onFailure { log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" } }
-                            .onSuccess { log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" } }
+                        matrixClient.api.room
+                            .setReadMarkers(
+                                roomId = roomId,
+                                read = if (readMarkerIsPublic.firstOrNull() == true) lastTimelineEvent else null,
+                                fullyRead = lastTimelineEvent,
+                                privateRead = lastTimelineEvent,
+                            )
+                            .onFailure {
+                                log.error(it) { "cannot set read marker for event $lastTimelineEvent in $roomId" }
+                            }
+                            .onSuccess {
+                                log.debug { "successfully set read marker for message: $lastTimelineEvent in $roomId" }
+                            }
                     } else {
                         log.debug { "Not setting last event of room $roomId as read since it already has that state" }
                     }
@@ -464,7 +488,7 @@ open class RoomListElementViewModelImpl(
 
     private suspend fun rejectInvitationSuspend(
         onSuccess: suspend () -> Unit = {},
-        onFailure: (Throwable) -> Unit = {}
+        onFailure: (Throwable) -> Unit = {},
     ) {
         if (matrixClient.syncState.value == SyncState.ERROR) {
             log.debug { "Try to reject room invitation while not connected" }
@@ -546,12 +570,19 @@ class PreviewRoomListElementViewModel1 : RoomListElementViewModel {
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun unknock() {}
+
     override fun acceptInvitation() {}
+
     override fun rejectInvitation() {}
+
     override fun forgetRoom() {}
+
     override fun rejectInvitationAndBlockInviter() {}
+
     override fun clearError() {}
+
     override fun markUnread() {}
+
     override fun markRead() {}
 }
 
@@ -573,7 +604,9 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("A")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(null)
     override val lastMessage: MutableStateFlow<String?> =
-        MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+        MutableStateFlow(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow("Martin schreibt...")
     override val time: MutableStateFlow<String?> = MutableStateFlow("24.12.19")
     override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -583,12 +616,19 @@ class PreviewRoomListElementViewModel2 : RoomListElementViewModel {
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun unknock() {}
+
     override fun acceptInvitation() {}
+
     override fun rejectInvitation() {}
+
     override fun forgetRoom() {}
+
     override fun rejectInvitationAndBlockInviter() {}
+
     override fun clearError() {}
+
     override fun markUnread() {}
+
     override fun markRead() {}
 }
 
@@ -610,7 +650,9 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("M")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val lastMessage: MutableStateFlow<String?> =
-        MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+        MutableStateFlow(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -620,12 +662,19 @@ class PreviewRoomListElementViewModel3 : RoomListElementViewModel {
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun unknock() {}
+
     override fun acceptInvitation() {}
+
     override fun rejectInvitation() {}
+
     override fun forgetRoom() {}
+
     override fun rejectInvitationAndBlockInviter() {}
+
     override fun clearError() {}
+
     override fun markUnread() {}
+
     override fun markRead() {}
 }
 
@@ -647,7 +696,9 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val roomImageInitials: MutableStateFlow<String?> = MutableStateFlow("M")
     override val roomImage: MutableStateFlow<ByteArray?> = MutableStateFlow(previewImageByteArray())
     override val lastMessage: MutableStateFlow<String?> =
-        MutableStateFlow("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+        MutableStateFlow(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+        )
     override val usersTyping: MutableStateFlow<String?> = MutableStateFlow(null)
     override val time: MutableStateFlow<String?> = MutableStateFlow("12.12.19")
     override val isUnread: MutableStateFlow<Boolean?> = MutableStateFlow(true)
@@ -657,11 +708,18 @@ class PreviewRoomListElementViewModel4 : RoomListElementViewModel {
     override val rejectInvitationInProgress: StateFlow<Boolean> = MutableStateFlow(false)
 
     override fun unknock() {}
+
     override fun acceptInvitation() {}
+
     override fun rejectInvitation() {}
+
     override fun forgetRoom() {}
+
     override fun rejectInvitationAndBlockInviter() {}
+
     override fun clearError() {}
+
     override fun markUnread() {}
+
     override fun markRead() {}
 }

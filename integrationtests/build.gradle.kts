@@ -11,13 +11,7 @@ configureJava(sharedLibs.versions.targetJvm)
 
 kotlin {
     defaultCompilerOptions()
-    withJvm {
-        testRuns.named("test") {
-            executionTask.configure {
-                useJUnitPlatform()
-            }
-        }
-    }
+    withJvm { testRuns.named("test") { executionTask.configure { useJUnitPlatform() } } }
     sourceSets {
         jvmTest {
             dependencies {

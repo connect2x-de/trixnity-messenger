@@ -20,7 +20,7 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.s
 
 @Composable
 internal actual fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel,
+    viewModel: NotificationSettingsSingleAccountViewModel
 ) {
     val i18n = DI.get<I18nView>()
     val enabled = viewModel.enabledForThisDevice.collectAsState().value
@@ -34,7 +34,7 @@ internal actual fun ColumnScope.PlatformDeviceNotificationSettings(
             } else {
                 log.warn { "Couldn't open $appSettingsUrl" }
             }
-        }
+        },
     ) {
         Text(i18n.notificationsSettingsPlatform())
     }

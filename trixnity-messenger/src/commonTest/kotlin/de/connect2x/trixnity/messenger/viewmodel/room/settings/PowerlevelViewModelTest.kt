@@ -28,6 +28,15 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -38,16 +47,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.milliseconds
-
 
 class PowerlevelViewModelTest {
     private val testRoom = RoomId("!testRoom")
@@ -65,22 +64,24 @@ class PowerlevelViewModelTest {
         resetMocks(matrixClient, roomService, keyService, userService)
 
         every { userService.getPowerLevel(testRoom, alice) } returns flowOf(alicePowerLevel)
-        every {
-            userService.canSendEvent(testRoom, PowerLevelsEventContent::class)
-        } returns flowOf(true)
+        every { userService.canSendEvent(testRoom, PowerLevelsEventContent::class) } returns flowOf(true)
 
         every { matrixClient.api } returns matrixClientServerApiClient
         every { matrixClientServerApiClient.room } returns roomApiClient
 
         every { matrixClient.userId } returns alice
-        every { matrixClient.di } returns koinApplication {
-            modules(module {
-                single { roomService }
-                single { userService }
-                single { keyService }
-                single { EventContentSerializerMappings.default }
-            })
-        }.koin
+        every { matrixClient.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomService }
+                            single { userService }
+                            single { keyService }
+                            single { EventContentSerializerMappings.default }
+                        }
+                    )
+                }
+                .koin
     }
 
     @BeforeTest
@@ -103,8 +104,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.events.collect { } }
-        backgroundScope.launch { model.inputError.collect { } }
+        backgroundScope.launch { model.events.collect {} }
+        backgroundScope.launch { model.inputError.collect {} }
 
         delay(500.milliseconds)
 
@@ -137,8 +138,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.events.collect { } }
-        backgroundScope.launch { model.isAnyInputModified.collect { } }
+        backgroundScope.launch { model.events.collect {} }
+        backgroundScope.launch { model.isAnyInputModified.collect {} }
 
         delay(500.milliseconds)
 
@@ -166,15 +167,13 @@ class PowerlevelViewModelTest {
     @Test
     fun `errorDismiss clears the error`() = runTest {
         val msg = "some error"
-        everySuspend {
-            roomApiClient.sendStateEvent(any(), any(), any())
-        } returns Result.failure(RuntimeException(msg))
+        everySuspend { roomApiClient.sendStateEvent(any(), any(), any()) } returns Result.failure(RuntimeException(msg))
 
         val model = testModel()
 
-        backgroundScope.launch { model.error.collect { } }
-        backgroundScope.launch { model.events.collect { } }
-        backgroundScope.launch { model.invite.isModified.collect { } }
+        backgroundScope.launch { model.error.collect {} }
+        backgroundScope.launch { model.events.collect {} }
+        backgroundScope.launch { model.invite.isModified.collect {} }
         delay(500.milliseconds)
 
         assertNull(model.error.value, "error before interaction")
@@ -190,13 +189,12 @@ class PowerlevelViewModelTest {
 
     @Test
     fun `no change in state does not send`() = runTest {
-        everySuspend {
-            roomApiClient.sendStateEvent(any(), any(), any())
-        } returns Result.failure(RuntimeException("some error"))
+        everySuspend { roomApiClient.sendStateEvent(any(), any(), any()) } returns
+            Result.failure(RuntimeException("some error"))
 
         val model = testModel()
 
-        backgroundScope.launch { model.error.collect { } }
+        backgroundScope.launch { model.error.collect {} }
         delay(500.milliseconds)
 
         model.setPowerLevels() // no change
@@ -209,7 +207,7 @@ class PowerlevelViewModelTest {
     fun `cannotChangePowerLevels if powerLevel lessThan m-room-state_default`() = runTest {
         val model = testModel()
 
-        backgroundScope.launch { model.canChangePowerLevels.collect { } }
+        backgroundScope.launch { model.canChangePowerLevels.collect {} }
         delay(500.milliseconds)
         assertTrue(model.canChangePowerLevels.value)
     }
@@ -219,7 +217,6 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 30L,
             max = 50L,
-
             isModified = false,
             underMaxPowerLevelErrMsg = false,
             validLongErrMsg = false,
@@ -233,7 +230,6 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 50L,
             max = 30L,
-
             isModified = false,
             underMaxPowerLevelErrMsg = false,
             validLongErrMsg = false,
@@ -247,9 +243,7 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 30L,
             max = 50L,
-
             update = "40",
-
             isModified = true,
             underMaxPowerLevelErrMsg = false,
             validLongErrMsg = false,
@@ -263,9 +257,7 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 30L,
             max = 50L,
-
             update = "foo",
-
             isModified = true,
             underMaxPowerLevelErrMsg = false,
             validLongErrMsg = true,
@@ -279,9 +271,7 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 30L,
             max = 50L,
-
             update = "100",
-
             isModified = true,
             underMaxPowerLevelErrMsg = true,
             validLongErrMsg = false,
@@ -295,7 +285,6 @@ class PowerlevelViewModelTest {
         testPowerLevelsValue(
             old = 30L,
             max = null,
-
             isModified = false,
             underMaxPowerLevelErrMsg = false,
             validLongErrMsg = false,
@@ -307,18 +296,14 @@ class PowerlevelViewModelTest {
     @Test
     fun `Value calls onRemove on remove`() = runTest {
         var called = 0
-        val v = PowerlevelViewModelImpl.ValueImpl(
-            scope = backgroundScope,
-            i18n = I18n(
-                DefaultLanguages,
-                createTestMatrixMessengerSettingsHolder(),
-                { "en" },
-                TimeZone.of("CET"),
-            ),
-            old = MutableStateFlow(25L),
-            max = MutableStateFlow(null),
-            onRemove = { called++ }
-        )
+        val v =
+            PowerlevelViewModelImpl.ValueImpl(
+                scope = backgroundScope,
+                i18n = I18n(DefaultLanguages, createTestMatrixMessengerSettingsHolder(), { "en" }, TimeZone.of("CET")),
+                old = MutableStateFlow(25L),
+                max = MutableStateFlow(null),
+                onRemove = { called++ },
+            )
 
         v.remove()
         assertEquals(1, called)
@@ -329,7 +314,7 @@ class PowerlevelViewModelTest {
         val model = testModel()
         val event = EventType(null, "foobar")
 
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
         model.newEventInput.update(event.name)
         model.newEventCreate()
@@ -357,7 +342,7 @@ class PowerlevelViewModelTest {
         val event = EventType(null, "foobar")
         val model = testModel()
 
-        backgroundScope.launch { model.newEventError.collect { } }
+        backgroundScope.launch { model.newEventError.collect {} }
         delay(500.milliseconds)
 
         assertNull(model.newEventError.value)
@@ -383,7 +368,7 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.newEventError.collect { } }
+        backgroundScope.launch { model.newEventError.collect {} }
         delay(500.milliseconds)
 
         assertNull(model.newEventError.value)
@@ -408,7 +393,7 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         assertContains(model.events.value, event.name)
@@ -428,7 +413,7 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         assertContains(model.events.value, event.name)
@@ -454,8 +439,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.isAnyInputModified.collect { } }
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.isAnyInputModified.collect {} }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         assertContains(model.events.value, event.name)
@@ -475,8 +460,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.isAnyInputModified.collect { } }
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.isAnyInputModified.collect {} }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         model.newEventInput.update(event.name)
@@ -500,8 +485,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.availableUnsetEvents.collect { } }
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.availableUnsetEvents.collect {} }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         assertFalse(model.availableUnsetEvents.value.contains(event.name), "${event.name} in availableUnsetEvents")
@@ -519,8 +504,8 @@ class PowerlevelViewModelTest {
 
         val model = testModel()
 
-        backgroundScope.launch { model.availableUnsetEvents.collect { } }
-        backgroundScope.launch { model.events.collect { } }
+        backgroundScope.launch { model.availableUnsetEvents.collect {} }
+        backgroundScope.launch { model.events.collect {} }
         delay(500.milliseconds)
 
         assertContains(model.availableUnsetEvents.value, event.name)
@@ -532,47 +517,51 @@ class PowerlevelViewModelTest {
         assertFalse(model.availableUnsetEvents.value.contains(event.name), "${event.name} in availableUnsetEvents")
     }
 
-    private fun TestScope.testModel(onBack: () -> Unit = {}): PowerlevelViewModelImpl = PowerlevelViewModelImpl(
-        viewModelContext = testMatrixClientViewModelContext(
-            userId = alice,
-            di = koinApplication {
-                modules(createTestDefaultTrixnityMessengerModules(mapOf(alice to matrixClient)))
-            }.koin,
-        ),
-        roomId = testRoom,
-        onBack = onBack,
-    )
+    private fun TestScope.testModel(onBack: () -> Unit = {}): PowerlevelViewModelImpl =
+        PowerlevelViewModelImpl(
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    userId = alice,
+                    di =
+                        koinApplication {
+                                modules(createTestDefaultTrixnityMessengerModules(mapOf(alice to matrixClient)))
+                            }
+                            .koin,
+                ),
+            roomId = testRoom,
+            onBack = onBack,
+        )
 
     private suspend inline fun TestScope.testPowerLevelsValue(
         old: Long,
         max: Long?,
-
         update: String? = null,
-
         isModified: Boolean,
         underMaxPowerLevelErrMsg: Boolean,
         validLongErrMsg: Boolean,
         canChange: Boolean,
         modifiedValue: Long?,
     ) {
-        val i18n = I18n(
-            DefaultLanguages,
-            createTestMatrixMessengerSettingsHolder(),
-            GetSystemLang { "en" },
-            TimeZone.of("CET"),
-        )
+        val i18n =
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            )
 
-        val value = PowerlevelViewModelImpl.ValueImpl(
-            scope = backgroundScope,
-            i18n = i18n,
-            old = MutableStateFlow(old),
-            max = MutableStateFlow(max),
-        )
+        val value =
+            PowerlevelViewModelImpl.ValueImpl(
+                scope = backgroundScope,
+                i18n = i18n,
+                old = MutableStateFlow(old),
+                max = MutableStateFlow(max),
+            )
 
-        backgroundScope.launch { value.input.collect { } }
-        backgroundScope.launch { value.error.collect { } }
-        backgroundScope.launch { value.isModified.collect { } }
-        backgroundScope.launch { value.canChange.collect { } }
+        backgroundScope.launch { value.input.collect {} }
+        backgroundScope.launch { value.error.collect {} }
+        backgroundScope.launch { value.isModified.collect {} }
+        backgroundScope.launch { value.canChange.collect {} }
         delay(500.milliseconds)
 
         if (update != null) {
@@ -586,46 +575,43 @@ class PowerlevelViewModelTest {
 
         val err = value.error.first()
         when {
-            validLongErrMsg ->
-                assertEquals(i18n.powerLevelInputErrNotANumber(), err)
+            validLongErrMsg -> assertEquals(i18n.powerLevelInputErrNotANumber(), err)
 
-            underMaxPowerLevelErrMsg ->
-                assertEquals(i18n.powerLevelInputErrAboveAllowedPowerLevel(50L), err)
+            underMaxPowerLevelErrMsg -> assertEquals(i18n.powerLevelInputErrAboveAllowedPowerLevel(50L), err)
 
-            else ->
-                assertNull(err)
+            else -> assertNull(err)
         }
     }
 
     private var step = 1L
-    private val state = MutableStateFlow(
-        StateEvent(
-            content = PowerLevelsEventContent(),
-            id = EventId("eventId"),
-            sender = alice,
-            roomId = testRoom,
-            originTimestamp = step * 100,
-            unsigned = null,
-            stateKey = "",
+    private val state =
+        MutableStateFlow(
+            StateEvent(
+                content = PowerLevelsEventContent(),
+                id = EventId("eventId"),
+                sender = alice,
+                roomId = testRoom,
+                originTimestamp = step * 100,
+                unsigned = null,
+                stateKey = "",
+            )
         )
-    )
 
     init {
-        every {
-            roomService.getState(testRoom, PowerLevelsEventContent::class, "")
-        } returns state
+        every { roomService.getState(testRoom, PowerLevelsEventContent::class, "") } returns state
     }
 
     private fun setPowerLevels(pl: PowerLevelsEventContent) {
         step++
-        state.value = StateEvent(
-            content = pl,
-            id = EventId("eventId"),
-            sender = alice,
-            roomId = testRoom,
-            originTimestamp = step * 100,
-            unsigned = null,
-            stateKey = "",
-        )
+        state.value =
+            StateEvent(
+                content = pl,
+                id = EventId("eventId"),
+                sender = alice,
+                roomId = testRoom,
+                originTimestamp = step * 100,
+                unsigned = null,
+                stateKey = "",
+            )
     }
 }

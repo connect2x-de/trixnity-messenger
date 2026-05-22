@@ -34,25 +34,42 @@ interface ExtrasRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
 
     suspend fun back()
+
     suspend fun closeAll()
+
     suspend fun openRoomSettings(roomId: RoomId)
+
     suspend fun openAddMembers(roomId: RoomId)
+
     suspend fun openRoomDevInfo(roomId: RoomId)
+
     suspend fun openExportRoom(roomId: RoomId)
+
     suspend fun openPowerLevel(roomId: RoomId)
+
     suspend fun openUserProfile(userId: UserId, roomId: RoomId)
+
     suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId)
+
     suspend fun openTimelineElementDevInfo(eventId: EventId, roomId: RoomId)
 
     sealed class Wrapper {
         data object None : Wrapper()
+
         class UserProfile(val viewModel: UserProfileViewModel) : Wrapper()
+
         class TimelineElementMetadata(val viewModel: TimelineElementMetadataViewModel) : Wrapper()
-        class TimelineElementDevInfo(val viewModel:  TimelineElementDevInfoViewModel) : Wrapper()
+
+        class TimelineElementDevInfo(val viewModel: TimelineElementDevInfoViewModel) : Wrapper()
+
         class RoomSettings(val viewModel: RoomSettingsViewModel) : Wrapper()
+
         class AddMember(val viewModel: AddMembersViewModel) : Wrapper()
+
         class RoomDevInfo(val viewModel: RoomDevInfoViewModel) : Wrapper()
+
         class ExportRoom(val viewModel: ExportRoomViewModel) : Wrapper()
+
         class PowerLevels(val viewModel: PowerlevelViewModel) : Wrapper()
     }
 
@@ -62,36 +79,27 @@ interface ExtrasRouter {
         @Serializable
         sealed interface RoomSettings : Config {
 
-            @Serializable
-            data class Main(val roomId: RoomId) : RoomSettings
+            @Serializable data class Main(val roomId: RoomId) : RoomSettings
 
-            @Serializable
-            data class AddMembers(val roomId: RoomId) : RoomSettings
+            @Serializable data class AddMembers(val roomId: RoomId) : RoomSettings
 
-            @Serializable
-            data class RoomDevInfos(val roomId: RoomId): RoomSettings
+            @Serializable data class RoomDevInfos(val roomId: RoomId) : RoomSettings
 
-            @Serializable
-            data class PowerLevels(val roomId: RoomId) : RoomSettings
+            @Serializable data class PowerLevels(val roomId: RoomId) : RoomSettings
 
-            @Serializable
-            data class ExportRoom(val roomId: RoomId) : RoomSettings
+            @Serializable data class ExportRoom(val roomId: RoomId) : RoomSettings
         }
 
         @Serializable
         sealed interface Details : Config {
-            @Serializable
-            data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
+            @Serializable data class UserProfile(val userId: UserId, val roomId: RoomId) : RoomSettings
 
-            @Serializable
-            data class TimelineElementMetadata(val eventId: EventId, val roomId: RoomId) : Config
+            @Serializable data class TimelineElementMetadata(val eventId: EventId, val roomId: RoomId) : Config
 
-            @Serializable
-            data class TimelineElementDevInfo(val eventId: EventId, val roomId: RoomId) : Config
+            @Serializable data class TimelineElementDevInfo(val eventId: EventId, val roomId: RoomId) : Config
         }
 
-        @Serializable
-        data object None : Config
+        @Serializable data object None : Config
     }
 }
 
@@ -107,25 +115,22 @@ class ExtrasRouterImpl(
     }
 
     private val extrasNavigation = StackNavigation<Config>()
-    override val stack = viewModelContext.childStack(
-        source = extrasNavigation,
-        serializer = Config.serializer(),
-        initialConfiguration = None,
-        key = "ExtrasRouter",
-        childFactory = ::createSettingsChild,
-    )
+    override val stack =
+        viewModelContext.childStack(
+            source = extrasNavigation,
+            serializer = Config.serializer(),
+            initialConfiguration = None,
+            key = "ExtrasRouter",
+            childFactory = ::createSettingsChild,
+        )
 
     override suspend fun back() {
         val config = stack.value.active.configuration
-        extrasNavigation.popSuspending {
-            log.debug { "extras: closed $config ${it.toSuccessString()}" }
-        }
+        extrasNavigation.popSuspending { log.debug { "extras: closed $config ${it.toSuccessString()}" } }
     }
 
     override suspend fun closeAll() {
-        extrasNavigation.replaceAllSuspending(None) {
-            log.debug { "extras: closed pane" }
-        }
+        extrasNavigation.replaceAllSuspending(None) { log.debug { "extras: closed pane" } }
     }
 
     override suspend fun openRoomSettings(roomId: RoomId) {
@@ -171,20 +176,19 @@ class ExtrasRouterImpl(
     }
 
     override suspend fun openUserProfile(userId: UserId, roomId: RoomId) {
-        extrasNavigation.navigateSuspending {
-            it.filterNot { it is UserProfile } + UserProfile(userId, roomId)
-        }
+        extrasNavigation.navigateSuspending { it.filterNot { it is UserProfile } + UserProfile(userId, roomId) }
         log.debug { "extras: opened user profile for user: $userId in room: $roomId" }
     }
 
     override suspend fun openTimelineElementMetadata(eventId: EventId, roomId: RoomId) {
         extrasNavigation.navigateSuspending {
-            it.filterNot { it is TimelineElementMetadata }.filterNot { it is TimelineElementDevInfo } + TimelineElementMetadata(eventId, roomId)
+            it.filterNot { it is TimelineElementMetadata }.filterNot { it is TimelineElementDevInfo } +
+                TimelineElementMetadata(eventId, roomId)
         }
         log.debug { "extras: opened message metadata for event: $eventId from room $roomId" }
     }
 
-    override suspend fun openTimelineElementDevInfo(eventId: EventId, roomId: RoomId){
+    override suspend fun openTimelineElementDevInfo(eventId: EventId, roomId: RoomId) {
         if (stack.value.active.configuration !is TimelineElementMetadata) {
             openTimelineElementMetadata(eventId, roomId)
         }
@@ -193,137 +197,142 @@ class ExtrasRouterImpl(
         }
     }
 
-    private fun createSettingsChild(
-        config: Config,
-        componentContext: ComponentContext,
-    ): Wrapper = when (config) {
-        is None -> Wrapper.None
+    private fun createSettingsChild(config: Config, componentContext: ComponentContext): Wrapper =
+        when (config) {
+            is None -> Wrapper.None
 
-        is RoomSettings.Main -> Wrapper.RoomSettings(
-            viewModelContext.get<RoomSettingsViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("RoomSettingsMain", componentContext),
-                onCloseRoom = onCloseRoom,
-                selectedRoomId = config.roomId,
-                onOpenAddMembers = { onOpenAddMembers(config.roomId) },
-                onOpenDevInfo = { onOpenRoomDevInfo(config.roomId)},
-                onOpenExportRoom = { onOpenExportRoom(config.roomId) },
-                onCloseRoomSettings = ::onCloseRoomSettings,
-                onOpenAvatarCutter = onOpenAvatarCutter,
-                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
-                onOpenMention = onOpenMention,
-                onOpenPowerLevel = { onOpenPowerLevel(config.roomId) }
-            )
-        )
+            is RoomSettings.Main ->
+                Wrapper.RoomSettings(
+                    viewModelContext
+                        .get<RoomSettingsViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("RoomSettingsMain", componentContext),
+                            onCloseRoom = onCloseRoom,
+                            selectedRoomId = config.roomId,
+                            onOpenAddMembers = { onOpenAddMembers(config.roomId) },
+                            onOpenDevInfo = { onOpenRoomDevInfo(config.roomId) },
+                            onOpenExportRoom = { onOpenExportRoom(config.roomId) },
+                            onCloseRoomSettings = ::onCloseRoomSettings,
+                            onOpenAvatarCutter = onOpenAvatarCutter,
+                            onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                            onOpenMention = onOpenMention,
+                            onOpenPowerLevel = { onOpenPowerLevel(config.roomId) },
+                        )
+                )
 
-        is AddMembers -> Wrapper.AddMember(
-            viewModelContext.get<AddMembersViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("AddMembers", componentContext),
-                onBack = ::onBack,
-                roomId = config.roomId,
-                addMembersToRoomViewModel = viewModelContext.get<PotentialMembersViewModelFactory>()
-                    .create(
-                        viewModelContext = viewModelContext.childContext("PartialMembers", componentContext),
-                        roomId = config.roomId,
-                    ),
-            )
-        )
+            is AddMembers ->
+                Wrapper.AddMember(
+                    viewModelContext
+                        .get<AddMembersViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("AddMembers", componentContext),
+                            onBack = ::onBack,
+                            roomId = config.roomId,
+                            addMembersToRoomViewModel =
+                                viewModelContext
+                                    .get<PotentialMembersViewModelFactory>()
+                                    .create(
+                                        viewModelContext =
+                                            viewModelContext.childContext("PartialMembers", componentContext),
+                                        roomId = config.roomId,
+                                    ),
+                        )
+                )
 
-        is RoomDevInfos -> Wrapper.RoomDevInfo(
-            viewModelContext.get<RoomDevInfoViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("RoomDevInfo", componentContext),
-                roomId = config.roomId,
-                onBack = ::onBack,
-            )
-        )
+            is RoomDevInfos ->
+                Wrapper.RoomDevInfo(
+                    viewModelContext
+                        .get<RoomDevInfoViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("RoomDevInfo", componentContext),
+                            roomId = config.roomId,
+                            onBack = ::onBack,
+                        )
+                )
 
-        is PowerLevels -> Wrapper.PowerLevels(
-            viewModelContext.get<PowerlevelViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("PowerLevels", componentContext),
-                roomId = config.roomId,
-                onBack = ::onBack,
-            )
-        )
+            is PowerLevels ->
+                Wrapper.PowerLevels(
+                    viewModelContext
+                        .get<PowerlevelViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("PowerLevels", componentContext),
+                            roomId = config.roomId,
+                            onBack = ::onBack,
+                        )
+                )
 
-        is ExportRoom -> Wrapper.ExportRoom(
-            viewModelContext.get<ExportRoomViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("ExportRoom", componentContext),
-                roomId = config.roomId,
-                onBack = ::onBack,
-            )
-        )
+            is ExportRoom ->
+                Wrapper.ExportRoom(
+                    viewModelContext
+                        .get<ExportRoomViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("ExportRoom", componentContext),
+                            roomId = config.roomId,
+                            onBack = ::onBack,
+                        )
+                )
 
-        is UserProfile -> Wrapper.UserProfile(
-            viewModelContext.get<UserProfileViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("UserProfile", componentContext),
-                userId = config.userId,
-                selectedRoomId = config.roomId,
-                onOpenRoom = onOpenRoom,
-                onBack = ::onBack,
-                onCloseSettings = ::onCloseRoomSettings
-            )
-        )
+            is UserProfile ->
+                Wrapper.UserProfile(
+                    viewModelContext
+                        .get<UserProfileViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("UserProfile", componentContext),
+                            userId = config.userId,
+                            selectedRoomId = config.roomId,
+                            onOpenRoom = onOpenRoom,
+                            onBack = ::onBack,
+                            onCloseSettings = ::onCloseRoomSettings,
+                        )
+                )
 
-        is TimelineElementMetadata -> Wrapper.TimelineElementMetadata(
-            viewModelContext.get<TimelineElementMetadataViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("TimelineElementMetadata", componentContext),
-                eventId = config.eventId,
-                roomId = config.roomId,
-                onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
-                onOpenDevInfo = {onOpenTimelineElementDevInfo(config.eventId, config.roomId)},
-                onBack = ::onBack,
-            )
-        )
+            is TimelineElementMetadata ->
+                Wrapper.TimelineElementMetadata(
+                    viewModelContext
+                        .get<TimelineElementMetadataViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext("TimelineElementMetadata", componentContext),
+                            eventId = config.eventId,
+                            roomId = config.roomId,
+                            onOpenUserProfile = { onOpenUserProfile(it, config.roomId) },
+                            onOpenDevInfo = { onOpenTimelineElementDevInfo(config.eventId, config.roomId) },
+                            onBack = ::onBack,
+                        )
+                )
 
-        is TimelineElementDevInfo -> Wrapper.TimelineElementDevInfo(
-            viewModelContext.get<TimelineElementDevInfoViewModelFactory>().create(
-                viewModelContext = viewModelContext.childContext("TimelineElementDevInfo", componentContext),
-                eventId = config.eventId,
-                roomId = config.roomId,
-                onBack = ::onBack,
-            )
-        )
-    }
-
-    private fun onBack() =
-        viewModelContext.coroutineScope.launch {
-            back()
+            is TimelineElementDevInfo ->
+                Wrapper.TimelineElementDevInfo(
+                    viewModelContext
+                        .get<TimelineElementDevInfoViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext("TimelineElementDevInfo", componentContext),
+                            eventId = config.eventId,
+                            roomId = config.roomId,
+                            onBack = ::onBack,
+                        )
+                )
         }
 
-    private fun onOpenAddMembers(roomId: RoomId) =
-        viewModelContext.coroutineScope.launch {
-            openAddMembers(roomId)
-        }
+    private fun onBack() = viewModelContext.coroutineScope.launch { back() }
 
-    private fun onOpenRoomDevInfo(roomId: RoomId) =
-        viewModelContext.coroutineScope.launch {
-            openRoomDevInfo(roomId)
-        }
+    private fun onOpenAddMembers(roomId: RoomId) = viewModelContext.coroutineScope.launch { openAddMembers(roomId) }
 
-    private fun onOpenExportRoom(roomId: RoomId) =
-        viewModelContext.coroutineScope.launch {
-            openExportRoom(roomId)
-        }
+    private fun onOpenRoomDevInfo(roomId: RoomId) = viewModelContext.coroutineScope.launch { openRoomDevInfo(roomId) }
 
-    private fun onCloseRoomSettings() =
-        viewModelContext.coroutineScope.launch {
-            closeAll()
-        }
+    private fun onOpenExportRoom(roomId: RoomId) = viewModelContext.coroutineScope.launch { openExportRoom(roomId) }
+
+    private fun onCloseRoomSettings() = viewModelContext.coroutineScope.launch { closeAll() }
 
     private fun onOpenUserProfile(userId: UserId, roomId: RoomId) =
-        viewModelContext.coroutineScope.launch {
-            openUserProfile(userId, roomId)
-        }
+        viewModelContext.coroutineScope.launch { openUserProfile(userId, roomId) }
 
-    private fun onOpenTimelineElementDevInfo(eventId: EventId, roomId: RoomId){
-        viewModelContext.coroutineScope.launch {
-            openTimelineElementDevInfo(eventId, roomId)
-        }
+    private fun onOpenTimelineElementDevInfo(eventId: EventId, roomId: RoomId) {
+        viewModelContext.coroutineScope.launch { openTimelineElementDevInfo(eventId, roomId) }
     }
 
-    private fun onOpenPowerLevel(roomId: RoomId) = viewModelContext.coroutineScope.launch {
-        openPowerLevel(roomId)
-    }
+    private fun onOpenPowerLevel(roomId: RoomId) = viewModelContext.coroutineScope.launch { openPowerLevel(roomId) }
 
-    private fun Boolean.toSuccessString() =
-        if (this) "successfully" else "failed"
+    private fun Boolean.toSuccessString() = if (this) "successfully" else "failed"
 }

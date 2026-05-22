@@ -11,8 +11,7 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 
 interface CreateNewChatOrGroupFloatingActionButton {
-    @Composable
-    fun create(onClick: () -> Unit)
+    @Composable fun create(onClick: () -> Unit)
 }
 
 @Composable

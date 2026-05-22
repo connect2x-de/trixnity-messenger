@@ -118,5 +118,4 @@ data class ComponentStyles(
 internal val LocalComponentStyles = staticCompositionLocalOf<ComponentStyles> { error("compositionLocal not defined") }
 
 val MaterialTheme.components: ComponentStyles
-    @Composable
-    get() = LocalComponentStyles.current
+    @Composable get() = LocalComponentStyles.current

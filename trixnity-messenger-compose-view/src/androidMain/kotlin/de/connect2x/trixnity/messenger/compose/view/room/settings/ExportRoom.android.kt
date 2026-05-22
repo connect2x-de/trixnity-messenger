@@ -13,14 +13,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
-import okio.Path.Companion.toPath
 import java.io.IOException
+import okio.Path.Companion.toPath
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.room.settings.ExportRoomKt")
 
@@ -59,12 +59,13 @@ private fun getAbsoluteDirectory(uri: Uri?): String {
     val uriPath: String? = uri?.path
     val default = Environment.DIRECTORY_DOWNLOADS
     if (uriPath == null) log.warn { "invalid directory! defaulting to: $default" }
-    val directoryKey = uriPath?.split("/")?.also {
-        if (it.lastOrNull()?.contains('.') == true) log.warn { "directory uri might be a file: $uri" }
-    }?.getOrNull(1) ?: ""
-    val mappedDestination = directoryMap.entries.firstOrNull { entry ->
-        directoryKey.startsWith(entry.key)
-    }?.value ?: default
+    val directoryKey =
+        uriPath
+            ?.split("/")
+            ?.also { if (it.lastOrNull()?.contains('.') == true) log.warn { "directory uri might be a file: $uri" } }
+            ?.getOrNull(1) ?: ""
+    val mappedDestination =
+        directoryMap.entries.firstOrNull { entry -> directoryKey.startsWith(entry.key) }?.value ?: default
     return "${Environment.getExternalStorageDirectory()}/${mappedDestination}"
 }
 

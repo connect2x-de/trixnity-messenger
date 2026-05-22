@@ -45,11 +45,7 @@ abstract class AbstractGetNotificationIcon : GetNotificationIcon {
     protected fun Image.scale(width: Int, height: Int): Image? {
         val bitmap = Bitmap()
         bitmap.allocN32Pixels(width, height)
-        scalePixels(
-            bitmap.peekPixels() ?: return null,
-            FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR),
-            false
-        )
+        scalePixels(bitmap.peekPixels() ?: return null, FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR), false)
         return Image.makeFromBitmap(bitmap)
     }
 }

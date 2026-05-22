@@ -17,13 +17,14 @@ object Main {
     private fun configureLogging() {
         Backend.set(DefaultBackend)
         SerializableConfig uses CoreConfigExtension
-        SerializableConfig uses ConfigExtension {
-            registerProvider("MESSENGER_DIR") {
-                if (System.getenv("TRIXNITY_MESSENGER_ROOT_PATH") == null && BuildConfig.flavor == Flavor.DEV) {
-                    "./app-data"
-                } else getAppPath(BuildConfig.appId).toString()
+        SerializableConfig uses
+            ConfigExtension {
+                registerProvider("MESSENGER_DIR") {
+                    if (System.getenv("TRIXNITY_MESSENGER_ROOT_PATH") == null && BuildConfig.flavor == Flavor.DEV) {
+                        "./app-data"
+                    } else getAppPath(BuildConfig.appId).toString()
+                }
             }
-        }
         checkNotNull(this::class.java.getResourceAsStream("/lognity.json")).use { stream ->
             Backend.setDefaultConfig(stream.asSource().buffered())
         }
@@ -32,11 +33,6 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) {
         configureLogging()
-        startMultiMessenger(
-            configuration = {
-                configure()
-            },
-            args = args
-        )
+        startMultiMessenger(configuration = { configure() }, args = args)
     }
 }

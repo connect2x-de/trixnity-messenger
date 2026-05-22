@@ -15,11 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.PreviewInputAreaV
 private fun ReplyToAreaPreview() {
     InitMessengerPreview {
         CompositionLocalProvider(Platform provides PlatformType.ANDROID) {
-            Column {
-                ReplyToArea(
-                    inputAreaViewModel = PreviewInputAreaViewModel()
-                )
-            }
+            Column { ReplyToArea(inputAreaViewModel = PreviewInputAreaViewModel()) }
         }
     }
 }

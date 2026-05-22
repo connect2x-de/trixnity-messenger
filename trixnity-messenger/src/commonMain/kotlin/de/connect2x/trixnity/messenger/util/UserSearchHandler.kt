@@ -1,9 +1,14 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -17,11 +22,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.core.model.UserId
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 
 interface UserSearchHandler {
     val searchTerm: TextFieldViewModel
@@ -30,6 +30,7 @@ interface UserSearchHandler {
     val waitForUserResults: StateFlow<Boolean>
 
     fun selectUser(user: Search.SearchUserElement)
+
     fun unselectUser(user: Search.SearchUserElement)
 }
 
@@ -51,10 +52,9 @@ class DefaultUserSearchHandler(
     private val unfilteredFoundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val foundUsers: StateFlow<List<Search.SearchUserElement>> =
         combine(unfilteredFoundUsers, selectedUsers, filterNotUsers) { foundUsers, selectedUsers, filterNotUsers ->
-            foundUsers
-                .filterNot(selectedUsers::contains)
-                .filterNot { filterNotUsers.contains(it.userId) }
-        }.stateIn(coroutineScope, Eagerly, emptyList())
+                foundUsers.filterNot(selectedUsers::contains).filterNot { filterNotUsers.contains(it.userId) }
+            }
+            .stateIn(coroutineScope, Eagerly, emptyList())
     override val waitForUserResults: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     init {
@@ -78,13 +78,7 @@ class DefaultUserSearchHandler(
                 if (it.isNotBlank()) {
                     log.trace { "search for users" }
                     waitForUserResults.value = true
-                    unfilteredFoundUsers.value =
-                        search.searchUsers(
-                            this,
-                            client,
-                            it,
-                            limit,
-                        )
+                    unfilteredFoundUsers.value = search.searchUsers(this, client, it, limit)
                     waitForUserResults.value = false
                 } else {
                     log.trace { "user search blank -> empty list" }
@@ -94,12 +88,13 @@ class DefaultUserSearchHandler(
     }
 }
 
-
 object PreviewUserSearchHandler : UserSearchHandler {
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000, "bla")
     override val foundUsers: MutableStateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val selectedUsers: StateFlow<List<Search.SearchUserElement>> = MutableStateFlow(emptyList())
     override val waitForUserResults: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun selectUser(user: Search.SearchUserElement) {}
+
     override fun unselectUser(user: Search.SearchUserElement) {}
 }

@@ -1,28 +1,25 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
-
 
 interface PrivacySettingsAllAccountsViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
         onShowBlockedContactsSettings: (account: UserId) -> Unit,
         onClosePrivacySettings: () -> Unit,
-    ): PrivacySettingsAllAccountsViewModel = PrivacySettingsAllAccountsViewModelImpl(
-        viewModelContext,
-        onShowBlockedContactsSettings,
-        onClosePrivacySettings,
-    )
+    ): PrivacySettingsAllAccountsViewModel =
+        PrivacySettingsAllAccountsViewModelImpl(viewModelContext, onShowBlockedContactsSettings, onClosePrivacySettings)
 
     companion object : PrivacySettingsAllAccountsViewModelFactory
 }
 
 interface PrivacySettingsAllAccountsViewModel {
     val privacySettings: List<PrivacySettingsSingleAccountViewModel>
+
     fun back()
 }
 
@@ -32,9 +29,7 @@ class PrivacySettingsAllAccountsViewModelImpl(
     private val onClosePrivacySettings: () -> Unit,
 ) : ViewModelContext by viewModelContext, PrivacySettingsAllAccountsViewModel {
 
-    private val backCallback = BackCallback {
-        back()
-    }
+    private val backCallback = BackCallback { back() }
 
     init {
         registerBackCallback(backCallback)

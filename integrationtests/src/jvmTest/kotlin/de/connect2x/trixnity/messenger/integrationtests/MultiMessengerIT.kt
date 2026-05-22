@@ -15,6 +15,10 @@ import de.connect2x.trixnity.messenger.integrationtests.util.synapseDocker
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import io.kotest.matchers.collections.shouldHaveSize
 import io.ktor.http.*
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
@@ -26,10 +30,6 @@ import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.test.setMain
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 @Testcontainers
@@ -46,8 +46,7 @@ class MultiMessengerIT {
     private val password = "user$1passw0rd"
     private lateinit var baseUrl: Url
 
-    @Container
-    val synapseDocker = synapseDocker()
+    @Container val synapseDocker = synapseDocker()
 
     @BeforeTest
     fun beforeEach(): Unit = runBlockingWithTimeout {
@@ -57,11 +56,9 @@ class MultiMessengerIT {
         singleThreadContext = newSingleThreadContext("main")
         Dispatchers.setMain(singleThreadContext) // this tricks Decompose into accepting a fake UI thread
 
-        baseUrl = URLBuilder(
-            protocol = URLProtocol.HTTP,
-            host = synapseDocker.host,
-            port = synapseDocker.firstMappedPort
-        ).build()
+        baseUrl =
+            URLBuilder(protocol = URLProtocol.HTTP, host = synapseDocker.host, port = synapseDocker.firstMappedPort)
+                .build()
 
         MatrixClientServerApiClientImpl(baseUrl).register("user1", password)
         MatrixClientServerApiClientImpl(baseUrl).register("user2", password)
@@ -75,9 +72,7 @@ class MultiMessengerIT {
     @Test
     fun shouldAddAnAccountAndRemoveAfterwardsOnMultiMatrixMessengerSingleMode(): Unit = runBlockingWithTimeout {
         val multiMessenger = createTestMatrixMultiMessenger()
-        messenger = MatrixMessengerWithRoot(
-            multiMessenger.singleModeMatrixMessenger().first()
-        )
+        messenger = MatrixMessengerWithRoot(multiMessenger.singleModeMatrixMessenger().first())
 
         log.info { "login as user1" }
         messenger.login(
@@ -88,11 +83,12 @@ class MultiMessengerIT {
         messenger.verifyAccountsArePresent("user1")
 
         log.info { "login as user2" }
-        val recoveryKey = messenger.createNewAccount(
-            serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
-            username = "user2",
-            password = password,
-        )
+        val recoveryKey =
+            messenger.createNewAccount(
+                serverUrl = "http://${synapseDocker.host}:${synapseDocker.firstMappedPort}",
+                username = "user2",
+                password = password,
+            )
         messenger.verifyAccountsArePresent("user1", "user2")
         log.info { "logout as user2" }
         messenger.deleteAccount("user2")

@@ -5,8 +5,8 @@ import org.gradle.api.provider.Provider
 class UITestInfraPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val serviceProvider: Provider<UITestInfraService> = project.gradle.sharedServices
-            .registerIfAbsent("uiTestInfra", UITestInfraService::class.java) {
+        val serviceProvider: Provider<UITestInfraService> =
+            project.gradle.sharedServices.registerIfAbsent("uiTestInfra", UITestInfraService::class.java) {
                 parameters.projectDir.set(project.layout.projectDirectory)
             }
 

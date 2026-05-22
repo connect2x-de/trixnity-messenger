@@ -63,22 +63,12 @@ fun Banner(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val modifier = onClick?.let {
-        Modifier
-            .buttonPointerModifier()
+        Modifier.buttonPointerModifier()
             .clickable(interactionSource, indication = ripple(bounded = true), onClick = onClick)
     }
 
-    AnimatedVisibility(
-        visible,
-        enter = expandVertically(),
-        exit = shrinkVertically(),
-    ) {
-        ThemedSurface(
-            style = style,
-            modifier = Modifier.fillMaxWidth().thenNullable(modifier),
-        ) {
-            content()
-        }
+    AnimatedVisibility(visible, enter = expandVertically(), exit = shrinkVertically()) {
+        ThemedSurface(style = style, modifier = Modifier.fillMaxWidth().thenNullable(modifier)) { content() }
     }
 }
 
@@ -86,29 +76,20 @@ fun Banner(
 fun SyncErrorBanner(roomListViewModel: RoomListViewModel) {
     val i18n = DI.get<I18nView>()
     val syncStates = roomListViewModel.syncStates.collectAsState().value
-    Banner(
-        style = MaterialTheme.components.errorBanner,
-        visible = syncStates.failedFor.isNotEmpty(),
-    ) {
+    Banner(style = MaterialTheme.components.errorBanner, visible = syncStates.failedFor.isNotEmpty()) {
         Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.CloudOff, i18n.roomListSyncErrorNoConnection())
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 if (syncStates.failedForAll) {
-                    Text(
-                        i18n.roomListSyncErrorNoInternet(),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
+                    Text(i18n.roomListSyncErrorNoInternet(), style = MaterialTheme.typography.labelLarge)
                 } else {
                     Text(
                         i18n.roomListSyncErrorAccounts(syncStates.joinFailedToString()),
                         style = MaterialTheme.typography.labelLarge,
                     )
                 }
-                Text(
-                    i18n.roomListSyncErrorSendMessages(),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(i18n.roomListSyncErrorSendMessages(), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -121,18 +102,10 @@ fun NotVerifiedBanner(roomListViewModel: RoomListViewModel) {
     Banner(
         style = MaterialTheme.components.errorBanner,
         visible = firstUserNotVerified != null,
-        onClick = {
-            if (firstUserNotVerified != null) roomListViewModel.verifyAccount(firstUserNotVerified)
-        },
+        onClick = { if (firstUserNotVerified != null) roomListViewModel.verifyAccount(firstUserNotVerified) },
     ) {
-        Row(
-            Modifier.padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                Icons.Default.Warning,
-                i18n.roomListAccountNotVerifiedIcon(),
-            )
+        Row(Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Warning, i18n.roomListAccountNotVerifiedIcon())
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.Center) {
                 if (firstUserNotVerified != null) {
@@ -152,35 +125,29 @@ fun SearchRoomsBanner(roomListViewModel: RoomListViewModel) {
     val showSearch = roomListViewModel.showSearch.collectAsState().value
     var searchTerm by roomListViewModel.searchTerm.collectAsTextFieldValueState()
     val focusRequester = remember { FocusRequester() }
-    Banner(
-        style = MaterialTheme.components.commonBanner,
-        visible = showSearch,
-    ) {
+    Banner(style = MaterialTheme.components.commonBanner, visible = showSearch) {
         Column(Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = searchTerm,
                 onValueChange = { searchTerm = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp)
-                    .heightIn(40.dp)
-                    .focusRequester(focusRequester)
-                    .inputFocusNavigation()
-                    .onKeyEvent {
-                        if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
-                            roomListViewModel.showSearch.value = false
-                            true
-                        } else {
-                            false
-                        }
-                    },
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(10.dp)
+                        .heightIn(40.dp)
+                        .focusRequester(focusRequester)
+                        .inputFocusNavigation()
+                        .onKeyEvent {
+                            if (it.type == KeyEventType.KeyDown && it.key == Key.Escape) {
+                                roomListViewModel.showSearch.value = false
+                                true
+                            } else {
+                                false
+                            }
+                        },
                 shape = RoundedCornerShape(8.dp),
                 leadingIcon = { Icon(Icons.Default.Search, i18n.roomListSearch()) },
                 label = { Text(i18n.roomListSearch()) },
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search,
-                    autoCorrectEnabled = false
-                )
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
             )
             ThemedHorizontalDivider()
         }

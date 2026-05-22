@@ -19,14 +19,14 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class CreateNewRoomViewModelTest {
     private val userId1 = UserId("user1", "localhost")
@@ -53,12 +53,7 @@ class CreateNewRoomViewModelTest {
             roomsApiClientMock,
             onRoomCreatedMock,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { userServiceMock } }) }.koin
         every { matrixClientMock.userId } returns userId1
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
@@ -73,39 +68,21 @@ class CreateNewRoomViewModelTest {
 
     @Test
     fun `filter users by search term`() = runTest {
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "user1", any(), any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(
-                    SearchUsers.Response.SearchUser(userId = userId1),
+        everySuspend { usersApiClientMock.searchUsers("user1", any(), any()) } returns
+            Result.success(SearchUsers.Response(false, listOf(SearchUsers.Response.SearchUser(userId = userId1))))
+        everySuspend { usersApiClientMock.searchUsers("us", any(), any()) } returns
+            Result.success(
+                SearchUsers.Response(
+                    false,
+                    listOf(
+                        SearchUsers.Response.SearchUser(userId = userId1),
+                        SearchUsers.Response.SearchUser(userId = userId2),
+                        SearchUsers.Response.SearchUser(userId = userId3),
+                    ),
                 )
             )
-        )
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "us", any(), any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(
-                    SearchUsers.Response.SearchUser(userId = userId1),
-                    SearchUsers.Response.SearchUser(userId = userId2),
-                    SearchUsers.Response.SearchUser(userId = userId3)
-                )
-            )
-        )
-        everySuspend {
-            usersApiClientMock.searchUsers(
-                "user3", any(), any(),
-            )
-        } returns Result.success(
-            SearchUsers.Response(
-                false, listOf(SearchUsers.Response.SearchUser(userId = userId3))
-            )
-        )
+        everySuspend { usersApiClientMock.searchUsers("user3", any(), any()) } returns
+            Result.success(SearchUsers.Response(false, listOf(SearchUsers.Response.SearchUser(userId = userId3))))
 
         val cut = createNewRoomViewModel()
         val searchHandler = cut.searchHandler
@@ -113,37 +90,37 @@ class CreateNewRoomViewModelTest {
         println("search: 'us'")
         searchHandler.searchTerm.update("us")
         searchHandler.foundUsers.first {
-            it == listOf(
-                Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
-                Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
-            )
+            it ==
+                listOf(
+                    Search.SearchUserElementImpl(userId = userId2, displayName = userId2.full, initials = "U"),
+                    Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U"),
+                )
         }
         println("search: 'user3'")
         searchHandler.searchTerm.update("user3")
         searchHandler.foundUsers.first {
-            it == listOf(
-                Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U")
-            )
+            it == listOf(Search.SearchUserElementImpl(userId = userId3, displayName = userId3.full, initials = "U"))
         }
         println("search: 'user1'")
         searchHandler.searchTerm.update("user1")
-        searchHandler.foundUsers.first {
-            it == emptyList<SearchUserElement>()
-        }
+        searchHandler.foundUsers.first { it == emptyList<SearchUserElement>() }
     }
 
     private fun TestScope.createNewRoomViewModel(): CreateNewRoomViewModel {
         return CreateNewRoomViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        )
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    )
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
             onRoomCreated = onRoomCreatedMock,
         )
     }

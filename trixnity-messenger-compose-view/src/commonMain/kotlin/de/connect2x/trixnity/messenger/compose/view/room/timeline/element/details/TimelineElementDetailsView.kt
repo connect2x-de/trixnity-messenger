@@ -5,12 +5,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import io.ktor.http.*
 import kotlin.reflect.KClass
 
-
 interface TimelineElementDetailsView<V : TimelineElementViewModel<*>> {
     val supports: KClass<V>
 
     fun supportsMimeType(mimeType: ContentType): Boolean
 
-    @Composable
-    fun create(element: V, onSave: () -> Unit, onClose: () -> Unit)
+    @Composable fun create(element: V, onSave: () -> Unit, onClose: () -> Unit)
 }

@@ -21,13 +21,8 @@ import de.connect2x.trixnity.messenger.viewmodel.MainViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListRouter
 
 @Composable
-fun RoomListSwitch(
-    mainViewModel: MainViewModel,
-) {
-    Children(
-        stack = mainViewModel.roomListRouterStack,
-        animation = stackAnimation(fade())
-    ) {
+fun RoomListSwitch(mainViewModel: MainViewModel) {
+    Children(stack = mainViewModel.roomListRouterStack, animation = stackAnimation(fade())) {
         Box {
             when (val child = it.instance) {
                 is RoomListRouter.Wrapper.List -> RoomListContainer(child.viewModel)

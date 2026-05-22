@@ -25,7 +25,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.export.Destination
 import de.connect2x.trixnity.messenger.export.FileBasedExportRoomProperties
 import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
 import okio.Path.Companion.toPath
@@ -35,37 +34,29 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.r
 @Composable
 internal actual fun SelectExportDestination(
     properties: FileBasedExportRoomProperties?,
-    result: (Destination?) -> Unit
+    result: (Destination?) -> Unit,
 ) {
     val appName = DI.get<MatrixMessengerConfiguration>().appName
     val i18n = DI.get<I18nView>()
-    LaunchedEffect(Unit) {
-        result(initialDirectory(appName))
-    }
+    LaunchedEffect(Unit) { result(initialDirectory(appName)) }
     // Due to compose life cycles the launcher needs to be set up even if launch() is skipped.
-    val launcher = rememberDirectoryPickerLauncher(
-        title = i18n.fileDialogTitleLoad(),
-        directory = PlatformFile(initialDirectory(appName).toString())
-    ) { file ->
-        log.debug { "selected file: $file" }
-        file?.let {
-            result(file.path.toPath())
+    val launcher =
+        rememberDirectoryPickerLauncher(
+            title = i18n.fileDialogTitleLoad(),
+            directory = PlatformFile(initialDirectory(appName).toString()),
+        ) { file ->
+            log.debug { "selected file: $file" }
+            file?.let { result(file.path.toPath()) }
         }
-    }
     Row(Modifier.semantics(mergeDescendants = true) {}, verticalAlignment = Alignment.CenterVertically) {
         Text(
             properties?.destination?.toString() ?: "",
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.weight(1.0f, fill = true)
+            modifier = Modifier.weight(1.0f, fill = true),
         )
         Spacer(Modifier.size(20.dp))
-        Tooltip(
-            tooltip = { Text(i18n.commonFile()) }
-        ) {
-            ThemedIconButton(
-                style = MaterialTheme.components.commonIconButton,
-                onClick = { launcher.launch() },
-            ) {
+        Tooltip(tooltip = { Text(i18n.commonFile()) }) {
+            ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = { launcher.launch() }) {
                 Icon(Icons.Default.Folder, i18n.selectDirectory())
             }
         }

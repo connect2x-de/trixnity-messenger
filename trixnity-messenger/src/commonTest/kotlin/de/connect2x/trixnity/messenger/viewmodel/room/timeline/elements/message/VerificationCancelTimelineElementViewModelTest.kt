@@ -31,6 +31,9 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
@@ -39,9 +42,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class VerificationCancelTimelineElementViewModelTest {
 
@@ -56,46 +56,53 @@ class VerificationCancelTimelineElementViewModelTest {
 
     init {
         resetMocks(matrixClientMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns userId
 
         every { initialsMock.compute(any()) } calls { (name: String) -> name }
-        every { userServiceMock.getById(roomId, userId) } returns flowOf(
-            RoomUser(
-                roomId,
-                userId,
-                "user",
-                event = ClientEvent.RoomEvent.StateEvent(
-                    content = MemberEventContent(membership = Membership.JOIN),
-                    id = EventId("999"),
-                    roomId = roomId,
-                    sender = otherUserId,
-                    stateKey = userId.full,
-                    originTimestamp = 0,
+        every { userServiceMock.getById(roomId, userId) } returns
+            flowOf(
+                RoomUser(
+                    roomId,
+                    userId,
+                    "user",
+                    event =
+                        ClientEvent.RoomEvent.StateEvent(
+                            content = MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("999"),
+                            roomId = roomId,
+                            sender = otherUserId,
+                            stateKey = userId.full,
+                            originTimestamp = 0,
+                        ),
                 )
             )
-        )
-        every { userServiceMock.getById(roomId, otherUserId) } returns flowOf(
-            RoomUser(
-                roomId,
-                otherUserId,
-                "otherUser",
-                event = ClientEvent.RoomEvent.StateEvent(
-                    content = MemberEventContent(membership = Membership.JOIN),
-                    id = EventId("999"),
-                    roomId = roomId,
-                    sender = userId,
-                    stateKey = otherUserId.full,
-                    originTimestamp = 0,
+        every { userServiceMock.getById(roomId, otherUserId) } returns
+            flowOf(
+                RoomUser(
+                    roomId,
+                    otherUserId,
+                    "otherUser",
+                    event =
+                        ClientEvent.RoomEvent.StateEvent(
+                            content = MemberEventContent(membership = Membership.JOIN),
+                            id = EventId("999"),
+                            roomId = roomId,
+                            sender = userId,
+                            stateKey = otherUserId.full,
+                            originTimestamp = 0,
+                        ),
                 )
             )
-        )
     }
 
     @BeforeTest
@@ -105,54 +112,62 @@ class VerificationCancelTimelineElementViewModelTest {
 
     @Test
     fun `shows that this cancel event was sent by the current user - original request by other user`() = runTest {
-        val verificationCancelEventContent = VerificationCancelEventContent(
-            code = VerificationCancelEventContent.Code.Timeout,
-            reason = "timeout",
-            relatesTo = RelatesTo.Reference(EventId("2")),
-            transactionId = null,
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("1"),
-                    sender = userId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(verificationCancelEventContent),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        val verificationCancelEventContent =
+            VerificationCancelEventContent(
+                code = VerificationCancelEventContent.Code.Timeout,
+                reason = "timeout",
+                relatesTo = RelatesTo.Reference(EventId("2")),
+                transactionId = null,
             )
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("2"),
-                    sender = otherUserId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(
-                    RoomMessageEventContent.VerificationRequest(
-                        fromDevice = "device2",
-                        to = userId,
-                        methods = setOf(),
-                    )
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("1"),
+                            sender = userId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content = Result.success(verificationCancelEventContent),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("2"),
+                            sender = otherUserId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content =
+                        Result.success(
+                            RoomMessageEventContent.VerificationRequest(
+                                fromDevice = "device2",
+                                to = userId,
+                                methods = setOf(),
+                            )
+                        ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            )
 
         val cut = verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent)
         delay(100.milliseconds)
@@ -163,54 +178,62 @@ class VerificationCancelTimelineElementViewModelTest {
 
     @Test
     fun `shows that this cancel event was sent by the other user - original request by current user`() = runTest {
-        val verificationCancelEventContent = VerificationCancelEventContent(
-            code = VerificationCancelEventContent.Code.MismatchedSas,
-            reason = "timeout",
-            relatesTo = RelatesTo.Reference(EventId("2")),
-            transactionId = null,
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("1"),
-                    sender = otherUserId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(verificationCancelEventContent),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        val verificationCancelEventContent =
+            VerificationCancelEventContent(
+                code = VerificationCancelEventContent.Code.MismatchedSas,
+                reason = "timeout",
+                relatesTo = RelatesTo.Reference(EventId("2")),
+                transactionId = null,
             )
-        )
-        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns flowOf(
-            TimelineEvent(
-                event = ClientEvent.RoomEvent.MessageEvent(
-                    content = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-                        ciphertext = MegolmMessageValue(""),
-                        sessionId = "",
-                    ),
-                    id = EventId("2"),
-                    sender = userId,
-                    roomId = roomId,
-                    originTimestamp = 0,
-                ),
-                content = Result.success(
-                    RoomMessageEventContent.VerificationRequest(
-                        fromDevice = "device2",
-                        to = userId,
-                        methods = setOf(),
-                    )
-                ),
-                previousEventId = null,
-                nextEventId = null,
-                gap = null,
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("1")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("1"),
+                            sender = otherUserId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content = Result.success(verificationCancelEventContent),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
             )
-        )
+        every { roomServiceMock.getTimelineEvent(roomId, EventId("2")) } returns
+            flowOf(
+                TimelineEvent(
+                    event =
+                        ClientEvent.RoomEvent.MessageEvent(
+                            content =
+                                EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                                    ciphertext = MegolmMessageValue(""),
+                                    sessionId = "",
+                                ),
+                            id = EventId("2"),
+                            sender = userId,
+                            roomId = roomId,
+                            originTimestamp = 0,
+                        ),
+                    content =
+                        Result.success(
+                            RoomMessageEventContent.VerificationRequest(
+                                fromDevice = "device2",
+                                to = userId,
+                                methods = setOf(),
+                            )
+                        ),
+                    previousEventId = null,
+                    nextEventId = null,
+                    gap = null,
+                )
+            )
 
         val cut = verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent)
         delay(100.milliseconds)
@@ -219,24 +242,26 @@ class VerificationCancelTimelineElementViewModelTest {
         cut.cause.lowercase() shouldContain "match"
     }
 
-    fun TestScope.verificationCancelEventContentTimelineElementViewModel(verificationCancelEventContent: VerificationCancelEventContent): VerificationCancelTimelineElementViewModelImpl {
+    fun TestScope.verificationCancelEventContentTimelineElementViewModel(
+        verificationCancelEventContent: VerificationCancelEventContent
+    ): VerificationCancelTimelineElementViewModelImpl {
         val result =
             VerificationCancelTimelineElementViewModelImpl(
-                viewModelContext = MatrixClientViewModelContextImpl(
-                    di = koinApplication {
-                        modules(
-                            createTestDefaultTrixnityMessengerModules(
-                                mapOf(userId to matrixClientMock)
-                            ) + module {
-                                single { initialsMock }
-                            }
-                        )
-                    }.koin,
-                    componentContext = DefaultComponentContext(LifecycleRegistry()),
-                    userId = userId,
-                    coroutineContext = backgroundScope.coroutineContext,
-                    name = "CancelVerification"
-                ),
+                viewModelContext =
+                    MatrixClientViewModelContextImpl(
+                        di =
+                            koinApplication {
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)) +
+                                            module { single { initialsMock } }
+                                    )
+                                }
+                                .koin,
+                        componentContext = DefaultComponentContext(LifecycleRegistry()),
+                        userId = userId,
+                        coroutineContext = backgroundScope.coroutineContext,
+                        name = "CancelVerification",
+                    ),
                 content = verificationCancelEventContent,
                 roomId = roomId,
                 eventIdOrTransactionId = EventIdOrTransactionId(eventId = EventId("1")),
@@ -246,5 +271,4 @@ class VerificationCancelTimelineElementViewModelTest {
 
         return result
     }
-
 }

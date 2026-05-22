@@ -21,7 +21,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActio
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
-
 @Composable
 fun BoxScope.MessageBubbleActionMenu(
     holder: BaseTimelineElementHolderViewModel,
@@ -40,9 +39,7 @@ fun BoxScope.MessageBubbleActionMenu(
         showActionMenu,
         holder.contextMenuActions(i18n, onOpenMetadata, onReactToMessage, onRedact),
         additionalContextActions,
-        {
-            Icon(Icons.Default.ExpandMore, null, tint = Color.White)
-        },
-        Modifier.align(Alignment.TopEnd).padding(4.dp)
+        { Icon(Icons.Default.ExpandMore, null, tint = Color.White) },
+        Modifier.align(Alignment.TopEnd).padding(4.dp),
     )
 }

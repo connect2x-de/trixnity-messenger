@@ -11,10 +11,10 @@ import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
 import io.ktor.http.ContentType
+import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.FileSystem
-import kotlin.time.Clock
 
 internal class AndroidAudioRecorder(
     private val clock: Clock,
@@ -31,16 +31,16 @@ internal class AndroidAudioRecorder(
     override suspend fun start(): AudioRecorderImpl.State.Recording? {
         fun requestPermission() {
             registeredRequestPermission?.unregister()
-            registeredRequestPermission = requestRecordPermissionActivityResult(
-                getActivity(),
-                i18n.audioRecordingManuallyGiveMicrophonePermissionPrompt()
-            )
+            registeredRequestPermission =
+                requestRecordPermissionActivityResult(
+                    getActivity(),
+                    i18n.audioRecordingManuallyGiveMicrophonePermissionPrompt(),
+                )
             registeredRequestPermission?.launch(Manifest.permission.RECORD_AUDIO)
         }
 
         return when (getContext().checkSelfPermission(Manifest.permission.RECORD_AUDIO)) {
-            PackageManager.PERMISSION_GRANTED ->
-                startRecorder()
+            PackageManager.PERMISSION_GRANTED -> startRecorder()
             PackageManager.PERMISSION_DENIED -> {
                 requestPermission()
                 null
@@ -70,14 +70,14 @@ internal class AndroidAudioRecorder(
                         MediaRecorder.OutputFormat.OGG,
                         MediaRecorder.AudioEncoder.OPUS,
                         AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ,
-                        ContentType.Audio.OGG
+                        ContentType.Audio.OGG,
                     )
                 } else {
                     AudioRecorderImpl.Format(
                         MediaRecorder.OutputFormat.AMR_WB,
                         MediaRecorder.AudioEncoder.AMR_WB,
                         AudioRecorderImpl.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ,
-                        AudioRecorderImpl.Format.amrWbContentType
+                        AudioRecorderImpl.Format.amrWbContentType,
                     )
                 }
             recorder.setOutputFormat(format.container)
@@ -91,9 +91,7 @@ internal class AndroidAudioRecorder(
 
             AudioRecorderImpl.State.Recording(
                 start = clock.now(),
-                loudness = {
-                    recorder.maxAmplitude.toFloat()
-                },
+                loudness = { recorder.maxAmplitude.toFloat() },
                 complete = { recordingState ->
                     try {
                         recorder.stop()
@@ -102,14 +100,14 @@ internal class AndroidAudioRecorder(
                             capture,
                             duration = clock.now() - recordingState.start,
                             sizeBytes = fileSystem.metadata(tempFilePath).size,
-                            contentType = format.contentType
+                            contentType = format.contentType,
                         ) {
                             fileSystem.delete(tempFilePath)
                         }
                     } finally {
                         recorder.release()
                     }
-                }
+                },
             )
         }
     }

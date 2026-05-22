@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.CloseApp
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -13,17 +15,13 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.key
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface CrossSigningBootstrapViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onClose: (UserId) -> Unit,
-    ): CrossSigningBootstrapViewModel = CrossSigningBootstrapViewModelImpl(
-        viewModelContext, onClose
-    )
+    ): CrossSigningBootstrapViewModel = CrossSigningBootstrapViewModelImpl(viewModelContext, onClose)
 
     companion object : CrossSigningBootstrapViewModelFactory
 }
@@ -40,8 +38,11 @@ interface CrossSigningBootstrapViewModel {
     val isBootstrapRunning: StateFlow<Boolean>
 
     fun startCrossSigningBootstrap()
+
     fun confirmRecoveryKeyCopied()
+
     fun close()
+
     fun closeMessenger()
 }
 
@@ -51,12 +52,14 @@ open class CrossSigningBootstrapViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, CrossSigningBootstrapViewModel {
 
     override val recoveryKey = MutableStateFlow<String?>(null)
-    override val recoveryKeyPart1 = recoveryKey.map {
-        it?.split(" ")?.take(6)?.joinToString(" ")
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val recoveryKeyPart2 = recoveryKey.map {
-        it?.split(" ")?.drop(6)?.joinToString(" ")
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val recoveryKeyPart1 =
+        recoveryKey
+            .map { it?.split(" ")?.take(6)?.joinToString(" ") }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val recoveryKeyPart2 =
+        recoveryKey
+            .map { it?.split(" ")?.drop(6)?.joinToString(" ") }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val recoveryKeyCopied = MutableStateFlow(false)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -65,29 +68,31 @@ open class CrossSigningBootstrapViewModelImpl(
 
     override fun startCrossSigningBootstrap() {
         if (isBootstrapRunning.getAndUpdate { true }.not()) {
-            coroutineScope.launch {
-                error.value = null
-                val bootstrap = matrixClient.key.bootstrapCrossSigning()
-                val result = authorizeUia { bootstrap.result }
-                when (result) {
-                    is AuthorizeUiaResult.CancelledByUser -> {
-                        error.value = result.message
-                    }
+            coroutineScope
+                .launch {
+                    error.value = null
+                    val bootstrap = matrixClient.key.bootstrapCrossSigning()
+                    val result = authorizeUia { bootstrap.result }
+                    when (result) {
+                        is AuthorizeUiaResult.CancelledByUser -> {
+                            error.value = result.message
+                        }
 
-                    is AuthorizeUiaResult.Error -> {
-                        error.value = i18n.bootstrapErrorAccount(result.exception.errorResponse.error)
-                    }
+                        is AuthorizeUiaResult.Error -> {
+                            error.value = i18n.bootstrapErrorAccount(result.exception.errorResponse.error)
+                        }
 
-                    is AuthorizeUiaResult.UnexpectedError -> {
-                        error.value = result.message
-                    }
+                        is AuthorizeUiaResult.UnexpectedError -> {
+                            error.value = result.message
+                        }
 
-                    is AuthorizeUiaResult.Success -> {
-                        log.debug { "successfully completed bootstrap authorization" }
-                        recoveryKey.value = bootstrap.recoveryKey
+                        is AuthorizeUiaResult.Success -> {
+                            log.debug { "successfully completed bootstrap authorization" }
+                            recoveryKey.value = bootstrap.recoveryKey
+                        }
                     }
                 }
-            }.invokeOnCompletion { isBootstrapRunning.value = false }
+                .invokeOnCompletion { isBootstrapRunning.value = false }
         }
     }
 

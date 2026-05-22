@@ -54,11 +54,7 @@ interface MainViewModelFactory {
         viewModelContext: ViewModelContext,
         onCreateNewAccount: () -> Unit,
         onRemoveAccount: (userId: UserId) -> Unit,
-    ): MainViewModel = MainViewModelImpl(
-        viewModelContext,
-        onCreateNewAccount,
-        onRemoveAccount,
-    )
+    ): MainViewModel = MainViewModelImpl(viewModelContext, onCreateNewAccount, onRemoveAccount)
 
     companion object : MainViewModelFactory
 }
@@ -74,16 +70,19 @@ interface MainViewModel {
     val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>>
     val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>>
 
-    /**
-     * ATTENTION: The viewmodel has to be explicitly started as
-     * the routers cannot be initialized in the init block!
-     */
+    /** ATTENTION: The viewmodel has to be explicitly started as the routers cannot be initialized in the init block! */
     fun start()
+
     fun closeDetailsAndShowList()
+
     fun onRoomSelected(userId: UserId, id: RoomId)
+
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
+
     fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor)
+
     fun openSelfVerification(userId: UserId)
+
     fun openMention(userId: UserId, timelineElementMention: TimelineElementMention)
 }
 
@@ -100,17 +99,14 @@ open class MainViewModelImpl(
     override val selectedRoomId = MutableStateFlow<RoomId?>(null)
 
     internal val selfVerificationRouter = SelfVerificationRouter(viewModelContext, ::onCloseSelfVerification)
-    override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
+    override val selfVerificationStack:
+        Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         selfVerificationRouter.stack
 
     internal val sharingRouter = SharingRouter(viewModelContext)
-    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
-        sharingRouter.stack
+    override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> = sharingRouter.stack
 
-
-    private val backCallback = BackCallback {
-        backPressHandler()
-    }
+    private val backCallback = BackCallback { backPressHandler() }
 
     init { // Init before routers, so those can register other handlers that are executed beforehand.
         registerBackCallback(backCallback)
@@ -131,7 +127,7 @@ open class MainViewModelImpl(
             onAccountSelected = ::onAccountSelected,
             onStartAccountSetup = ::startAccountSetup,
             onStartVerification = selfVerificationRouter::showSelfVerification,
-            onCloseRoom = ::closeDetailsAndShowList
+            onCloseRoom = ::closeDetailsAndShowList,
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         roomListRouter.stack
@@ -152,7 +148,8 @@ open class MainViewModelImpl(
             routerKey = "deviceVerification",
             onRedoSelfVerification = selfVerificationRouter::redoSelfVerification,
         )
-    override val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
+    override val deviceVerificationRouterStack:
+        Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
         verificationRouter.stack
 
     private val avatarCutterRouter: AvatarCutterRouter = AvatarCutterRouter(viewModelContext = viewModelContext)
@@ -160,10 +157,7 @@ open class MainViewModelImpl(
         avatarCutterRouter.stack
 
     private val accountSetupRouter: AccountSetupRouter =
-        AccountSetupRouter(
-            viewModelContext,
-            onStartVerification = selfVerificationRouter::showSelfVerification
-        )
+        AccountSetupRouter(viewModelContext, onStartVerification = selfVerificationRouter::showSelfVerification)
 
     override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
         accountSetupRouter.stack
@@ -175,7 +169,8 @@ open class MainViewModelImpl(
             getOrNull<MinimizeApp>()?.invoke()
             // TODO: was "minimize", but we should use native routing without all the back press handlers
             //  native routing could also allow to use web history
-            //  see also: https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
+            //  see also:
+            // https://github.com/arkivanov/Decompose/tree/master/sample/shared/shared/src/commonMain/kotlin/com/arkivanov/sample/shared/multipane
         }
     }
 
@@ -197,7 +192,9 @@ open class MainViewModelImpl(
     // ATTENTION: The viewmodel has to be explicitly started as the routers cannot be initialized in the init block!
     override fun start() {
         roomRouter.stack.subscribe { routerStack: ChildStack<RoomRouter.Config, RoomRouter.Wrapper> ->
-            log.debug { "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})" }
+            log.debug {
+                "roomRouter has changed: ${routerStack.active.configuration::class.simpleName} (roomId: ${routerStack.active.configuration.getRoomId()})"
+            }
             selectedRoomId.value = routerStack.active.configuration.getRoomId()
         }
         startSync()
@@ -226,9 +223,7 @@ open class MainViewModelImpl(
         }
         coroutineScope.launch {
             this@MainViewModelImpl.matrixClients
-                .scan(
-                    Pair<Set<UserId>, Set<UserId>>(emptySet(), emptySet())
-                ) { old, new -> old.second to new.keys }
+                .scan(Pair<Set<UserId>, Set<UserId>>(emptySet(), emptySet())) { old, new -> old.second to new.keys }
                 .collect { (oldMatrixClients, newMatrixClients) ->
                     if (newMatrixClients.isNotEmpty() && oldMatrixClients != newMatrixClients) {
                         log.debug { "MatrixClient has been added, show sync" }
@@ -236,9 +231,7 @@ open class MainViewModelImpl(
                     }
                 }
         }
-        coroutineScope.launch {
-            this@MainViewModelImpl.get<NotificationHandlers>().continuouslyRequestPermissions()
-        }
+        coroutineScope.launch { this@MainViewModelImpl.get<NotificationHandlers>().continuouslyRequestPermissions() }
         lifecycle.doOnStop {
             coroutineScope.launch {
                 withContext(NonCancellable) { // Even when the scope is destroyed, we want the sync to stop.
@@ -275,11 +268,10 @@ open class MainViewModelImpl(
                 currentActiveVerifications.firstOrNull()?.let { userId ->
                     log.debug { "active verification in account $userId" }
                     verificationRouter.startDeviceVerification(userId)
-                    deviceVerificationRouterStack.toFlow().first { childStack ->
-                        childStack.active.configuration == VerificationRouter.Config.None
-                    }.let {
-                        activeDeviceVerifications.value -= userId
-                    }
+                    deviceVerificationRouterStack
+                        .toFlow()
+                        .first { childStack -> childStack.active.configuration == VerificationRouter.Config.None }
+                        .let { activeDeviceVerifications.value -= userId }
                 }
             }
         }
@@ -290,20 +282,19 @@ open class MainViewModelImpl(
             this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        matrixClient.verification.activeDeviceVerification
-                            .filterNotNull()
-                            .collect {
-                                log.debug { "new verification: $it" }
-                                launch {
-                                    it.state.collect { verificationState ->
-                                        if (verificationState is ActiveVerificationState.TheirRequest ||
+                        matrixClient.verification.activeDeviceVerification.filterNotNull().collect {
+                            log.debug { "new verification: $it" }
+                            launch {
+                                it.state.collect { verificationState ->
+                                    if (
+                                        verificationState is ActiveVerificationState.TheirRequest ||
                                             verificationState is ActiveVerificationState.OwnRequest
-                                        ) {
-                                            activeDeviceVerifications.value += userId
-                                        }
+                                    ) {
+                                        activeDeviceVerifications.value += userId
                                     }
                                 }
                             }
+                        }
                     }
                 }
             }
@@ -315,12 +306,16 @@ open class MainViewModelImpl(
             this@MainViewModelImpl.matrixClients.scopedCollectLatest { namedMatrixClients ->
                 namedMatrixClients.forEach { (userId, matrixClient) ->
                     launch {
-                        messengerSettings[userId].filterNotNull().map { it.base.presenceIsPublic }
+                        messengerSettings[userId]
+                            .filterNotNull()
+                            .map { it.base.presenceIsPublic }
                             .distinctUntilChanged()
                             .collect { isPublic ->
                                 val presence = if (isPublic) Presence.ONLINE else Presence.OFFLINE
                                 if (lifecycle.state >= Lifecycle.State.STARTED) {
-                                    log.info { "the settings for `presenceIsPublic` have changed -> restart sync with $presence" }
+                                    log.info {
+                                        "the settings for `presenceIsPublic` have changed -> restart sync with $presence"
+                                    }
                                     matrixClient.startSync(presence = presence)
                                 }
                             }
@@ -364,9 +359,7 @@ open class MainViewModelImpl(
 
     private fun closeRoom() {
         log.debug { "Closing the room as account has been switched.." }
-        coroutineScope.launch {
-            roomRouter.closeRoom()
-        }
+        coroutineScope.launch { roomRouter.closeRoom() }
     }
 
     override fun onRoomSelected(userId: UserId, id: RoomId) {
@@ -380,8 +373,7 @@ open class MainViewModelImpl(
         coroutineScope.launch {
             log.debug { "onOpenUserProfile: $userId" }
             selectRoom(sourceUserId, roomId)
-            (roomRouter.stack.active.instance as? RoomRouter.Wrapper.View)
-                ?.viewModel?.openUserProfile(userId)
+            (roomRouter.stack.active.instance as? RoomRouter.Wrapper.View)?.viewModel?.openUserProfile(userId)
         }
     }
 
@@ -413,10 +405,12 @@ open class MainViewModelImpl(
                 val otherUserId = timelineElementMention.user.userId
 
                 // TODO: find out where the mentioned userId is located instead of assuming the mention source
-                val roomId = selectedRoomId.value ?: run {
-                    log.warn { "Could not open User Profile $otherUserId, no room selected" }
-                    return
-                }
+                val roomId =
+                    selectedRoomId.value
+                        ?: run {
+                            log.warn { "Could not open User Profile $otherUserId, no room selected" }
+                            return
+                        }
 
                 log.debug { "Opening User Profile $otherUserId" }
                 onOpenUserProfile(userId, roomId, otherUserId)
@@ -474,73 +468,79 @@ class PreviewMainViewModel : MainViewModel {
     override val initialSyncStack: Value<ChildStack<InitialSyncRouter.Config, InitialSyncRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = InitialSyncRouter.Config.None,
-                    instance = InitialSyncRouter.Wrapper.None,
-                )
+                active =
+                    Child.Created(
+                        configuration = InitialSyncRouter.Config.None,
+                        instance = InitialSyncRouter.Wrapper.None,
+                    )
             )
         )
-    override val selfVerificationStack: Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
+    override val selfVerificationStack:
+        Value<ChildStack<SelfVerificationRouter.Config, SelfVerificationRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = SelfVerificationRouter.Config.None,
-                    instance = SelfVerificationRouter.Wrapper.None,
-                )
+                active =
+                    Child.Created(
+                        configuration = SelfVerificationRouter.Config.None,
+                        instance = SelfVerificationRouter.Wrapper.None,
+                    )
             )
         )
     override val sharingStack: Value<ChildStack<SharingRouter.Config, SharingRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = SharingRouter.Config.None,
-                    instance = SharingRouter.Wrapper.None,
-                )
+                active = Child.Created(configuration = SharingRouter.Config.None, instance = SharingRouter.Wrapper.None)
             )
         )
     override val roomListRouterStack: Value<ChildStack<RoomListRouter.Config, RoomListRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = RoomListRouter.Config.RoomList,
-                    instance = RoomListRouter.Wrapper.List(PreviewRoomListViewModel()),
-                )
+                active =
+                    Child.Created(
+                        configuration = RoomListRouter.Config.RoomList,
+                        instance = RoomListRouter.Wrapper.List(PreviewRoomListViewModel()),
+                    )
             )
         )
     override val roomRouterStack: Value<ChildStack<RoomRouter.Config, RoomRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = RoomRouter.Config.None,
-                    instance = RoomRouter.Wrapper.View(PreviewRoomViewModel()),
-                )
+                active =
+                    Child.Created(
+                        configuration = RoomRouter.Config.None,
+                        instance = RoomRouter.Wrapper.View(PreviewRoomViewModel()),
+                    )
             )
         )
-    override val deviceVerificationRouterStack: Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
+    override val deviceVerificationRouterStack:
+        Value<ChildStack<VerificationRouter.Config, VerificationRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = VerificationRouter.Config.None,
-                    instance = VerificationRouter.Wrapper.None,
-                )
+                active =
+                    Child.Created(
+                        configuration = VerificationRouter.Config.None,
+                        instance = VerificationRouter.Wrapper.None,
+                    )
             )
         )
     override val avatarCutterRouterStack: Value<ChildStack<AvatarCutterRouter.Config, AvatarCutterRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = AvatarCutterRouter.Config.None,
-                    instance = AvatarCutterRouter.Wrapper.None,
-                )
+                active =
+                    Child.Created(
+                        configuration = AvatarCutterRouter.Config.None,
+                        instance = AvatarCutterRouter.Wrapper.None,
+                    )
             )
         )
     override val accountSetupRouterStack: Value<ChildStack<AccountSetupRouter.Config, AccountSetupRouter.Wrapper>> =
         MutableValue(
             ChildStack(
-                active = Child.Created(
-                    configuration = AccountSetupRouter.Config.None,
-                    instance = AccountSetupRouter.Wrapper.None,
-                )
+                active =
+                    Child.Created(
+                        configuration = AccountSetupRouter.Config.None,
+                        instance = AccountSetupRouter.Wrapper.None,
+                    )
             )
         )
 
@@ -549,9 +549,14 @@ class PreviewMainViewModel : MainViewModel {
     }
 
     override fun start() {}
+
     override fun closeDetailsAndShowList() {}
+
     override fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor) {}
+
     override fun onOpenAvatarCutter(userId: UserId, selectedRoomId: RoomId, file: FileDescriptor) {}
+
     override fun openSelfVerification(userId: UserId) {}
+
     override fun openMention(userId: UserId, timelineElementMention: TimelineElementMention) {}
 }

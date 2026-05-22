@@ -9,7 +9,5 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.PreviewRoomListViewMod
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun RoomListPreview() {
-    InitMessengerPreview {
-        RoomList(roomListViewModel = PreviewRoomListViewModel())
-    }
+    InitMessengerPreview { RoomList(roomListViewModel = PreviewRoomListViewModel()) }
 }

@@ -19,47 +19,30 @@ interface MessengerDpConstants {
 
 @Immutable
 object DefaultMessengerDpConstantValues : MessengerDpConstants {
-    /**
-     * 5.dp
-     */
+    /** 5.dp */
     override val verySmall = 5.dp
 
-    /**
-     * 10.dp
-     */
+    /** 10.dp */
     override val small = 10.dp
 
-    /**
-     * 20.dp
-     */
+    /** 20.dp */
     override val middle = 20.dp
 
-    /**
-     * 40.dp
-     */
+    /** 40.dp */
     override val large = 40.dp
 
-    /**
-     * 80.dp
-     */
+    /** 80.dp */
     override val veryLarge = 80.dp
 
-    /**
-     * 50.dp
-     */
+    /** 50.dp */
     override val touchTarget = 50.dp
-
 }
 
 val DefaultMessengerDpConstants: MessengerDpConstants
-    @Composable
-    get() = DefaultMessengerDpConstantValues
-
+    @Composable get() = DefaultMessengerDpConstantValues
 
 internal val MessengerDpConstantsProvider =
     staticCompositionLocalOf<MessengerDpConstants> { error("compositionLocal not defined") }
 
 val MaterialTheme.messengerDpConstants: MessengerDpConstants
-    @Composable
-    @ReadOnlyComposable
-    get() = MessengerDpConstantsProvider.current
+    @Composable @ReadOnlyComposable get() = MessengerDpConstantsProvider.current

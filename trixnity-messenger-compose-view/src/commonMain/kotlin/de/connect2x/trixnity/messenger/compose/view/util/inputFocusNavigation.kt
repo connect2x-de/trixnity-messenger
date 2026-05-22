@@ -17,17 +17,15 @@ import androidx.compose.ui.platform.LocalFocusManager
 fun Modifier.inputFocusNavigation(): Modifier = composed {
     val focusManager = LocalFocusManager.current
 
-    this then Modifier.onPreviewKeyEvent {
-        if (it.key == Key.Tab && !it.isCtrlPressed && !it.isMetaPressed && !it.isAltPressed) {
-            if (it.type == KeyEventType.KeyDown) {
-                focusManager.moveFocus(
-                    if (it.isShiftPressed) FocusDirection.Previous
-                    else FocusDirection.Next,
-                )
+    this then
+        Modifier.onPreviewKeyEvent {
+            if (it.key == Key.Tab && !it.isCtrlPressed && !it.isMetaPressed && !it.isAltPressed) {
+                if (it.type == KeyEventType.KeyDown) {
+                    focusManager.moveFocus(if (it.isShiftPressed) FocusDirection.Previous else FocusDirection.Next)
+                }
+                true
+            } else {
+                false
             }
-            true
-        } else {
-            false
         }
-    }
 }

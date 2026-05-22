@@ -10,16 +10,9 @@ import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
-data class SwitchStyle(
-    val colors: SwitchColors,
-) {
+data class SwitchStyle(val colors: SwitchColors) {
     companion object {
-        @Composable
-        fun default(
-            colors: SwitchColors = SwitchDefaults.colors(),
-        ) = SwitchStyle(
-            colors = colors,
-        )
+        @Composable fun default(colors: SwitchColors = SwitchDefaults.colors()) = SwitchStyle(colors = colors)
     }
 }
 
@@ -32,12 +25,13 @@ fun ThemedSwitch(
     enabled: Boolean = true,
     style: SwitchStyle = MaterialTheme.components.switch,
     interactionSource: MutableInteractionSource? = null,
-) = Switch(
-    checked,
-    onCheckedChange,
-    modifier.buttonPointerModifier(enabled),
-    thumbContent,
-    enabled,
-    style.colors,
-    interactionSource,
-)
+) =
+    Switch(
+        checked,
+        onCheckedChange,
+        modifier.buttonPointerModifier(enabled),
+        thumbContent,
+        enabled,
+        style.colors,
+        interactionSource,
+    )

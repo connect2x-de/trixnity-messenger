@@ -12,18 +12,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
-
 interface AccountSetupViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         onWizardClose: (userId: UserId) -> Unit,
         onStartVerification: (UserId, Boolean) -> Unit,
     ): AccountSetupViewModel {
-        return AccountSetupViewModelImpl(
-            viewModelContext,
-            onWizardClose,
-            onStartVerification,
-        )
+        return AccountSetupViewModelImpl(viewModelContext, onWizardClose, onStartVerification)
     }
 
     companion object : AccountSetupViewModelFactory
@@ -31,12 +26,14 @@ interface AccountSetupViewModelFactory {
 
 interface AccountSetupViewModel {
     fun closeAccountSetup()
+
     fun startVerification()
+
     fun changeVerificationCompleteStatus(newVerificationCompleteStatus: Boolean)
 
     /**
-     * Marks whether the current verification was completed/skipped or cancelled.
-     * A value of null means, that no verification is in process
+     * Marks whether the current verification was completed/skipped or cancelled. A value of null means, that no
+     * verification is in process
      */
     val completedVerification: MutableStateFlow<Boolean?>
     val userId: UserId
@@ -51,11 +48,11 @@ class AccountSetupViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     val onWizardClose: (UserId) -> Unit,
     val onStartVerification: (UserId, Boolean) -> Unit,
-) :
-    ViewModelContext by viewModelContext, AccountSetupViewModel {
+) : ViewModelContext by viewModelContext, AccountSetupViewModel {
     override val userId = viewModelContext.userId
     override val displayName: StateFlow<String?> =
-        viewModelContext.matrixClient.profile.map { it?.displayName ?: userId.localpart }
+        viewModelContext.matrixClient.profile
+            .map { it?.displayName ?: userId.localpart }
             .stateIn(viewModelContext.coroutineScope, WhileSubscribed(), null)
     override val appearanceSettingsViewModel: AppearanceSettingsViewModel by lazy {
         get<AppearanceSettingsViewModelFactory>().create(viewModelContext) {}

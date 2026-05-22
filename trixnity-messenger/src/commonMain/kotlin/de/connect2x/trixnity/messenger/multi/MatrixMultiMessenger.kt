@@ -7,6 +7,7 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +24,6 @@ import org.koin.core.Koin
 import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
 
 interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
     companion object
@@ -37,10 +37,8 @@ interface MatrixMultiMessenger : ProfileManager, AutoCloseable {
     suspend fun closeSuspending()
 }
 
-class MatrixMultiMessengerImpl private constructor(
-    override val di: Koin,
-    private val profileManager: ProfileManager,
-) : MatrixMultiMessenger, ProfileManager by profileManager {
+class MatrixMultiMessengerImpl private constructor(override val di: Koin, private val profileManager: ProfileManager) :
+    MatrixMultiMessenger, ProfileManager by profileManager {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerImpl")
 
@@ -55,38 +53,36 @@ class MatrixMultiMessengerImpl private constructor(
             }
             val coroutineScope =
                 CoroutineScope(
-                    coroutineContext
-                            + CoroutineName("trixnity-multi-messenger-global")
-                            + SupervisorJob(coroutineContext[Job])
-                            + exceptionHandler
+                    coroutineContext +
+                        CoroutineName("trixnity-multi-messenger-global") +
+                        SupervisorJob(coroutineContext[Job]) +
+                        exceptionHandler
                 )
-            val di = koinApplication {
-                modules(
-                    module {
-                        single<CoroutineScope> { coroutineScope }
-                        single { config }.bind<MatrixMessengerBaseConfiguration>()
-                    },
-                )
-                modules(config.modulesFactories.map { it.invoke() })
-            }.koin
+            val di =
+                koinApplication {
+                        modules(
+                            module {
+                                single<CoroutineScope> { coroutineScope }
+                                single { config }.bind<MatrixMessengerBaseConfiguration>()
+                            }
+                        )
+                        modules(config.modulesFactories.map { it.invoke() })
+                    }
+                    .koin
             val settingsHolder = di.getAll<SettingsHolder<*>>()
             settingsHolder.forEach {
                 log.debug { "initialize SettingsHolder ($it)" }
                 it.init()
             }
             di.get<MatrixMultiMessengerSettingsHolder>().update<MatrixMultiMessengerSettingsBase> { oldSettings ->
-                if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null)
-                else oldSettings
+                if (oldSettings.forgetActiveProfileOnStart) oldSettings.copy(activeProfile = null) else oldSettings
             }
             val worker = di.getAll<Worker>()
             worker.forEach { worker ->
                 log.debug { "start worker $worker" }
                 coroutineScope.launch { worker.doWork() }
             }
-            val matrixMultiMessengerImpl = MatrixMultiMessengerImpl(
-                di = di,
-                profileManager = di.get(),
-            )
+            val matrixMultiMessengerImpl = MatrixMultiMessengerImpl(di = di, profileManager = di.get())
 
             return matrixMultiMessengerImpl
         }
@@ -94,9 +90,7 @@ class MatrixMultiMessengerImpl private constructor(
 
     override fun close() {
         di.getAll<AutoCloseable>().forEach { it.close() }
-        di.get<CoroutineScope>().apply {
-            cancel("stopped MatrixMultiMessenger")
-        }
+        di.get<CoroutineScope>().apply { cancel("stopped MatrixMultiMessenger") }
         activeMatrixMessenger.value?.close()
         di.get<MatrixMultiMessengerConfiguration>().httpClientEngine?.close()
     }
@@ -119,4 +113,3 @@ suspend fun ProfileManager.singleModeMatrixMessenger(): Flow<MatrixMessenger> {
 suspend fun MatrixMultiMessenger.singleMode(block: suspend (MatrixMessenger) -> Unit) {
     singleModeMatrixMessenger().collectLatest(block)
 }
-

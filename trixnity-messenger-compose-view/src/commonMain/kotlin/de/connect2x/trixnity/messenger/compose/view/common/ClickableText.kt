@@ -13,10 +13,7 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 
-/**
- * Modified version of androidx.compose.foundation.text.ClickableText to receive a long press handler.
- */
-
+/** Modified version of androidx.compose.foundation.text.ClickableText to receive a long press handler. */
 @Composable
 fun ClickableText(
     text: AnnotatedString,
@@ -30,18 +27,15 @@ fun ClickableText(
     onLongPress: (offset: Offset) -> Unit,
 ) {
     val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-    val pressIndicator = Modifier.pointerInput(onClick, onLongPress) {
-        detectTapGestures(
-            onTap = { pos ->
-                layoutResult.value?.let { layoutResult ->
-                    onClick(layoutResult.getOffsetForPosition(pos))
-                }
-            },
-            onLongPress = { pos ->
-                onLongPress(pos)
-            }
-        )
-    }
+    val pressIndicator =
+        Modifier.pointerInput(onClick, onLongPress) {
+            detectTapGestures(
+                onTap = { pos ->
+                    layoutResult.value?.let { layoutResult -> onClick(layoutResult.getOffsetForPosition(pos)) }
+                },
+                onLongPress = { pos -> onLongPress(pos) },
+            )
+        }
 
     Text(
         text = text,
@@ -53,6 +47,6 @@ fun ClickableText(
         onTextLayout = {
             layoutResult.value = it
             onTextLayout(it)
-        }
+        },
     )
 }

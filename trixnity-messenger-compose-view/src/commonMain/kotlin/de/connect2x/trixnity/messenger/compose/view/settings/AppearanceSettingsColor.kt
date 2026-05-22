@@ -45,22 +45,11 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSlider
 
 interface AppearanceSettingsColorView {
-    @Composable
-    fun ColumnScope.create(
-        text: String,
-        defaultColor: Color,
-        color: Color,
-        set: (Color) -> Unit
-    )
+    @Composable fun ColumnScope.create(text: String, defaultColor: Color, color: Color, set: (Color) -> Unit)
 }
 
 @Composable
-fun ColumnScope.AppearanceSettingsColor(
-    text: String,
-    defaultColor: Color,
-    color: Color,
-    set: (Color) -> Unit
-) {
+fun ColumnScope.AppearanceSettingsColor(text: String, defaultColor: Color, color: Color, set: (Color) -> Unit) {
     with(DI.get<AppearanceSettingsColorView>()) { create(text, defaultColor, color, set) }
 }
 
@@ -79,55 +68,51 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
         fun getCurrentHue() = if (newHue != -1F && newHue != color.hue) newHue else color.hue
 
         val currentColor = defaultAccentColor.deriveFromHue(getCurrentHue())
-        val accentIconButtonStyle = when (val primaryIconButtonStyle = MaterialTheme.components.primaryIconButton) {
-            is IconButtonStyle.Default -> primaryIconButtonStyle.copy(
-                colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
-            )
+        val accentIconButtonStyle =
+            when (val primaryIconButtonStyle = MaterialTheme.components.primaryIconButton) {
+                is IconButtonStyle.Default ->
+                    primaryIconButtonStyle.copy(
+                        colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
+                    )
 
-            is IconButtonStyle.Filled -> primaryIconButtonStyle.copy(
-                colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
-            )
+                is IconButtonStyle.Filled ->
+                    primaryIconButtonStyle.copy(
+                        colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
+                    )
 
-            is IconButtonStyle.FilledTonal -> primaryIconButtonStyle.copy(
-                colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
-            )
+                is IconButtonStyle.FilledTonal ->
+                    primaryIconButtonStyle.copy(
+                        colors = primaryIconButtonStyle.colors.copy(containerColor = currentColor)
+                    )
 
-            is IconButtonStyle.Outlined -> primaryIconButtonStyle.copy(
-                colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
-            )
-        }
+                is IconButtonStyle.Outlined ->
+                    primaryIconButtonStyle.copy(
+                        colors = primaryIconButtonStyle.colors.copy(contentColor = currentColor)
+                    )
+            }
 
         ExpandableSection(
             heading = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${text}: ",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
+                    Text(text = "${text}: ", style = MaterialTheme.typography.titleSmall)
                     VerySmallSpacer()
                     AppearanceSettingsColorPreview(currentColor)
                 }
             },
             icon = Icons.Default.Settings,
         ) {
-            Row(
-                modifier = Modifier.padding(16.dp).fillMaxSize(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(modifier = Modifier.padding(16.dp).fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
                 ThemedSlider(
                     value = getCurrentHue(),
-                    onValueChange = {
-                        newHue = it
-                    },
-                    onValueChangeFinished = {
-                        set(defaultAccentColor.deriveFromHue(newHue))
-                    },
+                    onValueChange = { newHue = it },
+                    onValueChangeFinished = { set(defaultAccentColor.deriveFromHue(newHue)) },
                     valueRange = 0F..359F,
                     steps = 180,
                     modifier = Modifier.weight(1F),
-                    style = MaterialTheme.components.slider.let {
-                        it.copy(colors = it.colors.copy(thumbColor = currentColor))
-                    },
+                    style =
+                        MaterialTheme.components.slider.let {
+                            it.copy(colors = it.colors.copy(thumbColor = currentColor))
+                        },
                     track = { HueSliderTrack(defaultAccentColor) },
                 )
                 Spacer(Modifier.width(10.dp))
@@ -137,7 +122,7 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
                         onClick = {
                             newHue = defaultColor.hue
                             set(defaultColor)
-                        }
+                        },
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Refresh,
@@ -151,14 +136,9 @@ class AppearanceSettingsColorViewImpl : AppearanceSettingsColorView {
 }
 
 @Composable
-fun HueSliderTrack(
-    referenceColor: Color,
-    modifier: Modifier = Modifier.height(4.dp),
-) {
+fun HueSliderTrack(referenceColor: Color, modifier: Modifier = Modifier.height(4.dp)) {
     var height by remember { mutableStateOf(0) }
-    Canvas(
-        modifier = modifier.fillMaxWidth()
-            .onGloballyPositioned { height = it.size.height }) {
+    Canvas(modifier = modifier.fillMaxWidth().onGloballyPositioned { height = it.size.height }) {
         val isRtl = layoutDirection == LayoutDirection.Rtl
         val sliderLeft = Offset(0F, center.y)
         val sliderRight = Offset(size.width, center.y)
@@ -174,12 +154,12 @@ fun HueSliderTrack(
                 3F / 6F to referenceColor.deriveFromHue(180F),
                 4F / 6F to referenceColor.deriveFromHue(240F),
                 5F / 6F to referenceColor.deriveFromHue(300F),
-                1F to referenceColor.deriveFromHue(360F)
+                1F to referenceColor.deriveFromHue(360F),
             ),
             sliderValueStart,
             sliderValueEnd,
             height.toFloat(),
-            StrokeCap.Round
+            StrokeCap.Round,
         )
     }
 }

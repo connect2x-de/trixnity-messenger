@@ -17,13 +17,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.FileInfo
 import de.connect2x.trixnity.messenger.compose.view.common.FileName
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.media.AudioPlayerView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.FileBasedRoomMessageTimelineElement
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.TextReply
@@ -40,8 +40,7 @@ import kotlin.reflect.KClass
 interface AudioRoomMessageTimelineElementView : TimelineElementView<Audio>
 
 class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementView {
-    override val supports: KClass<Audio> =
-        Audio::class
+    override val supports: KClass<Audio> = Audio::class
 
     override suspend fun waitFor(element: Audio) {
         // no-op (has default size)
@@ -50,32 +49,16 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Audio,
-        index: Int,
-    ) {
-        FileBasedRoomMessageTimelineElement(
-            holder,
-            element,
-            index = index,
-        ) { showActionMenu, onSave ->
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Audio, index: Int) {
+        FileBasedRoomMessageTimelineElement(holder, element, index = index) { showActionMenu, onSave ->
             MessageAudio(element, showActionMenu, onSave)
         }
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Audio,
-        index: Int,
-    ) {
-        FileBasedRoomMessageTimelineElement(
-            holder,
-            element,
-            isPreview = true,
-            index = index,
-        ) { showActionMenu, onSave ->
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Audio, index: Int) {
+        FileBasedRoomMessageTimelineElement(holder, element, isPreview = true, index = index) { showActionMenu, onSave
+            ->
             MessageAudio(element, showActionMenu, onSave)
         }
     }
@@ -101,10 +84,8 @@ class AudioRoomMessageTimelineElementViewImpl : AudioRoomMessageTimelineElementV
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Audio
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Audio): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Audio, i18n: I18nView): String {
         return "${i18n.commonAudio()}: ${element.name}, ${element.duration.ifNotNull { formatDuration(it) }}"
@@ -118,40 +99,33 @@ internal fun MessageAudio(element: Audio, showActionMenu: () -> Unit, onSave: ()
         return
     }
 
-    DI.current.get<AudioPlayerView>().Create(
-        audio = element,
-        viewModel = requireNotNull(element.audioPlayer),
-        fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) }
-    )
+    DI.current
+        .get<AudioPlayerView>()
+        .Create(
+            audio = element,
+            viewModel = requireNotNull(element.audioPlayer),
+            fallbackView = { NonPlayableAudioMessage(element, showActionMenu, onSave) },
+        )
 }
 
 @Composable
-internal fun NonPlayableAudioMessage(
-    element: Audio,
-    showActionMenu: () -> Unit,
-    onSave: () -> Unit,
-) {
+internal fun NonPlayableAudioMessage(element: Audio, showActionMenu: () -> Unit, onSave: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    Column(
-        modifier = Modifier.padding(10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+    Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Row {
             Column(
                 Modifier.width(IntrinsicSize.Max).padding(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    MaterialTheme.messengerIcons.typeAudio, i18n.commonAudio(),
-                    modifier = Modifier
-                        .size(64.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { onSave() },
-                                onLongPress = { showActionMenu() },
-                            )
-                        }
-                        .buttonPointerModifier()
+                    MaterialTheme.messengerIcons.typeAudio,
+                    i18n.commonAudio(),
+                    modifier =
+                        Modifier.size(64.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = { onSave() }, onLongPress = { showActionMenu() })
+                            }
+                            .buttonPointerModifier(),
                 )
                 FileInfo(element)
             }
@@ -184,6 +158,6 @@ internal fun ReplyMessageAudio(
                     TextReply(element, maxLines = 2)
                 }
             }
-        }
+        },
     )
 }

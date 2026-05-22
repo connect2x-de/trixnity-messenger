@@ -11,7 +11,6 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 
-
 @Composable
 fun TabInTextField(canEnter: Boolean, onEnter: () -> Unit): Modifier {
     val focusManager = LocalFocusManager.current

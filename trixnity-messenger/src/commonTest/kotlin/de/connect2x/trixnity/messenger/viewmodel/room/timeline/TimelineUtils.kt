@@ -45,6 +45,8 @@ import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
 import io.kotest.assertions.withClue
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,35 +61,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
-class RoomUserBuilder(
-    private val userService: UserService,
-    private val roomId: RoomId,
-) {
-    data class RoomUserWithReceipts(
-        val user: RoomUser,
-        val receipts: RoomUserReceipts,
-    )
+class RoomUserBuilder(private val userService: UserService, private val roomId: RoomId) {
+    data class RoomUserWithReceipts(val user: RoomUser, val receipts: RoomUserReceipts)
 
     val users = MutableStateFlow(listOf<RoomUserWithReceipts>())
 
     init {
-        every { userService.getAll(roomId) } returns users.map {
-            it.associate { (user, _) ->
-                user.userId to flowOf(
-                    user
-                )
-            }
-        }
-        every { userService.getAllReceipts(roomId) } returns users.map {
-            it.associate { (_, receipts) ->
-                receipts.userId to flowOf(
-                    receipts
-                )
-            }
-        }
+        every { userService.getAll(roomId) } returns
+            users.map { it.associate { (user, _) -> user.userId to flowOf(user) } }
+        every { userService.getAllReceipts(roomId) } returns
+            users.map { it.associate { (_, receipts) -> receipts.userId to flowOf(receipts) } }
     }
 
     operator fun RoomUserWithReceipts.unaryPlus() {
@@ -101,23 +85,19 @@ class RoomUserBuilder(
                 roomId,
                 id,
                 name,
-                StateEvent(
-                    MemberEventContent(membership = Membership.JOIN),
-                    EventId(""),
-                    id,
-                    roomId,
-                    0L,
-                    stateKey = ""
-                ),
+                StateEvent(MemberEventContent(membership = Membership.JOIN), EventId(""), id, roomId, 0L, stateKey = ""),
             ),
             RoomUserReceipts(
-                roomId, id,
-                lastReadMessage?.let {
-                    mapOf<ReceiptType, RoomUserReceipts.Receipt>(
-                        ReceiptType.Read to RoomUserReceipts.Receipt(it, ReceiptEventContent.Receipt(24))
-                    )
-                }.orEmpty()
-            )
+                roomId,
+                id,
+                lastReadMessage
+                    ?.let {
+                        mapOf<ReceiptType, RoomUserReceipts.Receipt>(
+                            ReceiptType.Read to RoomUserReceipts.Receipt(it, ReceiptEventContent.Receipt(24))
+                        )
+                    }
+                    .orEmpty(),
+            ),
         )
 }
 
@@ -127,39 +107,36 @@ fun timeline(
     pageSize: Int = 20,
     block: TimelineBuilder.(startFrom: EventId) -> Unit,
 ): TimelineMock {
-    val fullyReadMock = every {
-        roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any())
-    }
+    val fullyReadMock = every { roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, any()) }
     val fullyReadEventIndex = MutableStateFlow<Int?>(null)
     fullyReadMock returns fullyReadEventIndex.map { it?.let { FullyReadEventContent(EventId("$it")) } }
 
     val room = MutableStateFlow(Room(roomId))
     every { roomServiceMock.getById(roomId) } returns room
 
-    val timelineMock = TimelineMock(room, fullyReadEventIndex, roomServiceMock, block)
-        .apply { initEvents(EventId("dummy"), block) }
+    val timelineMock =
+        TimelineMock(room, fullyReadEventIndex, roomServiceMock, block).apply { initEvents(EventId("dummy"), block) }
     every { roomServiceMock.getLastTimelineEvent(roomId, any()) } returns
-            timelineMock.eventsInStore.map { it.lastOrNull() }
+        timelineMock.eventsInStore.map { it.lastOrNull() }
     every { roomServiceMock.getLastTimelineEvents(roomId, any()) } returns
-            timelineMock.eventsInStore.map { it.reversed().asFlow() }
-    every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
-        MarkedUnreadEventContent(false)
-    )
-
+        timelineMock.eventsInStore.map { it.reversed().asFlow() }
+    every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns
+        flowOf(MarkedUnreadEventContent(false))
 
     every {
         roomServiceMock.getTimeline(
             any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
-            any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>()
+            any<suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper>(),
         )
-    } calls {
-        @Suppress("UNCHECKED_CAST")
-        MockedTimeline(
-            pageSize,
-            timelineMock,
-            it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper)
-        )
-    }
+    } calls
+        {
+            @Suppress("UNCHECKED_CAST")
+            MockedTimeline(
+                pageSize,
+                timelineMock,
+                it.args[1] as (suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper),
+            )
+        }
 
     return timelineMock
 }
@@ -168,7 +145,7 @@ class TimelineMock(
     val room: MutableStateFlow<Room>,
     val fullyReadEventIndex: MutableStateFlow<Int?>,
     private val roomServiceMock: RoomService,
-    val initBlock: TimelineBuilder.(startFrom: EventId) -> Unit
+    val initBlock: TimelineBuilder.(startFrom: EventId) -> Unit,
 ) {
     private var timelineBuilder = TimelineBuilder(room, roomServiceMock)
     val eventsInStore: MutableStateFlow<List<StateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
@@ -191,32 +168,39 @@ class TimelineMock(
         this.timelineBuilder.createMocks()
         this.eventsInStore.value = newEvents
     }
-
 }
 
 internal class MockedTimeline(
     private val pageSize: Int,
     private val timelineMock: TimelineMock,
-    transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper
+    transformer: suspend (Flow<TimelineEvent>) -> TimelineViewModelImpl.TimelineElementWrapper,
 ) : TimelineBase<TimelineViewModelImpl.TimelineElementWrapper>({}, transformer) {
     private val eventsInStore = timelineMock.eventsInStore
 
     override suspend fun Flow<TimelineEvent>.canLoadBefore(): Flow<Boolean> = flowOf(true)
+
     override suspend fun Flow<TimelineEvent>.canLoadAfter(): Flow<Boolean> = flowOf(true)
 
-    override val state = combine(super.state, eventsInStore) { state, allEvents ->
-        state.copy(
-            canLoadBefore = allEvents.indexOfFirst { it.value.eventId == state.elements.firstOrNull()?.timelineEvent?.first()?.eventId } > 0,
-            canLoadAfter = allEvents.indexOfLast { it.value.eventId == state.elements.lastOrNull()?.timelineEvent?.first()?.eventId } < (allEvents.size - 1),
-        )
-    }
+    override val state =
+        combine(super.state, eventsInStore) { state, allEvents ->
+            state.copy(
+                canLoadBefore =
+                    allEvents.indexOfFirst {
+                        it.value.eventId == state.elements.firstOrNull()?.timelineEvent?.first()?.eventId
+                    } > 0,
+                canLoadAfter =
+                    allEvents.indexOfLast {
+                        it.value.eventId == state.elements.lastOrNull()?.timelineEvent?.first()?.eventId
+                    } < (allEvents.size - 1),
+            )
+        }
 
     @Deprecated("use init with explicit roomId instead")
     suspend fun init(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
-        configAfter: GetTimelineEventsConfig.() -> Unit
+        configAfter: GetTimelineEventsConfig.() -> Unit,
     ): TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper> {
         throw NotImplementedError("calling this only works with legacy TimelineImpl")
     }
@@ -226,12 +210,15 @@ internal class MockedTimeline(
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
-        configAfter: GetTimelineEventsConfig.() -> Unit
+        configAfter: GetTimelineEventsConfig.() -> Unit,
     ): List<Flow<TimelineEvent>> {
         timelineMock.initEvents(startFrom, timelineMock.initBlock)
         val events = eventsInStore.value
-        val startEvent = events.firstOrNull { it.value.eventId == startFrom }
-            ?: throw IllegalArgumentException("startFrom=$startFrom could not be found in ${eventsInStore.value.map { it.value.eventId }}")
+        val startEvent =
+            events.firstOrNull { it.value.eventId == startFrom }
+                ?: throw IllegalArgumentException(
+                    "startFrom=$startFrom could not be found in ${eventsInStore.value.map { it.value.eventId }}"
+                )
         val indexOfStartEvent = events.indexOf(startEvent)
         return if (events.size > 1) {
             val eventsBefore = events.take(indexOfStartEvent).takeLast(pageSize / 2)
@@ -243,7 +230,7 @@ internal class MockedTimeline(
     override suspend fun internalLoadBefore(
         roomId: RoomId,
         startFrom: EventId,
-        config: GetTimelineEventsConfig.() -> Unit
+        config: GetTimelineEventsConfig.() -> Unit,
     ): List<Flow<TimelineEvent>> {
         timelineMock.loadBeforeCalledCount.value++
         val events = eventsInStore.value
@@ -254,13 +241,15 @@ internal class MockedTimeline(
     override suspend fun internalLoadAfter(
         roomId: RoomId,
         startFrom: EventId,
-        config: GetTimelineEventsConfig.() -> Unit
+        config: GetTimelineEventsConfig.() -> Unit,
     ): List<Flow<TimelineEvent>> {
         timelineMock.loadAfterCalledCount.value++
-        return eventsInStore.map { events ->
-            val indexOfStartEvent = events.indexOfFirst { it.value.eventId == startFrom }
-            events.drop(indexOfStartEvent + 1).take(pageSize)
-        }.first { it.isNotEmpty() }
+        return eventsInStore
+            .map { events ->
+                val indexOfStartEvent = events.indexOfFirst { it.value.eventId == startFrom }
+                events.drop(indexOfStartEvent + 1).take(pageSize)
+            }
+            .first { it.isNotEmpty() }
     }
 }
 
@@ -272,7 +261,7 @@ class NoOpTimeline<T> : Timeline<T> {
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
-        configAfter: GetTimelineEventsConfig.() -> Unit
+        configAfter: GetTimelineEventsConfig.() -> Unit,
     ): TimelineStateChange<T> = TimelineStateChange()
 
     override suspend fun init(
@@ -280,7 +269,7 @@ class NoOpTimeline<T> : Timeline<T> {
         startFrom: EventId,
         configStart: GetTimelineEventConfig.() -> Unit,
         configBefore: GetTimelineEventsConfig.() -> Unit,
-        configAfter: GetTimelineEventsConfig.() -> Unit
+        configAfter: GetTimelineEventsConfig.() -> Unit,
     ): TimelineStateChange<T> = TimelineStateChange()
 
     override suspend fun loadBefore(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<T> =
@@ -289,17 +278,12 @@ class NoOpTimeline<T> : Timeline<T> {
     override suspend fun loadAfter(config: GetTimelineEventsConfig.() -> Unit): TimelineStateChange<T> =
         TimelineStateChange()
 
-    override suspend fun dropBefore(roomId: RoomId, eventId: EventId): TimelineStateChange<T> =
-        TimelineStateChange()
+    override suspend fun dropBefore(roomId: RoomId, eventId: EventId): TimelineStateChange<T> = TimelineStateChange()
 
-    override suspend fun dropAfter(roomId: RoomId, eventId: EventId): TimelineStateChange<T> =
-        TimelineStateChange()
+    override suspend fun dropAfter(roomId: RoomId, eventId: EventId): TimelineStateChange<T> = TimelineStateChange()
 }
 
-class TimelineBuilder(
-    private val room: MutableStateFlow<Room>,
-    private val roomServiceMock: RoomService,
-) {
+class TimelineBuilder(private val room: MutableStateFlow<Room>, private val roomServiceMock: RoomService) {
     private val roomId = room.value.roomId
     private val timelineEvents: MutableStateFlow<List<MutableStateFlow<TimelineEvent>>> = MutableStateFlow(listOf())
 
@@ -311,36 +295,32 @@ class TimelineBuilder(
         for (newTimelineEvent in timelineEvents.value) {
             val eventId = newTimelineEvent.value.eventId
 
-            every {
-                roomServiceMock.getTimelineEvent(roomId, eventId, any())
-            } returns newTimelineEvent
-            every {
-                roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any())
-            } returns channelFlow {
-                val alreadyEmittedEvents = mutableSetOf<EventId>()
-                timelineEvents.collectLatest {
-                    it.dropWhile { it.value.eventId != eventId }
-                        .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
-                        .forEach {
-                            alreadyEmittedEvents.add(it.value.eventId)
-                            send(it)
-                        }
+            every { roomServiceMock.getTimelineEvent(roomId, eventId, any()) } returns newTimelineEvent
+            every { roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.FORWARDS, any()) } returns
+                channelFlow {
+                    val alreadyEmittedEvents = mutableSetOf<EventId>()
+                    timelineEvents.collectLatest {
+                        it.dropWhile { it.value.eventId != eventId }
+                            .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                            .forEach {
+                                alreadyEmittedEvents.add(it.value.eventId)
+                                send(it)
+                            }
+                    }
                 }
-            }
-            every {
-                roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any())
-            } returns channelFlow {
-                val alreadyEmittedEvents = mutableSetOf<EventId>()
-                timelineEvents.collectLatest {
-                    it.reversed()
-                        .dropWhile { it.value.eventId != eventId }
-                        .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
-                        .forEach {
-                            alreadyEmittedEvents.add(it.value.eventId)
-                            send(it)
-                        }
+            every { roomServiceMock.getTimelineEvents(roomId, eventId, GetEvents.Direction.BACKWARDS, any()) } returns
+                channelFlow {
+                    val alreadyEmittedEvents = mutableSetOf<EventId>()
+                    timelineEvents.collectLatest {
+                        it.reversed()
+                            .dropWhile { it.value.eventId != eventId }
+                            .filterNot { alreadyEmittedEvents.contains(it.value.eventId) }
+                            .forEach {
+                                alreadyEmittedEvents.add(it.value.eventId)
+                                send(it)
+                            }
+                    }
                 }
-            }
         }
     }
 
@@ -350,22 +330,14 @@ class TimelineBuilder(
         val previousTimelineEvent = timelineEvents.value.lastOrNull()
         val newTimelineEvent = MutableStateFlow(this.copy(previousEventId = previousTimelineEvent?.value?.eventId))
 
-        previousTimelineEvent?.update {
-            it.copy(nextEventId = eventId)
-        }
+        previousTimelineEvent?.update { it.copy(nextEventId = eventId) }
         room.update { it.copy(lastEventId = eventId, lastRelevantEventId = eventId) }
         timelineEvents.value += newTimelineEvent
         return newTimelineEvent
     }
 
     operator fun RoomEvent<*>.unaryPlus(): MutableStateFlow<TimelineEvent> =
-        +TimelineEvent(
-            event = this,
-            previousEventId = null,
-            nextEventId = null,
-            gap = null
-        )
-
+        +TimelineEvent(event = this, previousEventId = null, nextEventId = null, gap = null)
 
     infix fun MutableStateFlow<TimelineEvent>.withContent(content: Result<RoomEventContent>) {
         update { it.copy(content = content) }
@@ -376,15 +348,14 @@ class TimelineBuilder(
         sentAt: Instant = Instant.fromEpochMilliseconds(0),
         eventId: EventId = EventId("${idCounter++}"),
         transactionId: String? = null,
-        block: MessageEventBuilder.() -> Unit
+        block: MessageEventBuilder.() -> Unit,
     ): MessageEvent<*> = messageEvent(sender, eventId, roomId, sentAt, transactionId, block)
 
     fun stateEvent(
         sender: UserId,
         sentAt: Instant = Instant.fromEpochMilliseconds(0),
-        block: StateEventBuilder.() -> Unit
-    ): StateEvent<*> =
-        stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
+        block: StateEventBuilder.() -> Unit,
+    ): StateEvent<*> = stateEvent(sender, EventId("${idCounter++}"), roomId, sentAt, block)
 }
 
 fun messageEvent(
@@ -393,7 +364,7 @@ fun messageEvent(
     roomId: RoomId,
     sentAt: Instant = Instant.fromEpochMilliseconds(0),
     transactionId: String? = null,
-    block: MessageEventBuilder.() -> Unit
+    block: MessageEventBuilder.() -> Unit,
 ): MessageEvent<*> {
     val content = MessageEventBuilder().apply(block).content
     val result = content?.let {
@@ -403,11 +374,7 @@ fun messageEvent(
             sender = sender,
             roomId = roomId,
             originTimestamp = sentAt.toEpochMilliseconds(),
-            unsigned = transactionId?.let {
-                UnsignedRoomEventData.UnsignedMessageEventData(
-                    transactionId = it,
-                )
-            },
+            unsigned = transactionId?.let { UnsignedRoomEventData.UnsignedMessageEventData(transactionId = it) },
         )
     }
     return checkNotNull(result)
@@ -415,6 +382,7 @@ fun messageEvent(
 
 class MessageEventBuilder {
     var content: MessageEventContent? = null
+
     fun text(message: String): RoomMessageEventContent.TextBased.Text {
         val result = RoomMessageEventContent.TextBased.Text(message)
         content = result
@@ -422,20 +390,22 @@ class MessageEventBuilder {
     }
 
     fun answerTo(message: String, eventId: EventId): RoomMessageEventContent.TextBased.Text {
-        val result = RoomMessageEventContent.TextBased.Text(
-            body = message,
-            relatesTo = RelatesTo.Reply(replyTo = RelatesTo.ReplyTo(eventId))
-        )
+        val result =
+            RoomMessageEventContent.TextBased.Text(
+                body = message,
+                relatesTo = RelatesTo.Reply(replyTo = RelatesTo.ReplyTo(eventId)),
+            )
         content = result
         return result
     }
 
     fun reaction(relatesTo: EventId): UnknownEventContent {
-        val result = UnknownEventContent(
-            raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
-            eventType = "m.reaction",
-            blocks = EventContentBlocks(),
-        )
+        val result =
+            UnknownEventContent(
+                raw = JsonObject(mapOf("m.relates_to" to JsonPrimitive(relatesTo.full))),
+                eventType = "m.reaction",
+                blocks = EventContentBlocks(),
+            )
         content = result
         return result
     }
@@ -453,10 +423,11 @@ class MessageEventBuilder {
     }
 
     fun encrypted(): EncryptedMessageEventContent {
-        val result = EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
-            ciphertext = MegolmMessageValue(""),
-            sessionId = ""
-        )
+        val result =
+            EncryptedMessageEventContent.MegolmEncryptedMessageEventContent(
+                ciphertext = MegolmMessageValue(""),
+                sessionId = "",
+            )
         content = result
         return result
     }
@@ -467,7 +438,7 @@ fun stateEvent(
     eventId: EventId,
     roomId: RoomId,
     sentAt: Instant = Instant.fromEpochMilliseconds(0),
-    block: StateEventBuilder.() -> Unit
+    block: StateEventBuilder.() -> Unit,
 ): StateEvent<*> {
     val content = StateEventBuilder().apply(block).content
     val result = content?.let {
@@ -485,6 +456,7 @@ fun stateEvent(
 
 class StateEventBuilder {
     var content: StateEventContent? = null
+
     fun createEvent(): CreateEventContent {
         val result = CreateEventContent()
         content = result
@@ -492,11 +464,12 @@ class StateEventBuilder {
     }
 
     fun unknownEvent(): UnknownEventContent {
-        val result = UnknownEventContent(
-            raw = JsonObject(mapOf("unknown" to JsonPrimitive("dino"))),
-            eventType = "this_is_clearly_unknown",
-            blocks = EventContentBlocks(),
-        )
+        val result =
+            UnknownEventContent(
+                raw = JsonObject(mapOf("unknown" to JsonPrimitive("dino"))),
+                eventType = "this_is_clearly_unknown",
+                blocks = EventContentBlocks(),
+            )
         content = result
         return result
     }
@@ -504,7 +477,5 @@ class StateEventBuilder {
 
 suspend infix fun StateFlow<List<BaseTimelineElementHolderViewModel>>.waitForSize(size: Int) =
     withClue({ "timelineElementViewModels size was ${value.size}, expected $size" }) {
-        withTimeout(4.seconds) {
-            first { it.size == size }
-        }
+        withTimeout(4.seconds) { first { it.size == size } }
     }

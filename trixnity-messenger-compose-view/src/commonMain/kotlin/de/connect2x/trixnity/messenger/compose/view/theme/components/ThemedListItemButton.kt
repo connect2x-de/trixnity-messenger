@@ -46,15 +46,16 @@ fun ThemedListItemButton(
         overlineContent = overlineContent,
         supportingContent = supportingContent,
         style = style,
-        modifier = modifier
-            .then(focusedBorder)
-            .clickable(
-                enabled = enabled,
-                interactionSource = interactionSource,
-                indication = LocalIndication.current,
-                onClick = onClick,
-            ).semantics(mergeDescendants = true) {
-                role = Role.Button
-            }.buttonPointerModifier(enabled),
+        modifier =
+            modifier
+                .then(focusedBorder)
+                .clickable(
+                    enabled = enabled,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                    onClick = onClick,
+                )
+                .semantics(mergeDescendants = true) { role = Role.Button }
+                .buttonPointerModifier(enabled),
     )
 }

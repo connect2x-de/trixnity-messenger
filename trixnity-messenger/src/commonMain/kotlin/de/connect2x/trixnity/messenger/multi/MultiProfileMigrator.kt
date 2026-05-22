@@ -10,8 +10,7 @@ class MultiProfileMigratorImpl(val profileManager: ProfileManager) : MultiProfil
     override suspend fun doWork() {
         if (profileManager.isMultiProfileEnabled.value == null) {
             // deduce whether we should migrate to multi-profile mode
-            if (profileManager.profiles.value.size > 1)
-                profileManager.setMultiProfileEnabled(true)
+            if (profileManager.profiles.value.size > 1) profileManager.setMultiProfileEnabled(true)
         }
     }
 }

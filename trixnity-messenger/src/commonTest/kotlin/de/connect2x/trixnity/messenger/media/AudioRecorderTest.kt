@@ -11,6 +11,12 @@ import dev.mokkery.mock
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -19,25 +25,15 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 class AudioRecorderTest {
     private val platformAudioRecorder = mock<PlatformAudioRecorder>()
     private val clock = mock<Clock>()
 
-
     @BeforeTest
     fun setup() {
         configureTestLogging()
-        resetMocks(
-            platformAudioRecorder,
-            clock
-        )
+        resetMocks(platformAudioRecorder, clock)
 
         every { platformAudioRecorder.close() } returns Unit
     }
@@ -55,11 +51,12 @@ class AudioRecorderTest {
     }
 
     @Test
-    fun `start when ready - when pressing start button then start recording`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `start when ready - when pressing start button then start recording`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5f },
@@ -68,26 +65,26 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
+                            ContentType("audio", "ogg"),
+                        ) {}
+                    },
                 )
-        val nextTime = startTime + 5.seconds
-        every { clock.now() } returns nextTime
-        backgroundScope.launch { cut.startSuspending() }
-        delay(1.seconds)
+            val nextTime = startTime + 5.seconds
+            every { clock.now() } returns nextTime
+            backgroundScope.launch { cut.startSuspending() }
+            delay(1.seconds)
 
-        cut.state.value shouldBe AudioRecorder.State.Recording(5.seconds, 5f)
-
-    }
+            cut.state.value shouldBe AudioRecorder.State.Recording(5.seconds, 5f)
+        }
 
     @Test
-    fun `start - when starting in any state then close the platform recorder and possibly delete capture before starting`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `start - when starting in any state then close the platform recorder and possibly delete capture before starting`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        var captureDeleted = false
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            var captureDeleted = false
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -96,45 +93,39 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
+                            ContentType("audio", "ogg"),
                         ) {
                             captureDeleted = true
                         }
-                    }
+                    },
                 )
-        var platformRecorderClosed = false
-        every { platformAudioRecorder.close() } calls {
-            platformRecorderClosed = true
-        }
-        every { clock.now() } returns (startTime + 5.seconds)
+            var platformRecorderClosed = false
+            every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
+            every { clock.now() } returns (startTime + 5.seconds)
 
-        backgroundScope.launch {
-            cut.startSuspending()
-        }
-        delay(1.seconds)
-        platformRecorderClosed shouldBe true
-        (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+            backgroundScope.launch { cut.startSuspending() }
+            delay(1.seconds)
+            platformRecorderClosed shouldBe true
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
 
-        platformRecorderClosed = false
-        backgroundScope.launch {
-            cut.startSuspending()
-        }
-        delay(1.seconds)
-        captureDeleted shouldBe true
-        platformRecorderClosed shouldBe true
-        (cut.state.value is AudioRecorder.State.Recording) shouldBe true
+            platformRecorderClosed = false
+            backgroundScope.launch { cut.startSuspending() }
+            delay(1.seconds)
+            captureDeleted shouldBe true
+            platformRecorderClosed shouldBe true
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
 
-        platformRecorderClosed = false
-        captureDeleted = false
-        backgroundScope.launch {
-            cut.complete()
-            cut.startSuspending()
+            platformRecorderClosed = false
+            captureDeleted = false
+            backgroundScope.launch {
+                cut.complete()
+                cut.startSuspending()
+            }
+            delay(1.seconds)
+            captureDeleted shouldBe true
+            platformRecorderClosed shouldBe true
+            (cut.state.value is AudioRecorder.State.Recording) shouldBe true
         }
-        delay(1.seconds)
-        captureDeleted shouldBe true
-        platformRecorderClosed shouldBe true
-        (cut.state.value is AudioRecorder.State.Recording) shouldBe true
-    }
 
     @Test
     fun `recording - show increasing duration when recording`() = runTestWithCoroutineScope { coroutineScope ->
@@ -142,18 +133,18 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5f },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
-                )
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { 5f },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {}
+                },
+            )
 
         var nextTime = startTime
         fun increasingTime(): Instant {
@@ -165,12 +156,9 @@ class AudioRecorderTest {
         delay(5.seconds)
 
         when (val state = cut.state.value) {
-            is AudioRecorder.State.Completed ->
-                throw AssertionError("Should be Recording")
-            AudioRecorder.State.Ready ->
-                throw AssertionError("Should be Recording")
-            is AudioRecorder.State.Recording ->
-                state.duration shouldBeGreaterThan 5.seconds
+            is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
+            AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
+            is AudioRecorder.State.Recording -> state.duration shouldBeGreaterThan 5.seconds
         }
     }
 
@@ -186,30 +174,27 @@ class AudioRecorderTest {
             return nextLoudness
         }
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { increasingLoudness() },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
-                )
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { increasingLoudness() },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {}
+                },
+            )
 
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.startSuspending() }
         delay(5.seconds)
 
         when (val state = cut.state.value) {
-            is AudioRecorder.State.Completed ->
-                throw AssertionError("Should be Recording")
-            AudioRecorder.State.Ready ->
-                throw AssertionError("Should be Recording")
-            is AudioRecorder.State.Recording ->
-                state.loudness shouldBeGreaterThan 5F
+            is AudioRecorder.State.Completed -> throw AssertionError("Should be Recording")
+            AudioRecorder.State.Ready -> throw AssertionError("Should be Recording")
+            is AudioRecorder.State.Recording -> state.loudness shouldBeGreaterThan 5F
         }
     }
 
@@ -219,18 +204,18 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { throw IllegalStateException() },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
-                )
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { throw IllegalStateException() },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {}
+                },
+            )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.startSuspending() }
         delay(1.seconds)
@@ -244,18 +229,18 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { null },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
-                )
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { null },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {}
+                },
+            )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.startSuspending() }
         delay(1.seconds)
@@ -264,12 +249,13 @@ class AudioRecorderTest {
     }
 
     @Test
-    fun `recording - when recording over maximum duration then complete automatically`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `recording - when recording over maximum duration then complete automatically`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        var captureDeleted = false
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            var captureDeleted = false
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -278,42 +264,41 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
+                            ContentType("audio", "ogg"),
                         ) {
                             captureDeleted = true
                         }
-                    }
+                    },
                 )
 
-        var nextTime = startTime
-        fun increasingTime(): Instant {
-            nextTime += 1.hours
-            return nextTime
-        }
-        every { clock.now() } calls { increasingTime() }
+            var nextTime = startTime
+            fun increasingTime(): Instant {
+                nextTime += 1.hours
+                return nextTime
+            }
+            every { clock.now() } calls { increasingTime() }
 
-        var platformRecorderClosed = false
-        every { platformAudioRecorder.close() } calls {
-            platformRecorderClosed = true
-        }
+            var platformRecorderClosed = false
+            every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
 
-        backgroundScope.launch {
-            cut.startSuspending()
-            platformRecorderClosed = false
-        }
-        delay(1.seconds)
+            backgroundScope.launch {
+                cut.startSuspending()
+                platformRecorderClosed = false
+            }
+            delay(1.seconds)
 
-        captureDeleted shouldBe false
-        platformRecorderClosed shouldBe false
-        (cut.state.value is AudioRecorder.State.Completed) shouldBe true
-    }
+            captureDeleted shouldBe false
+            platformRecorderClosed shouldBe false
+            (cut.state.value is AudioRecorder.State.Completed) shouldBe true
+        }
 
     @Test
-    fun `complete when recording - when pressing stop button then complete recording`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `complete when recording - when pressing stop button then complete recording`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -322,24 +307,20 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
+                            ContentType("audio", "ogg"),
+                        ) {}
+                    },
                 )
-        every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch {
-            cut.startSuspending()
-            cut.complete()
-        }
-        delay(1.seconds)
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch {
+                cut.startSuspending()
+                cut.complete()
+            }
+            delay(1.seconds)
 
-        cut.state.value shouldBe AudioRecorder.State.Completed(
-            PlatformMediaMock,
-            1.seconds,
-            1000L,
-            ContentType("audio", "ogg"),
-        )
-    }
+            cut.state.value shouldBe
+                AudioRecorder.State.Completed(PlatformMediaMock, 1.seconds, 1000L, ContentType("audio", "ogg"))
+        }
 
     @Test
     fun `complete - should reset to ready when complete throws`() = runTestWithCoroutineScope { coroutineScope ->
@@ -347,13 +328,7 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        throw IllegalStateException()
-                    }
-                )
+            AudioRecorderImpl.State.Recording(startTime, { 5F }, { _ -> throw IllegalStateException() })
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
             cut.startSuspending()
@@ -370,24 +345,21 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) { }
-                    }
-                )
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { 5F },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {}
+                },
+            )
         every { clock.now() } returns (startTime + 5.seconds)
         var stateEmits = 0
-        cut.state
-            .filterIsInstance<AudioRecorder.State.Completed>()
-            .onEach { stateEmits++ }
-            .launchIn(backgroundScope)
+        cut.state.filterIsInstance<AudioRecorder.State.Completed>().onEach { stateEmits++ }.launchIn(backgroundScope)
         backgroundScope.launch {
             cut.startSuspending()
             cut.complete()
@@ -398,12 +370,13 @@ class AudioRecorderTest {
     }
 
     @Test
-    fun `close when completed - when sending or cancelling a voice message then close the platform recorder and delete capture and return to ready state`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `close when completed - when sending or cancelling a voice message then close the platform recorder and delete capture and return to ready state`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        var captureDeleted = false
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            var captureDeleted = false
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -412,36 +385,35 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
+                            ContentType("audio", "ogg"),
                         ) {
                             captureDeleted = true
                         }
-                    }
+                    },
                 )
-        var platformRecorderClosed = false
-        every { platformAudioRecorder.close() } calls {
-            platformRecorderClosed = true
-        }
-        every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch {
-            cut.startSuspending()
-            cut.complete()
-            cut.close()
-        }
-        delay(1.seconds)
+            var platformRecorderClosed = false
+            every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
+            every { clock.now() } returns (startTime + 5.seconds)
+            backgroundScope.launch {
+                cut.startSuspending()
+                cut.complete()
+                cut.close()
+            }
+            delay(1.seconds)
 
-        captureDeleted shouldBe true
-        platformRecorderClosed shouldBe true
-        cut.state.value shouldBe AudioRecorder.State.Ready
-    }
+            captureDeleted shouldBe true
+            platformRecorderClosed shouldBe true
+            cut.state.value shouldBe AudioRecorder.State.Ready
+        }
 
     @Test
-    fun `close - when closing in any state then close the platform recorder and possibly delete capture and return to ready state`() = runTestWithCoroutineScope { coroutineScope ->
-        val cut = commonAudioRecorder(coroutineScope)
+    fun `close - when closing in any state then close the platform recorder and possibly delete capture and return to ready state`() =
+        runTestWithCoroutineScope { coroutineScope ->
+            val cut = commonAudioRecorder(coroutineScope)
 
-        val startTime = Clock.System.now()
-        var captureDeleted = false
-        everySuspend { platformAudioRecorder.start() } returns
+            val startTime = Clock.System.now()
+            var captureDeleted = false
+            everySuspend { platformAudioRecorder.start() } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -450,36 +422,32 @@ class AudioRecorderTest {
                             PlatformMediaMock,
                             1.seconds,
                             1000L,
-                            ContentType("audio", "ogg")
+                            ContentType("audio", "ogg"),
                         ) {
                             captureDeleted = true
                         }
-                    }
+                    },
                 )
-        var platformRecorderClosed = false
-        every { platformAudioRecorder.close() } calls {
-            platformRecorderClosed = true
-        }
-        every { clock.now() } returns (startTime + 5.seconds)
+            var platformRecorderClosed = false
+            every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
+            every { clock.now() } returns (startTime + 5.seconds)
 
-        backgroundScope.launch {
-            cut.startSuspending()
+            backgroundScope.launch {
+                cut.startSuspending()
+                platformRecorderClosed = false
+                cut.close()
+            }
+            delay(1.seconds)
+            captureDeleted shouldBe true
+            platformRecorderClosed shouldBe true
+            cut.state.value shouldBe AudioRecorder.State.Ready
+
             platformRecorderClosed = false
-            cut.close()
+            backgroundScope.launch { cut.close() }
+            delay(1.seconds)
+            platformRecorderClosed shouldBe true
+            cut.state.value shouldBe AudioRecorder.State.Ready
         }
-        delay(1.seconds)
-        captureDeleted shouldBe true
-        platformRecorderClosed shouldBe true
-        cut.state.value shouldBe AudioRecorder.State.Ready
-
-        platformRecorderClosed = false
-        backgroundScope.launch {
-            cut.close()
-        }
-        delay(1.seconds)
-        platformRecorderClosed shouldBe true
-        cut.state.value shouldBe AudioRecorder.State.Ready
-    }
 
     @Test
     fun `close - should reset to ready when deleteCapture throws`() = runTestWithCoroutineScope { coroutineScope ->
@@ -487,20 +455,20 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start() } returns
-                AudioRecorderImpl.State.Recording(
-                    startTime,
-                    { 5F },
-                    { _ ->
-                        AudioRecorderImpl.State.Completed(
-                            PlatformMediaMock,
-                            1.seconds,
-                            1000L,
-                            ContentType("audio", "ogg")
-                        ) {
-                            throw IllegalStateException()
-                        }
+            AudioRecorderImpl.State.Recording(
+                startTime,
+                { 5F },
+                { _ ->
+                    AudioRecorderImpl.State.Completed(
+                        PlatformMediaMock,
+                        1.seconds,
+                        1000L,
+                        ContentType("audio", "ogg"),
+                    ) {
+                        throw IllegalStateException()
                     }
-                )
+                },
+            )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
             cut.startSuspending()

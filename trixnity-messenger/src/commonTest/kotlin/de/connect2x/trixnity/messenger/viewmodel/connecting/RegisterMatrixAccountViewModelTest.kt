@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.Register
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -21,19 +25,15 @@ import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.authentication.Register
-import de.connect2x.trixnity.core.model.UserId
-import org.koin.dsl.koinApplication
-import org.koin.dsl.module
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 
 class RegisterMatrixAccountViewModelTest {
     val matrixClientsMock = mock<MatrixClients>()
@@ -44,9 +44,7 @@ class RegisterMatrixAccountViewModelTest {
 
     init {
         resetMocks(matrixClientsMock, onLoginMock)
-        everySuspend {
-            matrixClientsMock.create(any())
-        } returns MatrixClients.CreateResult.Success
+        everySuspend { matrixClientsMock.create(any()) } returns MatrixClients.CreateResult.Success
 
         every { onLoginMock.invoke() } returns Unit
     }
@@ -95,25 +93,25 @@ class RegisterMatrixAccountViewModelTest {
     }
 
     private fun TestScope.registerMatrixAccountViewModel(
-        serverUrl: String = "https://local.host",
+        serverUrl: String = "https://local.host"
     ): RegisterMatrixAccountViewModelImpl {
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules() + module {
-                    single<MatrixClients> { matrixClientsMock }
-                    single<AuthorizeUia> { authorizeUia }
-                })
-        }.koin
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules() +
+                            module {
+                                single<MatrixClients> { matrixClientsMock }
+                                single<AuthorizeUia> { authorizeUia }
+                            }
+                    )
+                }
+                .koin
         di.get<MatrixMessengerConfiguration>().httpClientEngine = MockEngine.create {
             dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
-            addHandler {
-                respond("")
-            }
+            addHandler { respond("") }
         }
         return RegisterMatrixAccountViewModelImpl(
-            viewModelContext = testViewModelContext(
-                di = di,
-            ),
+            viewModelContext = testViewModelContext(di = di),
             serverUrl,
             onLogin = onLoginMock,
             onBack = mock(),

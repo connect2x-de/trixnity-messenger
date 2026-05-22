@@ -26,8 +26,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsJoinRulesView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -48,9 +47,7 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
 
         Column {
             ThemedListItem(
-                headlineContent = {
-                    Text(i18n.chatJoinRule(), style = MaterialTheme.typography.titleMedium)
-                },
+                headlineContent = { Text(i18n.chatJoinRule(), style = MaterialTheme.typography.titleMedium) },
                 style = MaterialTheme.components.settingsItem,
             )
 
@@ -59,12 +56,12 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                     tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
                     Modifier.semantics {
                         text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + currentJoinRule.getStateName(i18n))
-                    }
+                    },
                 ) {
                     Text(
                         text = currentJoinRule.getStateName(i18n),
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(10.dp)
+                        modifier = Modifier.padding(10.dp),
                     )
                 }
                 return
@@ -72,10 +69,12 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
 
             if (joinRuleIsChanging) {
                 ThemedProgressIndicator(
-                    modifier = Modifier.semantics {
-                        focused = false
-                        text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + i18n.loading())
-                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                    modifier =
+                        Modifier.semantics {
+                            focused = false
+                            text = AnnotatedString(i18n.chatJoinRuleSettings() + ", " + i18n.loading())
+                        },
+                    style = MaterialTheme.components.extraSmallCircularProgressIndicator,
                 )
                 return
             }
@@ -86,22 +85,30 @@ class RoomSettingsJoinRulesViewImpl : RoomSettingsJoinRulesView {
                         tooltip = { Text(currentJoinRule.getExplanation(i18n)) },
                         Modifier.semantics {
                             text =
-                                AnnotatedString(i18n.chatJoinRuleSettings() + ", " + currentJoinRule.getStateName(i18n) + " " + i18n.selected())
-                        }) {
+                                AnnotatedString(
+                                    i18n.chatJoinRuleSettings() +
+                                        ", " +
+                                        currentJoinRule.getStateName(i18n) +
+                                        " " +
+                                        i18n.selected()
+                                )
+                        },
+                    ) {
                         Text(currentJoinRule.getStateName(i18n), style = MaterialTheme.typography.titleSmall)
                     }
                 },
-                options = joinRules?.associate {
-                    it to RadioSettingOption(
-                        text = it.getStateName(i18n),
-                        explanation = it.getExplanation(i18n),
-                        enabled = joinRuleIsChanging.not()
-                    )
-                } ?: mapOf(),
+                options =
+                    joinRules?.associate {
+                        it to
+                            RadioSettingOption(
+                                text = it.getStateName(i18n),
+                                explanation = it.getExplanation(i18n),
+                                enabled = joinRuleIsChanging.not(),
+                            )
+                    } ?: mapOf(),
                 value = currentJoinRule,
-                set = { roomSettingsViewModel.roomSettingsJoinRulesViewModel.changeJoinRule(it) }
+                set = { roomSettingsViewModel.roomSettingsJoinRulesViewModel.changeJoinRule(it) },
             )
         }
     }
-
 }

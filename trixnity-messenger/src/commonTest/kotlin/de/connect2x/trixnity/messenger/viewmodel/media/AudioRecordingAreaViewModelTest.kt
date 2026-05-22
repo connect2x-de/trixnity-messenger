@@ -18,6 +18,10 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.shouldBe
 import io.ktor.http.ContentType
+import kotlin.coroutines.CoroutineContext
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
@@ -27,10 +31,6 @@ import kotlinx.coroutines.test.runTest
 import org.koin.core.module.Module
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.CoroutineContext
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 class AudioRecordingAreaViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
@@ -40,20 +40,9 @@ class AudioRecordingAreaViewModelTest {
     val player = mock<MediaPlayerViewModel>()
 
     init {
-        resetMocks(
-            matrixClientMock,
-            recorder,
-            mediaPlayerFactory,
-            player
-        )
+        resetMocks(matrixClientMock, recorder, mediaPlayerFactory, player)
 
-        every { mediaPlayerFactory.create(
-            any(),
-            any(),
-            any(),
-            any(),
-            any()
-        ) } returns player
+        every { mediaPlayerFactory.create(any(), any(), any(), any(), any()) } returns player
         every { player.pause() } returns Unit
     }
 
@@ -64,12 +53,11 @@ class AudioRecordingAreaViewModelTest {
 
     @Test
     fun `recorder unavailable - when recorder not available then player never initialized`() = runTest {
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-            additionalModule = module {
-                single<MediaPlayerViewModelFactory> { mediaPlayerFactory }
-            }
-        )
+        val cut =
+            audioRecordingAreaViewModel(
+                backgroundScope.coroutineContext,
+                additionalModule = module { single<MediaPlayerViewModelFactory> { mediaPlayerFactory } },
+            )
 
         cut.capturePlayer.value shouldBe null
     }
@@ -77,13 +65,12 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `recorder unavailable - when recorder not available then sending not possible`() = runTest {
         var sent = false
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-            additionalModule = module {
-                single<MediaPlayerViewModelFactory> { mediaPlayerFactory }
-            },
-            sendAudioMessageMock = { sent = true }
-        )
+        val cut =
+            audioRecordingAreaViewModel(
+                backgroundScope.coroutineContext,
+                additionalModule = module { single<MediaPlayerViewModelFactory> { mediaPlayerFactory } },
+                sendAudioMessageMock = { sent = true },
+            )
         cut.sendAudioMessage()
 
         sent shouldBe false
@@ -91,13 +78,10 @@ class AudioRecordingAreaViewModelTest {
 
     @Test
     fun `recording - when recording then player not initialized`() = runTest {
-        val recorderState: MutableStateFlow<AudioRecorder.State> =
-            MutableStateFlow(AudioRecorder.State.Ready)
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
         every { recorder.state } returns recorderState
 
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-        )
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value = AudioRecorder.State.Recording(5.seconds, 5F)
         delay(1.seconds)
@@ -106,43 +90,34 @@ class AudioRecordingAreaViewModelTest {
 
     @Test
     fun `completed - when completed then player initialized`() = runTest {
-        val recorderState: MutableStateFlow<AudioRecorder.State> =
-            MutableStateFlow(AudioRecorder.State.Ready)
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
         every { recorder.state } returns recorderState
 
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-        )
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
-        recorderState.value = AudioRecorder.State.Completed(
-            PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg")
-        )
+        recorderState.value =
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
         delay(1.seconds)
         cut.capturePlayer.value shouldBe player
     }
 
     @Test
     fun `not completed - when not completed then old player paused`() = runTest {
-        val recorderState: MutableStateFlow<AudioRecorder.State> =
-            MutableStateFlow(AudioRecorder.State.Ready)
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
         every { recorder.state } returns recorderState
 
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-        )
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
-        recorderState.value = AudioRecorder.State.Completed(
-            PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg")
-        )
+        recorderState.value =
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Ready
         delay(1.seconds)
         verify { player.pause() }
         cut.capturePlayer.value shouldBe null
 
-        recorderState.value = AudioRecorder.State.Completed(
-            PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg")
-        )
+        recorderState.value =
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Recording(5.seconds, 5F)
         delay(1.seconds)
@@ -152,15 +127,11 @@ class AudioRecordingAreaViewModelTest {
 
     @Test
     fun `send - should only send when completed`() = runTest {
-        val recorderState: MutableStateFlow<AudioRecorder.State> =
-            MutableStateFlow(AudioRecorder.State.Ready)
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Ready)
         every { recorder.state } returns recorderState
 
         var sent = false
-        val cut = audioRecordingAreaViewModel(
-            backgroundScope.coroutineContext,
-            sendAudioMessageMock = { sent = true },
-        )
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext, sendAudioMessageMock = { sent = true })
 
         recorderState.value = AudioRecorder.State.Ready
         cut.sendAudioMessage()
@@ -170,9 +141,8 @@ class AudioRecordingAreaViewModelTest {
         cut.sendAudioMessage()
         sent shouldBe false
 
-        recorderState.value = AudioRecorder.State.Completed(
-            PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg")
-        )
+        recorderState.value =
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
         cut.sendAudioMessage()
         sent shouldBe true
     }
@@ -186,20 +156,19 @@ class AudioRecordingAreaViewModelTest {
         sendAudioMessageMock: () -> Unit = {},
     ): AudioRecordingAreaViewModel {
         val userId = UserId("")
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(
-                    mapOf(userId to matrixClientMock)
-                ) + additionalModule
-            )
-        }.koin
-        val cut = AudioRecordingAreaViewModelFactory.create(
-            testMatrixClientViewModelContext(
-                di = di,
-                userId,
-                coroutineContext
-            )
-        ) { sendAudioMessageMock() }
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(userId to matrixClientMock)) + additionalModule
+                    )
+                }
+                .koin
+        val cut =
+            AudioRecordingAreaViewModelFactory.create(
+                testMatrixClientViewModelContext(di = di, userId, coroutineContext)
+            ) {
+                sendAudioMessageMock()
+            }
         backgroundScope.launch { cut.recorder?.state?.collect() }
         backgroundScope.launch { cut.capturePlayer.collect() }
         return cut

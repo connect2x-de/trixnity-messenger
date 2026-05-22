@@ -44,9 +44,7 @@ import web.window.window
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.startMultiMessengerKt")
 
 @OptIn(ExperimentalComposeUiApi::class, Connect2xComposeUiApi::class, InternalComposeUiApi::class)
-suspend fun startMultiMessenger(
-    configuration: MatrixMultiMessengerConfiguration.() -> Unit,
-) {
+suspend fun startMultiMessenger(configuration: MatrixMultiMessengerConfiguration.() -> Unit) {
     log.info { "Starting client" }
 
     val matrixMultiMessenger = MatrixMultiMessenger.create(configuration = configuration)
@@ -71,9 +69,9 @@ suspend fun startMultiMessenger(
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 document.visibilityState == DocumentVisibilityState.visible,
-                windowIsFocused.value
+                windowIsFocused.value,
             )
-        }
+        },
     )
 
     window.addEventListener(
@@ -81,9 +79,9 @@ suspend fun startMultiMessenger(
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 visible = document.visibilityState == DocumentVisibilityState.visible,
-                focused = windowIsFocused.updateAndGet { true }
+                focused = windowIsFocused.updateAndGet { true },
             )
-        }
+        },
     )
 
     window.addEventListener(
@@ -91,9 +89,9 @@ suspend fun startMultiMessenger(
         handler = { _: Event ->
             lifecycleRegistry.updateState(
                 visible = document.visibilityState == DocumentVisibilityState.visible,
-                focused = windowIsFocused.updateAndGet { false }
+                focused = windowIsFocused.updateAndGet { false },
             )
-        }
+        },
     )
 
     window.addEventListener(
@@ -104,7 +102,8 @@ suspend fun startMultiMessenger(
                     escapeKeyPressed.tryEmit(Unit)
                 }
             }
-        })
+        },
+    )
 
     try {
         AccessibleComposeViewport {
@@ -121,8 +120,12 @@ suspend fun startMultiMessenger(
                 activeMessengerOnce = { _, _ -> },
                 activeMessenger = { matrixMessenger, rootViewModel ->
                     val isFocusHighlighting =
-                        matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                            .collectAsState().value.base.isFocusHighlighting
+                        matrixMessenger.di
+                            .get<MatrixMessengerSettingsHolder>()
+                            .collectAsState()
+                            .value
+                            .base
+                            .isFocusHighlighting
 
                     CompositionLocalProvider(
                         Platform provides PlatformType.WEB,
@@ -130,9 +133,7 @@ suspend fun startMultiMessenger(
                         IsFocusHighlighting provides isFocusHighlighting,
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
-                        MessengerTheme {
-                            Client(rootViewModel)
-                        }
+                        MessengerTheme { Client(rootViewModel) }
                     }
                 },
                 nonActiveMessenger = { existingProfiles ->
@@ -145,11 +146,9 @@ suspend fun startMultiMessenger(
                         IsFocusHighlighting provides false,
                         EscapeKeyPressed provides escapeKeyPressed,
                     ) {
-                        MessengerTheme {
-                            Profiles()
-                        }
+                        MessengerTheme { Profiles() }
                     }
-                }
+                },
             )
         }
     } catch (e: Throwable) {

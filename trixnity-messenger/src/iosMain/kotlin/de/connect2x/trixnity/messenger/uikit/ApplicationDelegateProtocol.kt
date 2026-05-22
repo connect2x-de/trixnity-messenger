@@ -17,20 +17,17 @@ import platform.UIKit.UISceneSession
 import platform.UIKit.UIViewController
 import platform.UIKit.UIWindow
 
-/**
- * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate)
- */
+/** [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate) */
 interface ApplicationDelegateProtocol {
 
-    /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/window)
-     */
+    /** [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/window) */
     var window: WithDefault<UIWindow?>
         get() = Default
         set(value) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:willfinishlaunchingwithoptions:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:willfinishlaunchingwithoptions:))
      */
     fun willFinishLaunching(
         application: UIApplication,
@@ -38,16 +35,17 @@ interface ApplicationDelegateProtocol {
     ): WithDefault<Boolean> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didfinishlaunchingwithoptions:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didfinishlaunchingwithoptions:))
      */
     fun didFinishLaunching(
         application: UIApplication,
         launchOptions: Map<UIApplicationLaunchOptionsKey, *>? = null,
     ): WithDefault<Boolean> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:configurationforconnecting:options:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:configurationforconnecting:options:))
      */
     fun configurationForConnecting(
         application: UIApplication,
@@ -55,80 +53,57 @@ interface ApplicationDelegateProtocol {
         options: UISceneConnectionOptions,
     ): WithDefault<UISceneConfiguration> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:diddiscardscenesessions:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:diddiscardscenesessions:))
      */
-    fun didDiscardSceneSessions(
-        application: UIApplication,
-        sceneSessions: Set<UISceneSession>,
-    ) {
-    }
-
+    fun didDiscardSceneSessions(application: UIApplication, sceneSessions: Set<UISceneSession>) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationwillterminate(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationwillterminate(_:))
      */
-    fun willTerminate(
-        application: UIApplication,
-    ) {
-    }
+    fun willTerminate(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatadidbecomeavailable(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatadidbecomeavailable(_:))
      */
-    fun protectedDataDidBecomeAvailable(
-        application: UIApplication,
-    ) {
-    }
+    fun protectedDataDidBecomeAvailable(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatawillbecomeunavailable(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationprotecteddatawillbecomeunavailable(_:))
      */
-    fun protectedDataWillBecomeUnavailable(
-        application: UIApplication,
-    ) {
-    }
-
+    fun protectedDataWillBecomeUnavailable(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidreceivememorywarning(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationdidreceivememorywarning(_:))
      */
-    fun didReceiveMemoryWarning(
-        application: UIApplication,
-    ) {
-    }
-
+    fun didReceiveMemoryWarning(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationsignificanttimechange(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationsignificanttimechange(_:))
      */
-    fun significantTimeChange(
-        application: UIApplication
-    ) {
-    }
-
+    fun significantTimeChange(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldsavesecureapplicationstate:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldsavesecureapplicationstate:))
      */
-    fun shouldSaveSecureApplicationState(
-        application: UIApplication,
-        coder: NSCoder,
-    ): WithDefault<Boolean> = Default
-
+    fun shouldSaveSecureApplicationState(application: UIApplication, coder: NSCoder): WithDefault<Boolean> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldrestoresecureapplicationstate:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldrestoresecureapplicationstate:))
      */
-    fun shouldRestoreSecureApplicationState(
-        application: UIApplication,
-        coder: NSCoder,
-    ): WithDefault<Boolean> = Default
-
+    fun shouldRestoreSecureApplicationState(application: UIApplication, coder: NSCoder): WithDefault<Boolean> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:viewcontrollerwithrestorationidentifierpath:coder:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:viewcontrollerwithrestorationidentifierpath:coder:))
      */
     fun viewController(
         application: UIApplication,
@@ -136,112 +111,85 @@ interface ApplicationDelegateProtocol {
         coder: NSCoder,
     ): WithDefault<UIViewController?> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:willencoderestorablestatewith:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:willencoderestorablestatewith:))
      */
-    fun willEncodeRestorableState(
-        application: UIApplication,
-        coder: NSCoder,
-    ) {
-    }
-
+    fun willEncodeRestorableState(application: UIApplication, coder: NSCoder) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:diddecoderestorablestatewith:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:diddecoderestorablestatewith:))
      */
-    fun didDecodeRestorableState(
-        application: UIApplication,
-        coder: NSCoder,
-    ) {
-    }
-
+    fun didDecodeRestorableState(application: UIApplication, coder: NSCoder) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handleeventsforbackgroundurlsession:completionhandler:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handleeventsforbackgroundurlsession:completionhandler:))
      */
-    suspend fun handleEventsForBackgroundURLSession(
-        application: UIApplication,
-        identifier: String,
-    ) {
-    }
-
+    suspend fun handleEventsForBackgroundURLSession(application: UIApplication, identifier: String) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didregisterforremotenotificationswithdevicetoken:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didregisterforremotenotificationswithdevicetoken:))
      */
-    fun didRegisterForRemoteNotifications(
-        application: UIApplication,
-        deviceToken: NSData,
-    ) {
-    }
-
+    fun didRegisterForRemoteNotifications(application: UIApplication, deviceToken: NSData) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didfailtoregisterforremotenotificationswitherror:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didfailtoregisterforremotenotificationswitherror:))
      */
-    fun didFailToRegisterForRemoteNotifications(
-        application: UIApplication,
-        error: NSError,
-    ) {
-    }
-
+    fun didFailToRegisterForRemoteNotifications(application: UIApplication, error: NSError) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didreceiveremotenotification:fetchcompletionhandler:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:didreceiveremotenotification:fetchcompletionhandler:))
      */
     suspend fun didReceiveRemoteNotification(
         application: UIApplication,
         userInfo: Map<Any?, *>,
     ): WithDefault<UIBackgroundFetchResult> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handlewatchkitextensionrequest:reply:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handlewatchkitextensionrequest:reply:))
      */
     suspend fun handleWatchKitExtensionRequest(
         application: UIApplication,
         userInfo: Map<Any?, *>?,
     ): WithDefault<Map<Any?, *>?> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationshouldrequesthealthauthorization(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationshouldrequesthealthauthorization(_:))
      */
-    fun shouldRequestHealthAuthorization(
-        application: UIApplication,
-    ) {
-    }
+    fun shouldRequestHealthAuthorization(application: UIApplication) {}
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldallowextensionpointidentifier:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:shouldallowextensionpointidentifier:))
      */
     fun shouldAllowExtensionPointIdentifier(
         application: UIApplication,
         extensionPointIdentifier: UIApplicationExtensionPointIdentifier,
     ): WithDefault<Boolean> = Default
 
-
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handlerfor:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:handlerfor:))
      */
     @ExperimentalForeignApi
-    fun handlerForIntent(
-        application: UIApplication,
-        intent: INIntent,
-    ): WithDefault<Any?> = Default
-
+    fun handlerForIntent(application: UIApplication, intent: INIntent): WithDefault<Any?> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationshouldautomaticallylocalizekeycommands(_:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/applicationshouldautomaticallylocalizekeycommands(_:))
      */
-    fun shouldAutomaticallyLocalizeKeyCommands(
-        application: UIApplication,
-    ): WithDefault<Boolean> = Default
-
+    fun shouldAutomaticallyLocalizeKeyCommands(application: UIApplication): WithDefault<Boolean> = Default
 
     /**
-     * [Apple Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:supportedinterfaceorientationsfor:))
+     * [Apple
+     * Documentation](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/application(_:supportedinterfaceorientationsfor:))
      */
     fun supportedInterfaceOrientations(
         application: UIApplication,

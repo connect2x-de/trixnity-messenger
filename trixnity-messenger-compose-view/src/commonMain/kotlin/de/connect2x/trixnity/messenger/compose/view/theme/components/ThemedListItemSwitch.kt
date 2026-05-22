@@ -52,23 +52,23 @@ fun ThemedListItemSwitch(
                 enabled = enabled,
                 interactionSource = interactionSource,
                 onCheckedChange = { onChange(it) },
-                modifier = Modifier.minimumInteractiveComponentSize().focusProperties {
-                    canFocus = false
-                },
+                modifier = Modifier.minimumInteractiveComponentSize().focusProperties { canFocus = false },
                 style = controlStyle,
                 thumbContent = thumbContent,
             )
         },
         style = style,
-        modifier = modifier
-            .then(focusedBorder)
-            .selectable(
-                selected = selected,
-                onClick = { onChange(!selected) },
-                enabled = enabled,
-                role = Role.Switch,
-                interactionSource = interactionSource,
-                indication = LocalIndication.current
-            ).buttonPointerModifier(enabled),
+        modifier =
+            modifier
+                .then(focusedBorder)
+                .selectable(
+                    selected = selected,
+                    onClick = { onChange(!selected) },
+                    enabled = enabled,
+                    role = Role.Switch,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                )
+                .buttonPointerModifier(enabled),
     )
 }

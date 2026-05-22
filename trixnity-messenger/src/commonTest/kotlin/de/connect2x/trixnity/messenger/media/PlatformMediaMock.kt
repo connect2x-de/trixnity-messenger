@@ -10,11 +10,7 @@ object PlatformMediaMock : PlatformMedia {
         throw NotImplementedError()
     }
 
-    override suspend fun toByteArray(
-        coroutineScope: CoroutineScope?,
-        expectedSize: Long?,
-        maxSize: Long?
-    ): ByteArray? {
+    override suspend fun toByteArray(coroutineScope: CoroutineScope?, expectedSize: Long?, maxSize: Long?): ByteArray? {
         throw NotImplementedError()
     }
 

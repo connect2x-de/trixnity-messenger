@@ -21,8 +21,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsSecurityViewModel
 
 interface RoomSettingsSecurityView {
-    @Composable
-    fun create(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel)
+    @Composable fun create(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel)
 }
 
 @Composable
@@ -43,11 +42,8 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
             ThemedListItem(
                 style = MaterialTheme.components.settingsItem,
                 headlineContent = {
-                    Text(
-                        i18n.security().capitalize(Locale.current),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
+                    Text(i18n.security().capitalize(Locale.current), style = MaterialTheme.typography.titleMedium)
+                },
             )
             ThemedListItemSwitch(
                 style = MaterialTheme.components.settingsItem,
@@ -63,7 +59,6 @@ class RoomSettingsSecurityViewImpl : RoomSettingsSecurityView {
         }
     }
 }
-
 
 @Composable
 fun RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel: RoomSettingsSecurityViewModel) {
@@ -86,7 +81,7 @@ fun RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel: RoomSetti
         ModalDialogFooter {
             ThemedButton(
                 style = MaterialTheme.components.commonButton,
-                onClick = { roomSettingsSecurityViewModel.closeEnableEncryptionWarning() }
+                onClick = { roomSettingsSecurityViewModel.closeEnableEncryptionWarning() },
             ) {
                 Text(i18n.actionCancel())
             }
@@ -95,7 +90,7 @@ fun RoomSettingsEnableEncryptionWarning(roomSettingsSecurityViewModel: RoomSetti
                 onClick = {
                     roomSettingsSecurityViewModel.enableEncryption()
                     roomSettingsSecurityViewModel.closeEnableEncryptionWarning()
-                }
+                },
             ) {
                 Text(i18n.roomEnableEncryptionWarningConfirmation())
             }

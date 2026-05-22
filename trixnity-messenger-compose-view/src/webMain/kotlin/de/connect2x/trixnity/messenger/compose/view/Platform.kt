@@ -20,70 +20,34 @@ import web.clipboard.writeText
 import web.navigator.navigator
 
 @Composable
-actual fun VerticalScrollbar(
-    modifier: Modifier,
-    scrollState: ScrollState
-) = VerticalScrollbar(
-    rememberScrollbarAdapter(scrollState),
-    modifier,
-)
+actual fun VerticalScrollbar(modifier: Modifier, scrollState: ScrollState) =
+    VerticalScrollbar(rememberScrollbarAdapter(scrollState), modifier)
 
 @Composable
-actual fun VerticalScrollbar(
-    modifier: Modifier,
-    lazyListState: LazyListState,
-    reverseLayout: Boolean,
-) = VerticalScrollbar(
-    rememberScrollbarAdapter(lazyListState),
-    modifier,
-    reverseLayout,
-)
+actual fun VerticalScrollbar(modifier: Modifier, lazyListState: LazyListState, reverseLayout: Boolean) =
+    VerticalScrollbar(rememberScrollbarAdapter(lazyListState), modifier, reverseLayout)
 
 @Composable
-actual fun HorizontalScrollbar(
-    modifier: Modifier,
-    scrollState: ScrollState,
-) = HorizontalScrollbar(
-    rememberScrollbarAdapter(scrollState),
-    modifier,
-)
+actual fun HorizontalScrollbar(modifier: Modifier, scrollState: ScrollState) =
+    HorizontalScrollbar(rememberScrollbarAdapter(scrollState), modifier)
 
 @Composable
-actual fun HorizontalScrollbar(
-    modifier: Modifier,
-    lazyListState: LazyListState,
-    reverseLayout: Boolean,
-) = HorizontalScrollbar(
-    rememberScrollbarAdapter(lazyListState),
-    modifier,
-    reverseLayout,
-)
+actual fun HorizontalScrollbar(modifier: Modifier, lazyListState: LazyListState, reverseLayout: Boolean) =
+    HorizontalScrollbar(rememberScrollbarAdapter(lazyListState), modifier, reverseLayout)
 
 actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this.pointerHoverIcon(
-        if (enabled) PointerIcon.Hand else PointerIcon.Default,
-        false,
-    )
+    this.pointerHoverIcon(if (enabled) PointerIcon.Hand else PointerIcon.Default, false)
 
 @OptIn(ExperimentalComposeUiApi::class)
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this
-    .onPointerEvent(PointerEventType.Enter) {
-        onEnter()
-    }
-    .onPointerEvent(PointerEventType.Exit) {
-        onExit()
-    }
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier =
+    this.onPointerEvent(PointerEventType.Enter) { onEnter() }.onPointerEvent(PointerEventType.Exit) { onExit() }
 
 @OptIn(ExperimentalComposeUiApi::class)
 actual fun Modifier.pointerEventWrapper(
     eventType: PointerEventType,
     pass: PointerEventPass,
-    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit
-) = this.onPointerEvent(
-    eventType,
-    pass,
-    onEvent,
-)
+    onEvent: AwaitPointerEventScope.(event: PointerEvent) -> Unit,
+) = this.onPointerEvent(eventType, pass, onEvent)
 
 actual suspend fun copyToClipboard(value: String, di: Koin) {
     navigator.clipboard.writeText(value)

@@ -15,8 +15,7 @@ import kotlin.reflect.KClass
 interface NoticeRoomMessageTimelineElementView : TimelineElementView<Notice>
 
 class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElementView {
-    override val supports: KClass<Notice> =
-        Notice::class
+    override val supports: KClass<Notice> = Notice::class
 
     override suspend fun waitFor(element: Notice) {
         // NO-OP (has default size)
@@ -25,20 +24,12 @@ class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElemen
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Notice,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Notice, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = false, index = index)
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Notice,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Notice, index: Int) {
         TextBasedRoomMessageTimelineElementView(holder, element, isPreview = true, index = index)
     }
 
@@ -63,10 +54,8 @@ class NoticeRoomMessageTimelineElementViewImpl : NoticeRoomMessageTimelineElemen
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Notice
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Notice): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Notice, i18n: I18nView): String {
         return "${i18n.automated()}: ${element.body}"

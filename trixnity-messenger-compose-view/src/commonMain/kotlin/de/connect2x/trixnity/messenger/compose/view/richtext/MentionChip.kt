@@ -30,12 +30,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ChipStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSuggestionChip
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 
-internal fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String = when (mention) {
-    is TimelineElementMention.Event -> i18n.mentionEventInRoom(mention.room.name)
-    is TimelineElementMention.Room -> mention.room.name
-    is TimelineElementMention.User -> mention.user.name
-}
-
+internal fun mentionLabel(i18n: I18nView, mention: TimelineElementMention): String =
+    when (mention) {
+        is TimelineElementMention.Event -> i18n.mentionEventInRoom(mention.room.name)
+        is TimelineElementMention.Room -> mention.room.name
+        is TimelineElementMention.User -> mention.user.name
+    }
 
 private val iconModifier = Modifier.requiredSize(SuggestionChipDefaults.IconSize)
 
@@ -52,13 +52,7 @@ internal fun MentionChip(
     DisableSelection {
         ThemedSuggestionChip(
             style = style,
-            label = {
-                Text(
-                    mentionLabel(i18n, mention),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
+            label = { Text(mentionLabel(i18n, mention), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             icon = {
                 when (mention) {
                     is TimelineElementMention.Event ->
@@ -72,17 +66,14 @@ internal fun MentionChip(
                 }
             },
             onClick = { onMentionClick(mention) },
-            modifier = Modifier
-                .requiredWidthIn(max = maxWidth)
-                .pointerHoverIcon(PointerIcon.Hand)
-                .padding(all = 1.dp),
+            modifier = Modifier.requiredWidthIn(max = maxWidth).pointerHoverIcon(PointerIcon.Hand).padding(all = 1.dp),
         )
     }
 }
 
 /**
- * It is ABSOLUTELY NECESSARY that this function always returns the same size as the actual MentionChip
- * That's why mentionLabel was refactored out, and why the icons are a fixed size
+ * It is ABSOLUTELY NECESSARY that this function always returns the same size as the actual MentionChip That's why
+ * mentionLabel was refactored out, and why the icons are a fixed size
  */
 @Composable
 internal fun rememberMentionChipMeasurer(
@@ -97,13 +88,14 @@ internal fun rememberMentionChipMeasurer(
         val margin = 1.dp
 
         { url, constraints ->
-            context.mentions?.get(url)
+            context.mentions
+                ?.get(url)
                 ?.let { measure(mentionLabel(i18n, it), textStyle) }
                 ?.let {
                     val maxWidth = with(density) { constraints.maxWidth.toDp() }
                     val horizontalPadding = (horizontalElementsPadding * 4) + leadingIconSize + (margin * 2)
-                    val labelPlaceableWidth = with(density) { it.size.width.toDp() }
-                        .coerceAtMost(maxWidth - horizontalPadding)
+                    val labelPlaceableWidth =
+                        with(density) { it.size.width.toDp() }.coerceAtMost(maxWidth - horizontalPadding)
                     val labelPlaceableHeight = with(density) { it.size.height.toDp() }
 
                     val width = (horizontalElementsPadding * 4) + leadingIconSize + labelPlaceableWidth + (margin * 2)
@@ -118,4 +110,3 @@ internal fun rememberMentionChipMeasurer(
         }
     }
 }
-

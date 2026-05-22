@@ -7,9 +7,7 @@ import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.Join
 import de.connect2x.trixnity.messenger.i18n.I18n
 import io.ktor.http.*
 
-/**
- * Joins a room based on its joinRule
- */
+/** Joins a room based on its joinRule */
 interface EnterRoom {
     suspend operator fun invoke(
         i18n: I18n,
@@ -22,7 +20,9 @@ interface EnterRoom {
 
     sealed interface Result {
         data class Success(val kind: JoinRule) : Result
+
         data class Failed(val kind: JoinRule, val reason: String) : Result
+
         data class Error(val kind: JoinRule, val error: Throwable) : Result
 
         fun fold(onSuccess: (Success) -> Unit = {}, onFailure: (Failed) -> Unit = {}, onError: (Error) -> Unit = {}) {
@@ -45,61 +45,60 @@ class EnterRoomImpl : EnterRoom {
         via: Set<String>?,
     ): EnterRoom.Result {
         return when (joinRule) {
-            JoinRule.Invite, JoinRule.Public, JoinRule.Restricted, JoinRule.KnockRestricted ->
-                matrixClient.api.room.joinRoom(roomId, via, reason).fold(
-                    onFailure = {
-                        if (
-                            it is MatrixServerException &&
-                            it.statusCode == HttpStatusCode.Forbidden
-                        ) {
-                            when (joinRule) {
-                                JoinRule.KnockRestricted ->
-                                    invoke(i18n, matrixClient, JoinRule.Knock, roomId, reason, via)
+            JoinRule.Invite,
+            JoinRule.Public,
+            JoinRule.Restricted,
+            JoinRule.KnockRestricted ->
+                matrixClient.api.room
+                    .joinRoom(roomId, via, reason)
+                    .fold(
+                        onFailure = {
+                            if (it is MatrixServerException && it.statusCode == HttpStatusCode.Forbidden) {
+                                when (joinRule) {
+                                    JoinRule.KnockRestricted ->
+                                        invoke(i18n, matrixClient, JoinRule.Knock, roomId, reason, via)
 
-                                JoinRule.Invite ->
-                                    EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedInvite())
+                                    JoinRule.Invite ->
+                                        EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedInvite())
 
-                                JoinRule.Restricted ->
-                                    EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedRestricted())
+                                    JoinRule.Restricted ->
+                                        EnterRoom.Result.Failed(JoinRule.Invite, i18n.enterRoomFailedRestricted())
 
-                                else ->
-                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
-                            }
-                        } else if (it is MatrixServerException) {
-                            EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
-                        } else EnterRoom.Result.Error(joinRule, it)
-                    },
-                    onSuccess = {
-                        EnterRoom.Result.Success(
-                            if (joinRule == JoinRule.KnockRestricted) JoinRule.Restricted
-                            else joinRule
-                        )
-                    }
-                )
+                                    else -> EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
+                                }
+                            } else if (it is MatrixServerException) {
+                                EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
+                            } else EnterRoom.Result.Error(joinRule, it)
+                        },
+                        onSuccess = {
+                            EnterRoom.Result.Success(
+                                if (joinRule == JoinRule.KnockRestricted) JoinRule.Restricted else joinRule
+                            )
+                        },
+                    )
 
             JoinRule.Knock ->
-                matrixClient.api.room.knockRoom(roomId, via, reason).fold(
-                    onFailure = {
-                        if (it is MatrixServerException) {
-                            when (it.statusCode) {
-                                HttpStatusCode.Forbidden ->
-                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedNoPermission())
+                matrixClient.api.room
+                    .knockRoom(roomId, via, reason)
+                    .fold(
+                        onFailure = {
+                            if (it is MatrixServerException) {
+                                when (it.statusCode) {
+                                    HttpStatusCode.Forbidden ->
+                                        EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedNoPermission())
 
-                                HttpStatusCode.NotFound ->
-                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedRoomDoesNotExist())
+                                    HttpStatusCode.NotFound ->
+                                        EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedRoomDoesNotExist())
 
-                                else ->
-                                    EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericKnock())
-                            }
-                        } else EnterRoom.Result.Error(joinRule, it)
-                    },
-                    onSuccess = {
-                        EnterRoom.Result.Success(joinRule)
-                    }
-                )
+                                    else -> EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericKnock())
+                                }
+                            } else EnterRoom.Result.Error(joinRule, it)
+                        },
+                        onSuccess = { EnterRoom.Result.Success(joinRule) },
+                    )
 
-            JoinRule.Private, is JoinRule.Unknown ->
-                EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
+            JoinRule.Private,
+            is JoinRule.Unknown -> EnterRoom.Result.Failed(joinRule, i18n.enterRoomFailedGenericJoin())
         }
     }
 }

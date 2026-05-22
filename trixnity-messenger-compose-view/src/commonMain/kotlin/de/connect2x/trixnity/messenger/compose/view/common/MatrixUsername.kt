@@ -56,20 +56,19 @@ class MatrixUsernameViewImpl : MatrixUsernameView {
             value = username.value,
             singleLine = true,
             onValueChange = { username.value = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .autofill(AutofillType.Username) {
-                    username.value = TextFieldValue(it)
-                }
-                .then(modifier),
+            modifier =
+                Modifier.fillMaxWidth()
+                    .autofill(AutofillType.Username) { username.value = TextFieldValue(it) }
+                    .then(modifier),
             label = { Text(label) },
             trailingIcon = trailingIcon,
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.None,
-                autoCorrectEnabled = false,
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
+            keyboardOptions =
+                KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next,
+                ),
         )
     }
 }

@@ -31,16 +31,15 @@ import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.http.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
-
 
 class RoomSettingsAliasViewModelTest {
     private val roomId = RoomId("!room")
@@ -61,78 +60,66 @@ class RoomSettingsAliasViewModelTest {
         canSendEvent.value = true
         directoryAliases.value = emptyMap()
 
-        every {
-            roomServiceMock.getState(any(), CanonicalAliasEventContent::class, any())
-        } returns serverAliases.map {
-            if (it == null) null
-            else ClientEvent.RoomEvent.StateEvent(
-                content = it,
-                roomId = roomId,
-                stateKey = "",
-                id = EventId("\$eventId"),
-                sender = me,
-                unsigned = null,
-                originTimestamp = 1234
-            )
-        }
-
-        everySuspend {
-            roomsApiClientMock.sendStateEvent(any(), any(), any())
-        } calls {
-            serverAliases.value = it.args[1] as CanonicalAliasEventContent?
-            Result.success(EventId("\$eventId"))
-        }
-
-        everySuspend {
-            roomsApiClientMock.getRoomAlias(any())
-        } calls {
-            directoryAliases.value[it.args[0]]?.let {
-                Result.success(
-                    GetRoomAlias.Response(it, listOf("127.0.0.1"))
-                )
-            } ?: if (RoomAliasId.isValid((it.args[0] as RoomAliasId).full)) {
-                Result.failure(
-                    MatrixServerException(
-                        HttpStatusCode.NotFound, ErrorResponse.NotFound("")
+        every { roomServiceMock.getState(any(), CanonicalAliasEventContent::class, any()) } returns
+            serverAliases.map {
+                if (it == null) null
+                else
+                    ClientEvent.RoomEvent.StateEvent(
+                        content = it,
+                        roomId = roomId,
+                        stateKey = "",
+                        id = EventId("\$eventId"),
+                        sender = me,
+                        unsigned = null,
+                        originTimestamp = 1234,
                     )
-                )
-            } else {
-                Result.failure(
-                    MatrixServerException(
-                        HttpStatusCode.BadRequest, ErrorResponse.InvalidParam("")
-                    )
-                )
             }
-        }
 
-        everySuspend {
-            roomsApiClientMock.setRoomAlias(any(), any())
-        } calls {
-            directoryAliases.value += it.args[1] as RoomAliasId to it.args[0] as RoomId
-            Result.success(Unit)
-        }
+        everySuspend { roomsApiClientMock.sendStateEvent(any(), any(), any()) } calls
+            {
+                serverAliases.value = it.args[1] as CanonicalAliasEventContent?
+                Result.success(EventId("\$eventId"))
+            }
 
-        everySuspend {
-            roomsApiClientMock.deleteRoomAlias(any())
-        } calls {
-            directoryAliases.value -= it.args[0] as RoomAliasId
-            Result.success(Unit)
-        }
+        everySuspend { roomsApiClientMock.getRoomAlias(any()) } calls
+            {
+                directoryAliases.value[it.args[0]]?.let {
+                    Result.success(GetRoomAlias.Response(it, listOf("127.0.0.1")))
+                }
+                    ?: if (RoomAliasId.isValid((it.args[0] as RoomAliasId).full)) {
+                        Result.failure(MatrixServerException(HttpStatusCode.NotFound, ErrorResponse.NotFound("")))
+                    } else {
+                        Result.failure(MatrixServerException(HttpStatusCode.BadRequest, ErrorResponse.InvalidParam("")))
+                    }
+            }
 
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                })
-        }.koin
+        everySuspend { roomsApiClientMock.setRoomAlias(any(), any()) } calls
+            {
+                directoryAliases.value += it.args[1] as RoomAliasId to it.args[0] as RoomId
+                Result.success(Unit)
+            }
+
+        everySuspend { roomsApiClientMock.deleteRoomAlias(any()) } calls
+            {
+                directoryAliases.value -= it.args[0] as RoomAliasId
+                Result.success(Unit)
+            }
+
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns me
         every { matrixClientMock.api } returns matrixClientServerApiMock
         every { matrixClientServerApiMock.room } returns roomsApiClientMock
 
-        every {
-            userServiceMock.canSendEvent(any(), CanonicalAliasEventContent::class)
-        } returns canSendEvent
+        every { userServiceMock.canSendEvent(any(), CanonicalAliasEventContent::class) } returns canSendEvent
     }
 
     @BeforeTest
@@ -144,14 +131,10 @@ class RoomSettingsAliasViewModelTest {
     fun `load permissions to change the room alias based on the user's power level`() = runTest {
         val viewModel = roomSettingsAliasViewModel()
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         canSendEvent.value = false
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe false
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe false }
     }
 
     @Test
@@ -159,9 +142,7 @@ class RoomSettingsAliasViewModelTest {
         val error = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(addError = error)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -175,9 +156,7 @@ class RoomSettingsAliasViewModelTest {
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
                 any(),
-                CanonicalAliasEventContent(
-                    null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                ),
+                CanonicalAliasEventContent(null, setOf(RoomAliasId("#epicroom:127.0.0.1"))),
                 any(),
             )
         }
@@ -188,9 +167,7 @@ class RoomSettingsAliasViewModelTest {
         val error = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(addError = error)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -206,13 +183,9 @@ class RoomSettingsAliasViewModelTest {
     fun `main alias » set main alias`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
-        val viewModel = roomSettingsAliasViewModel(
-            addError = addError, updateError = changeMainAliasError
-        )
+        val viewModel = roomSettingsAliasViewModel(addError = addError, updateError = changeMainAliasError)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -235,9 +208,7 @@ class RoomSettingsAliasViewModelTest {
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
                 any(),
-                CanonicalAliasEventContent(
-                    RoomAliasId("#epicroom:127.0.0.1"), setOf()
-                ),
+                CanonicalAliasEventContent(RoomAliasId("#epicroom:127.0.0.1"), setOf()),
                 any(),
             )
         }
@@ -247,13 +218,9 @@ class RoomSettingsAliasViewModelTest {
     fun `main alias » remove main alias when null is passed`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
-        val viewModel = roomSettingsAliasViewModel(
-            addError = addError, updateError = changeMainAliasError
-        )
+        val viewModel = roomSettingsAliasViewModel(addError = addError, updateError = changeMainAliasError)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -285,9 +252,7 @@ class RoomSettingsAliasViewModelTest {
         verifySuspend(mode = VerifyMode.soft) {
             roomsApiClientMock.sendStateEvent(
                 any(),
-                CanonicalAliasEventContent(
-                    null, setOf(RoomAliasId("#epicroom:127.0.0.1"))
-                ),
+                CanonicalAliasEventContent(null, setOf(RoomAliasId("#epicroom:127.0.0.1"))),
                 any(),
             )
         }
@@ -297,13 +262,9 @@ class RoomSettingsAliasViewModelTest {
     fun `main alias » don't change main alias when main alias is passed`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
-        val viewModel = roomSettingsAliasViewModel(
-            addError = addError, updateError = changeMainAliasError
-        )
+        val viewModel = roomSettingsAliasViewModel(addError = addError, updateError = changeMainAliasError)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -337,13 +298,9 @@ class RoomSettingsAliasViewModelTest {
     fun `main alias » set main alias and degrade original main alias`() = runTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
-        val viewModel = roomSettingsAliasViewModel(
-            addError = addError, updateError = changeMainAliasError
-        )
+        val viewModel = roomSettingsAliasViewModel(addError = addError, updateError = changeMainAliasError)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -386,7 +343,8 @@ class RoomSettingsAliasViewModelTest {
             roomsApiClientMock.sendStateEvent(
                 any(),
                 CanonicalAliasEventContent(
-                    RoomAliasId("#awesomeroom:127.0.0.1"), setOf(RoomAliasId("#epicroom:127.0.0.1"))
+                    RoomAliasId("#awesomeroom:127.0.0.1"),
+                    setOf(RoomAliasId("#epicroom:127.0.0.1")),
                 ),
                 any(),
             )
@@ -398,9 +356,7 @@ class RoomSettingsAliasViewModelTest {
         val error = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(updateError = error)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.changeMainAlias(RoomAliasId("epicroom:127.0.0.1"))
 
@@ -416,9 +372,7 @@ class RoomSettingsAliasViewModelTest {
         val removeAliasError = MutableStateFlow<String?>(null)
         val viewModel = roomSettingsAliasViewModel(addError = addError, removeError = removeAliasError)
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -438,13 +392,7 @@ class RoomSettingsAliasViewModelTest {
         }
 
         verifySuspend(mode = VerifyMode.soft) {
-            roomsApiClientMock.sendStateEvent(
-                any(),
-                CanonicalAliasEventContent(
-                    null, setOf()
-                ),
-                any(),
-            )
+            roomsApiClientMock.sendStateEvent(any(), CanonicalAliasEventContent(null, setOf()), any())
         }
     }
 
@@ -453,13 +401,14 @@ class RoomSettingsAliasViewModelTest {
         val addError = MutableStateFlow<String?>(null)
         val changeMainAliasError = MutableStateFlow<String?>(null)
         val removeAliasError = MutableStateFlow<String?>(null)
-        val viewModel = roomSettingsAliasViewModel(
-            addError = addError, updateError = changeMainAliasError, removeError = removeAliasError
-        )
+        val viewModel =
+            roomSettingsAliasViewModel(
+                addError = addError,
+                updateError = changeMainAliasError,
+                removeError = removeAliasError,
+            )
 
-        eventually(2.seconds) {
-            viewModel.canChangeRoomAlias.value shouldBe true
-        }
+        eventually(2.seconds) { viewModel.canChangeRoomAlias.value shouldBe true }
 
         viewModel.newAlias.update("#epicroom:127.0.0.1")
         viewModel.addNewAlias()
@@ -488,13 +437,7 @@ class RoomSettingsAliasViewModelTest {
         }
 
         verifySuspend(mode = VerifyMode.soft) {
-            roomsApiClientMock.sendStateEvent(
-                any(),
-                CanonicalAliasEventContent(
-                    null, setOf()
-                ),
-                any(),
-            )
+            roomsApiClientMock.sendStateEvent(any(), CanonicalAliasEventContent(null, setOf()), any())
         }
     }
 
@@ -504,16 +447,19 @@ class RoomSettingsAliasViewModelTest {
         addError: MutableStateFlow<String?> = MutableStateFlow(null),
     ): RoomSettingsAliasViewModelImpl {
         return RoomSettingsAliasViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        )
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    )
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
             selectedRoomId = roomId,
             isDirect = MutableStateFlow(false),
             removeAliasError = removeError,

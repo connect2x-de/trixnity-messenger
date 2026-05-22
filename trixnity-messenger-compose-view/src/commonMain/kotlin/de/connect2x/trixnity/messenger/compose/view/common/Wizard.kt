@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
@@ -31,7 +30,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,14 +40,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -70,10 +66,11 @@ typealias StepId = String
 sealed interface WizardNavigationButton {
     data class Standard(
         val enabled: @Composable () -> Boolean = { true },
-        val content: (@Composable () -> Unit)? = null
+        val content: (@Composable () -> Unit)? = null,
     ) : WizardNavigationButton
 
     data object None : WizardNavigationButton
+
     data class Custom(val button: @Composable CustomButtonScope.() -> Unit) : WizardNavigationButton
 }
 
@@ -92,7 +89,9 @@ private data class CustomButtonScopeImpl(
 
 sealed interface WizardButtons {
     data object NextButton : WizardButtons
+
     data object AdditionalButton : WizardButtons
+
     data object BackButton : WizardButtons
 }
 
@@ -105,10 +104,8 @@ data class WizardStep(
     val nextButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
     val backButton: (@Composable () -> WizardNavigationButton) = { WizardNavigationButton.Standard() },
     val buttonOrder: @Composable () -> Triple<WizardButtons, WizardButtons, WizardButtons> = {
-        Triple(
-            WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton
-        )
-    }
+        Triple(WizardButtons.AdditionalButton, WizardButtons.BackButton, NextButton)
+    },
 )
 
 @Composable
@@ -120,23 +117,15 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val backHandler = DI.get<BackHandler>()
     if (useDefaultBackHandler) {
-        val onBack = rememberUpdatedState {
-            previousStep?.let { currentStepId.value = it }
-        }
-        val callback = remember(onBack) {
-            BackCallback(priority = BackHandler.PRIORITY_WIZARD) {
-                onBack.value()
-            }
-        }
+        val onBack = rememberUpdatedState { previousStep?.let { currentStepId.value = it } }
+        val callback = remember(onBack) { BackCallback(priority = BackHandler.PRIORITY_WIZARD) { onBack.value() } }
         DisposableEffect(backHandler, callback) {
             backHandler.registerBackCallback(callback)
-            onDispose {
-                backHandler.unregisterCallback(callback)
-            }
+            onDispose { backHandler.unregisterCallback(callback) }
         }
     }
 
-    //Can't be a dialog since that leads to Wizard crashes when changing font size on Android
+    // Can't be a dialog since that leads to Wizard crashes when changing font size on Android
     ThemedPopup(
         onDismissRequest = { backHandler.goBack() },
         properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = false),
@@ -149,23 +138,16 @@ fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false
         // key(wizardStep) {
         if (wizardStep != null) {
             // this is necessary to have a scroll position saved on every step,
-            // but not being linked (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
+            // but not being linked
+            // (https://kotlinlang.slack.com/archives/CJLTWPH7S/p1715854224165609?thread_ts=1715852960.082249&cid=CJLTWPH7S)
             savableStateHolder.SaveableStateProvider(key = wizardStep.id) {
                 val scrollState = rememberScrollState()
-                Surface(
-                    Modifier
-                        .fillMaxSize()
-                        .testTag(wizardId),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
+                Surface(Modifier.fillMaxSize().testTag(wizardId), color = MaterialTheme.colorScheme.background) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small)
+                        modifier = Modifier.padding(bottom = MaterialTheme.messengerDpConstants.small),
                     ) {
-                        BoxWithConstraints(
-                            Modifier.fillMaxWidth().weight(1f),
-                            contentAlignment = Alignment.Center,
-                        ) {
+                        BoxWithConstraints(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                             WizardContainer(wizardSteps, wizardStep, currentStepId, scrollState)
                         }
                         LegalFooter()
@@ -186,19 +168,17 @@ private fun BoxWithConstraintsScope.WizardContainer(
 ) {
     val boxWithConstraints = this
     Surface(
-        Modifier
-            .widthIn(max = 800.dp)
+        Modifier.widthIn(max = 800.dp)
             .heightIn(min = max(1200.dp, this.maxHeight))
             .padding(
                 if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
                 else MaterialTheme.messengerDpConstants.large
             )
-            .clip(RoundedCornerShape(MaterialTheme.messengerDpConstants.small)),
+            .clip(RoundedCornerShape(MaterialTheme.messengerDpConstants.small))
     ) {
         Box(Modifier.fillMaxSize()) {
             Box(
-                Modifier
-                    .fillMaxSize()
+                Modifier.fillMaxSize()
                     .padding(
                         if (boxWithConstraints.maxWidth < 500.dp) MaterialTheme.messengerDpConstants.small
                         else MaterialTheme.messengerDpConstants.large
@@ -218,11 +198,7 @@ private fun BoxWithConstraintsScope.WizardContainer(
 
 @Composable
 private fun WizardHeading(wizardStep: WizardStep) {
-    Text(
-        wizardStep.title(),
-        style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.semantics { heading() }
-    )
+    Text(wizardStep.title(), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
     MiddleSpacer()
 }
 
@@ -232,31 +208,15 @@ private fun ColumnScope.WizardContent(
     scrollState: ScrollState,
     boxWithConstraints: BoxWithConstraintsScope,
 ) {
-    Surface(
-        Modifier
-            .weight(1.0f, fill = true)
-    ) {
-        Box(
-            Modifier
-                .fillMaxSize()
-        ) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-            ) {
-                wizardStep.content(boxWithConstraints)
-            }
+    Surface(Modifier.weight(1.0f, fill = true)) {
+        Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize().verticalScroll(scrollState)) { wizardStep.content(boxWithConstraints) }
         }
     }
 }
 
 @Composable
-private fun WizardButtons(
-    wizardSteps: List<WizardStep>,
-    wizardStep: WizardStep,
-    currentStep: MutableState<StepId>,
-) {
+private fun WizardButtons(wizardSteps: List<WizardStep>, wizardStep: WizardStep, currentStep: MutableState<StepId>) {
     val nextStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) + 1)?.id
     val previousStep = wizardSteps.getOrNull(wizardSteps.indexOf(wizardStep) - 1)?.id
     val additionalButton = wizardStep.additionalButton
@@ -266,50 +226,42 @@ private fun WizardButtons(
     val imeBottom = WindowInsets.ime.getBottom(density)
     val extraImeBottomPadding = if (imeBottom > 0) 10 else 0
 
-    Column(Modifier.fillMaxWidth().offset { IntOffset(0, -currentOffsetPx) }.onGloballyPositioned { coords ->
-        val screenHeight = coords.findRootCoordinates().size.height
-        val currentY = coords.positionInWindow().y
-        val height = coords.size.height
-        // Calculate where the bottom IS, then "undo" the current offset to find where it naturally wants to sit.
-        val restingBottom = currentY + height + currentOffsetPx
-        // The gap between the button and the bottom of the screen (Stuff below the button row is here)
-        val spaceBelowButtons = screenHeight - restingBottom
-        // We only need to move if the IME is taller than the space below
-        currentOffsetPx = (imeBottom - spaceBelowButtons + extraImeBottomPadding).toInt().coerceAtLeast(0)
-    }) {
+    Column(
+        Modifier.fillMaxWidth()
+            .offset { IntOffset(0, -currentOffsetPx) }
+            .onGloballyPositioned { coords ->
+                val screenHeight = coords.findRootCoordinates().size.height
+                val currentY = coords.positionInWindow().y
+                val height = coords.size.height
+                // Calculate where the bottom IS, then "undo" the current offset to find where it naturally wants to
+                // sit.
+                val restingBottom = currentY + height + currentOffsetPx
+                // The gap between the button and the bottom of the screen (Stuff below the button row is here)
+                val spaceBelowButtons = screenHeight - restingBottom
+                // We only need to move if the IME is taller than the space below
+                currentOffsetPx = (imeBottom - spaceBelowButtons + extraImeBottomPadding).toInt().coerceAtLeast(0)
+            }
+    ) {
         val buttonList = wizardStep.buttonOrder().toList().toMutableList()
         if (additionalButton == null) {
             buttonList.remove(WizardButtons.AdditionalButton)
         }
         MessengerModalButtonRow(
             button1 = getCorrespondingButton(buttonList[0], wizardStep, nextStep, currentStep, previousStep),
-            button2 = if (buttonList.size > 1)
-                getCorrespondingButton(
-                    buttonList[1],
-                    wizardStep,
-                    nextStep,
-                    currentStep,
-                    previousStep
-                ) else null,
+            button2 =
+                if (buttonList.size > 1)
+                    getCorrespondingButton(buttonList[1], wizardStep, nextStep, currentStep, previousStep)
+                else null,
             button3 =
-                if (buttonList.size > 2) getCorrespondingButton(
-                    buttonList[2],
-                    wizardStep,
-                    nextStep,
-                    currentStep,
-                    previousStep
-                ) else null
-
+                if (buttonList.size > 2)
+                    getCorrespondingButton(buttonList[2], wizardStep, nextStep, currentStep, previousStep)
+                else null,
         )
     }
 }
 
 @Composable
-private fun RowScope.NextButton(
-    wizardStep: WizardStep,
-    nextStep: StepId?,
-    currentStep: MutableState<StepId>,
-) {
+private fun RowScope.NextButton(wizardStep: WizardStep, nextStep: StepId?, currentStep: MutableState<StepId>) {
     when (val nextButton = wizardStep.nextButton()) {
         is WizardNavigationButton.Standard -> {
             nextStep?.let { NextButtonImpl(currentStep, nextStep, nextButton) }
@@ -327,7 +279,7 @@ private fun RowScope.NextButton(
 private fun NextButtonImpl(
     currentStep: MutableState<StepId>,
     nextStep: StepId,
-    nextButton: WizardNavigationButton.Standard
+    nextButton: WizardNavigationButton.Standard,
 ) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
@@ -348,8 +300,7 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
         is WizardNavigationButton.Standard -> {
             if (previousStep != null) {
                 BackButtonImpl(currentStep, previousStep, backButton)
-            } else {
-            }
+            } else {}
         }
 
         is WizardNavigationButton.None -> {}
@@ -364,7 +315,7 @@ private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableStat
 private fun BackButtonImpl(
     currentStep: MutableState<StepId>,
     previousStep: StepId,
-    backButton: WizardNavigationButton.Standard
+    backButton: WizardNavigationButton.Standard,
 ) {
     val i18n = DI.get<I18nView>()
     ThemedButton(
@@ -378,32 +329,25 @@ private fun BackButtonImpl(
     }
 }
 
-
 @Composable
 private fun getCorrespondingButton(
     wizardButton: WizardButtons,
     wizardStep: WizardStep,
     nextStep: StepId?,
     currentStep: MutableState<StepId>,
-    previousStep: StepId?
+    previousStep: StepId?,
 ): @Composable (RowScope.() -> Unit) {
     return when (wizardButton) {
         NextButton -> {
-            {
-                NextButton(wizardStep, nextStep, currentStep)
-            }
+            { NextButton(wizardStep, nextStep, currentStep) }
         }
 
         WizardButtons.BackButton -> {
-            {
-                BackButton(wizardStep, currentStep, previousStep)
-            }
+            { BackButton(wizardStep, currentStep, previousStep) }
         }
 
         WizardButtons.AdditionalButton -> {
-            {
-                wizardStep.additionalButton?.let { it { stepId -> currentStep.value = stepId } }
-            }
+            { wizardStep.additionalButton?.let { it { stepId -> currentStep.value = stepId } } }
         }
     }
 }

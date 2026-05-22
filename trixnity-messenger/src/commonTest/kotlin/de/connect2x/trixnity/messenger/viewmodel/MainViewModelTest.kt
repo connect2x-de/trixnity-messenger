@@ -85,6 +85,12 @@ import io.kotest.matchers.types.instanceOf
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.kotest.matchers.types.shouldBeTypeOf
+import kotlin.reflect.KClass
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -97,13 +103,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-
 
 class MainViewModelTest {
     private val lifecycle: LifecycleRegistry = LifecycleRegistry()
@@ -143,14 +142,18 @@ class MainViewModelTest {
         lifecycle.resume()
         startSyncPresenceCapture.clear()
         messengerSettings = createTestMatrixMessengerSettingsHolder()
-        every { matrixClientMock.di } returns koinApplication {
-            modules(module {
-                single { roomServiceMock }
-                single { keyServiceMock }
-                single { userServiceMock }
-                single { verificationServiceMock }
-            })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { keyServiceMock }
+                            single { userServiceMock }
+                            single { verificationServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns myUserId
         every { matrixClientMock.deviceId } returns myDeviceId
         every { matrixClientMock.profile } returns MutableStateFlow(profile1)
@@ -161,9 +164,7 @@ class MainViewModelTest {
         everySuspend { matrixClientMock.cancelSync() } returns Unit
 
         every { roomServiceMock.getAll() } returns roomsFlow
-        every {
-            roomServiceMock.getState(any(), CreateEventContent::class, any())
-        } returns MutableStateFlow(null)
+        every { roomServiceMock.getState(any(), CreateEventContent::class, any()) } returns MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
                 any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
@@ -171,12 +172,8 @@ class MainViewModelTest {
             )
         } returns NoOpTimeline()
         every { roomServiceMock.getById(any()) } returns MutableStateFlow(null)
-        every {
-            roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any())
-        } returns flowOf(null)
-        every {
-            roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any())
-        } returns flowOf(null)
+        every { roomServiceMock.getAccountData(any(), FullyReadEventContent::class, any()) } returns flowOf(null)
+        every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns flowOf(listOf())
         every { userServiceMock.getAll(any()) } returns flowOf(mapOf())
         every { userServiceMock.getById(any(), any()) } returns flowOf(null)
@@ -190,11 +187,8 @@ class MainViewModelTest {
         every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.Valid(true))
 
         everySuspend { userServiceMock.loadMembers(any(), any()) } returns Unit
-        every { userServiceMock.getAccountData(DirectEventContent::class) } returns MutableStateFlow(
-            DirectEventContent(
-                emptyMap()
-            )
-        )
+        every { userServiceMock.getAccountData(DirectEventContent::class) } returns
+            MutableStateFlow(DirectEventContent(emptyMap()))
 
         networkAvailable = every { isNetworkAvailable.invoke() }
         networkAvailable returns false
@@ -203,14 +197,18 @@ class MainViewModelTest {
         initialSyncDone returns MutableStateFlow(true)
 
         // matrixClientMock2
-        every { matrixClientMock2.di } returns koinApplication {
-            modules(module {
-                single { roomServiceMock }
-                single { keyServiceMock }
-                single { userServiceMock }
-                single { verificationServiceMock2 }
-            })
-        }.koin
+        every { matrixClientMock2.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { keyServiceMock }
+                            single { userServiceMock }
+                            single { verificationServiceMock2 }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock2.userId } returns myUserId
         every { matrixClientMock2.deviceId } returns myDeviceId
         every { matrixClientMock2.syncState } returns MutableStateFlow(SyncState.RUNNING)
@@ -255,9 +253,8 @@ class MainViewModelTest {
 
     @Test
     fun `select no room initially`() = runTest {
-        everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
-        } returns Result.success(Unit)
+        everySuspend { matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>()) } returns
+            Result.success(Unit)
 
         val cut = mainViewModel()
 
@@ -323,27 +320,33 @@ class MainViewModelTest {
 
     @Test
     fun `show cross signing bootstrap when cross signing is not enabled yet`() = runTest {
-        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        selfVerificationMethods returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
 
         val cut = mainViewModel()
 
         eventually(2.seconds) {
-            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            cut.selfVerificationRouter.stack.value.active.configuration should
+                beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
         }
     }
 
     @Test
     fun `not show new cross signing bootstrap when another is already shown`() = runTest {
-        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        selfVerificationMethods returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
 
         val cut = mainViewModel()
 
-        val config = eventually(2.seconds) {
-            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
-            cut.selfVerificationRouter.stack.value.active.configuration
-        }
+        val config =
+            eventually(2.seconds) {
+                cut.selfVerificationRouter.stack.value.active.configuration should
+                    beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+                cut.selfVerificationRouter.stack.value.active.configuration
+            }
 
-        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
 
         continually(2.seconds) {
             cut.selfVerificationRouter.stack.value.active.configuration shouldBeSameInstanceAs config
@@ -352,60 +355,68 @@ class MainViewModelTest {
 
     @Test
     fun `show multiple cross signing bootstraps sequentially when needed`() = runTest {
-        selfVerificationMethods returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
-        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        selfVerificationMethods returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.NoCrossSigningEnabled)
 
         val user1 = testUserId
         val user2 = UserId("test2", "server")
 
-        val cut = mainViewModel(
-            mapOf(
-                user1 to matrixClientMock, user2 to matrixClientMock2
-            )
-        )
+        val cut = mainViewModel(mapOf(user1 to matrixClientMock, user2 to matrixClientMock2))
 
-        val bootstrapParams = eventually(2.seconds) {
-            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
-            val currentUser =
-                (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBeIn setOf<UserId>(
-                    user1,
-                    user2
-                )
-            currentUser to cut.selfVerificationRouter.stack.value.active.instance as SelfVerificationRouter.Wrapper.CrossSigningBootstrap
-        }
+        val bootstrapParams =
+            eventually(2.seconds) {
+                cut.selfVerificationRouter.stack.value.active.configuration should
+                    beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+                val currentUser =
+                    (cut.selfVerificationRouter.stack.value.active.configuration
+                            as SelfVerificationRouter.Config.CrossSigningBootstrap)
+                        .userId shouldBeIn setOf<UserId>(user1, user2)
+                currentUser to
+                    cut.selfVerificationRouter.stack.value.active.instance
+                        as SelfVerificationRouter.Wrapper.CrossSigningBootstrap
+            }
 
         bootstrapParams.second.viewModel.close()
         val otherUser = if (bootstrapParams.first == user1) user2 else user1
 
         eventually(2.seconds) {
-            cut.selfVerificationRouter.stack.value.active.configuration should beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
-            (cut.selfVerificationRouter.stack.value.active.configuration as SelfVerificationRouter.Config.CrossSigningBootstrap).userId shouldBe otherUser
+            cut.selfVerificationRouter.stack.value.active.configuration should
+                beOfType<SelfVerificationRouter.Config.CrossSigningBootstrap>()
+            (cut.selfVerificationRouter.stack.value.active.configuration
+                    as SelfVerificationRouter.Config.CrossSigningBootstrap)
+                .userId shouldBe otherUser
         }
     }
 
     @Test
     fun `show self verification modal when self verification is needed`() = runTest {
-        selfVerificationMethods returns MutableStateFlow(
-            VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(
-                        UserId(""),
-                        setOf(),
-                    ) { _, _ -> Result.failure(RuntimeException()) }, SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                        keySecretServiceMock, keyTrustServiceMock, "keyId", SecretKeyEventContent.AesHmacSha2Key()
+        selfVerificationMethods returns
+            MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), setOf()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key(),
+                        ),
                     )
                 )
             )
-        )
-        everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
-        } returns Result.success(Unit)
+        everySuspend { matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>()) } returns
+            Result.success(Unit)
 
         val cut = mainViewModel()
         cut.selfVerificationRouter.showSelfVerification(testUserId, true)
 
         eventually(2.seconds) {
-            cut.selfVerificationStack.value.active.configuration should beOfType<SelfVerificationRouter.Config.SelfVerification>()
+            cut.selfVerificationStack.value.active.configuration should
+                beOfType<SelfVerificationRouter.Config.SelfVerification>()
         }
         cut.selfVerificationRouter.closeSelfVerification(testUserId)
         eventually(2.seconds) {
@@ -416,49 +427,50 @@ class MainViewModelTest {
     @Test
     fun `show multiple self verifications sequentially if needed`() = runTest {
         // test
-        selfVerificationMethods returns MutableStateFlow(
-            VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(
-                        UserId(""),
-                        setOf(),
-                    ) { _, _ -> Result.failure(RuntimeException()) }, SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                        keySecretServiceMock, keyTrustServiceMock, "keyId", SecretKeyEventContent.AesHmacSha2Key()
+        selfVerificationMethods returns
+            MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), setOf()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key(),
+                        ),
                     )
                 )
             )
-        )
         // test2
         every { verificationServiceMock2.activeDeviceVerification } returns MutableStateFlow(null)
-        every { verificationServiceMock2.getSelfVerificationMethods() } returns MutableStateFlow(
-            VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(
-                        UserId(""),
-                        setOf(),
-                    ) { _, _ -> Result.failure(RuntimeException()) }, SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                        keySecretServiceMock, keyTrustServiceMock, "keyId", SecretKeyEventContent.AesHmacSha2Key()
+        every { verificationServiceMock2.getSelfVerificationMethods() } returns
+            MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), setOf()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key(),
+                        ),
                     )
                 )
             )
-        )
 
-        everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
-        } returns Result.success(Unit)
-        everySuspend {
-            matrixClientMock2.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
-        } returns Result.success(Unit)
+        everySuspend { matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>()) } returns
+            Result.success(Unit)
+        everySuspend { matrixClientMock2.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>()) } returns
+            Result.success(Unit)
 
         val user1 = testUserId
         val user2 = UserId("test2", "server")
 
-
-        val cut = mainViewModel(
-            mapOf(
-                user1 to matrixClientMock, user2 to matrixClientMock2
-            )
-        )
+        val cut = mainViewModel(mapOf(user1 to matrixClientMock, user2 to matrixClientMock2))
 
         cut.selfVerificationRouter.showSelfVerification(user1, true)
         cut.selfVerificationRouter.showSelfVerification(user2, true)
@@ -476,36 +488,40 @@ class MainViewModelTest {
         }
         cut.selfVerificationRouter.closeSelfVerification(UserId("test2", "server"))
         eventually(2.seconds) {
-            cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>()
+            cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<
+                SelfVerificationRouter.Config.None
+            >()
         }
     }
 
     @Test
     fun `not show self verification when at least one account isn't bootstrapped`() = runTest {
-        selfVerificationMethods returns MutableStateFlow(
-            VerificationService.SelfVerificationMethods.CrossSigningEnabled(
-                setOf(
-                    SelfVerificationMethod.CrossSignedDeviceVerification(
-                        UserId(""),
-                        setOf(),
-                    ) { _, _ -> Result.failure(RuntimeException()) }, SelfVerificationMethod.AesHmacSha2RecoveryKey(
-                        keySecretServiceMock, keyTrustServiceMock, "keyId", SecretKeyEventContent.AesHmacSha2Key()
+        selfVerificationMethods returns
+            MutableStateFlow(
+                VerificationService.SelfVerificationMethods.CrossSigningEnabled(
+                    setOf(
+                        SelfVerificationMethod.CrossSignedDeviceVerification(UserId(""), setOf()) { _, _ ->
+                            Result.failure(RuntimeException())
+                        },
+                        SelfVerificationMethod.AesHmacSha2RecoveryKey(
+                            keySecretServiceMock,
+                            keyTrustServiceMock,
+                            "keyId",
+                            SecretKeyEventContent.AesHmacSha2Key(),
+                        ),
                     )
                 )
             )
-        )
-        everySuspend {
-            matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>())
-        } returns Result.success(Unit)
+        everySuspend { matrixClientMock.syncOnce(any(), any(), any<suspend (SyncEvents) -> Unit>()) } returns
+            Result.success(Unit)
 
-        messengerSettings.create(
-            testUserId,
-            MatrixMessengerAccountSettingsBase(accountSetupFinished = false)
-        )
+        messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = false))
         val cut = mainViewModel()
 
         continually(2.seconds) {
-            cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<SelfVerificationRouter.Config.None>()
+            cut.selfVerificationStack.value.active.configuration.shouldBeInstanceOf<
+                SelfVerificationRouter.Config.None
+            >()
         }
     }
 
@@ -514,10 +530,11 @@ class MainViewModelTest {
         syncState returns MutableStateFlow(SyncState.STOPPED)
         networkAvailable returns true
         initialSyncDone returns MutableStateFlow(true)
-        everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls {
-            delay(500.milliseconds)
-            true
-        }
+        everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls
+            {
+                delay(500.milliseconds)
+                true
+            }
 
         val cut = mainViewModel()
 
@@ -532,10 +549,11 @@ class MainViewModelTest {
         networkAvailable returns true
         val initialSyncDoneFlow = MutableStateFlow(false)
         initialSyncDone returns initialSyncDoneFlow
-        everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls {
-            delay(500.milliseconds)
-            true
-        }
+        everySuspend { runInitialSyncMock.invoke(matrixClientMock) } calls
+            {
+                delay(500.milliseconds)
+                true
+            }
 
         val cut = mainViewModel()
 
@@ -575,25 +593,13 @@ class MainViewModelTest {
         everySuspend { runInitialSyncMock.invoke(matrixClientMock) } returns true
         mainViewModel()
 
-        eventually(300.milliseconds) {
-            verifySuspend {
-                matrixClientMock.startSync()
-            }
-        }
+        eventually(300.milliseconds) { verifySuspend { matrixClientMock.startSync() } }
 
         lifecycle.stop()
-        eventually(300.milliseconds) {
-            verifySuspend {
-                matrixClientMock.stopSync()
-            }
-        }
+        eventually(300.milliseconds) { verifySuspend { matrixClientMock.stopSync() } }
 
         lifecycle.resume()
-        eventually(300.milliseconds) {
-            verifySuspend {
-                matrixClientMock.startSync()
-            }
-        }
+        eventually(300.milliseconds) { verifySuspend { matrixClientMock.startSync() } }
     }
 
     @Test
@@ -617,14 +623,15 @@ class MainViewModelTest {
                 it.copy(presenceIsPublic = true)
             }
             delay(10.milliseconds)
-            startSyncPresenceCapture shouldBe listOf(
-                Presence.ONLINE, // initial sync
-                Presence.ONLINE, // first normal sync
-                Presence.OFFLINE, // 4 changes
-                Presence.ONLINE,
-                Presence.OFFLINE,
-                Presence.ONLINE,
-            )
+            startSyncPresenceCapture shouldBe
+                listOf(
+                    Presence.ONLINE, // initial sync
+                    Presence.ONLINE, // first normal sync
+                    Presence.OFFLINE, // 4 changes
+                    Presence.ONLINE,
+                    Presence.OFFLINE,
+                    Presence.ONLINE,
+                )
         }
 
     @Test
@@ -667,21 +674,20 @@ class MainViewModelTest {
     private suspend infix fun MainViewModel.shouldShowList(isShown: Boolean) {
         delay(10.milliseconds)
         assertSoftly {
-            if (isShown) this.roomListRouterStack.value.active.instance shouldNot beOfType<RoomListRouter.Wrapper.None>()
+            if (isShown)
+                this.roomListRouterStack.value.active.instance shouldNot beOfType<RoomListRouter.Wrapper.None>()
             else this.roomListRouterStack.value.active.instance should beOfType<RoomListRouter.Wrapper.None>()
         }
     }
 
     private suspend infix fun MainViewModel.shouldShowListOfType(extrasType: KClass<out RoomListRouter.Wrapper>) {
         delay(10.milliseconds)
-        assertSoftly {
-            this.roomListRouterStack.value.active.instance should beOfType(extrasType)
-        }
+        assertSoftly { this.roomListRouterStack.value.active.instance should beOfType(extrasType) }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun TestScope.mainViewModel(
-        matrixClients: Map<UserId, MatrixClient> = mapOf(testUserId to matrixClientMock),
+        matrixClients: Map<UserId, MatrixClient> = mapOf(testUserId to matrixClientMock)
     ): MainViewModelImpl {
         Dispatchers.setMain(testDispatcher)
         messengerSettings.create(testUserId, MatrixMessengerAccountSettingsBase(accountSetupFinished = true))
@@ -763,32 +769,44 @@ class MainViewModelTest {
                                             override val accountNotificationCounts: StateFlow<Map<UserId, String?>> =
                                                 MutableStateFlow(emptyMap())
 
-                                            override fun selectActiveAccount(userId: UserId?) {}
-                                            override fun openUserSettings() {}
-                                            override fun openUserAccounts() {}
-                                            override fun openAppInfo() {}
-                                        }
+                                                                        override fun selectActiveAccount(
+                                                                            userId: UserId?
+                                                                        ) {}
 
-                                        override fun createNewRoom() {}
-                                        override fun createNewRoomFor(userId: UserId) {}
-                                        override fun selectRoom(roomId: RoomId) {}
-                                        override fun errorDismiss() {}
-                                        override fun sendLogs() {}
-                                        override fun closeProfile() {}
-                                        override fun verifyAccount(userId: UserId) {}
-                                    }
+                                                                        override fun openUserSettings() {}
+
+                                                                        override fun openUserAccounts() {}
+
+                                                                        override fun openAppInfo() {}
+                                                                    }
+
+                                                                override fun createNewRoom() {}
+
+                                                                override fun createNewRoomFor(userId: UserId) {}
+
+                                                                override fun selectRoom(roomId: RoomId) {}
+
+                                                                override fun errorDismiss() {}
+
+                                                                override fun sendLogs() {}
+
+                                                                override fun closeProfile() {}
+
+                                                                override fun verifyAccount(userId: UserId) {}
+                                                            }
+                                                    }
+                                                }
+                                                single<BackHandler> { backHandler }
+                                            }
+                                    )
                                 }
-                            }
-                            single<BackHandler> { backHandler }
-                        })
-                }.koin,
-                coroutineContext = backgroundScope.coroutineContext,
-                name = "Main"
-            ),
-            onCreateNewAccount = {},
-            onRemoveAccount = {},
-        ).apply {
-            start()
-        }
+                                .koin,
+                        coroutineContext = backgroundScope.coroutineContext,
+                        name = "Main",
+                    ),
+                onCreateNewAccount = {},
+                onRemoveAccount = {},
+            )
+            .apply { start() }
     }
 }

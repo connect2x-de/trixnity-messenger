@@ -44,9 +44,7 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, W
     val initFromStoreResult: StateFlow<InitFromStoreResult?>
     val isInitialized: StateFlow<Boolean>
 
-    suspend fun create(
-        authProviderData: MatrixClientAuthProviderData
-    ): CreateResult
+    suspend fun create(authProviderData: MatrixClientAuthProviderData): CreateResult
 
     suspend fun logout(userId: UserId): Result<Unit>
 
@@ -54,13 +52,18 @@ interface MatrixClients : StateFlow<Map<UserId, MatrixClient>>, AutoCloseable, W
 
     sealed interface CreateResult {
         data object Success : CreateResult
+
         sealed interface Failure : CreateResult {
             val message: String
 
             data class InvalidAuthentication(override val message: String) : Failure
+
             data class UserDeactivated(override val message: String) : Failure
+
             data class Connection(override val message: String) : Failure
+
             data class AccountAlreadyExists(override val message: String) : Failure
+
             data class Database(override val message: String) : Failure
 
             data class Unknown(override val message: String) : Failure
@@ -89,10 +92,13 @@ class MatrixClientsImpl(
         initFromStore()
 
         flatMapLatest { matrixClients ->
-            combine(
-                matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
-            ) { it.toMap() }
-        }.distinctUntilChanged()
+                combine(
+                    matrixClients.map { matrixClient -> matrixClient.value.loginState.map { matrixClient.key to it } }
+                ) {
+                    it.toMap()
+                }
+            }
+            .distinctUntilChanged()
             .collect { matrixClientLoginStates ->
                 log.debug { "check login states $matrixClientLoginStates" }
                 matrixClientLoginStates.forEach { (userId, loginState) ->
@@ -104,7 +110,8 @@ class MatrixClientsImpl(
                             remove(userId)
                         }
 
-                        MatrixClient.LoginState.LOGGED_IN, null -> {}
+                        MatrixClient.LoginState.LOGGED_IN,
+                        null -> {}
                     }
                 }
             }
@@ -112,58 +119,63 @@ class MatrixClientsImpl(
 
     override suspend fun create(authProviderData: MatrixClientAuthProviderData): MatrixClients.CreateResult =
         runCatching {
-            val userId = authProviderData.useApi(
-                httpClientConfig = config.httpClientConfig,
-                httpClientEngine = config.httpClientEngine,
-            ) { it.authentication.whoAmI() }.getOrThrow().userId
-            checkExisting(authProviderData, userId)
-            val matrixClient = matrixClientFactory.create(
-                userId = userId,
-                authProviderData = authProviderData,
-            ).getOrThrow()
-            add(matrixClient)
-            matrixClient
-        }.fold(
-            onSuccess = { MatrixClients.CreateResult.Success },
-            onFailure = { exception ->
-                when (exception) {
-                    is CancellationException -> throw exception
-                    is MatrixServerException ->
-                        when (exception.errorResponse) {
-                            ErrorResponse.Forbidden -> Failure.InvalidAuthentication(i18n.createMatrixClientFailureInvalidAuthentication())
-                            ErrorResponse.UserDeactivated -> Failure.UserDeactivated(i18n.createMatrixClientFailureUserDeactivated())
-                            else -> Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
+                val userId =
+                    authProviderData
+                        .useApi(
+                            httpClientConfig = config.httpClientConfig,
+                            httpClientEngine = config.httpClientEngine,
+                        ) {
+                            it.authentication.whoAmI()
                         }
-
-                    is AccountAlreadyExistsException ->
-                        Failure.AccountAlreadyExists(i18n.createMatrixClientFailureAlreadyExists(exception.userId))
-
-                    is MatrixClientInitializationException.DatabaseLockedException ->
-                        Failure.Database(i18n.createMatrixClientFailureDatabaseLocked())
-
-                    is MatrixClientInitializationException.DatabaseAccessException ->
-                        Failure.Database(i18n.createMatrixClientFailureDatabaseAccess())
-
-                    is ResponseException ->
-                        Failure.Connection(i18n.createMatrixClientFailureConnection(exception.message))
-
-                    else -> {
-                        log.warn(exception) { "unhandled exception: $exception" }
-                        Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
-                    }
-                }
+                        .getOrThrow()
+                        .userId
+                checkExisting(authProviderData, userId)
+                val matrixClient =
+                    matrixClientFactory.create(userId = userId, authProviderData = authProviderData).getOrThrow()
+                add(matrixClient)
+                matrixClient
             }
-        )
+            .fold(
+                onSuccess = { MatrixClients.CreateResult.Success },
+                onFailure = { exception ->
+                    when (exception) {
+                        is CancellationException -> throw exception
+                        is MatrixServerException ->
+                            when (exception.errorResponse) {
+                                ErrorResponse.Forbidden ->
+                                    Failure.InvalidAuthentication(i18n.createMatrixClientFailureInvalidAuthentication())
+                                ErrorResponse.UserDeactivated ->
+                                    Failure.UserDeactivated(i18n.createMatrixClientFailureUserDeactivated())
+                                else -> Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
+                            }
+
+                        is AccountAlreadyExistsException ->
+                            Failure.AccountAlreadyExists(i18n.createMatrixClientFailureAlreadyExists(exception.userId))
+
+                        is MatrixClientInitializationException.DatabaseLockedException ->
+                            Failure.Database(i18n.createMatrixClientFailureDatabaseLocked())
+
+                        is MatrixClientInitializationException.DatabaseAccessException ->
+                            Failure.Database(i18n.createMatrixClientFailureDatabaseAccess())
+
+                        is ResponseException ->
+                            Failure.Connection(i18n.createMatrixClientFailureConnection(exception.message))
+
+                        else -> {
+                            log.warn(exception) { "unhandled exception: $exception" }
+                            Failure.Unknown(i18n.createMatrixClientFailureUnknown(exception.message))
+                        }
+                    }
+                },
+            )
 
     private suspend fun checkExisting(authProviderData: MatrixClientAuthProviderData, userId: UserId) {
         if (value.containsKey(userId)) {
             log.debug { "account $userId already exist -> logout" }
-            authProviderData.useApi(
-                httpClientConfig = config.httpClientConfig,
-                httpClientEngine = config.httpClientEngine,
-            ) {
-                it.authentication.logout()
-            }
+            authProviderData
+                .useApi(httpClientConfig = config.httpClientConfig, httpClientEngine = config.httpClientEngine) {
+                    it.authentication.logout()
+                }
                 .onFailure { log.error(it) { "could not logout of duplicate account" } }
                 .getOrNull()
             throw AccountAlreadyExistsException(userId)
@@ -182,10 +194,8 @@ class MatrixClientsImpl(
             }
         settings.create(
             userId = matrixClient.userId,
-            settings = MatrixMessengerAccountSettingsBase.withConfigDefaults(
-                displayColor = displayColor,
-                config = config
-            )
+            settings =
+                MatrixMessengerAccountSettingsBase.withConfigDefaults(displayColor = displayColor, config = config),
         )
         if (settings.value.base.accounts.size == 1) { // if first account, set as the active account
             settings.update<MatrixMessengerSettingsBase> { it.copy(selectedAccount = matrixClient.userId) }
@@ -198,40 +208,40 @@ class MatrixClientsImpl(
     private val _isInitialized: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
 
-    internal suspend fun initFromStore(): InitFromStoreResult =
-        coroutineScope {
-            val success = MutableStateFlow(setOf<UserId>())
-            val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
-            val newMatrixClients = settings.value.base.accounts.keys.map { account ->
-                async {
-                    if (matrixClients.value[account] == null) {
-                        val newMatrixClient =
-                            runCatching {
-                                matrixClientFactory.load(
-                                    userId = account,
-                                ).getOrThrow()
-                            }.onSuccess {
-                                success.update { it + account }
-                            }.onFailure { e ->
-                                log.error(e) { "could not load $account from store" }
-                                val failure = when (e) {
-                                    is CancellationException -> throw e
-                                    is MatrixClientInitializationException -> e
-                                    else -> MatrixClientInitializationException.Unknown(e.message)
-                                }
-                                failures.update { it + (account to failure) }
-                            }.getOrNull()
-                        if (newMatrixClient != null) account to newMatrixClient
-                        else null
-                    } else null
+    internal suspend fun initFromStore(): InitFromStoreResult = coroutineScope {
+        val success = MutableStateFlow(setOf<UserId>())
+        val failures = MutableStateFlow(mapOf<UserId, MatrixClientInitializationException>())
+        val newMatrixClients =
+            settings.value.base.accounts.keys
+                .map { account ->
+                    async {
+                        if (matrixClients.value[account] == null) {
+                            val newMatrixClient =
+                                runCatching { matrixClientFactory.load(userId = account).getOrThrow() }
+                                    .onSuccess { success.update { it + account } }
+                                    .onFailure { e ->
+                                        log.error(e) { "could not load $account from store" }
+                                        val failure =
+                                            when (e) {
+                                                is CancellationException -> throw e
+                                                is MatrixClientInitializationException -> e
+                                                else -> MatrixClientInitializationException.Unknown(e.message)
+                                            }
+                                        failures.update { it + (account to failure) }
+                                    }
+                                    .getOrNull()
+                            if (newMatrixClient != null) account to newMatrixClient else null
+                        } else null
+                    }
                 }
-            }.awaitAll().filterNotNull()
-            matrixClients.update { it + newMatrixClients }
-            val result = InitFromStoreResult(success = success.value, failures = failures.value)
-            _initFromStoreResult.value = result
-            _isInitialized.value = true
-            result
-        }
+                .awaitAll()
+                .filterNotNull()
+        matrixClients.update { it + newMatrixClients }
+        val result = InitFromStoreResult(success = success.value, failures = failures.value)
+        _initFromStoreResult.value = result
+        _isInitialized.value = true
+        result
+    }
 
     override suspend fun logout(userId: UserId): Result<Unit> {
         log.info { "logout (userId=$userId)" }
@@ -239,32 +249,31 @@ class MatrixClientsImpl(
             withContext(NonCancellable) {
                 // If we fail to log out, we do not want to just blindly remove the userID,
                 // because that likely fails as well. Callers know better how to handle the situation.
-                // (see trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/connecting/RemoveMatrixAccountViewModel.kt)
+                // (see
+                // trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/connecting/RemoveMatrixAccountViewModel.kt)
                 // If we succeed to log out, we try to remove the userid and transparently bubble the
                 // result.
-                matrixClient.logout().fold(
-                    onSuccess = { remove(userId) },
-                    onFailure = { remove(userId) }
-                )
+                matrixClient.logout().fold(onSuccess = { remove(userId) }, onFailure = { remove(userId) })
             }
         } ?: Result.success(Unit)
     }
 
-    override suspend fun remove(userId: UserId): Result<Unit> = kotlin.runCatching {
-        withContext(NonCancellable) {
-            log.info { "delete account data on this machine" }
-            val matrixClient = matrixClients.value[userId]
-            matrixClient?.closeSuspending()
+    override suspend fun remove(userId: UserId): Result<Unit> =
+        kotlin
+            .runCatching {
+                withContext(NonCancellable) {
+                    log.info { "delete account data on this machine" }
+                    val matrixClient = matrixClients.value[userId]
+                    matrixClient?.closeSuspending()
 
-            settings.delete(userId)
-            matrixClients.update { it - userId }
-            secretByteArrays.deleteDatabaseKey(userId)
-            deleteAccountData(userId)
-            _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
-        }
-    }.onFailure {
-        log.warn(it) { "failed to remove user data fro $userId" }
-    }
+                    settings.delete(userId)
+                    matrixClients.update { it - userId }
+                    secretByteArrays.deleteDatabaseKey(userId)
+                    deleteAccountData(userId)
+                    _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
+                }
+            }
+            .onFailure { log.warn(it) { "failed to remove user data fro $userId" } }
 
     override fun close() {
         value.values.forEach { it.close() }
@@ -274,19 +283,16 @@ class MatrixClientsImpl(
 @Serializable
 sealed interface MatrixClientInitializationException {
     @Serializable
-    data class DatabaseAccessException(override val message: String? = null) : MatrixClientInitializationException,
-        RuntimeException(message)
+    data class DatabaseAccessException(override val message: String? = null) :
+        MatrixClientInitializationException, RuntimeException(message)
 
     @Serializable
-    data class DatabaseLockedException(override val message: String? = null) : MatrixClientInitializationException,
-        RuntimeException(message)
+    data class DatabaseLockedException(override val message: String? = null) :
+        MatrixClientInitializationException, RuntimeException(message)
 
     @Serializable
-    data class Unknown(override val message: String? = null) : MatrixClientInitializationException,
-        RuntimeException(message)
+    data class Unknown(override val message: String? = null) :
+        MatrixClientInitializationException, RuntimeException(message)
 }
 
-private fun InitFromStoreResult.remove(id: UserId) = copy(
-    success = success.minus(id),
-    failures = failures.minus(id)
-)
+private fun InitFromStoreResult.remove(id: UserId) = copy(success = success.minus(id), failures = failures.minus(id))

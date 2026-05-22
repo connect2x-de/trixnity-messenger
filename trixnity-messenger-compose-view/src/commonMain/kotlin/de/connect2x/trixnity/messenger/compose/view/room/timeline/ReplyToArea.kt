@@ -29,8 +29,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
 
 interface ReplyToAreaView {
-    @Composable
-    fun ColumnScope.create(inputAreaViewModel: InputAreaViewModel)
+    @Composable fun ColumnScope.create(inputAreaViewModel: InputAreaViewModel)
 }
 
 @Composable
@@ -40,9 +39,7 @@ fun ColumnScope.ReplyToArea(inputAreaViewModel: InputAreaViewModel) {
 
 class ReplyToAreaViewImpl : ReplyToAreaView {
     @Composable
-    override fun ColumnScope.create(
-        inputAreaViewModel: InputAreaViewModel,
-    ) {
+    override fun ColumnScope.create(inputAreaViewModel: InputAreaViewModel) {
         val i18n = DI.get<I18nView>()
         val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
         val repliedElementHolder = inputAreaViewModel.repliedElement.collectAsState().value
@@ -53,15 +50,12 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                 Row(
                     Modifier.padding(top = 8.dp, end = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.Reply,
                         i18n.replyTo(),
-                        modifier = Modifier.padding(
-                            start = 14.dp,
-                            end = 10.dp,
-                        ),
+                        modifier = Modifier.padding(start = 14.dp, end = 10.dp),
                     )
 
                     Box(Modifier.weight(1f, fill = true)) {
@@ -70,9 +64,7 @@ class ReplyToAreaViewImpl : ReplyToAreaView {
                         }
                     }
 
-                    Tooltip(
-                        tooltip = { Text(i18n.replyToCancel()) }
-                    ) {
+                    Tooltip(tooltip = { Text(i18n.replyToCancel()) }) {
                         ThemedIconButton(
                             style = MaterialTheme.components.commonIconButton,
                             onClick = { inputAreaViewModel.cancelReply() },

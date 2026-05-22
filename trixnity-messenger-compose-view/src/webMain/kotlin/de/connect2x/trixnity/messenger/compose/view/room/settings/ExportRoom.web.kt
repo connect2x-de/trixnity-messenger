@@ -10,9 +10,7 @@ import kotlin.uuid.ExperimentalUuidApi
 @Composable
 internal actual fun SelectExportDestination(
     properties: FileBasedExportRoomProperties?,
-    result: (Destination?) -> Unit
+    result: (Destination?) -> Unit,
 ) {
-    LaunchedEffect(result) {
-        result(Destination())
-    }
+    LaunchedEffect(result) { result(Destination()) }
 }

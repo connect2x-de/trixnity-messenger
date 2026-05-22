@@ -1,7 +1,3 @@
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.logging.Logger
-import org.gradle.api.services.BuildService
-import org.gradle.api.services.BuildServiceParameters
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -9,6 +5,10 @@ import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
 import kotlin.io.path.deleteExisting
 import kotlin.io.path.deleteRecursively
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.logging.Logger
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
 
 interface UITestInfraServiceParams : BuildServiceParameters {
     val projectDir: DirectoryProperty
@@ -39,12 +39,7 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
     }
 
     private fun synapseNotRunning(): Boolean {
-        val startDocker = ProcessBuilder(
-            "docker",
-            "ps",
-        )
-            .redirectErrorStream(true)
-            .start()
+        val startDocker = ProcessBuilder("docker", "ps").redirectErrorStream(true).start()
         val output: String?
         startDocker.inputStream.use { `is` ->
             ByteArrayOutputStream().use { baos ->
@@ -60,17 +55,18 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
     }
 
     private fun startSynapse(dir: File) {
-        val startDocker = ProcessBuilder(
-            "docker",
-            "compose",
-            "-f",
-            "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
-            *ciEnv(dir),
-            "up",
-            "-d"
-        )
-            .redirectErrorStream(true)
-            .start()
+        val startDocker =
+            ProcessBuilder(
+                    "docker",
+                    "compose",
+                    "-f",
+                    "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
+                    *ciEnv(dir),
+                    "up",
+                    "-d",
+                )
+                .redirectErrorStream(true)
+                .start()
         streamLogs(startDocker)
         val exitCodeDocker = startDocker.waitFor()
         if (exitCodeDocker != 0) {
@@ -79,11 +75,8 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
     }
 
     private fun createAdmin(dir: File) {
-        val addUsersBuilder = ProcessBuilder(
-            "bash",
-            "$dir/src/commonTest/resources/localInfra/createAdmin.sh"
-        )
-            .redirectErrorStream(true)
+        val addUsersBuilder =
+            ProcessBuilder("bash", "$dir/src/commonTest/resources/localInfra/createAdmin.sh").redirectErrorStream(true)
         addUsersBuilder.directory(File("$dir/src/commonTest/resources/localInfra"))
         val addUsers = addUsersBuilder.start()
         streamLogs(addUsers)
@@ -99,16 +92,17 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
     }
 
     private fun stopSynapse(dir: File) {
-        val stopDocker = ProcessBuilder(
-            "docker",
-            "compose",
-            "-f",
-            "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
-            *ciEnv(dir),
-            "down"
-        )
-            .redirectErrorStream(true)
-            .start()
+        val stopDocker =
+            ProcessBuilder(
+                    "docker",
+                    "compose",
+                    "-f",
+                    "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
+                    *ciEnv(dir),
+                    "down",
+                )
+                .redirectErrorStream(true)
+                .start()
         streamLogs(stopDocker)
         val exitCodeDocker = stopDocker.waitFor()
         if (exitCodeDocker != 0) {
@@ -128,12 +122,13 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
 
     private fun streamLogs(process: Process) {
         Thread {
-            process.inputStream.bufferedReader().useLines {
-                it.forEach { line -> logger?.lifecycle("[infra] $line") }
+                process.inputStream.bufferedReader().useLines {
+                    it.forEach { line -> logger?.lifecycle("[infra] $line") }
+                }
             }
-        }.apply {
-            isDaemon = true
-            start()
-        }
+            .apply {
+                isDaemon = true
+                start()
+            }
     }
 }

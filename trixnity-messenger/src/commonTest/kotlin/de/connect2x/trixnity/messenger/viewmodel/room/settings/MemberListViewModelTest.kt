@@ -38,6 +38,10 @@ import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,10 +51,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 class MemberListViewModelTest {
     private val roomId = RoomId("!room")
@@ -59,29 +59,49 @@ class MemberListViewModelTest {
     private val alice = UserId("alice", "localhost")
     private val bob = UserId("bob", "localhost")
 
-    private val roomUserMeFlow = MutableStateFlow(
-        RoomUser(
-            roomId, me, "User1", StateEvent(
-                MemberEventContent(membership = Membership.JOIN), EventId(""), me, roomId, 0L, stateKey = ""
+    private val roomUserMeFlow =
+        MutableStateFlow(
+            RoomUser(
+                roomId,
+                me,
+                "User1",
+                StateEvent(MemberEventContent(membership = Membership.JOIN), EventId(""), me, roomId, 0L, stateKey = ""),
             )
         )
-    )
 
-    private val roomUserAliceFlow = MutableStateFlow(
-        RoomUser(
-            roomId, alice, "Alice", StateEvent(
-                MemberEventContent(membership = Membership.JOIN), EventId(""), alice, roomId, 0L, stateKey = ""
+    private val roomUserAliceFlow =
+        MutableStateFlow(
+            RoomUser(
+                roomId,
+                alice,
+                "Alice",
+                StateEvent(
+                    MemberEventContent(membership = Membership.JOIN),
+                    EventId(""),
+                    alice,
+                    roomId,
+                    0L,
+                    stateKey = "",
+                ),
             )
         )
-    )
 
-    private val roomUserBobFlow = MutableStateFlow(
-        RoomUser(
-            roomId, bob, "Bob", StateEvent(
-                MemberEventContent(membership = Membership.JOIN), EventId(""), bob, roomId, 0L, stateKey = ""
+    private val roomUserBobFlow =
+        MutableStateFlow(
+            RoomUser(
+                roomId,
+                bob,
+                "Bob",
+                StateEvent(
+                    MemberEventContent(membership = Membership.JOIN),
+                    EventId(""),
+                    bob,
+                    roomId,
+                    0L,
+                    stateKey = "",
+                ),
             )
         )
-    )
 
     private val roomUserMapFlow = MutableStateFlow(mapOf<UserId, MutableStateFlow<RoomUser>>())
 
@@ -99,11 +119,7 @@ class MemberListViewModelTest {
 
     init {
         roomUserMapFlow.value = emptyMap()
-        roomUserMapFlow.value = mapOf(
-            me to roomUserMeFlow,
-            alice to roomUserAliceFlow,
-            bob to roomUserBobFlow,
-        )
+        roomUserMapFlow.value = mapOf(me to roomUserMeFlow, alice to roomUserAliceFlow, bob to roomUserBobFlow)
 
         resetMocks(
             matrixClientMock,
@@ -111,16 +127,19 @@ class MemberListViewModelTest {
             userServiceMock,
             keyServiceMock,
             matrixClientServerApiMock,
-            roomsApiClientMock
+            roomsApiClientMock,
         )
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                    single { userServiceMock }
-                    single { keyServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { userServiceMock }
+                            single { keyServiceMock }
+                        }
+                    )
+                }
+                .koin
 
         every { matrixClientMock.syncState } returns MutableStateFlow(SyncState.RUNNING)
 
@@ -130,9 +149,7 @@ class MemberListViewModelTest {
 
         every { matrixClientMock.userId } returns me
 
-        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(
-            Room(isDirect = true, roomId = roomId)
-        )
+        every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(isDirect = true, roomId = roomId))
 
         every { userServiceMock.getAll(roomId) } returns roomUserMapFlow
         every { userServiceMock.canKickUser(roomId, any()) } returns MutableStateFlow(true)
@@ -145,30 +162,28 @@ class MemberListViewModelTest {
         every { userServiceMock.getById(roomId, alice) } returns roomUserAliceFlow
         every { userServiceMock.getById(roomId, bob) } returns roomUserBobFlow
         every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(1))
-        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns flowOf(
-            IgnoredUserListEventContent(emptyMap())
-        )
+        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns
+            flowOf(IgnoredUserListEventContent(emptyMap()))
 
-        everySuspend { roomsApiClientMock.banUser(roomId, any(), any()) } calls {
-            val userId = (it.args[1] as UserId)
-            val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
-            setMemberEventContentOf(
-                roomUserFlow, MemberEventContent(
-                    membership = Membership.BAN, reason = it.args[2] as String
+        everySuspend { roomsApiClientMock.banUser(roomId, any(), any()) } calls
+            {
+                val userId = (it.args[1] as UserId)
+                val roomUserFlow = userServiceMock.getById(roomId, userId) as MutableStateFlow<RoomUser?>
+                setMemberEventContentOf(
+                    roomUserFlow,
+                    MemberEventContent(membership = Membership.BAN, reason = it.args[2] as String),
                 )
-            )
-            Result.success(Unit)
-        }
-        everySuspend { roomsApiClientMock.unbanUser(roomId, any(), any()) } calls {
-            val userId = (it.args[1] as UserId)
-            roomUserMapFlow.value -= userId
-            Result.success(Unit)
-        }
+                Result.success(Unit)
+            }
+        everySuspend { roomsApiClientMock.unbanUser(roomId, any(), any()) } calls
+            {
+                val userId = (it.args[1] as UserId)
+                roomUserMapFlow.value -= userId
+                Result.success(Unit)
+            }
 
         every { keyServiceMock.getTrustLevel(any()) } returns flowOf(UserTrustLevel.Blocked)
-        every { userServiceMock.getPresence(any()) } returns flowOf(
-            UserPresence(Presence.OFFLINE, Clock.System.now())
-        )
+        every { userServiceMock.getPresence(any()) } returns flowOf(UserPresence(Presence.OFFLINE, Clock.System.now()))
 
         setupAliceBobMe()
     }
@@ -182,57 +197,40 @@ class MemberListViewModelTest {
         val powerLevelsEventContent = PowerLevelsEventContent(users = mapOf(alice to 100, bob to 50, me to 1))
         val createEventContent = CreateEventContent()
 
-        val powerLevelEvent = StateEvent(
-            powerLevelsEventContent,
-            EventId("I'm an EventId"),
-            sender = bob,
-            originTimestamp = 123,
-            roomId = roomId,
-            stateKey = ""
-        )
-        val createEvent = StateEvent(
-            createEventContent,
-            EventId("I'm an EventId too"),
-            sender = bob,
-            originTimestamp = 122,
-            roomId = roomId,
-            stateKey = ""
-        )
+        val powerLevelEvent =
+            StateEvent(
+                powerLevelsEventContent,
+                EventId("I'm an EventId"),
+                sender = bob,
+                originTimestamp = 123,
+                roomId = roomId,
+                stateKey = "",
+            )
+        val createEvent =
+            StateEvent(
+                createEventContent,
+                EventId("I'm an EventId too"),
+                sender = bob,
+                originTimestamp = 122,
+                roomId = roomId,
+                stateKey = "",
+            )
+
+        every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns
+            MutableStateFlow(powerLevelEvent)
+
+        every { roomServiceMock.getState(roomId, CreateEventContent::class, "") } returns MutableStateFlow(createEvent)
 
         every {
-            roomServiceMock.getState(
-                roomId, PowerLevelsEventContent::class, ""
-            )
-        } returns MutableStateFlow(powerLevelEvent)
-
-        every {
-            roomServiceMock.getState(
-                roomId, CreateEventContent::class, ""
-            )
-        } returns MutableStateFlow(createEvent)
-
-        every {
-            userServiceMock.getPowerLevel(
-                alice,
-                createEvent,
-                powerLevelsEventContent = powerLevelsEventContent,
-            )
+            userServiceMock.getPowerLevel(alice, createEvent, powerLevelsEventContent = powerLevelsEventContent)
         } returns PowerLevel.User(100)
 
         every {
-            userServiceMock.getPowerLevel(
-                bob,
-                createEvent,
-                powerLevelsEventContent = powerLevelsEventContent,
-            )
+            userServiceMock.getPowerLevel(bob, createEvent, powerLevelsEventContent = powerLevelsEventContent)
         } returns PowerLevel.User(50)
 
         every {
-            userServiceMock.getPowerLevel(
-                me,
-                createEvent,
-                powerLevelsEventContent = powerLevelsEventContent,
-            )
+            userServiceMock.getPowerLevel(me, createEvent, powerLevelsEventContent = powerLevelsEventContent)
         } returns PowerLevel.User(1)
     }
 
@@ -240,24 +238,17 @@ class MemberListViewModelTest {
     fun `create List of sorted MemberListElementViewModels after initiation and subscription`() = runTest {
         val cut = memberListViewModel()
 
-        eventually(2.seconds) {
-            cut.elements.value.size shouldBe 3
-        }
+        eventually(2.seconds) { cut.elements.value.size shouldBe 3 }
 
         eventually(2.seconds) {
-            cut.elements.value should containSortedMemberListElementViewModelsFor(
-                listOf(alice, bob, me)
-            )
+            cut.elements.value should containSortedMemberListElementViewModelsFor(listOf(alice, bob, me))
         }
     }
 
     @Test
     fun `Calculate membership amounts in a Room with 3 joined Members`() = runTest {
-        val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
-            alices = Membership.JOIN,
-            bobs = Membership.JOIN,
-            mine = Membership.JOIN,
-        )
+        val (roomAlice, roomBob, roomMe) =
+            setMembershipsAndGetRoomUsers(alices = Membership.JOIN, bobs = Membership.JOIN, mine = Membership.JOIN)
 
         delay(2.seconds)
 
@@ -280,11 +271,8 @@ class MemberListViewModelTest {
 
     @Test
     fun `Calculate membership amounts in a Room containing 1 banned and 2 joined Members`() = runTest {
-        val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
-            alices = Membership.JOIN,
-            bobs = Membership.JOIN,
-            mine = Membership.BAN,
-        )
+        val (roomAlice, roomBob, roomMe) =
+            setMembershipsAndGetRoomUsers(alices = Membership.JOIN, bobs = Membership.JOIN, mine = Membership.BAN)
         eventually(2.seconds) {
             requireNotNull(roomAlice.value).membership shouldBe Membership.JOIN
             requireNotNull(roomBob.value).membership shouldBe Membership.JOIN
@@ -304,11 +292,8 @@ class MemberListViewModelTest {
 
     @Test
     fun `Calculate membership amounts in a Room containing 1 left and 2 knocking Members`() = runTest {
-        val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
-            alices = Membership.KNOCK,
-            bobs = Membership.KNOCK,
-            mine = Membership.LEAVE,
-        )
+        val (roomAlice, roomBob, roomMe) =
+            setMembershipsAndGetRoomUsers(alices = Membership.KNOCK, bobs = Membership.KNOCK, mine = Membership.LEAVE)
 
         eventually(2.seconds) {
             requireNotNull(roomAlice.value).membership shouldBe Membership.KNOCK
@@ -329,11 +314,8 @@ class MemberListViewModelTest {
 
     @Test
     fun `Calculate membership amounts in a Room containing 1 joined and 2 invited Members`() = runTest {
-        val (roomAlice, roomBob, roomMe) = setMembershipsAndGetRoomUsers(
-            alices = Membership.INVITE,
-            bobs = Membership.INVITE,
-            mine = Membership.JOIN,
-        )
+        val (roomAlice, roomBob, roomMe) =
+            setMembershipsAndGetRoomUsers(alices = Membership.INVITE, bobs = Membership.INVITE, mine = Membership.JOIN)
 
         delay(2.seconds)
 
@@ -353,7 +335,9 @@ class MemberListViewModelTest {
     }
 
     private fun setMembershipsAndGetRoomUsers(
-        alices: Membership, bobs: Membership, mine: Membership
+        alices: Membership,
+        bobs: Membership,
+        mine: Membership,
     ): Triple<StateFlow<RoomUser?>, StateFlow<RoomUser?>, StateFlow<RoomUser?>> {
         val roomAlice = userServiceMock.getById(roomId, alice) as MutableStateFlow<RoomUser?>
         setMemberEventContentOf(roomAlice, MemberEventContent(membership = alices))
@@ -368,50 +352,62 @@ class MemberListViewModelTest {
     }
 
     private fun setMemberEventContentOf(roomUser: MutableStateFlow<RoomUser?>, eventContent: MemberEventContent) {
-        roomUser.value = requireNotNull(roomUser.value).copy(
-            event = StateEvent(
-                eventContent, EventId(""), requireNotNull(roomUser.value).userId, roomId, 0, stateKey = ""
-            )
-        )
+        roomUser.value =
+            requireNotNull(roomUser.value)
+                .copy(
+                    event =
+                        StateEvent(
+                            eventContent,
+                            EventId(""),
+                            requireNotNull(roomUser.value).userId,
+                            roomId,
+                            0,
+                            stateKey = "",
+                        )
+                )
     }
 
     private fun containSortedMemberListElementViewModelsFor(userIds: List<UserId>) =
         Matcher<List<MemberListElementViewModel>> { resultList ->
-            MatcherResult(userIds.foldIndexed(true) { index, acc, userId ->
-                val vm = resultList.getOrElse(index) { null }
-                acc && (vm?.memberUserId == userId)
-            }, {
-                "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
-                    acc + vm.memberUserId
-                }
-            }, {
-                "Expecting: $userIds\nbut was:   " + resultList.fold(listOf<UserId>()) { acc, vm ->
-                    acc + vm.memberUserId
-                }
-            })
+            MatcherResult(
+                userIds.foldIndexed(true) { index, acc, userId ->
+                    val vm = resultList.getOrElse(index) { null }
+                    acc && (vm?.memberUserId == userId)
+                },
+                {
+                    "Expecting: $userIds\nbut was:   " +
+                        resultList.fold(listOf<UserId>()) { acc, vm -> acc + vm.memberUserId }
+                },
+                {
+                    "Expecting: $userIds\nbut was:   " +
+                        resultList.fold(listOf<UserId>()) { acc, vm -> acc + vm.memberUserId }
+                },
+            )
         }
-
 
     private fun TestScope.memberListViewModel(): MemberListViewModelImpl {
         return MemberListViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        ),
-                    )
-                }.koin,
-                userId = UserId("test", "server"),
-            ), selectedRoomId = roomId, onOpenUserProfile = mock(), error = MutableStateFlow("")
-        ).also {
-            backgroundScope.launch {
-                it.elements.collect { }
-            }
+                viewModelContext =
+                    testMatrixClientViewModelContext(
+                        di =
+                            koinApplication {
+                                    modules(
+                                        createTestDefaultTrixnityMessengerModules(
+                                            mapOf(UserId("test", "server") to matrixClientMock)
+                                        )
+                                    )
+                                }
+                                .koin,
+                        userId = UserId("test", "server"),
+                    ),
+                selectedRoomId = roomId,
+                onOpenUserProfile = mock(),
+                error = MutableStateFlow(""),
+            )
+            .also {
+                backgroundScope.launch { it.elements.collect {} }
 
-            backgroundScope.launch {
-                it.membershipCounts.collect { }
+                backgroundScope.launch { it.membershipCounts.collect {} }
             }
-        }
     }
 }

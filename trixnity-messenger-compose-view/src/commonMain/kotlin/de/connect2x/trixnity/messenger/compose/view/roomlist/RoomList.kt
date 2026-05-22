@@ -22,16 +22,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.collectionInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAny
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
@@ -50,8 +49,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListKt")
 
 interface RoomListView {
-    @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    @Composable fun create(roomListViewModel: RoomListViewModel)
 }
 
 @Composable
@@ -84,7 +82,7 @@ class RoomListViewImpl : RoomListView {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Chat,
                                     i18n.accountCreateNewRoom(),
-                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                                    modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
                                 )
                                 Spacer(Modifier.size(MaterialTheme.components.primaryButton.iconSpacing))
                                 Text(i18n.roomListCreateRoom())
@@ -94,48 +92,46 @@ class RoomListViewImpl : RoomListView {
                 }
             } else if (searchResultsEmpty) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(Modifier.padding(horizontal = 20.dp)) {
-                        Text(i18n.roomListNoSearchResults())
-                    }
+                    Column(Modifier.padding(horizontal = 20.dp)) { Text(i18n.roomListNoSearchResults()) }
                 }
             } else {
-                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState()
-
-                var selectedId by remember {
-                    mutableStateOf(selectedRoomId.value ?: allRoomState.value.firstOrNull()?.roomId)
-                }
+                val selectedRoomId = roomListViewModel.selectedRoomId.collectAsState().value
+                val focusedItem =
+                    remember(selectedRoomId, allRooms) {
+                        mutableStateOf(
+                            if (selectedRoomId != null && allRooms.fastAny { it.roomId == selectedRoomId }) {
+                                selectedRoomId.full
+                            } else {
+                                allRooms.firstOrNull()?.roomId?.full
+                            }
+                        )
+                    }
                 LazyColumn(
-                    Modifier
-                        .fillMaxSize()
-                        .rovingFocusContainer()
+                    Modifier.fillMaxSize()
+                        .rovingFocusContainer(
+                            listState = state,
+                            focusedItem = focusedItem,
+                            ignoredKeys = listOf("Spacer"),
+                        )
                         .semantics { collectionInfo = CollectionInfo(rowCount = allRooms.size, columnCount = 0) },
                     state,
                 ) {
                     itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
                         Box(
                             Modifier.rovingFocusItem(
-                                isFocused = roomListElement.roomId == selectedId,
-                                onFocus = { selectedId = roomListElement.roomId })
-                        ) {
-                            RoomListElementContainer(
-                                roomListElement.roomId,
-                                roomListViewModel,
-                                roomListElement,
-                                index,
+                                isFocused = { focusedItem.value == roomListElement.roomId.full },
+                                onFocus = { focusedItem.value = roomListElement.roomId.full },
                             )
+                        ) {
+                            RoomListElementContainer(roomListElement.roomId, roomListViewModel, roomListElement, index)
                         }
-
                     }
-                    item {
+                    item("Spacer") {
                         Spacer(Modifier.fillMaxWidth().height(MaterialTheme.components.floatingActionButton.size * 2))
                     }
                 }
             }
-            VerticalScrollbar(
-                Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                state,
-                false,
-            )
+            VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), state, false)
             CreateRoomFloatingButton(roomListViewModel)
         }
 
@@ -150,7 +146,6 @@ class RoomListViewImpl : RoomListView {
         }
     }
 }
-
 
 @Composable
 fun BoxScope.CreateRoomFloatingButton(roomListViewModel: RoomListViewModel) {

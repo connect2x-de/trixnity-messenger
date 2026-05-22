@@ -10,9 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 
@@ -20,8 +18,8 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 fun CopyToClipboardButton(
     value: String,
     tooltip: String,
-    icon:  @Composable () -> Unit = {Icon(Icons.Default.CopyAll, tooltip)}
-){
+    icon: @Composable () -> Unit = { Icon(Icons.Default.CopyAll, tooltip) },
+) {
     @Suppress("DEPRECATION") // TODO: New clipboard API is not usable from common code, fix this eventually..
     val clipboard = LocalClipboardManager.current
 
@@ -29,7 +27,7 @@ fun CopyToClipboardButton(
         ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
             onClick = { clipboard.setText(AnnotatedString(value)) },
-            content = icon
+            content = icon,
         )
     }
 }

@@ -45,9 +45,12 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
     private val matrixMultiMessengerServiceConnection: MatrixMultiMessengerServiceConnection =
         MatrixMultiMessengerServiceConnection()
     private val coroutineScope: CoroutineScope =
-        CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, exception ->
-            log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
-        })
+        CoroutineScope(
+            Dispatchers.Default +
+                CoroutineExceptionHandler { _, exception ->
+                    log.error(exception) { "Exception in MatrixMultiMessengerActivity coroutine" }
+                }
+        )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,13 +66,10 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
         val componentContext = defaultComponentContext()
 
         coroutineScope.launch {
-            val matrixMultiMessenger =
-                matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
+            val matrixMultiMessenger = matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             matrixMultiMessenger.defaultActivityGetter { this@MatrixMultiMessengerActivity }
             val backHandler = matrixMultiMessenger.di.get<BackHandler>()
-            onBackPressedDispatcher.addCallback {
-                backHandler.goBack()
-            }
+            onBackPressedDispatcher.addCallback { backHandler.goBack() }
             withContext(Dispatchers.Main) {
                 setContent {
                     WithProfileSelection(
@@ -78,18 +78,20 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                         activeMessengerOnce = { _, _ -> },
                         activeMessenger = { matrixMessenger, rootViewModel ->
                             val isFocusHighlighting =
-                                matrixMessenger.di.get<MatrixMessengerSettingsHolder>()
-                                    .collectAsState().value.base.isFocusHighlighting
+                                matrixMessenger.di
+                                    .get<MatrixMessengerSettingsHolder>()
+                                    .collectAsState()
+                                    .value
+                                    .base
+                                    .isFocusHighlighting
                             CompositionLocalProvider(
                                 Platform provides PlatformType.ANDROID,
                                 DI provides matrixMessenger.di,
                                 IsFocusHighlighting provides isFocusHighlighting,
                             ) {
-                                MessengerTheme {
-                                    Client(rootViewModel)
-                                }
+                                MessengerTheme { Client(rootViewModel) }
                             }
-                        }
+                        },
                     ) {
                         val showProfileCreation = remember { mutableStateOf(false) }
                         CompositionLocalProvider(
@@ -98,9 +100,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                             ShowProfileCreation provides showProfileCreation,
                             IsFocusHighlighting provides false,
                         ) {
-                            MessengerTheme {
-                                Profiles()
-                            }
+                            MessengerTheme { Profiles() }
                         }
                     }
                 }
@@ -144,9 +144,7 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
         coroutineScope.launch {
             val multiMessenger = matrixMultiMessengerServiceConnection.instance.filterNotNull().first()
             when (intent.action) {
-                Intent.ACTION_VIEW -> intent.data?.also {
-                    multiMessenger.defaultUriHandler.onUri(it)
-                }
+                Intent.ACTION_VIEW -> intent.data?.also { multiMessenger.defaultUriHandler.onUri(it) }
 
                 Intent.ACTION_SEND if intent.type == "text/plain" -> {
                     intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
@@ -167,12 +165,14 @@ class MatrixMultiMessengerActivity : AppCompatActivity() {
                     }
                 }
 
-                Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> intent.clipData?.let { clipData ->
-                    val i18n = multiMessenger.di.get<I18n>()
-                    multiMessenger.defaultSharedDataHandler.onShare(
-                        clipData.toList().let(SharedIntentData::SharedItems).toSharedData(applicationContext, i18n)
-                    )
-                }
+                Intent.ACTION_SEND,
+                Intent.ACTION_SEND_MULTIPLE ->
+                    intent.clipData?.let { clipData ->
+                        val i18n = multiMessenger.di.get<I18n>()
+                        multiMessenger.defaultSharedDataHandler.onShare(
+                            clipData.toList().let(SharedIntentData::SharedItems).toSharedData(applicationContext, i18n)
+                        )
+                    }
             }
         }
     }

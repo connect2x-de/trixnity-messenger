@@ -1,14 +1,14 @@
 package de.connect2x.trixnity.messenger.util
 
-import io.ktor.http.ContentType
 import de.connect2x.trixnity.utils.ByteArrayFlow
+import io.ktor.http.ContentType
 import org.koin.core.module.Module
 
 fun interface GetImageDimensions {
     suspend operator fun invoke(
         byteArrayFlow: ByteArrayFlow,
         maxMediaSize: Long,
-        mimeType: ContentType?
+        mimeType: ContentType?,
     ): Pair<Int?, Int?>
 }
 

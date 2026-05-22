@@ -23,9 +23,7 @@ internal fun TableCell(node: RichText.Block, context: RichTextContext) {
     when (node.tag) {
         "th" -> {
             CompositionLocalProvider(
-                LocalTextStyle provides LocalTextStyle.current.copy(
-                    fontWeight = FontWeight.Bold,
-                )
+                LocalTextStyle provides LocalTextStyle.current.copy(fontWeight = FontWeight.Bold)
             ) {
                 Column {
                     for (index in node.children.indices) {

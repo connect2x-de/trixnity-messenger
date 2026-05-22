@@ -20,8 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountStat
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 
 interface SSOLoginView {
-    @Composable
-    fun create(ssoLoginViewModel: SSOLoginViewModel)
+    @Composable fun create(ssoLoginViewModel: SSOLoginViewModel)
 }
 
 @Composable
@@ -44,13 +43,10 @@ class SSOLoginViewImpl : SSOLoginView {
         Box(Modifier.defaultMinSize(minHeight = 20.dp)) {
             when (state) {
                 AddMatrixAccountState.None -> {}
-                AddMatrixAccountState.Connecting -> ThemedProgressIndicator(
-                    Modifier.fillMaxWidth(),
-                    MaterialTheme.components.linearProgressIndicator
-                )
+                AddMatrixAccountState.Connecting ->
+                    ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
 
-                is AddMatrixAccountState.Failure ->
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
+                is AddMatrixAccountState.Failure -> Text(state.message, color = MaterialTheme.colorScheme.error)
 
                 AddMatrixAccountState.Success -> {}
             }

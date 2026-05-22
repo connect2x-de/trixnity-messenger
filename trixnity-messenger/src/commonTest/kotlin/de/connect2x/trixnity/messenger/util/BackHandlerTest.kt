@@ -2,9 +2,9 @@ package de.connect2x.trixnity.messenger.util
 
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
 
 class BackHandlerTest {
     @Test
@@ -12,9 +12,9 @@ class BackHandlerTest {
         val cut = BackHandlerImpl()
         val normalPriority = 0
         val higherPriority = 1
-        val firstCallback = BackCallback(normalPriority) { }
-        val secondCallback = BackCallback(higherPriority) { }
-        val thirdCallback = BackCallback(normalPriority) { }
+        val firstCallback = BackCallback(normalPriority) {}
+        val secondCallback = BackCallback(higherPriority) {}
+        val thirdCallback = BackCallback(normalPriority) {}
 
         cut.registerBackCallback(firstCallback)
         cut.stack shouldBeEqual listOf(firstCallback)

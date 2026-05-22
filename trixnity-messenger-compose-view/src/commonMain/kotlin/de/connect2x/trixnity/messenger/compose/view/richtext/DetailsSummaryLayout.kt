@@ -45,7 +45,7 @@ import de.connect2x.trixnity.messenger.compose.view.util.animateRotation
 fun DetailsSummaryLayout(
     interactionSource: MutableInteractionSource,
     summary: @Composable @UiComposable ColumnScope.() -> Unit,
-    details: @Composable @UiComposable ColumnScope.() -> Unit
+    details: @Composable @UiComposable ColumnScope.() -> Unit,
 ) {
     val expanded = remember { MutableTransitionState(false) }
     val transition = rememberTransition(expanded)
@@ -57,12 +57,12 @@ fun DetailsSummaryLayout(
             Surface(
                 tonalElevation = 4.dp,
                 shadowElevation = 2.dp,
-                modifier = Modifier
-                    .layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY)
-                    .clickable(interactionSource, LocalIndication.current) {
-                        expanded.targetState = !expanded.targetState
-                    }
-                    .buttonPointerModifier(),
+                modifier =
+                    Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.SUMMARY)
+                        .clickable(interactionSource, LocalIndication.current) {
+                            expanded.targetState = !expanded.targetState
+                        }
+                        .buttonPointerModifier(),
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 Row(
@@ -71,12 +71,8 @@ fun DetailsSummaryLayout(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     DisableSelection {
-                        CompositionLocalProvider(
-                            LocalTextStyle provides MaterialTheme.typography.titleSmall,
-                        ) {
-                            Column {
-                                summary()
-                            }
+                        CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleSmall) {
+                            Column { summary() }
                         }
                     }
                     Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
@@ -91,17 +87,11 @@ fun DetailsSummaryLayout(
             }
             transition.AnimatedContent(
                 Modifier.layoutId(DetailsSummaryMeasurePolicy.LayoutId.DETAILS),
-                transitionSpec = {
-                    fadeIn().plus(expandVertically())
-                        .togetherWith(fadeOut().plus(shrinkVertically()))
-                }
+                transitionSpec = { fadeIn().plus(expandVertically()).togetherWith(fadeOut().plus(shrinkVertically())) },
             ) { expanded ->
-                Column(
-                    Modifier.animatedDetailsModifier(expanded).padding(8.dp),
-                    content = details
-                )
+                Column(Modifier.animatedDetailsModifier(expanded).padding(8.dp), content = details)
             }
-        }
+        },
     )
 }
 
@@ -110,7 +100,5 @@ private fun Modifier.animatedDetailsModifier(expanded: Boolean) = layout { measu
     val placeable = measurable.measure(constraints)
     val width = placeable.width
     val height = if (expanded) placeable.height else 0
-    layout(width, height) {
-        if (expanded) placeable.place(0, 0)
-    }
+    layout(width, height) { if (expanded) placeable.place(0, 0) }
 }

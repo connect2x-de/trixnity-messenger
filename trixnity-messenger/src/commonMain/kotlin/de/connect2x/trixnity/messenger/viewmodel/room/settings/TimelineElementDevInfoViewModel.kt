@@ -38,6 +38,7 @@ interface TimelineElementDevInfoViewModel {
     val eventId: EventId
     val eventJson: StateFlow<String?>
     val decryptedEventJson: StateFlow<String?>
+
     fun back()
 }
 
@@ -49,41 +50,42 @@ class TimelineElementDevInfoViewModelImpl(
     private val onBack: () -> Unit,
 ) : TimelineElementDevInfoViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timelineEventEvent: SharedFlow<ClientEvent.RoomEvent<*>> =
-        matrixClient.room.getTimelineEvent(roomId, eventId)
+        matrixClient.room
+            .getTimelineEvent(roomId, eventId)
             .filterNotNull()
             .map { it.event }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
     private val timelineEventMergedEvent: SharedFlow<ClientEvent.RoomEvent<*>?> =
-        matrixClient.room.getTimelineEvent(roomId, eventId)
+        matrixClient.room
+            .getTimelineEvent(roomId, eventId)
             .map { it?.mergedEvent?.getOrNull() }
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
-    private val json = Json(matrixClient.di.get<Json>()) {
-        prettyPrint = true
-    }
+    private val json = Json(matrixClient.di.get<Json>()) { prettyPrint = true }
     override val eventJson: StateFlow<String?> =
-        timelineEventEvent.map { event ->
-            json.encodeToString(
-                json.serializersModule.getContextual(
-                    ClientEvent.RoomEvent::class
-                ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,
-                event
-            )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        timelineEventEvent
+            .map { event ->
+                json.encodeToString(
+                    json.serializersModule.getContextual(ClientEvent.RoomEvent::class)
+                        as SerializationStrategy<ClientEvent.RoomEvent<*>>,
+                    event,
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val decryptedEventJson: StateFlow<String?> =
-        timelineEventMergedEvent.filterNotNull().map { event ->
-            json.encodeToString(
-                json.serializersModule.getContextual(
-                    ClientEvent.RoomEvent::class
-                ) as SerializationStrategy<ClientEvent.RoomEvent<*>>,
-                event
-            )
-        }.stateIn(coroutineScope, WhileSubscribed(), null)
+        timelineEventMergedEvent
+            .filterNotNull()
+            .map { event ->
+                json.encodeToString(
+                    json.serializersModule.getContextual(ClientEvent.RoomEvent::class)
+                        as SerializationStrategy<ClientEvent.RoomEvent<*>>,
+                    event,
+                )
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val backCallback = BackCallback {
-        onBack()
-    }
+    private val backCallback = BackCallback { onBack() }
 
     init {
         registerBackCallback(backCallback)

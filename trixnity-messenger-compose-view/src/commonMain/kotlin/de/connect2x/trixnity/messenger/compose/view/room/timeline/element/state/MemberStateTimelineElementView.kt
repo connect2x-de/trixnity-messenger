@@ -14,9 +14,9 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.MemberStateTimelineElementViewModel
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlin.reflect.KClass
 
 interface MemberStateTimelineElementView : TimelineElementView<MemberStateTimelineElementViewModel>
 
@@ -35,9 +35,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
         element: MemberStateTimelineElementViewModel,
         index: Int,
     ) {
-        element.undecryptableHistoryInfo.collectAsState().value?.let {
-            HorizontalDividerWithText(it)
-        }
+        element.undecryptableHistoryInfo.collectAsState().value?.let { HorizontalDividerWithText(it) }
         StateElement(element)
     }
 
@@ -61,9 +59,7 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
@@ -78,16 +74,14 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: MemberStateTimelineElementViewModel
+        element: MemberStateTimelineElementViewModel,
     ): ClipEntry? = null
 
     @Composable

@@ -26,8 +26,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.verification.RedoSelfVerificationViewModel
 
 interface RedoSelfVerificationWizardView {
-    @Composable
-    fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel)
+    @Composable fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel)
 }
 
 @Composable
@@ -39,50 +38,47 @@ class RedoSelfVerificationWizardViewImpl : RedoSelfVerificationWizardView {
     @Composable
     override fun create(redoSelfVerificationViewModel: RedoSelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
-        val step = WizardStep(
-            id = "REDO_SELF_VERIFICATION_WIZARD",
-            title = { i18n.redoSelfVerificationTitle(redoSelfVerificationViewModel.userId) },
-            content = {
-                Column {
-                    Row(Modifier.padding(bottom = 10.dp)) {
-                        Icon(
-                            Icons.Default.Warning,
-                            i18n.commonWarning(),
-                            modifier = Modifier.padding(end = 10.dp),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                        Text(
-                            i18n.bootstrapRecoveryKeyAttention(),
-                            style = MaterialTheme.typography.titleMedium,
-                        )
+        val step =
+            WizardStep(
+                id = "REDO_SELF_VERIFICATION_WIZARD",
+                title = { i18n.redoSelfVerificationTitle(redoSelfVerificationViewModel.userId) },
+                content = {
+                    Column {
+                        Row(Modifier.padding(bottom = 10.dp)) {
+                            Icon(
+                                Icons.Default.Warning,
+                                i18n.commonWarning(),
+                                modifier = Modifier.padding(end = 10.dp),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                            Text(i18n.bootstrapRecoveryKeyAttention(), style = MaterialTheme.typography.titleMedium)
+                        }
+                        RunningText(i18n.redoSelfVerificationWarning1())
+                        RunningText(i18n.redoSelfVerificationWarning2())
+                        RunningText(i18n.redoSelfVerificationWarning3())
+                        Spacer(Modifier.size(10.dp))
+                        RunningText(i18n.redoSelfVerificationDoIt())
+                        RunningText(i18n.redoSelfVerificationDoItLater())
+                        Spacer(Modifier.size(20.dp))
                     }
-                    RunningText(i18n.redoSelfVerificationWarning1())
-                    RunningText(i18n.redoSelfVerificationWarning2())
-                    RunningText(i18n.redoSelfVerificationWarning3())
-                    Spacer(Modifier.size(10.dp))
-                    RunningText(i18n.redoSelfVerificationDoIt())
-                    RunningText(i18n.redoSelfVerificationDoItLater())
-                    Spacer(Modifier.size(20.dp))
-                }
-            },
-            additionalButton = {
-                CloseModalButton(
-                    redoSelfVerificationViewModel::close,
-                    i18n.redoSelfVerificationContinueWithoutVerification(),
-                )
-            },
-            nextButton = {
-                Custom {
-                    ThemedButton(
-                        style = MaterialTheme.components.primaryButton,
-                        onClick = redoSelfVerificationViewModel::startSelfVerification,
-                    ) {
-                        Text(i18n.redoSelfVerificationRedo())
+                },
+                additionalButton = {
+                    CloseModalButton(
+                        redoSelfVerificationViewModel::close,
+                        i18n.redoSelfVerificationContinueWithoutVerification(),
+                    )
+                },
+                nextButton = {
+                    Custom {
+                        ThemedButton(
+                            style = MaterialTheme.components.primaryButton,
+                            onClick = redoSelfVerificationViewModel::startSelfVerification,
+                        ) {
+                            Text(i18n.redoSelfVerificationRedo())
+                        }
                     }
-                }
-            }
-        )
+                },
+            )
         Wizard(listOf(step), wizardId = "RedoSelfVerificationWizard")
-
     }
 }

@@ -11,22 +11,22 @@ import com.arkivanov.essenty.lifecycle.Lifecycle
 import de.connect2x.lognity.api.context.Context
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.BackHandler
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.Koin
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
-import kotlin.coroutines.CoroutineContext
 
 interface ViewModelContext : KoinComponent, ComponentContext {
     data class Name(val name: String) : Context.Element {
@@ -35,9 +35,7 @@ interface ViewModelContext : KoinComponent, ComponentContext {
         override val key: Context.Key<*> = Key
     }
 
-    /**
-     * This should be used carefully, because it can lead to leaks when not used on the top level.
-     */
+    /** This should be used carefully, because it can lead to leaks when not used on the top level. */
     val coroutineScope: CoroutineScope
 
     val trixnityMessengerBackHandler: BackHandler
@@ -46,18 +44,19 @@ interface ViewModelContext : KoinComponent, ComponentContext {
 
     @Deprecated(
         "Don't use this, use trixnityMessengerBackHandler or registerBackCallback for lifecycle based callback registration",
-        replaceWith = ReplaceWith("trixnityMessengerBackHandler")
+        replaceWith = ReplaceWith("trixnityMessengerBackHandler"),
     )
     override val backHandler: com.arkivanov.essenty.backhandler.BackHandler
+
     fun childContext(key: String): ViewModelContext
+
     fun childContext(name: String, componentContext: ComponentContext): ViewModelContext
+
     fun childContext(key: String, userId: UserId): MatrixClientViewModelContext
 
     fun childContext(name: String, componentContext: ComponentContext, userId: UserId): MatrixClientViewModelContext
 
-    /**
-     * TODO This is just a temporary workaround until decompose allows to destroy children.
-     */
+    /** TODO This is just a temporary workaround until decompose allows to destroy children. */
     fun childContextWithOwnLifecycle(name: String, lifecycle: Lifecycle, userId: UserId): MatrixClientViewModelContext
 
     fun registerBackCallback(backCallback: BackCallback)
@@ -68,11 +67,10 @@ interface MatrixClientViewModelContext : ViewModelContext {
     val userId: UserId
 
     override fun childContext(key: String): MatrixClientViewModelContext
+
     override fun childContext(name: String, componentContext: ComponentContext): MatrixClientViewModelContext
 
-    /**
-     * TODO This is just a temporary workaround until decompose allows to destroy children.
-     */
+    /** TODO This is just a temporary workaround until decompose allows to destroy children. */
     fun childContextWithOwnLifecycle(name: String, lifecycle: Lifecycle): MatrixClientViewModelContext
 }
 
@@ -89,14 +87,13 @@ open class ViewModelContextImpl(
     private val di: Koin,
     componentContext: ComponentContext,
     protected val coroutineContext: CoroutineContext = Dispatchers.Default,
-    protected val name: String
+    protected val name: String,
 ) : ViewModelContext, ComponentContext by componentContext {
-    final override val coroutineScope: CoroutineScope =
-        instanceKeeper.getOrCreate { ViewModelCoroutineScope(coroutineContext) }
-
-    override val log: Logger = Logger("VM:$name") {
-        value(ViewModelContext.Name(name))
+    final override val coroutineScope: CoroutineScope = instanceKeeper.getOrCreate {
+        ViewModelCoroutineScope(coroutineContext)
     }
+
+    override val log: Logger = Logger("VM:$name") { value(ViewModelContext.Name(name)) }
 
     override fun getKoin(): Koin = di
 
@@ -112,12 +109,7 @@ open class ViewModelContextImpl(
     }
 
     override fun childContext(name: String, componentContext: ComponentContext): ViewModelContext {
-        return ViewModelContextImpl(
-            getKoin(),
-            componentContext,
-            coroutineContext,
-            "${this.name}:$name"
-        )
+        return ViewModelContextImpl(getKoin(), componentContext, coroutineContext, "${this.name}:$name")
     }
 
     override fun childContext(key: String, userId: UserId): MatrixClientViewModelContext {
@@ -128,14 +120,14 @@ open class ViewModelContextImpl(
     override fun childContext(
         name: String,
         componentContext: ComponentContext,
-        userId: UserId
+        userId: UserId,
     ): MatrixClientViewModelContext {
         return MatrixClientViewModelContextImpl(
             getKoin(),
             componentContext,
             userId,
             coroutineContext,
-            "${this.name}:$name"
+            "${this.name}:$name",
         )
     }
 
@@ -143,7 +135,7 @@ open class ViewModelContextImpl(
     override fun childContextWithOwnLifecycle(
         name: String,
         lifecycle: Lifecycle,
-        userId: UserId
+        userId: UserId,
     ): MatrixClientViewModelContext =
         childContext(name, DefaultComponentContext(MergedLifecycle(this.lifecycle, lifecycle)), userId)
 }
@@ -153,7 +145,7 @@ open class MatrixClientViewModelContextImpl(
     componentContext: ComponentContext,
     override val userId: UserId,
     coroutineContext: CoroutineContext = Dispatchers.Default,
-    name: String
+    name: String,
 ) : MatrixClientViewModelContext, ViewModelContextImpl(di, componentContext, coroutineContext, name) {
     override val matrixClient by lazy { getMatrixClient(userId) }
 
@@ -172,7 +164,7 @@ open class MatrixClientViewModelContextImpl(
             componentContext,
             userId,
             coroutineContext,
-            "${this.name}:$name"
+            "${this.name}:$name",
         )
     }
 }
@@ -180,12 +172,10 @@ open class MatrixClientViewModelContextImpl(
 /**
  * Creates a new child coroutine scope
  *
- * This scope is retained across configuration changes via instance keeper
- * It properly propagates destruction to all coroutine jobs
+ * This scope is retained across configuration changes via instance keeper It properly propagates destruction to all
+ * coroutine jobs
  */
-private class ViewModelCoroutineScope(
-    coroutineContext: CoroutineContext,
-) : InstanceKeeper.Instance, CoroutineScope {
+private class ViewModelCoroutineScope(coroutineContext: CoroutineContext) : InstanceKeeper.Instance, CoroutineScope {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.ViewModelCoroutineScope")
     }
@@ -197,7 +187,8 @@ private class ViewModelCoroutineScope(
     private val scope: CoroutineScope =
         CoroutineScope(coroutineContext + SupervisorJob(coroutineContext[Job]) + handler)
 
-    override val coroutineContext: CoroutineContext get() = scope.coroutineContext
+    override val coroutineContext: CoroutineContext
+        get() = scope.coroutineContext
 
     override fun onDestroy() {
         scope.cancel()

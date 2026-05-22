@@ -32,8 +32,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppearanceSettingsViewModel
 
 interface AppearanceSettingsView {
-    @Composable
-    fun create(appearanceSettingsViewModel: AppearanceSettingsViewModel)
+    @Composable fun create(appearanceSettingsViewModel: AppearanceSettingsViewModel)
 }
 
 @Composable
@@ -66,7 +65,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             AppearanceSettingsColor(
                                 i18n.appearanceAccentColorHeading(),
                                 defaultAccentColor,
-                                accentColor
+                                accentColor,
                             ) {
                                 appearanceSettingsViewModel.setAccentColor(it.value.toLong())
                             }
@@ -100,10 +99,7 @@ class AppearanceSettingsViewImpl : AppearanceSettingsView {
                             }
                         }
                     }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        scroll,
-                    )
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
                 }
             }
         }

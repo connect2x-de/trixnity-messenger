@@ -11,18 +11,15 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.compose.view.theme.dp
 
-@Composable
-fun TooltipText(text: String) = Text(text)
+@Composable fun TooltipText(text: String) = Text(text)
 
 @Composable
 fun TooltipText(text: suspend () -> String) {
-    val cached = produceState("", Unit) {
-        value = text()
-    }
+    val cached = produceState("", Unit) { value = text() }
     if (cached.value.isBlank()) {
         ThemedProgressIndicator(
             Modifier.size(MaterialTheme.typography.bodySmall.dp).padding(MaterialTheme.typography.bodySmall.dp / 2),
-            MaterialTheme.components.extraSmallCircularProgressIndicator
+            MaterialTheme.components.extraSmallCircularProgressIndicator,
         )
     } else {
         Text(cached.value)

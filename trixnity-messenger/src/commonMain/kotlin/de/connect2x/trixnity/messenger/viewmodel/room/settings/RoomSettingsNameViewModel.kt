@@ -1,5 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.canSendEvent
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -10,23 +15,11 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.canSendEvent
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.NameEventContent
 import org.koin.core.component.get
 
-
 interface RoomSettingsNameViewModelFactory {
-    fun create(
-        viewModelContext: MatrixClientViewModelContext,
-        selectedRoomId: RoomId,
-    ): RoomSettingsNameViewModel =
-        RoomSettingsNameViewModelImpl(
-            viewModelContext = viewModelContext,
-            selectedRoomId = selectedRoomId,
-        )
+    fun create(viewModelContext: MatrixClientViewModelContext, selectedRoomId: RoomId): RoomSettingsNameViewModel =
+        RoomSettingsNameViewModelImpl(viewModelContext = viewModelContext, selectedRoomId = selectedRoomId)
 
     companion object : RoomSettingsNameViewModelFactory
 }
@@ -57,8 +50,8 @@ class RoomSettingsNameViewModelImpl(
             .map { it?.isDirect?.not() ?: false }
             .stateIn(coroutineScope, WhileSubscribed(), false)
 
-    private val defaultRoomName = get<RoomName>().getRoomName(selectedRoomId, matrixClient)
-        .stateIn(coroutineScope, WhileSubscribed(), "")
+    private val defaultRoomName =
+        get<RoomName>().getRoomName(selectedRoomId, matrixClient).stateIn(coroutineScope, WhileSubscribed(), "")
 
     override val roomName: ApprovableTextFieldViewModel =
         ApprovableTextFieldViewModelImpl(
@@ -66,10 +59,7 @@ class RoomSettingsNameViewModelImpl(
             maxLength = 1_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newName ->
-                matrixClient.api.room.sendStateEvent(
-                    selectedRoomId,
-                    NameEventContent(newName),
-                )
+                matrixClient.api.room.sendStateEvent(selectedRoomId, NameEventContent(newName))
             },
         )
 }

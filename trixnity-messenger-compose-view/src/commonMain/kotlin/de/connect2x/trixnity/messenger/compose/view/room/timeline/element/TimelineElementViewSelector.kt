@@ -12,34 +12,26 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
-import kotlin.reflect.KClass
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.TimelineElementViewSelectorKt")
 
 interface TimelineElementViewSelector :
     TimelineElementViewFactorySelector<TimelineElementView<TimelineElementViewModel<*>>> {
-    suspend fun waitFor(element: TimelineElementViewModel<*>) =
-        selectFactory(element).waitFor(element)
+    suspend fun waitFor(element: TimelineElementViewModel<*>) = selectFactory(element).waitFor(element)
 
-    fun isFocusable(element: TimelineElementViewModel<*>) =
-        selectFactory(element).isFocusable()
+    fun isFocusable(element: TimelineElementViewModel<*>) = selectFactory(element).isFocusable()
 
     @Composable
-    fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-        index: Int,
-    ) = rememberFactory(element).createInTimeline(holder, element, index)
+    fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>, index: Int) =
+        rememberFactory(element).createInTimeline(holder, element, index)
 
     @Composable
-    fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-        index: Int,
-    ) = rememberFactory(element).createAsPreview(holder, element, index)
+    fun createAsPreview(holder: TimelineElementHolderViewModel, element: TimelineElementViewModel<*>, index: Int) =
+        rememberFactory(element).createAsPreview(holder, element, index)
 
     @Composable
     fun createReplyInTimeline(
@@ -58,10 +50,8 @@ interface TimelineElementViewSelector :
     ) = rememberFactory(element).createReplyInSendMessage(holder, element, modifier, interactionSource)
 
     @Composable
-    fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: TimelineElementViewModel<*>,
-    ): ClipEntry? = rememberFactory(element).getClipEntry(holder, element)
+    fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: TimelineElementViewModel<*>): ClipEntry? =
+        rememberFactory(element).getClipEntry(holder, element)
 
     /**
      * Optional label for accessibility. This is read to a user when the timeline element is focused in the timeline.
@@ -82,7 +72,9 @@ fun TimelineElementSelector(
 class TimelineElementViewSelectorImpl(private val factories: List<TimelineElementView<*>>) :
     TimelineElementViewSelector {
     private val factoryMapping =
-        MutableStateFlow<Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>>>(
+        MutableStateFlow<
+            Map<KClass<out TimelineElementViewModel<*>>, TimelineElementView<TimelineElementViewModel<*>>>
+        >(
             emptyMap()
         )
 
@@ -92,12 +84,13 @@ class TimelineElementViewSelectorImpl(private val factories: List<TimelineElemen
             ?: run {
                 @Suppress("UNCHECKED_CAST")
                 val foundFactory =
-                    factories.firstOrNull { it.supports.isInstance(element) } as TimelineElementView<TimelineElementViewModel<*>>?
+                    factories.firstOrNull { it.supports.isInstance(element) }
+                        as TimelineElementView<TimelineElementViewModel<*>>?
                         ?: run {
                             log.warn {
                                 "There are no registered views for ${element::class.simpleName}. " +
-                                        "This can be a missing view in the DI or might be an element that should not be " +
-                                        "visible in the timeline."
+                                    "This can be a missing view in the DI or might be an element that should not be " +
+                                    "visible in the timeline."
                             }
                             EmptyTimelineElementView
                         }

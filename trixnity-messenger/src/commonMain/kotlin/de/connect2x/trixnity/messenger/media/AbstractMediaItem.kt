@@ -2,13 +2,13 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.time.Duration
 
 /**
  * This class is the implementation of the part of the media item which handles and helps to commonise the state
@@ -17,7 +17,7 @@ import kotlin.time.Duration
 abstract class AbstractMediaItem(
     private val coroutineScope: CoroutineScope,
     private val operationMutex: Mutex,
-    private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>
+    private val currentItemPlaying: MutableStateFlow<AbstractMediaItem?>,
 ) : MediaItemLifecycleImpl(coroutineScope), MediaPlayer.Item {
     private val isClosed: AtomicBoolean = AtomicBoolean(false)
 
@@ -63,22 +63,22 @@ abstract class AbstractMediaItem(
         }
 
         log.debug { "Starting playback of media item" }
-        onPlay(elapsedTime.value ?: Duration.ZERO).fold(
-            onFailure = {
-                log.error(it) { "Unable to start playback of media item" }
-                state.value = MediaPlayer.Item.State.Failed(it.message ?: "Unexpected error while starting playback")
-            },
-            onSuccess = {
-                log.debug { "Successfully started playback of media item" }
-                currentItemPlaying.value = this
-                state.value = MediaPlayer.Item.State.Playing
-            }
-        )
+        onPlay(elapsedTime.value ?: Duration.ZERO)
+            .fold(
+                onFailure = {
+                    log.error(it) { "Unable to start playback of media item" }
+                    state.value =
+                        MediaPlayer.Item.State.Failed(it.message ?: "Unexpected error while starting playback")
+                },
+                onSuccess = {
+                    log.debug { "Successfully started playback of media item" }
+                    currentItemPlaying.value = this
+                    state.value = MediaPlayer.Item.State.Playing
+                },
+            )
     }
 
-    override suspend fun pause() = operationMutex.withLock {
-        pauseWithoutLock()
-    }
+    override suspend fun pause() = operationMutex.withLock { pauseWithoutLock() }
 
     override suspend fun seekTo(position: Duration): Unit = operationMutex.withLock {
         if (state.value !is MediaPlayer.Item.State.Playing) {

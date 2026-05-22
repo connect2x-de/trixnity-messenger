@@ -15,11 +15,7 @@ kotlin {
     withIos()
     applyDefaultHierarchyTemplate()
     sourceSets {
-        commonMain {
-            dependencies {
-                implementation(projects.trixnityMessenger)
-            }
-        }
+        commonMain { dependencies { implementation(projects.trixnityMessenger) } }
         commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)

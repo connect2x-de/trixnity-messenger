@@ -14,12 +14,9 @@ internal object NsGraphemeIterableProvider : GraphemeIterableProvider {
     }
 }
 
-private class NsGaphemeIterable(
-    inner: String
-) : GraphemeIterable {
+private class NsGaphemeIterable(inner: String) : GraphemeIterable {
 
-    @Suppress("CAST_NEVER_SUCCEEDS")
-    val nsString = requireNotNull(inner as NSString)
+    @Suppress("CAST_NEVER_SUCCEEDS") val nsString = requireNotNull(inner as NSString)
 
     override val graphemeCount: Int
         @OptIn(ExperimentalForeignApi::class)
@@ -49,6 +46,5 @@ private class NsGaphemeIterator(val inner: NSString) : GraphemeIterator {
         return substring
     }
 
-    override fun hasNext(): Boolean =
-        index < inner.length
+    override fun hasNext(): Boolean = index < inner.length
 }

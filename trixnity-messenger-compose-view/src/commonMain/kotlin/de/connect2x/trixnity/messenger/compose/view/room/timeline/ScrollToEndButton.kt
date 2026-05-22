@@ -27,8 +27,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloat
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel
 
 interface ScrollToEndButtonView {
-    @Composable
-    fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: State<Boolean>)
+    @Composable fun BoxScope.create(timelineViewModel: TimelineViewModel, canScrollToEnd: State<Boolean>)
 }
 
 @Composable
@@ -48,21 +47,18 @@ class ScrollToEndButtonViewImpl : ScrollToEndButtonView {
                 AnimatedVisibility(
                     visible = canScrollToEnd.value,
                     enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
-                    exit = fadeOut()
+                    exit = fadeOut(),
                 ) {
                     unreadCount.value?.let { unreadCount ->
-                        Badge(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        ) {
-                            Text(unreadCount)
-                        }
+                        Badge(containerColor = MaterialTheme.colorScheme.secondaryContainer) { Text(unreadCount) }
                     }
                 }
-            }) {
+            },
+        ) {
             AnimatedVisibility(
                 visible = canScrollToEnd.value,
                 enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessVeryLow)),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 ThemedFloatingActionButton(
                     onClick = { timelineViewModel.jumpToEndOfTimeline() },

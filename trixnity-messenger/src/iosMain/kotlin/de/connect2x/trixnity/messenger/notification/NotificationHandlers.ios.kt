@@ -11,21 +11,22 @@ import platform.darwin.dispatch_get_main_queue
 
 actual fun platformNotificationHandlersModule(): Module = module {
     single<NotificationHandlers> {
-        NotificationHandlersImpl(
-            config = get(),
-            notificationProviders = get(),
-            multiSettings = getOrNull(),
-            matrixClients = get(),
-            requestPermissionsCallback = { granted ->
-                if (granted) {
-                    dispatch_async(dispatch_get_main_queue()) {
-                        UIApplication.sharedApplication.registerForRemoteNotifications()
+            NotificationHandlersImpl(
+                config = get(),
+                notificationProviders = get(),
+                multiSettings = getOrNull(),
+                matrixClients = get(),
+                requestPermissionsCallback = { granted ->
+                    if (granted) {
+                        dispatch_async(dispatch_get_main_queue()) {
+                            UIApplication.sharedApplication.registerForRemoteNotifications()
+                        }
                     }
-                }
-            })
-    }.apply {
-        bind<AutoCloseable>()
-        bind<Worker>()
-    }
+                },
+            )
+        }
+        .apply {
+            bind<AutoCloseable>()
+            bind<Worker>()
+        }
 }
-

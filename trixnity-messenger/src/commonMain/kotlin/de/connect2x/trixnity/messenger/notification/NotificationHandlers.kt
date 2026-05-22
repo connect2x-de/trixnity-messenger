@@ -18,21 +18,16 @@ import org.koin.core.module.Module
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface NotificationHandlers : AutoCloseable, Worker {
-    /**
-     * This should be called by the UI to continuously request permissions.
-     */
+    /** This should be called by the UI to continuously request permissions. */
     suspend fun continuouslyRequestPermissions()
+
     val global: NotificationHandler
+
     operator fun get(account: UserId): NotificationHandler
 }
 
 fun interface NotificationHandlerFactory {
-    operator fun invoke(
-        name: String,
-        id: String,
-        appId: String,
-        contributesToCounter: Boolean
-    ): NotificationHandler
+    operator fun invoke(name: String, id: String, appId: String, contributesToCounter: Boolean): NotificationHandler
 }
 
 private val defaultNotificationHandlerFactory: NotificationHandlerFactory =
@@ -47,7 +42,7 @@ class NotificationHandlersImpl(
     private val multiSettings: MatrixMultiMessengerSettingsHolder?,
     private val matrixClients: MatrixClients,
     private val requestPermissionsCallback: (granted: Boolean) -> Unit = {},
-    private val notificationHandlerFactory: NotificationHandlerFactory = defaultNotificationHandlerFactory
+    private val notificationHandlerFactory: NotificationHandlerFactory = defaultNotificationHandlerFactory,
 ) : NotificationHandlers {
     companion object {
         init {
@@ -62,14 +57,16 @@ class NotificationHandlersImpl(
 
     override suspend fun doWork() {
         matrixClients.isInitialized.first { it }
-        matrixClients.map { it.keys }.collect { accounts ->
-            notificationHandlers.updateAndGet { oldNotificationHandlers ->
-                (oldNotificationHandlers - accounts).forEach { (account) ->
-                    notificationHandlers.value[account]?.value?.unregister()
+        matrixClients
+            .map { it.keys }
+            .collect { accounts ->
+                notificationHandlers.updateAndGet { oldNotificationHandlers ->
+                    (oldNotificationHandlers - accounts).forEach { (account) ->
+                        notificationHandlers.value[account]?.value?.unregister()
+                    }
+                    oldNotificationHandlers.filterKeys { it in accounts }
                 }
-                oldNotificationHandlers.filterKeys { it in accounts }
             }
-        }
     }
 
     override suspend fun continuouslyRequestPermissions() {
@@ -105,39 +102,41 @@ class NotificationHandlersImpl(
     private fun notificationHandler(
         idSuffix: String,
         name: String,
-        contributesToCounter: Boolean
+        contributesToCounter: Boolean,
     ): NotificationHandler =
         notificationHandlerFactory(
             id = "${config.appId}-$idSuffix",
             appId = config.appId,
             name = name,
-            contributesToCounter = contributesToCounter
+            contributesToCounter = contributesToCounter,
         )
 
     private val _global: Lazy<NotificationHandler> = lazy {
-        notificationHandler(
-            idSuffix = "global",
-            name = config.appName,
-            contributesToCounter = false
-        )
+        notificationHandler(idSuffix = "global", name = config.appName, contributesToCounter = false)
     }
 
-    override val global: NotificationHandler get() = _global.value
+    override val global: NotificationHandler
+        get() = _global.value
 
     override operator fun get(account: UserId): NotificationHandler {
         val profile = multiSettings?.value?.base?.activeProfile
         return checkNotNull(
-            notificationHandlers.updateAndGet {
-                if (it.contains(account)) it
-                else it + (account to lazy {
-                    notificationHandler(
-                        idSuffix = notificationHandlerIdSuffix(profile, account),
-                        name = notificationHandlerName(profile, account),
-                        contributesToCounter = true
-                    )
-                })
-            }[account]
-        ).value
+                notificationHandlers
+                    .updateAndGet {
+                        if (it.contains(account)) it
+                        else
+                            it +
+                                (account to
+                                    lazy {
+                                        notificationHandler(
+                                            idSuffix = notificationHandlerIdSuffix(profile, account),
+                                            name = notificationHandlerName(profile, account),
+                                            contributesToCounter = true,
+                                        )
+                                    })
+                    }[account]
+            )
+            .value
     }
 
     override fun close() {

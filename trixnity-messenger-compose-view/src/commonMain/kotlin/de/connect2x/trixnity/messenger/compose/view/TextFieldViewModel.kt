@@ -11,7 +11,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 
 @Composable
-fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequester? = null): MutableState<TextFieldValue> {
+fun TextFieldViewModel.collectAsTextFieldValueState(
+    focusRequester: FocusRequester? = null
+): MutableState<TextFieldValue> {
     val uiEpoch = remember { mutableStateOf(0UL) }
     val uiState = remember {
         val delegate = mutableStateOf(value.toTextFieldValue(maxLength))
@@ -40,7 +42,8 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
                 val newState = vmState.toTextFieldValue(maxLength)
 
                 if (newState != uiState.value) {
-                    // If the state has changed, the UI -> VM sync will increment the epoch, so we need to compensate for that
+                    // If the state has changed, the UI -> VM sync will increment the epoch, so we need to compensate
+                    // for that
                     uiEpoch.value = vmState.epoch - 1u
                     uiState.value = newState
                 } else {
@@ -58,8 +61,6 @@ fun TextFieldViewModel.collectAsTextFieldValueState(focusRequester: FocusRequest
 private fun TextFieldViewModel.State.toTextFieldValue(maxLength: Int): TextFieldValue {
     return TextFieldValue(
         text.take(maxLength),
-        selection?.run {
-            TextRange(first, last.coerceIn(0..text.length))
-        } ?: TextRange.Zero
+        selection?.run { TextRange(first, last.coerceIn(0..text.length)) } ?: TextRange.Zero,
     )
 }

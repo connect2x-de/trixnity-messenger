@@ -24,24 +24,17 @@ import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 
 interface ReadMarkerView {
-    @Composable
-    fun create(
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-    )
+    @Composable fun create(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel)
 }
 
 @Composable
-fun ReadMarker(
-    timelineElementHolderViewModel: BaseTimelineElementHolderViewModel,
-) {
+fun ReadMarker(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel) {
     DI.get<ReadMarkerView>().create(timelineElementHolderViewModel)
 }
 
 class ReadMarkerViewImpl : ReadMarkerView {
     @Composable
-    override fun create(
-        timelineElementHolderViewModel: BaseTimelineElementHolderViewModel
-    ) {
+    override fun create(timelineElementHolderViewModel: BaseTimelineElementHolderViewModel) {
         val i18n = DI.get<I18nView>()
         val isByMe = timelineElementHolderViewModel.isByMe
         if (isByMe) {
@@ -49,22 +42,15 @@ class ReadMarkerViewImpl : ReadMarkerView {
             Box(Modifier.size(MaterialTheme.typography.labelSmall.dp).padding(start = 2.dp)) {
                 if (isSent) {
                     val isRead =
-                        timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value == true
+                        timelineElementHolderViewModel.asTimelineElementHolder()?.isRead?.collectAsState()?.value ==
+                            true
                     if (isRead) {
                         Tooltip({ Text(i18n.messageBubbleRead()) }) {
-                            Icon(
-                                Icons.Filled.DoneAll,
-                                i18n.messageBubbleRead(),
-                                Modifier.fillMaxSize(),
-                            )
+                            Icon(Icons.Filled.DoneAll, i18n.messageBubbleRead(), Modifier.fillMaxSize())
                         }
                     } else {
                         Tooltip({ Text(i18n.messageBubbleSent()) }) {
-                            Icon(
-                                Icons.Filled.Done,
-                                i18n.messageBubbleSent(),
-                                Modifier.fillMaxSize(),
-                            )
+                            Icon(Icons.Filled.Done, i18n.messageBubbleSent(), Modifier.fillMaxSize())
                         }
                     }
                 }

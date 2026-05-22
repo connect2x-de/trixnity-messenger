@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MarkAsUnread
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -40,7 +39,6 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenu
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuItem
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedActionMenuState
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedHorizontalDivider
 import de.connect2x.trixnity.messenger.compose.view.theme.components.isNotClosed
@@ -55,7 +53,7 @@ interface RoomListElementContainerView {
         roomId: RoomId,
         roomListViewModel: RoomListViewModel,
         roomListElementViewModel: RoomListElementViewModel,
-        index: Int
+        index: Int,
     )
 }
 
@@ -95,18 +93,17 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
         val i18n = DI.current.get<I18nView>()
         Box(
             Modifier.animateItem(
-                fadeInSpec = null,
-                fadeOutSpec = null,
-                placementSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
+                    fadeInSpec = null,
+                    fadeOutSpec = null,
+                    placementSpec =
+                        spring(
+                            stiffness = Spring.StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold,
+                        ),
                 )
-            )
                 .then(
-                    if (roomId == selectedRoomId) Modifier.themedSurface(
-                        MaterialTheme.components.roomListSelection,
-                        focused = hasFocus
-                    )
+                    if (roomId == selectedRoomId)
+                        Modifier.themedSurface(MaterialTheme.components.roomListSelection, focused = hasFocus)
                     else Modifier.themedSurface(MaterialTheme.components.roomListElement, focused = hasFocus)
                 )
                 .pointerInput(Unit) {
@@ -115,18 +112,18 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                             val event = awaitPointerEvent()
                             if (event.type == PointerEventType.Press && event.buttons.isSecondaryPressed) {
                                 showActionMenu.value =
-                                    if (showActionMenu.value.isNotClosed()) ThemedActionMenuState.Closed else ThemedActionMenuState.Popup(
-                                        event.changes.first().position.round()
-                                    )
+                                    if (showActionMenu.value.isNotClosed()) ThemedActionMenuState.Closed
+                                    else ThemedActionMenuState.Popup(event.changes.first().position.round())
                             }
                         }
                     }
                     detectTapGestures(onLongPress = { showActionMenu.value = ThemedActionMenuState.Anchored })
-
-                }.combinedClickable(
+                }
+                .combinedClickable(
                     interactionSource,
                     LocalIndication.current,
-                    onLongClick = { showActionMenu.value = ThemedActionMenuState.Anchored }) {
+                    onLongClick = { showActionMenu.value = ThemedActionMenuState.Anchored },
+                ) {
                     if (hoverable) {
                         roomListViewModel.selectRoom(roomId)
                     }
@@ -134,13 +131,16 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                 .buttonPointerModifier(enabled = !isInvite)
         ) {
             CompositionLocalProvider(
-                LocalContentColor provides if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor else LocalContentColor.current
+                LocalContentColor provides
+                    if (roomId == selectedRoomId) MaterialTheme.components.roomListSelection.contentColor
+                    else LocalContentColor.current
             ) {
                 RoomListElement(
                     roomListViewModel,
                     roomListElementViewModel,
                     index,
-                    (!hasHover && showActionMenu.value == ThemedActionMenuState.Closed && !actionMenuHasFocus) || Platform.current.isMobile
+                    (!hasHover && showActionMenu.value == ThemedActionMenuState.Closed && !actionMenuHasFocus) ||
+                        Platform.current.isMobile,
                 )
                 if (isJoined) {
                     ThemedActionMenu(
@@ -152,15 +152,13 @@ class RoomListElementContainerViewImpl : RoomListElementContainerView {
                         openActionMenuIcon = {
                             Icon(Icons.Default.MoreHoriz, i18n.commonContextMenu(), tint = Color.White)
                         },
-                        Modifier.padding(MaterialTheme.messengerDpConstants.small).align(Alignment.TopEnd)
+                        Modifier.padding(MaterialTheme.messengerDpConstants.small).align(Alignment.TopEnd),
                     )
                 }
             }
         }
         if (index < elementsSize) {
-            ThemedHorizontalDivider(
-                style = MaterialTheme.components.roomListDivider
-            )
+            ThemedHorizontalDivider(style = MaterialTheme.components.roomListDivider)
         }
     }
 }

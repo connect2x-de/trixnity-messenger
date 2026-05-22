@@ -33,33 +33,26 @@ fun ColumnScope.WizardImage(
         painterResource(drawableResource),
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(if (CurrentThemeSettings.isDarkMode()) Color.White else Color.Black),
-        modifier = Modifier
-            .padding(
-                horizontal =
-                    if (boxWithConstraintsScope.maxWidth < 400.dp) MaterialTheme.messengerDpConstants.verySmall
-                    else MaterialTheme.messengerDpConstants.middle,
-                vertical = MaterialTheme.messengerDpConstants.verySmall,
-            )
-            .align(Alignment.CenterHorizontally)
-            .fillMaxWidth()
-            .height(height)
+        modifier =
+            Modifier.padding(
+                    horizontal =
+                        if (boxWithConstraintsScope.maxWidth < 400.dp) MaterialTheme.messengerDpConstants.verySmall
+                        else MaterialTheme.messengerDpConstants.middle,
+                    vertical = MaterialTheme.messengerDpConstants.verySmall,
+                )
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
+                .height(height),
     )
 }
 
 @OptIn(ExperimentalThemingApi::class)
 @Composable
-fun WizardImage(
-    drawableResource: DrawableResource,
-    contentDescription: String?,
-    width: Dp,
-    height: Dp = width,
-) {
+fun WizardImage(drawableResource: DrawableResource, contentDescription: String?, width: Dp, height: Dp = width) {
     Image(
         painterResource(drawableResource),
         contentDescription = contentDescription,
         colorFilter = ColorFilter.tint(if (CurrentThemeSettings.isDarkMode()) Color.White else Color.Black),
-        modifier = Modifier
-            .width(width)
-            .height(height)
+        modifier = Modifier.width(width).height(height),
     )
 }

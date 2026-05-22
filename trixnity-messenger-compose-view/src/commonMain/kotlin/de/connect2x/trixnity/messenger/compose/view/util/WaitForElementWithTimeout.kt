@@ -6,13 +6,13 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.time.Duration.Companion.seconds
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.util.WaitForElementWithTimeoutKt")
 
@@ -25,10 +25,9 @@ private fun CoroutineScope.launchWithTimeoutHint(message: () -> String, hint: ()
         }
     }
 
-
 internal suspend fun waitForElementWithTimeout(
     timelineElementViewSelector: TimelineElementViewSelector,
-    element: BaseTimelineElementHolderViewModel
+    element: BaseTimelineElementHolderViewModel,
 ) {
     val message = { "waited for element ${element.key}, but timed out: " }
 
@@ -45,16 +44,14 @@ internal suspend fun waitForElementWithTimeout(
             val showSender = element.showSender.filterNotNull().first()
             if (showSender) element.sender.filterNotNull().first()
         }
-        launchWithTimeoutHint(message, { "showBigGapBefore" }) {
-            element.showBigGapBefore.filterNotNull().first()
-        }
+        launchWithTimeoutHint(message, { "showBigGapBefore" }) { element.showBigGapBefore.filterNotNull().first() }
         launchWithTimeoutHint(message, { "repliedElement" }) {
             val isReply = element.isReply.filterNotNull().first()
-            if (isReply)
-                timelineElementViewSelector.waitFor(
-                    element.repliedElement.filterNotNull().first()
-                        .element.filterNotNull().first()
-                )
+            if (isReply) {
+                val repliedElement = element.repliedElement.filterNotNull().first()
+                timelineElementViewSelector.waitFor(repliedElement.element.filterNotNull().first())
+                repliedElement.sender.filterNotNull().first()
+            }
         }
         when (element) {
             is TimelineElementHolderViewModel -> {
@@ -67,15 +64,10 @@ internal suspend fun waitForElementWithTimeout(
                 launchWithTimeoutHint(message, { "showLoadingIndicatorAfter" }) {
                     element.showLoadingIndicatorAfter.filterNotNull().first()
                 }
-                if (element.isByMe) launchWithTimeoutHint(
-                    message,
-                    { "isRead" }) { element.isRead.filterNotNull().first() }
-                launchWithTimeoutHint(message, { "reactions" }) {
-                    element.reactions.filterNotNull().first()
-                }
-                launchWithTimeoutHint(message, { "isReplaced" }) {
-                    element.isReplaced.filterNotNull().first()
-                }
+                if (element.isByMe)
+                    launchWithTimeoutHint(message, { "isRead" }) { element.isRead.filterNotNull().first() }
+                launchWithTimeoutHint(message, { "reactions" }) { element.reactions.filterNotNull().first() }
+                launchWithTimeoutHint(message, { "isReplaced" }) { element.isReplaced.filterNotNull().first() }
             }
 
             is OutboxElementHolderViewModel -> {}

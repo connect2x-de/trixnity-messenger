@@ -1,15 +1,15 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.utils.toByteArray
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
+import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.utils.toByteArray
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
-import kotlin.test.Test
 
 class PathFileDescriptorTest {
     var fakeFileSystem: FakeFileSystem = FakeFileSystem()
@@ -18,9 +18,7 @@ class PathFileDescriptorTest {
     fun `create from text`() = runTest {
         val filePath = "/directory/text.txt".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
-        fakeFileSystem.write(filePath) {
-            writeUtf8("test")
-        }
+        fakeFileSystem.write(filePath) { writeUtf8("test") }
         val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "text.txt"
@@ -34,9 +32,7 @@ class PathFileDescriptorTest {
     fun `create from image`() = runTest {
         val filePath = "/directory/image.jpg".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
-        fakeFileSystem.write(filePath) {
-            writeUtf8("image")
-        }
+        fakeFileSystem.write(filePath) { writeUtf8("image") }
         val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "image.jpg"
@@ -50,9 +46,7 @@ class PathFileDescriptorTest {
     fun `create from video`() = runTest {
         val filePath = "/directory/video.mp4".toPath()
         fakeFileSystem.createDirectories("/directory".toPath())
-        fakeFileSystem.write(filePath) {
-            writeUtf8("video")
-        }
+        fakeFileSystem.write(filePath) { writeUtf8("video") }
         val cut = PathFileDescriptor(filePath, fakeFileSystem)
         assertSoftly(cut.fileSize.shouldNotBeNull()) {
             cut.fileName shouldBe "video.mp4"

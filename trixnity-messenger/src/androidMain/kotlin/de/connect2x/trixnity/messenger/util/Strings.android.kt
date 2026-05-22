@@ -28,9 +28,7 @@ private class AndroidGaphemeIterable(val inner: String) : GraphemeIterable {
 
 private class AndroidGaphemeIterator(val inner: String) : GraphemeIterator {
 
-    private val iterator = BreakIterator.getCharacterInstance().apply {
-        setText(inner)
-    }
+    private val iterator = BreakIterator.getCharacterInstance().apply { setText(inner) }
 
     var start = iterator.first()
     var end = iterator.next()

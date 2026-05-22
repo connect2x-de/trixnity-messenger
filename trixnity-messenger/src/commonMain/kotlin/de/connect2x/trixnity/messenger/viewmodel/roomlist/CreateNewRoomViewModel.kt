@@ -1,13 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
 import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.flow.MutableStateFlow
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
 import org.koin.core.component.get
 
 interface CreateNewRoomViewModelFactory {
@@ -31,7 +31,7 @@ interface CreateNewRoomViewModel {
 
 open class CreateNewRoomViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    override val onRoomCreated: (UserId, RoomId) -> Unit
+    override val onRoomCreated: (UserId, RoomId) -> Unit,
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)

@@ -1,18 +1,15 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.utils.readByteArrayFlow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
+import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.utils.readByteArrayFlow
 import okio.Path.Companion.toPath
 import org.koin.dsl.koinApplication
-import kotlin.test.Test
-
 
 class ImagesTest {
-    private val koin = koinApplication {
-        modules(platformGetImageDimensionsModule())
-    }.koin
+    private val koin = koinApplication { modules(platformGetImageDimensionsModule()) }.koin
 
     @Test
     fun `determine image dimensions`() = runTest {

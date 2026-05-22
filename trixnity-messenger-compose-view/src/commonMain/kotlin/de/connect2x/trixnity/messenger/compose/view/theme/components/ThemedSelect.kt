@@ -40,29 +40,21 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 
 @OptIn(ExperimentalMaterial3Api::class)
-data class SelectStyle(
-    val anchor: TextFieldColors,
-    val menu: SurfaceStyle,
-    val item: DropdownMenuItemStyle,
-) {
+data class SelectStyle(val anchor: TextFieldColors, val menu: SurfaceStyle, val item: DropdownMenuItemStyle) {
     companion object {
         @Composable
         fun default(
             anchor: TextFieldColors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            menu: SurfaceStyle = SurfaceStyle.default(
-                color = MenuDefaults.containerColor,
-                tonalElevation = MenuDefaults.TonalElevation,
-                shadowElevation = MenuDefaults.ShadowElevation,
-                shape = MenuDefaults.shape,
-            ),
-            itemStyle: DropdownMenuItemStyle = DropdownMenuItemStyle.default(
-                contentPadding = PaddingValues(horizontal = 10.dp),
-            ),
-        ) = SelectStyle(
-            anchor,
-            menu,
-            itemStyle,
-        )
+            menu: SurfaceStyle =
+                SurfaceStyle.default(
+                    color = MenuDefaults.containerColor,
+                    tonalElevation = MenuDefaults.TonalElevation,
+                    shadowElevation = MenuDefaults.ShadowElevation,
+                    shape = MenuDefaults.shape,
+                ),
+            itemStyle: DropdownMenuItemStyle =
+                DropdownMenuItemStyle.default(contentPadding = PaddingValues(horizontal = 10.dp)),
+        ) = SelectStyle(anchor, menu, itemStyle)
     }
 }
 
@@ -82,41 +74,40 @@ fun <T> ThemedSelect(
 ) {
     val expanded = remember { mutableStateOf(false) }
 
-    ExposedDropdownMenuBox(
-        modifier = modifier,
-        expanded = expanded.value,
-        onExpandedChange = { expanded.value = it },
-    ) {
-        val textColor = LocalTextStyle.current.color.takeOrElse {
-            val focused = interactionSource.collectIsFocusedAsState().value
-            when {
-                !enabled -> style.anchor.disabledTextColor
-                focused -> style.anchor.focusedTextColor
-                else -> style.anchor.unfocusedTextColor
+    ExposedDropdownMenuBox(modifier = modifier, expanded = expanded.value, onExpandedChange = { expanded.value = it }) {
+        val textColor =
+            LocalTextStyle.current.color.takeOrElse {
+                val focused = interactionSource.collectIsFocusedAsState().value
+                when {
+                    !enabled -> style.anchor.disabledTextColor
+                    focused -> style.anchor.focusedTextColor
+                    else -> style.anchor.unfocusedTextColor
+                }
             }
-        }
         val mergedTextStyle = LocalTextStyle.current.merge(TextStyle(color = textColor))
         val density = LocalDensity.current
 
-        val labelModifier = label?.let {
-            Modifier
-                // Merge semantics at the beginning of the modifier chain to ensure
-                // padding is considered part of the text field.
-                .semantics(mergeDescendants = true) {}
-                .padding(top = with(density) { 8.sp.toDp() })
-        } ?: Modifier
+        val labelModifier =
+            label?.let {
+                Modifier
+                    // Merge semantics at the beginning of the modifier chain to ensure
+                    // padding is considered part of the text field.
+                    .semantics(mergeDescendants = true) {}
+                    .padding(top = with(density) { 8.sp.toDp() })
+            } ?: Modifier
 
         Box(
-            modifier = Modifier
-                .buttonPointerModifier(enabled)
-                .toggleable(expanded.value, interactionSource, null, enabled, Role.DropdownList) {
-                    expanded.value = it
-                }
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
-                .then(labelModifier).defaultMinSize(
-                    minWidth = OutlinedTextFieldDefaults.MinWidth,
-                    minHeight = OutlinedTextFieldDefaults.MinHeight
-                ),
+            modifier =
+                Modifier.buttonPointerModifier(enabled)
+                    .toggleable(expanded.value, interactionSource, null, enabled, Role.DropdownList) {
+                        expanded.value = it
+                    }
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled)
+                    .then(labelModifier)
+                    .defaultMinSize(
+                        minWidth = OutlinedTextFieldDefaults.MinWidth,
+                        minHeight = OutlinedTextFieldDefaults.MinHeight,
+                    ),
             propagateMinConstraints = true,
         ) {
             OutlinedTextFieldDefaults.DecorationBox(
@@ -135,9 +126,7 @@ fun <T> ThemedSelect(
                 placeholder = null,
                 label = label,
                 leadingIcon = leadingIcon?.let { @Composable { leadingIcon(value) } },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded.value)
-                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded.value) },
                 prefix = null,
                 suffix = null,
                 supportingText = null,
@@ -155,7 +144,7 @@ fun <T> ThemedSelect(
                         shape = OutlinedTextFieldDefaults.shape,
                         modifier = Modifier.indication(interactionSource, LocalIndication.current),
                     )
-                }
+                },
             )
         }
 

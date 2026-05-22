@@ -1,5 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.user.UserService
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
+import de.connect2x.trixnity.clientserverapi.client.UserApiClient
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
@@ -12,6 +18,9 @@ import dev.mokkery.mock
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -19,18 +28,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.JsonObject
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.user.UserService
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
-import de.connect2x.trixnity.clientserverapi.client.UserApiClient
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.IgnoredUserListEventContent
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
-
 
 class UserBlockingTest {
     val matrixClientMock = mock<MatrixClient>()
@@ -50,29 +49,19 @@ class UserBlockingTest {
 
     init {
         resetMocks(matrixClientMock, userServiceMock, matrixClientServerApiClientMock, usersApiClientMock)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(module { single { userServiceMock } })
-        }.koin
-        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns blockedUsers.map {
-            IgnoredUserListEventContent(
-                it
-            )
-        }
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { userServiceMock } }) }.koin
+        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class) } returns
+            blockedUsers.map { IgnoredUserListEventContent(it) }
         every { matrixClientMock.userId } returns userId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.user } returns usersApiClientMock
-        everySuspend {
-            usersApiClientMock.setAccountData(
-                content = any(),
-                userId = userId,
-                key = any(),
-            )
-        } calls {
-            delay(33) // Simulate a request delay to check for concurrency issues.
-            val event = it.args[0] as IgnoredUserListEventContent
-            blockedUsers.value = event.ignoredUsers
-            Result.success(Unit)
-        }
+        everySuspend { usersApiClientMock.setAccountData(content = any(), userId = userId, key = any()) } calls
+            {
+                delay(33) // Simulate a request delay to check for concurrency issues.
+                val event = it.args[0] as IgnoredUserListEventContent
+                blockedUsers.value = event.ignoredUsers
+                Result.success(Unit)
+            }
     }
 
     @BeforeTest
@@ -82,27 +71,21 @@ class UserBlockingTest {
 
     @Test
     fun `get all blocked users`() = runTest {
-        blockedUsers.value = mapOf(
-            contact1 to JsonObject(emptyMap()),
-            contact2 to JsonObject(emptyMap()),
-            contact3 to JsonObject(emptyMap()),
-        )
+        blockedUsers.value =
+            mapOf(
+                contact1 to JsonObject(emptyMap()),
+                contact2 to JsonObject(emptyMap()),
+                contact3 to JsonObject(emptyMap()),
+            )
         val cut = userBlocking()
         eventually(1.seconds) {
-            cut.getBlockedUsers(matrixClientMock).first() shouldBe listOf(
-                contact1,
-                contact2,
-                contact3,
-            )
+            cut.getBlockedUsers(matrixClientMock).first() shouldBe listOf(contact1, contact2, contact3)
         }
     }
 
     @Test
     fun `get a user's blocked state by id`() = runTest {
-        blockedUsers.value = mapOf(
-            contact1 to JsonObject(emptyMap()),
-            contact2 to JsonObject(emptyMap()),
-        )
+        blockedUsers.value = mapOf(contact1 to JsonObject(emptyMap()), contact2 to JsonObject(emptyMap()))
         val cut = userBlocking()
         eventually(1.seconds) {
             cut.isUserBlocked(matrixClientMock, contact1).first() shouldBe true
@@ -117,32 +100,16 @@ class UserBlockingTest {
         val failures = MutableStateFlow(0)
         val cut = userBlocking()
         backgroundScope.launch {
-            cut.blockUser(
-                matrixClientMock,
-                contact1,
-                { successes.value++ },
-                { failures.value++ })
+            cut.blockUser(matrixClientMock, contact1, { successes.value++ }, { failures.value++ })
         }
         backgroundScope.launch {
-            cut.blockUser(
-                matrixClientMock,
-                contact2,
-                { successes.value++ },
-                { failures.value++ })
+            cut.blockUser(matrixClientMock, contact2, { successes.value++ }, { failures.value++ })
         }
         backgroundScope.launch {
-            cut.blockUser(
-                matrixClientMock,
-                contact3,
-                { successes.value++ },
-                { failures.value++ })
+            cut.blockUser(matrixClientMock, contact3, { successes.value++ }, { failures.value++ })
         }
         eventually(1.seconds) {
-            cut.getBlockedUsers(matrixClientMock).first() shouldBe listOf(
-                contact1,
-                contact2,
-                contact3,
-            )
+            cut.getBlockedUsers(matrixClientMock).first() shouldBe listOf(contact1, contact2, contact3)
             successes.first() shouldBe 3
             failures.first() shouldBe 0
         }
@@ -150,34 +117,23 @@ class UserBlockingTest {
 
     @Test
     fun `unblock users consecutively`() = runTest {
-        blockedUsers.value = mapOf(
-            contact1 to JsonObject(emptyMap()),
-            contact2 to JsonObject(emptyMap()),
-            contact3 to JsonObject(emptyMap()),
-        )
+        blockedUsers.value =
+            mapOf(
+                contact1 to JsonObject(emptyMap()),
+                contact2 to JsonObject(emptyMap()),
+                contact3 to JsonObject(emptyMap()),
+            )
         val successes = MutableStateFlow(0)
         val failures = MutableStateFlow(0)
         val cut = userBlocking()
         backgroundScope.launch {
-            cut.unblockUser(
-                matrixClientMock,
-                contact1,
-                { successes.value++ },
-                { failures.value++ })
+            cut.unblockUser(matrixClientMock, contact1, { successes.value++ }, { failures.value++ })
         }
         backgroundScope.launch {
-            cut.unblockUser(
-                matrixClientMock,
-                contact2,
-                { successes.value++ },
-                { failures.value++ })
+            cut.unblockUser(matrixClientMock, contact2, { successes.value++ }, { failures.value++ })
         }
         backgroundScope.launch {
-            cut.unblockUser(
-                matrixClientMock,
-                contact3,
-                { successes.value++ },
-                { failures.value++ })
+            cut.unblockUser(matrixClientMock, contact3, { successes.value++ }, { failures.value++ })
         }
         eventually(1.seconds) {
             cut.getBlockedUsers(matrixClientMock).first() shouldBe listOf()
@@ -188,16 +144,11 @@ class UserBlockingTest {
 
     @Test
     fun `error when a user is already blocked`() = runTest {
-        blockedUsers.value = mapOf(
-            contact1 to JsonObject(emptyMap()),
-            contact2 to JsonObject(emptyMap()),
-        )
+        blockedUsers.value = mapOf(contact1 to JsonObject(emptyMap()), contact2 to JsonObject(emptyMap()))
         val cut = userBlocking()
         val successes = MutableStateFlow(0)
         val errors = MutableStateFlow<List<Throwable>>(listOf())
-        cut.blockUser(matrixClientMock, contact1, { successes.value++ }, {
-            errors.value += it
-        })
+        cut.blockUser(matrixClientMock, contact1, { successes.value++ }, { errors.value += it })
         eventually(1.seconds) {
             successes.first() shouldBe 0
             errors.first().size shouldBe 1
@@ -207,16 +158,11 @@ class UserBlockingTest {
 
     @Test
     fun `error when a user is already unblocked`() = runTest {
-        blockedUsers.value = mapOf(
-            contact1 to JsonObject(emptyMap()),
-            contact2 to JsonObject(emptyMap()),
-        )
+        blockedUsers.value = mapOf(contact1 to JsonObject(emptyMap()), contact2 to JsonObject(emptyMap()))
         val cut = userBlocking()
         val successes = MutableStateFlow(0)
         val errors = MutableStateFlow<List<Throwable>>(listOf())
-        cut.unblockUser(matrixClientMock, contact3, { successes.value++ }, {
-            errors.value += it
-        })
+        cut.unblockUser(matrixClientMock, contact3, { successes.value++ }, { errors.value += it })
         eventually(1.seconds) {
             successes.first() shouldBe 0
             errors.first().size shouldBe 1

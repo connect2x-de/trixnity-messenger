@@ -12,41 +12,37 @@ import de.connect2x.trixnity.messenger.util.platformMinimizeAppModule
 import de.connect2x.trixnity.messenger.util.platformPathsModule
 import de.connect2x.trixnity.messenger.util.platformSendLogToDevsModule
 import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
-import kotlin.time.Clock
 
-fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> = listOf(
-    {
-        module {
-            single<Clock> { Clock.System }
-            single<TimeZone> { TimeZone.currentSystemDefault() }
-            single<ProfileManager> {
-                ProfileManagerImpl(get(), get(), get(), get())
+fun createTrixnityMultiMessengerDefaultModuleFactories(): List<ModuleFactory> =
+    listOf(
+        {
+            module {
+                single<Clock> { Clock.System }
+                single<TimeZone> { TimeZone.currentSystemDefault() }
+                single<ProfileManager> { ProfileManagerImpl(get(), get(), get(), get()) }
+                single<CopyMultiMessengerSingletons>(named("DefaultCopyMultiMessengerSingletons")) {
+                    DefaultCopyMultiMessengerSingletons
+                }
+                single<BackHandler> { BackHandlerImpl() }
+                single<SharedDataHandler> { SharedDataHandlerImpl() }
+                single<MultiProfileMigrator> { MultiProfileMigratorImpl(get()) }.apply { bind<Worker>() }
             }
-            single<CopyMultiMessengerSingletons>(named("DefaultCopyMultiMessengerSingletons")) {
-                DefaultCopyMultiMessengerSingletons
-            }
-            single<BackHandler> { BackHandlerImpl() }
-            single<SharedDataHandler> { SharedDataHandlerImpl() }
-            single<MultiProfileMigrator> { MultiProfileMigratorImpl(get()) }
-                .apply { bind<Worker>() }
-        }
-    },
-    ::profileViewModule,
-    ::platformModule,
-    ::platformPathsModule,
-    ::platformMatrixMultiMessengerSettingsHolderModule,
-    ::matrixMessengerFactoryModule,
-    ::platformUriHandlerModule,
-    ::platformCloseAppModule,
-    ::platformMinimizeAppModule,
-    ::platformSendLogToDevsModule,
-    ::platformDeleteProfileDataModule,
-)
+        },
+        ::profileViewModule,
+        ::platformModule,
+        ::platformPathsModule,
+        ::platformMatrixMultiMessengerSettingsHolderModule,
+        ::matrixMessengerFactoryModule,
+        ::platformUriHandlerModule,
+        ::platformCloseAppModule,
+        ::platformMinimizeAppModule,
+        ::platformSendLogToDevsModule,
+        ::platformDeleteProfileDataModule,
+    )
 
-private fun profileViewModule() = module {
-    single<ProfileCreationViewModelFactory> { ProfileCreationViewModelFactory }
-}
+private fun profileViewModule() = module { single<ProfileCreationViewModelFactory> { ProfileCreationViewModelFactory } }

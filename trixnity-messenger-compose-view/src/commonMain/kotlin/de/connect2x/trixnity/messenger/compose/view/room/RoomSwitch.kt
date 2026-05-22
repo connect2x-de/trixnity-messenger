@@ -9,15 +9,9 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 
-
 @Composable
-fun RoomSwitch(
-    stack: Value<ChildStack<*, RoomRouter.Wrapper>>,
-) {
-    Children(
-        stack = stack,
-        animation = stackAnimation(fade()),
-    ) {
+fun RoomSwitch(stack: Value<ChildStack<*, RoomRouter.Wrapper>>) {
+    Children(stack = stack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is RoomRouter.Wrapper.View -> Room(child.viewModel)
             is RoomRouter.Wrapper.JoinRoomAction -> JoinRoomAction(child.viewModel)

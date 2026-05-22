@@ -16,10 +16,8 @@ import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.multi.singleModeMatrixMessenger
 import kotlinx.coroutines.flow.first
 
-
 interface ProfilesView {
-    @Composable
-    fun create()
+    @Composable fun create()
 }
 
 @Composable
@@ -58,7 +56,7 @@ fun createOrSelectManualUserProfile() {
             error = profileCreationViewModel.error.collectAsState().value,
             onFinish = { showProfileCreation.value = false },
             onCreate = { profileCreationViewModel.createProfile() },
-            canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value
+            canCreateProfile = profileCreationViewModel.canCreateProfile.collectAsState().value,
         )
     } else {
         ProfileSelection(profileManager)

@@ -7,9 +7,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.deriveFromHue
 import de.connect2x.trixnity.messenger.compose.view.common.hue
 
 interface ThemeLightMessengerColors {
-    @Composable
-    @Stable
-    fun create(accentColor: Color): MessengerColors
+    @Composable @Stable fun create(accentColor: Color): MessengerColors
 }
 
 class ThemeLightMessengerColorsImpl : ThemeLightMessengerColors {

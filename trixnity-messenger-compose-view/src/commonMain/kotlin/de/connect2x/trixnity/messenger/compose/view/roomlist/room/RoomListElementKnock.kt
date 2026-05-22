@@ -11,14 +11,11 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface KnockRoomListElement {
-    @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    @Composable fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
-fun Knock(
-    roomListElementViewModel: RoomListElementViewModel
-) {
+fun Knock(roomListElementViewModel: RoomListElementViewModel) {
     DI.get<KnockRoomListElement>().create(roomListElementViewModel)
 }
 
@@ -30,15 +27,12 @@ class KnockRoomListElementImpl : KnockRoomListElement {
 
         RoomListElementBase(
             roomListElementViewModel = roomListElementViewModel,
-            roomDetails = {
-                RoomName(roomName)
-            },
+            roomDetails = { RoomName(roomName) },
             roomActions = {
-                ThemedIconButton(
-                    onClick = { roomListElementViewModel.unknock() },
-                ) {
+                ThemedIconButton(onClick = { roomListElementViewModel.unknock() }) {
                     Icon(Icons.Default.Close, i18n.unknock())
                 }
-            })
+            },
+        )
     }
 }

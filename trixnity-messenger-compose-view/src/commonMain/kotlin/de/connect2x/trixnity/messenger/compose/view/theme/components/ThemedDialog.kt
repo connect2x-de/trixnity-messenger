@@ -65,65 +65,53 @@ data class DialogStyle(
     companion object {
         @Composable
         fun adaptiveDialog(
-            container: SurfaceStyle = SurfaceStyle.default(
-                shape = MaterialTheme.shapes.extraLarge,
-                padding = PaddingValues(horizontal = 56.dp, vertical = 72.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-            ),
-            header: SurfaceStyle = SurfaceStyle.default(
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentPadding = PaddingValues(top = 24.dp),
-            ),
-            footer: SurfaceStyle = SurfaceStyle.default(
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 16.dp),
-            ),
+            container: SurfaceStyle =
+                SurfaceStyle.default(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    padding = PaddingValues(horizontal = 56.dp, vertical = 72.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                ),
+            header: SurfaceStyle =
+                SurfaceStyle.default(
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentPadding = PaddingValues(top = 24.dp),
+                ),
+            footer: SurfaceStyle =
+                SurfaceStyle.default(
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 16.dp),
+                ),
             maxWidth: Dp = 800.dp,
-            divider: DividerStyle? = DividerStyle.default(
-                padding = PaddingValues(0.dp),
-            ),
+            divider: DividerStyle? = DividerStyle.default(padding = PaddingValues(0.dp)),
             buttonsMainAxisSpacing: Dp = 8.dp,
             buttonsCrossAxisSpacing: Dp = 12.dp,
-        ) = DialogStyle(
-            container,
-            header,
-            footer,
-            maxWidth,
-            divider,
-            buttonsMainAxisSpacing,
-            buttonsCrossAxisSpacing,
-        )
+        ) = DialogStyle(container, header, footer, maxWidth, divider, buttonsMainAxisSpacing, buttonsCrossAxisSpacing)
 
         @Composable
         fun modalDialog(
-            container: SurfaceStyle = SurfaceStyle.default(
-                shape = MaterialTheme.shapes.extraLarge,
-                padding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-            ),
-            header: SurfaceStyle = SurfaceStyle.default(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                contentPadding = PaddingValues(top = 24.dp),
-            ),
-            footer: SurfaceStyle = SurfaceStyle.default(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 16.dp),
-            ),
+            container: SurfaceStyle =
+                SurfaceStyle.default(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    padding = PaddingValues(horizontal = 24.dp, vertical = 24.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                ),
+            header: SurfaceStyle =
+                SurfaceStyle.default(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentPadding = PaddingValues(top = 24.dp),
+                ),
+            footer: SurfaceStyle =
+                SurfaceStyle.default(
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentPadding = PaddingValues(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 16.dp),
+                ),
             maxWidth: Dp = 560.dp,
             divider: DividerStyle? = null,
             buttonsMainAxisSpacing: Dp = 8.dp,
             buttonsCrossAxisSpacing: Dp = 12.dp,
-        ) = DialogStyle(
-            container,
-            header,
-            footer,
-            maxWidth,
-            divider,
-            buttonsMainAxisSpacing,
-            buttonsCrossAxisSpacing,
-        )
+        ) = DialogStyle(container, header, footer, maxWidth, divider, buttonsMainAxisSpacing, buttonsCrossAxisSpacing)
     }
 }
 
@@ -133,18 +121,11 @@ fun ThemedAdaptiveDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     style: DialogStyle = MaterialTheme.components.adaptiveDialog,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-        ),
-    ) {
-        CompositionLocalProvider(LocalDensity provides density) {
-            AdaptiveDialogWrapper(modifier, style, content)
-        }
+    Dialog(onDismissRequest = onDismissRequest, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        CompositionLocalProvider(LocalDensity provides density) { AdaptiveDialogWrapper(modifier, style, content) }
     }
 }
 
@@ -153,20 +134,17 @@ fun ThemedAdaptiveDialog(
 fun AdaptiveDialogWrapper(
     modifier: Modifier = Modifier,
     style: DialogStyle = MaterialTheme.components.adaptiveDialog,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val isSinglePane = this@BoxWithConstraints.maxWidth < SINGLE_PANE_THRESHOLD.dp
 
         val paddingModifier =
-            if (isSinglePane) Modifier else
-                Modifier.padding(style.container.padding).requiredSizeIn(maxWidth = style.maxWidth)
+            if (isSinglePane) Modifier
+            else Modifier.padding(style.container.padding).requiredSizeIn(maxWidth = style.maxWidth)
         Surface(
-            modifier = modifier
-                .align(Alignment.Center)
-                .fillMaxSize()
-                .then(paddingModifier)
-                .semantics { paneTitle = "Dialog" },
+            modifier =
+                modifier.align(Alignment.Center).fillMaxSize().then(paddingModifier).semantics { paneTitle = "Dialog" },
             shape = if (isSinglePane) RectangleShape else style.container.shape,
             color = style.container.color,
             contentColor = style.container.contentColor,
@@ -187,22 +165,14 @@ fun AdaptiveDialogHeader(
     title: @Composable ColumnScope.() -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
-    ThemedSurface(
-        style = style.header,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    ThemedSurface(style = style.header, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             if (onBack == null) {
                 Spacer(Modifier.width(24.dp))
             } else {
                 Spacer(Modifier.width(16.dp))
                 Tooltip({ Text(i18n.actionBack()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        onClick = onBack,
-                    ) {
+                    ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onBack) {
                         Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = i18n.actionBack())
                     }
                 }
@@ -210,7 +180,7 @@ fun AdaptiveDialogHeader(
             }
             Column(Modifier.weight(1f).semantics(true) { heading() }) {
                 CompositionLocalProvider(
-                    LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
+                    LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge)
                 ) {
                     title()
                 }
@@ -218,10 +188,7 @@ fun AdaptiveDialogHeader(
             if (onClose != null) {
                 Spacer(Modifier.width(12.dp))
                 Tooltip({ Text(i18n.actionClose()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        onClick = onClose,
-                    ) {
+                    ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onClose) {
                         Icon(Icons.Default.Close, contentDescription = i18n.actionClose())
                     }
                 }
@@ -237,9 +204,7 @@ fun ColumnScope.AdaptiveDialogContent(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(Modifier.weight(weight = 1f, fill = true).align(Alignment.Start)) {
-        Column(Modifier.padding(style.container.contentPadding)) {
-            content()
-        }
+        Column(Modifier.padding(style.container.contentPadding)) { content() }
     }
 }
 
@@ -251,13 +216,8 @@ fun ColumnScope.AdaptiveDialogScrollContent(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(modifier.weight(weight = 1f, fill = true).align(Alignment.Start)) {
-        Column(Modifier.padding(style.container.contentPadding).verticalScroll(scrollState)) {
-            content()
-        }
-        VerticalScrollbar(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            scrollState
-        )
+        Column(Modifier.padding(style.container.contentPadding).verticalScroll(scrollState)) { content() }
+        VerticalScrollbar(modifier = Modifier.align(Alignment.CenterEnd), scrollState)
     }
 }
 
@@ -269,17 +229,10 @@ fun ColumnScope.AdaptiveDialogScrollContent(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(Modifier.weight(weight = 1f, fill = true).align(Alignment.Start)) {
-        Column(Modifier.padding(style.container.contentPadding)) {
-            content()
-        }
-        VerticalScrollbar(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            scrollState,
-            reverseLayout,
-        )
+        Column(Modifier.padding(style.container.contentPadding)) { content() }
+        VerticalScrollbar(modifier = Modifier.align(Alignment.CenterEnd), scrollState, reverseLayout)
     }
 }
-
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -290,10 +243,7 @@ fun ColumnScope.AdaptiveDialogFooter(
     if (style.divider != null) {
         ThemedHorizontalDivider(style = style.divider)
     }
-    ThemedSurface(
-        modifier = Modifier.heightIn(min = 72.dp).fillMaxWidth(),
-        style = style.footer,
-    ) {
+    ThemedSurface(modifier = Modifier.heightIn(min = 72.dp).fillMaxWidth(), style = style.footer) {
         FlowRow(
             modifier = Modifier.align(Alignment.CenterEnd),
             horizontalArrangement = Arrangement.spacedBy(style.buttonsMainAxisSpacing, Alignment.End),
@@ -310,27 +260,24 @@ fun ThemedModalDialog(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     style: DialogStyle = MaterialTheme.components.modalDialog,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val density = LocalDensity.current
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-        ),
-    ) {
+    Dialog(onDismissRequest = onDismissRequest, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         CompositionLocalProvider(LocalDensity provides density) {
             val layoutDirection = LocalLayoutDirection.current
-            val horizontalPadding = style.container.padding.calculateStartPadding(layoutDirection) +
+            val horizontalPadding =
+                style.container.padding.calculateStartPadding(layoutDirection) +
                     style.container.padding.calculateEndPadding(layoutDirection)
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 Surface(
-                    modifier = modifier
-                        .align(Alignment.Center)
-                        .fillMaxWidth()
-                        .padding(style.container.padding)
-                        .requiredSizeIn(maxWidth = minOf(maxWidth - horizontalPadding, style.maxWidth))
-                        .semantics { paneTitle = "Dialog" },
+                    modifier =
+                        modifier
+                            .align(Alignment.Center)
+                            .fillMaxWidth()
+                            .padding(style.container.padding)
+                            .requiredSizeIn(maxWidth = minOf(maxWidth - horizontalPadding, style.maxWidth))
+                            .semantics { paneTitle = "Dialog" },
                     shape = style.container.shape,
                     color = style.container.color,
                     contentColor = style.container.contentColor,
@@ -350,17 +297,12 @@ fun ModalDialogHeader(
     style: DialogStyle = MaterialTheme.components.modalDialog,
     title: @Composable ColumnScope.() -> Unit,
 ) {
-    ThemedSurface(
-        style = style.header,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    ThemedSurface(style = style.header, modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.width(24.dp))
             Column(Modifier.weight(1f)) {
                 CompositionLocalProvider(
-                    LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge),
+                    LocalTextStyle provides LocalTextStyle.current.merge(MaterialTheme.typography.titleLarge)
                 ) {
                     title()
                 }
@@ -376,26 +318,17 @@ fun ColumnScope.ModalDialogContent(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
-        Modifier.weight(weight = 1f, fill = false)
-            .padding(style.container.contentPadding)
-            .align(Alignment.Start),
+        Modifier.weight(weight = 1f, fill = false).padding(style.container.contentPadding).align(Alignment.Start),
         verticalArrangement = Arrangement.spacedBy(style.container.contentPadding.calculateBottomPadding()),
     ) {
         content()
     }
 }
 
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ModalDialogFooter(
-    style: DialogStyle = MaterialTheme.components.modalDialog,
-    content: @Composable () -> Unit,
-) {
-    ThemedSurface(
-        modifier = Modifier.fillMaxWidth(),
-        style = style.footer,
-    ) {
+fun ModalDialogFooter(style: DialogStyle = MaterialTheme.components.modalDialog, content: @Composable () -> Unit) {
+    ThemedSurface(modifier = Modifier.fillMaxWidth(), style = style.footer) {
         FlowRow(
             modifier = Modifier.align(Alignment.CenterEnd),
             horizontalArrangement = Arrangement.spacedBy(style.buttonsMainAxisSpacing, Alignment.End),

@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,13 +35,13 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerColors
 import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
-import kotlinx.coroutines.flow.MutableStateFlow
 
 interface UserSearchResultListView {
     // this function is no @Composable as it is used inside a LazyListScope
     fun create(
         scope: LazyListScope,
         state: SearchResultState,
+        focusedItem: MutableState<String?>,
         userClickReaction: (SearchUserElement) -> Unit,
     )
 }
@@ -49,6 +50,7 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     override fun create(
         scope: LazyListScope,
         state: SearchResultState,
+        focusedItem: MutableState<String?>,
         userClickReaction: (SearchUserElement) -> Unit,
     ) {
         with(scope) {
@@ -94,15 +96,14 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
                             }
                         }
                     } else {
-                        val focusedElement = MutableStateFlow(state.users.firstOrNull()?.userId?.full)
-                        scope.items(state.users, key = { it.userId.toString() }) { user ->
-                            val focusedElementState by focusedElement.collectAsState()
+                        scope.items(state.users, key = { user -> user.userId.full }) { user ->
                             UserElement(
                                 user,
-                                modifier = Modifier.rovingFocusItem(
-                                    isFocused = focusedElementState == user.userId.full,
-                                    onFocus = { focusedElement.value = user.userId.full }
-                                ),
+                                modifier =
+                                    Modifier.rovingFocusItem(
+                                        isFocused = { focusedItem.value == user.userId.full },
+                                        onFocus = { focusedItem.value = user.userId.full },
+                                    ),
                                 onClick = { userClickReaction(user) },
                             )
                         }
@@ -113,22 +114,13 @@ class UserSearchResultListViewImpl : UserSearchResultListView {
     }
 }
 
-
 @Composable
-private fun UserElement(
-    user: SearchUserElement,
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
+private fun UserElement(user: SearchUserElement, modifier: Modifier, onClick: () -> Unit) {
     val i18n = DI.get<I18nView>()
     val presence by user.presence.collectAsState()
 
     ThemedListItemButton(
-        leadingContent = {
-            ThemedUserAvatar(user.initials, user.image) {
-                AvatarPresenceBadge(presence)
-            }
-        },
+        leadingContent = { ThemedUserAvatar(user.initials, user.image) { AvatarPresenceBadge(presence) } },
         headlineContent = {
             Text(
                 user.displayName,
@@ -140,11 +132,7 @@ private fun UserElement(
         supportingContent = {
             if (user.doesNotExist) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Warning,
-                        "warning",
-                        tint = MaterialTheme.messengerColors.warning
-                    )
+                    Icon(Icons.Default.Warning, "warning", tint = MaterialTheme.messengerColors.warning)
                     VerySmallSpacer()
                     Text(i18n.userSearchUserDoesNotExist())
                 }

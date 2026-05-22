@@ -16,21 +16,19 @@ actual fun TimelinePopup(
     onDismiss: () -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     if (isOpen) {
         Popup(
             onDismissRequest = onDismiss,
             alignment = if (isByMe) Alignment.BottomEnd else Alignment.BottomStart,
-            properties = PopupProperties(
-                focusable = true,
-            ),
+            properties = PopupProperties(focusable = true),
         ) {
             Surface(
                 Modifier.size(320.dp, 240.dp),
                 shadowElevation = 4.dp,
                 tonalElevation = 4.dp,
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
             ) {
                 content()
             }

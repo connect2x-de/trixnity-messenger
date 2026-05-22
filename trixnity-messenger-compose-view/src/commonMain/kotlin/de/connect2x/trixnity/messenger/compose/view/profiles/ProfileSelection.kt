@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.profiles
 
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
@@ -36,8 +37,7 @@ val ShowProfileCreation =
     compositionLocalOf<MutableState<Boolean>> { error("There is no ShowProfileCreation defined as compositionLocal") }
 
 interface ProfileSelectionView {
-    @Composable
-    fun create(profileManager: ProfileManager)
+    @Composable fun create(profileManager: ProfileManager)
 }
 
 @Composable
@@ -53,47 +53,38 @@ class ProfileSelectionViewImpl : ProfileSelectionView {
         val profiles = profileManager.profiles.collectAsState()
         val multiAccount = profileManager.isMultiProfileEnabled.collectAsState().value.let { it != null && it }
         val showProfileCreation = ShowProfileCreation.current
+        val scrollState = rememberScrollState()
 
-        var focusedItem by remember { mutableStateOf(profiles.value.keys.firstOrNull()) }
+        var focusedItem by remember(profiles.value) { mutableStateOf(profiles.value.keys.firstOrNull()) }
 
         AdaptiveDialogWrapper {
-            AdaptiveDialogHeader {
-                Text(i18n.selectProfileHeader())
-            }
+            AdaptiveDialogHeader { Text(i18n.selectProfileHeader()) }
 
-            AdaptiveDialogScrollContent(modifier = Modifier.rovingFocusContainer()) {
-                for ((id, settings) in profiles.value) {
+            AdaptiveDialogScrollContent(scrollState = scrollState, modifier = Modifier.rovingFocusContainer()) {
+                profiles.value.entries.forEach { entry ->
                     ThemedListItemButton(
                         style = MaterialTheme.components.settingsItem,
-                        modifier = Modifier.rovingFocusItem(
-                            isFocused = focusedItem == id,
-                            onFocus = { focusedItem = id },
-                        ),
-                        leadingContent = {
-                            Icon(Icons.Default.AccountCircle, null)
-                        },
-                        headlineContent = {
-                            Text(settings.base.displayName ?: i18n.commonUnknown())
-                        },
-                        onClick = {
-                            coroutineScope.launch {
-                                profileManager.selectProfile(id)
-                            }
-                        }
+                        modifier =
+                            Modifier.rovingFocusItem(
+                                isFocused = focusedItem == entry.key,
+                                onFocus = { focusedItem = entry.key },
+                            ),
+                        leadingContent = { Icon(Icons.Default.AccountCircle, null) },
+                        headlineContent = { Text(entry.value.base.displayName ?: i18n.commonUnknown()) },
+                        onClick = { coroutineScope.launch { profileManager.selectProfile(entry.key) } },
                     )
                     ThemedHorizontalDivider()
                 }
             }
-            if (multiAccount) AdaptiveDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = {
-                        showProfileCreation.value = true
-                    },
-                ) {
-                    Text(i18n.selectProfileCreateInstead())
+            if (multiAccount)
+                AdaptiveDialogFooter {
+                    ThemedButton(
+                        style = MaterialTheme.components.primaryButton,
+                        onClick = { showProfileCreation.value = true },
+                    ) {
+                        Text(i18n.selectProfileCreateInstead())
+                    }
                 }
-            }
         }
     }
 }

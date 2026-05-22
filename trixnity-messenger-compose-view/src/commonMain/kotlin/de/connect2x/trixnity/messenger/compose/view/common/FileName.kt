@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.util.ifNotNull
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun FileName(fileName: String) {
@@ -22,7 +21,7 @@ fun FileName(fileName: String) {
         style = MaterialTheme.typography.bodySmall,
         overflow = TextOverflow.Ellipsis,
         maxLines = 3,
-        modifier = Modifier.sizeIn(maxWidth = 200.dp)
+        modifier = Modifier.sizeIn(maxWidth = 200.dp),
     )
 }
 
@@ -46,6 +45,6 @@ fun FileInfo(element: RoomMessageTimelineElementViewModel.FileBased<*>, modifier
         style = MaterialTheme.typography.bodySmall,
         overflow = TextOverflow.Ellipsis,
         maxLines = 3,
-        modifier = modifier.sizeIn(maxWidth = 200.dp)
+        modifier = modifier.sizeIn(maxWidth = 200.dp),
     )
 }

@@ -3,25 +3,19 @@
  *
  * Copyright (c) 2018 Wolt Enterprises
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package de.connect2x.trixnity.messenger.compose.view.util
 
 import androidx.compose.ui.graphics.Color
@@ -35,9 +29,7 @@ import kotlin.math.pow
 import kotlin.math.withSign
 
 object BlurHashDecoder {
-    /**
-     * Decode a blur hash into a new bitmap.
-     */
+    /** Decode a blur hash into a new bitmap. */
     fun decode(blurHash: String?, intrinsicSize: IntSize?, punch: Float = 1f): ImageBitmap? {
         if (blurHash == null || blurHash.length < 6) {
             return null
@@ -50,16 +42,17 @@ object BlurHashDecoder {
         }
         val maxAcEnc = Base83.decode(blurHash, 1, 2)
         val maxAc = (maxAcEnc + 1) / 166f
-        val colors = Array(numCompX * numCompY) { i ->
-            if (i == 0) {
-                val colorEnc = Base83.decode(blurHash, 2, 6)
-                decodeDc(colorEnc)
-            } else {
-                val from = 4 + i * 2
-                val colorEnc = Base83.decode(blurHash, from, from + 2)
-                decodeAc(colorEnc, maxAc * punch)
+        val colors =
+            Array(numCompX * numCompY) { i ->
+                if (i == 0) {
+                    val colorEnc = Base83.decode(blurHash, 2, 6)
+                    decodeDc(colorEnc)
+                } else {
+                    val from = 4 + i * 2
+                    val colorEnc = Base83.decode(blurHash, from, from + 2)
+                    decodeAc(colorEnc, maxAc * punch)
+                }
             }
-        }
         if (intrinsicSize == null) {
             return null
         }
@@ -97,7 +90,7 @@ object BlurHashDecoder {
         return floatArrayOf(
             signedPow2((r - 9) / 9.0f) * maxAc,
             signedPow2((g - 9) / 9.0f) * maxAc,
-            signedPow2((b - 9) / 9.0f) * maxAc
+            signedPow2((b - 9) / 9.0f) * maxAc,
         )
     }
 
@@ -123,12 +116,93 @@ object BlurHashDecoder {
             return result
         }
 
-        private val charMap = listOf(
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
-            'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-            'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
-            'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '#', '$', '%', '*', '+', ',',
-            '-', '.', ':', ';', '=', '?', '@', '[', ']', '^', '_', '{', '|', '}', '~'
-        ).mapIndexed { i, c -> c to i }.toMap()
+        private val charMap =
+            listOf(
+                    '0',
+                    '1',
+                    '2',
+                    '3',
+                    '4',
+                    '5',
+                    '6',
+                    '7',
+                    '8',
+                    '9',
+                    'A',
+                    'B',
+                    'C',
+                    'D',
+                    'E',
+                    'F',
+                    'G',
+                    'H',
+                    'I',
+                    'J',
+                    'K',
+                    'L',
+                    'M',
+                    'N',
+                    'O',
+                    'P',
+                    'Q',
+                    'R',
+                    'S',
+                    'T',
+                    'U',
+                    'V',
+                    'W',
+                    'X',
+                    'Y',
+                    'Z',
+                    'a',
+                    'b',
+                    'c',
+                    'd',
+                    'e',
+                    'f',
+                    'g',
+                    'h',
+                    'i',
+                    'j',
+                    'k',
+                    'l',
+                    'm',
+                    'n',
+                    'o',
+                    'p',
+                    'q',
+                    'r',
+                    's',
+                    't',
+                    'u',
+                    'v',
+                    'w',
+                    'x',
+                    'y',
+                    'z',
+                    '#',
+                    '$',
+                    '%',
+                    '*',
+                    '+',
+                    ',',
+                    '-',
+                    '.',
+                    ':',
+                    ';',
+                    '=',
+                    '?',
+                    '@',
+                    '[',
+                    ']',
+                    '^',
+                    '_',
+                    '{',
+                    '|',
+                    '}',
+                    '~',
+                )
+                .mapIndexed { i, c -> c to i }
+                .toMap()
     }
 }

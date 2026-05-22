@@ -9,7 +9,5 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.PreviewAddMatrixAcco
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun AddMatrixClientPreview() {
-    InitMessengerPreview {
-        AddMatrixAccount(PreviewAddMatrixAccountViewModel())
-    }
+    InitMessengerPreview { AddMatrixAccount(PreviewAddMatrixAccountViewModel()) }
 }

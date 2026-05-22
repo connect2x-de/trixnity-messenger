@@ -8,15 +8,8 @@ import androidx.compose.ui.unit.IntOffset
 
 // from https://stackoverflow.com/a/68979204/6752302
 @Composable
-fun VerticalGrid(
-    modifier: Modifier = Modifier,
-    spacing: Dp,
-    content: @Composable () -> Unit
-) {
-    Layout(
-        content = content,
-        modifier = modifier
-    ) { measurables, constraints ->
+fun VerticalGrid(modifier: Modifier = Modifier, spacing: Dp, content: @Composable () -> Unit) {
+    Layout(content = content, modifier = modifier) { measurables, constraints ->
         var currentRow = 0
         var currentOrigin = IntOffset.Zero
         val spacingValue = spacing.toPx().toInt()
@@ -28,15 +21,10 @@ fun VerticalGrid(
                 currentOrigin = currentOrigin.copy(x = 0, y = currentOrigin.y + placeable.height + spacingValue)
             }
 
-            placeable to currentOrigin.also {
-                currentOrigin = it.copy(x = it.x + placeable.width + spacingValue)
-            }
+            placeable to currentOrigin.also { currentOrigin = it.copy(x = it.x + placeable.width + spacingValue) }
         }
 
-        layout(
-            width = constraints.maxWidth,
-            height = placeables.lastOrNull()?.run { first.height + second.y } ?: 0
-        ) {
+        layout(width = constraints.maxWidth, height = placeables.lastOrNull()?.run { first.height + second.y } ?: 0) {
             placeables.forEach {
                 val (placeable, origin) = it
                 placeable.place(origin.x, origin.y)

@@ -26,21 +26,16 @@ suspend fun ComposeUiTest.waitUntilExactlyOneExists(
         try {
             waitUntilExactlyOneExists(matcher, timeoutMillis)
             return onNode(matcher)
-        } catch (_: Throwable) { }
+        } catch (_: Throwable) {}
     }
 
     screenshot(testName, "Failure")
     onNodeWithTag("ClientSurface").printToLog("ComposeTree")
 
-    throw ComposeTimeoutException(
-        buildWaitUntilTimeoutMessage(matcher, timeoutMillis)
-    )
+    throw ComposeTimeoutException(buildWaitUntilTimeoutMessage(matcher, timeoutMillis))
 }
 
-private fun buildWaitUntilTimeoutMessage(
-    matcher: SemanticsMatcher,
-    timeoutMillis: Long,
-): String = buildString {
+private fun buildWaitUntilTimeoutMessage(matcher: SemanticsMatcher, timeoutMillis: Long): String = buildString {
     append("Condition ")
     append('(')
     append("exactly 1 nodes match (${matcher.description})")

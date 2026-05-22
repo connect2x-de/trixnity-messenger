@@ -9,16 +9,9 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 
-
 @Composable
-fun ExtrasPaneContentSwitch(
-    stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>,
-    isSinglePane: Boolean,
-) {
-    Children(
-        stack = stack,
-        animation = stackAnimation(fade()),
-    ) { stackItem ->
+fun ExtrasPaneContentSwitch(stack: Value<ChildStack<*, ExtrasRouter.Wrapper>>, isSinglePane: Boolean) {
+    Children(stack = stack, animation = stackAnimation(fade())) { stackItem ->
         val stackPosition = stack.value.items.size // FIXME into viewmodel
         val isBottomOfStack = stackPosition <= 2 // 1 is always None
         when (val child = stackItem.instance) {
@@ -27,9 +20,8 @@ fun ExtrasPaneContentSwitch(
             is ExtrasRouter.Wrapper.RoomDevInfo -> RoomDevInfoContainer(child.viewModel)
             is ExtrasRouter.Wrapper.ExportRoom -> ExportRoomContainer(child.viewModel)
             is ExtrasRouter.Wrapper.UserProfile -> UserProfileContainer(child.viewModel)
-            is ExtrasRouter.Wrapper.TimelineElementMetadata -> TimelineElementMetadata(
-                child.viewModel, isBottomOfStack, isSinglePane,
-            )
+            is ExtrasRouter.Wrapper.TimelineElementMetadata ->
+                TimelineElementMetadata(child.viewModel, isBottomOfStack, isSinglePane)
             is ExtrasRouter.Wrapper.TimelineElementDevInfo -> TimelineElementDevInfo(child.viewModel)
 
             is ExtrasRouter.Wrapper.PowerLevels -> ChangePowerLevel(child.viewModel)

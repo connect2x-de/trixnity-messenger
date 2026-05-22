@@ -8,23 +8,22 @@ import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.painter.Painter
 
-
 /**
- * Normally, to transition between two images, we'd fade alpha linearly. Image1 would go from 1.0 to 0.0,
- * Image2 would go from 0.0 to 1.0, with the total opacity at any point adding up to 1.0.
+ * Normally, to transition between two images, we'd fade alpha linearly. Image1 would go from 1.0 to 0.0, Image2 would
+ * go from 0.0 to 1.0, with the total opacity at any point adding up to 1.0.
  *
  * Sadly, compose interprets alpha values as sRGB, which is roughly equivalent to a 2.2 gamma.
  *
- * That means at the middle point, the opacity of each image would be 0.5 ^ 2.2 ~ 0.22,
- * with a total opacity of 0.44 instead of 1.0, causing a distracting dip in brightness.
+ * That means at the middle point, the opacity of each image would be 0.5 ^ 2.2 ~ 0.22, with a total opacity of 0.44
+ * instead of 1.0, causing a distracting dip in brightness.
  *
- * To compensate for that, we calculate the entire transition in linear colorspace,
- * and only convert to sRGB at the very end.
+ * To compensate for that, we calculate the entire transition in linear colorspace, and only convert to sRGB at the very
+ * end.
  */
 internal class TransitionPainter(
     private val image: Painter?,
     private val fallback: Painter?,
-    private val opacity: State<Float>
+    private val opacity: State<Float>,
 ) : Painter() {
     override val intrinsicSize: Size = image?.intrinsicSize ?: fallback?.intrinsicSize ?: Size.Zero
 

@@ -32,8 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface TypingIndicatorView {
-    @Composable
-    fun create(timelineViewModel: TimelineViewModel)
+    @Composable fun create(timelineViewModel: TimelineViewModel)
 }
 
 @Composable
@@ -61,7 +60,7 @@ class TypingIndicatorViewImpl : TypingIndicatorView {
                     "",
                     Modifier.padding(start = 10.dp).minSizeOfText("...", style),
                     style,
-                    cycleDuration = 1_500
+                    cycleDuration = 1_500,
                 )
             }
         }
@@ -92,12 +91,15 @@ private object NoopHolder : OutboxElementHolderViewModel {
     override val showSender: StateFlow<Boolean?> = MutableStateFlow(false)
     override val showBigGapBefore: StateFlow<Boolean?> = MutableStateFlow(false)
     override val sendError: StateFlow<String?> = MutableStateFlow(null)
+
     override fun jumpTo() {}
 
     override val transactionId: String = ""
     override val uploadProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
     override val canRetrySend: StateFlow<Boolean> = MutableStateFlow(false)
     override val canAbortSend: StateFlow<Boolean> = MutableStateFlow(false)
+
     override fun retrySend() {}
+
     override fun abortSend() {}
 }

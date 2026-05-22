@@ -2,10 +2,6 @@ package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.warn
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.withTimeoutOrNull
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
@@ -14,6 +10,10 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 
 interface LeaveRoom {
     suspend operator fun invoke(client: MatrixClient, roomId: RoomId, forget: Boolean = true): Result<Unit>
@@ -41,7 +41,9 @@ class LeaveRoomImpl : LeaveRoom {
 
                 val room = roomFlow.first()
                 if (room == null) {
-                    log.debug { "skip leaving or removing local copy of room $roomId, because it has been already removed" }
+                    log.debug {
+                        "skip leaving or removing local copy of room $roomId, because it has been already removed"
+                    }
                     return@forEach
                 }
 
@@ -51,22 +53,25 @@ class LeaveRoomImpl : LeaveRoom {
                     val leaveException = leaveResult.exceptionOrNull()
 
                     if (leaveException != null && leaveException !is MatrixServerException) {
-                        log.warn(leaveException) { "skip forget room $roomId, because something went wrong (e. g. network error)" }
+                        log.warn(leaveException) {
+                            "skip forget room $roomId, because something went wrong (e. g. network error)"
+                        }
                         throw leaveException
                     }
                 }
 
                 if (forget) {
                     log.trace { "wait for room $roomId to be marked as LEAVE" }
-                    withTimeoutOrNull(10.seconds) {
-                        roomFlow.filter { it?.membership == Membership.LEAVE }.first()
-                    } ?: log.warn { "Exceeded timeout for room membership to switch to leave, forgetting room..." }
+                    withTimeoutOrNull(10.seconds) { roomFlow.filter { it?.membership == Membership.LEAVE }.first() }
+                        ?: log.warn { "Exceeded timeout for room membership to switch to leave, forgetting room..." }
                     log.trace { "forget room" }
                     val forgetResult = client.api.room.forgetRoom(roomId)
                     val forgetException = forgetResult.exceptionOrNull()
 
                     if (forgetException != null && forgetException !is MatrixServerException) {
-                        log.warn(forgetException) { "skip removing local copy of room $roomId, because something went wrong (e. g. network error)" }
+                        log.warn(forgetException) {
+                            "skip removing local copy of room $roomId, because something went wrong (e. g. network error)"
+                        }
                         throw forgetException
                     }
 

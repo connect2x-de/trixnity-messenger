@@ -47,8 +47,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.AvatarCutterViewModel
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.settings.AvatarCutterKt")
 
 interface AvatarCutterView {
-    @Composable
-    fun create(avatarCutterViewModel: AvatarCutterViewModel)
+    @Composable fun create(avatarCutterViewModel: AvatarCutterViewModel)
 }
 
 @Composable
@@ -66,10 +65,12 @@ class AvatarCutterViewImpl : AvatarCutterView {
         val byteArray = avatarCutterViewModel.avatarImage.collectAsState().value
 
         LaunchedEffect(byteArray) {
-            bitmap = byteArray?.toImageBitmap() ?: run {
-                log.error { "failed to create bitmap image " }
-                null
-            }
+            bitmap =
+                byteArray?.toImageBitmap()
+                    ?: run {
+                        log.error { "failed to create bitmap image " }
+                        null
+                    }
         }
 
         ThemedAdaptiveDialog({ avatarCutterViewModel.cancel() }) {
@@ -83,14 +84,13 @@ class AvatarCutterViewImpl : AvatarCutterView {
                         Image(
                             bitmap,
                             i18n.commonAvatar(),
-                            Modifier
-                                .align(Alignment.Center)
+                            Modifier.align(Alignment.Center)
                                 .fillMaxSize()
                                 .circleCrop(
                                     MaterialTheme.components.adaptiveDialog.container.color,
                                     bitmap.width,
                                     bitmap.height,
-                                )
+                                ),
                         )
                     }
                 }
@@ -104,16 +104,17 @@ class AvatarCutterViewImpl : AvatarCutterView {
                 ) {
                     if (upload) {
                         ThemedProgressIndicator(
-                            style = MaterialTheme.components.extraSmallCircularProgressIndicator.copy(
-                                size = MaterialTheme.components.primaryButton.iconSize,
-                                padding = PaddingValues(0.dp)
-                            )
+                            style =
+                                MaterialTheme.components.extraSmallCircularProgressIndicator.copy(
+                                    size = MaterialTheme.components.primaryButton.iconSize,
+                                    padding = PaddingValues(0.dp),
+                                )
                         )
                     } else {
                         Icon(
                             Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize)
+                            modifier = Modifier.size(MaterialTheme.components.primaryButton.iconSize),
                         )
                     }
                     Spacer(Modifier.size(MaterialTheme.components.commonButton.iconSpacing))
@@ -125,12 +126,7 @@ class AvatarCutterViewImpl : AvatarCutterView {
 }
 
 @Composable
-private fun Modifier.circleCrop(
-    color: Color,
-    contentWidth: Int,
-    contentHeight: Int,
-) = drawWithContent {
-
+private fun Modifier.circleCrop(color: Color, contentWidth: Int, contentHeight: Int) = drawWithContent {
     drawContent()
     drawIntoCanvas {
         val (canvasWidth, canvasHeight) = size
@@ -141,14 +137,10 @@ private fun Modifier.circleCrop(
         val scaledContentHeight = if (contentAspect >= canvasAspect) canvasWidth / contentAspect else canvasHeight
 
         clipPath(
-            path = Path().apply {
-                addOval(
-                    Rect(
-                        center = center,
-                        radius = minOf(scaledContentWidth, scaledContentHeight) / 2f,
-                    )
-                )
-            },
+            path =
+                Path().apply {
+                    addOval(Rect(center = center, radius = minOf(scaledContentWidth, scaledContentHeight) / 2f))
+                },
             clipOp = ClipOp.Difference,
         ) {
             drawRect(color, alpha = 0.5f)

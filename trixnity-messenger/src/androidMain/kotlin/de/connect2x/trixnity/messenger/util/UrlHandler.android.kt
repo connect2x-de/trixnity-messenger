@@ -9,26 +9,22 @@ import org.koin.dsl.module
 
 class UriHandlerImpl(config: MatrixMessengerBaseConfiguration) : UriHandlerBase(config) {
 
-    /**
-     * This need to be called by Activity Intent handler.
-     */
+    /** This need to be called by Activity Intent handler. */
     fun onUri(uri: Uri) {
         urlHandlerFlow.tryEmit(uri.toString())
     }
 }
 
-actual fun platformUriHandlerModule(): Module = module {
-    single<UriHandler> {
-        UriHandlerImpl(get())
-    }
-}
+actual fun platformUriHandlerModule(): Module = module { single<UriHandler> { UriHandlerImpl(get()) } }
 
 val MatrixMessenger.defaultUriHandler: UriHandlerImpl
-    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }
+    get() =
+        checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
+            "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+        }
 
 val MatrixMultiMessenger.defaultUriHandler: UriHandlerImpl
-    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }
+    get() =
+        checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
+            "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+        }

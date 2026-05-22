@@ -26,8 +26,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepFallbackViewModel
 
 interface UiaFallbackFlowView {
-    @Composable
-    fun create(uiaStepFallbackViewModel: UiaStepFallbackViewModel)
+    @Composable fun create(uiaStepFallbackViewModel: UiaStepFallbackViewModel)
 }
 
 @Composable
@@ -43,11 +42,7 @@ class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
         val isAwaiting = uiaStepFallbackViewModel.waitForResult.collectAsState().value
         val authenticationType = uiaStepFallbackViewModel.authenticationTypeString
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaFallbackTitle())
                 if (error != null) {
                     ErrorView(error)
@@ -57,10 +52,7 @@ class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
                 MiddleSpacer()
                 if (isAwaiting) LoadingSpinner()
                 LargeSpacer()
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepFallbackViewModel::cancel,

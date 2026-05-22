@@ -17,9 +17,5 @@ internal val CurrentFontKind: FontKind
         val config = DI.get<MatrixMultiMessengerConfiguration>()
         val settings = DI.getOrNull<MatrixMessengerSettingsHolder>()
         return if (!config.enableBundledFont) FontKind.SYSTEM
-        else settings
-            ?.map { it.base.fontKind }
-            ?.distinctUntilChanged()
-            ?.collectAsState(null)?.value
-            ?: FontKind.BUNDLED
+        else settings?.map { it.base.fontKind }?.distinctUntilChanged()?.collectAsState(null)?.value ?: FontKind.BUNDLED
     }

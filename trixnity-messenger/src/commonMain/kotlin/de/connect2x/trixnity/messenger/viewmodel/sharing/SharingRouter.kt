@@ -7,40 +7,38 @@ import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.launchReplaceAll
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
-import kotlin.uuid.Uuid
 
-class SharingRouter(
-    private val viewModelContext: ViewModelContext,
-) {
+class SharingRouter(private val viewModelContext: ViewModelContext) {
     private val sharedDataHandler = viewModelContext.get<SharedDataHandler>()
     private val navigation = StackNavigation<Config>()
-    val stack = viewModelContext.childStack(
-        source = navigation,
-        initialConfiguration = sharedDataHandler.value?.let { Config.ShareData(it) } ?: Config.None,
-        serializer = null,
-        handleBackButton = false,
-        childFactory = ::createChild,
-        key = "SharingRouter-${Uuid.random()}"
-    )
+    val stack =
+        viewModelContext.childStack(
+            source = navigation,
+            initialConfiguration = sharedDataHandler.value?.let { Config.ShareData(it) } ?: Config.None,
+            serializer = null,
+            handleBackButton = false,
+            childFactory = ::createChild,
+            key = "SharingRouter-${Uuid.random()}",
+        )
 
-    private fun createChild(
-        config: Config,
-        componentContext: ComponentContext
-    ): Wrapper =
+    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
         when (config) {
             is Config.None -> Wrapper.None
 
-            is Config.ShareData -> Wrapper.ShareData(
-                viewModelContext.get<ShareDataViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("ShareData", componentContext),
-                    sharedData = config.data,
-                    onClose = ::close,
+            is Config.ShareData ->
+                Wrapper.ShareData(
+                    viewModelContext
+                        .get<ShareDataViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("ShareData", componentContext),
+                            sharedData = config.data,
+                            onClose = ::close,
+                        )
                 )
-            )
-
         }
 
     init {
@@ -48,7 +46,7 @@ class SharingRouter(
             sharedDataHandler.collectLatest {
                 navigation.launchReplaceAll(
                     viewModelContext.coroutineScope,
-                    if (it == null) Config.None else Config.ShareData(it)
+                    if (it == null) Config.None else Config.ShareData(it),
                 )
             }
         }
@@ -56,11 +54,13 @@ class SharingRouter(
 
     sealed class Wrapper {
         data object None : Wrapper()
+
         class ShareData(val viewModel: ShareDataViewModel) : Wrapper()
     }
 
     sealed class Config {
         data object None : Config()
+
         data class ShareData(val data: SharedData) : Config()
     }
 

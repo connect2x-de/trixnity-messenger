@@ -34,10 +34,10 @@ fun DevInfoCard(
             MaterialTheme.colorScheme.surfaceContainerHighest,
             MaterialTheme.colorScheme.onSurface,
             MaterialTheme.colorScheme.surfaceContainerHighest,
-            MaterialTheme.colorScheme.onSurface
+            MaterialTheme.colorScheme.onSurface,
         ),
         additionalButtons,
-        content
+        content,
     )
 }
 
@@ -47,19 +47,14 @@ fun SettingsCard(
     icon: ImageVector? = null,
     colors: CardColors = CardDefaults.elevatedCardColors(),
     additionalButtons: @Composable (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     ElevatedCard(Modifier.padding(bottom = 10.dp), colors = colors) {
         Column(Modifier.padding(10.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) Icon(imageVector = icon, contentDescription = null)
                 Spacer(Modifier.size(10.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
                 if (additionalButtons != null) {
                     Spacer(Modifier.weight(1.0f, false).fillMaxWidth())
                     additionalButtons()

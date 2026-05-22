@@ -25,12 +25,12 @@ import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class LeaveRoomTest {
 
@@ -49,40 +49,39 @@ class LeaveRoomTest {
         configureTestLogging()
         room.value = Room(roomId)
         resetMocks(matrixClient, roomApiClient, roomService, matrixClientServerApiClient)
-        every { roomService.getState(roomId, CreateEventContent::class, any()) } returns flowOf(
-            ClientEvent.RoomEvent.StateEvent(
-                content = CreateEventContent(
-                    predecessor = CreateEventContent.PreviousRoom(upgradedRoomId, EventId("bla"))
-                ),
-                id = EventId("blub"),
-                sender = UserId("sender"),
-                roomId = roomId,
-                originTimestamp = 1234,
-                unsigned = null,
-                stateKey = ""
+        every { roomService.getState(roomId, CreateEventContent::class, any()) } returns
+            flowOf(
+                ClientEvent.RoomEvent.StateEvent(
+                    content =
+                        CreateEventContent(
+                            predecessor = CreateEventContent.PreviousRoom(upgradedRoomId, EventId("bla"))
+                        ),
+                    id = EventId("blub"),
+                    sender = UserId("sender"),
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                    unsigned = null,
+                    stateKey = "",
+                )
             )
-        )
         every { roomService.getState(upgradedRoomId, CreateEventContent::class, any()) } returns flowOf(null)
         every { roomService.getById(roomId) } returns room
         every { roomService.getById(upgradedRoomId) } returns upgradedRoom
         everySuspend { roomService.forgetRoom(any(), any()) } returns Unit
         every { matrixClientServerApiClient.room } returns roomApiClient
         every { matrixClient.api } returns matrixClientServerApiClient
-        every { matrixClient.di } returns koinApplication {
-            modules(module {
-                single { roomService }
-            })
-        }.koin
+        every { matrixClient.di } returns koinApplication { modules(module { single { roomService } }) }.koin
     }
 
     @Test
     fun `should leave and forget`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.JOIN)
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
         verifySuspend {
@@ -96,14 +95,16 @@ class LeaveRoomTest {
         room.value = Room(roomId, membership = Membership.JOIN)
         upgradedRoom.value = Room(upgradedRoomId, membership = Membership.JOIN)
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(roomId) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
-        everySuspend { roomApiClient.leaveRoom(upgradedRoomId) } calls {
-            upgradedRoom.value = Room(upgradedRoomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
+        everySuspend { roomApiClient.leaveRoom(roomId) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
+        everySuspend { roomApiClient.leaveRoom(upgradedRoomId) } calls
+            {
+                upgradedRoom.value = Room(upgradedRoomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
         verifySuspend {
@@ -118,10 +119,11 @@ class LeaveRoomTest {
     fun `should not call forget when not requested`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.JOIN)
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId, false).getOrThrow()
         verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
@@ -141,15 +143,16 @@ class LeaveRoomTest {
     fun `should forget room when leaveRoom call failed with MatrixServerException`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.JOIN)
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.failure(
-                MatrixServerException(
-                    statusCode = HttpStatusCode.InternalServerError,
-                    errorResponse = ErrorResponse.Unknown("error")
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.failure(
+                    MatrixServerException(
+                        statusCode = HttpStatusCode.InternalServerError,
+                        errorResponse = ErrorResponse.Unknown("error"),
+                    )
                 )
-            )
-        }
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
         verifySuspend { roomApiClient.forgetRoom(roomId) }
@@ -159,10 +162,11 @@ class LeaveRoomTest {
     fun `should not forget room when leaveRoom call failed with unrelated exception`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.JOIN)
         everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.failure(RuntimeException())
-        }
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.failure(RuntimeException())
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
         verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
@@ -171,16 +175,18 @@ class LeaveRoomTest {
     @Test
     fun `should forget room locally when API call failed with MatrixServerException`() = runTestWithCoroutineScope {
         room.value = Room(roomId, membership = Membership.LEAVE)
-        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.failure(
-            MatrixServerException(
-                statusCode = HttpStatusCode.InternalServerError,
-                errorResponse = ErrorResponse.Unknown("error")
+        everySuspend { roomApiClient.forgetRoom(any()) } returns
+            Result.failure(
+                MatrixServerException(
+                    statusCode = HttpStatusCode.InternalServerError,
+                    errorResponse = ErrorResponse.Unknown("error"),
+                )
             )
-        )
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
         verifySuspend { matrixClient.room.forgetRoom(roomId, true) }
@@ -197,17 +203,14 @@ class LeaveRoomTest {
 
     @Test
     fun `should forget room locally when API call failed with unrelated exception`() = runTestWithCoroutineScope {
-        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.failure(
-            RuntimeException("unrelated")
-        )
-        everySuspend { roomApiClient.leaveRoom(any()) } calls {
-            room.value = Room(roomId, membership = Membership.LEAVE)
-            Result.success(Unit)
-        }
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.failure(RuntimeException("unrelated"))
+        everySuspend { roomApiClient.leaveRoom(any()) } calls
+            {
+                room.value = Room(roomId, membership = Membership.LEAVE)
+                Result.success(Unit)
+            }
 
         LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
         verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(roomId) }
     }
-
-
 }

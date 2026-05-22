@@ -17,7 +17,8 @@ internal fun ColumnScope.TableCaption(node: RichText, context: RichTextContext) 
 @Composable
 internal fun ColumnScope.TableCaption(node: RichText.Block, context: RichTextContext) {
     when (node.tag) {
-        "thead", "tbody" -> {
+        "thead",
+        "tbody" -> {
             for (child in node.children) {
                 TableCaption(child, context)
             }

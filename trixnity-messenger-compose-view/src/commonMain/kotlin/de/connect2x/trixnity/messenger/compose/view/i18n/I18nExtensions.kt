@@ -8,13 +8,15 @@ fun HistoryVisibilityEventContent.HistoryVisibility.getExplanation(i18n: I18nVie
         HistoryVisibilityEventContent.HistoryVisibility.INVITED -> i18n.historyVisibilityInvitedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.SHARED -> i18n.historyVisibilitySharedExplanation()
         HistoryVisibilityEventContent.HistoryVisibility.JOINED -> i18n.historyVisibilityJoinedExplanation()
-        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadableExplanation()
+        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE ->
+            i18n.historyVisibilityWorldReadableExplanation()
     }
 }
 
 fun HistoryVisibilityEventContent.HistoryVisibility.getExplanationWhenEncrypted(i18n: I18nView): String {
     return when (this) {
-        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE -> i18n.historyVisibilityWorldReadableEncryptedExplanation()
+        HistoryVisibilityEventContent.HistoryVisibility.WORLD_READABLE ->
+            i18n.historyVisibilityWorldReadableEncryptedExplanation()
         else -> this.getExplanation(i18n)
     }
 }
@@ -51,4 +53,3 @@ fun JoinRulesEventContent.JoinRule.getStateName(i18n: I18nView): String {
         is JoinRulesEventContent.JoinRule.Unknown -> ""
     }
 }
-

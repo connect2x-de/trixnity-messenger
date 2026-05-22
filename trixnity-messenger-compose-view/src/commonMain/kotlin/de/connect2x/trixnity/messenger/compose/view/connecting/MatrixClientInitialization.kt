@@ -16,8 +16,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
 
 interface MatrixClientInitializationView {
-    @Composable
-    fun create(matrixClientInitializationViewModel: MatrixClientInitializationViewModel)
+    @Composable fun create(matrixClientInitializationViewModel: MatrixClientInitializationViewModel)
 }
 
 @Composable
@@ -33,7 +32,7 @@ class MatrixClientInitializationViewImpl : MatrixClientInitializationView {
             Column(Modifier.align(Alignment.Center)) {
                 ThemedProgressIndicator(
                     Modifier.align(Alignment.CenterHorizontally),
-                    MaterialTheme.components.circularProgressIndicator
+                    MaterialTheme.components.circularProgressIndicator,
                 )
                 Text(currentState.value)
             }

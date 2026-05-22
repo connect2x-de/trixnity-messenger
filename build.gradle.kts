@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.MavenPublishPlugin // never remove!
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.PluginIds
+import de.connect2x.conventions.applyKtfmt
 import de.connect2x.conventions.c2xOrganization
 import de.connect2x.conventions.defaultDependencyLocking
 import de.connect2x.conventions.defaultPublishing
@@ -13,6 +14,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
     alias(sharedLibs.plugins.c2xConventions)
+    alias(sharedLibs.plugins.ktfmt)
 
     alias(sharedLibs.plugins.kotlin.multiplatform) apply false
     alias(sharedLibs.plugins.kotlin.jvm) apply false
@@ -32,6 +34,10 @@ plugins {
     alias(sharedLibs.plugins.mavenPublish) apply false
 }
 
+applyKtfmt()
+
+tasks.named { it == "ktfmtCheck" }.configureEach { dependsOn(gradle.includedBuild("build-logic").task(":ktfmtCheck")) }
+
 updateAbiFilesFromReportZip()
 
 allprojects {
@@ -43,6 +49,8 @@ allprojects {
 }
 
 subprojects {
+    applyKtfmt()
+
     val isTrixnityProject = project.name.startsWith("trixnity-") && !project.name.endsWith("app")
     val isJsWrapper = project.name.startsWith("wrappers-")
     if (isTrixnityProject || isJsWrapper) {
@@ -58,7 +66,7 @@ subprojects {
                     setProjectInfo(
                         name = project.name,
                         description = "Multiplatform Kotlin SDK for Matrix messengers",
-                        repository = "connect2x/trixnity-messenger/trixnity-messenger"
+                        repository = "connect2x/trixnity-messenger/trixnity-messenger",
                     )
                     c2xOrganization()
                     licenses {

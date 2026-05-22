@@ -46,15 +46,14 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel.FileBased.Video
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDuration
-import org.jetbrains.compose.resources.ExperimentalResourceApi
 import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 interface VideoRoomMessageTimelineElementView : TimelineElementView<Video>
 
 class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementView {
-    override val supports: KClass<Video> =
-        Video::class
+    override val supports: KClass<Video> = Video::class
 
     override suspend fun waitFor(element: Video) {
         // no-op (has default size)
@@ -63,37 +62,25 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Video,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Video, index: Int) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             index = index,
-            overlay = {
-                VideoMessageElementOverlay(element)
-            }
+            overlay = { VideoMessageElementOverlay(element) },
         ) { showMenuAction, onSave ->
             VideoMessageContent(holder, element, showMenuAction, onSave)
         }
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Video,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Video, index: Int) {
         FileBasedRoomMessageTimelineElement(
             holder,
             element,
             isPreview = true,
             index = index,
-            overlay = {
-                VideoMessageElementOverlay(element)
-            },
+            overlay = { VideoMessageElementOverlay(element) },
         ) { openActionMenu, saveAttachment ->
             VideoMessageContent(holder, element, openActionMenu, saveAttachment)
         }
@@ -120,10 +107,8 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Video
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Video): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Video, i18n: I18nView): String {
         return "${i18n.commonVideo()}, ${element.name}, ${element.duration.ifNotNull { formatDuration(it.milliseconds) }}"
@@ -132,14 +117,12 @@ class VideoRoomMessageTimelineElementViewImpl : VideoRoomMessageTimelineElementV
 
 @Composable
 internal fun VideoMessageElementOverlay(element: Video) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             "${shortenFileName(element)}${element.duration.ifNotNull { ", ${formatDuration(it.milliseconds)}" }}${element.size.ifNotNull { " $it" }}",
             Modifier.basicMarquee(),
             color = MaterialTheme.messengerColors.metaDataPreview,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -159,46 +142,31 @@ internal fun ColumnScope.VideoMessageContent(
             Image(
                 it,
                 "",
-                Modifier
-                    .heightIn(
-                        50.dp,
-                        with(LocalDensity.current) { 300.dp }
-                    )
+                Modifier.heightIn(50.dp, with(LocalDensity.current) { 300.dp })
                     .padding(3.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .openVideoOnTouch(element, onSave, showMenuAction)
                     .buttonPointerModifier(),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
             )
-        } ?: Column(
-            Modifier.width(IntrinsicSize.Max).padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                MaterialTheme.messengerIcons.typeVideo,
-                i18n.commonVideo(),
-                Modifier
-                    .size(64.dp)
-                    .openVideoOnTouch(element, onSave, showMenuAction)
-                    .buttonPointerModifier(),
-            )
-            FileName(element.name)
         }
+            ?: Column(
+                Modifier.width(IntrinsicSize.Max).padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    MaterialTheme.messengerIcons.typeVideo,
+                    i18n.commonVideo(),
+                    Modifier.size(64.dp).openVideoOnTouch(element, onSave, showMenuAction).buttonPointerModifier(),
+                )
+                FileName(element.name)
+            }
     }
 }
 
 @Composable
-private fun Modifier.openVideoOnTouch(
-    element: Video,
-    showMenuAction: () -> Unit,
-    onSave: () -> Unit,
-): Modifier {
-    return this.then(pointerInput(Unit) {
-        detectTapGestures(
-            onTap = { onSave() },
-            onLongPress = { showMenuAction() },
-        )
-    })
+private fun Modifier.openVideoOnTouch(element: Video, showMenuAction: () -> Unit, onSave: () -> Unit): Modifier {
+    return this.then(pointerInput(Unit) { detectTapGestures(onTap = { onSave() }, onLongPress = { showMenuAction() }) })
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -207,7 +175,7 @@ internal fun VideoReplyElement(
     holder: TimelineElementHolderViewModel,
     element: Video,
     interactionSource: MutableInteractionSource,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     val i18n = DI.get<I18nView>()
     val videoImage = element.thumbnail.collectAsState().value
@@ -232,20 +200,21 @@ internal fun VideoReplyElement(
                             tint = Color.DarkGray,
                         )
                     }
-                } ?: run {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            MaterialTheme.messengerIcons.typeVideo,
-                            i18n.commonVideo(),
-                            modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
-                        )
-                        FileName(element.name)
-                    }
                 }
+                    ?: run {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                MaterialTheme.messengerIcons.typeVideo,
+                                i18n.commonVideo(),
+                                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
+                            )
+                            FileName(element.name)
+                        }
+                    }
                 if (element.hasCaption) {
                     TextReply(element, maxLines = 2)
                 }
             }
-        }
+        },
     )
 }

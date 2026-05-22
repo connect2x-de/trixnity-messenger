@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.koin.core.Koin
 
-
 const val SINGLE_PANE_THRESHOLD = 1024
 const val TWO_PANE_THRESHOLD = 1100
 
@@ -28,7 +27,10 @@ const val ROOM_LIST_WEIGHT = 0.27f
 const val ROOM_WEIGHT = 1f - ROOM_LIST_WEIGHT
 
 enum class PlatformType {
-    DESKTOP, WEB, ANDROID, IOS;
+    DESKTOP,
+    WEB,
+    ANDROID,
+    IOS,
 }
 
 val PlatformType.isMobile
@@ -50,8 +52,7 @@ val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal
 val EscapeKeyPressed = compositionLocalOf<Flow<Unit>> { flowOf() }
 
 interface ClientView {
-    @Composable
-    fun create(rootViewModel: RootViewModel)
+    @Composable fun create(rootViewModel: RootViewModel)
 }
 
 @Composable
@@ -68,25 +69,24 @@ class ClientViewImpl : ClientView {
 
         ThemedSurface(
             style = MaterialTheme.components.background,
-            modifier = Modifier
-                .testTag("ClientSurface")
-                .fillMaxSize()
-                .drawBehind {
-                    val top = insets.getTop(this)
-                    val bottom = insets.getBottom(this)
+            modifier =
+                Modifier.testTag("ClientSurface")
+                    .fillMaxSize()
+                    .drawBehind {
+                        val top = insets.getTop(this)
+                        val bottom = insets.getBottom(this)
 
-                    drawRect(headerColor, topLeft = Offset.Zero, size = size.copy(height = top.toFloat()))
-                    drawRect(
-                        footerColor,
-                        topLeft = Offset(0f, size.height - bottom),
-                        size = size.copy(height = bottom.toFloat())
-                    )
-                }
-                .windowInsetsPadding(insets)
+                        drawRect(headerColor, topLeft = Offset.Zero, size = size.copy(height = top.toFloat()))
+                        drawRect(
+                            footerColor,
+                            topLeft = Offset(0f, size.height - bottom),
+                            size = size.copy(height = bottom.toFloat()),
+                        )
+                    }
+                    .windowInsetsPadding(insets),
         ) {
             RootSwitch(rootViewModel.stack)
             UiaSwitch(rootViewModel.uiaStack)
         }
     }
 }
-

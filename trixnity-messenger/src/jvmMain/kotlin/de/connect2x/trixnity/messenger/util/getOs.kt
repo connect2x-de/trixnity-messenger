@@ -3,7 +3,9 @@ package de.connect2x.trixnity.messenger.util
 import java.util.*
 
 enum class OS(val value: String) {
-    WINDOWS("Windows"), MAC_OS("macOS"), LINUX("Linux")
+    WINDOWS("Windows"),
+    MAC_OS("macOS"),
+    LINUX("Linux"),
 }
 
 fun getOs(): OS {

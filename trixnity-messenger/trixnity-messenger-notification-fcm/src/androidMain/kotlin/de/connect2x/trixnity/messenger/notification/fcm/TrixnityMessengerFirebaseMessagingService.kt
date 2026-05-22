@@ -20,9 +20,7 @@ class TrixnityMessengerFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         log.trace { "onNewToken" }
-        OnNewTokenWorker.enqueueUniqueWork(
-            context = applicationContext, pushKey = token
-        )
+        OnNewTokenWorker.enqueueUniqueWork(context = applicationContext, pushKey = token)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
@@ -38,7 +36,7 @@ class TrixnityMessengerFirebaseMessagingService : FirebaseMessagingService() {
                 profile = profile,
                 account = account,
                 roomId = roomId,
-                eventId = eventId
+                eventId = eventId,
             )
         }
     }

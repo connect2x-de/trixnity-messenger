@@ -30,31 +30,25 @@ fun ReferencedMessagePill(
 ) {
     val sender = holder.sender.collectAsState().value
     val sendError = holder.sendError.collectAsState().value
-    val messageBubbleStyle = when {
-        sendError != null -> MaterialTheme.components.messageBubbleError
-        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
-        else -> MaterialTheme.components.messageBubbleOther
-    }
-    val senderNameColor = sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId,messageBubbleStyle.color) } ?: Color.Unspecified
+    val messageBubbleStyle =
+        when {
+            sendError != null -> MaterialTheme.components.messageBubbleError
+            holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+            else -> MaterialTheme.components.messageBubbleOther
+        }
+    val senderNameColor =
+        sender?.let { MaterialTheme.messengerColors.getUserColor(sender.userId, messageBubbleStyle.color) }
+            ?: Color.Unspecified
     val outlineColor = MaterialTheme.colorScheme.outline
     val isFocused = interactionSource.collectIsFocusedAsState()
 
-    ThemedSurface(
-        modifier = modifier,
-        focused = isFocused.value,
-        style = MaterialTheme.components.messageReference,
-    ) {
+    ThemedSurface(modifier = modifier, focused = isFocused.value, style = MaterialTheme.components.messageReference) {
         Column(
-            modifier = Modifier
-                .drawBehind {
-                    drawRect(outlineColor, Offset.Zero, Size(5.dp.toPx(), size.height))
-                }
-                .padding(start = 10.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
+            modifier =
+                Modifier.drawBehind { drawRect(outlineColor, Offset.Zero, Size(5.dp.toPx(), size.height)) }
+                    .padding(start = 10.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)
         ) {
-            Text(
-                sender?.name ?: "",
-                style = MaterialTheme.typography.labelLarge.copy(color = senderNameColor)
-            )
+            Text(sender?.name ?: "", style = MaterialTheme.typography.labelLarge.copy(color = senderNameColor))
             Spacer(Modifier.size(5.dp))
             content()
         }

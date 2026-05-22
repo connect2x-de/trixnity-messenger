@@ -7,9 +7,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
@@ -26,8 +23,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
 interface RedactionWarningView {
-    @Composable
-    fun create(holder: BaseTimelineElementHolderViewModel)
+    @Composable fun create(holder: BaseTimelineElementHolderViewModel)
 }
 
 @Composable
@@ -46,27 +42,22 @@ class RedactionWarningViewImpl : RedactionWarningView {
             ModalDialogHeader { Text(i18n.redactionWarningInfoTitle()) }
             ModalDialogContent {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Warning,
-                        i18n.commonWarning(),
-                        tint = MaterialTheme.messengerColors.warning
-                    )
+                    Icon(Icons.Default.Warning, i18n.commonWarning(), tint = MaterialTheme.messengerColors.warning)
                     MiddleSpacer()
                     Text(i18n.redactionWarningInfo())
                 }
             }
             ModalDialogFooter {
                 ThemedButton(
-                    onClick = {
-                        holder.cancelRedactionWarning()
-                    },
-                    style = MaterialTheme.components.commonButton
+                    onClick = { holder.cancelRedactionWarning() },
+                    style = MaterialTheme.components.commonButton,
                 ) {
                     Text(i18n.commonCancel())
                 }
-                ThemedButton(onClick = {
-                    holder.acceptRedactionWarning()
-                }, style = MaterialTheme.components.primaryButton) {
+                ThemedButton(
+                    onClick = { holder.acceptRedactionWarning() },
+                    style = MaterialTheme.components.primaryButton,
+                ) {
                     Text(i18n.commonConfirm())
                 }
             }

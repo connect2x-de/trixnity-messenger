@@ -1,5 +1,13 @@
 package de.connect2x.trixnity.messenger.viewmodel.room
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.core.model.RoomAliasId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.util.Reference
 import de.connect2x.trixnity.messenger.util.MatrixReferences
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.EventInfoElement
@@ -22,14 +30,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.room.getState
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.core.model.RoomAliasId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
-import de.connect2x.trixnity.core.util.Reference
 
 class MentionHelper(
     val coroutineScope: CoroutineScope,
@@ -49,40 +49,42 @@ class MentionHelper(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun processMention(reference: Reference): StateFlow<TimelineElementMention?> =
         when (reference) {
-            is Reference.User -> matrixClient.user.getById(roomId, reference.userId)
-                .map {
-                    TimelineElementMention.User(
-                        // TODO call api.user.getProfile as fallback
-                        it.toUserInfoElement(
-                            coroutineScope,
-                            matrixClient,
-                            initials,
-                            reference.userId,
-                            maxMediaSizeInMemory,
+            is Reference.User ->
+                matrixClient.user
+                    .getById(roomId, reference.userId)
+                    .map {
+                        TimelineElementMention.User(
+                            // TODO call api.user.getProfile as fallback
+                            it.toUserInfoElement(
+                                coroutineScope,
+                                matrixClient,
+                                initials,
+                                reference.userId,
+                                maxMediaSizeInMemory,
+                            )
                         )
-                    )
-                }
-                .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+                    }
+                    .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-            is Reference.Room -> parseRoom(reference.roomId, matrixClient, initials)
-                .map { info ->
-                    TimelineElementMention.Room(info)
-                }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            is Reference.Room ->
+                parseRoom(reference.roomId, matrixClient, initials)
+                    .map { info -> TimelineElementMention.Room(info) }
+                    .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Reference.RoomAlias ->
                 flow {
-                    emitAll(
-                        parseRoom(reference.roomAliasId, matrixClient, initials)
-                            .map { info ->
+                        emitAll(
+                            parseRoom(reference.roomAliasId, matrixClient, initials).map { info ->
                                 info?.let { TimelineElementMention.Room(info) }
                             }
-                    )
-                }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+                        )
+                    }
+                    .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
-            is Reference.Event -> parseRoom(reference.roomId ?: roomId, matrixClient, initials)
-                .map { roomInfo ->
-                    TimelineElementMention.Event(EventInfoElement(reference.eventId), roomInfo)
-                }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+            is Reference.Event ->
+                parseRoom(reference.roomId ?: roomId, matrixClient, initials)
+                    .map { roomInfo -> TimelineElementMention.Event(EventInfoElement(reference.eventId), roomInfo) }
+                    .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Reference.Link -> MutableStateFlow(null)
         }
@@ -91,7 +93,7 @@ class MentionHelper(
         roomId: RoomId,
         matrixClient: MatrixClient,
         initials: Initials,
-        forceAlias: RoomAliasId? = null
+        forceAlias: RoomAliasId? = null,
     ): Flow<RoomInfoElement> =
         combine(
             matrixClient.room.getById(roomId),
@@ -103,29 +105,26 @@ class MentionHelper(
                 initials,
                 matrixClient,
                 forceAlias?.full ?: roomName,
-                maxMediaSizeInMemory
-            ) ?: forceAlias?.let { alias ->
-                RoomInfoElement(
-                    name = forceAlias.full,
-                    roomId = roomId,
-                    roomImageInitials = initials.compute(forceAlias.full),
-                    roomImage = null,
-                )
-            } ?: RoomInfoElement(
-                roomName,
-                roomId,
-                initials.compute(roomName),
-                null,
+                maxMediaSizeInMemory,
             )
+                ?: forceAlias?.let { alias ->
+                    RoomInfoElement(
+                        name = forceAlias.full,
+                        roomId = roomId,
+                        roomImageInitials = initials.compute(forceAlias.full),
+                        roomImage = null,
+                    )
+                }
+                ?: RoomInfoElement(roomName, roomId, initials.compute(roomName), null)
         }
 
     private suspend fun findRoomAlias(roomAliasId: RoomAliasId): RoomId? =
         matrixClient.room.getAll().first().firstNotNullOfOrNull { (roomId, _) ->
-            val aliasEvent = matrixClient.room.getState<CanonicalAliasEventContent>(roomId).first()?.content
-                ?: return@firstNotNullOfOrNull null
+            val aliasEvent =
+                matrixClient.room.getState<CanonicalAliasEventContent>(roomId).first()?.content
+                    ?: return@firstNotNullOfOrNull null
 
-            if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId
-            else null
+            if (aliasEvent.alias == roomAliasId || aliasEvent.aliases?.contains(roomAliasId) == true) roomId else null
         }
 
     private suspend fun lookupRoomAlias(roomAliasId: RoomAliasId): RoomId? =

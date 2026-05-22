@@ -21,9 +21,7 @@ abstract class SharedIntentData {
     data class SharedUrl(val url: String, val icon: Uri?) : SharedIntentData() {
         override fun toSharedData(context: Context, i18n: I18n): SharedData {
             val icon = icon?.let { icon ->
-                context.contentResolver.getType(icon)?.let {
-                    it.split("/").firstOrNull() == "image"
-                }
+                context.contentResolver.getType(icon)?.let { it.split("/").firstOrNull() == "image" }
 
                 UriFileDescriptor(context, icon, i18n)
             }
@@ -50,12 +48,7 @@ private fun ClipData.Item.toFileDescriptor(context: Context, i18n: I18n): FileDe
 
 private fun CharSequence.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor {
     val data = toString().encodeToByteArray()
-    return BasicFileDescriptor(
-        "${i18n.commonUnknown()}.txt",
-        data.size.toLong(),
-        ContentType.Text.Plain,
-        flowOf(data)
-    )
+    return BasicFileDescriptor("${i18n.commonUnknown()}.txt", data.size.toLong(), ContentType.Text.Plain, flowOf(data))
 }
 
 private fun Uri.toFileDescriptor(context: Context, i18n: I18n): FileDescriptor {

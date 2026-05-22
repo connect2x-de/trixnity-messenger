@@ -17,7 +17,5 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 @Composable
 fun BlockIcon(size: Dp = 24.dp) {
     val i18n = DI.get<I18nView>()
-    Tooltip({ Text(i18n.block()) }) {
-        Icon(Icons.Outlined.Lock, i18n.block(), Modifier.size(size))
-    }
+    Tooltip({ Text(i18n.block()) }) { Icon(Icons.Outlined.Lock, i18n.block(), Modifier.size(size)) }
 }

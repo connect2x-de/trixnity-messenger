@@ -12,7 +12,8 @@ fun AccountSetupSwitch(mainViewModel: MainViewModel) {
     Box {
         Children(mainViewModel.accountSetupRouterStack) {
             when (it.instance) {
-                is AccountSetupRouter.Wrapper.ShowAccountSetup -> AccountSetupWizard(it.instance as AccountSetupRouter.Wrapper.ShowAccountSetup)
+                is AccountSetupRouter.Wrapper.ShowAccountSetup ->
+                    AccountSetupWizard(it.instance as AccountSetupRouter.Wrapper.ShowAccountSetup)
                 else -> Box {}
             }
         }

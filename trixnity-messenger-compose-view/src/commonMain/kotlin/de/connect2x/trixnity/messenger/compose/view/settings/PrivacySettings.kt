@@ -35,8 +35,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsAllAcco
 import de.connect2x.trixnity.messenger.viewmodel.settings.PrivacySettingsSingleAccountViewModel
 
 interface PrivacySettingsView {
-    @Composable
-    fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel)
+    @Composable fun create(privacySettingsViewModel: PrivacySettingsAllAccountsViewModel)
 }
 
 @Composable
@@ -55,14 +54,9 @@ class PrivacySettingsViewImpl : PrivacySettingsView {
                 Header(privacySettingsViewModel::back, i18n.privacyTitle())
                 Box {
                     Column(Modifier.padding(10.dp).verticalScroll(scroll)) {
-                        privacySettings.forEach { privacySetting ->
-                            PrivacySettingsSingleAccount(privacySetting)
-                        }
+                        privacySettings.forEach { privacySetting -> PrivacySettingsSingleAccount(privacySetting) }
                     }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        scroll,
-                    )
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
                 }
             }
         }
@@ -88,7 +82,9 @@ fun PrivacySettingsTogglePresence(privacySettingViewModel: PrivacySettingsSingle
     ThemedListItemSwitch(
         style = MaterialTheme.components.settingsItem,
         headlineContent = { Text(i18n.privacyPresenceIsPublic()) },
-        supportingContent = { Text(i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName)) },
+        supportingContent = {
+            Text(i18n.privacyPresenceIsPublicExplanation(DI.get<MatrixMessengerConfiguration>().appName))
+        },
         selected = presenceIsPublic,
         onChange = { privacySettingViewModel.togglePresenceIsPublic() },
     )
@@ -129,7 +125,7 @@ fun PrivacySettingsToggleRedactionWarning(privacySettingViewModel: PrivacySettin
         headlineContent = { Text(i18n.redactionWarningSettingTitle()) },
         supportingContent = { Text(i18n.redactionWarningSettingDescription()) },
         selected = redactionWarningEnabled,
-        onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() }
+        onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() },
     )
 }
 
@@ -139,21 +135,17 @@ fun PrivacySettingsBlockedAccounts(privacySettingViewModel: PrivacySettingsSingl
     val blockedCount = privacySettingViewModel.blockedContactsCount.collectAsState().value
     val interactionSource = remember { MutableInteractionSource() }
     ElevatedCard(
-        modifier = Modifier
-            .padding(top = 5.dp, bottom = 10.dp)
-            .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
+        modifier =
+            Modifier.padding(top = 5.dp, bottom = 10.dp)
+                .focusHighlighting(interactionSource, shape = CardDefaults.elevatedShape),
         interactionSource = interactionSource,
-        onClick = {
-            privacySettingViewModel.showBlockedContactsSettings()
-        },
+        onClick = { privacySettingViewModel.showBlockedContactsSettings() },
     ) {
         ThemedListItemButton(
             headlineContent = { Text(i18n.blockedContactsButtonCaption(blockedCount)) },
             trailingContent = { Icon(Icons.AutoMirrored.Filled.ArrowForward, null) },
             interactionSource = interactionSource,
-            onClick = {
-                privacySettingViewModel.showBlockedContactsSettings()
-            }
+            onClick = { privacySettingViewModel.showBlockedContactsSettings() },
         )
     }
 }

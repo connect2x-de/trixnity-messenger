@@ -29,10 +29,8 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 
-
 interface SendAttachmentSendButtonView {
-    @Composable
-    fun create(sendAttachmentViewModel: SendAttachmentViewModel)
+    @Composable fun create(sendAttachmentViewModel: SendAttachmentViewModel)
 }
 
 @Composable
@@ -46,40 +44,31 @@ class SendAttachmentSendButtonViewImpl : SendAttachmentSendButtonView {
         val i18n = DI.get<I18nView>()
         val sendEnabled = sendAttachmentViewModel.sendEnabled.collectAsState().value
         val focusRequester = remember { FocusRequester() }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
+        Row(Modifier.fillMaxWidth().padding(20.dp)) {
             Spacer(Modifier.fillMaxWidth().weight(1.0f, false))
             Button(
                 onClick = { sendAttachmentViewModel.send() },
-                modifier = Modifier
-                    .size(40.dp)
-                    .buttonPointerModifier()
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.key == Key.Enter) {
-                            if (sendEnabled) {
-                                sendAttachmentViewModel.send()
-                                true
+                modifier =
+                    Modifier.size(40.dp)
+                        .buttonPointerModifier()
+                        .onKeyEvent { keyEvent ->
+                            if (keyEvent.key == Key.Enter) {
+                                if (sendEnabled) {
+                                    sendAttachmentViewModel.send()
+                                    true
+                                } else false
                             } else false
-                        } else false
-                    }
-                    .focusable(true)
-                    .focusRequester(focusRequester),
+                        }
+                        .focusable(true)
+                        .focusRequester(focusRequester),
                 shape = CircleShape,
                 contentPadding = PaddingValues(start = 2.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
-                enabled = sendEnabled
+                enabled = sendEnabled,
             ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Send,
-                    i18n.inputAreaSend(),
-                )
+                Icon(Icons.AutoMirrored.Filled.Send, i18n.inputAreaSend())
             }
         }
 
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }

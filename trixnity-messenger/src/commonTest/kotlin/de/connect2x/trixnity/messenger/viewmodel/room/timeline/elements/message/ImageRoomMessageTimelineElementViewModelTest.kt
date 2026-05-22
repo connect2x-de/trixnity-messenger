@@ -1,5 +1,12 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
@@ -13,23 +20,16 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.ImageInfo
-import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.trixnity.core.model.events.m.room.ThumbnailInfo
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class ImageRoomMessageTimelineElementViewModelTest {
     val matrixClientMock = mock<MatrixClient>()
@@ -49,7 +49,11 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail successfully`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(),
+                matrixClientMock,
+                any<RoomMessageEventContent.FileBased.Image>(),
+                any(),
+                any(),
             )
         } returns "thumbnail".encodeToByteArray()
 
@@ -64,12 +68,17 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `load a thumbnail that takes a while to load`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(),
+                matrixClientMock,
+                any<RoomMessageEventContent.FileBased.Image>(),
+                any(),
+                any(),
             )
-        } calls {
-            delay(500.milliseconds)
-            "thumbnail".encodeToByteArray()
-        }
+        } calls
+            {
+                delay(500.milliseconds)
+                "thumbnail".encodeToByteArray()
+            }
 
         val cut = imageMessageViewModel()
         backgroundScope.launch { cut.thumbnail.collect {} }
@@ -87,7 +96,11 @@ class ImageRoomMessageTimelineElementViewModelTest {
     fun `return 'null' for a thumbnail that cannot be loaded`() = runTest {
         everySuspend {
             thumbnailsMock.loadThumbnail(
-                any(), matrixClientMock, any<RoomMessageEventContent.FileBased.Image>(), any(), any()
+                any(),
+                matrixClientMock,
+                any<RoomMessageEventContent.FileBased.Image>(),
+                any(),
+                any(),
             )
         } returns null
 
@@ -100,31 +113,28 @@ class ImageRoomMessageTimelineElementViewModelTest {
 
     private fun TestScope.imageMessageViewModel(): ImageRoomMessageTimelineElementViewModelImpl {
         return ImageRoomMessageTimelineElementViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(UserId("test", "server") to matrixClientMock)
-                        ) + module {
-                            single { thumbnailsMock }
-                        })
-                }.koin,
-                userId = UserId("test", "server"),
-            ),
-            content = RoomMessageEventContent.FileBased.Image(
-                "",
-                info = ImageInfo(
-                    height = 500,
-                    width = 500,
-                    thumbnailInfo = ThumbnailInfo(
-                        height = 100,
-                        width = 100,
-                    )
-                )
-            ),
+            viewModelContext =
+                testMatrixClientViewModelContext(
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    ) + module { single { thumbnailsMock } }
+                                )
+                            }
+                            .koin,
+                    userId = UserId("test", "server"),
+                ),
+            content =
+                RoomMessageEventContent.FileBased.Image(
+                    "",
+                    info =
+                        ImageInfo(height = 500, width = 500, thumbnailInfo = ThumbnailInfo(height = 100, width = 100)),
+                ),
             roomId = RoomId("!testimage:server"),
             eventIdOrTransactionId = EventIdOrTransactionId(EventId("\$very1demure1event")),
-            onOpenMention = { _, _ -> }
+            onOpenMention = { _, _ -> },
         )
     }
 }

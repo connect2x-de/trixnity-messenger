@@ -28,10 +28,10 @@ internal val md_theme_light_onSurfaceVariant = Color(0xFF222222)
 internal val md_theme_light_outline = Color(0xFF002336)
 internal val md_theme_light_inverseOnSurface = Color(0xFFD6F6FF)
 internal val md_theme_light_inverseSurface = Color(0xFF00363F)
-internal val md_theme_light_inversePrimary = Color(0xFF5BD5F9)   // TODO
-internal val md_theme_light_surfaceTint = Color(0xFF000000)      // TODO
-internal val md_theme_light_outlineVariant = Color(0xFFBFC8CC)   // TODO
-internal val md_theme_light_scrim = Color(0xFF000000)            // TODO
+internal val md_theme_light_inversePrimary = Color(0xFF5BD5F9) // TODO
+internal val md_theme_light_surfaceTint = Color(0xFF000000) // TODO
+internal val md_theme_light_outlineVariant = Color(0xFFBFC8CC) // TODO
+internal val md_theme_light_scrim = Color(0xFF000000) // TODO
 internal val md_theme_light_surfaceDim = Color(0xFFDCD9D9)
 internal val md_theme_light_surfaceBright = Color(0xFFFCF8F8)
 internal val md_theme_light_surfaceContainerLowest = Color(0xFFFFFFFF)
@@ -48,18 +48,19 @@ internal val messenger_theme_light_preview_content = Color.White.copy(alpha = 0.
 internal val messenger_theme_light_preview_scrim = Color.Black.copy(alpha = 0.7f)
 internal val messenger_theme_light_link_other = Color(0xFF004066)
 internal val messenger_theme_light_link_own = Color(0xFFb8e4ff)
-internal val messenger_theme_light_users = listOf(
-    Color(0xFFA41515),
-    Color(0xFFA46715),
-    Color(0xFF908213),
-    Color(0xFF139057),
-    Color(0xFF138190),
-    Color(0xFF135F90),
-    Color(0xFF132F90),
-    Color(0xFF3F1390),
-    Color(0xFF6E1390),
-    Color(0xFF901355)
-)
+internal val messenger_theme_light_users =
+    listOf(
+        Color(0xFFA41515),
+        Color(0xFFA46715),
+        Color(0xFF908213),
+        Color(0xFF139057),
+        Color(0xFF138190),
+        Color(0xFF135F90),
+        Color(0xFF132F90),
+        Color(0xFF3F1390),
+        Color(0xFF6E1390),
+        Color(0xFF901355),
+    )
 
 // Dark theme template (mostly used for lightness/saturation)
 internal val md_theme_dark_onPrimary = Color(0xFF040404)
@@ -87,10 +88,10 @@ internal val md_theme_dark_surfaceVariant = Color(0xFF274d61)
 internal val md_theme_dark_onSurfaceVariant = Color(0xFFFFFFFF)
 internal val md_theme_dark_outline = Color(0xFF8ed5fa)
 internal val md_theme_dark_inverseOnSurface = Color(0xFF161616)
-internal val md_theme_dark_inverseSurface = Color(0xFFA6EEFF)    // TODO
-internal val md_theme_dark_inversePrimary = Color(0xFF00677E)    // TODO
-internal val md_theme_dark_surfaceTint = Color(0xFF5BD5F9)       // TODO
-internal val md_theme_dark_outlineVariant = Color(0xFF40484B)    // TODO
+internal val md_theme_dark_inverseSurface = Color(0xFFA6EEFF) // TODO
+internal val md_theme_dark_inversePrimary = Color(0xFF00677E) // TODO
+internal val md_theme_dark_surfaceTint = Color(0xFF5BD5F9) // TODO
+internal val md_theme_dark_outlineVariant = Color(0xFF40484B) // TODO
 internal val md_theme_dark_scrim = Color(0xFF101010)
 internal val md_theme_dark_surfaceDim = Color(0xFF131313)
 internal val md_theme_dark_surfaceBright = Color(0xFF3A3939)
@@ -108,15 +109,16 @@ internal val messenger_theme_dark_preview_content = Color.White.copy(alpha = 0.7
 internal val messenger_theme_dark_preview_scrim = Color.Black.copy(alpha = 0.7f)
 internal val messenger_theme_dark_link_other = Color(0xFFb8e4ff)
 internal val messenger_theme_dark_link_own = Color(0xFF004066)
-internal val messenger_theme_dark_users = listOf(
-    Color(0xFFe61c1c),
-    Color(0xFFdb8818),
-    Color(0xFFd6c11c),
-    Color(0xFF1cd480),
-    Color(0xFF18b6cc),
-    Color(0xFF1b8ad1),
-    Color(0xFF4767d6),
-    Color(0xFF753cde),
-    Color(0xFFa424d4),
-    Color(0xFFe61e87)
-)
+internal val messenger_theme_dark_users =
+    listOf(
+        Color(0xFFe61c1c),
+        Color(0xFFdb8818),
+        Color(0xFFd6c11c),
+        Color(0xFF1cd480),
+        Color(0xFF18b6cc),
+        Color(0xFF1b8ad1),
+        Color(0xFF4767d6),
+        Color(0xFF753cde),
+        Color(0xFFa424d4),
+        Color(0xFFe61e87),
+    )
