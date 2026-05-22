@@ -54,7 +54,7 @@ empty-blocks:
   EmptyInitBlock:
     active: true
   EmptyKotlinFile:
-    active: false
+    active: true
   EmptySecondaryConstructor:
     active: true
   EmptyTryBlock:
