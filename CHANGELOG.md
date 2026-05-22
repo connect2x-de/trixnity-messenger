@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: room mention support
 - SDK,UI: (**breaking change**) added `isMentioned` parameter to `TimelineElementViewModel.Message` and `MessageBubble`
   interfaces and classes for highlighting messages when the user is mentioned in text
+- CI, INTERNAL: Add and enforce detekt lints
 
 ### Changed
 

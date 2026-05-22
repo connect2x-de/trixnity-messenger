@@ -27,6 +27,7 @@ copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-p
 pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
 filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases   # 0.13.0 cannot be used, since it is compiled with Java 21...
 androidxMedia3 = "1.9.3" # https://github.com/androidx/media/releases
+detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
 
 [libraries]
 
@@ -71,3 +72,4 @@ testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 [plugins]
 
 seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }

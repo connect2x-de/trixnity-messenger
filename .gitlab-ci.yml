@@ -136,6 +136,18 @@ check:changelog:
         exit 1
       fi
 
+check:detekt:
+  stage: check
+  interruptible: true
+  tags: [ "connect2x-linux-shell-small" ]
+  needs:
+    - job: "compile:jvm-android-js"
+      artifacts: false
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew detektAll --stacktrace
+
 test:sdk:unit:ios:
   stage: test
   interruptible: true
