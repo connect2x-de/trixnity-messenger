@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.files.toImageBitmap
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -52,7 +53,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedAdapt
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.SharedData
 import de.connect2x.trixnity.messenger.viewmodel.sharing.ShareDataViewModel
@@ -60,8 +60,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import de.connect2x.trixnity.utils.toByteArray
 
 interface ShareDataView {
-    @Composable
-    fun create(viewModel: ShareDataViewModel)
+    @Composable fun create(viewModel: ShareDataViewModel)
 }
 
 @Composable
@@ -82,9 +81,7 @@ class ShareDataViewImpl : ShareDataView {
         val enabled = selectedRoomId != null && !sending
         val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-        LaunchedEffect(initialSyncFinished) {
-            state.scrollToItem(0)
-        }
+        LaunchedEffect(initialSyncFinished) { state.scrollToItem(0) }
         LaunchedEffect(allRooms) {
             if (state.layoutInfo.visibleItemsInfo.any { it.index == 1 }) { // this has been the first element before
                 state.animateScrollToItem(0)
@@ -92,9 +89,7 @@ class ShareDataViewImpl : ShareDataView {
         }
 
         ThemedAdaptiveDialog(viewModel::cancel) {
-            AdaptiveDialogHeader(onClose = viewModel::cancel) {
-                Text(i18n.shareDataTitle(viewModel.sharedData))
-            }
+            AdaptiveDialogHeader(onClose = viewModel::cancel) { Text(i18n.shareDataTitle(viewModel.sharedData)) }
             AdaptiveDialogScrollContent(scrollState = state) {
                 when (val data = viewModel.sharedData) {
                     is SharedData.SingleFile -> ShareFilesLazyRow(listOf(data.file))
@@ -103,34 +98,23 @@ class ShareDataViewImpl : ShareDataView {
                     is SharedData.Url -> ShareUrlRow(data.url, data.icon, maxMediaSize)
                 }
                 if (allRooms.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(i18n.roomListNoRoom())
-                    }
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(i18n.roomListNoRoom()) }
                 } else {
                     LazyColumn(Modifier.fillMaxSize(), state) {
-                        itemsIndexed(
-                            allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
-                            RoomListElementContainer(
-                                roomListElement.roomId,
-                                viewModel.roomList,
-                                roomListElement,
-                                index,
-                            )
+                        itemsIndexed(allRooms, { _, element -> element.roomId.full }) { index, roomListElement ->
+                            RoomListElementContainer(roomListElement.roomId, viewModel.roomList, roomListElement, index)
                         }
                     }
                 }
             }
             AdaptiveDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.commonButton,
-                    onClick = viewModel::cancel,
-                ) {
+                ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::cancel) {
                     Text(i18n.actionCancel())
                 }
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     onClick = viewModel::send,
-                    enabled = enabled
+                    enabled = enabled,
                 ) {
                     Text(i18n.inputAreaSend())
                 }
@@ -149,17 +133,23 @@ private fun splitFilename(name: String): Pair<String, String?> {
 private fun ShareTextRow(text: String) {
     Row(
         horizontalArrangement = Arrangement.Start,
-        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
+        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small),
     ) {
         Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget).fillMaxWidth()) {
             Column(
-                verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
-                    start = MaterialTheme.messengerDpConstants.small,
-                    end = MaterialTheme.messengerDpConstants.middle
-                )
+                verticalArrangement = Arrangement.Center,
+                modifier =
+                    Modifier.fillMaxHeight()
+                        .padding(
+                            start = MaterialTheme.messengerDpConstants.small,
+                            end = MaterialTheme.messengerDpConstants.middle,
+                        ),
             ) {
                 Text(
-                    text, style = MaterialTheme.typography.bodyLarge, softWrap = false, overflow = TextOverflow.Ellipsis
+                    text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -170,20 +160,17 @@ private fun ShareTextRow(text: String) {
 private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long) {
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
-    LaunchedEffect(icon) {
-        icon?.content?.toByteArray(maxMediaSize)
-            ?.also { image = it.toImageBitmap() }
-    }
+    LaunchedEffect(icon) { icon?.content?.toByteArray(maxMediaSize)?.also { image = it.toImageBitmap() } }
 
     Row(
         horizontalArrangement = Arrangement.Start,
-        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small)
+        modifier = Modifier.padding(horizontal = MaterialTheme.messengerDpConstants.small),
     ) {
         Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget).fillMaxWidth()) {
             Row {
                 Box(
-                    modifier = Modifier.aspectRatio(1.0f).fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                    modifier =
+                        Modifier.aspectRatio(1.0f).fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer)
                 ) {
                     image?.let {
                         Image(
@@ -192,26 +179,30 @@ private fun ShareUrlRow(text: String, icon: FileDescriptor?, maxMediaSize: Long)
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.align(Alignment.Center),
                         )
-                    } ?: run {
-                        Icon(
-                            Icons.Default.Public,
-                            contentDescription = null,
-                            modifier = Modifier.align(Alignment.Center),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                        )
                     }
+                        ?: run {
+                            Icon(
+                                Icons.Default.Public,
+                                contentDescription = null,
+                                modifier = Modifier.align(Alignment.Center),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            )
+                        }
                 }
                 Column(
-                    verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
-                        start = MaterialTheme.messengerDpConstants.small,
-                        end = MaterialTheme.messengerDpConstants.middle
-                    )
+                    verticalArrangement = Arrangement.Center,
+                    modifier =
+                        Modifier.fillMaxHeight()
+                            .padding(
+                                start = MaterialTheme.messengerDpConstants.small,
+                                end = MaterialTheme.messengerDpConstants.middle,
+                            ),
                 ) {
                     Text(
                         text,
                         style = MaterialTheme.typography.bodyLarge,
                         softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -225,9 +216,7 @@ private fun ShareFilesLazyRow(files: List<FileDescriptor>) {
         contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.small),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
     ) {
-        items(files) { file ->
-            ShareFileCard(file)
-        }
+        items(files) { file -> ShareFileCard(file) }
     }
 }
 
@@ -242,8 +231,8 @@ private fun ShareFileCard(file: FileDescriptor) {
     Card(Modifier.height(MaterialTheme.messengerDpConstants.touchTarget)) {
         Row {
             Box(
-                modifier = Modifier.aspectRatio(1.0f).fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                modifier =
+                    Modifier.aspectRatio(1.0f).fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Icon(
                     when {
@@ -258,10 +247,14 @@ private fun ShareFileCard(file: FileDescriptor) {
                 )
             }
             Column(
-                verticalArrangement = Arrangement.Center, modifier = Modifier.fillMaxHeight().padding(
-                    start = MaterialTheme.messengerDpConstants.small,
-                    end = MaterialTheme.messengerDpConstants.middle
-                ).widthIn(min = MaterialTheme.messengerDpConstants.touchTarget * 2)
+                verticalArrangement = Arrangement.Center,
+                modifier =
+                    Modifier.fillMaxHeight()
+                        .padding(
+                            start = MaterialTheme.messengerDpConstants.small,
+                            end = MaterialTheme.messengerDpConstants.middle,
+                        )
+                        .widthIn(min = MaterialTheme.messengerDpConstants.touchTarget * 2),
             ) {
                 Row {
                     Text(
@@ -270,20 +263,18 @@ private fun ShareFileCard(file: FileDescriptor) {
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         softWrap = false,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                     if (fileExtension != null) {
                         Text(
                             fileExtension,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
-                            softWrap = false
+                            softWrap = false,
                         )
                     }
                 }
-                Text(
-                    fileSize, style = MaterialTheme.typography.labelMedium
-                )
+                Text(fileSize, style = MaterialTheme.typography.labelMedium)
             }
         }
     }

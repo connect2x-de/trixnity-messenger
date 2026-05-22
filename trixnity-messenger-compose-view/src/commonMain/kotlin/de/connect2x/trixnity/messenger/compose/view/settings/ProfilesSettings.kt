@@ -27,8 +27,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.viewmodel.settings.ProfilesSettingsViewModel
 
 interface ProfilesSettingsView {
-    @Composable
-    fun create(profilesSettingsViewModel: ProfilesSettingsViewModel)
+    @Composable fun create(profilesSettingsViewModel: ProfilesSettingsViewModel)
 }
 
 @Composable
@@ -51,10 +50,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                         MultiProfileSettingsCard(profilesSettingsViewModel)
                         ProfileListSettingsCard(profilesSettingsViewModel, profilesDialogueController)
                     }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        scroll,
-                    )
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
                 }
             }
         }
@@ -77,7 +73,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
                         Text(i18n.cannotDisableMultiProfileMode())
                     }
                 },
-                onChange = { profilesSettingsViewModel.setMultiProfileEnabled(it) }
+                onChange = { profilesSettingsViewModel.setMultiProfileEnabled(it) },
             )
         }
     }
@@ -85,7 +81,7 @@ class ProfilesSettingsViewImpl : ProfilesSettingsView {
     @Composable
     private fun ProfileListSettingsCard(
         profilesSettingsViewModel: ProfilesSettingsViewModel,
-        profilesDialogueController: ProfilesDialogueController
+        profilesDialogueController: ProfilesDialogueController,
     ) {
         val i18n = DI.get<I18nView>()
         val multiProfileEnabled = profilesSettingsViewModel.isMultiProfile.collectAsState().value

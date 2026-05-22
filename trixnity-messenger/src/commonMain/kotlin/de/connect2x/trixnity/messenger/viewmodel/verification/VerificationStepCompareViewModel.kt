@@ -11,7 +11,11 @@ interface VerificationStepCompareViewModelFactory {
         onDecline: () -> Unit,
     ): VerificationStepCompareViewModel {
         return VerificationStepCompareViewModelImpl(
-            viewModelContext, decimals, emojisWithoutTranslation, onAccept, onDecline
+            viewModelContext,
+            decimals,
+            emojisWithoutTranslation,
+            onAccept,
+            onDecline,
         )
     }
 
@@ -23,6 +27,7 @@ interface VerificationStepCompareViewModel {
     val emojis: List<Pair<String, Map<String, String>>>
 
     fun accept()
+
     fun decline()
 }
 
@@ -45,5 +50,4 @@ open class VerificationStepCompareViewModelImpl(
     override fun decline() {
         onDecline()
     }
-
 }

@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.room
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.export.ExportRoom
 import de.connect2x.trixnity.messenger.export.ExportRoomProgress
@@ -16,6 +19,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewMod
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Running
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModel.State.Success
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -25,12 +30,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
-import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.core.model.EventId
-import de.connect2x.trixnity.core.model.RoomId
 import org.koin.core.component.get
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.contract
 
 interface ExportRoomViewModelFactory {
     fun create(
@@ -38,11 +38,7 @@ interface ExportRoomViewModelFactory {
         roomId: RoomId,
         onBack: () -> Unit,
     ): ExportRoomViewModel =
-        ExportRoomViewModelImpl(
-            viewModelContext = viewModelContext,
-            roomId = roomId,
-            onBack = onBack,
-        )
+        ExportRoomViewModelImpl(viewModelContext = viewModelContext, roomId = roomId, onBack = onBack)
 
     companion object : ExportRoomViewModelFactory
 }
@@ -57,20 +53,14 @@ interface ExportRoomViewModel {
     sealed interface State {
         data object None : State
 
-        data class Running(
-            val progress: StateFlow<ExportRoomProgress>,
-            val progressString: StateFlow<String>,
-        ) : State
+        data class Running(val progress: StateFlow<ExportRoomProgress>, val progressString: StateFlow<String>) : State
 
-        data class Success(
-            val progress: ExportRoomProgress,
-            val progressString: String,
-        ) : State
+        data class Success(val progress: ExportRoomProgress, val progressString: String) : State
 
         data class Error(
             val message: String,
             val missingMedia: List<ExportRoomResult.Success.MissingMedia>? = null,
-            val decryptionFailed: List<ExportRoomResult.Success.DecryptionFailed>? = null
+            val decryptionFailed: List<ExportRoomResult.Success.DecryptionFailed>? = null,
         ) : State
     }
 
@@ -80,7 +70,9 @@ interface ExportRoomViewModel {
     val isExporting: StateFlow<Boolean>
 
     fun start()
+
     fun abort()
+
     fun back()
 }
 
@@ -91,9 +83,7 @@ class ExportRoomViewModelImpl(
 ) : MatrixClientViewModelContext by viewModelContext, ExportRoomViewModel {
     private val messengerConfiguration: MatrixMessengerConfiguration = get()
 
-    private val backCallback = BackCallback {
-        back()
-    }
+    private val backCallback = BackCallback { back() }
 
     init {
         registerBackCallback(backCallback)
@@ -105,19 +95,20 @@ class ExportRoomViewModelImpl(
     private val timeZone = get<TimeZone>()
 
     private val job: MutableStateFlow<Job?> = MutableStateFlow(null)
-    override val roomName: StateFlow<String> = roomNameComputation.getRoomName(roomId, matrixClient)
-        .stateIn(coroutineScope, WhileSubscribed(), "")
-    override val isDirect: StateFlow<Boolean> = matrixClient.room.getById(roomId).map { it?.isDirect ?: false }
-        .stateIn(coroutineScope, WhileSubscribed(), false)
+    override val roomName: StateFlow<String> =
+        roomNameComputation.getRoomName(roomId, matrixClient).stateIn(coroutineScope, WhileSubscribed(), "")
+    override val isDirect: StateFlow<Boolean> =
+        matrixClient.room
+            .getById(roomId)
+            .map { it?.isDirect ?: false }
+            .stateIn(coroutineScope, WhileSubscribed(), false)
     override val properties: MutableStateFlow<ExportRoomSinkProperties?> = MutableStateFlow(null)
     override val rangeStartCondition: MutableStateFlow<ExportRoomRangeStartCondition?> = MutableStateFlow(null)
     override val rangeEndCondition: MutableStateFlow<ExportRoomRangeEndCondition?> = MutableStateFlow(null)
 
     @OptIn(ExperimentalContracts::class)
     private fun canExport(job: Job?, properties: ExportRoomSinkProperties?): Boolean {
-        contract {
-            returns(true) implies (properties != null)
-        }
+        contract { returns(true) implies (properties != null) }
         return job == null && properties != null
     }
 
@@ -126,13 +117,11 @@ class ExportRoomViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), canExport(job.value, properties.value))
 
     override val isExporting: StateFlow<Boolean> =
-        job.map { it != null }
-            .stateIn(coroutineScope, WhileSubscribed(), false)
+        job.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
     private val progress: MutableStateFlow<ExportRoomProgress> = MutableStateFlow(ExportRoomProgress())
     private val progressString: StateFlow<String> =
-        progress.map { it.toProgressString() }
-            .stateIn(coroutineScope, WhileSubscribed(), "")
+        progress.map { it.toProgressString() }.stateIn(coroutineScope, WhileSubscribed(), "")
 
     private fun ExportRoomProgress.toProgressString(): String =
         when {
@@ -147,59 +136,63 @@ class ExportRoomViewModelImpl(
     override fun start() {
         val properties = properties.value
         if (canExport(job.value, properties)) {
-            job.value = coroutineScope.launch {
-                state.value = Running(progress, progressString)
-                val result = exportRoom(
-                    roomId = roomId,
-                    properties = properties,
-                    includeMedia = !messengerConfiguration.downloadsDisabled,
-                    rangeStartCondition = rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
-                    rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
-                    matrixClient = matrixClient,
-                    progress = progress,
-                    timeZone = timeZone,
-                )
-                when (result) {
-                    ExportRoomResult.RoomNotFound -> {
-                        log.error { "room $roomId not found" }
-                        state.value = Error(i18n.exportRoomErrorRoomNotFound())
-                    }
-
-                    is ExportRoomResult.PropertiesNotSupported -> {
-                        log.error { "there is no sink registered in the DI, that supports properties ${properties::class.simpleName}" }
-                        state.value = Error(i18n.exportRoomErrorPropertiesNotSupported())
-                    }
-
-                    is ExportRoomResult.SinkError -> {
-                        log.error(result.throwable) { "could not export" }
-                        state.value = Error(i18n.exportRoomErrorSink(result.throwable.message ?: "unknown"))
-                    }
-
-                    is ExportRoomResult.Success -> {
-                        state.value =
-                            if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty()) {
-                                log.warn { "export success with errors: $result" }
-                                with(result) {
-                                    Error(
-                                        message = i18n.exportRoomSuccessWithErrors(
-                                            missingMedia.size,
-                                            decryptionFailed.size
-                                        ),
-                                        missingMedia = missingMedia,
-                                        decryptionFailed = decryptionFailed
-                                    )
-                                }
-                            } else {
-                                Success(progress.value, progress.value.toProgressString())
+            job.value =
+                coroutineScope
+                    .launch {
+                        state.value = Running(progress, progressString)
+                        val result =
+                            exportRoom(
+                                roomId = roomId,
+                                properties = properties,
+                                includeMedia = !messengerConfiguration.downloadsDisabled,
+                                rangeStartCondition =
+                                    rangeStartCondition.value ?: ExportRoomRangeStartCondition.firstEvent(),
+                                rangeEndCondition = rangeEndCondition.value ?: ExportRoomRangeEndCondition.lastEvent(),
+                                matrixClient = matrixClient,
+                                progress = progress,
+                                timeZone = timeZone,
+                            )
+                        when (result) {
+                            ExportRoomResult.RoomNotFound -> {
+                                log.error { "room $roomId not found" }
+                                state.value = Error(i18n.exportRoomErrorRoomNotFound())
                             }
+
+                            is ExportRoomResult.PropertiesNotSupported -> {
+                                log.error {
+                                    "there is no sink registered in the DI, that supports properties ${properties::class.simpleName}"
+                                }
+                                state.value = Error(i18n.exportRoomErrorPropertiesNotSupported())
+                            }
+
+                            is ExportRoomResult.SinkError -> {
+                                log.error(result.throwable) { "could not export" }
+                                state.value = Error(i18n.exportRoomErrorSink(result.throwable.message ?: "unknown"))
+                            }
+
+                            is ExportRoomResult.Success -> {
+                                state.value =
+                                    if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty()) {
+                                        log.warn { "export success with errors: $result" }
+                                        with(result) {
+                                            Error(
+                                                message =
+                                                    i18n.exportRoomSuccessWithErrors(
+                                                        missingMedia.size,
+                                                        decryptionFailed.size,
+                                                    ),
+                                                missingMedia = missingMedia,
+                                                decryptionFailed = decryptionFailed,
+                                            )
+                                        }
+                                    } else {
+                                        Success(progress.value, progress.value.toProgressString())
+                                    }
+                            }
+                        }
+                        job.value = null
                     }
-                }
-                job.value = null
-            }.also {
-                it.invokeOnCompletion {
-                    job.value = null
-                }
-            }
+                    .also { it.invokeOnCompletion { job.value = null } }
         }
     }
 
@@ -225,17 +218,17 @@ class PreviewExportRoomViewModel : ExportRoomViewModel {
     override val state: MutableStateFlow<ExportRoomViewModel.State> =
         MutableStateFlow(
             Error(
-                message = "An error has occurred", missingMedia = listOf(
-                    ExportRoomResult.Success.MissingMedia(
-                        EventId("abc"),
-                        "fileName",
-                        reason = "cannot export file"
-                    )
-                )
+                message = "An error has occurred",
+                missingMedia =
+                    listOf(
+                        ExportRoomResult.Success.MissingMedia(EventId("abc"), "fileName", reason = "cannot export file")
+                    ),
             )
         )
 
     override fun abort() {}
+
     override fun back() {}
+
     override fun start() {}
 }

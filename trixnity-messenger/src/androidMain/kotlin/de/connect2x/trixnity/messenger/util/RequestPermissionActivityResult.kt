@@ -20,7 +20,7 @@ private val log = Logger("de.connect2x.trixnity.messenger.util.RequestPermission
 private fun <I, O> registerActivityResultIgnoreLifecycle(
     activity: ComponentActivity,
     contract: ActivityResultContract<I, O>,
-    callback: ActivityResultCallback<O>
+    callback: ActivityResultCallback<O>,
 ): ActivityResultLauncher<I> {
     val unused = Uuid.random().toString()
     return activity.activityResultRegistry.register(unused, contract, callback)
@@ -30,36 +30,30 @@ private fun <I, O> registerActivityResultIgnoreLifecycle(
  * Use this because the usual API can only be used before lifecycle is STARTED.
  *
  * Pitfall: When calling this, you must call [ActivityResultLauncher.unregister] on the returned
- * [ActivityResultLauncher] when the launcher is no longer needed to release any values that
- * might be captured in the registered callback. (see [ActivityResultRegistry.register])
+ * [ActivityResultLauncher] when the launcher is no longer needed to release any values that might be captured in the
+ * registered callback. (see [ActivityResultRegistry.register])
  */
 fun requestPermissionActivityResult(
     activity: ComponentActivity,
     permission: String,
     manuallyGivePermissionPrompt: String,
 ): ActivityResultLauncher<String> {
-    return registerActivityResultIgnoreLifecycle(
-        activity,
-        ActivityResultContracts.RequestPermission(),
-    ) { isGranted ->
+    return registerActivityResultIgnoreLifecycle(activity, ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
             log.debug { "Permission granted" }
         } else {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    activity,
-                    permission
-                )
-            ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)) {
                 log.debug { "Permission denied but not permanently" }
             } else {
                 log.debug { "Permission denied permanently. Redirecting to Android app settings..." }
                 activity.runOnUiThread {
                     Toast.makeText(activity, manuallyGivePermissionPrompt, Toast.LENGTH_LONG).show()
                 }
-                val intent = Intent(
-                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                    Uri.fromParts("package", activity.packageName, null)
-                )
+                val intent =
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null),
+                    )
                 activity.startActivity(intent)
             }
         }
@@ -70,9 +64,5 @@ fun requestRecordPermissionActivityResult(
     activity: ComponentActivity,
     manuallyGivePermissionPrompt: String,
 ): ActivityResultLauncher<String> {
-    return requestPermissionActivityResult(
-        activity,
-        Manifest.permission.RECORD_AUDIO,
-        manuallyGivePermissionPrompt
-    )
+    return requestPermissionActivityResult(activity, Manifest.permission.RECORD_AUDIO, manuallyGivePermissionPrompt)
 }

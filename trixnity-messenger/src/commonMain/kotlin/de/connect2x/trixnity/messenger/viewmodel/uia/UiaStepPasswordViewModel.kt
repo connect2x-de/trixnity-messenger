@@ -1,5 +1,10 @@
 package de.connect2x.trixnity.messenger.viewmodel.uia
 
+import de.connect2x.trixnity.clientserverapi.client.UIA
+import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
+import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
@@ -12,11 +17,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.UIA
-import de.connect2x.trixnity.clientserverapi.model.authentication.IdentifierType
-import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
-import de.connect2x.trixnity.core.ErrorResponse
-import de.connect2x.trixnity.core.MatrixServerException
 import org.koin.core.component.get
 
 interface UiaStepPasswordViewModelFactory {
@@ -27,13 +27,7 @@ interface UiaStepPasswordViewModelFactory {
         onCancel: () -> Unit,
         onError: (MatrixServerException) -> Unit,
     ): UiaStepPasswordViewModel {
-        return UiaStepPasswordViewModelImpl(
-            viewModelContext,
-            uiaStep,
-            onNext,
-            onCancel,
-            onError,
-        )
+        return UiaStepPasswordViewModelImpl(viewModelContext, uiaStep, onNext, onCancel, onError)
     }
 
     companion object : UiaStepPasswordViewModelFactory
@@ -44,7 +38,9 @@ interface UiaStepPasswordViewModel {
     val password: TextFieldViewModel
     val isSubmitting: StateFlow<Boolean>
     val error: StateFlow<String?>
+
     fun submit()
+
     fun cancel()
 }
 
@@ -63,40 +59,41 @@ class UiaStepPasswordViewModelImpl(
 
     override fun submit() {
         if (isSubmitting.getAndUpdate { true }.not()) {
-            coroutineScope.launch {
-                error.value = null
-                val authRequest = AuthenticationRequest.Password(
-                    IdentifierType.User(username.textValue),
-                    password.textValue,
-                )
-                uiaStep.authenticate(authRequest)
-                    .onSuccess {
-                        if (it is UIA.Error) {
-                            when (val errorResponse = it.errorResponse) {
-                                is ErrorResponse.Forbidden -> {
-                                    log.error { "wrong password" }
-                                    error.value = i18n.uiaInvalidUsernameOrPassword()
-                                }
+            coroutineScope
+                .launch {
+                    error.value = null
+                    val authRequest =
+                        AuthenticationRequest.Password(IdentifierType.User(username.textValue), password.textValue)
+                    uiaStep
+                        .authenticate(authRequest)
+                        .onSuccess {
+                            if (it is UIA.Error) {
+                                when (val errorResponse = it.errorResponse) {
+                                    is ErrorResponse.Forbidden -> {
+                                        log.error { "wrong password" }
+                                        error.value = i18n.uiaInvalidUsernameOrPassword()
+                                    }
 
-                                else -> {
-                                    log.error { "error during password input: ${errorResponse.error}" }
-                                    error.value = i18n.uiaGenericError(errorResponse.error)
+                                    else -> {
+                                        log.error { "error during password input: ${errorResponse.error}" }
+                                        error.value = i18n.uiaGenericError(errorResponse.error)
+                                    }
                                 }
+                            } else {
+                                log.debug { "UIA password action was successful -> onNext()" }
+                                onNext(it)
                             }
-                        } else {
-                            log.debug { "UIA password action was successful -> onNext()" }
-                            onNext(it)
                         }
-                    }
-                    .onFailure { e ->
-                        log.error { "error during password input: $e" }
-                        if (e is MatrixServerException) onError(e)
-                        else error.value = i18n.uiaGenericError(e.message)
-                    }
-            }.invokeOnCompletion {
-                log.debug { "UIA password action completed" }
-                isSubmitting.value = false
-            }
+                        .onFailure { e ->
+                            log.error { "error during password input: $e" }
+                            if (e is MatrixServerException) onError(e)
+                            else error.value = i18n.uiaGenericError(e.message)
+                        }
+                }
+                .invokeOnCompletion {
+                    log.debug { "UIA password action completed" }
+                    isSubmitting.value = false
+                }
         }
     }
 
@@ -110,9 +107,15 @@ class UiaStepPasswordViewModelPreview(mode: PreviewMode = BLANK) : UiaStepPasswo
     override val password = TextFieldViewModelImpl(maxLength = 1_000, if (mode == FILLED) "12345678" else "")
     override val error = MutableStateFlow(if (mode == ERROR) "Error!" else null)
     override val isSubmitting = MutableStateFlow(mode == SUBMITTING)
+
     override fun submit() {}
+
     override fun cancel() {}
+
     enum class PreviewMode {
-        BLANK, FILLED, SUBMITTING, ERROR,
+        BLANK,
+        FILLED,
+        SUBMITTING,
+        ERROR,
     }
 }

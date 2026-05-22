@@ -3,6 +3,9 @@ package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.detai
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.ImageBitmap
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
+import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import de.connect2x.trixnity.messenger.compose.view.files.PdfReaderWeb
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -10,9 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.client.media.indexeddb.IndexeddbPlatformMedia
-import de.connect2x.trixnity.client.media.opfs.OpfsPlatformMedia
 import pdfjs.GlobalWorkerOptions
 import web.blob.Blob
 
@@ -35,19 +35,20 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         val temporaryFileResult =
             (media as? OpfsPlatformMedia)?.getTemporaryFile() ?: (media as IndexeddbPlatformMedia).getTemporaryFile()
         if (temporaryFileResult.isSuccess) {
-            val newTemporaryFile = when (val result = temporaryFileResult.getOrNull()) {
-                is OpfsPlatformMedia.TemporaryFile -> {
-                    fileDeleteFunction.value = result::delete
-                    result.file
-                }
+            val newTemporaryFile =
+                when (val result = temporaryFileResult.getOrNull()) {
+                    is OpfsPlatformMedia.TemporaryFile -> {
+                        fileDeleteFunction.value = result::delete
+                        result.file
+                    }
 
-                is IndexeddbPlatformMedia.TemporaryFile -> {
-                    fileDeleteFunction.value = result::delete
-                    result.file
-                }
+                    is IndexeddbPlatformMedia.TemporaryFile -> {
+                        fileDeleteFunction.value = result::delete
+                        result.file
+                    }
 
-                else -> null
-            }
+                    else -> null
+                }
             try {
                 temporaryFile.value = newTemporaryFile
                 val createdReader = newTemporaryFile?.let { PdfReaderWeb(it) }
@@ -62,10 +63,7 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         }
     }
 
-    override suspend fun getPage(
-        pageId: Int,
-        dpi: Float
-    ): ImageBitmap? {
+    override suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap? {
         val reader = reader.filterNotNull().first()
         return reader.renderPage(pageId + 1, dpi)
     }

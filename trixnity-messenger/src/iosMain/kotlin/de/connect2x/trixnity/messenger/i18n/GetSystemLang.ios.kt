@@ -7,7 +7,5 @@ import platform.Foundation.currentLocale
 import platform.Foundation.languageCode
 
 actual fun platformGetSystemLangModule(): Module = module {
-    single<GetSystemLang> {
-        GetSystemLang { NSLocale.currentLocale.languageCode }
-    }
+    single<GetSystemLang> { GetSystemLang { NSLocale.currentLocale.languageCode } }
 }

@@ -28,25 +28,22 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
                     try {
                         val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
                         val existingKey = encryptedSharedPreferences.getString(id, null)?.decodeBase64()
-                        val key = when {
-                            existingKey == null -> {
-                                val newKey = SecureRandom.nextBytes(size)
-                                encryptedSharedPreferences.edit {
-                                    putString(id, newKey.encodeBase64())
+                        val key =
+                            when {
+                                existingKey == null -> {
+                                    val newKey = SecureRandom.nextBytes(size)
+                                    encryptedSharedPreferences.edit { putString(id, newKey.encodeBase64()) }
+                                    newKey
                                 }
-                                newKey
-                            }
 
-                            existingKey.size < size -> {
-                                val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
-                                encryptedSharedPreferences.edit {
-                                    putString(id, newKey.encodeBase64())
+                                existingKey.size < size -> {
+                                    val newKey = existingKey + SecureRandom.nextBytes(size - existingKey.size)
+                                    encryptedSharedPreferences.edit { putString(id, newKey.encodeBase64()) }
+                                    newKey
                                 }
-                                newKey
-                            }
 
-                            else -> existingKey.copyOf(size)
-                        }
+                                else -> existingKey.copyOf(size)
+                            }
                         if (getInputKey == null) key
                         else hkdfSha256(key = key, salt = getInputKey(32), keyBytesLength = size)
                     } catch (ex: Exception) {
@@ -58,7 +55,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             override suspend fun rotate(
                 oldExtra: JsonObject?,
                 getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?
+                getNewInputKey: GetKey?,
             ): SecretByteArrayKeyProvider.RotateResult =
                 SecretByteArrayKeyProvider.RotateResult(
                     getOldKey = get(null, getOldInputKey),
@@ -69,8 +66,7 @@ actual fun platformSecretByteArrayKeyProviderModule(): Module = module {
             @Deprecated("for backwards compatibility")
             override suspend fun getLegacy(): ByteArray? {
                 val encryptedSharedPreferences = getEncryptedSharedPreferences(contextGetter())
-                return encryptedSharedPreferences
-                    .getString("secret_byte_array_key_key", null)?.decodeBase64()
+                return encryptedSharedPreferences.getString("secret_byte_array_key_key", null)?.decodeBase64()
             }
         }
     }
@@ -84,6 +80,6 @@ private fun getEncryptedSharedPreferences(context: Context): SharedPreferences {
         "encrypted_secrets",
         masterKeyAlias,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
     )
 }

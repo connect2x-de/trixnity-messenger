@@ -13,9 +13,9 @@ import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messag
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.NameStateTimelineElementViewModel
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlin.reflect.KClass
 
 interface NameStateTimelineElementView : TimelineElementView<NameStateTimelineElementViewModel>
 
@@ -57,9 +57,7 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
@@ -74,16 +72,14 @@ class NameStateTimelineElementViewImpl : NameStateTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                StateElement(element)
-            }
+            content = { StateElement(element) },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: NameStateTimelineElementViewModel
+        element: NameStateTimelineElementViewModel,
     ): ClipEntry? = null
 
     @Composable

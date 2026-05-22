@@ -11,13 +11,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 
 private val log: Logger =
     Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details.PdfElementDetailsViewKt")
@@ -35,7 +35,7 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
     private val temporaryFile: MutableStateFlow<OkioPlatformMedia.TemporaryFile?> = MutableStateFlow(null)
     private val renderer = MutableStateFlow<PdfRenderer?>(null)
 
-    //Max size to use for rendering page bitmaps, because of API limits. Set to 100MB
+    // Max size to use for rendering page bitmaps, because of API limits. Set to 100MB
     private val maxPixelTextureSize = 1024 * 1024 * 100 / 4
 
     suspend fun initialize() {
@@ -63,24 +63,19 @@ class PDFPlatformReader(val media: PlatformMedia, val onError: (String?) -> Unit
         } else size
     }
 
-    override suspend fun getPage(
-        pageId: Int,
-        dpi: Float
-    ): ImageBitmap? {
+    override suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap? {
         val renderer = renderer.first { it != null }
         renderer?.let {
             renderer.openPage(pageId).use { page ->
                 val scaledDpi = dpi.div(72f)
-                val size = downscaleTextureSizeIfNecessary(
-                    IntSize(
-                        (page.width * scaledDpi).toInt(),
-                        (page.height * scaledDpi).toInt()
+                val size =
+                    downscaleTextureSizeIfNecessary(
+                        IntSize((page.width * scaledDpi).toInt(), (page.height * scaledDpi).toInt())
                     )
-                )
                 log.debug {
                     "render pdf page $pageId " +
-                            "to viewport (${size.width}x${size.height}) " +
-                            "at scale factor: $dpi "
+                        "to viewport (${size.width}x${size.height}) " +
+                        "at scale factor: $dpi "
                 }
                 val bitmap = createBitmap(size.width, size.height)
                 page.render(bitmap, null, null, RENDER_MODE_FOR_DISPLAY)

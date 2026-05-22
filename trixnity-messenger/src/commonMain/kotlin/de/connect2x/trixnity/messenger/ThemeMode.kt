@@ -5,12 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class ThemeMode {
-    @SerialName("default")
-    DEFAULT,
-
-    @SerialName("light")
-    LIGHT,
-
-    @SerialName("dark")
-    DARK
+    @SerialName("default") DEFAULT,
+    @SerialName("light") LIGHT,
+    @SerialName("dark") DARK,
 }

@@ -17,13 +17,7 @@ private val logger = Logger("de.connect2x.trixnity.messenger.compose.view.util.S
 // to create new Matrix users
 fun synapseClient(engine: HttpClientEngine) =
     HttpClient(engine) {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
+        install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
         defaultRequest {
             url(if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008" else "http://localhost:8008")
         }
@@ -45,9 +39,6 @@ fun synapseClient(engine: HttpClientEngine) =
                 logger.warn(cause) { "retrying ${request.url.encodedPath}" }
                 true
             }
-            delayMillis { retry ->
-                retry * 3_000L
-            }
+            delayMillis { retry -> retry * 3_000L }
         }
     }
-

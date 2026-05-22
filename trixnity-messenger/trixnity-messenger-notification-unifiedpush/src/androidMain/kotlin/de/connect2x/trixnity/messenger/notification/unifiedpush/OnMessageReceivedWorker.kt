@@ -10,23 +10,17 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 
-class OnMessageReceivedWorker(
-    private val context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
+class OnMessageReceivedWorker(private val context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
     companion object {
 
         fun enqueueWork(context: Context, profile: String?, account: String?, roomId: String, eventId: String?) {
-            val workRequest = OneTimeWorkRequestBuilder<OnMessageReceivedWorker>()
-                .setInputData(
-                    workDataOf(
-                        "profile" to profile,
-                        "account" to account,
-                        "roomId" to roomId,
-                        "eventId" to eventId,
+            val workRequest =
+                OneTimeWorkRequestBuilder<OnMessageReceivedWorker>()
+                    .setInputData(
+                        workDataOf("profile" to profile, "account" to account, "roomId" to roomId, "eventId" to eventId)
                     )
-                )
-                .build()
+                    .build()
             WorkManager.getInstance(context).enqueue(workRequest)
         }
     }

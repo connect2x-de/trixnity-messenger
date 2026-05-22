@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
-
 interface RoomSettingsTopicViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
@@ -54,19 +53,13 @@ interface RoomSettingsTopicViewModel {
     /** Access the state and value of the room topic. */
     val roomTopic: ApprovableTextFieldViewModel
 
-    /**
-     * The HTML version of the topic as a tree of HTML nodes, if present.
-     */
+    /** The HTML version of the topic as a tree of HTML nodes, if present. */
     val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement>
 
-    /**
-     * Users, Events and Room mentioned in the topic's formatted body
-     */
+    /** Users, Events and Room mentioned in the topic's formatted body */
     val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>>
 
-    /**
-     * Open the mention in the UI
-     */
+    /** Open the mention in the UI */
     fun openMention(mention: TimelineElementMention)
 }
 
@@ -75,14 +68,15 @@ class RoomSettingsTopicViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onOpenMention: OpenMentionCallback,
 ) : MatrixClientViewModelContext by viewModelContext, RoomSettingsTopicViewModel {
-    private val mentionHelper = MentionHelper(
-        coroutineScope,
-        matrixClient,
-        selectedRoomId,
-        get<Initials>(),
-        get<RoomName>(),
-        get<MatrixMessengerConfiguration>().maxMediaSizeInMemory,
-    )
+    private val mentionHelper =
+        MentionHelper(
+            coroutineScope,
+            matrixClient,
+            selectedRoomId,
+            get<Initials>(),
+            get<RoomName>(),
+            get<MatrixMessengerConfiguration>().maxMediaSizeInMemory,
+        )
 
     override val canChangeRoomTopic: StateFlow<Boolean> =
         matrixClient.user
@@ -97,30 +91,29 @@ class RoomSettingsTopicViewModelImpl(
 
     override val roomTopic: ApprovableTextFieldViewModel =
         ApprovableTextFieldViewModelImpl(
-            serverValue = matrixClient.room
-                .getState<TopicEventContent>(roomId = selectedRoomId)
-                .map { it?.content?.topic?.text?.plain ?: it?.content?.legacy?.topic },
+            serverValue =
+                matrixClient.room.getState<TopicEventContent>(roomId = selectedRoomId).map {
+                    it?.content?.topic?.text?.plain ?: it?.content?.legacy?.topic
+                },
             maxLength = 20_000,
             coroutineScope = coroutineScope,
             onApplyChange = { newTopic ->
-                matrixClient.api.room.sendStateEvent(
-                    selectedRoomId,
-                    TopicEventContent(newTopic),
-                )
+                matrixClient.api.room.sendStateEvent(selectedRoomId, TopicEventContent(newTopic))
             },
         )
 
-    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> = roomTopic
-        .map { formatContent(it.text) }
-        .stateIn(coroutineScope, WhileSubscribed(), formatContent(roomTopic.value.text))
+    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> =
+        roomTopic
+            .map { formatContent(it.text) }
+            .stateIn(coroutineScope, WhileSubscribed(), formatContent(roomTopic.value.text))
 
     private fun formatContent(body: String): HtmlNode.HtmlElement =
-        HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(body)))
-            .let(AutoLinkifyVisitor::process)
+        HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(body))).let(AutoLinkifyVisitor::process)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>> =
-        formattedRoomTopic.flatMapLatest(mentionHelper::processMentions)
+        formattedRoomTopic
+            .flatMapLatest(mentionHelper::processMentions)
             .stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     override fun openMention(mention: TimelineElementMention) {
@@ -132,9 +125,8 @@ class PreviewRoomSettingsTopicViewModel : RoomSettingsTopicViewModel {
     override val roomTopic: ApprovableTextFieldViewModel = PreviewApprovableTextFieldViewModel()
     override val canChangeRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
     override val canViewRoomTopic: StateFlow<Boolean> = MutableStateFlow(true)
-    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> = MutableStateFlow(
-        HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent("")))
-    )
+    override val formattedRoomTopic: StateFlow<HtmlNode.HtmlElement> =
+        MutableStateFlow(HtmlNode.HtmlElement("#root", emptyMap(), listOf(HtmlNode.TextContent(""))))
     override val mentionsInFormattedRoomTopic: StateFlow<Map<String, TimelineElementMention?>> =
         MutableStateFlow(emptyMap())
 

@@ -1,5 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
+import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
+import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
+import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BackCallback
@@ -21,10 +25,6 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClientImpl
-import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
-import de.connect2x.trixnity.core.ErrorResponse
 import org.koin.core.component.get
 
 interface RegisterMatrixAccountViewModelFactory {
@@ -33,8 +33,7 @@ interface RegisterMatrixAccountViewModelFactory {
         serverUrl: String,
         onLogin: () -> Unit,
         onBack: () -> Unit,
-    ): RegisterMatrixAccountViewModel =
-        RegisterMatrixAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
+    ): RegisterMatrixAccountViewModel = RegisterMatrixAccountViewModelImpl(viewModelContext, serverUrl, onLogin, onBack)
 
     companion object : RegisterMatrixAccountViewModelFactory
 }
@@ -53,6 +52,7 @@ interface RegisterMatrixAccountViewModel {
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>
 
     fun register()
+
     fun back()
 }
 
@@ -66,8 +66,8 @@ class RegisterMatrixAccountViewModelImpl(
     private val authorizeUia = get<AuthorizeUia>()
     private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName = get<GetDefaultDeviceDisplayName>()
-    override val isFirstMatrixClient: StateFlow<Boolean?> = matrixClients.map { it.isEmpty() }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val isFirstMatrixClient: StateFlow<Boolean?> =
+        matrixClients.map { it.isEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -77,86 +77,94 @@ class RegisterMatrixAccountViewModelImpl(
     override val addMatrixAccountState: MutableStateFlow<AddMatrixAccountState> = MutableStateFlow(None)
 
     override val isRegisteringNewUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val canRegisterNewUser: StateFlow<Boolean> = combine(
-        username.text, password.text
-    ) { username, password ->
-        log.debug { "canRegisterNewUser: username=$username" }
-        username.isNotBlank() && password.isNotBlank()
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, false) // is used down below
+    override val canRegisterNewUser: StateFlow<Boolean> =
+        combine(username.text, password.text) { username, password ->
+                log.debug { "canRegisterNewUser: username=$username" }
+                username.isNotBlank() && password.isNotBlank()
+            }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false) // is used down below
 
     override fun register() {
         val canRegisterNewUser = canRegisterNewUser.value
-        log.info { "try registration (canRegisterNewUser = $canRegisterNewUser, isRegisteringNewUser=${isRegisteringNewUser.value} username = ${username.value}, password = *******)" }
+        log.info {
+            "try registration (canRegisterNewUser = $canRegisterNewUser, isRegisteringNewUser=${isRegisteringNewUser.value} username = ${username.value}, password = *******)"
+        }
         if (canRegisterNewUser && isRegisteringNewUser.getAndUpdate { true }.not()) {
-            coroutineScope.launch {
-                error.value = null
-                val result = MatrixClientServerApiClientImpl(
-                    Url(serverUrl),
-                    httpClientEngine = config.httpClientEngine,
-                    httpClientConfig = config.httpClientConfig
-                ).use {
-                    authorizeUia {
-                        it.authentication.register(
-                            accountType = AccountType.USER,
-                            username = username.textValue,
-                            password = password.textValue,
-                            initialDeviceDisplayName = getDefaultDeviceDisplayName(),
-                            refreshToken = config.useRefreshTokens,
-                        )
-                    }
-                }
-                when (result) {
-                    is AuthorizeUiaResult.Success -> {
-                        log.info { "try to do UIA to retrieve access_token" }
-                        val deviceId = result.uia.value.deviceId
-                        val accessToken = result.uia.value.accessToken
-                        val accessTokenExpiresInMs = result.uia.value.accessTokenExpiresInMs
-                        val refreshToken = result.uia.value.refreshToken
-                        if (deviceId != null && accessToken != null) {
-                            addMatrixAccountState.value = AddMatrixAccountState.Connecting
-
-                            val authProviderData = ClassicMatrixClientAuthProviderData(
-                                baseUrl = Url(serverUrl),
-                                accessToken = accessToken,
-                                accessTokenExpiresInMs = accessTokenExpiresInMs,
-                                refreshToken = refreshToken,
+            coroutineScope
+                .launch {
+                    error.value = null
+                    val result =
+                        MatrixClientServerApiClientImpl(
+                                Url(serverUrl),
+                                httpClientEngine = config.httpClientEngine,
+                                httpClientConfig = config.httpClientConfig,
                             )
-                            when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
-                                is MatrixClients.CreateResult.Success -> {
-                                    addMatrixAccountState.value = AddMatrixAccountState.Success
-                                    onLogin()
-                                }
-
-                                is MatrixClients.CreateResult.Failure -> {
-                                    addMatrixAccountState.value =
-                                        AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                            .use {
+                                authorizeUia {
+                                    it.authentication.register(
+                                        accountType = AccountType.USER,
+                                        username = username.textValue,
+                                        password = password.textValue,
+                                        initialDeviceDisplayName = getDefaultDeviceDisplayName(),
+                                        refreshToken = config.useRefreshTokens,
+                                    )
                                 }
                             }
-                        } else {
-                            log.error { "accessToken or deviceId missing in registration response" }
-                            error.value = i18n.registrationErrorNotSuccessful()
+                    when (result) {
+                        is AuthorizeUiaResult.Success -> {
+                            log.info { "try to do UIA to retrieve access_token" }
+                            val deviceId = result.uia.value.deviceId
+                            val accessToken = result.uia.value.accessToken
+                            val accessTokenExpiresInMs = result.uia.value.accessTokenExpiresInMs
+                            val refreshToken = result.uia.value.refreshToken
+                            if (deviceId != null && accessToken != null) {
+                                addMatrixAccountState.value = AddMatrixAccountState.Connecting
+
+                                val authProviderData =
+                                    ClassicMatrixClientAuthProviderData(
+                                        baseUrl = Url(serverUrl),
+                                        accessToken = accessToken,
+                                        accessTokenExpiresInMs = accessTokenExpiresInMs,
+                                        refreshToken = refreshToken,
+                                    )
+                                when (val createMatrixClientResult = matrixClients.create(authProviderData)) {
+                                    is MatrixClients.CreateResult.Success -> {
+                                        addMatrixAccountState.value = AddMatrixAccountState.Success
+                                        onLogin()
+                                    }
+
+                                    is MatrixClients.CreateResult.Failure -> {
+                                        addMatrixAccountState.value =
+                                            AddMatrixAccountState.Failure(createMatrixClientResult.message)
+                                    }
+                                }
+                            } else {
+                                log.error { "accessToken or deviceId missing in registration response" }
+                                error.value = i18n.registrationErrorNotSuccessful()
+                            }
                         }
-                    }
 
-                    is AuthorizeUiaResult.CancelledByUser -> {
-                        error.value = result.message
-                    }
-
-                    is AuthorizeUiaResult.Error -> {
-                        error.value = when (result.exception.errorResponse) {
-                            is ErrorResponse.UserInUse -> i18n.registrationErrorUserInUse()
-                            is ErrorResponse.InvalidUsername -> i18n.registrationErrorInvalidUsername()
-                            is ErrorResponse.Exclusive -> i18n.registrationErrorInvalidUsername() // for users this is the same
-                            else -> i18n.registrationErrorNotSupported()
+                        is AuthorizeUiaResult.CancelledByUser -> {
+                            error.value = result.message
                         }
-                    }
 
-                    is AuthorizeUiaResult.UnexpectedError -> {
-                        error.value = result.message
+                        is AuthorizeUiaResult.Error -> {
+                            error.value =
+                                when (result.exception.errorResponse) {
+                                    is ErrorResponse.UserInUse -> i18n.registrationErrorUserInUse()
+                                    is ErrorResponse.InvalidUsername -> i18n.registrationErrorInvalidUsername()
+                                    is ErrorResponse.Exclusive ->
+                                        i18n.registrationErrorInvalidUsername() // for users this is the same
+                                    else -> i18n.registrationErrorNotSupported()
+                                }
+                        }
+
+                        is AuthorizeUiaResult.UnexpectedError -> {
+                            error.value = result.message
+                        }
                     }
                 }
-
-            }.invokeOnCompletion { isRegisteringNewUser.value = false }
+                .invokeOnCompletion { isRegisteringNewUser.value = false }
         }
     }
 
@@ -164,9 +172,7 @@ class RegisterMatrixAccountViewModelImpl(
         onBack()
     }
 
-    val backCallback = BackCallback {
-        back()
-    }
+    val backCallback = BackCallback { back() }
 
     init {
         registerBackCallback(backCallback)
@@ -184,5 +190,6 @@ class PreviewRegisterMatrixAccountViewModel : RegisterMatrixAccountViewModel {
     override val canRegisterNewUser: MutableStateFlow<Boolean> = MutableStateFlow(true)
 
     override fun register() {}
+
     override fun back() {}
 }

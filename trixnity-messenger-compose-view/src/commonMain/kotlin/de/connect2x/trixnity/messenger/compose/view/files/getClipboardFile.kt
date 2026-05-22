@@ -6,4 +6,5 @@ import okio.FileSystem
 expect fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Result<FileDescriptor?>
 
 class NotPasteableException : IllegalArgumentException()
+
 class EmptyFileListException : IllegalArgumentException()

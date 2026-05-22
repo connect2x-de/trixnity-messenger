@@ -16,29 +16,28 @@ import org.intellij.markdown.parser.LinkMap
 interface MatrixMarkdownFlavour : MarkdownFlavourDescriptor
 
 class MatrixMarkdownFlavourImpl : MatrixMarkdownFlavour, GFMFlavourDescriptor() {
-    override fun createHtmlGeneratingProviders(
-        linkMap: LinkMap,
-        baseURI: URI?
-    ): Map<IElementType, GeneratingProvider> {
-        val map = super.createHtmlGeneratingProviders(linkMap, baseURI)
-            .filterKeys { key -> key.name != MarkdownTokenTypes.HARD_LINE_BREAK.name }
-            .plus(
-                hashMapOf(
-                    GFMElementTypes.STRIKETHROUGH to object : SimpleInlineTagProvider("del", 2, -2) {},
-                    MarkdownTokenTypes.EOL to object : GeneratingProvider {
-                        override fun processNode(
-                            visitor: HtmlGenerator.HtmlGeneratingVisitor,
-                            text: String,
-                            node: ASTNode
-                        ) {
-                            if (node.parent?.type == MarkdownElementTypes.PARAGRAPH) {
-                                visitor.consumeHtml("\n")
-                                visitor.consumeHtml("<br />")
-                            }
-                        }
-                    })
-            )
+    override fun createHtmlGeneratingProviders(linkMap: LinkMap, baseURI: URI?): Map<IElementType, GeneratingProvider> {
+        val map =
+            super.createHtmlGeneratingProviders(linkMap, baseURI)
+                .filterKeys { key -> key.name != MarkdownTokenTypes.HARD_LINE_BREAK.name }
+                .plus(
+                    hashMapOf(
+                        GFMElementTypes.STRIKETHROUGH to object : SimpleInlineTagProvider("del", 2, -2) {},
+                        MarkdownTokenTypes.EOL to
+                            object : GeneratingProvider {
+                                override fun processNode(
+                                    visitor: HtmlGenerator.HtmlGeneratingVisitor,
+                                    text: String,
+                                    node: ASTNode,
+                                ) {
+                                    if (node.parent?.type == MarkdownElementTypes.PARAGRAPH) {
+                                        visitor.consumeHtml("\n")
+                                        visitor.consumeHtml("<br />")
+                                    }
+                                }
+                            },
+                    )
+                )
         return map
     }
 }
-

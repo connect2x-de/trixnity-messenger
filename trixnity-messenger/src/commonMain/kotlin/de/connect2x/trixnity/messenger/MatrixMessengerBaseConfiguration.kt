@@ -13,28 +13,24 @@ interface MatrixMessengerBaseConfiguration {
     /**
      * The app uri used for callbacks and deep linking. Must be of form `app:` or `https://app.example.com`.
      *
-     * It is related to the [oAuth2ClientUrl], because [appUri] is used to generate the redirect URIs.
-     * Therefore, there are some limitations described in the Matrix spec.
+     * It is related to the [oAuth2ClientUrl], because [appUri] is used to generate the redirect URIs. Therefore, there
+     * are some limitations described in the Matrix spec.
      */
     var appUri: String
 
     /**
      * A URL to a valid web page that gives the user more information about the client. Must use https scheme.
      *
-     * It is related to the [appUri], because [appUri] is used to generate the redirect URIs.
-     * Therefore, there are some limitations described in the Matrix spec.
+     * It is related to the [appUri], because [appUri] is used to generate the redirect URIs. Therefore, there are some
+     * limitations described in the Matrix spec.
      */
     var oAuth2ClientUrl: String
     var sendLogsEmailAddress: String?
 
-    /**
-     * The privacy info of the application in a Markdown format
-     */
+    /** The privacy info of the application in a Markdown format */
     var privacyInfo: String?
 
-    /**
-     * The imprint of the application in a Markdown format
-     */
+    /** The imprint of the application in a Markdown format */
     var imprint: String?
     var licenses: String?
 

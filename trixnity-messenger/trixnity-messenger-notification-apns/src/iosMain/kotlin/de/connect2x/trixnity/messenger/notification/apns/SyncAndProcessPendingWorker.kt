@@ -1,5 +1,7 @@
 package de.connect2x.trixnity.messenger.notification.apns
 
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.runBlocking
 import platform.BackgroundTasks.BGProcessingTask
@@ -8,22 +10,22 @@ import platform.BackgroundTasks.BGTask
 import platform.BackgroundTasks.BGTaskScheduler
 import platform.Foundation.NSDate
 import platform.Foundation.dateWithTimeIntervalSinceNow
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 object SyncAndProcessPendingWorker {
     private const val UNIQUE_WORK_NAME = "de.connect2x.trixnity.messenger.notification.apns.SyncAndProcessPending"
 
     fun registerUniquePeriodicWork() {
-        BGTaskScheduler.sharedScheduler()
-            .registerForTaskWithIdentifier(identifier = UNIQUE_WORK_NAME, usingQueue = null) { task: BGTask? ->
-                val processingTask = task as? BGProcessingTask
-                if (processingTask != null) {
-                    doWork(processingTask)
-                } else {
-                    task?.setTaskCompletedWithSuccess(true)
-                }
+        BGTaskScheduler.sharedScheduler().registerForTaskWithIdentifier(
+            identifier = UNIQUE_WORK_NAME,
+            usingQueue = null,
+        ) { task: BGTask? ->
+            val processingTask = task as? BGProcessingTask
+            if (processingTask != null) {
+                doWork(processingTask)
+            } else {
+                task?.setTaskCompletedWithSuccess(true)
             }
+        }
         enqueueUniquePeriodicWork(15.minutes)
     }
 

@@ -6,6 +6,13 @@ import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.ktor.http.*
+import java.awt.Desktop
+import java.io.IOException
+import java.io.RandomAccessFile
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.Socket
+import kotlin.concurrent.thread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
@@ -15,13 +22,6 @@ import kotlinx.coroutines.withContext
 import okio.FileSystem
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.awt.Desktop
-import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.InetAddress
-import java.net.ServerSocket
-import java.net.Socket
-import kotlin.concurrent.thread
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UrlHandlerKt")
 
@@ -29,42 +29,38 @@ class UriHandlerImpl(
     config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
     rootPath: RootPath,
-    private val closeApp: CloseApp?
-) :
-    UriHandlerBase(config) {
+    private val closeApp: CloseApp?,
+) : UriHandlerBase(config) {
 
     private val started = MutableStateFlow(false)
     private val rootPath = rootPath.path
     private val lockFileName = "port.lock"
 
-    /**
-     * This need to be called with application start arguments.
-     */
-    suspend fun start(args: Array<String>) = withContext(Dispatchers.IO) {
-        val os = getOs()
-        when {
-            Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
-                args.firstOrNull()?.also { emitUrl(it) }
-                Desktop.getDesktop().setOpenURIHandler { event ->
-                    urlHandlerFlow.tryEmit(event.uri.toString())
+    /** This need to be called with application start arguments. */
+    suspend fun start(args: Array<String>) =
+        withContext(Dispatchers.IO) {
+            val os = getOs()
+            when {
+                Desktop.isDesktopSupported() && os == OS.MAC_OS -> {
+                    args.firstOrNull()?.also { emitUrl(it) }
+                    Desktop.getDesktop().setOpenURIHandler { event -> urlHandlerFlow.tryEmit(event.uri.toString()) }
                 }
-            }
 
-            os == OS.WINDOWS || os == OS.LINUX -> {
-                if (started.updateAndGet { true }.not()) return@withContext
-                val urlArg = args.firstOrNull()
+                os == OS.WINDOWS || os == OS.LINUX -> {
+                    if (started.updateAndGet { true }.not()) return@withContext
+                    val urlArg = args.firstOrNull()
 
-                val port = readPortFromLockFile()
-                if (port == null) {
-                    listenForArgs(urlArg)
-                } else {
-                    sendUrlArg(urlArg.orEmpty(), port)
+                    val port = readPortFromLockFile()
+                    if (port == null) {
+                        listenForArgs(urlArg)
+                    } else {
+                        sendUrlArg(urlArg.orEmpty(), port)
+                    }
                 }
-            }
 
-            else -> log.warn { "this platform is not supported to listen for uris via args" }
+                else -> log.warn { "this platform is not supported to listen for uris via args" }
+            }
         }
-    }
 
     private suspend fun emitUrl(urlArg: String) {
         if (urlArg.isNotBlank())
@@ -98,11 +94,14 @@ class UriHandlerImpl(
             releaseFile()
             throw IllegalStateException("could not lock $lockFileName")
         }
-        Runtime.getRuntime().addShutdownHook(thread(start = false) {
-            lock.release()
-            channel.close()
-            releaseFile()
-        })
+        Runtime.getRuntime()
+            .addShutdownHook(
+                thread(start = false) {
+                    lock.release()
+                    channel.close()
+                    releaseFile()
+                }
+            )
     }
 
     private fun listenForArgs(urlArg: String?) {
@@ -116,8 +115,7 @@ class UriHandlerImpl(
                     var server: ServerSocket? = null
                     while (true) {
                         try {
-                            if (port < 3000)
-                                server = ServerSocket(port, 0, address)
+                            if (port < 3000) server = ServerSocket(port, 0, address)
                             break
                         } catch (exception: IOException) {
                             port++
@@ -187,17 +185,17 @@ class UriHandlerImpl(
 }
 
 actual fun platformUriHandlerModule(): Module = module {
-    single<UriHandler> {
-        UriHandlerImpl(get(), get(), get(), getOrNull())
-    }
+    single<UriHandler> { UriHandlerImpl(get(), get(), get(), getOrNull()) }
 }
 
 val MatrixMessenger.defaultUriHandler: UriHandlerImpl
-    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }
+    get() =
+        checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
+            "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+        }
 
 val MatrixMultiMessenger.defaultUriHandler: UriHandlerImpl
-    get() = checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
-        "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
-    }
+    get() =
+        checkNotNull(di.get<UriHandler>() as? UriHandlerImpl) {
+            "default UrlHandler has been overridden and is not of expected type UrlHandlerImpl"
+        }

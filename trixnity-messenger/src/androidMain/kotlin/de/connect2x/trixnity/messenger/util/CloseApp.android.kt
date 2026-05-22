@@ -6,8 +6,6 @@ import org.koin.dsl.module
 actual fun platformCloseAppModule(): Module = module {
     single<CloseApp> {
         val activityGetter = get<ActivityGetter>()
-        CloseApp {
-            activityGetter().finishAndRemoveTask()
-        }
+        CloseApp { activityGetter().finishAndRemoveTask() }
     }
 }

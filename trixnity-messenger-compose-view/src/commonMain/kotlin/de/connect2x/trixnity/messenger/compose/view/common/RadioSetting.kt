@@ -29,7 +29,7 @@ internal data class RadioSettingOption(
     val text: String,
     val explanation: String? = null,
     val enabled: Boolean = true,
-    val style: TextStyle? = null
+    val style: TextStyle? = null,
 )
 
 @Composable
@@ -53,9 +53,8 @@ internal fun <T : Any> ColumnScope.RadioSetting(
         set = set,
         additionalContent = additionalContent,
         enabled = enabled,
-        icon = icon
+        icon = icon,
     )
-
 }
 
 @Composable
@@ -76,18 +75,15 @@ internal fun <T : Any> ColumnScope.RadioSetting(
                 ThemedListItemRadioButton(
                     style = MaterialTheme.components.settingsItem,
                     headlineContent = { Text(optionText, style = optionStyle ?: LocalTextStyle.current) },
-                    leadingContent = if (optionExplanation != null) {
-                        @Composable { HelpIcon(optionExplanation) }
-                    } else null,
-                    modifier = Modifier
-                        .rovingFocusItem(
-                            isFocused = focusedItem == key,
-                            onFocus = { focusedItem = key },
-                        )
-                        .semantics(mergeDescendants = true) {
-                            if (optionExplanation != null)
-                                this.contentDescription = optionExplanation
-                        },
+                    leadingContent =
+                        if (optionExplanation != null) {
+                            @Composable { HelpIcon(optionExplanation) }
+                        } else null,
+                    modifier =
+                        Modifier.rovingFocusItem(isFocused = focusedItem == key, onFocus = { focusedItem = key })
+                            .semantics(mergeDescendants = true) {
+                                if (optionExplanation != null) this.contentDescription = optionExplanation
+                            },
                     enabled = enabled && optionEnabled,
                     selected = value == key,
                     onChange = { set(key) },
@@ -96,9 +92,6 @@ internal fun <T : Any> ColumnScope.RadioSetting(
         }
     }
     if (additionalContent != null) {
-        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) {
-            additionalContent()
-        }
+        Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp)) { additionalContent() }
     }
 }
-

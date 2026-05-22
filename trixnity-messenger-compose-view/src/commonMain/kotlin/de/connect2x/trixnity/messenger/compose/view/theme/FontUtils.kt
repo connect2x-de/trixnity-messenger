@@ -27,14 +27,11 @@ fun Typography.withFontFamily(fontFamily: FontFamily): Typography {
         bodySmall = this.bodySmall.copy(fontFamily = fontFamily),
         labelLarge = this.labelLarge.copy(fontFamily = fontFamily, fontWeight = FontWeight.Bold),
         labelMedium = this.labelMedium.copy(fontFamily = fontFamily),
-        labelSmall = this.labelSmall.copy(fontFamily = fontFamily, fontSize = 8.sp)
+        labelSmall = this.labelSmall.copy(fontFamily = fontFamily, fontSize = 8.sp),
     )
 }
 
-fun fontTypeName(
-    weight: FontWeight,
-    style: FontStyle,
-) = buildString {
+fun fontTypeName(weight: FontWeight, style: FontStyle) = buildString {
     if (weight == FontWeight.Normal && style == FontStyle.Normal) append("Regular")
     else {
         append(
@@ -62,6 +59,4 @@ fun fontTypeName(
 }
 
 val TextStyle.dp: Dp
-    @Composable
-    @ReadOnlyComposable
-    get() = LocalDensity.current.run { lineHeight.toDp() }
+    @Composable @ReadOnlyComposable get() = LocalDensity.current.run { lineHeight.toDp() }

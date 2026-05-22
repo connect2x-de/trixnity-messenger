@@ -9,10 +9,7 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.imageBitmapFromBytesKt")
 
 @OptIn(ExperimentalResourceApi::class)
-actual fun ByteArray.toImageBitmap(
-    width: Int,
-    height: Int,
-): ImageBitmap? {
+actual fun ByteArray.toImageBitmap(width: Int, height: Int): ImageBitmap? {
     return try {
         decodeToImageBitmap()
     } catch (e: Exception) {

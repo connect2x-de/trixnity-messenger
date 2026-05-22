@@ -14,8 +14,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 
 interface AccountDataView {
-    @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    @Composable fun create(roomListViewModel: RoomListViewModel)
 }
 
 @Composable
@@ -29,17 +28,14 @@ class AccountDataViewImpl : AccountDataView {
         val accountViewModel = roomListViewModel.accountViewModel
 
         HeaderSurface {
-            Row(
-                Modifier.minHeaderHeight(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(Modifier.minHeaderHeight(), verticalAlignment = Alignment.CenterVertically) {
                 Row(
                     Modifier.padding(horizontal = 10.dp, vertical = 4.dp).fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     AccountAvatar(accountViewModel)
-                    if(roomListViewModel.closeProfileNeeded){
-                        CloseProfile({roomListViewModel.closeProfile()})
+                    if (roomListViewModel.closeProfileNeeded) {
+                        CloseProfile({ roomListViewModel.closeProfile() })
                     }
                     ShowSearch(roomListViewModel)
                     AccountOptions(accountViewModel, roomListViewModel)

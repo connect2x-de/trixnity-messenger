@@ -16,11 +16,7 @@ kotlin {
     withAndroidLibrary("$group.notification.fcm")
     applyDefaultHierarchyTemplate()
     sourceSets {
-        commonMain {
-            dependencies {
-                implementation(projects.trixnityMessenger)
-            }
-        }
+        commonMain { dependencies { implementation(projects.trixnityMessenger) } }
         commonTest {
             dependencies {
                 implementation(sharedLibs.kotlin.test)
@@ -38,17 +34,9 @@ kotlin {
 }
 
 android {
-    sourceSets {
-        named("main") {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-        }
-    }
+    sourceSets { named("main") { manifest.srcFile("src/androidMain/AndroidManifest.xml") } }
     buildTypes {
-        debug {
-            isDefault = true
-        }
-        release {
-            isMinifyEnabled = false
-        }
+        debug { isDefault = true }
+        release { isMinifyEnabled = false }
     }
 }

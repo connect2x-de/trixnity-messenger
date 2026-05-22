@@ -44,7 +44,6 @@ class MatrixMentionVisitor {
     }
 
     companion object {
-        fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement =
-            AutoLinkifyVisitor().process(document)
+        fun process(document: HtmlNode.HtmlElement): HtmlNode.HtmlElement = AutoLinkifyVisitor().process(document)
     }
 }

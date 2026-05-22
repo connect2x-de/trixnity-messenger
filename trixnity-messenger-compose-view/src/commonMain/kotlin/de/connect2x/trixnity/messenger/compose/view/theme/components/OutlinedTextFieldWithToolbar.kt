@@ -14,7 +14,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 
 /**
- * Custom element wrapping the regular OutlinedTexField with an explicit handling of the toolbar logic to assure it is shown when necessary (like in Popups)
+ * Custom element wrapping the regular OutlinedTexField with an explicit handling of the toolbar logic to assure it is
+ * shown when necessary (like in Popups)
  */
 @Composable
 expect fun OutlinedTextFieldWithToolbar(
@@ -40,7 +41,5 @@ expect fun OutlinedTextFieldWithToolbar(
     minLines: Int = 1,
     interactionSource: MutableInteractionSource? = null,
     shape: Shape = OutlinedTextFieldDefaults.shape,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors()
+    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
 )
-
-

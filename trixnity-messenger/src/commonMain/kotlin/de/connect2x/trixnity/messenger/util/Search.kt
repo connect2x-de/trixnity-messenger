@@ -53,7 +53,7 @@ interface Search {
         override val image: ByteArray? = null,
         override val userId: UserId,
         override val presence: StateFlow<Presence?> = MutableStateFlow(null),
-        override val doesNotExist: Boolean = false
+        override val doesNotExist: Boolean = false,
     ) : SearchUserElement {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
@@ -89,44 +89,47 @@ class SearchImpl(
     ): List<SearchUserElement> = coroutineScope {
         val userId = UserId(searchTerm)
         if (userId.isValid()) {
-            val profileResult = matrixClient.api.user.getProfile(userId)
-                .onFailure { exc ->
+            val profileResult =
+                matrixClient.api.user.getProfile(userId).onFailure { exc ->
                     log.error(exc) { "Cannot access user profile for $userId." }
                 }
             val profile = profileResult.getOrNull()
-            val image = profile?.avatarUrl?.let { url ->
-                matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                    onSuccess = {
-                        it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                    },
-                    onFailure = { null }
-                )
-            }
-            val presence = getPresence(matrixClient, userId)
-                .map { presence ->
-                    presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence
+            val image =
+                profile?.avatarUrl?.let { url ->
+                    matrixClient.media
+                        .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                        .fold(
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onFailure = { null },
+                        )
                 }
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            val presence =
+                getPresence(matrixClient, userId)
+                    .map { presence -> presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence }
+                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-            val doesNotExist = profileResult.fold(
-                { false },
-                { error ->
-                    if (error is MatrixServerException) {
-                        // NotFound/404 means that profile fetching is allowed as per Matrix spec: https://spec.matrix.org/v1.17/client-server-api/#get_matrixclientv3profileuserid
-                        if (error.errorResponse is ErrorResponse.NotFound) {
-                            true
+            val doesNotExist =
+                profileResult.fold(
+                    { false },
+                    { error ->
+                        if (error is MatrixServerException) {
+                            // NotFound/404 means that profile fetching is allowed as per Matrix spec:
+                            // https://spec.matrix.org/v1.17/client-server-api/#get_matrixclientv3profileuserid
+                            if (error.errorResponse is ErrorResponse.NotFound) {
+                                true
+                            } else {
+                                //  Also check HTTP error when Unknown as per Matrix spec:
+                                // https://spec.matrix.org/v1.16/client-server-api/#:~:text=When%20encountering%20the%20error%20code%20M_UNKNOWN%2C%20clients%20should%20prefer%20the%20HTTP%20status%20code%20as%20a%20more%20reliable%20reference%20for%20what%20the%20issue%20was
+                                val preferHttpError = error.errorResponse is ErrorResponse.Unknown
+                                val httpNotFound = error.statusCode == HttpStatusCode.NotFound
+                                preferHttpError && httpNotFound
+                            }
                         } else {
-                            //  Also check HTTP error when Unknown as per Matrix spec: https://spec.matrix.org/v1.16/client-server-api/#:~:text=When%20encountering%20the%20error%20code%20M_UNKNOWN%2C%20clients%20should%20prefer%20the%20HTTP%20status%20code%20as%20a%20more%20reliable%20reference%20for%20what%20the%20issue%20was
-                            val preferHttpError = error.errorResponse is ErrorResponse.Unknown
-                            val httpNotFound = error.statusCode == HttpStatusCode.NotFound
-                            preferHttpError && httpNotFound 
+                            false
                         }
-                    } else {
-                        false
-                    }
-                }
-            )
-            
+                    },
+                )
+
             listOf(
                 searchUserElement(
                     SearchUsers.Response.SearchUser(
@@ -141,7 +144,8 @@ class SearchImpl(
             )
         } else {
             // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
-            matrixClient.api.user.searchUsers(searchTerm, i18n.currentLang.code, limit)
+            matrixClient.api.user
+                .searchUsers(searchTerm, i18n.currentLang.code, limit)
                 .fold( // TODO get correct language
                     onSuccess = { response ->
                         log.trace { "got users $searchTerm" }
@@ -152,8 +156,9 @@ class SearchImpl(
                             .map { searchUser ->
                                 async {
                                     val image = getImage(coroutineScope, matrixClient, searchUser)
-                                    val presence = getPresence(matrixClient, searchUser.userId)
-                                        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                                    val presence =
+                                        getPresence(matrixClient, searchUser.userId)
+                                            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
                                     searchUserElement(searchUser, image, presence)
                                 }
@@ -165,7 +170,7 @@ class SearchImpl(
                     onFailure = {
                         log.error(it) { "search for users resulted in error" }
                         emptyList()
-                    }
+                    },
                 )
         }
     }
@@ -176,12 +181,12 @@ class SearchImpl(
         searchUser: SearchUsers.Response.SearchUser,
     ): ByteArray? {
         return searchUser.avatarUrl?.let { url ->
-            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = { null }
-            )
+            matrixClient.media
+                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                .fold(
+                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                    onFailure = { null },
+                )
         }
     }
 
@@ -193,15 +198,15 @@ class SearchImpl(
         searchUser: SearchUsers.Response.SearchUser,
         image: ByteArray?,
         presence: StateFlow<Presence?>,
-        doesNotExist: Boolean = false
-    ) = Search.SearchUserElementImpl(
-        searchUser.displayName ?: searchUser.userId.full,
-        searchUser.displayName?.let { name -> initials.compute(name) }
-            ?: initials.compute(searchUser.userId.localpart),
-        image,
-        searchUser.userId,
-        presence,
-        doesNotExist
-    )
-
+        doesNotExist: Boolean = false,
+    ) =
+        Search.SearchUserElementImpl(
+            searchUser.displayName ?: searchUser.userId.full,
+            searchUser.displayName?.let { name -> initials.compute(name) }
+                ?: initials.compute(searchUser.userId.localpart),
+            image,
+            searchUser.userId,
+            presence,
+            doesNotExist,
+        )
 }

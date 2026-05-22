@@ -89,6 +89,11 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import io.ktor.http.*
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.reflect.KClass
+import kotlin.time.Clock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -96,11 +101,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlin.math.log10
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.reflect.KClass
-import kotlin.time.Clock
 
 interface PdfTimelineElementDetailsView : TimelineElementDetailsView<RoomMessageTimelineElementViewModel.FileBased.File>
 
@@ -112,30 +112,30 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         return ContentType.Application.Pdf.match(mimeType)
     }
 
-
     private fun removeOldElements(pageCacheSize: Int, lazyListState: LazyListState) {
         val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
-        val creationOrderedList = cache.toList().sortedBy { it.second.value?.creationTime }
-            .filter { !visibleItems.contains(it.first) && it.second.value != null }
-        creationOrderedList.subList(0, (cache.size - pageCacheSize).coerceIn(0, creationOrderedList.size))
-            .forEach {
-                cache.remove(it.first)
-            }
+        val creationOrderedList =
+            cache
+                .toList()
+                .sortedBy { it.second.value?.creationTime }
+                .filter { !visibleItems.contains(it.first) && it.second.value != null }
+        creationOrderedList.subList(0, (cache.size - pageCacheSize).coerceIn(0, creationOrderedList.size)).forEach {
+            cache.remove(it.first)
+        }
     }
 
-    //The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its DPI as the value
-    private val cache =
-        mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
+    // The pdf page cache, consisting of the page number as the key and the time it was loaded, the image itself and its
+    // DPI as the value
+    private val cache = mutableStateMapOf<Int, MutableStateFlow<PDFCacheEntry?>>()
 
     private fun getCacheElement(cacheKey: Int, scope: CoroutineScope): StateFlow<PDFCacheEntry?> {
-        return cache[cacheKey] ?: run {
-            return MutableStateFlow<PDFCacheEntry?>(null).also {
-                cache[cacheKey] = it
-                scope.launch {
-                    queue.emit(cacheKey)
+        return cache[cacheKey]
+            ?: run {
+                return MutableStateFlow<PDFCacheEntry?>(null).also {
+                    cache[cacheKey] = it
+                    scope.launch { queue.emit(cacheKey) }
                 }
             }
-        }
     }
 
     val queue = MutableSharedFlow<Int>()
@@ -145,7 +145,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         pageId: Int,
         dpi: Float,
         pageCacheSize: Int,
-        lazyListState: LazyListState
+        lazyListState: LazyListState,
     ) {
         val element = cache[pageId]
         if (element?.value?.dpi != dpi.toInt()) {
@@ -156,10 +156,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
     }
 
     private fun calcSizeOnZoom(constraints: Constraints, zoom: Float, density: Float): DpSize {
-        return DpSize(
-            (constraints.maxWidth * zoom / density).dp,
-            (constraints.maxHeight * zoom / density).dp
-        )
+        return DpSize((constraints.maxWidth * zoom / density).dp, (constraints.maxHeight * zoom / density).dp)
     }
 
     private fun Size.divideComponents(other: Size): Size {
@@ -174,11 +171,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
         return Size(this.width - other.width, this.height - other.height)
     }
 
-    private fun getNewZoomOffsetDelta(
-        viewportSize: Size,
-        oldZoomFactor: Float,
-        newZoomFactor: Float
-    ): Size {
+    private fun getNewZoomOffsetDelta(viewportSize: Size, oldZoomFactor: Float, newZoomFactor: Float): Size {
         val oldMaxSize = viewportSize * oldZoomFactor
         val oldCenter = viewportSize / 2f
         val newSize = viewportSize * newZoomFactor
@@ -217,17 +210,14 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             }
         }
 
-        //Control all changes to zoom/offset
+        // Control all changes to zoom/offset
         val state = rememberTransformableState { zoomChange, offsetChange, _ ->
             if (zoomChange != 1f && canZoom.value) {
                 val oldZoom = zoom.value
                 zoom.value = (zoom.value * zoomChange).coerceIn(minZoom, maxZoom)
-                val newOffset = getNewZoomOffsetDelta(
-                    lazyListState.layoutInfo.viewportSize.toSize(),
-                    oldZoom,
-                    zoom.value
-                )
-                //Necessary to assure the new size has been measured, otherwise the scrolling won't work
+                val newOffset =
+                    getNewZoomOffsetDelta(lazyListState.layoutInfo.viewportSize.toSize(), oldZoom, zoom.value)
+                // Necessary to assure the new size has been measured, otherwise the scrolling won't work
                 scrollRequest.value = newOffset
             } else {
                 scope.launch {
@@ -236,7 +226,6 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                     lazyListState.scrollBy(-offset.y)
                 }
             }
-
         }
         val i18n = DI.get<I18nView>()
         val dpi = remember { mutableStateOf<Float?>(null) }
@@ -255,22 +244,23 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             element,
             onSave,
             onClose,
-            additionalIndicators = {
-                PageIndicator(lazyListState, reader.value?.numOfPages?.value, focusRequester)
-            },
+            additionalIndicators = { PageIndicator(lazyListState, reader.value?.numOfPages?.value, focusRequester) },
             additionalButtons = {
-                ZoomButtons({
-                    scope.launch {
-                        val prevCanZoom = canZoom.value
-                        canZoom.value = true
-                        state.zoomBy(it)
-                        canZoom.value = prevCanZoom
-                    }
-                }, reader.value?.numOfPages?.value != null)
-            }) {
+                ZoomButtons(
+                    {
+                        scope.launch {
+                            val prevCanZoom = canZoom.value
+                            canZoom.value = true
+                            state.zoomBy(it)
+                            canZoom.value = prevCanZoom
+                        }
+                    },
+                    reader.value?.numOfPages?.value != null,
+                )
+            },
+        ) {
             BoxWithConstraints(
-                Modifier
-                    .background(color = Color.Black)
+                Modifier.background(color = Color.Black)
                     .fillMaxSize()
                     .focusRequester(focusRequester)
                     .focusable()
@@ -282,7 +272,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                         awaitPointerEventScope {
                             while (true) {
                                 awaitPointerEvent(PointerEventPass.Initial).changes.forEach { pointerEvent ->
-                                    //Focus pdf as soon as it's clicked or scrolled
+                                    // Focus pdf as soon as it's clicked or scrolled
                                     if (pointerEvent.pressed || pointerEvent.scrollDelta != Offset.Zero) {
                                         focusRequester.requestFocus()
                                     }
@@ -290,12 +280,10 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                             }
                         }
                     },
-                //.zoomModifier(focusRequester, canZoom, state, scope),
-                contentAlignment = Alignment.TopCenter
+                // .zoomModifier(focusRequester, canZoom, state, scope),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                LaunchedEffect(Unit) {
-                    focusRequester.requestFocus()
-                }
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
                 when {
                     error != null -> {
                         Column(
@@ -307,7 +295,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                 MaterialTheme.messengerIcons.typeFile,
                                 i18n.commonFile(),
                                 Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MaterialTheme.colorScheme.error,
                             )
                             Text(error, color = Color.White)
                         }
@@ -320,8 +308,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                     media != null -> {
                         val density = LocalDensity.current.density
                         LaunchedEffect(Unit) {
-                            reader.value =
-                                getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
+                            reader.value = getPlatformPDFReader(media) { setError(i18n.fileCouldNotBeLoaded()) }
                         }
                         DisposableEffect(Unit) {
                             onDispose {
@@ -350,23 +337,17 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                             LaunchedEffect(Unit) {
                                 queue.collect {
                                     pageCacheSize.value = max(3f, min(16f, 8f / zoom.value)).toInt()
-                                    loadImageWithDpi(
-                                        currentReader,
-                                        it,
-                                        dpi,
-                                        pageCacheSize.value,
-                                        lazyListState
-                                    )
+                                    loadImageWithDpi(currentReader, it, dpi, pageCacheSize.value, lazyListState)
                                 }
                             }
                             LazyColumn(
-                                modifier = Modifier
-                                    .horizontalScroll(
-                                        state = horizontalScroll,
-                                        enabled = canZoom.value.not() || currentPlatform.isMobile
-                                    )
-                                    .fillMaxSize()
-                                    .transformable(state),
+                                modifier =
+                                    Modifier.horizontalScroll(
+                                            state = horizontalScroll,
+                                            enabled = canZoom.value.not() || currentPlatform.isMobile,
+                                        )
+                                        .fillMaxSize()
+                                        .transformable(state),
                                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.small),
                                 contentPadding = PaddingValues(horizontal = MaterialTheme.messengerDpConstants.middle),
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -383,36 +364,27 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                             Image(
                                                 bitmap = image,
                                                 contentDescription = i18n.fileOverlayPdfPageDescriptor(pageId),
-                                                modifier = Modifier
-                                                    .background(color = Color.White) // Avoid performance drops on transparent images.
-                                                    .width(currentSize.value.width),
+                                                modifier =
+                                                    Modifier.background(
+                                                            color = Color.White
+                                                        ) // Avoid performance drops on transparent images.
+                                                        .width(currentSize.value.width),
                                                 contentScale = ContentScale.FillWidth,
                                             )
                                         } else {
-                                            Box(
-                                                Modifier.size(currentSize.value),
-                                                contentAlignment = Alignment.Center
-                                            ) {
+                                            Box(Modifier.size(currentSize.value), contentAlignment = Alignment.Center) {
                                                 LoadingSpinner()
                                             }
                                         }
                                     }
-                                }
+                                },
                             )
-                        } else CenteredElement {
-                            ThemedProgressIndicator(
-                                style = MaterialTheme.components.circularProgressIndicator
-                            )
-                        }
-                        HorizontalScrollbar(
-                            Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-                            horizontalScroll,
-                        )
-                        VerticalScrollbar(
-                            Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            lazyListState,
-                            false
-                        )
+                        } else
+                            CenteredElement {
+                                ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
+                            }
+                        HorizontalScrollbar(Modifier.align(Alignment.BottomCenter).fillMaxWidth(), horizontalScroll)
+                        VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), lazyListState, false)
                     }
 
                     else -> {
@@ -432,17 +404,16 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
 interface PDFReader {
     suspend fun getPage(pageId: Int, dpi: Float): ImageBitmap?
+
     fun onDispose()
+
     val numOfPages: MutableState<Int?>
     val documentWidth: MutableState<Int?>
 }
 
 data class PDFCacheEntry(val creationTime: Long, val page: ImageBitmap?, val dpi: Int)
 
-expect suspend fun getPlatformPDFReader(
-    media: PlatformMedia,
-    onError: (String?) -> Unit,
-): PDFReader
+expect suspend fun getPlatformPDFReader(media: PlatformMedia, onError: (String?) -> Unit): PDFReader
 
 private data class PageNumber(val pageIndex: Int, val scroll: Boolean, val updateIndexViaList: Boolean)
 
@@ -453,25 +424,27 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int?, focusRe
     val pageText = rememberTextFieldState()
     val currentIndex = remember { mutableStateOf(PageNumber(0, scroll = false, updateIndexViaList = true)) }
     val density = LocalDensity.current
-    //Set the width to the digit count of the maximum page number + 1
-    val inputFieldWidth = remember(pageCount) {
-        measurer.measure(
-            text = "0".repeat(log10((pageCount ?: 1).toFloat()).toInt() + 2),
-            style = textStyle,
-            density = density
-        ).size.width.dp / density.density
-    }
-    //Update the page numbers when new pages are scrolled into view
+    // Set the width to the digit count of the maximum page number + 1
+    val inputFieldWidth =
+        remember(pageCount) {
+            measurer
+                .measure(
+                    text = "0".repeat(log10((pageCount ?: 1).toFloat()).toInt() + 2),
+                    style = textStyle,
+                    density = density,
+                )
+                .size
+                .width
+                .dp / density.density
+        }
+    // Update the page numbers when new pages are scrolled into view
     LaunchedEffect(Unit) {
-        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.map { it.index } }.distinctUntilChanged { old, new -> old.firstOrNull() == new.firstOrNull() }
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.map { it.index } }
+            .distinctUntilChanged { old, new -> old.firstOrNull() == new.firstOrNull() }
             .collect { visibleItems ->
                 if (currentIndex.value.updateIndexViaList) {
                     visibleItems.firstOrNull()?.let {
-                        currentIndex.value = PageNumber(
-                            it,
-                            scroll = false,
-                            updateIndexViaList = true
-                        )
+                        currentIndex.value = PageNumber(it, scroll = false, updateIndexViaList = true)
                     }
                 } else currentIndex.value = currentIndex.value.copy(updateIndexViaList = true)
             }
@@ -489,18 +462,15 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int?, focusRe
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = Color.DarkGray,
-        modifier = Modifier.focusRequester(focusRequester).focusable()
+        modifier = Modifier.focusRequester(focusRequester).focusable(),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 enabled = currentIndex.value.pageIndex > 0,
                 onClick = {
                     if (currentIndex.value.pageIndex > 0) {
-                        currentIndex.value = PageNumber(
-                            currentIndex.value.pageIndex.dec(),
-                            scroll = true,
-                            updateIndexViaList = true
-                        )
+                        currentIndex.value =
+                            PageNumber(currentIndex.value.pageIndex.dec(), scroll = true, updateIndexViaList = true)
                     }
                 },
                 modifier = Modifier.buttonPointerModifier(),
@@ -512,48 +482,47 @@ private fun PageIndicator(lazyListState: LazyListState, pageCount: Int?, focusRe
                 lineLimits = TextFieldLineLimits.SingleLine,
                 textStyle = textStyle,
                 cursorBrush = SolidColor(Color.LightGray),
-                inputTransformation = InputTransformation.then {
-                    if (toString() != "") {
-                        val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
-                        if (inputNumber != null) {
-                            //Don't scroll to the start of the current page when selecting the TextField
-                            currentIndex.value =
-                                PageNumber(
-                                    inputNumber.dec(),
-                                    inputNumber.dec() != currentIndex.value.pageIndex,
-                                    lazyListState.layoutInfo.visibleItemsInfo.map { itemInfo -> itemInfo.index }
-                                        .contains(inputNumber.dec())
-                                )
-                            replace(0, length, currentIndex.value.pageIndex.inc().toString())
-                        } else {
-                            revertAllChanges()
+                inputTransformation =
+                    InputTransformation.then {
+                        if (toString() != "") {
+                            val inputNumber = this.toString().toIntOrNull()?.coerceIn(1, pageCount)
+                            if (inputNumber != null) {
+                                // Don't scroll to the start of the current page when selecting the TextField
+                                currentIndex.value =
+                                    PageNumber(
+                                        inputNumber.dec(),
+                                        inputNumber.dec() != currentIndex.value.pageIndex,
+                                        lazyListState.layoutInfo.visibleItemsInfo
+                                            .map { itemInfo -> itemInfo.index }
+                                            .contains(inputNumber.dec()),
+                                    )
+                                replace(0, length, currentIndex.value.pageIndex.inc().toString())
+                            } else {
+                                revertAllChanges()
+                            }
                         }
-                    }
-                },
+                    },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 decorator = { inputField ->
                     Row(Modifier.padding(MaterialTheme.messengerDpConstants.verySmall)) {
                         Surface(
                             Modifier.width(inputFieldWidth),
                             shape = MaterialTheme.shapes.extraSmall,
-                            color = Color.Black
+                            color = Color.Black,
                         ) {
                             inputField()
                         }
                         Text(" / ${pageCount ?: 0}", style = textStyle)
                     }
                 },
-                enabled = pageCount != null
+                enabled = pageCount != null,
             )
             IconButton(
                 enabled = pageCount != null && currentIndex.value.pageIndex < pageCount - 1,
                 onClick = {
                     if (pageCount != null && currentIndex.value.pageIndex < pageCount - 1) {
-                        currentIndex.value = PageNumber(
-                            currentIndex.value.pageIndex.inc(),
-                            scroll = true,
-                            updateIndexViaList = true
-                        )
+                        currentIndex.value =
+                            PageNumber(currentIndex.value.pageIndex.inc(), scroll = true, updateIndexViaList = true)
                     }
                 },
                 modifier = Modifier.buttonPointerModifier(),

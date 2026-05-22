@@ -15,15 +15,13 @@ actual fun TimelinePopup(
     onDismiss: () -> Unit,
     modifier: Modifier,
     isByMe: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
     if (isOpen) {
         val density = LocalDensity.current
         ModalBottomSheet(onDismiss, modifier, sheetState) {
-            CompositionLocalProvider(LocalDensity provides density) {
-                content()
-            }
+            CompositionLocalProvider(LocalDensity provides density) { content() }
         }
     }
 }

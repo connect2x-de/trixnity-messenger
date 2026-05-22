@@ -13,13 +13,13 @@ import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModelImp
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import io.ktor.http.ContentType
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlin.time.Duration
 
 @TrixnityMessengerPrivateApi
 interface AudioRecordingAreaViewModel {
@@ -34,10 +34,7 @@ interface AudioRecordingAreaViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
     ): AudioRecordingAreaViewModel {
-        return AudioRecordingAreaViewModelImpl(
-            viewModelContext,
-            sendAudioMessage
-        )
+        return AudioRecordingAreaViewModelImpl(viewModelContext, sendAudioMessage)
     }
 
     companion object : AudioRecordingAreaViewModelFactory
@@ -60,33 +57,36 @@ class AudioRecordingAreaViewModelImpl(
 
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = run {
         fun create(capture: AudioRecorder.State.Completed): MediaPlayerViewModel? {
-            return getOrNull<MediaPlayerViewModelFactory>()?.create(
-                id = "AudioRecordingAreaViewModel",
-                viewModelContext = viewModelContext,
-                mimeType = capture.contentType.toString(),
-                initialDuration = Duration.ZERO,
-                acquireFile = { Result.success(capture.data) }
-            )
+            return getOrNull<MediaPlayerViewModelFactory>()
+                ?.create(
+                    id = "AudioRecordingAreaViewModel",
+                    viewModelContext = viewModelContext,
+                    mimeType = capture.contentType.toString(),
+                    initialDuration = Duration.ZERO,
+                    acquireFile = { Result.success(capture.data) },
+                )
         }
 
         fun replaceOnCapture(recorderState: Flow<AudioRecorder.State>): StateFlow<MediaPlayerViewModel?> {
             return recorderState
                 .map { state ->
-                        when (state) {
-                            AudioRecorder.State.Ready, is AudioRecorder.State.Recording -> {
-                                capturePlayer.value?.pause()
-                                null
-                            }
-                            is AudioRecorder.State.Completed -> {
-                                val newPlayer = create(state)
-                                lifecycle.doOnDestroy {
-                                    newPlayer?.close()
-                                    log.error{ "Destroyed" }
-                                }
-                                newPlayer
-                            }
+                    when (state) {
+                        AudioRecorder.State.Ready,
+                        is AudioRecorder.State.Recording -> {
+                            capturePlayer.value?.pause()
+                            null
                         }
-                }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                        is AudioRecorder.State.Completed -> {
+                            val newPlayer = create(state)
+                            lifecycle.doOnDestroy {
+                                newPlayer?.close()
+                                log.error { "Destroyed" }
+                            }
+                            newPlayer
+                        }
+                    }
+                }
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
         }
 
         if (recorder != null) {
@@ -99,29 +99,36 @@ class AudioRecordingAreaViewModelImpl(
     override fun sendAudioMessage() {
         val message: (suspend MessageBuilder.() -> Unit)? =
             when (val audioRecorderStateValue = recorder?.state?.value) {
-                AudioRecorder.State.Ready -> { null }
-                is AudioRecorder.State.Recording -> { null }
-                is AudioRecorder.State.Completed -> { {
+                AudioRecorder.State.Ready -> {
+                    null
+                }
+                is AudioRecorder.State.Recording -> {
+                    null
+                }
+                is AudioRecorder.State.Completed -> {
+                    {
                         audio(
                             "voice message",
                             audioRecorderStateValue.data,
                             type = ContentType.Audio.OGG,
                             duration = audioRecorderStateValue.duration.inWholeMilliseconds,
-                            size = audioRecorderStateValue.sizeBytes
+                            size = audioRecorderStateValue.sizeBytes,
                         )
                     }
                 }
-                null -> { null }
+                null -> {
+                    null
+                }
             }
         if (message != null) {
             sendAudioMessage(message)
         }
-
     }
 }
 
-class PreviewAudioRecordingAreaViewModel: AudioRecordingAreaViewModel {
+class PreviewAudioRecordingAreaViewModel : AudioRecordingAreaViewModel {
     override val recorder: AudioRecorderViewModel? = null
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = MutableStateFlow(null)
+
     override fun sendAudioMessage() = Unit
 }

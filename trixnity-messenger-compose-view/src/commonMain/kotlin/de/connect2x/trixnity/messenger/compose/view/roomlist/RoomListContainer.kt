@@ -27,10 +27,8 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurfa
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.ErrorType
 
-
 interface RoomListContainerView {
-    @Composable
-    fun create(roomListViewModel: RoomListViewModel)
+    @Composable fun create(roomListViewModel: RoomListViewModel)
 }
 
 @Composable
@@ -43,14 +41,10 @@ class RoomListContainerViewImpl : RoomListContainerView {
     override fun create(roomListViewModel: RoomListViewModel) {
         val i18n = DI.get<I18nView>()
         val error = roomListViewModel.error.collectAsState().value
-        ThemedSurface(
-            style = MaterialTheme.components.sidebar,
-        ) {
+        ThemedSurface(style = MaterialTheme.components.sidebar) {
             if (error != null) {
                 ThemedModalDialog({ roomListViewModel.errorDismiss() }) {
-                    ModalDialogHeader {
-                        Text(i18n.anErrorHasOccurred())
-                    }
+                    ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
                     ModalDialogContent {
                         Text(error)
                         if (roomListViewModel.errorType.value == ErrorType.WITH_ACTION) {
@@ -78,5 +72,3 @@ class RoomListContainerViewImpl : RoomListContainerView {
         }
     }
 }
-
-

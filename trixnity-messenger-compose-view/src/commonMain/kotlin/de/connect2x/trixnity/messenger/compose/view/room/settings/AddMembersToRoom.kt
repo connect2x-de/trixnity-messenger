@@ -33,23 +33,15 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloat
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
-
 @Composable
 fun AddMembersContainer(addMembersViewModel: AddMembersViewModel) {
     Box(Modifier.fillMaxWidth()) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-        ) {
-            AddMembersToRoom(addMembersViewModel)
-        }
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd)) { AddMembersToRoom(addMembersViewModel) }
     }
 }
 
 interface AddMembersToRoomView {
-    @Composable
-    fun create(addMembersViewModel: AddMembersViewModel)
+    @Composable fun create(addMembersViewModel: AddMembersViewModel)
 }
 
 @Composable
@@ -65,16 +57,14 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
         val errorCause = addMembersViewModel.errorCause.collectAsState().value
         val undecryptableHistoryInfo = addMembersViewModel.undecryptableHistoryInfo.collectAsState().value
         val i18n = DI.get<I18nView>()
-        
+
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     Header(addMembersViewModel::back, i18n.addMembers())
                     if (error != null) {
                         ThemedModalDialog({ addMembersViewModel.errorDismiss() }) {
-                            ModalDialogHeader {
-                                Text(i18n.anErrorHasOccurred())
-                            }
+                            ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
                             ModalDialogContent {
                                 Text(error)
                                 if (errorCause != null) {
@@ -93,10 +83,7 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                     }
                     if (undecryptableHistoryInfo != null) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 15.dp)) {
-                            Icon(
-                                Icons.Default.Info,
-                                i18n.commonInformation(),
-                            )
+                            Icon(Icons.Default.Info, i18n.commonInformation())
                             MiddleSpacer()
                             Text(undecryptableHistoryInfo)
                         }
@@ -104,15 +91,11 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
                     UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)
                     SearchUsersSettings(
                         addMembersViewModel.potentialMembersViewModel,
-                        onUserClick = addMembersViewModel::onUserClick
+                        onUserClick = addMembersViewModel::onUserClick,
                     )
                 }
                 if (canAddMembers.value) {
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(bottom = 20.dp, end = 20.dp)
-                    ) {
+                    Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 20.dp, end = 20.dp)) {
                         ThemedFloatingActionButton(
                             expanded = true,
                             onClick = { addMembersViewModel.addMembers() },

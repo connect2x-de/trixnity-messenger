@@ -36,7 +36,7 @@ actual fun OutlinedTextFieldWithToolbar(
     minLines: Int,
     interactionSource: MutableInteractionSource?,
     shape: Shape,
-    colors: TextFieldColors
+    colors: TextFieldColors,
 ) {
     OutlinedTextField(
         value,
@@ -61,6 +61,6 @@ actual fun OutlinedTextFieldWithToolbar(
         minLines,
         interactionSource,
         shape,
-        colors
+        colors,
     )
 }

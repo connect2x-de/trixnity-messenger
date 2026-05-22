@@ -31,8 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNameViewModel
 
 interface RoomSettingsNameView {
-    @Composable
-    fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel)
+    @Composable fun create(roomSettingsNameViewModel: RoomSettingsNameViewModel)
 }
 
 @Composable
@@ -57,14 +56,15 @@ class RoomSettingsNameViewImpl : RoomSettingsNameView {
                     Modifier.weight(1f),
                     style = MaterialTheme.typography.headlineSmall,
                 )
-                if (canChangeRoomName) Tooltip(i18n.editRoomName()) {
-                    ThemedIconButton(
-                        onClick = { roomSettingsNameViewModel.roomName.startEdit() },
-                        Modifier.weight(1f),
-                    ) {
-                        Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomName())
+                if (canChangeRoomName)
+                    Tooltip(i18n.editRoomName()) {
+                        ThemedIconButton(
+                            onClick = { roomSettingsNameViewModel.roomName.startEdit() },
+                            Modifier.weight(1f),
+                        ) {
+                            Icon(Icons.Filled.Edit, contentDescription = i18n.editRoomName())
+                        }
                     }
-                }
             }
         } else {
             Column {

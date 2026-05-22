@@ -3,10 +3,11 @@ package de.connect2x.trixnity.messenger.uikit
 sealed interface WithDefault<out T> {
 
     val nonDefault: Value<T>?
-        get() = when (this) {
-            is Value -> this
-            else -> null
-        }
+        get() =
+            when (this) {
+                is Value -> this
+                else -> null
+            }
 
     object Default : WithDefault<Nothing>
 
@@ -22,6 +23,6 @@ internal val WithDefault<Boolean>.orFalse: Boolean
 internal val <T> WithDefault<T>.orNull: T?
     get() = nonDefault?.value
 
-
 internal fun <T> WithDefault<T>.valueOr(default: T): T = nonDefault?.value ?: default
+
 internal fun <T> WithDefault<T>.valueOr(default: () -> T): T = nonDefault?.value ?: default()

@@ -38,12 +38,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
         element: EncryptedErrorTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = false,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, index = index) { _ ->
             EncryptedMessageErrorElement()
         }
     }
@@ -54,12 +49,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
         element: EncryptedErrorTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = true,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = true, index = index) { _ ->
             EncryptedMessageErrorElement()
         }
     }
@@ -75,9 +65,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                EncryptedMessageErrorElement()
-            }
+            content = { EncryptedMessageErrorElement() },
         )
     }
 
@@ -92,16 +80,14 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                EncryptedMessageErrorElement()
-            }
+            content = { EncryptedMessageErrorElement() },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedErrorTimelineElementViewModel
+        element: EncryptedErrorTimelineElementViewModel,
     ): ClipEntry? = null
 
     override fun a11yLabel(element: EncryptedErrorTimelineElementViewModel, i18n: I18nView): String {

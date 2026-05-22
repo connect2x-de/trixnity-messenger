@@ -49,8 +49,7 @@ fun MessageBubble(
     index: Int,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    DI.get<MessageBubbleView>()
-        .create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
+    DI.get<MessageBubbleView>().create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -64,8 +63,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val timelineElementHolder = holder.asTimelineElementHolder()
-        val redactionInProgress =
-            timelineElementHolder?.redactionInProgress?.collectAsState()?.value == true
+        val redactionInProgress = timelineElementHolder?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
         val showRedactionWarning = timelineElementHolder?.showRedactionWarning?.collectAsState()?.value == true
@@ -74,17 +72,14 @@ class MessageBubbleViewImpl : MessageBubbleView {
 
         val interactionSource = remember { MutableInteractionSource() }
 
-        BoxWithConstraints(
-            Modifier.fillMaxWidth()
-        ) {
-            val padding =
-                (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val padding = (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
             Column(
-                modifier = Modifier.run {
-                    if (holder.isByMe) padding(start = padding, top = topPadding)
-                        .align(Alignment.CenterEnd)
-                    else padding(end = padding, top = topPadding)
-                },
+                modifier =
+                    Modifier.run {
+                        if (holder.isByMe) padding(start = padding, top = topPadding).align(Alignment.CenterEnd)
+                        else padding(end = padding, top = topPadding)
+                    },
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
@@ -103,18 +98,12 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         isPreview = isPreview,
                         interactionSource = interactionSource,
                         index = index,
-                        onRedact = {
-                            timelineElementHolder?.redact()
-                        },
+                        onRedact = { timelineElementHolder?.redact() },
                         content = content,
                     )
                 }
                 if (isPreview.not()) {
-                    MessageReactions(
-                        holder,
-                        reactionsOpen,
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
+                    MessageReactions(holder, reactionsOpen, modifier = Modifier.padding(start = 8.dp))
                     if (showRedactionWarning) {
                         RedactionWarning(holder)
                     }

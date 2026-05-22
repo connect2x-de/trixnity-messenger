@@ -5,7 +5,5 @@ import org.koin.dsl.module
 import web.navigator.navigator
 
 actual fun platformGetSystemLangModule(): Module = module {
-    single<GetSystemLang> {
-        GetSystemLang { navigator.language }
-    }
+    single<GetSystemLang> { GetSystemLang { navigator.language } }
 }

@@ -49,6 +49,6 @@ private fun ThemedSelectPreview() {
                 Movement.Hiking -> "Wandern"
                 Movement.Cycling -> "Radeln"
             }
-        }
+        },
     )
 }

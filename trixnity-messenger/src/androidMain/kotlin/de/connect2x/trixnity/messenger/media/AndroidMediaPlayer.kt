@@ -12,6 +12,11 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.ContextGetter
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,11 +29,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import kotlin.coroutines.CoroutineContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
@@ -48,25 +48,28 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: Corout
         controller.addListener(
             {
                 val mediaController = controller.get()
-                mediaController.addListener(object : Player.Listener {
-                    override fun onIsPlayingChanged(isPlaying: Boolean) {
-                        val item = currentItemPlaying.value ?: return
-                        try {
-                            val controller = controller.get(10, TimeUnit.SECONDS)
-                            if (controller.playbackState != Player.STATE_ENDED || isPlaying)
-                                return
+                mediaController.addListener(
+                    object : Player.Listener {
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            val item = currentItemPlaying.value ?: return
+                            try {
+                                val controller = controller.get(10, TimeUnit.SECONDS)
+                                if (controller.playbackState != Player.STATE_ENDED || isPlaying) return
 
-                            coroutineScope.launch {
-                                item.pause()
-                                item.elapsedTime.value = Duration.ZERO
+                                coroutineScope.launch {
+                                    item.pause()
+                                    item.elapsedTime.value = Duration.ZERO
+                                }
+                            } catch (ex: TimeoutException) {
+                                log.error(ex) {
+                                    "Failed to acquire media controller: Unable to init player in 10 seconds"
+                                }
                             }
-                        } catch (ex: TimeoutException) {
-                            log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
                         }
                     }
-                })
+                )
             },
-            ContextCompat.getMainExecutor(context)
+            ContextCompat.getMainExecutor(context),
         )
     }
 
@@ -74,7 +77,7 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: Corout
         id: String,
         media: PlatformMedia,
         mimeType: String,
-        lifecycleScope: CoroutineScope?
+        lifecycleScope: CoroutineScope?,
     ): Result<MediaPlayer.Item> {
         check(media is OkioPlatformMedia) { "PlatformMedia is required to be a OkioPlatformMedia" }
         val playingItem = playingItem.value
@@ -83,68 +86,63 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: Corout
             return Result.success(playingItem)
         }
 
-        media.getTemporaryFile().fold(
-            onFailure = {
-                log.error(it) { "Unable to open media as temporary file" }
-                return Result.failure(it)
-            },
-            onSuccess = { tempFile ->
-                log.debug { "Successfully opened media as temporary file" }
+        media
+            .getTemporaryFile()
+            .fold(
+                onFailure = {
+                    log.error(it) { "Unable to open media as temporary file" }
+                    return Result.failure(it)
+                },
+                onSuccess = { tempFile ->
+                    log.debug { "Successfully opened media as temporary file" }
 
-                val retriever = MediaMetadataRetriever()
-                try {
-                    retriever.setDataSource(tempFile.path.toString())
-                    val duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-                        ?.toLongOrNull() ?: 0
-                    if (duration <= 0) {
-                        return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
+                    val retriever = MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(tempFile.path.toString())
+                        val duration =
+                            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0
+                        if (duration <= 0) {
+                            return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
+                        }
+
+                        val coroutineCtx = coroutineScope.coroutineContext
+                        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+                            log.error(throwable) { "Unexpected error while running media player" }
+                        }
+
+                        val scope = CoroutineScope(coroutineCtx + Job(coroutineCtx[Job]) + exceptionHandler)
+                        val playerItem =
+                            AndroidPlayerItem(
+                                id = id,
+                                mimeType = mimeType,
+                                tempFile = tempFile,
+                                coroutineScope = scope,
+                                player = this@AndroidMediaPlayer,
+                                duration = duration.milliseconds,
+                            )
+
+                        playerItem.updateLifecycle(lifecycleScope)
+                        return Result.success(playerItem)
+                    } catch (ex: Exception) {
+                        return Result.failure(IllegalArgumentException("Illegal media specified", ex))
+                    } finally {
+                        retriever.release()
                     }
-
-                    val coroutineCtx = coroutineScope.coroutineContext
-                    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                        log.error(throwable) { "Unexpected error while running media player" }
-                    }
-
-                    val scope = CoroutineScope(coroutineCtx + Job(coroutineCtx[Job]) + exceptionHandler)
-                    val playerItem = AndroidPlayerItem(
-                        id = id,
-                        mimeType = mimeType,
-                        tempFile = tempFile,
-                        coroutineScope = scope,
-                        player = this@AndroidMediaPlayer,
-                        duration = duration.milliseconds
-                    )
-
-                    playerItem.updateLifecycle(lifecycleScope)
-                    return Result.success(playerItem)
-                } catch (ex: Exception) {
-                    return Result.failure(IllegalArgumentException("Illegal media specified", ex))
-                } finally {
-                    retriever.release()
-                }
-            }
-        )
+                },
+            )
     }
 
     override fun close() {
-        coroutineScope.launch {
-            withMediaController { controller ->
-                controller.clearMediaItems()
-            }
-        }
+        coroutineScope.launch { withMediaController { controller -> controller.clearMediaItems() } }
         coroutineScope.cancel()
     }
 
-    internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit = try {
-        val controller = withContext(Dispatchers.IO) {
-            controller.get(10, TimeUnit.SECONDS)
-        }
+    internal suspend fun withMediaController(closure: suspend (MediaController) -> Unit): Unit =
+        try {
+            val controller = withContext(Dispatchers.IO) { controller.get(10, TimeUnit.SECONDS) }
 
-        withContext(Dispatchers.Main) {
-            closure(controller)
+            withContext(Dispatchers.Main) { closure(controller) }
+        } catch (ex: TimeoutException) {
+            log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
         }
-    } catch (ex: TimeoutException) {
-        log.error(ex) { "Failed to acquire media controller: Unable to init player in 10 seconds" }
-    }
-
 }

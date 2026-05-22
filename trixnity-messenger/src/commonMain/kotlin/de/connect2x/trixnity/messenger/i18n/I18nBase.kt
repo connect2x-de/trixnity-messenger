@@ -13,7 +13,8 @@ abstract class I18nBase(
     private val getSystemLang: GetSystemLang,
     timeZone: TimeZone,
 ) {
-    val currentLang: Language get() = getLang(languages, settings, getSystemLang)
+    val currentLang: Language
+        get() = getLang(languages, settings, getSystemLang)
 
     val currentTimezone = timeZone
 
@@ -28,6 +29,7 @@ abstract class I18nBase(
     class TranslateBuilder {
 
         val map: MutableMap<Language, String> = mutableMapOf()
+
         operator fun Language.minus(translation: String) {
             map[this] = translation
         }

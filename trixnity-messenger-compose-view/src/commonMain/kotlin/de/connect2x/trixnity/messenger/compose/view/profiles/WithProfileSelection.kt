@@ -29,22 +29,18 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.p
 internal fun rememberRootViewModel(
     matrixMessenger: MatrixMessenger?,
     deviceLifecycle: Lifecycle,
-    backHandler: BackHandler? = null
+    backHandler: BackHandler? = null,
 ): RootViewModel? {
     val ownLifecycle = remember(matrixMessenger) { LifecycleRegistry() }
-    val rootViewModel = remember(matrixMessenger) {
-        matrixMessenger?.createRoot(
-            DefaultComponentContext(
-                MergedLifecycle(ownLifecycle, deviceLifecycle),
-                backHandler = backHandler
+    val rootViewModel =
+        remember(matrixMessenger) {
+            matrixMessenger?.createRoot(
+                DefaultComponentContext(MergedLifecycle(ownLifecycle, deviceLifecycle), backHandler = backHandler)
             )
-        )
-    }
+        }
     DisposableEffect(matrixMessenger) {
         ownLifecycle.start()
-        onDispose {
-            ownLifecycle.destroy()
-        }
+        onDispose { ownLifecycle.destroy() }
     }
     return rootViewModel
 }
@@ -64,9 +60,7 @@ fun WithProfileSelection(
 
     LaunchedEffect(rootViewModel) { // only execute the registration once during composition
         if (rootViewModel != null) {
-            activeMatrixMessenger?.let { matrixMessenger ->
-                activeMessengerOnce(matrixMessenger, rootViewModel)
-            }
+            activeMatrixMessenger?.let { matrixMessenger -> activeMessengerOnce(matrixMessenger, rootViewModel) }
         }
     }
     activeMatrixMessenger?.let { activeMatrixMessengerNonNull ->

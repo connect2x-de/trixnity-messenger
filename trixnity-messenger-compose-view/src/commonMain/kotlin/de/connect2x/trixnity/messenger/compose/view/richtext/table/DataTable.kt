@@ -2,25 +2,19 @@
 /**
  * Copyright (c) 2024 windedge
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package de.connect2x.trixnity.messenger.compose.view.richtext.table
 
 import androidx.compose.foundation.background
@@ -44,22 +38,14 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.max
 
 @Composable
-internal fun Divider(
-    modifier: Modifier = Modifier,
-    thickness: Dp = 1.dp,
-    color: Color = Color.LightGray
-) {
-    val targetThickness = if (thickness == Dp.Hairline) {
-        (1f / LocalDensity.current.density).dp
-    } else {
-        thickness
-    }
-    Box(
-        modifier
-            .fillMaxWidth()
-            .height(targetThickness)
-            .background(color = color)
-    )
+internal fun Divider(modifier: Modifier = Modifier, thickness: Dp = 1.dp, color: Color = Color.LightGray) {
+    val targetThickness =
+        if (thickness == Dp.Hairline) {
+            (1f / LocalDensity.current.density).dp
+        } else {
+            thickness
+        }
+    Box(modifier.fillMaxWidth().height(targetThickness).background(color = color))
 }
 
 @Composable
@@ -69,26 +55,26 @@ internal fun DataTable(
     cellPadding: PaddingValues = PaddingValues(horizontal = 8.dp, vertical = 5.dp),
     divider: @Composable ((rowIndex: Int) -> Unit)? = @Composable { Divider() },
     footer: @Composable (BoxScope.() -> Unit)? = null,
-    rowsContent: RowsBuilder.() -> Unit
+    rowsContent: RowsBuilder.() -> Unit,
 ) {
     val columnBuilder = ColumnBuilderImpl().apply { columns() }
     val headers = columnBuilder.columns
     val rows = RowsBuilderImpl().apply { rowsContent() }.rows.map { it.apply { this.build() } }
 
-    val contentComposable = @Composable {
-        headers.forEach { (header, modifier, contentAlignment) ->
-            Box(modifier = modifier.padding(cellPadding), contentAlignment = contentAlignment) { header() }
-        }
-        rows.forEach { row ->
-            row.cells.forEach { (cell, modifier, contentAlignment) ->
-                Box(modifier = modifier.padding(cellPadding), contentAlignment = contentAlignment) { cell() }
+    val contentComposable =
+        @Composable {
+            headers.forEach { (header, modifier, contentAlignment) ->
+                Box(modifier = modifier.padding(cellPadding), contentAlignment = contentAlignment) { header() }
+            }
+            rows.forEach { row ->
+                row.cells.forEach { (cell, modifier, contentAlignment) ->
+                    Box(modifier = modifier.padding(cellPadding), contentAlignment = contentAlignment) { cell() }
+                }
             }
         }
-    }
 
-    val backgroundComposables = @Composable {
-        rows.forEach { Box(modifier = it.modifier.then(Modifier.fillMaxSize())) }
-    }
+    val backgroundComposables =
+        @Composable { rows.forEach { Box(modifier = it.modifier.then(Modifier.fillMaxSize())) } }
 
     SubcomposeLayout(modifier = modifier) { constraints ->
         // Combine subcompose calls for headers and cells
@@ -109,11 +95,13 @@ internal fun DataTable(
         // Calculate the scaling factor if needed
         val totalWidth = columnWidths.sum()
 
-        val scale = when {
-            constraints.maxWidth == Constraints.Infinity -> 1f           // add this to avoid infinite width in parent scrolling
-            totalWidth < constraints.maxWidth -> constraints.maxWidth.toFloat() / totalWidth
-            else -> 1f
-        }
+        val scale =
+            when {
+                constraints.maxWidth == Constraints.Infinity ->
+                    1f // add this to avoid infinite width in parent scrolling
+                totalWidth < constraints.maxWidth -> constraints.maxWidth.toFloat() / totalWidth
+                else -> 1f
+            }
 
         // Apply scaling to column widths
         val scaledColumnWidths = columnWidths.map { (it * scale).toInt() }
@@ -135,23 +123,29 @@ internal fun DataTable(
         val headerHeight = scaledHeaderPlaceables.maxOf { it.height }
         val tableWidth = scaledColumnWidths.sum()
 
-        val headerBackground = subcompose("headerDecoration", columnBuilder.headerBackground).firstOrNull()
-            ?.measure(constraints.copy(maxWidth = tableWidth, maxHeight = headerHeight))
+        val headerBackground =
+            subcompose("headerDecoration", columnBuilder.headerBackground)
+                .firstOrNull()
+                ?.measure(constraints.copy(maxWidth = tableWidth, maxHeight = headerHeight))
 
-        val rowBackgrounds = subcompose("rowBackgrounds", backgroundComposables).mapIndexed { index, measurable ->
-            measurable.measure(constraints.copy(maxWidth = tableWidth, maxHeight = rowHeights[index + 1]))
-        }
+        val rowBackgrounds =
+            subcompose("rowBackgrounds", backgroundComposables).mapIndexed { index, measurable ->
+                measurable.measure(constraints.copy(maxWidth = tableWidth, maxHeight = rowHeights[index + 1]))
+            }
 
-        val dividerPlacables = subcompose("dividers") {
-            repeat(rows.size + 1) { divider?.invoke(it) } // dividers = header + rows
-        }.mapIndexed { rowIndex, mesurable ->
-            mesurable.measure(constraints.copy(maxWidth = tableWidth, maxHeight = rowHeights[rowIndex]))
-        }
+        val dividerPlacables =
+            subcompose("dividers") {
+                    repeat(rows.size + 1) { divider?.invoke(it) } // dividers = header + rows
+                }
+                .mapIndexed { rowIndex, mesurable ->
+                    mesurable.measure(constraints.copy(maxWidth = tableWidth, maxHeight = rowHeights[rowIndex]))
+                }
         val dividierHeights = dividerPlacables.map { it.height }
 
         val footerPlaceable = footer?.let {
             val footerComposable = @Composable { Box(modifier = Modifier.padding(cellPadding)) { it() } }
-            subcompose("footer", footerComposable).firstOrNull()
+            subcompose("footer", footerComposable)
+                .firstOrNull()
                 ?.measure(constraints.copy(minWidth = tableWidth, maxWidth = tableWidth))
         }
         val footerHeight = footerPlaceable?.height ?: 0
@@ -192,7 +186,6 @@ internal fun DataTable(
                 // Place divider
                 dividerPlacables[index + 1].place(0, yPosition)
                 yPosition += dividierHeights[index + 1]
-
             }
 
             footerPlaceable?.place(0, yPosition)
@@ -210,11 +203,7 @@ internal class ColumnBuilderImpl : ColumnBuilder {
     val columns = mutableListOf<TableCell>()
     var headerBackground: @Composable (() -> Unit) = @Composable {}
 
-    override fun column(
-        modifier: Modifier,
-        contentAlignment: Alignment,
-        composable: @Composable BoxScope.() -> Unit
-    ) {
+    override fun column(modifier: Modifier, contentAlignment: Alignment, composable: @Composable BoxScope.() -> Unit) {
         columns.add(TableCell(composable, modifier, contentAlignment))
     }
 
@@ -227,25 +216,17 @@ internal class ColumnBuilderImpl : ColumnBuilder {
 internal fun RowLayout(composable: @Composable () -> Unit) {
     Layout(composable, modifier = Modifier.fillMaxSize()) { measurables, constraints ->
         val placeable = measurables.map { it.measure(constraints) }.first()
-        layout(constraints.maxWidth, constraints.maxHeight) {
-            placeable.place(0, 0)
-        }
+        layout(constraints.maxWidth, constraints.maxHeight) { placeable.place(0, 0) }
     }
 }
-
 
 internal class RowBuilderImpl(val build: RowBuilderImpl.() -> Unit, val modifier: Modifier = Modifier) : RowBuilder {
     val cells = mutableListOf<TableCell>()
 
-    override fun cell(
-        modifier: Modifier,
-        contentAlignment: Alignment,
-        content: @Composable BoxScope.() -> Unit
-    ) {
+    override fun cell(modifier: Modifier, contentAlignment: Alignment, content: @Composable BoxScope.() -> Unit) {
         cells.add(TableCell(content, modifier, contentAlignment))
     }
 }
-
 
 internal class RowsBuilderImpl : RowsBuilder {
     val rows = mutableListOf<RowBuilderImpl>()

@@ -45,8 +45,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModel
 import kotlinx.coroutines.flow.map
 
 interface AccountAvatarView {
-    @Composable
-    fun RowScope.create(accountViewModel: AccountViewModel)
+    @Composable fun RowScope.create(accountViewModel: AccountViewModel)
 }
 
 @Composable
@@ -73,9 +72,12 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
     val accountSelectionOpen = remember { mutableStateOf(false) }
     val isSingleAccount = accountViewModel.isSingleAccount.collectAsState().value
 
-    val activeAccountInfo = remember(accounts, activeAccount) {
-        accountViewModel.accounts.map { accounts -> accounts.find { it.userId == activeAccount } }
-    }.collectAsState(null).value
+    val activeAccountInfo =
+        remember(accounts, activeAccount) {
+                accountViewModel.accounts.map { accounts -> accounts.find { it.userId == activeAccount } }
+            }
+            .collectAsState(null)
+            .value
 
     val globalNotificationCount = accountViewModel.globalNotificationCount.collectAsState().value
     val accountNotificationCounts = accountViewModel.accountNotificationCounts.collectAsState().value
@@ -108,7 +110,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                                 if (globalNotificationCount == null) return@AllAccountsMenuItem
                                 AccountNotificationCount(globalNotificationCount)
                             },
-                            images = avatarImages
+                            images = avatarImages,
                         )
                         accounts
                             .filterNot { account -> account.userId == activeAccount }
@@ -123,7 +125,7 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
                                         AccountNotificationCount(
                                             accountNotificationCounts[account.userId] ?: return@AccountMenuItem
                                         )
-                                    }
+                                    },
                                 )
                             }
                     }
@@ -134,23 +136,19 @@ fun RowScope.ActiveAccountData(activeAccount: UserId, accountViewModel: AccountV
 }
 
 @Composable
-fun AvatarArea(
-    accountInfo: AccountInfo,
-    notificationCount: String?
-) {
+fun AvatarArea(accountInfo: AccountInfo, notificationCount: String?) {
     val i18n = DI.get<I18nView>()
     Row(
-        Modifier
-            .fillMaxWidth()
-            .clearAndSetSemantics {
-                text =
-                    AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
-            },
-        verticalAlignment = Alignment.CenterVertically
+        Modifier.fillMaxWidth().clearAndSetSemantics {
+            text = AnnotatedString("${i18n.commonAccount()}: ${accountInfo.displayName}, ${accountInfo.userId.full}")
+        },
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        ThemedUserAvatar(accountInfo.initials, accountInfo.avatar, overlay = {
-            AccountNotificationCount(notificationCount ?: return@ThemedUserAvatar)
-        })
+        ThemedUserAvatar(
+            accountInfo.initials,
+            accountInfo.avatar,
+            overlay = { AccountNotificationCount(notificationCount ?: return@ThemedUserAvatar) },
+        )
         Spacer(Modifier.size(10.dp))
         Column {
             Tooltip({ Text(accountInfo.displayName) }) {
@@ -189,16 +187,14 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
             onClick = { accountSelectionOpen.value = accountSelectionOpen.value.not() },
         ) {
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clearAndSetSemantics {
-                        text = AnnotatedString(i18n.accountAllAccounts())
-                    },
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.fillMaxWidth().clearAndSetSemantics { text = AnnotatedString(i18n.accountAllAccounts()) },
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ThemedUserAvatarStack("*", avatarImages, overlay = {
-                    AccountNotificationCount(globalNotificationCount ?: return@ThemedUserAvatarStack)
-                })
+                ThemedUserAvatarStack(
+                    "*",
+                    avatarImages,
+                    overlay = { AccountNotificationCount(globalNotificationCount ?: return@ThemedUserAvatarStack) },
+                )
                 Spacer(Modifier.size(10.dp))
                 Tooltip({ Text(accounts.joinToString { account -> account.displayName }) }) {
                     Column {
@@ -234,7 +230,7 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
                     },
                     iconOverlay = {
                         AccountNotificationCount(accountNotificationCounts[account.userId] ?: return@AccountMenuItem)
-                    }
+                    },
                 )
             }
         }
@@ -243,23 +239,18 @@ fun RowScope.NoAccountActiveAccountData(accountViewModel: AccountViewModel) {
 
 @Composable
 fun BoxScope.AccountNotificationCount(count: String) {
-    NotificationAndUnreadMarker(
-        count = count,
-        modifier = Modifier.align(Alignment.TopEnd).offset(2.dp, -(2.dp))
-    )
+    NotificationAndUnreadMarker(count = count, modifier = Modifier.align(Alignment.TopEnd).offset(2.dp, -(2.dp)))
 }
 
 @Composable
 fun AllAccountsMenuItem(
     selectAction: () -> Unit,
     images: List<ByteArray> = emptyList(),
-    iconOverlay: @Composable BoxScope.() -> Unit = {}
+    iconOverlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val i18n = DI.get<I18nView>()
     ThemedDropdownMenuItem(
-        leadingIcon = {
-            ThemedUserAvatarStack("*", images, overlay = iconOverlay)
-        },
+        leadingIcon = { ThemedUserAvatarStack("*", images, overlay = iconOverlay) },
         text = { Text(i18n.accountAllAccounts()) },
         onClick = selectAction,
     )
@@ -269,12 +260,10 @@ fun AllAccountsMenuItem(
 fun AccountMenuItem(
     accountInfo: AccountInfo,
     selectAction: (UserId) -> Unit,
-    iconOverlay: @Composable BoxScope.() -> Unit = {}
+    iconOverlay: @Composable BoxScope.() -> Unit = {},
 ) {
     ThemedDropdownMenuItem(
-        leadingIcon = {
-            ThemedUserAvatar(accountInfo.initials, accountInfo.avatar, overlay = iconOverlay)
-        },
+        leadingIcon = { ThemedUserAvatar(accountInfo.initials, accountInfo.avatar, overlay = iconOverlay) },
         text = {
             Column {
                 Tooltip({ Text(accountInfo.displayName) }) {
@@ -285,10 +274,7 @@ fun AccountMenuItem(
                         style = MaterialTheme.typography.titleMedium,
                     )
                 }
-                Text(
-                    accountInfo.userId.full,
-                    style = MaterialTheme.typography.labelMedium,
-                )
+                Text(accountInfo.userId.full, style = MaterialTheme.typography.labelMedium)
             }
         },
         onClick = { selectAction(accountInfo.userId) },
@@ -300,11 +286,7 @@ fun SelectAccountHeader(header: String) {
     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Text(
             header,
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .semantics {
-                    heading()
-                },
+            modifier = Modifier.padding(horizontal = 20.dp).semantics { heading() },
             style = MaterialTheme.typography.titleLarge,
         )
     }

@@ -5,6 +5,8 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.toNSUrl
+import kotlin.Any
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -20,8 +22,6 @@ import platform.AVFoundation.AVURLAsset
 import platform.AVFoundation.AVURLAssetOverrideMIMETypeKey
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.CoreMedia.CMTimeGetSeconds
-import kotlin.Any
-import kotlin.time.Duration.Companion.seconds
 
 internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AppleMediaPlayer")
@@ -45,43 +45,46 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
             return Result.success(playingItem)
         }
 
-        media.getTemporaryFile().fold(
-            onFailure = {
-                log.error(it) { "Unable to open media as temporary file" }
-                return Result.failure(it)
-            },
-            onSuccess = { tempFile ->
-                log.debug { "Successfully opened media as temporary file" }
-                try {
-                    val options = mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to mimeType)
-                    val asset = AVURLAsset.URLAssetWithURL(tempFile.path.toNSUrl(), options)
-                    val duration = CMTimeGetSeconds(asset.duration).toInt()
-                    if (duration == 0) {
-                        return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
+        media
+            .getTemporaryFile()
+            .fold(
+                onFailure = {
+                    log.error(it) { "Unable to open media as temporary file" }
+                    return Result.failure(it)
+                },
+                onSuccess = { tempFile ->
+                    log.debug { "Successfully opened media as temporary file" }
+                    try {
+                        val options = mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to mimeType)
+                        val asset = AVURLAsset.URLAssetWithURL(tempFile.path.toNSUrl(), options)
+                        val duration = CMTimeGetSeconds(asset.duration).toInt()
+                        if (duration == 0) {
+                            return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
+                        }
+
+                        val coroutineCtx = coroutineScope.coroutineContext
+                        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+                            log.error(throwable) { "Unexpected error while running media player" }
+                        }
+
+                        val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
+                        val mediaItem =
+                            ApplePlayerItem(
+                                id = id,
+                                asset = asset,
+                                duration = duration.seconds,
+                                tempFile = tempFile,
+                                coroutineScope = scope,
+                                player = this,
+                            )
+
+                        mediaItem.updateLifecycle(lifecycleScope)
+                        return Result.success(mediaItem)
+                    } catch (ex: Exception) {
+                        return Result.failure(IllegalArgumentException("Illegal media specified", ex))
                     }
-
-                    val coroutineCtx = coroutineScope.coroutineContext
-                    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                        log.error(throwable) { "Unexpected error while running media player" }
-                    }
-
-                    val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
-                    val mediaItem = ApplePlayerItem(
-                        id = id,
-                        asset = asset,
-                        duration = duration.seconds,
-                        tempFile = tempFile,
-                        coroutineScope = scope,
-                        player = this
-                    )
-
-                    mediaItem.updateLifecycle(lifecycleScope)
-                    return Result.success(mediaItem)
-                } catch (ex: Exception) {
-                    return Result.failure(IllegalArgumentException("Illegal media specified", ex))
-                }
-            }
-        )
+                },
+            )
     }
 
     override fun close() {}

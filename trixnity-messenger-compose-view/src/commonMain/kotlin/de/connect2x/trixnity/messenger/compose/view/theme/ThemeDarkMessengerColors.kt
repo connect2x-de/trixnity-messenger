@@ -7,9 +7,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.deriveFromHue
 import de.connect2x.trixnity.messenger.compose.view.common.hue
 
 interface ThemeDarkMessengerColors {
-    @Composable
-    @Stable
-    fun create(accentColor: Color): MessengerColors
+    @Composable @Stable fun create(accentColor: Color): MessengerColors
 }
 
 class ThemeDarkMessengerColorsImpl : ThemeDarkMessengerColors {
@@ -31,7 +29,7 @@ class ThemeDarkMessengerColorsImpl : ThemeDarkMessengerColors {
             warning = messenger_theme_dark_warning,
             link = messenger_theme_dark_link_other.deriveFromHue(accentHue),
             linkByMe = messenger_theme_dark_link_own.deriveFromHue(accentHue),
-            userColors = messenger_theme_dark_users
+            userColors = messenger_theme_dark_users,
         )
     }
 }

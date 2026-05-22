@@ -1,9 +1,6 @@
 package de.connect2x.trixnity.messenger.util.html
 
-internal fun innerText(node: HtmlNode) =
-    buildString {
-        appendInnerText(node)
-    }
+internal fun innerText(node: HtmlNode) = buildString { appendInnerText(node) }
 
 private fun StringBuilder.appendInnerText(node: HtmlNode) {
     when (node) {

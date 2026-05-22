@@ -56,8 +56,7 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModel.SearchGroup
 
 interface SearchGroupView {
-    @Composable
-    fun create(searchGroupViewModel: SearchGroupViewModel)
+    @Composable fun create(searchGroupViewModel: SearchGroupViewModel)
 }
 
 @Composable
@@ -85,28 +84,21 @@ class SearchGroupViewImpl : SearchGroupView {
             }
 
             knockGroupModalShownFor.value?.let {
-                val onCancel = {
-                    knockGroupModalShownFor.value = null
-                }
+                val onCancel = { knockGroupModalShownFor.value = null }
                 val i18n = DI.get<I18nView>()
                 ThemedAdaptiveDialog(onCancel) {
-                    AdaptiveDialogHeader {
-                        Text(i18n.knockRequest())
-                    }
+                    AdaptiveDialogHeader { Text(i18n.knockRequest()) }
                     AdaptiveDialogContent {
                         Text(i18n.knockExplanation())
                         OutlinedTextField(
                             modifier = Modifier.fillMaxWidth(),
                             value = reason.value,
                             onValueChange = { reason.value = it },
-                            label = { Text(i18n.knockLabel()) }
+                            label = { Text(i18n.knockLabel()) },
                         )
                     }
                     AdaptiveDialogFooter {
-                        ThemedButton(
-                            style = MaterialTheme.components.commonButton,
-                            onClick = onCancel
-                        ) {
+                        ThemedButton(style = MaterialTheme.components.commonButton, onClick = onCancel) {
                             Text(i18n.actionCancel())
                         }
                         ThemedButton(
@@ -114,7 +106,7 @@ class SearchGroupViewImpl : SearchGroupView {
                             onClick = {
                                 searchGroupViewModel.enterGroup(it.roomId, reason.value.text)
                                 knockGroupModalShownFor.value = null
-                            }
+                            },
                         ) {
                             Text(i18n.actionSubmit())
                         }
@@ -134,22 +126,16 @@ fun SearchGroupSearchBar(searchGroupViewModel: SearchGroupViewModel) {
     OutlinedTextField(
         searchTerm,
         { searchTerm = it },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
-            .inputFocusNavigation(),
+        modifier = Modifier.fillMaxWidth().padding(10.dp).inputFocusNavigation(),
         label = { Text(i18n.searchGroupSearch()) },
-        keyboardOptions = KeyboardOptions(
-            imeAction = ImeAction.Search,
-            autoCorrectEnabled = false
-        )
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),
     )
 }
 
 @Composable
 fun SearchGroupResults(
     searchGroupViewModel: SearchGroupViewModel,
-    knockGroupModalShownFor: MutableState<SearchGroup?>
+    knockGroupModalShownFor: MutableState<SearchGroup?>,
 ) {
     val foundGroups by searchGroupViewModel.foundGroups.collectAsState()
     val groupSearchInProgress = searchGroupViewModel.groupSearchInProgress.collectAsState().value
@@ -162,26 +148,26 @@ fun SearchGroupResults(
         error?.let { ErrorView(it) }
 
         if (groupSearchInProgress) {
-            ThemedProgressIndicator(
-                Modifier.fillMaxWidth(),
-                MaterialTheme.components.linearProgressIndicator
-            )
+            ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
         } else {
             Box(Modifier.fillMaxSize()) {
                 if (foundGroups.isEmpty()) {
                     Text(i18n.searchGroupNotFound())
                 } else {
-                    var focusedItem by remember(foundGroups) {
-                        mutableStateOf(foundGroups.map { it.roomId.full }.firstOrNull())
-                    }
-                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) {
+                    val focusedItem = remember(foundGroups) { mutableStateOf(foundGroups.firstOrNull()?.roomId?.full) }
+
+                    LazyColumn(
+                        Modifier.fillMaxSize().rovingFocusContainer(listState = listState, focusedItem = focusedItem),
+                        listState,
+                    ) {
                         items(foundGroups, { group -> group.roomId.full }) { group ->
                             SearchGroupResult(
                                 group = group,
-                                modifier = Modifier.rovingFocusItem(
-                                    isFocused = focusedItem == group.roomId.full,
-                                    onFocus = { focusedItem = group.roomId.full },
-                                ),
+                                modifier =
+                                    Modifier.rovingFocusItem(
+                                        isFocused = { focusedItem.value == group.roomId.full },
+                                        onFocus = { focusedItem.value = group.roomId.full },
+                                    ),
                                 searchGroupViewModel = searchGroupViewModel,
                                 knockGroupModalShownFor = knockGroupModalShownFor,
                             )
@@ -201,7 +187,7 @@ private fun SearchGroupResult(
     group: SearchGroup,
     modifier: Modifier,
     searchGroupViewModel: SearchGroupViewModel,
-    knockGroupModalShownFor: MutableState<SearchGroup?>
+    knockGroupModalShownFor: MutableState<SearchGroup?>,
 ) {
     val image = group.image.collectAsState().value
 
@@ -209,23 +195,18 @@ private fun SearchGroupResult(
         ThemedListItemButton(
             modifier = modifier,
             leadingContent = { ThemedUserAvatar(group.initials, image) },
-            headlineContent = {
-                Text(
-                    group.groupName,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            },
-            supportingContent = group.topic?.let {
-                {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            },
+            headlineContent = { Text(group.groupName, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            supportingContent =
+                group.topic?.let {
+                    {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                },
             onClick = {
                 if (group.joinRule.isKnock) {
                     knockGroupModalShownFor.value = group

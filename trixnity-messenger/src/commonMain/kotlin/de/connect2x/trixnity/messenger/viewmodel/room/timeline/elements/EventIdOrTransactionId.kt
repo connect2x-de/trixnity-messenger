@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
-import kotlin.jvm.JvmInline
 import de.connect2x.trixnity.core.model.EventId as TrixnityEventId
+import kotlin.jvm.JvmInline
 
 sealed interface EventIdOrTransactionId {
     @JvmInline
@@ -15,10 +15,12 @@ sealed interface EventIdOrTransactionId {
     }
 
     fun eventIdOrNull() = if (this is EventId) eventId else null
+
     fun transactionIdOrNull() = if (this is TransactionId) transactionId else null
 
     companion object {
         fun EventIdOrTransactionId(transactionId: String) = TransactionId(transactionId)
+
         fun EventIdOrTransactionId(eventId: TrixnityEventId) = EventId(eventId)
     }
 }

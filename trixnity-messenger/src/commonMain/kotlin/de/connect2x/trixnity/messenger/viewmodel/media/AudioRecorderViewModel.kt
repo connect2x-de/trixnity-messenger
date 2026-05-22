@@ -9,29 +9,19 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import kotlinx.coroutines.launch
 
 @TrixnityMessengerPrivateApi
-interface AudioRecorderViewModel: AudioRecorder {
+interface AudioRecorderViewModel : AudioRecorder {
     fun start()
 }
 
-class AudioRecorderViewModelImpl(
-    viewModelContext: MatrixClientViewModelContext,
-    recorder: AudioRecorder,
-): MatrixClientViewModelContext by viewModelContext, AudioRecorder by recorder, AudioRecorderViewModel {
+class AudioRecorderViewModelImpl(viewModelContext: MatrixClientViewModelContext, recorder: AudioRecorder) :
+    MatrixClientViewModelContext by viewModelContext, AudioRecorder by recorder, AudioRecorderViewModel {
     init {
-        doOnDestroy {
-            close()
-        }
-        doOnStop {
-            complete()
-        }
-        doOnPause {
-            complete()
-        }
+        doOnDestroy { close() }
+        doOnStop { complete() }
+        doOnPause { complete() }
     }
 
     override fun start() {
-        coroutineScope.launch {
-            startSuspending()
-        }
+        coroutineScope.launch { startSuspending() }
     }
 }

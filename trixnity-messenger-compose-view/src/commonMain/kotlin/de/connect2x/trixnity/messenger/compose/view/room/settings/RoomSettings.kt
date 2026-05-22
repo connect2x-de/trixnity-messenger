@@ -32,23 +32,15 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
-
 @Composable
 fun RoomSettingsContainer(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean) {
     Box(Modifier.fillMaxWidth().clickable(enabled = false) {}) {
-        Box(
-            Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-        ) {
-            RoomSettings(roomSettingsViewModel, isSinglePane)
-        }
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd)) { RoomSettings(roomSettingsViewModel, isSinglePane) }
     }
 }
 
 interface RoomSettingsView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel, isSinglePane: Boolean)
 }
 
 @Composable
@@ -76,16 +68,12 @@ class RoomSettingsViewImpl : RoomSettingsView {
                         Icon(Icons.Default.Info, i18n.devInfoButtonTooltip())
                     }
                 }
-            }
+            },
         ) {
-            Box(
-                Modifier.fillMaxSize()
-            ) {
+            Box(Modifier.fillMaxSize()) {
                 Column(
-                    Modifier
-                        .verticalScroll(scroll)
-                        .padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp)),
-                    Arrangement.spacedBy(20.dp)
+                    Modifier.verticalScroll(scroll).padding(PaddingValues(vertical = 0.dp, horizontal = 20.dp)),
+                    Arrangement.spacedBy(20.dp),
                 ) {
                     val changeRoomAvatarViewModel = roomSettingsViewModel.changeRoomAvatarViewModel
                     ChangeRoomAvatar(changeRoomAvatarViewModel)
@@ -119,10 +107,7 @@ class RoomSettingsViewImpl : RoomSettingsView {
                     RoomSettingsLeaveRoom(roomSettingsViewModel)
                     if (leaveRoomWarningOpen) RoomSettingsLeaveRoomWarning(roomSettingsViewModel)
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    scroll,
-                )
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
             }
         }
     }

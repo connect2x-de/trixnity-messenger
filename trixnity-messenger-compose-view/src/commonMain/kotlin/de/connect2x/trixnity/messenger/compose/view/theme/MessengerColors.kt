@@ -35,15 +35,13 @@ data class MessengerColors(
 
     @Composable
     fun getUserColor(userId: UserId, backgroundColor: Color): Color =
-         increaseContrast(@Suppress("DEPRECATION") getUserColor(userId), backgroundColor)
+        increaseContrast(@Suppress("DEPRECATION") getUserColor(userId), backgroundColor)
 }
 
 val MessengerColorsProvider = staticCompositionLocalOf<MessengerColors> { error("compositionLocal not defined") }
 
 val MaterialTheme.messengerColors: MessengerColors
-    @Composable
-    @ReadOnlyComposable
-    get() = MessengerColorsProvider.current
+    @Composable @ReadOnlyComposable get() = MessengerColorsProvider.current
 
 /** modifies the `color` until a contrast ratio of `minRatio` to the `backgroundColor` is achieved */
 private fun increaseContrast(color: Color, backgroundColor: Color, minRatio: Double = 4.5): Color {
@@ -52,9 +50,7 @@ private fun increaseContrast(color: Color, backgroundColor: Color, minRatio: Dou
     val (hue, saturation, _) = color.toHsl()
 
     // Try different lightness values to find one with good contrast
-    val lightnessRange =
-        if (backgroundColor.luminance() > 0.5) (step(0.1f..0.35f))
-        else step(0.65f..0.9f)
+    val lightnessRange = if (backgroundColor.luminance() > 0.5) (step(0.1f..0.35f)) else step(0.65f..0.9f)
 
     for (lightness in lightnessRange) {
         val adjusted = hsl(hue, saturation, lightness)
@@ -85,16 +81,20 @@ private fun Color.toHsl(): Triple<Float, Float, Float> {
 
     val lightness = (max + min) / 2f
 
-    val saturation = if (delta == 0f) 0f else {
-        delta / (1f - kotlin.math.abs(2f * lightness - 1f))
-    }.coerceIn(0f, 1f)
+    val saturation =
+        if (delta == 0f) 0f
+            else {
+                delta / (1f - kotlin.math.abs(2f * lightness - 1f))
+            }
+            .coerceIn(0f, 1f)
 
-    val hue = when {
-        delta == 0f -> 0f
-        max == r -> 60f * (((g - b) / delta) % 6f)
-        max == g -> 60f * (((b - r) / delta) + 2f)
-        else -> 60f * (((r - g) / delta) + 4f)
-    }.let { if (it < 0) it + 360f else it }
+    val hue =
+        when {
+            delta == 0f -> 0f
+            max == r -> 60f * (((g - b) / delta) % 6f)
+            max == g -> 60f * (((b - r) / delta) + 2f)
+            else -> 60f * (((r - g) / delta) + 4f)
+        }.let { if (it < 0) it + 360f else it }
 
     return Triple(hue, saturation, lightness)
 }

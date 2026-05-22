@@ -3,14 +3,13 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.viewmodel.ApprovableTextFieldViewModelImpl
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-
 
 class EditableTextFieldViewModelTest {
 
@@ -169,10 +168,11 @@ class EditableTextFieldViewModelTest {
         serverValue.value shouldBe "same value"
     }
 
-    private fun TestScope.editableTextFieldModel() = ApprovableTextFieldViewModelImpl(
-        coroutineScope = backgroundScope,
-        onApplyChange = onApplyValue,
-        serverValue = serverValue,
-        maxLength = 1_000,
-    )
+    private fun TestScope.editableTextFieldModel() =
+        ApprovableTextFieldViewModelImpl(
+            coroutineScope = backgroundScope,
+            onApplyChange = onApplyValue,
+            serverValue = serverValue,
+            maxLength = 1_000,
+        )
 }

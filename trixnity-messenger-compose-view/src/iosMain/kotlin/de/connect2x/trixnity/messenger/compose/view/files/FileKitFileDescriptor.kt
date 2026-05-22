@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.view.files
 
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.path
 import io.github.vinceglb.filekit.size
@@ -12,9 +15,6 @@ import kotlinx.io.InternalIoApi
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.readByteArray
-import de.connect2x.trixnity.utils.BYTE_ARRAY_FLOW_CHUNK_SIZE
-import de.connect2x.trixnity.utils.ByteArrayFlow
-import de.connect2x.trixnity.utils.toByteArrayFlow
 
 class FileKitFileDescriptor(private val file: PlatformFile) : FileDescriptor {
     override val fileName: String = file.path.toPath().name

@@ -36,6 +36,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.MSC3814
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
@@ -64,11 +65,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsAllAccountsViewModel
 import de.connect2x.trixnity.messenger.viewmodel.settings.DeviceSettingsSingleAccountViewModel
-import de.connect2x.trixnity.core.MSC3814
 
 interface DeviceSettingsView {
-    @Composable
-    fun create(deviceSettingsViewModel: DeviceSettingsAllAccountsViewModel)
+    @Composable fun create(deviceSettingsViewModel: DeviceSettingsAllAccountsViewModel)
 }
 
 @Composable
@@ -92,10 +91,7 @@ class DeviceSettingsViewImpl : DeviceSettingsView {
                         DeviceSettingsSingleAccount(deviceSettingsSingleAccount)
                     }
                 }
-                VerticalScrollbar(
-                    Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    scroll,
-                )
+                VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
             }
         }
     }
@@ -127,9 +123,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
             } else {
                 ThemedListItem(
                     style = MaterialTheme.components.settingsItem,
-                    headlineContent = {
-                        Text(i18n.devicesThisDevice(), style = MaterialTheme.typography.titleMedium)
-                    }
+                    headlineContent = { Text(i18n.devicesThisDevice(), style = MaterialTheme.typography.titleMedium) },
                 )
 
                 DeviceItem(
@@ -144,7 +138,7 @@ fun DeviceSettingsSingleAccount(viewModel: DeviceSettingsSingleAccountViewModel)
                         style = MaterialTheme.components.settingsItem,
                         headlineContent = {
                             Text(i18n.devicesOtherDevices(), style = MaterialTheme.typography.titleMedium)
-                        }
+                        },
                     )
                     for (device in otherDevices) {
                         DeviceItem(
@@ -190,10 +184,7 @@ fun DeviceItem(
                 Text(displayName)
                 if (device.isDehydrated) {
                     Tooltip({ Text(i18n.dehydratedDevice()) }) {
-                        Icon(
-                            Icons.Default.RestoreFromTrash,
-                            i18n.dehydratedDevice(),
-                        )
+                        Icon(Icons.Default.RestoreFromTrash, i18n.dehydratedDevice())
                     }
                 }
             },
@@ -210,10 +201,7 @@ fun DeviceItem(
                             EditIcon(Icons.Default.MoreVert, i18n.commonMore())
                         }
                     }
-                    ThemedDropdownMenu(
-                        expanded = showOptions.value,
-                        onDismissRequest = { showOptions.value = false },
-                    ) {
+                    ThemedDropdownMenu(expanded = showOptions.value, onDismissRequest = { showOptions.value = false }) {
                         ThemedDropdownMenuItem(
                             text = { Text(i18n.commonRename().capitalize(Locale.current)) },
                             leadingIcon = { Icon(Icons.Default.Edit, null) },
@@ -255,9 +243,7 @@ fun DeviceItem(
                 viewModel.setDisplayName(device.deviceId, it)
                 showRename.value = false
             },
-            onDismiss = {
-                showRename.value = false
-            }
+            onDismiss = { showRename.value = false },
         )
     }
 }
@@ -272,14 +258,10 @@ private fun RenameDeviceDialog(
     val focusRequester = remember { FocusRequester() }
     val content = remember { mutableStateOf(TextFieldValue(device.displayName)) }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     ThemedModalDialog(onDismiss) {
-        ModalDialogHeader {
-            Text(i18n.devicesRenameDevice())
-        }
+        ModalDialogHeader { Text(i18n.devicesRenameDevice()) }
         ModalDialogContent {
             OutlinedTextField(
                 value = content.value,
@@ -287,22 +269,14 @@ private fun RenameDeviceDialog(
                 label = { Text(i18n.devicesDeviceName()) },
                 maxLines = 1,
                 singleLine = true,
-                modifier = Modifier.inputFocusNavigation()
-                    .focusRequester(focusRequester)
-                    .fillMaxWidth(),
+                modifier = Modifier.inputFocusNavigation().focusRequester(focusRequester).fillMaxWidth(),
             )
         }
         ModalDialogFooter {
-            ThemedButton(
-                style = MaterialTheme.components.commonButton,
-                onClick = onDismiss,
-            ) {
+            ThemedButton(style = MaterialTheme.components.commonButton, onClick = onDismiss) {
                 Text(i18n.actionCancel())
             }
-            ThemedButton(
-                style = MaterialTheme.components.primaryButton,
-                onClick = { onRename(content.value.text) }
-            ) {
+            ThemedButton(style = MaterialTheme.components.primaryButton, onClick = { onRename(content.value.text) }) {
                 Text(i18n.commonRename())
             }
         }

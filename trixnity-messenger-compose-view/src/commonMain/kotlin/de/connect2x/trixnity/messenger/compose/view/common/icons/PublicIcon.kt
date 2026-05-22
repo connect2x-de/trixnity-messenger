@@ -18,7 +18,6 @@ import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 
-
 @Composable
 fun BoxScope.PublicIcon() {
     val i18n = DI.get<I18nView>()

@@ -14,38 +14,19 @@ import androidx.core.content.ContextCompat.getSystemService
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import org.koin.core.Koin
 
+@Composable actual fun VerticalScrollbar(modifier: Modifier, scrollState: ScrollState) = Unit
 
 @Composable
-actual fun VerticalScrollbar(
-    modifier: Modifier,
-    scrollState: ScrollState
-) = Unit
+actual fun VerticalScrollbar(modifier: Modifier, lazyListState: LazyListState, reverseLayout: Boolean) = Unit
+
+@Composable actual fun HorizontalScrollbar(modifier: Modifier, scrollState: ScrollState) = Unit
 
 @Composable
-actual fun VerticalScrollbar(
-    modifier: Modifier,
-    lazyListState: LazyListState,
-    reverseLayout: Boolean,
-) = Unit
+actual fun HorizontalScrollbar(modifier: Modifier, lazyListState: LazyListState, reverseLayout: Boolean) = Unit
 
-@Composable
-actual fun HorizontalScrollbar(
-    modifier: Modifier,
-    scrollState: ScrollState
-) = Unit
+actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier = this // Empty modifier.
 
-@Composable
-actual fun HorizontalScrollbar(
-    modifier: Modifier,
-    lazyListState: LazyListState,
-    reverseLayout: Boolean,
-) = Unit
-
-actual fun Modifier.buttonPointerModifier(enabled: Boolean): Modifier =
-    this // Empty modifier.
-
-actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier =
-    this // Empty modifier.
+actual fun Modifier.pointerMoveFilter(onEnter: () -> Boolean, onExit: () -> Boolean): Modifier = this // Empty modifier.
 
 actual fun Modifier.pointerEventWrapper(
     eventType: PointerEventType,

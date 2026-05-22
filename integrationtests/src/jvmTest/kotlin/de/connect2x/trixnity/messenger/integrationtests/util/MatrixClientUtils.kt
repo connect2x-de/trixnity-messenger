@@ -1,7 +1,5 @@
 package de.connect2x.trixnity.messenger.integrationtests.util
 
-import io.kotest.matchers.types.shouldBeInstanceOf
-import kotlinx.coroutines.CoroutineScope
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.UIA
@@ -9,6 +7,8 @@ import de.connect2x.trixnity.clientserverapi.model.authentication.AccountType
 import de.connect2x.trixnity.clientserverapi.model.authentication.Register
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationRequest
 import de.connect2x.trixnity.core.model.UserId
+import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.CoroutineScope
 import org.testcontainers.containers.BindMode
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -17,50 +17,49 @@ import org.testcontainers.utility.DockerImageName
 
 const val synapseVersion =
     "v1.129.0" // TODO you should update this from time to time. https://github.com/element-hq/synapse/releases
+
 // version 1.126.0ff (at least 130) causes the user search to sometimes not return the correct results
 
 fun synapseDocker(useRegistrationToken: Boolean = false): GenericContainer<Nothing> {
-    return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion"))
-        .apply {
-            withEnv(
-                mapOf(
-                    "VIRTUAL_HOST" to "localhost",
-                    "VIRTUAL_PORT" to "8008",
-                    "SYNAPSE_SERVER_NAME" to "localhost",
-                    "SYNAPSE_REPORT_STATS" to "no",
-                    "UID" to "1000",
-                    "GID" to "1000"
-                ) +
-                        if (useRegistrationToken) mapOf("SYNAPSE_CONFIG_PATH" to "data/homeserver_withRegistration.yaml")
-                        else emptyMap()
-            )
-            withClasspathResourceMapping("data", "/data", BindMode.READ_WRITE)
-            withExposedPorts(8008)
-            waitingFor(Wait.forHealthcheck())
-            withNetwork(Network.SHARED)
-        }
+    return GenericContainer<Nothing>(DockerImageName.parse("docker.io/matrixdotorg/synapse:$synapseVersion")).apply {
+        withEnv(
+            mapOf(
+                "VIRTUAL_HOST" to "localhost",
+                "VIRTUAL_PORT" to "8008",
+                "SYNAPSE_SERVER_NAME" to "localhost",
+                "SYNAPSE_REPORT_STATS" to "no",
+                "UID" to "1000",
+                "GID" to "1000",
+            ) +
+                if (useRegistrationToken) mapOf("SYNAPSE_CONFIG_PATH" to "data/homeserver_withRegistration.yaml")
+                else emptyMap()
+        )
+        withClasspathResourceMapping("data", "/data", BindMode.READ_WRITE)
+        withExposedPorts(8008)
+        waitingFor(Wait.forHealthcheck())
+        withNetwork(Network.SHARED)
+    }
 }
 
 suspend fun MatrixClientServerApiClient.register(
     username: String? = null,
     password: String,
-    deviceId: String? = null
+    deviceId: String? = null,
 ): UserId {
-    val registerStep = authentication.register(
-        password = password,
-        username = username,
-        deviceId = deviceId,
-        accountType = AccountType.USER,
-        refreshToken = true,
-    ).getOrThrow()
+    val registerStep =
+        authentication
+            .register(
+                password = password,
+                username = username,
+                deviceId = deviceId,
+                accountType = AccountType.USER,
+                refreshToken = true,
+            )
+            .getOrThrow()
     registerStep.shouldBeInstanceOf<UIA.Step<Register.Response>>()
     val registerResult = registerStep.authenticate(AuthenticationRequest.Dummy).getOrThrow()
     registerResult.shouldBeInstanceOf<UIA.Success<Register.Response>>()
     return registerResult.value.userId
 }
 
-data class StartedClient(
-    val scope: CoroutineScope,
-    val client: MatrixClient,
-    val password: String
-)
+data class StartedClient(val scope: CoroutineScope, val client: MatrixClient, val password: String)

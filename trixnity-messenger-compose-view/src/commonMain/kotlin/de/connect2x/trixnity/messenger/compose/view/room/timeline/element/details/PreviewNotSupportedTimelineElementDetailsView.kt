@@ -33,30 +33,27 @@ class PreviewNotSupportedTimelineElementDetailsView :
     override fun create(
         element: RoomMessageTimelineElementViewModel.FileBased<*>,
         onSave: () -> Unit,
-        onClose: () -> Unit
+        onClose: () -> Unit,
     ) {
         FileBasedDetailsDialog(element, onSave, onClose) {
             val i18n = DI.get<I18nView>()
-            Box(
-                Modifier.fillMaxSize()
-                    .background(color = MaterialTheme.colorScheme.background)
-            ) {
+            Box(Modifier.fillMaxSize().background(color = MaterialTheme.colorScheme.background)) {
                 Box(modifier = Modifier.align(Alignment.Center)) {
                     Column {
                         Icon(
-                            MaterialTheme.messengerIcons.typeFile, i18n.commonFile(),
+                            MaterialTheme.messengerIcons.typeFile,
+                            i18n.commonFile(),
                             Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                            tint = MaterialTheme.colorScheme.onBackground
+                            tint = MaterialTheme.colorScheme.onBackground,
                         )
                         Text(
                             i18n.fileOverlayPreviewNotSupported(),
                             Modifier.align(Alignment.CenterHorizontally),
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.onBackground,
                         )
                     }
                 }
             }
         }
     }
-
 }

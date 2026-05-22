@@ -29,6 +29,8 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,8 +40,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class VerificationRequestRoomMessageTimelineElementViewModelTest {
     private val thisRoom = RoomId("!room")
@@ -56,22 +56,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
 
     val activeVerification = mock<ActiveVerification>()
 
-    val ready: ActiveVerificationState.Ready = ActiveVerificationState.Ready("bla", setOf(), null, null) { }
+    val ready: ActiveVerificationState.Ready = ActiveVerificationState.Ready("bla", setOf(), null, null) {}
 
     init {
         resetMocks(matrixClientMock, roomServiceMock, activeVerification, verificationViewModel, activeVerification)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { roomServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { roomServiceMock } }) }.koin
         every { matrixClientMock.userId } returns me
-        every {
-            roomServiceMock.getTimelineEvent(thisRoom, timelineEventId, any())
-        } returns MutableStateFlow(
-            timelineEvent(timelineEventId)
-        )
+        every { roomServiceMock.getTimelineEvent(thisRoom, timelineEventId, any()) } returns
+            MutableStateFlow(timelineEvent(timelineEventId))
     }
 
     @BeforeTest
@@ -82,9 +74,8 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     @Test
     fun `show as active when the verification has not timed out and is not done or cancelled`() = runTest {
         every { activeVerification.state } returns MutableStateFlow(ready)
-        everySuspend {
-            activeVerifications.getActiveVerification(any(), thisRoom, timelineEventId)
-        } returns activeVerification
+        everySuspend { activeVerifications.getActiveVerification(any(), thisRoom, timelineEventId) } returns
+            activeVerification
         val cut = userVerificationViewModel()
 
         cut.isActive.firstWithClue(true)
@@ -92,17 +83,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `show as inactive when verification has timed out`() = runTest {
-        everySuspend {
-            activeVerifications.getActiveVerification(
-                matrixClientMock, thisRoom, timelineEventId
-            )
-        } returns null
+        everySuspend { activeVerifications.getActiveVerification(matrixClientMock, thisRoom, timelineEventId) } returns
+            null
         every {
             roomServiceMock.getTimelineEvents(
                 roomId = thisRoom,
                 startFrom = timelineEventId,
                 direction = GetEvents.Direction.FORWARDS,
-                config = any()
+                config = any(),
             )
         } returns flowOf()
 
@@ -114,17 +102,14 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     @Test
     fun `show as inactive when the verification has not timed out but is done or cancelled`() = runTest {
         every { activeVerification.state } returns MutableStateFlow(ActiveVerificationState.Done)
-        everySuspend {
-            activeVerifications.getActiveVerification(
-                matrixClientMock, thisRoom, timelineEventId
-            )
-        } returns activeVerification
+        everySuspend { activeVerifications.getActiveVerification(matrixClientMock, thisRoom, timelineEventId) } returns
+            activeVerification
         every {
             roomServiceMock.getTimelineEvents(
                 roomId = thisRoom,
                 startFrom = timelineEventId,
                 direction = GetEvents.Direction.FORWARDS,
-                config = any()
+                config = any(),
             )
         } returns flowOf()
 
@@ -136,68 +121,71 @@ class VerificationRequestRoomMessageTimelineElementViewModelTest {
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.userVerificationViewModel(): VerificationRequestRoomMessageTimelineElementViewModelImpl {
         Dispatchers.setMain(testDispatcher)
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) + module {
-                    single { activeVerifications }
-                    single<VerificationViewModelFactory> {
-                        object : VerificationViewModelFactory {
-                            override fun create(
-                                viewModelContext: MatrixClientViewModelContext,
-                                onCloseVerification: () -> Unit,
-                                onRedoSelfVerification: () -> Unit,
-                                roomId: RoomId?,
-                                timelineEventId: EventId?,
-                            ): VerificationViewModel = verificationViewModel
-                        }
-                    }
-                })
-        }.koin
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(mapOf(me to matrixClientMock)) +
+                            module {
+                                single { activeVerifications }
+                                single<VerificationViewModelFactory> {
+                                    object : VerificationViewModelFactory {
+                                        override fun create(
+                                            viewModelContext: MatrixClientViewModelContext,
+                                            onCloseVerification: () -> Unit,
+                                            onRedoSelfVerification: () -> Unit,
+                                            roomId: RoomId?,
+                                            timelineEventId: EventId?,
+                                        ): VerificationViewModel = verificationViewModel
+                                    }
+                                }
+                            }
+                    )
+                }
+                .koin
         return VerificationRequestRoomMessageTimelineElementViewModelImpl(
-            viewModelContext = testMatrixClientViewModelContext(
-                di = di,
-                userId = me,
-            ),
+            viewModelContext = testMatrixClientViewModelContext(di = di, userId = me),
             roomId = thisRoom,
             eventId = timelineEventId,
             onOpenMention = { _, _ -> },
-            content = RoomMessageEventContent.VerificationRequest(
-                fromDevice = "amazing-phone",
-                to = UserId("otherguy", "localhost"),
-                methods = emptySet()
-            )
+            content =
+                RoomMessageEventContent.VerificationRequest(
+                    fromDevice = "amazing-phone",
+                    to = UserId("otherguy", "localhost"),
+                    methods = emptySet(),
+                ),
         )
     }
 
-    private fun timelineEvent(eventId: EventId) = TimelineEvent(
-        event = ClientEvent.RoomEvent.StateEvent(
-            content = MemberEventContent(membership = Membership.JOIN),
-            id = eventId,
-            sender = me,
-            roomId = thisRoom,
-            originTimestamp = 0L,
-            stateKey = ""
-        ),
-        content = null,
-        previousEventId = null,
-        nextEventId = null,
-        gap = null,
-    )
+    private fun timelineEvent(eventId: EventId) =
+        TimelineEvent(
+            event =
+                ClientEvent.RoomEvent.StateEvent(
+                    content = MemberEventContent(membership = Membership.JOIN),
+                    id = eventId,
+                    sender = me,
+                    roomId = thisRoom,
+                    originTimestamp = 0L,
+                    stateKey = "",
+                ),
+            content = null,
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
 
-    private fun timelineEventMessage(
-        eventId: EventId,
-        messageEventContent: MessageEventContent,
-    ) = TimelineEvent(
-        event = ClientEvent.RoomEvent.MessageEvent(
-            content = messageEventContent,
-            id = eventId,
-            sender = me,
-            roomId = thisRoom,
-            originTimestamp = 0L,
-        ),
-        content = null,
-        previousEventId = null,
-        nextEventId = null,
-        gap = null,
-    )
+    private fun timelineEventMessage(eventId: EventId, messageEventContent: MessageEventContent) =
+        TimelineEvent(
+            event =
+                ClientEvent.RoomEvent.MessageEvent(
+                    content = messageEventContent,
+                    id = eventId,
+                    sender = me,
+                    roomId = thisRoom,
+                    originTimestamp = 0L,
+                ),
+            content = null,
+            previousEventId = null,
+            nextEventId = null,
+            gap = null,
+        )
 }

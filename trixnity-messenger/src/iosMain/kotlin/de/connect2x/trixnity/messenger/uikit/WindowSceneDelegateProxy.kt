@@ -8,9 +8,8 @@ import platform.UIKit.UITraitCollection
 import platform.UIKit.UIWindow
 import platform.UIKit.UIWindowScene
 
-open class WindowSceneDelegateProxy<T : WindowSceneDelegateProtocol>(
-    delegates: List<T>
-) : SceneDelegateProxy<T>(delegates), WindowSceneDelegateProtocol {
+open class WindowSceneDelegateProxy<T : WindowSceneDelegateProtocol>(delegates: List<T>) :
+    SceneDelegateProxy<T>(delegates), WindowSceneDelegateProtocol {
 
     override var window: WithDefault<UIWindow?>
         get() = delegateDefault { window }
@@ -22,21 +21,13 @@ open class WindowSceneDelegateProxy<T : WindowSceneDelegateProtocol>(
         windowScene: UIWindowScene,
         shortcutItem: UIApplicationShortcutItem,
     ): WithDefault<Boolean> = delegateDefaultSuspend {
-        performAction(
-            windowScene = windowScene,
-            shortcutItem = shortcutItem,
-        )
+        performAction(windowScene = windowScene, shortcutItem = shortcutItem)
     }
 
-    override fun userDidAcceptCloudKitShare(
-        windowScene: UIWindowScene,
-        cloudKitShareMetadata: CKShareMetadata,
-    ) = delegate {
-        userDidAcceptCloudKitShare(
-            windowScene = windowScene,
-            cloudKitShareMetadata = cloudKitShareMetadata,
-        )
-    }
+    override fun userDidAcceptCloudKitShare(windowScene: UIWindowScene, cloudKitShareMetadata: CKShareMetadata) =
+        delegate {
+            userDidAcceptCloudKitShare(windowScene = windowScene, cloudKitShareMetadata = cloudKitShareMetadata)
+        }
 
     override fun didUpdateCoordinateSpace(
         windowScene: UIWindowScene,
@@ -51,5 +42,4 @@ open class WindowSceneDelegateProxy<T : WindowSceneDelegateProtocol>(
             previousTraitCollection = previousTraitCollection,
         )
     }
-
 }

@@ -31,14 +31,11 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelec
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModel
 
 interface InviteRoomListElement {
-    @Composable
-    fun create(roomListElementViewModel: RoomListElementViewModel)
+    @Composable fun create(roomListElementViewModel: RoomListElementViewModel)
 }
 
 @Composable
-fun Invite(
-    roomListElementViewModel: RoomListElementViewModel,
-) {
+fun Invite(roomListElementViewModel: RoomListElementViewModel) {
     DI.get<InviteRoomListElement>().create(roomListElementViewModel)
 }
 
@@ -58,7 +55,6 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.name)
                     RoomInviterUserInfo(inviterNameOrUserId = inviterUserInfo.userId.full)
                 }
-
             },
             roomActions = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -79,25 +75,24 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                         }
                     }
                 }
-            }
+            },
         )
 
         if (showReject) {
             val rejectionInProgress = roomListElementViewModel.rejectInvitationInProgress.collectAsState().value
             ThemedModalDialog({ showReject = false }) {
-                ModalDialogHeader {
-                    Text(i18n.invitationRejectHeader())
-                }
+                ModalDialogHeader { Text(i18n.invitationRejectHeader()) }
                 ModalDialogContent {
                     if (rejectionInProgress) {
                         ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
                         return@ModalDialogContent
                     }
                     ThemedSelectableText(
-                        text = i18n.formattedInvitationBody(
-                            inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
-                            roomName = roomName,
-                        ),
+                        text =
+                            i18n.formattedInvitationBody(
+                                inviterName = inviterUserInfo?.name ?: i18n.commonUnknown(),
+                                roomName = roomName,
+                            ),
                         selectionStyle = MaterialTheme.components.selectionOnSurface,
                     )
                 }
@@ -105,21 +100,21 @@ class InviteRoomListElementImpl : InviteRoomListElement {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = { showReject = false },
-                        enabled = !rejectionInProgress
+                        enabled = !rejectionInProgress,
                     ) {
                         Text(i18n.actionCancel())
                     }
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = { roomListElementViewModel.rejectInvitationAndBlockInviter() },
-                        enabled = !rejectionInProgress
+                        enabled = !rejectionInProgress,
                     ) {
                         Text(i18n.invitationBlock())
                     }
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
                         onClick = { roomListElementViewModel.rejectInvitation() },
-                        enabled = !rejectionInProgress
+                        enabled = !rejectionInProgress,
                     ) {
                         Text(i18n.invitationReject())
                     }
@@ -131,18 +126,13 @@ class InviteRoomListElementImpl : InviteRoomListElement {
     @Composable
     fun RoomInviterUserInfo(inviterNameOrUserId: String) {
         val needsTooltip = remember { mutableStateOf(false) }
-        Tooltip(
-            enabled = needsTooltip.value,
-            tooltip = { Text(inviterNameOrUserId) }
-        ) {
+        Tooltip(enabled = needsTooltip.value, tooltip = { Text(inviterNameOrUserId) }) {
             Text(
                 inviterNameOrUserId,
                 style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                onTextLayout = {
-                    needsTooltip.value = it.hasVisualOverflow
-                }
+                onTextLayout = { needsTooltip.value = it.hasVisualOverflow },
             )
         }
     }

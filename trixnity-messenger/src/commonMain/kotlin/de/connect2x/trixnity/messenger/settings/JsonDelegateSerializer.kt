@@ -19,8 +19,8 @@ open class JsonDelegateSerializer<T : Map<String, JsonElement>>(
 
     override fun deserialize(decoder: Decoder): T {
         require(decoder is JsonDecoder)
-        val delegate = (decoder.decodeJsonElement() as? JsonObject)
-            ?: throw SerializationException("header was no Json Object")
+        val delegate =
+            (decoder.decodeJsonElement() as? JsonObject) ?: throw SerializationException("header was no Json Object")
         return factory(delegate)
     }
 

@@ -54,12 +54,16 @@ object MacOsSecurity : Library {
             ?: throw IllegalStateException("kSecClassGenericPassword not found")
 
     @JvmStatic
-    val kSecMatchLimitOne: Pointer = JNA_NATIVE_LIB.getGlobalVariableAddress("kSecMatchLimitOne").getPointer(0L)
-        ?: throw IllegalStateException("kSecMatchLimitOne not found")
+    val kSecMatchLimitOne: Pointer =
+        JNA_NATIVE_LIB.getGlobalVariableAddress("kSecMatchLimitOne").getPointer(0L)
+            ?: throw IllegalStateException("kSecMatchLimitOne not found")
 
     external fun SecItemCopyMatching(query: CFDictionaryRef?, result: PointerByReference?): Int
+
     external fun SecItemAdd(attributes: CFDictionaryRef?, result: PointerByReference?): Int
+
     external fun SecKeychainItemFreeContent(attrList: CFDictionaryRef?, data: Pointer?)
+
     external fun SecCopyErrorMessageString(status: Int, reserved: Pointer?): Pointer?
 }
 
@@ -72,8 +76,9 @@ object MacOsCoreFoundation : Library {
     }
 
     @JvmStatic
-    val kCFBooleanTrue: Pointer = JNA_NATIVE_LIB.getGlobalVariableAddress("kCFBooleanTrue").getPointer(0L)
-        ?: throw IllegalStateException("kCFBooleanTrue not found")
+    val kCFBooleanTrue: Pointer =
+        JNA_NATIVE_LIB.getGlobalVariableAddress("kCFBooleanTrue").getPointer(0L)
+            ?: throw IllegalStateException("kCFBooleanTrue not found")
 
     external fun CFStringGetLength(theString: Pointer?): Long
 

@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger.compose.app
 
-enum class Flavor { PROD, DEV }
+enum class Flavor {
+    PROD,
+    DEV,
+}
 
 interface CommonBuildConfig {
     val version: String

@@ -23,8 +23,7 @@ import kotlin.reflect.KClass
 interface UnknownRoomMessageTimelineElementView : TimelineElementView<Unknown>
 
 class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElementView {
-    override val supports: KClass<Unknown> =
-        Unknown::class
+    override val supports: KClass<Unknown> = Unknown::class
 
     override suspend fun waitFor(element: Unknown) {
         // NO-OP (has default size)
@@ -33,20 +32,12 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Unknown,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Unknown, index: Int) {
         UnknownMessageElement(element)
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Unknown,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Unknown, index: Int) {
         UnknownMessageElement(element)
     }
 
@@ -69,7 +60,7 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                 )
-            }
+            },
         )
     }
 
@@ -92,15 +83,13 @@ class UnknownRoomMessageTimelineElementViewImpl : UnknownRoomMessageTimelineElem
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-            }
+            },
         )
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Unknown
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Unknown): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Unknown, i18n: I18nView): String {
         return "${i18n.commonUnknown()}: ${element.fallbackBody}"

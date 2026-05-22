@@ -65,15 +65,16 @@ data class AvatarStyle(
             shape: Shape = CircleShape,
             badgeSize: Dp = 12.dp,
             badgeShape: Shape = CircleShape,
-        ) = AvatarStyle(
-            color = color,
-            contentColor = contentColor,
-            outerBorder = outerBorder,
-            innerBorder = innerBorder,
-            shape = shape,
-            badgeSize = badgeSize,
-            badgeShape = badgeShape,
-        )
+        ) =
+            AvatarStyle(
+                color = color,
+                contentColor = contentColor,
+                outerBorder = outerBorder,
+                innerBorder = innerBorder,
+                shape = shape,
+                badgeSize = badgeSize,
+                badgeShape = badgeShape,
+            )
     }
 }
 
@@ -84,18 +85,11 @@ private inline fun ThemedUserAvatarBase(
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
     noinline overlay: @Composable BoxScope.() -> Unit = {},
-    crossinline content: @Composable BoxScope.() -> Unit
+    crossinline content: @Composable BoxScope.() -> Unit,
 ) {
     val tooltip = presenceText(presence)
-    tooltip?.let {
-        Tooltip({ Text(tooltip) }) {
-            ThemedAvatar(size, modifier, style, overlay) {
-                content()
-            }
-        }
-    } ?: ThemedAvatar(size, modifier, style, overlay) {
-        content()
-    }
+    tooltip?.let { Tooltip({ Text(tooltip) }) { ThemedAvatar(size, modifier, style, overlay) { content() } } }
+        ?: ThemedAvatar(size, modifier, style, overlay) { content() }
 }
 
 @Composable
@@ -106,7 +100,7 @@ fun ThemedUserAvatar(
     size: Dp = avatarSize().dp,
     style: AvatarStyle = MaterialTheme.components.avatar,
     modifier: Modifier = Modifier,
-    overlay: @Composable BoxScope.() -> Unit = {}
+    overlay: @Composable BoxScope.() -> Unit = {},
 ) {
     val bitmap = remember(image) { image?.toImageBitmap() }
     ThemedUserAvatarBase(presence, size, style, modifier, overlay) {
@@ -144,37 +138,27 @@ fun ThemedAvatar(
     modifier: Modifier = Modifier,
     style: AvatarStyle = MaterialTheme.components.avatar,
     overlay: @Composable BoxScope.() -> Unit = {},
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit,
 ) {
-    Box(
-        modifier = Modifier.wrapContentSize(),
-        contentAlignment = Alignment.BottomEnd,
-    ) {
+    Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.BottomEnd) {
         Box(
-            modifier = modifier
-                .size(size)
-                .background(style.color, shape = style.shape)
-                .border(style.outerBorder, style.shape)
-                .border(style.innerBorder.let { it.copy(width = it.width + style.outerBorder.width) }, style.shape)
-                .clip(style.shape),
+            modifier =
+                modifier
+                    .size(size)
+                    .background(style.color, shape = style.shape)
+                    .border(style.outerBorder, style.shape)
+                    .border(style.innerBorder.let { it.copy(width = it.width + style.outerBorder.width) }, style.shape)
+                    .clip(style.shape),
             contentAlignment = Alignment.Center,
         ) {
-            CompositionLocalProvider(
-                LocalContentColor provides style.contentColor,
-            ) {
-                content()
-            }
+            CompositionLocalProvider(LocalContentColor provides style.contentColor) { content() }
         }
         overlay()
     }
 }
 
 @Composable
-fun AvatarContentImageStack(
-    images: List<ImageBitmap>,
-    size: Dp,
-    maxSlices: Int = 4
-) {
+fun AvatarContentImageStack(images: List<ImageBitmap>, size: Dp, maxSlices: Int = 4) {
     val sliceCount = images.size.coerceAtMost(maxSlices)
     Box(modifier = Modifier.size(size)) {
         for (sliceIndex in 0..<sliceCount) {
@@ -182,7 +166,7 @@ fun AvatarContentImageStack(
                 images[sliceIndex],
                 modifier = Modifier.matchParentSize().pieSlice(sliceCount, sliceIndex),
                 contentScale = ContentScale.Fit,
-                contentDescription = null
+                contentDescription = null,
             )
         }
     }
@@ -190,21 +174,12 @@ fun AvatarContentImageStack(
 
 @Composable
 fun AvatarContentImage(image: ImageBitmap, size: Dp) {
-    Image(
-        image,
-        modifier = Modifier.size(size),
-        contentScale = ContentScale.Fit,
-        contentDescription = null
-    )
+    Image(image, modifier = Modifier.size(size), contentScale = ContentScale.Fit, contentDescription = null)
 }
 
 @Composable
 fun AvatarContentIcon(icon: ImageVector, size: Dp) {
-    Icon(
-        icon,
-        contentDescription = null,
-        modifier = Modifier.size(size * 0.6f)
-    )
+    Icon(icon, contentDescription = null, modifier = Modifier.size(size * 0.6f))
 }
 
 @Composable
@@ -218,33 +193,29 @@ fun AvatarContentText(text: String, size: Dp) {
 }
 
 @Composable
-fun AvatarPresenceBadge(
-    presence: Presence?,
-    style: AvatarStyle = MaterialTheme.components.avatar,
-) {
+fun AvatarPresenceBadge(presence: Presence?, style: AvatarStyle = MaterialTheme.components.avatar) {
     if (presence == null) return
 
-    val shape = when (presence) {
-        Presence.UNAVAILABLE -> MoonShape()
-        else -> style.badgeShape
-    }
+    val shape =
+        when (presence) {
+            Presence.UNAVAILABLE -> MoonShape()
+            else -> style.badgeShape
+        }
 
-    val icon = when (presence) {
-        Presence.OFFLINE -> Icons.Outlined.Close
-        else -> null
-    }
+    val icon =
+        when (presence) {
+            Presence.OFFLINE -> Icons.Outlined.Close
+            else -> null
+        }
 
-    val color = when (presence) {
-        Presence.ONLINE -> MaterialTheme.messengerColors.presenceOnline
-        Presence.OFFLINE -> MaterialTheme.messengerColors.presenceOffline
-        Presence.UNAVAILABLE -> MaterialTheme.messengerColors.presenceUnavailable
-    }
+    val color =
+        when (presence) {
+            Presence.ONLINE -> MaterialTheme.messengerColors.presenceOnline
+            Presence.OFFLINE -> MaterialTheme.messengerColors.presenceOffline
+            Presence.UNAVAILABLE -> MaterialTheme.messengerColors.presenceUnavailable
+        }
 
-    Box(
-        Modifier.size(style.badgeSize)
-            .background(color, shape)
-            .border(style.innerBorder, shape)
-    ) {
+    Box(Modifier.size(style.badgeSize).background(color, shape).border(style.innerBorder, shape)) {
         if (icon != null) {
             val brush = style.innerBorder.brush
             val color = if (brush is SolidColor) brush.value else MaterialTheme.colorScheme.surface
@@ -259,9 +230,7 @@ fun AvatarPresenceBadge(
 }
 
 @Composable
-private fun presenceText(
-    presence: Presence?,
-): String? {
+private fun presenceText(presence: Presence?): String? {
     val i18n = DI.get<I18nView>()
     return when (presence) {
         Presence.ONLINE -> i18n.presenceOnline()

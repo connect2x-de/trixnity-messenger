@@ -15,45 +15,43 @@ import kotlinx.serialization.serializer
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 interface SettingsHolder<S : Settings<S>> : StateFlow<S> {
     suspend fun init()
+
     suspend fun waitForInit()
+
     suspend fun update(updater: MutableSettings<S>.(S) -> Unit)
 }
 
 suspend fun <S : Settings<S>, T : SettingsView<S>> SettingsHolder<S>.update(
     serializer: KSerializer<T>,
-    updater: (T) -> T
-) = update {
-    set(updater(it.get(serializer)), serializer)
-}
+    updater: (T) -> T,
+) = update { set(updater(it.get(serializer)), serializer) }
 
-suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder<S>.update(
-    noinline updater: (T) -> T,
-) = update(serializer(), updater)
+suspend inline fun <S : Settings<S>, reified T : SettingsView<S>> SettingsHolder<S>.update(noinline updater: (T) -> T) =
+    update(serializer(), updater)
 
 @OptIn(ExperimentalForInheritanceCoroutinesApi::class)
 abstract class SettingsHolderImpl<S : Settings<S>>(
     private val storage: SettingsStorage,
     private val settingsFactory: (Map<String, JsonElement>) -> S,
-    private val settings: MutableStateFlow<S?> = MutableStateFlow(null)
+    private val settings: MutableStateFlow<S?> = MutableStateFlow(null),
 ) : SettingsHolder<S>, StateFlow<S> {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.settings.SettingsHolderImpl")
     }
 
     private val updateMutex = Mutex()
-    override suspend fun update(updater: MutableSettings<S>.(S) -> Unit) =
-        updateMutex.withLock {
-            log.debug { "update settings" }
-            val currentSettings = value
-            val newSettings = MutableSettingsImpl(currentSettings)
-            with(newSettings) {
-                updater(currentSettings)
-            }
-            settings.value = settingsFactory(newSettings.toMap())
-            storage.write(SettingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
-        }
+
+    override suspend fun update(updater: MutableSettings<S>.(S) -> Unit) = updateMutex.withLock {
+        log.debug { "update settings" }
+        val currentSettings = value
+        val newSettings = MutableSettingsImpl(currentSettings)
+        with(newSettings) { updater(currentSettings) }
+        settings.value = settingsFactory(newSettings.toMap())
+        storage.write(SettingsJson.encodeToString<Map<String, JsonElement>>(newSettings))
+    }
 
     private val initMutex = Mutex()
+
     override suspend fun init() {
         initMutex.withLock {
             if (settings.value == null) {
@@ -71,13 +69,13 @@ abstract class SettingsHolderImpl<S : Settings<S>>(
 
     override val replayCache: List<S>
         get() = settings.replayCache.filterNotNull()
+
     override val value: S
         get() = checkNotNull(settings.value) { "SettingsHolder has not been initialized" }
 
-    override suspend fun collect(collector: FlowCollector<S>): Nothing =
-        settings.collect {
-            collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })
-        }
+    override suspend fun collect(collector: FlowCollector<S>): Nothing = settings.collect {
+        collector.emit(checkNotNull(it) { "SettingsHolder has not been initialized" })
+    }
 
     override suspend fun waitForInit() {
         settings.first { it != null }

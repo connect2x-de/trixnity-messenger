@@ -1,8 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.verification
 
-
-import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 
 // wrapped since we need to mock the behaviour in the tests
 interface VerifyAccount {

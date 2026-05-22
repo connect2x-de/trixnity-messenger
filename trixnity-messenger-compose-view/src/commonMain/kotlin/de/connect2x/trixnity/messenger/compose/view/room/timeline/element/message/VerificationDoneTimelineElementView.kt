@@ -71,8 +71,7 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
         element: VerificationDoneTimelineElementViewModel,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun createReplyInSendMessage(
@@ -80,19 +79,17 @@ class VerificationDoneMessageTimelineElementViewImpl : VerificationDoneMessageTi
         element: VerificationDoneTimelineElementViewModel,
         modifier: Modifier,
         interactionSource: MutableInteractionSource,
-    ) {
-    }
+    ) {}
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: VerificationDoneTimelineElementViewModel
+        element: VerificationDoneTimelineElementViewModel,
     ): ClipEntry? = null
 
     override fun a11yLabel(element: VerificationDoneTimelineElementViewModel, i18n: I18nView): String {
         return "${i18n.userVerificationStarted("")}, ${i18n.userVerificationDone()}, ${element.message}"
     }
-
 }
 
 @Composable
@@ -106,30 +103,20 @@ private fun VerificationDoneElement(
 
     if (isOwn == true) {
         ProvideTextStyle(TextStyle(fontSize = 12.sp)) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .padding(20.dp)
-            ) {
+            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).padding(20.dp)) {
                 Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Shield, "")
                         Spacer(Modifier.size(10.dp))
                         Text(
                             text = i18n.userVerificationStarted(sender?.name ?: i18n.commonUnknown()),
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp)
+                            modifier = Modifier.weight(1.0f, fill = true).padding(end = 10.dp),
                         )
                         Icon(Icons.Default.SportsScore, i18n.userVerificationDone())
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            i18n.userVerificationSuccess(),
-                        )
+                        Icon(Icons.Default.CheckCircle, i18n.userVerificationSuccess())
                         Spacer(Modifier.size(10.dp))
                         Text(text = element.message)
                     }

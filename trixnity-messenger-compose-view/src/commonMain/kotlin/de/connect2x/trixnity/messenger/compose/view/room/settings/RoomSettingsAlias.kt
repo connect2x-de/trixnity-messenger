@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
@@ -44,8 +45,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListI
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSelectableText
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModel
-import de.connect2x.trixnity.core.model.RoomAliasId
-
 
 @Composable
 fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
@@ -73,7 +72,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                         Row(
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             Arrangement.SpaceBetween,
-                            Alignment.CenterVertically
+                            Alignment.CenterVertically,
                         ) {
                             OutlinedTextField(
                                 value = newAlias,
@@ -83,22 +82,16 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     }
                                 },
                                 label = { Text(i18n.newAlias()) },
-                                modifier = Modifier
-                                    .inputFocusNavigation()
-                                    .weight(1.0f, fill = true)
-                                    .fillMaxWidth(),
-                                colors = TextFieldDefaults.colors(
-                                    disabledTextColor = MaterialTheme.colorScheme.surfaceTint,
-                                ),
+                                modifier = Modifier.inputFocusNavigation().weight(1.0f, fill = true).fillMaxWidth(),
+                                colors =
+                                    TextFieldDefaults.colors(disabledTextColor = MaterialTheme.colorScheme.surfaceTint),
                                 prefix = { Text("#") },
-                                suffix = { Text(":${viewModel.domain}") }
+                                suffix = { Text(":${viewModel.domain}") },
                             )
                             Tooltip({ Text(i18n.addAlias()) }) {
                                 ThemedIconButton(
                                     style = MaterialTheme.components.commonIconButton,
-                                    onClick = {
-                                        viewModel.addNewAlias(onlyLocalpart = true)
-                                    },
+                                    onClick = { viewModel.addNewAlias(onlyLocalpart = true) },
                                 ) {
                                     Icon(Icons.Default.Add, i18n.addAlias())
                                 }
@@ -110,12 +103,12 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                         Row(
                             Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             Arrangement.SpaceBetween,
-                            Alignment.CenterVertically
+                            Alignment.CenterVertically,
                         ) {
                             ThemedSelectableText(
                                 alias,
                                 MaterialTheme.components.selectionOnSurface,
-                                selectionModifier = Modifier.weight(1f, false)
+                                selectionModifier = Modifier.weight(1f, false),
                             )
 
                             Row {
@@ -123,9 +116,7 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     Tooltip({ Text(i18n.unmakeMainAlias()) }) {
                                         ThemedIconButton(
                                             style = MaterialTheme.components.commonIconButton,
-                                            onClick = {
-                                                viewModel.changeMainAlias(null)
-                                            },
+                                            onClick = { viewModel.changeMainAlias(null) },
                                         ) {
                                             Icon(Icons.Default.Star, i18n.unmakeMainAlias())
                                         }
@@ -133,23 +124,17 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     Tooltip({ Text(i18n.deleteAlias()) }) {
                                         ThemedIconButton(
                                             style = MaterialTheme.components.commonIconButton,
-                                            onClick = {
-                                                viewModel.removeMainAlias(RoomAliasId(alias))
-                                            },
+                                            onClick = { viewModel.removeMainAlias(RoomAliasId(alias)) },
                                         ) {
                                             Icon(Icons.Default.Delete, i18n.deleteAlias())
                                         }
                                     }
                                 } else {
                                     Box(
-                                        Modifier
-                                            .minimumInteractiveComponentSize()
-                                            .size(40.dp),
-                                        contentAlignment = Alignment.Center
+                                        Modifier.minimumInteractiveComponentSize().size(40.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
-                                        Tooltip(
-                                            tooltip = { Text(i18n.mainAlias()) }
-                                        ) {
+                                        Tooltip(tooltip = { Text(i18n.mainAlias()) }) {
                                             Icon(Icons.Default.Star, i18n.mainAlias())
                                         }
                                     }
@@ -160,25 +145,21 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                     moreAliases.forEach { alias ->
                         Spacer(Modifier.size(10.dp))
                         Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
+                            Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             Arrangement.SpaceBetween,
-                            Alignment.CenterVertically
+                            Alignment.CenterVertically,
                         ) {
                             ThemedSelectableText(
                                 alias,
                                 MaterialTheme.components.selectionOnSurface,
-                                selectionModifier = Modifier.weight(1f, false)
+                                selectionModifier = Modifier.weight(1f, false),
                             )
                             Row {
                                 if (canChangeRoomAlias) {
                                     Tooltip({ Text(i18n.makeMainAlias()) }) {
                                         ThemedIconButton(
                                             style = MaterialTheme.components.commonIconButton,
-                                            onClick = {
-                                                viewModel.changeMainAlias(RoomAliasId(alias))
-                                            },
+                                            onClick = { viewModel.changeMainAlias(RoomAliasId(alias)) },
                                         ) {
                                             Icon(Icons.Default.StarOutline, i18n.makeMainAlias())
                                         }
@@ -186,19 +167,15 @@ fun RoomSettingsAlias(viewModel: RoomSettingsAliasViewModel) {
                                     Tooltip({ Text(i18n.deleteAlias()) }) {
                                         ThemedIconButton(
                                             style = MaterialTheme.components.commonIconButton,
-                                            onClick = {
-                                                viewModel.removeAlias(RoomAliasId(alias))
-                                            },
+                                            onClick = { viewModel.removeAlias(RoomAliasId(alias)) },
                                         ) {
                                             Icon(Icons.Default.Delete, i18n.deleteAlias())
                                         }
                                     }
                                 } else {
                                     Box(
-                                        Modifier
-                                            .minimumInteractiveComponentSize()
-                                            .size(40.dp),
-                                        contentAlignment = Alignment.Center
+                                        Modifier.minimumInteractiveComponentSize().size(40.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         Tooltip({ Text(i18n.mainAlias()) }) {
                                             Icon(Icons.Default.StarOutline, i18n.alias())

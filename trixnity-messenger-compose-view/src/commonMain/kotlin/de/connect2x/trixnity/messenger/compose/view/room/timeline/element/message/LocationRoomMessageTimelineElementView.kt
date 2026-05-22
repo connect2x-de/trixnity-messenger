@@ -27,8 +27,7 @@ import kotlin.reflect.KClass
 interface LocationRoomMessageTimelineElementView : TimelineElementView<Location>
 
 class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineElementView {
-    override val supports: KClass<Location> =
-        Location::class
+    override val supports: KClass<Location> = Location::class
 
     override suspend fun waitFor(element: Location) {
         // NO-OP (has default size)
@@ -37,20 +36,12 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
     override fun isFocusable(): Boolean = true
 
     @Composable
-    override fun createInTimeline(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Location,
-        index: Int,
-    ) {
+    override fun createInTimeline(holder: BaseTimelineElementHolderViewModel, element: Location, index: Int) {
         LocationMessageElement(holder, element, isPreview = false, index = index)
     }
 
     @Composable
-    override fun createAsPreview(
-        holder: TimelineElementHolderViewModel,
-        element: Location,
-        index: Int,
-    ) {
+    override fun createAsPreview(holder: TimelineElementHolderViewModel, element: Location, index: Int) {
         LocationMessageElement(holder, element, isPreview = true, index = index)
     }
 
@@ -75,10 +66,8 @@ class LocationRoomMessageTimelineElementViewImpl : LocationRoomMessageTimelineEl
     }
 
     @Composable
-    override fun getClipEntry(
-        holder: BaseTimelineElementHolderViewModel,
-        element: Location
-    ): ClipEntry? = element.toClipEntry()
+    override fun getClipEntry(holder: BaseTimelineElementHolderViewModel, element: Location): ClipEntry? =
+        element.toClipEntry()
 
     override fun a11yLabel(element: Location, i18n: I18nView): String {
         return i18n.commonLocation()
@@ -92,43 +81,35 @@ fun LocationMessageElement(
     isPreview: Boolean,
     index: Int,
 ) {
-    MessageBubble(
-        holder,
-        needsMaxWidth = false,
-        isPreview = isPreview,
-        index = index,
-    ) { showMenuAction ->
+    MessageBubble(holder, needsMaxWidth = false, isPreview = isPreview, index = index) { showMenuAction ->
         // on Desktop and Web, it makes sense to select text and copy it;
         // on Android and iOS, this will consume long tap events, which we use for the context menu
         when (Platform.current) {
-            PlatformType.ANDROID, PlatformType.IOS -> LocationMessageContent(element, showMenuAction)
-            PlatformType.DESKTOP, PlatformType.WEB -> ThemedSelectionContainer(MaterialTheme.components.selectionOnPrimary) {
-                LocationMessageContent(element, showMenuAction)
-            }
+            PlatformType.ANDROID,
+            PlatformType.IOS -> LocationMessageContent(element, showMenuAction)
+            PlatformType.DESKTOP,
+            PlatformType.WEB ->
+                ThemedSelectionContainer(MaterialTheme.components.selectionOnPrimary) {
+                    LocationMessageContent(element, showMenuAction)
+                }
         }
     }
 }
 
 @Composable
-internal fun LocationMessageContent(
-    element: Location,
-    onOpenActionMenu: () -> Unit,
-) {
+internal fun LocationMessageContent(element: Location, onOpenActionMenu: () -> Unit) {
     val i18n = DI.get<I18nView>()
-    val (geoUrl, pos) = element.geoUri
-        .removePrefix("geo:").substringBefore(";").split(",")
-        .let { (lat, lon) ->
+    val (geoUrl, pos) =
+        element.geoUri.removePrefix("geo:").substringBefore(";").split(",").let { (lat, lon) ->
             "https://www.openstreetmap.org/?mlat=$lat&mlon=$lon" to Pair(lat, lon)
         }
 
     val uriHandler = LocalUriHandler.current
     ClickableText(
         text = AnnotatedString(i18n.locationClickText(pos)),
-        onClick = {
-            uriHandler.openUri(geoUrl)
-        },
+        onClick = { uriHandler.openUri(geoUrl) },
         onLongPress = { onOpenActionMenu() },
-        style = MaterialTheme.typography.bodySmall
+        style = MaterialTheme.typography.bodySmall,
     )
 }
 
@@ -140,9 +121,8 @@ internal fun LocationReplyElement(
     interactionSource: MutableInteractionSource,
 ) {
     val i18n = DI.get<I18nView>()
-    val (geoUrl, pos) = element.geoUri
-        .removePrefix("geo:").substringBefore(";").split(",")
-        .let { (lat, lon) ->
+    val (geoUrl, pos) =
+        element.geoUri.removePrefix("geo:").substringBefore(";").split(",").let { (lat, lon) ->
             "https://www.openstreetmap.org/?mlat=$lat&mlon=$lon" to Pair(lat, lon)
         }
 
@@ -154,12 +134,10 @@ internal fun LocationReplyElement(
         content = {
             ClickableText(
                 text = AnnotatedString(i18n.locationClickText(pos)),
-                onClick = {
-                    uriHandler.openUri(geoUrl)
-                },
+                onClick = { uriHandler.openUri(geoUrl) },
                 onLongPress = {},
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
             )
-        }
+        },
     )
 }

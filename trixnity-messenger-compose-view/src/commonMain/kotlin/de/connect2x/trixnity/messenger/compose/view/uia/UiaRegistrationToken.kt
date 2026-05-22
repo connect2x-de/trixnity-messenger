@@ -33,8 +33,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepRegistrationTokenViewModel
 
 interface UiaRegistrationTokenView {
-    @Composable
-    fun create(uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel)
+    @Composable fun create(uiaStepRegistrationTokenViewModel: UiaStepRegistrationTokenViewModel)
 }
 
 @Composable
@@ -50,11 +49,7 @@ class UiaRegistrationTokenViewImpl : UiaRegistrationTokenView {
         val error = uiaStepRegistrationTokenViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepRegistrationTokenViewModel::submit)
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaRegistrationTokenTitle())
                 if (error != null) {
                     ErrorView(error)
@@ -63,10 +58,7 @@ class UiaRegistrationTokenViewImpl : UiaRegistrationTokenView {
                 Spacer(Modifier.height(20.dp))
                 RegistrationToken(uiaStepRegistrationTokenViewModel, tabToNextAndEnterSend)
                 Spacer(Modifier.height(40.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepRegistrationTokenViewModel::cancel,
@@ -100,10 +92,11 @@ fun RegistrationToken(
         onValueChange = { registrationToken = it },
         modifier = Modifier.fillMaxWidth().then(tabToNextAndEnterSend),
         label = { Text(i18n.uiaRegistrationTokenAddToken()) },
-        keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.None,
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Email
-        ),
+        keyboardOptions =
+            KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Email,
+            ),
     )
 }

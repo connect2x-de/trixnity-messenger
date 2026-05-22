@@ -22,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.CollectionInfo
@@ -33,6 +32,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -47,12 +48,9 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItem
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.room.Membership
 
 interface RoomSettingsMemberListView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -67,8 +65,7 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
         val i18n = DI.get<I18nView>()
         val hasPowerToInvite = roomSettingsViewModel.hasPowerToInvite.collectAsState().value
         val memberListViewModel = roomSettingsViewModel.memberListViewModel
-        val memberListElementViewModels =
-            memberListViewModel.elements.collectAsState().value
+        val memberListElementViewModels = memberListViewModel.elements.collectAsState().value
         val joinedMemberCount = memberListViewModel.membershipCounts.collectAsState().value[Membership.JOIN]
 
         Column {
@@ -80,63 +77,56 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
-                trailingContent = if (hasPowerToInvite) {
-                    {
-                        Tooltip(
-                            tooltip = { Text(i18n.addMembers()) }
-                        ) {
-                            ThemedIconButton(
-                                style = MaterialTheme.components.commonIconButton,
-                                onClick = { roomSettingsViewModel.openAddMembersView() },
-                            ) {
-                                Icon(
-                                    Icons.Default.PersonAdd,
-                                    i18n.addMembers(),
-                                )
+                trailingContent =
+                    if (hasPowerToInvite) {
+                        {
+                            Tooltip(tooltip = { Text(i18n.addMembers()) }) {
+                                ThemedIconButton(
+                                    style = MaterialTheme.components.commonIconButton,
+                                    onClick = { roomSettingsViewModel.openAddMembersView() },
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, i18n.addMembers())
+                                }
                             }
                         }
-                    }
-                } else null
+                    } else null,
             )
 
             FlowRow(Modifier.fillMaxWidth()) {
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.JOIN)
-                ) {
-                    Text(i18n.settingsRoomMemberListJoined(), Modifier.semantics {
-                        text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.JOIN)) {
+                    Text(
+                        i18n.settingsRoomMemberListJoined(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListJoined())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.KNOCK)
-                ) {
-                    Text(i18n.settingsRoomMemberListKnocking(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.KNOCK)) {
+                    Text(
+                        i18n.settingsRoomMemberListKnocking(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListKnocking())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.INVITE)
-                ) {
-                    Text(i18n.settingsRoomMemberListInvited(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.INVITE)) {
+                    Text(
+                        i18n.settingsRoomMemberListInvited(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListInvited())
+                        },
+                    )
                 }
                 Spacer(Modifier.size(5.dp))
-                ToggleableFilterChip(
-                    memberListViewModel.filterByMemberships,
-                    setOf(Membership.BAN)
-                ) {
-                    Text(i18n.settingsRoomMemberListBanned(), Modifier.semantics {
-                        text =
-                            AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
-                    })
+                ToggleableFilterChip(memberListViewModel.filterByMemberships, setOf(Membership.BAN)) {
+                    Text(
+                        i18n.settingsRoomMemberListBanned(),
+                        Modifier.semantics {
+                            text = AnnotatedString(i18n.filterBy() + " " + i18n.settingsRoomMemberListBanned())
+                        },
+                    )
                 }
             }
 
@@ -148,49 +138,39 @@ class RoomSettingsMemberListViewImpl : RoomSettingsMemberListView {
 }
 
 @Composable
-fun MemberList(
-    memberListViewModel: MemberListViewModel,
-    onClickUser: (UserId) -> Unit,
-) {
+fun MemberList(memberListViewModel: MemberListViewModel, onClickUser: (UserId) -> Unit) {
     val members by memberListViewModel.elements.collectAsState()
     val state = rememberLazyListState()
     val showLoadingSpinner = memberListViewModel.showLoadingSpinner.collectAsState().value
 
-    var focusedItem by remember(members) { mutableStateOf(members.map { it.memberUserId }.firstOrNull()) }
+    val focusedItem = remember(members) { mutableStateOf(members.firstOrNull()?.memberUserId?.full) }
 
     Box(Modifier.heightIn(min = 100.dp, max = 320.dp)) {
         LazyColumn(
-            Modifier
-                .fillMaxWidth()
-                .rovingFocusContainer()
-                .semantics {
-                    collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
-                },
-            state
+            Modifier.fillMaxWidth().rovingFocusContainer(listState = state, focusedItem = focusedItem).semantics {
+                collectionInfo = CollectionInfo(rowCount = members.size, columnCount = 1)
+            },
+            state,
         ) {
-            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { i, member ->
+            itemsIndexed(members, key = { _, item -> item.memberUserId.full }) { index, member ->
                 RoomSettingsMemberListElement(
                     memberListViewModel,
                     member.memberUserId,
                     member,
-                    modifier = Modifier
-                        .rovingFocusItem(
-                            isFocused = focusedItem == member.memberUserId,
-                            onFocus = { focusedItem = member.memberUserId },
-                        )
-                        .semantics {
-                            collectionItemInfo =
-                                CollectionItemInfo(rowIndex = i, rowSpan = 1, columnIndex = 0, columnSpan = 1)
-                        },
-                    onClick = {
-                        onClickUser(member.memberUserId)
-                    },
+                    modifier =
+                        Modifier.rovingFocusItem(
+                                isFocused = { focusedItem.value == member.memberUserId.full },
+                                onFocus = { focusedItem.value = member.memberUserId.full },
+                            )
+                            .semantics {
+                                collectionItemInfo =
+                                    CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                            },
+                    onClick = { onClickUser(member.memberUserId) },
                 )
             }
             if (showLoadingSpinner) {
-                item(key = "loadingSpinner") {
-                    LoadingSpinner()
-                }
+                item(key = "loadingSpinner") { LoadingSpinner() }
             }
         }
         if (state.canScrollForward || state.canScrollBackward) {

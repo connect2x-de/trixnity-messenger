@@ -27,6 +27,14 @@ import androidx.compose.ui.window.ComposeViewportConfiguration
 import js.numbers.JsDouble
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsAny
+import kotlin.js.JsString
+import kotlin.js.definedExternally
+import kotlin.js.js
+import kotlin.js.undefined
+import kotlin.js.unsafeCast
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -54,14 +62,6 @@ import web.html.HTMLInputElement
 import web.html.HTMLProgressElement
 import web.input.InputEvent
 import web.keyboard.KeyboardEvent
-import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.JsAny
-import kotlin.js.JsString
-import kotlin.js.definedExternally
-import kotlin.js.js
-import kotlin.js.undefined
-import kotlin.js.unsafeCast
-import kotlin.time.Duration.Companion.seconds
 
 internal expect fun onWasmReady(onReady: () -> Unit)
 
@@ -70,7 +70,7 @@ internal expect fun ComposeViewport(
     viewportContainer: HTMLElement,
     semanticsListener: (a11yContainer: HTMLDivElement) -> SemanticsOwnerListener,
     configure: ComposeViewportConfiguration.() -> Unit = {},
-    content: @Composable () -> Unit = { }
+    content: @Composable () -> Unit = {},
 )
 
 @Suppress("FunctionName")
@@ -80,17 +80,15 @@ fun AccessibleComposeViewport(content: @Composable () -> Unit = {}) {
             ComposeViewport(
                 viewportContainer = document.body,
                 semanticsListener = { CanvasSemanticsOwnerListener(it) },
-                configure = { },
+                configure = {},
                 content = content,
             )
         }
     }
 }
 
-class CanvasSemanticsOwnerListener(
-    val a11yContainer: HTMLDivElement,
-    coroutineScope: CoroutineScope = MainScope(),
-) : PlatformContext.SemanticsOwnerListener {
+class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineScope: CoroutineScope = MainScope()) :
+    PlatformContext.SemanticsOwnerListener {
     private val owners = mutableSetOf<SemanticsOwner>()
 
     private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
@@ -106,8 +104,7 @@ class CanvasSemanticsOwnerListener(
     init {
         // every browser other than Chrome needs this attribute in order for copy/paste events to be sendable to the
         // canvas. In Chrome however setting this results in copy/paste no longer working.
-        if (!isChrome())
-            canvas?.setAttribute("contenteditable", "true")
+        if (!isChrome()) canvas?.setAttribute("contenteditable", "true")
 
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
@@ -123,50 +120,47 @@ class CanvasSemanticsOwnerListener(
                     }
                 }
             },
-            unsafeJso { capture = true }
+            unsafeJso { capture = true },
         )
 
         a11yContainer.addEventListener(
             EventType("keydown"),
             EventHandler { event ->
                 // we need to prevent the default (moving focus) on these keys because we handle it ourselves
-                if (event is KeyboardEvent && listOf(
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "ArrowDown",
-                        "ArrowUp",
-                        "Tab"
-                    ).contains(event.key)
-                ) event.preventDefault()
+                if (
+                    event is KeyboardEvent &&
+                        listOf("ArrowLeft", "ArrowRight", "ArrowDown", "ArrowUp", "Tab").contains(event.key)
+                )
+                    event.preventDefault()
 
                 val backingInputField = backingDomDiv?.querySelector("input, textarea") as? HTMLElement
                 // If the backingInputField exists and we send keydown events to the canvas,
-                // they might get processed in the wrong order, because the canvas's EventHandler does not care about event.timeStamp
+                // they might get processed in the wrong order, because the canvas's EventHandler does not care about
+                // event.timeStamp
                 if (backingInputField == null) {
                     eventHandlerCaller?.callWithEvent(event)
                 } else {
                     if (event is KeyboardEvent) {
-                        // We prevent focus right before a copy, paste or cut event to prevent it from being send to the wrong HtmlElement (The Shadow Element)
-                        // and thus being ignored. Redispatching doesn't work because of the isTrusted flag (it might honestly also be other browser code magic)
+                        // We prevent focus right before a copy, paste or cut event to prevent it from being send to the
+                        // wrong HtmlElement (The Shadow Element)
+                        // and thus being ignored. Redispatching doesn't work because of the isTrusted flag (it might
+                        // honestly also be other browser code magic)
                         if (isClipboardEventTrigger(event)) {
                             preventFocus = true
                             backingInputField.focus()
                         }
 
-                        // If there is a backing textarea or input field, then compose always intends for keydown and keyup events to go to it.
+                        // If there is a backing textarea or input field, then compose always intends for keydown and
+                        // keyup events to go to it.
                         // Redispatching them works, because we are only interested in triggering
                         // the custom Event Handler in androidx.compose.ui.platform.DomInputStrategy
                         backingInputField.dispatchEvent(
-                            copyKeyboardEvent(event).also {
-                                setEventTimestamp(
-                                    it,
-                                    event.timeStamp
-                                )
-                            })
+                            copyKeyboardEvent(event).also { setEventTimestamp(it, event.timeStamp) }
+                        )
                     }
                 }
             },
-            unsafeJso { capture = true }
+            unsafeJso { capture = true },
         )
         a11yContainer.addEventListener(
             EventType("keyup"),
@@ -177,20 +171,16 @@ class CanvasSemanticsOwnerListener(
                 } else {
                     if (event is KeyboardEvent) {
                         backingInputField.dispatchEvent(
-                            copyKeyboardEvent(event).also {
-                                setEventTimestamp(
-                                    it,
-                                    event.timeStamp
-                                )
-                            })
+                            copyKeyboardEvent(event).also { setEventTimestamp(it, event.timeStamp) }
+                        )
                     }
                 }
             },
-            unsafeJso { capture = true }
+            unsafeJso { capture = true },
         )
 
         // We never have to send copy, paste and cut events to the canvas, as there are no listeners for them
-        //for (type in listOf("copy", "paste", "cut")) a11yContainer.addEventListener(
+        // for (type in listOf("copy", "paste", "cut")) a11yContainer.addEventListener(
         //    EventType(type),
         //    EventHandler { event ->
         //        // Do nothing
@@ -203,7 +193,8 @@ class CanvasSemanticsOwnerListener(
                 // Once a copy, paste or cut event has been send, we no longer need to prevent focus
                 preventFocus = false
             },
-            unsafeJso { capture = false }) //Needs to only trigger when bubbling back up
+            unsafeJso { capture = false },
+        ) // Needs to only trigger when bubbling back up
 
         a11yContainer.addEventListener(
             EventType("beforeinput"),
@@ -211,25 +202,22 @@ class CanvasSemanticsOwnerListener(
                 event.preventDefault()
                 if (event is InputEvent) {
                     // Redispatching beforeinput events works despite the new event being not trusted,
-                    // because we are only interested in triggering the custom Event Handler in androidx.compose.ui.platform.DomInputStrategy
+                    // because we are only interested in triggering the custom Event Handler in
+                    // androidx.compose.ui.platform.DomInputStrategy
                     (backingDomDiv?.querySelector("input, textarea") as? HTMLElement)?.dispatchEvent(
-                        copyInputEvent(event).also {
-                            setEventTimestamp(it, event.timeStamp)
-                        }
+                        copyInputEvent(event).also { setEventTimestamp(it, event.timeStamp) }
                     )
                 }
             },
-            unsafeJso { capture = true }
+            unsafeJso { capture = true },
         )
 
         coroutineScope.launch {
-            syncFlow
-                .conflate()
-                .collect {
-                    for (owner in owners) {
-                        onSemanticsChangeInner(owner)
-                    }
+            syncFlow.conflate().collect {
+                for (owner in owners) {
+                    onSemanticsChangeInner(owner)
                 }
+            }
         }
 
         coroutineScope.launch {
@@ -240,8 +228,11 @@ class CanvasSemanticsOwnerListener(
         }
     }
 
-    internal val SemanticsOwner.semanticId: String get() = "cmp-semantic-${rootSemanticsNode.id}"
-    internal val SemanticsNode.semanticId: String get() = "cmp-semantic-$id"
+    internal val SemanticsOwner.semanticId: String
+        get() = "cmp-semantic-${rootSemanticsNode.id}"
+
+    internal val SemanticsNode.semanticId: String
+        get() = "cmp-semantic-$id"
 
     override fun onSemanticsOwnerAppended(semanticsOwner: SemanticsOwner) {
         if (findElement(semanticsOwner) != null) return
@@ -279,17 +270,17 @@ class CanvasSemanticsOwnerListener(
             when (val found = findElement(node)) {
                 null -> {
                     // the node does not exist we need to create a new one
-                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
-                        continue
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null) continue
 
                     val el = basicHTMLElement(node)
                     setAttrs(el, node)
 
                     val parentElement = node.parent?.let(::findElement) ?: a11yContainer
-                    val nextElement = node.parent?.let {
-                        val index = it.replacedChildren.indexOf(node).takeIf { it >= 0 } ?: return@let null
-                        it.replacedChildren.getOrNull(index + 1)?.let(::findElement)
-                    }
+                    val nextElement =
+                        node.parent?.let {
+                            val index = it.replacedChildren.indexOf(node).takeIf { it >= 0 } ?: return@let null
+                            it.replacedChildren.getOrNull(index + 1)?.let(::findElement)
+                        }
 
                     if (nextElement != null) {
                         parentElement.insertBefore(el, nextElement)
@@ -299,8 +290,7 @@ class CanvasSemanticsOwnerListener(
                 }
 
                 else -> {
-                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null)
-                        continue
+                    if (node.config.getOrNull(SemanticsProperties.HideFromAccessibility) != null) continue
 
                     // the node does exist, however on the first render the node typically does not have a role
                     // so on the first render we put in a div and later on need to replace it with the correct element.
@@ -337,7 +327,8 @@ class CanvasSemanticsOwnerListener(
         parent.querySelector("[id='$semanticsId']") as HTMLElement?
 
     private fun collectIds(parent: HTMLElement = a11yContainer): Set<String> {
-        return parent.querySelectorAll("[id]")
+        return parent
+            .querySelectorAll("[id]")
             .asSequence()
             .map { it as HTMLElement }
             .map { it.getAttribute("id") }
@@ -354,20 +345,19 @@ class CanvasSemanticsOwnerListener(
                 Role.RadioButton -> "input"
                 Role.Tab -> "div"
                 Role.Image -> "div"
-                Role.DropdownList -> when (node.config.getOrNull(SemanticsProperties.IsEditable)) {
-                    true -> "input"
-                    else -> "button"
-                }
+                Role.DropdownList ->
+                    when (node.config.getOrNull(SemanticsProperties.IsEditable)) {
+                        true -> "input"
+                        else -> "button"
+                    }
 
                 Role.ValuePicker -> "div"
                 Role.Carousel -> "div"
                 else -> {
                     when {
-                        node.config.getOrNull(SemanticsProperties.ProgressBarRangeInfo) != null ->
-                            "progress"
+                        node.config.getOrNull(SemanticsProperties.ProgressBarRangeInfo) != null -> "progress"
 
-                        node.config.getOrNull(SemanticsProperties.IsEditable) != null ->
-                            "input"
+                        node.config.getOrNull(SemanticsProperties.IsEditable) != null -> "input"
 
                         else -> "div"
                     }
@@ -380,23 +370,19 @@ class CanvasSemanticsOwnerListener(
         fun <T> setIf(attr: String, prop: SemanticsPropertyKey<T>, value: (T) -> String?) =
             node.config.getOrNull(prop)?.let {
                 val v = value(it) ?: return@let null
-                if (el.getAttribute(attr) != v)
-                    el.setAttribute(attr, v)
+                if (el.getAttribute(attr) != v) el.setAttribute(attr, v)
             }
 
         fun setIf(attr: String, prop: SemanticsPropertyKey<String>) = setIf(attr, prop) { it }
 
-        fun <T> doIf(prop: SemanticsPropertyKey<T>, value: (T) -> Unit) =
-            node.config.getOrNull(prop)?.let { value(it) }
+        fun <T> doIf(prop: SemanticsPropertyKey<T>, value: (T) -> Unit) = node.config.getOrNull(prop)?.let { value(it) }
 
         el.setAttribute("id", node.semanticId)
 
         el.style.position = "fixed"
         el.style.whiteSpace = "pre"
 
-        val rootPosition = a11yContainer.getBoundingClientRect().let {
-            Offset(it.left.toFloat(), it.top.toFloat())
-        }
+        val rootPosition = a11yContainer.getBoundingClientRect().let { Offset(it.left.toFloat(), it.top.toFloat()) }
 
         val density = node.layoutInfo.density.density
         val toRoot = node.layoutInfo.coordinates.localToRoot(rootPosition).div(density)
@@ -460,14 +446,19 @@ class CanvasSemanticsOwnerListener(
 
             else -> {
                 // ThemedAdaptiveDialog sets this paneTitle
-                val isDialog = node.config.getOrNull(SemanticsProperties.IsDialog) != null ||
+                val isDialog =
+                    node.config.getOrNull(SemanticsProperties.IsDialog) != null ||
                         node.config.getOrNull(SemanticsProperties.PaneTitle) == "Dialog"
                 if (isDialog) {
                     el.setAttribute("role", "dialog")
-                    // find a header node and mark it as the label and mark its sibling (if it exists) as the description
+                    // find a header node and mark it as the label and mark its sibling (if it exists) as the
+                    // description
                     var hasHeadingAsChild: SemanticsNode? = node
                     while (hasHeadingAsChild != null) {
-                        if (hasHeadingAsChild.children.getOrNull(0)?.config?.getOrNull(SemanticsProperties.Heading) != null)
+                        if (
+                            hasHeadingAsChild.children.getOrNull(0)?.config?.getOrNull(SemanticsProperties.Heading) !=
+                                null
+                        )
                             break
                         hasHeadingAsChild = hasHeadingAsChild.children.getOrNull(0)
                     }
@@ -489,8 +480,7 @@ class CanvasSemanticsOwnerListener(
                     el.setAttribute("type", "text")
                     setIf("aria-description", SemanticsProperties.InputText) { it.toString() }
                     el.removeAttribute("readonly")
-                    if (node.config.getOrNull(SemanticsActions.SetText) == null)
-                        el.setAttribute("readonly", "")
+                    if (node.config.getOrNull(SemanticsActions.SetText) == null) el.setAttribute("readonly", "")
                 }
             }
         }
@@ -527,29 +517,27 @@ class CanvasSemanticsOwnerListener(
         val clickable = node.config.getOrNull(SemanticsActions.OnClick) != null
         if (clickable) {
             if (el.clickListener == null) {
-                el.clickListener = EventHandler {
-                    doIf(SemanticsActions.OnClick) { it.action?.invoke() }
-                }
+                el.clickListener = EventHandler { doIf(SemanticsActions.OnClick) { it.action?.invoke() } }
             }
         } else {
             el.clickListener = null
         }
 
         // TODO: Logic
-        // When either RequestFocus or Focused is set, the shadow dom element has to be focusable (e.g. via tabindex or similar)
+        // When either RequestFocus or Focused is set, the shadow dom element has to be focusable (e.g. via tabindex or
+        // similar)
         // On focus, we have to actually focus the shadow dom element for the screen reader to actually read the text
-        // For this to properly work with the handlers from compose, we have to propagate keyboard events, the actual focus
+        // For this to properly work with the handlers from compose, we have to propagate keyboard events, the actual
+        // focus
         // event and click events back to the canvas or to the explicit handlers, if they are given.
-        val focusable = node.config.getOrNull(SemanticsProperties.Focused) != null
-                || node.config.getOrNull(SemanticsActions.RequestFocus) != null
+        val focusable =
+            node.config.getOrNull(SemanticsProperties.Focused) != null ||
+                node.config.getOrNull(SemanticsActions.RequestFocus) != null
         if (focusable) {
             if (el.focusListener == null) {
-                val focusListener = EventHandler {
-                    doIf(SemanticsActions.RequestFocus) { it.action?.invoke() }
-                }
+                val focusListener = EventHandler { doIf(SemanticsActions.RequestFocus) { it.action?.invoke() } }
 
-                if (el is HTMLDivElement)
-                    el.setAttribute("tabindex", "-1")
+                if (el is HTMLDivElement) el.setAttribute("tabindex", "-1")
 
                 el.focusListener = focusListener
             }
@@ -583,27 +571,26 @@ class CanvasSemanticsOwnerListener(
         val title = node.config.getOrNull(SemanticsProperties.PaneTitle)
         if (title != null) {
             el.setAttribute("title", title)
-            if (title == "tooltip")
-                el.setAttribute("role", "tooltip")
+            if (title == "tooltip") el.setAttribute("role", "tooltip")
         }
     }
 }
 
-private fun <T : Node> NodeList<T>.asSequence(): Sequence<T> = object : Sequence<T> {
-    override fun iterator(): Iterator<T> = object : Iterator<T> {
-        var index = 0
+private fun <T : Node> NodeList<T>.asSequence(): Sequence<T> =
+    object : Sequence<T> {
+        override fun iterator(): Iterator<T> =
+            object : Iterator<T> {
+                var index = 0
 
-        override fun next(): T = checkNotNull(item(index)).unsafeCast<T>().also { index++ }
-        override fun hasNext(): Boolean = index < length
+                override fun next(): T = checkNotNull(item(index)).unsafeCast<T>().also { index++ }
 
+                override fun hasNext(): Boolean = index < length
+            }
     }
-}
 
 fun onDomReady(block: () -> Unit) {
     if (document.readyState == DocumentReadyState.loading) {
-        document.addEventListener(EventType("DOMContentLoaded"), EventHandler {
-            block()
-        })
+        document.addEventListener(EventType("DOMContentLoaded"), EventHandler { block() })
     } else {
         block()
     }
@@ -721,9 +708,10 @@ private fun EventHandlerCaller(canvas: HTMLCanvasElement): EventHandlerCaller {
 }
 
 private fun handleEventInListener(listener: AnyEventHandler): Boolean = js(""""handleEvent" in listener""")
-private fun callHandleEvent(listener: AnyEventHandler, event: Event): Unit = js("""listener.handleEvent(event)""")
-private fun call(listener: AnyEventHandler, event: Event): Unit = js("""listener(event)""")
 
+private fun callHandleEvent(listener: AnyEventHandler, event: Event): Unit = js("""listener.handleEvent(event)""")
+
+private fun call(listener: AnyEventHandler, event: Event): Unit = js("""listener(event)""")
 
 private fun isChrome(): Boolean = js("""typeof window.chrome !== "undefined"""")
 
@@ -740,12 +728,15 @@ private fun setEventTimestamp(event: Event, timeStamp: JsDouble) {
 }
 
 private fun copyInputEvent(event: InputEvent): InputEvent =
-    InputEvent(event.type, unsafeJso {
-        this.data = event.data
-        this.inputType = event.inputType
-        this.bubbles = true
-        this.cancelable = true
-    })
+    InputEvent(
+        event.type,
+        unsafeJso {
+            this.data = event.data
+            this.inputType = event.inputType
+            this.bubbles = true
+            this.cancelable = true
+        },
+    )
 
 private fun copyKeyboardEvent(event: KeyboardEvent): KeyboardEvent =
     js(

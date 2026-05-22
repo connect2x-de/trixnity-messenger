@@ -32,8 +32,7 @@ import kotlin.reflect.KClass
 interface EncryptedWaitTimelineElementView : TimelineElementView<EncryptedWaitTimelineElementViewModel>
 
 class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
-    override val supports: KClass<EncryptedWaitTimelineElementViewModel> =
-        EncryptedWaitTimelineElementViewModel::class
+    override val supports: KClass<EncryptedWaitTimelineElementViewModel> = EncryptedWaitTimelineElementViewModel::class
 
     override suspend fun waitFor(element: EncryptedWaitTimelineElementViewModel) {
         // no-op (has default size)
@@ -47,12 +46,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
         element: EncryptedWaitTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = false,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, index = index) { _ ->
             EncryptedMessageWaitElement()
         }
     }
@@ -63,12 +57,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
         element: EncryptedWaitTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = true,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = true, index = index) { _ ->
             EncryptedMessageWaitElement()
         }
     }
@@ -84,9 +73,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                EncryptedMessageWaitElement()
-            }
+            content = { EncryptedMessageWaitElement() },
         )
     }
 
@@ -101,16 +88,14 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
             holder = holder,
             modifier = modifier,
             interactionSource = interactionSource,
-            content = {
-                EncryptedMessageWaitElement()
-            }
+            content = { EncryptedMessageWaitElement() },
         )
     }
 
     @Composable
     override fun getClipEntry(
         holder: BaseTimelineElementHolderViewModel,
-        element: EncryptedWaitTimelineElementViewModel
+        element: EncryptedWaitTimelineElementViewModel,
     ): ClipEntry? = null
 
     override fun a11yLabel(element: EncryptedWaitTimelineElementViewModel, i18n: I18nView): String {
@@ -123,9 +108,9 @@ internal fun EncryptedMessageWaitElement() {
     val i18n = DI.get<I18nView>()
     Row(Modifier.padding(10.dp)) {
         Icon(
-            Icons.Outlined.Lock, i18n.commonWaiting(),
-            Modifier.align(Alignment.CenterVertically)
-                .size(MaterialTheme.typography.bodySmall.dp)
+            Icons.Outlined.Lock,
+            i18n.commonWaiting(),
+            Modifier.align(Alignment.CenterVertically).size(MaterialTheme.typography.bodySmall.dp),
         )
         Spacer(Modifier.width(10.dp))
         Text(

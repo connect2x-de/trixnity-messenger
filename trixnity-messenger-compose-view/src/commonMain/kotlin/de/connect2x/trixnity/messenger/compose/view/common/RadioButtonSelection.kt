@@ -13,30 +13,16 @@ import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 
-data class RadioButtonOption(
-    val text: String,
-    val isSelected: () -> Boolean,
-    val onSelect: () -> Unit,
-)
+data class RadioButtonOption(val text: String, val isSelected: () -> Boolean, val onSelect: () -> Unit)
 
 @Composable
-fun ColumnScope.RadioButtonSelection(
-    vararg radioButtonOptions: RadioButtonOption,
-) {
+fun ColumnScope.RadioButtonSelection(vararg radioButtonOptions: RadioButtonOption) {
     radioButtonOptions.forEach { option ->
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                option.onSelect()
-            }
-                .buttonPointerModifier(),
+            modifier = Modifier.clickable { option.onSelect() }.buttonPointerModifier(),
         ) {
-            RadioButton(
-                selected = option.isSelected(),
-                onClick = {
-                    option.onSelect()
-                },
-            )
+            RadioButton(selected = option.isSelected(), onClick = { option.onSelect() })
             Text(
                 text = option.text,
                 style = MaterialTheme.typography.titleSmall,

@@ -15,7 +15,5 @@ fun Paragraphs(
     spaceBetween: Dp = MaterialTheme.messengerDpConstants.small,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(spaceBetween), modifier = modifier) {
-        content()
-    }
+    Column(verticalArrangement = Arrangement.spacedBy(spaceBetween), modifier = modifier) { content() }
 }

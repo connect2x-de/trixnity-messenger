@@ -30,10 +30,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 
-data class SelectionStyle(
-    val handleColor: Color,
-    val selectionColor: Color,
-) {
+data class SelectionStyle(val handleColor: Color, val selectionColor: Color) {
     internal val colors = TextSelectionColors(handleColor, selectionColor)
 
     companion object {
@@ -63,33 +60,35 @@ fun ThemedSelectionContainer(style: SelectionStyle, modifier: Modifier = Modifie
         val focusRequester = remember { FocusRequester() }
         val focusManager = LocalFocusManager.current
 
-        val base = modifier
-            .focusProperties {
-                onEnter = {
-                    if (requestedFocusDirection == FocusDirection.Next || requestedFocusDirection == FocusDirection.Previous) {
-                        // Try to focus the box around content if it fails then there are no focusable elements inside so we
-                        // don't need to focus the anything at all and can just skip over the SelectionContainer
-                        if (!focusRequester.requestFocus()) cancelFocusChange()
+        val base =
+            modifier
+                .focusProperties {
+                    onEnter = {
+                        if (
+                            requestedFocusDirection == FocusDirection.Next ||
+                                requestedFocusDirection == FocusDirection.Previous
+                        ) {
+                            // Try to focus the box around content if it fails then there are no focusable elements
+                            // inside so we
+                            // don't need to focus the anything at all and can just skip over the SelectionContainer
+                            if (!focusRequester.requestFocus()) cancelFocusChange()
+                        }
                     }
                 }
-            }
-            .focusGroup()
+                .focusGroup()
 
-        val suffix = Modifier
-            .focusProperties {
-                onExit = {
-                    // move twice to skip the SelectionContainer
-                    if (requestedFocusDirection == FocusDirection.Previous) {
-                        focusManager.moveFocus(requestedFocusDirection)
-                        focusManager.moveFocus(requestedFocusDirection)
-                    }
+        val suffix = Modifier.focusProperties {
+            onExit = {
+                // move twice to skip the SelectionContainer
+                if (requestedFocusDirection == FocusDirection.Previous) {
+                    focusManager.moveFocus(requestedFocusDirection)
+                    focusManager.moveFocus(requestedFocusDirection)
                 }
             }
+        }
 
         SelectionContainer(modifier = SuffixModifier(base, suffix)) {
-            Box(Modifier.focusRequester(focusRequester).focusGroup()) {
-                content()
-            }
+            Box(Modifier.focusRequester(focusRequester).focusGroup()) { content() }
         }
     }
 }
@@ -142,8 +141,8 @@ fun ThemedSelectableText(
 }
 
 /**
- * SuffixModifier makes sure that the given suffix is applied last.
- * This is useful to guarantee that certain modifiers are overwritten.
+ * SuffixModifier makes sure that the given suffix is applied last. This is useful to guarantee that certain modifiers
+ * are overwritten.
  */
 private class SuffixModifier(
     val base: Modifier,

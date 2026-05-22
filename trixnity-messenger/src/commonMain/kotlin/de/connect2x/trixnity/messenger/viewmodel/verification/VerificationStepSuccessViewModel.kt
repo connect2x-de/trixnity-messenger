@@ -7,9 +7,7 @@ interface VerificationStepSuccessViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         onVerificationSuccessOk: () -> Unit,
     ): VerificationStepSuccessViewModel {
-        return VerificationStepSuccessViewModelImpl(
-            viewModelContext, onVerificationSuccessOk
-        )
+        return VerificationStepSuccessViewModelImpl(viewModelContext, onVerificationSuccessOk)
     }
 
     companion object : VerificationStepSuccessViewModelFactory
@@ -27,5 +25,4 @@ open class VerificationStepSuccessViewModelImpl(
     override fun ok() {
         onVerificationSuccessOk()
     }
-
 }

@@ -26,34 +26,35 @@ val appVersion = "1.0.0"
 val appName = "Trixnity Messenger"
 val appId = "de.connect2x.trixnity.messenger.compose.app"
 
-enum class BuildFlavor { PROD, DEV }
+enum class BuildFlavor {
+    PROD,
+    DEV,
+}
 
-val buildFlavor = BuildFlavor.valueOf(
-    project.properties["tm_build_flavor"] as? String
-        ?: System.getenv("TM_BUILD_FLAVOR")
-        ?: if (CI.isCI) "PROD" else "DEV"
-)
+val buildFlavor =
+    BuildFlavor.valueOf(
+        project.properties["tm_build_flavor"] as? String
+            ?: System.getenv("TM_BUILD_FLAVOR")
+            ?: if (CI.isCI) "PROD" else "DEV"
+    )
 
 registerMultiplatformLicensesTasks { licenseTask, target, variant ->
     // TODO: move this into c2x-conventions eventually
     val targetName = target.targetName
-    val buildConfigTask = tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
-        dependsOn(licenseTask)
-        group = "build config"
-        inputs.property("tm_build_flavor", buildFlavor)
-        val generatedSrc =
-            layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
-        doLast {
-            val outputFile = generatedSrc.get()
-                .dir(appId.replace(".", "/"))
-                .file("BuildConfig.kt")
-            val quotes = "\"\"\""
-            val licencesString = licenseTask.get().outputFile.get().asFile.readText()
-                .replace("$", "\${'$'}")
-                .replace(quotes, "")
+    val buildConfigTask =
+        tasks.register("generateBuildConfig${targetName.capitalized()}${variant.capitalized()}") {
+            dependsOn(licenseTask)
+            group = "build config"
+            inputs.property("tm_build_flavor", buildFlavor)
+            val generatedSrc = layout.buildDirectory.dir("generatedSrc/${targetName}Main/kotlin")
+            doLast {
+                val outputFile = generatedSrc.get().dir(appId.replace(".", "/")).file("BuildConfig.kt")
+                val quotes = "\"\"\""
+                val licencesString =
+                    licenseTask.get().outputFile.get().asFile.readText().replace("$", "\${'$'}").replace(quotes, "")
 
-            val buildConfigString =
-                """
+                val buildConfigString =
+                    """
             package $appId            
             
             actual val BuildConfig: CommonBuildConfig = object : CommonBuildConfig {
@@ -63,18 +64,17 @@ registerMultiplatformLicensesTasks { licenseTask, target, variant ->
                 override val appId: String = "$appId"
                 override val licenses: String = $quotes$licencesString$quotes
             }
-        """.trimIndent()
-            outputFile.asFile.apply {
-                ensureParentDirsCreated()
-                createNewFile()
-                writeText(buildConfigString)
+        """
+                        .trimIndent()
+                outputFile.asFile.apply {
+                    ensureParentDirsCreated()
+                    createNewFile()
+                    writeText(buildConfigString)
+                }
             }
+            outputs.dirs(generatedSrc)
         }
-        outputs.dirs(generatedSrc)
-    }
-    kotlin.sourceSets.named("${targetName}Main") {
-        kotlin.srcDir(buildConfigTask.map { it.outputs })
-    }
+    kotlin.sourceSets.named("${targetName}Main") { kotlin.srcDir(buildConfigTask.map { it.outputs }) }
 }
 
 kotlin {
@@ -83,15 +83,9 @@ kotlin {
     withJvm()
     withWeb {
         withBrowser {
-            commonWebpackConfig {
-                showProgress = true
-            }
-            runTask {
-                mainOutputFileName = "$appId.js"
-            }
-            webpackTask {
-                mainOutputFileName = "$appId.js"
-            }
+            commonWebpackConfig { showProgress = true }
+            runTask { mainOutputFileName = "$appId.js" }
+            webpackTask { mainOutputFileName = "$appId.js" }
         }
         binaries.executable()
         useEsModules()
@@ -144,23 +138,23 @@ kotlin {
                 implementation(sharedLibs.androidx.activity.compose)
             }
         }
-        iosMain {
-            dependencies {
-                implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns)
-            }
-        }
-        webMain {
-            dependencies {
-                implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get()))
-            }
-        }
+        iosMain { dependencies { implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns) } }
+        webMain { dependencies { implementation(npm("copy-webpack-plugin", libs.versions.copyWebpackPlugin.get())) } }
     }
 }
 
-val distributionJavaHome: String = System.getenv("DIST_JAVA_HOME") ?: javaToolchains.launcherFor {
-    languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
-    vendor = JvmVendorSpec.ADOPTIUM
-}.get().metadata.installationPath.asFile.absolutePath
+val distributionJavaHome: String =
+    System.getenv("DIST_JAVA_HOME")
+        ?: javaToolchains
+            .launcherFor {
+                languageVersion = JavaLanguageVersion.of(sharedLibs.versions.distributionJvm.get().toInt())
+                vendor = JvmVendorSpec.ADOPTIUM
+            }
+            .get()
+            .metadata
+            .installationPath
+            .asFile
+            .absolutePath
 
 compose {
     desktop {
@@ -168,9 +162,7 @@ compose {
             mainClass = "$appId.Main"
             jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
             javaHome = distributionJavaHome
-            buildTypes.release.proguard {
-                isEnabled = false
-            }
+            buildTypes.release.proguard { isEnabled = false }
             nativeDistributions {
                 modules("java.net.http", "java.sql", "java.naming")
                 targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -186,9 +178,7 @@ compose {
                     dockName = appName
                     iconFile.set(project.file("src/jvmMain/resources/logo.icns"))
                 }
-                linux {
-                    modules("jdk.security.auth")
-                }
+                linux { modules("jdk.security.auth") }
             }
         }
     }
@@ -196,17 +186,13 @@ compose {
 
 android {
     namespace = appId
-    buildFeatures {
-        compose = true
-    }
+    buildFeatures { compose = true }
     defaultConfig {
         resValue("string", "app_name", appName)
         resValue("string", "scheme", appId)
     }
     buildTypes {
-        debug {
-            isDefault = true
-        }
+        debug { isDefault = true }
         release {
             signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false

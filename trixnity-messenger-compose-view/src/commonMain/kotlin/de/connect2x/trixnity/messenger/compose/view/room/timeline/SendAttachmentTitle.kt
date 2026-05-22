@@ -25,8 +25,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconB
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.SendAttachmentViewModel
 
 interface SendAttachmentTitleView {
-    @Composable
-    fun create(sendAttachmentViewModel: SendAttachmentViewModel)
+    @Composable fun create(sendAttachmentViewModel: SendAttachmentViewModel)
 }
 
 @Composable
@@ -41,22 +40,21 @@ class SendAttachmentTitleViewImpl : SendAttachmentTitleView {
         val sendEnabled = sendAttachmentViewModel.sendEnabled.collectAsState().value
         val errorHappened = sendAttachmentViewModel.error.collectAsState().value != null
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 i18n.sendAttachmentTitle(),
                 modifier = Modifier.padding(start = 20.dp),
                 style = MaterialTheme.typography.titleMedium,
             )
             Spacer(Modifier.fillMaxWidth().weight(1.0f, false))
-            Tooltip(
-                tooltip = { Text(i18n.commonCancel()) }
-            ) {
+            Tooltip(tooltip = { Text(i18n.commonCancel()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.commonIconButton,
                     onClick = { sendAttachmentViewModel.cancel() },
-                    modifier = Modifier.padding(8.dp), // 24.dp Icon + 24.dp Button = 12.dp padding on each side; 20.dp - 12.dp = 8.dp
+                    modifier =
+                        Modifier.padding(
+                            8.dp
+                        ), // 24.dp Icon + 24.dp Button = 12.dp padding on each side; 20.dp - 12.dp = 8.dp
                     enabled = sendEnabled || errorHappened,
                 ) {
                     Icon(Icons.Outlined.Cancel, i18n.commonCancel())

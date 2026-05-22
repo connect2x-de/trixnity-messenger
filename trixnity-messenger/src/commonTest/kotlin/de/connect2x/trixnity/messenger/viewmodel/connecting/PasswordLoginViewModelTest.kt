@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.connecting
 
+import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -19,17 +20,16 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.engine.mock.*
 import io.ktor.http.*
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.clientserverapi.client.ClassicMatrixClientAuthProviderData
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.coroutines.ContinuationInterceptor
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class PasswordLoginViewModelTest {
     val matrixClientsMock = mock<MatrixClients>()
@@ -50,9 +50,7 @@ class PasswordLoginViewModelTest {
 
     @Test
     fun `call login and start sync`() = runTest {
-        everySuspend {
-            matrixClientsMock.create(any())
-        } returns MatrixClients.CreateResult.Success
+        everySuspend { matrixClientsMock.create(any()) } returns MatrixClients.CreateResult.Success
 
         val cut = viewModel()
         cut.canLogin.first { it }
@@ -75,76 +73,81 @@ class PasswordLoginViewModelTest {
 
     @Test
     fun `set addMatrixAccountState when login fails because it was forbidden`() = runTest {
-        everySuspend {
-            matrixClientsMock.create(any())
-        } returns MatrixClients.CreateResult.Failure.AccountAlreadyExists("exists")
+        everySuspend { matrixClientsMock.create(any()) } returns
+            MatrixClients.CreateResult.Failure.AccountAlreadyExists("exists")
 
         val cut = viewModel()
         cut.canLogin.first { it }
         cut.tryLogin()
         delay(10)
 
-        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain "exists"
+        cut.addMatrixAccountState.value.shouldBeInstanceOf<AddMatrixAccountState.Failure>().message shouldContain
+            "exists"
     }
 
     private suspend fun TestScope.viewModel(
         serverUrl: String = "http://localhost",
         withFailure: Boolean = false,
     ): PasswordLoginViewModelImpl {
-        val di = koinApplication {
-            modules(createTestDefaultTrixnityMessengerModules() + module {
-                single<MatrixClients> { matrixClientsMock }
-                single<MatrixMessengerConfiguration> {
-                    MatrixMessengerConfiguration().apply {
-                        httpClientEngine = MockEngine.create {
-                            dispatcher = coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
-                            addHandler { request ->
-                                when (request.url.fullPath) {
-                                    "/_matrix/client/v3/login" -> {
-                                        if (withFailure)
-                                            respond(
-                                                "wrong password",
-                                                HttpStatusCode.Unauthorized
-                                            )
-                                        else
-                                            respond(
-                                                """
-                                                    {
-                                                      "access_token": "abc123",
-                                                      "device_id": "GHTYAJCE",
-                                                      "user_id": "@cheeky_monkey:matrix.org"
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules() +
+                            module {
+                                single<MatrixClients> { matrixClientsMock }
+                                single<MatrixMessengerConfiguration> {
+                                    MatrixMessengerConfiguration().apply {
+                                        httpClientEngine = MockEngine.create {
+                                            dispatcher =
+                                                coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
+                                            addHandler { request ->
+                                                when (request.url.fullPath) {
+                                                    "/_matrix/client/v3/login" -> {
+                                                        if (withFailure)
+                                                            respond("wrong password", HttpStatusCode.Unauthorized)
+                                                        else
+                                                            respond(
+                                                                """
+                                                                {
+                                                                  "access_token": "abc123",
+                                                                  "device_id": "GHTYAJCE",
+                                                                  "user_id": "@cheeky_monkey:matrix.org"
+                                                                }
+                                                                """
+                                                                    .trimIndent(),
+                                                                HttpStatusCode.OK,
+                                                                headersOf(
+                                                                    HttpHeaders.ContentType,
+                                                                    ContentType.Application.Json.toString(),
+                                                                ),
+                                                            )
                                                     }
-                                                """.trimIndent(),
-                                                HttpStatusCode.OK,
-                                                headersOf(
-                                                    HttpHeaders.ContentType,
-                                                    ContentType.Application.Json.toString(),
-                                                )
-                                            )
-                                    }
 
-                                    else -> {
-                                        respond(
-                                            "unknown ${request.url.fullPath}",
-                                            HttpStatusCode.BadRequest
-                                        )
+                                                    else -> {
+                                                        respond(
+                                                            "unknown ${request.url.fullPath}",
+                                                            HttpStatusCode.BadRequest,
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
+                    )
                 }
-            })
-        }.koin
+                .koin
         di.get<I18n>().setCurrentLang(DefaultLanguages.EN)
         return PasswordLoginViewModelImpl(
-            viewModelContext = testViewModelContext(di),
-            serverUrl = serverUrl,
-            onLogin = onLoginMock,
-            onBack = onBackMock,
-        ).apply {
-            username.update("timmy")
-            password.update("sup3rs3cr3t")
-        }
+                viewModelContext = testViewModelContext(di),
+                serverUrl = serverUrl,
+                onLogin = onLoginMock,
+                onBack = onBackMock,
+            )
+            .apply {
+                username.update("timmy")
+                password.update("sup3rs3cr3t")
+            }
     }
 }

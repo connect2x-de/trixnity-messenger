@@ -23,7 +23,6 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
-import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -49,46 +48,43 @@ actual fun SaveFileDialog(
     val hasError = error?.isNotBlank() == true
     if (hasError) {
         ThemedModalDialog(onCloseSaveFileDialog) {
-            ModalDialogHeader {
-                Text(i18n.fileDialogDownloadErrorSave())
-            }
-            ModalDialogContent {
-                Text(error)
-            }
+            ModalDialogHeader { Text(i18n.fileDialogDownloadErrorSave()) }
+            ModalDialogContent { Text(error) }
             ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = onCloseSaveFileDialog,
-                ) {
+                ThemedButton(style = MaterialTheme.components.primaryButton, onClick = onCloseSaveFileDialog) {
                     Text(i18n.actionOk())
                 }
             }
         }
     }
     LaunchedEffect(hasError) {
-        if (!hasError) downloadFile({ file ->
-            val savedFile = FileKit.openFileSaver(
-                suggestedName = fileName.substringBeforeLast("."),
-                extension = fileName.substringAfterLast("."),
-                // TODO: set initialDirectory to OS dependent default pictures directory
-            )
-            try {
-                savedFile?.let {
-                    // We couldn't use the ByteArrayFlowOkioExtensions from Trixnity because the API is exposing
-                    // kotlinx.io's API. We create a buffer because kotlinx.io doesn't expose a function allowing
-                    // to write a bytearray directly.
-                    savedFile.sink().use { sink ->
-                        file.map { data -> Buffer().also { it.write(data) } }.collect { data ->
-                            data.use { buffer ->
-                                sink.write(buffer, buffer.size)
+        if (!hasError)
+            downloadFile(
+                { file ->
+                    val savedFile =
+                        FileKit.openFileSaver(
+                            suggestedName = fileName.substringBeforeLast("."),
+                            extension = fileName.substringAfterLast("."),
+                            // TODO: set initialDirectory to OS dependent default pictures directory
+                        )
+                    try {
+                        savedFile?.let {
+                            // We couldn't use the ByteArrayFlowOkioExtensions from Trixnity because the API is exposing
+                            // kotlinx.io's API. We create a buffer because kotlinx.io doesn't expose a function
+                            // allowing
+                            // to write a bytearray directly.
+                            savedFile.sink().use { sink ->
+                                file
+                                    .map { data -> Buffer().also { it.write(data) } }
+                                    .collect { data -> data.use { buffer -> sink.write(buffer, buffer.size) } }
                             }
-                        }
+                        } ?: log.warn { "No valid path selected" }
+                    } finally {
+                        onCloseSaveFileDialog()
                     }
-                } ?: log.warn { "No valid path selected" }
-            } finally {
-                onCloseSaveFileDialog()
-            }
-        }, onCloseSaveFileDialog)
+                },
+                onCloseSaveFileDialog,
+            )
     }
 }
 
@@ -101,38 +97,37 @@ actual fun LoadFileDialog(
     val selectedPickerType = remember { mutableStateOf<FilePickerType?>(null) }
 
     if (availableTypes.size == 1) {
-        LaunchedEffect(availableTypes) {
-            selectedPickerType.value = availableTypes.first()
-        }
+        LaunchedEffect(availableTypes) { selectedPickerType.value = availableTypes.first() }
     } else {
         FilePickerTypeSelection(availableTypes, { selectedPickerType.value = it }, onCloseLoadFileDialog)
     }
 
     when (selectedPickerType.value) {
-        FilePickerType.IMAGE_FILE, FilePickerType.IMAGE_AND_VIDEO_FILE, FilePickerType.ATTACHMENT_FILE -> {
+        FilePickerType.IMAGE_FILE,
+        FilePickerType.IMAGE_AND_VIDEO_FILE,
+        FilePickerType.ATTACHMENT_FILE -> {
             val i18n = DI.get<I18nView>()
-            val launcher = rememberFilePickerLauncher(
-                type = when (selectedPickerType.value) {
-                    FilePickerType.IMAGE_FILE -> FileKitType.Image
-                    FilePickerType.IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
-                    else -> FileKitType.File()
-                },
-                title = i18n.fileDialogTitleLoad(),
-                mode = FileKitMode.Single,
-                onResult = {
-                    it?.let {
-                        onFileSelect(FileKitFileDescriptor(it))
-                    }
-                    onCloseLoadFileDialog()
-                }
-            )
+            val launcher =
+                rememberFilePickerLauncher(
+                    type =
+                        when (selectedPickerType.value) {
+                            FilePickerType.IMAGE_FILE -> FileKitType.Image
+                            FilePickerType.IMAGE_AND_VIDEO_FILE -> FileKitType.ImageAndVideo
+                            else -> FileKitType.File()
+                        },
+                    title = i18n.fileDialogTitleLoad(),
+                    mode = FileKitMode.Single,
+                    onResult = {
+                        it?.let { onFileSelect(FileKitFileDescriptor(it)) }
+                        onCloseLoadFileDialog()
+                    },
+                )
 
-            LaunchedEffect(Unit) {
-                launcher.launch()
-            }
+            LaunchedEffect(Unit) { launcher.launch() }
         }
 
-        FilePickerType.PHOTO_CAPTURE, FilePickerType.VIDEO_CAPTURE -> {
+        FilePickerType.PHOTO_CAPTURE,
+        FilePickerType.VIDEO_CAPTURE -> {
             LaunchedEffect(Unit) {
                 // TODO: Use video camera picker when FileKit supports it
                 val file = FileKit.openCameraPicker(type = FileKitCameraType.Photo)
@@ -150,14 +145,13 @@ actual fun LoadFileDialog(
     }
 }
 
-actual fun filterFilePickerOptionsByAvailability(
-    vararg availablePickerTypes: FilePickerType,
-): List<FilePickerType> {
-    val whitelist = listOf(
-        FilePickerType.IMAGE_FILE,
-        FilePickerType.IMAGE_AND_VIDEO_FILE,
-        FilePickerType.ATTACHMENT_FILE,
-        FilePickerType.PHOTO_CAPTURE
-    )
+actual fun filterFilePickerOptionsByAvailability(vararg availablePickerTypes: FilePickerType): List<FilePickerType> {
+    val whitelist =
+        listOf(
+            FilePickerType.IMAGE_FILE,
+            FilePickerType.IMAGE_AND_VIDEO_FILE,
+            FilePickerType.ATTACHMENT_FILE,
+            FilePickerType.PHOTO_CAPTURE,
+        )
     return availablePickerTypes.filter { whitelist.contains(it) }
 }

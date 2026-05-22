@@ -29,8 +29,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaStepPasswordViewModel
 
 interface UiaPasswordInputView {
-    @Composable
-    fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel)
+    @Composable fun create(uiaStepPasswordViewModel: UiaStepPasswordViewModel)
 }
 
 @Composable
@@ -46,11 +45,7 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
         val error = uiaStepPasswordViewModel.error.collectAsState().value
         val tabToNextAndEnterSend = TabInTextField(true, uiaStepPasswordViewModel::submit)
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaPasswordTitle())
                 if (error != null) {
                     ErrorView(error)
@@ -65,13 +60,12 @@ class UiaPasswordInputViewImpl : UiaPasswordInputView {
                 Spacer(Modifier.height(20.dp))
                 PasswordField(
                     password = uiaStepPasswordViewModel.password.collectAsTextFieldValueState(),
-                    modifier = tabToNextAndEnterSend
-                ) { Text(i18n.addMatrixClientPassword()) }
-                Spacer(Modifier.height(40.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = tabToNextAndEnterSend,
                 ) {
+                    Text(i18n.addMatrixClientPassword())
+                }
+                Spacer(Modifier.height(40.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaStepPasswordViewModel::cancel,

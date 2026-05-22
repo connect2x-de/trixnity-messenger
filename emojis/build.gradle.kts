@@ -8,9 +8,7 @@ plugins {
 
 configureJava(sharedLibs.versions.targetJvm)
 
-application {
-    mainClass = "EmojisKt"
-}
+application { mainClass = "EmojisKt" }
 
 dependencies {
     implementation(sharedLibs.kotlinx.serialization.core)

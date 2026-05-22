@@ -1,5 +1,19 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.key
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.avatarUrl
+import de.connect2x.trixnity.client.store.membership
+import de.connect2x.trixnity.client.store.originalName
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.Presence
+import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
@@ -16,20 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.key
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.client.store.RoomUser
-import de.connect2x.trixnity.client.store.avatarUrl
-import de.connect2x.trixnity.client.store.membership
-import de.connect2x.trixnity.client.store.originalName
-import de.connect2x.trixnity.client.user
-import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.core.model.RoomId
-import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.core.model.events.m.room.Membership
-import de.connect2x.trixnity.crypto.key.UserTrustLevel
 import org.koin.core.component.get
 
 interface MemberListElementViewModelFactory {
@@ -37,7 +37,7 @@ interface MemberListElementViewModelFactory {
         viewModelContext: MatrixClientViewModelContext,
         roomUser: RoomUser,
         selectedRoomId: RoomId,
-        onOpenUserProfile: (UserId) -> Unit
+        onOpenUserProfile: (UserId) -> Unit,
     ): MemberListElementViewModel {
         return MemberListElementViewModelImpl(
             viewModelContext = viewModelContext,
@@ -66,12 +66,7 @@ interface MemberListElementViewModel {
 
     fun openUserProfile()
 
-    data class MemberElement(
-        val image: ByteArray?,
-        val displayName: String,
-        val userId: String,
-        val initials: String
-    ) {
+    data class MemberElement(val image: ByteArray?, val displayName: String, val userId: String, val initials: String) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other == null || this::class != other::class) return false
@@ -104,39 +99,48 @@ class MemberListElementViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomUser: RoomUser,
     private val selectedRoomId: RoomId,
-    private val onOpenUserProfile: (UserId) -> Unit
+    private val onOpenUserProfile: (UserId) -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, MemberListElementViewModel {
     override val memberUserId = roomUser.userId
     override val member: StateFlow<MemberListElementViewModel.MemberElement?>
-    override val membership: StateFlow<Membership?> = matrixClient.user.getById(selectedRoomId, memberUserId)
-        .mapLatest { it?.membership }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val membership: StateFlow<Membership?> =
+        matrixClient.user
+            .getById(selectedRoomId, memberUserId)
+            .mapLatest { it?.membership }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
 
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
-    override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(memberUserId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val userTrustLevel: StateFlow<UserTrustLevel?> =
+        matrixClient.key.getTrustLevel(memberUserId).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
 
-    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, memberUserId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val powerLevel =
+        matrixClient.user
+            .getPowerLevel(selectedRoomId, memberUserId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val showPowerLevel = MutableStateFlow(false)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
-        matrixClient.user.canUnbanUser(selectedRoomId, memberUserId)
+        matrixClient.user
+            .canUnbanUser(selectedRoomId, memberUserId)
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val iHavePowerToBlockUser: Boolean = matrixClient.userId != roomUser.userId
-    override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, memberUserId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val isUserBlocked: StateFlow<Boolean> =
+        userBlocking
+            .isUserBlocked(matrixClient, memberUserId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val presence = matrixClient.user.getPresence(memberUserId)
-        .map { it?.presence ?: Presence.OFFLINE }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
+    override val presence =
+        matrixClient.user
+            .getPresence(memberUserId)
+            .map { it?.presence ?: Presence.OFFLINE }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -150,35 +154,34 @@ class MemberListElementViewModelImpl(
         }
 
         // TODO this is not reactive! For example instead of RoomUser, just the userId should be passed from the list.
-        member = channelFlow {
-            roomUserOriginalName.value = roomUser.originalName
-            send(
-                MemberListElementViewModel.MemberElement(
-                    getImage(
-                        matrixClient,
-                        roomUser
-                    ),
-                    roomUser.name,
-                    roomUser.userId.full,
-                    initials.compute(roomUser.name),
-                )
-            )
-        }.buffer(0).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        member =
+            channelFlow {
+                    roomUserOriginalName.value = roomUser.originalName
+                    send(
+                        MemberListElementViewModel.MemberElement(
+                            getImage(matrixClient, roomUser),
+                            roomUser.name,
+                            roomUser.userId.full,
+                            initials.compute(roomUser.name),
+                        )
+                    )
+                }
+                .buffer(0)
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
     override fun openUserProfile() {
         onOpenUserProfile(memberUserId)
     }
 
-
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
         return user.avatarUrl?.let { url ->
-            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = { null }
-            )
+            matrixClient.media
+                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                .fold(
+                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                    onFailure = { null },
+                )
         }
     }
 
@@ -191,4 +194,3 @@ class MemberListElementViewModelImpl(
         }
     }
 }
-

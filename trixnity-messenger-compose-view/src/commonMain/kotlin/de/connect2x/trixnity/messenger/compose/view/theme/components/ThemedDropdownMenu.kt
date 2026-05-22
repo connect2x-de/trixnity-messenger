@@ -92,11 +92,7 @@ data class DropdownMenuItemStyle(
             colors: MenuItemColors = MenuDefaults.itemColors(),
             contentPadding: PaddingValues = MenuDefaults.DropdownMenuItemContentPadding,
             focusedBorder: BorderStroke? = null,
-        ) = DropdownMenuItemStyle(
-            colors = colors,
-            contentPadding = contentPadding,
-            focusedBorder = focusedBorder,
-        )
+        ) = DropdownMenuItemStyle(colors = colors, contentPadding = contentPadding, focusedBorder = focusedBorder)
     }
 }
 
@@ -112,17 +108,14 @@ fun ThemedDropdownMenuItem(
     style: DropdownMenuItemStyle = MaterialTheme.components.dropdownMenuItem,
 ) {
     val hasFocus = interactionSource.collectIsFocusedAsState()
-    val border = style.focusedBorder?.let { borderStroke ->
-        if (hasFocus.value) Modifier.border(borderStroke) else Modifier
-    } ?: Modifier
+    val border =
+        style.focusedBorder?.let { borderStroke -> if (hasFocus.value) Modifier.border(borderStroke) else Modifier }
+            ?: Modifier
 
     DropdownMenuItem(
         text = text,
         onClick = onClick,
-        modifier = modifier
-            .buttonPointerModifier(enabled)
-            .semantics { role = Role.Button }
-            .then(border),
+        modifier = modifier.buttonPointerModifier(enabled).semantics { role = Role.Button }.then(border),
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         enabled = enabled,

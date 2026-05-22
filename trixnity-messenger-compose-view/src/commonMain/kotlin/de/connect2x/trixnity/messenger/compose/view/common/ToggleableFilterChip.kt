@@ -14,16 +14,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 fun <T> ToggleableFilterChip(
     appliedFilters: MutableStateFlow<Set<T>>,
     filters: Set<T>,
-    label: @Composable (() -> Unit)
+    label: @Composable (() -> Unit),
 ) {
     val applied = appliedFilters.collectAsState().value.containsAll(filters)
 
     ThemedFilterChip(
         style = MaterialTheme.components.primaryChip,
         selected = applied,
-        leadingIcon = if (applied) {
-            @Composable { Icon(Icons.Default.Check, contentDescription = null) }
-        } else null,
+        leadingIcon =
+            if (applied) {
+                @Composable { Icon(Icons.Default.Check, contentDescription = null) }
+            } else null,
         onClick = {
             if (applied) {
                 appliedFilters.value = appliedFilters.value.minus(filters)
@@ -31,6 +32,6 @@ fun <T> ToggleableFilterChip(
                 appliedFilters.value = appliedFilters.value.plus(filters)
             }
         },
-        label = label
+        label = label,
     )
 }

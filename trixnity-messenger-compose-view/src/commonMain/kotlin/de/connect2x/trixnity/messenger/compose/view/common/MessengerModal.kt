@@ -30,6 +30,7 @@ import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.blockPointerInput
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -38,29 +39,22 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 
 @Composable
 fun MessengerModal(
     onDismiss: (() -> Unit)? = null,
     title: String,
     width: Dp = 800.dp,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(
-        Modifier
-            .fillMaxSize()
-            .blockPointerInput()
-    ) {
+    Box(Modifier.fillMaxSize().blockPointerInput()) {
         ThemedSurface(
             style = MaterialTheme.components.dialog,
-            modifier = Modifier.align(Alignment.Center).width(width)
+            modifier = Modifier.align(Alignment.Center).width(width),
         ) {
             Column {
                 MessengerModalHeader(onDismiss, title)
-                Column(Modifier.padding(20.dp)) {
-                    content()
-                }
+                Column(Modifier.padding(20.dp)) { content() }
             }
         }
     }
@@ -69,10 +63,9 @@ fun MessengerModal(
 @Composable
 fun ColumnScope.MessengerModalContent(content: @Composable ColumnScope.() -> Unit) {
     val scrollState = rememberScrollState()
-    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = false)) {
-        content()
-    }
-    // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be needed)
+    Column(Modifier.verticalScroll(scrollState).weight(1.0f, fill = false)) { content() }
+    // do not display scroll bar as it sets the height to max and is not used on mobile (where scrolling might be
+    // needed)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -108,8 +101,8 @@ fun RowScope.NextButton(enabled: Boolean = true, text: String? = null, nextActio
     ThemedButton(
         style = MaterialTheme.components.primaryButton,
         onClick = nextAction,
-        modifier = Modifier.weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possibles
+        modifier =
+            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possibles
         enabled = enabled,
     ) {
         Text(text ?: i18n.commonNext().capitalize(Locale.current))
@@ -122,8 +115,8 @@ fun RowScope.CloseModalButton(closeModalAction: () -> Unit, caption: String? = n
     ThemedButton(
         style = MaterialTheme.components.destructiveButton,
         onClick = { closeModalAction() },
-        modifier = Modifier.weight(1.0f, fill = false)
-            .width(IntrinsicSize.Max), // avoid wrapping button text if possible
+        modifier =
+            Modifier.weight(1.0f, fill = false).width(IntrinsicSize.Max), // avoid wrapping button text if possible
     ) {
         Text(caption ?: i18n.commonClose())
     }
@@ -154,13 +147,11 @@ fun RowScope.BackButton(onBack: () -> Unit) {
     }
 }
 
-
 @Composable
 private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
     val i18n = DI.get<I18nView>()
     Row(
-        Modifier
-            .fillMaxWidth()
+        Modifier.fillMaxWidth()
             .background(MaterialTheme.colorScheme.primaryContainer)
             .padding(10.dp)
             .padding(start = 10.dp),
@@ -174,10 +165,7 @@ private fun MessengerModalHeader(onDismiss: (() -> Unit)?, title: String) {
         )
         if (onDismiss != null)
             Tooltip({ Text(i18n.commonCancel()) }) {
-                ThemedIconButton(
-                    style = MaterialTheme.components.commonIconButton,
-                    onClick = onDismiss,
-                ) {
+                ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onDismiss) {
                     Icon(Icons.Default.Close, i18n.commonCancel().capitalize(Locale.current))
                 }
             }

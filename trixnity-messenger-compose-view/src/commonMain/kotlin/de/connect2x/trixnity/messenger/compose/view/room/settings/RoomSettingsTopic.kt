@@ -39,8 +39,7 @@ import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsTopicViewModel
 
 interface RoomSettingsTopicView {
-    @Composable
-    fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel)
+    @Composable fun create(roomSettingsTopicViewModel: RoomSettingsTopicViewModel)
 }
 
 @Composable

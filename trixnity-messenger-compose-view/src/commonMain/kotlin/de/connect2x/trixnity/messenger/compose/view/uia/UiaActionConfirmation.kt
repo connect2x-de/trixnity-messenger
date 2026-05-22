@@ -24,8 +24,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.viewmodel.uia.UiaActionConfirmationViewModel
 
 interface UiaActionConfirmationView {
-    @Composable
-    fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel)
+    @Composable fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel)
 }
 
 @Composable
@@ -37,23 +36,17 @@ class UiaActionConfirmationViewImpl : UiaActionConfirmationView {
     @Composable
     override fun create(uiaActionConfirmationViewModel: UiaActionConfirmationViewModel) {
         val i18n = DI.get<I18nView>()
-        val message = uiaActionConfirmationViewModel.confirmationMessage
-            ?: return // a ActionConfirmation without message shouldn't be shown
+        val message =
+            uiaActionConfirmationViewModel.confirmationMessage
+                ?: return // a ActionConfirmation without message shouldn't be shown
         val isPerformingAction = uiaActionConfirmationViewModel.isPerformingAction.collectAsState().value
 
         UiaModalBox {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-            ) {
+            Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(message)
                 if (isPerformingAction) LoadingSpinner()
                 Spacer(Modifier.height(40.dp))
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                     ThemedButton(
                         style = MaterialTheme.components.commonButton,
                         onClick = uiaActionConfirmationViewModel::cancel,

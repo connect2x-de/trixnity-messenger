@@ -8,13 +8,14 @@ internal sealed interface ListScope {
         val reversed: Boolean = false,
         val type: OrderedListStyle = OrderedListStyle.NUMBERS,
     ) : ListScope {
-        override fun render(): String = when (type) {
-            OrderedListStyle.LOWERCASE_LETTERS -> letter(index).lowercase()
-            OrderedListStyle.UPPERCASE_LETTERS -> letter(index)
-            OrderedListStyle.LOWERCASE_ROMAN -> romanNumeral(index).lowercase()
-            OrderedListStyle.UPPERCASE_ROMAN -> romanNumeral(index)
-            OrderedListStyle.NUMBERS -> "${index}."
-        }.also { index++ }
+        override fun render(): String =
+            when (type) {
+                OrderedListStyle.LOWERCASE_LETTERS -> letter(index).lowercase()
+                OrderedListStyle.UPPERCASE_LETTERS -> letter(index)
+                OrderedListStyle.LOWERCASE_ROMAN -> romanNumeral(index).lowercase()
+                OrderedListStyle.UPPERCASE_ROMAN -> romanNumeral(index)
+                OrderedListStyle.NUMBERS -> "${index}."
+            }.also { index++ }
     }
 
     enum class OrderedListStyle {
@@ -25,20 +26,19 @@ internal sealed interface ListScope {
         NUMBERS;
 
         companion object {
-            fun of(value: String?): OrderedListStyle? = when (value) {
-                "a" -> LOWERCASE_LETTERS
-                "A" -> UPPERCASE_LETTERS
-                "i" -> LOWERCASE_ROMAN
-                "I" -> UPPERCASE_ROMAN
-                "1" -> NUMBERS
-                else -> null
-            }
+            fun of(value: String?): OrderedListStyle? =
+                when (value) {
+                    "a" -> LOWERCASE_LETTERS
+                    "A" -> UPPERCASE_LETTERS
+                    "i" -> LOWERCASE_ROMAN
+                    "I" -> UPPERCASE_ROMAN
+                    "1" -> NUMBERS
+                    else -> null
+                }
         }
     }
 
-    data class UnorderedList(
-        val type: UnorderedListStyle = UnorderedListStyle.CIRCLE,
-    ) : ListScope {
+    data class UnorderedList(val type: UnorderedListStyle = UnorderedListStyle.CIRCLE) : ListScope {
         override fun render(): String = type.symbol
     }
 
@@ -48,18 +48,20 @@ internal sealed interface ListScope {
         SQUARE("▪");
 
         companion object {
-            fun of(value: String?): UnorderedListStyle? = when (value?.lowercase()) {
-                "disc" -> DISC
-                "square" -> SQUARE
-                "circle" -> CIRCLE
-                else -> null
-            }
+            fun of(value: String?): UnorderedListStyle? =
+                when (value?.lowercase()) {
+                    "disc" -> DISC
+                    "square" -> SQUARE
+                    "circle" -> CIRCLE
+                    else -> null
+                }
 
-            fun next(style: UnorderedListStyle) = when (style) {
-                CIRCLE -> DISC
-                DISC -> SQUARE
-                SQUARE -> CIRCLE
-            }
+            fun next(style: UnorderedListStyle) =
+                when (style) {
+                    CIRCLE -> DISC
+                    DISC -> SQUARE
+                    SQUARE -> CIRCLE
+                }
         }
     }
 }
@@ -78,21 +80,22 @@ private fun letter(number: Int): String {
     }
 }
 
-private val romanSymbols = listOf(
-    1000 to "M",
-    900 to "CM",
-    500 to "D",
-    400 to "CD",
-    100 to "C",
-    90 to "XC",
-    50 to "L",
-    40 to "XL",
-    10 to "X",
-    9 to "IX",
-    5 to "V",
-    4 to "IV",
-    1 to "I"
-)
+private val romanSymbols =
+    listOf(
+        1000 to "M",
+        900 to "CM",
+        500 to "D",
+        400 to "CD",
+        100 to "C",
+        90 to "XC",
+        50 to "L",
+        40 to "XL",
+        10 to "X",
+        9 to "IX",
+        5 to "V",
+        4 to "IV",
+        1 to "I",
+    )
 
 private fun romanNumeral(number: Int): String {
     if (number < 1 || number > 3999) {

@@ -25,25 +25,17 @@ fun removeImageMetadata(original: ByteArray): ByteArray {
         val emptyOutputSet = TiffOutputSet()
         emptyOutputSet.getOrCreateRootDirectory()
         val withoutExif = ByteArrayByteWriter()
-        JpegRewriter.updateExifMetadataLossless(
-            ByteArrayByteReader(original),
-            withoutExif,
-            emptyOutputSet
-        )
+        JpegRewriter.updateExifMetadataLossless(ByteArrayByteReader(original), withoutExif, emptyOutputSet)
 
         val withoutIPTC = ByteArrayByteWriter()
         JpegRewriter.writeIPTC(
             ByteArrayByteReader(withoutExif.toByteArray()),
             withoutIPTC,
-            IptcMetadata(listOf(), listOf())
+            IptcMetadata(listOf(), listOf()),
         )
 
         val withoutXml = ByteArrayByteWriter()
-        JpegRewriter.updateXmpXml(
-            ByteArrayByteReader(withoutIPTC.toByteArray()),
-            withoutXml,
-            ""
-        )
+        JpegRewriter.updateXmpXml(ByteArrayByteReader(withoutIPTC.toByteArray()), withoutXml, "")
 
         return withoutXml.toByteArray()
     }
@@ -51,13 +43,12 @@ fun removeImageMetadata(original: ByteArray): ByteArray {
     fun png(): ByteArray {
         log.debug { "Stripping PNG metadata" }
 
-        val chunks =
-            PngImageParser.readChunks(ByteArrayByteReader(original), null).toMutableList()
+        val chunks = PngImageParser.readChunks(ByteArrayByteReader(original), null).toMutableList()
         chunks.removeAll {
             it.type == PngChunkType.EXIF ||
-                    it is PngTextChunk && it.getKeyword() == PngConstants.EXIF_KEYWORD ||
-                    it is PngTextChunk && it.getKeyword() == PngConstants.IPTC_KEYWORD ||
-                    it is PngTextChunk && it.getKeyword() == PngConstants.XMP_KEYWORD
+                it is PngTextChunk && it.getKeyword() == PngConstants.EXIF_KEYWORD ||
+                it is PngTextChunk && it.getKeyword() == PngConstants.IPTC_KEYWORD ||
+                it is PngTextChunk && it.getKeyword() == PngConstants.XMP_KEYWORD
         }
 
         val withoutMetadata = ByteArrayByteWriter()
@@ -68,13 +59,8 @@ fun removeImageMetadata(original: ByteArray): ByteArray {
     fun webP(): ByteArray {
         log.debug { "Stripping WebP metadata" }
 
-        val chunks =
-            WebPImageParser.readChunks(ByteArrayByteReader(original), false)
-                .toMutableList()
-        chunks.removeAll {
-            it.type == WebPChunkType.EXIF ||
-                    it.type == WebPChunkType.XMP
-        }
+        val chunks = WebPImageParser.readChunks(ByteArrayByteReader(original), false).toMutableList()
+        chunks.removeAll { it.type == WebPChunkType.EXIF || it.type == WebPChunkType.XMP }
         val withoutMetadata = ByteArrayByteWriter()
         WebPWriter.writeImage(chunks, withoutMetadata, null, null)
         return withoutMetadata.toByteArray()
@@ -99,10 +85,9 @@ fun removeImageMetadata(original: ByteArray): ByteArray {
         ImageFormat.DNG,
         ImageFormat.JXL,
         ImageFormat.GIF,
-        null, -> {
+        null -> {
             log.warn { "Stripping metadata of this image format is not supported. Skipping metadata stripping" }
             original
         }
-
     }
 }

@@ -25,10 +25,8 @@ actual suspend fun SemanticsNodeInteraction.screenshot(path: String) {
     val bytes = image.encodeToByteArray(ImageFormat.JPEG, quality = 20)
 
     val fileManager = NSFileManager.defaultManager
-    val documentsUrl = fileManager.URLsForDirectory(
-        directory = NSDocumentDirectory,
-        inDomains = NSUserDomainMask,
-    ).first() as NSURL
+    val documentsUrl =
+        fileManager.URLsForDirectory(directory = NSDocumentDirectory, inDomains = NSUserDomainMask).first() as NSURL
     val fileUrl = documentsUrl.URLByAppendingPathComponent(path)
 
     // Create parent directories

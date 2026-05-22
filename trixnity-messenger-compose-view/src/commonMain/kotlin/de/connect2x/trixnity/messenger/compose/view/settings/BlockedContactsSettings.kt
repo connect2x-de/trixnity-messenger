@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonOff
@@ -22,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -44,8 +43,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContact
 import de.connect2x.trixnity.messenger.viewmodel.settings.BlockedContactsSettingsViewModel
 
 interface BlockedContactsSettingsView {
-    @Composable
-    fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel)
+    @Composable fun create(blockedContactsSettingsViewModel: BlockedContactsSettingsViewModel)
 }
 
 @Composable
@@ -59,8 +57,8 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
         val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        val references = remember(userList) { userList.map { it.userId } }
-        var focusedItem by remember(userList) { mutableStateOf(references.firstOrNull()) }
+        val focusedItem = remember(userList) { mutableStateOf(userList.firstOrNull()?.userId) }
+
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
             if (userList.isEmpty()) {
@@ -71,7 +69,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                             i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
                             style = MaterialTheme.typography.titleMedium,
                         )
-                    }
+                    },
                 )
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(
@@ -95,7 +93,10 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                 }
             } else {
                 Box(Modifier.fillMaxSize()) {
-                    LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), state) {
+                    LazyColumn(
+                        Modifier.fillMaxSize().rovingFocusContainer(listState = state, focusedItem = focusedItem),
+                        state,
+                    ) {
                         item("header") {
                             ThemedListItem(
                                 style = MaterialTheme.components.settingsItem,
@@ -104,19 +105,20 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                         i18n.blockedContactsAccountLabel(blockedContactsSettingsViewModel.account.full),
                                         style = MaterialTheme.typography.titleMedium,
                                     )
-                                }
+                                },
                             )
                         }
-                        itemsIndexed(userList, key = { _, value -> value.userId }) { index, user ->
+                        items(userList, key = { value -> value.userId }) { user ->
                             IgnoredUserListElement(
-                                user = user, i18n = i18n,
-                                isFocused = focusedItem == user.userId,
-                                onFocus = { focusedItem = user.userId },
+                                user = user,
+                                i18n = i18n,
+                                isFocused = { focusedItem.value == user.userId },
+                                onFocus = { focusedItem.value = user.userId },
                             ) {
-                                val referencesWithoutThisOne = references - user.userId
+                                val userListWithoutThisOne = userList.filter { it.userId != user.userId }
                                 blockedContactsSettingsViewModel.unblockContact(user.userId)
-                                if (referencesWithoutThisOne.isEmpty()) return@IgnoredUserListElement
-                                focusedItem = referencesWithoutThisOne[0]
+                                if (userListWithoutThisOne.isEmpty()) return@IgnoredUserListElement
+                                focusedItem.value = userListWithoutThisOne[0].userId
                             }
                         }
                     }
@@ -133,7 +135,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
 fun IgnoredUserListElement(
     user: BlockedContact,
     i18n: I18nView,
-    isFocused: Boolean,
+    isFocused: () -> Boolean,
     onFocus: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -147,10 +149,7 @@ fun IgnoredUserListElement(
                 ThemedProgressIndicator(style = MaterialTheme.components.extraSmallCircularProgressIndicator)
             } else {
                 Tooltip({ Text(i18n.unblockContactDescription()) }) {
-                    ThemedIconButton(
-                        style = MaterialTheme.components.commonIconButton,
-                        onClick = onRemove,
-                    ) {
+                    ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = onRemove) {
                         Icon(Icons.Default.RemoveCircle, i18n.unblockContactDescription())
                     }
                 }

@@ -81,12 +81,8 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
     ) {
         val error = element.downloadMediaError.collectAsState().value
         var saveDialogOpen by remember { mutableStateOf(false) }
-        if (saveDialogOpen) SaveFileDialog(
-            element.name,
-            element.mimeType,
-            error,
-            element::downloadMedia,
-        ) { saveDialogOpen = false }
+        if (saveDialogOpen)
+            SaveFileDialog(element.name, element.mimeType, error, element::downloadMedia) { saveDialogOpen = false }
         FileBasedRoomMessageTimelineElementMessageBubble(
             holder,
             element,
@@ -95,7 +91,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
             displayProgressOverElement,
             index,
             overlay,
-            content
+            content,
         )
     }
 }
@@ -109,7 +105,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
     displayProgressOverElement: Boolean,
     index: Int,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit
+    content: @Composable ColumnScope.(() -> Unit, () -> Unit) -> Unit,
 ) {
     val i18n = DI.get<I18nView>()
     val configuration = DI.get<MatrixMessengerConfiguration>()
@@ -119,9 +115,8 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         needsMaxWidth = true,
         additionalContextActions = { onClose ->
             // name
-            Tooltip(
-                { Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
-            ) {
+            Tooltip({ Text("${element.name}${element.size.ifNotNull { " $it" }}") } // full name
+                ) {
                 Text(
                     "${shortenFileName(element)}${element.size.ifNotNull { " $it" }}", // shortened name
                     modifier = Modifier.padding(5.dp),
@@ -131,10 +126,11 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             HorizontalDivider()
             if (!configuration.downloadsDisabled) {
                 BaseTimelineElementHolderContextMenuAction(
-                    icon = Icons.Default.Download,
-                    label = i18n.downloadMessage(),
-                    action = onSave,
-                ).render(onClose)
+                        icon = Icons.Default.Download,
+                        label = i18n.downloadMessage(),
+                        action = onSave,
+                    )
+                    .render(onClose)
             }
         },
         isPreview = isPreview,
@@ -149,7 +145,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 displayProgressOverElement,
                 isPreview,
                 overlay,
-                content
+                content,
             )
 
             if (element.hasCaption) {
@@ -158,7 +154,6 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
         }
     }
 }
-
 
 @Composable
 internal fun FileBasedView(
@@ -169,7 +164,7 @@ internal fun FileBasedView(
     displayProgressOverElement: Boolean,
     isPreview: Boolean,
     overlay: (@Composable BoxScope.() -> Unit)? = null,
-    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit
+    content: @Composable ColumnScope.(onShowActionMenu: () -> Unit, openElementDetails: () -> Unit) -> Unit,
 ) {
     val hoverMessage = remember { mutableStateOf(false) }
 
@@ -177,40 +172,32 @@ internal fun FileBasedView(
     var openElementDetails by remember { mutableStateOf(false) }
     Box {
         Column(
-            Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = {
-                            openElementDetails = true
-                        },
-                        onLongPress = { showActionMenu() },
-                    )
+            Modifier.pointerInput(Unit) {
+                    detectTapGestures(onTap = { openElementDetails = true }, onLongPress = { showActionMenu() })
                 }
                 .buttonPointerModifier()
                 .then(
                     if (isPreview) Modifier
-                    else Modifier.pointerMoveFilter(
-                        onEnter = {
-                            hoverMessage.value = true
-                            true
-                        }, onExit = {
-                            hoverMessage.value = false
-                            true
-                        })
+                    else
+                        Modifier.pointerMoveFilter(
+                            onEnter = {
+                                hoverMessage.value = true
+                                true
+                            },
+                            onExit = {
+                                hoverMessage.value = false
+                                true
+                            },
+                        )
                 )
         ) {
             Box(modifier = Modifier.width(IntrinsicSize.Min)) {
                 Column {
                     // content based on the actual file
-                    content(showActionMenu) {
-                        openElementDetails = true
-                    }
+                    content(showActionMenu) { openElementDetails = true }
                 }
                 if (!isPreview) {
-                    FileContentOverlay(
-                        hoverMessage,
-                        overlay,
-                    )
+                    FileContentOverlay(hoverMessage, overlay)
                 }
             }
             if (!displayProgressOverElement) {
@@ -220,7 +207,6 @@ internal fun FileBasedView(
         if (displayProgressOverElement) {
             LoadingProgresses(holder, element, Modifier.align(Alignment.Center))
         }
-
     }
     if (openElementDetails && elementDetailsFactory != null) {
         elementDetailsFactory.create(element, onSave, onClose = { openElementDetails = false })
@@ -231,7 +217,7 @@ internal fun FileBasedView(
 fun LoadingProgresses(
     holder: BaseTimelineElementHolderViewModel,
     element: RoomMessageTimelineElementViewModel.FileBased<*>,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     val downloadProgressElement = element.downloadMediaProgress.collectAsState().value
     val uploadProgress = holder.asOutboxElementHolder()?.uploadProgress?.collectAsState()?.value
@@ -248,10 +234,5 @@ fun LoadingProgresses(
         }
     }
     if (downloadProgressElement != null)
-        Box(modifier) {
-            DownloadProgress(
-                downloadProgressElement,
-                { element.cancelDownloadMedia() },
-            )
-        }
+        Box(modifier) { DownloadProgress(downloadProgressElement, { element.cancelDownloadMedia() }) }
 }

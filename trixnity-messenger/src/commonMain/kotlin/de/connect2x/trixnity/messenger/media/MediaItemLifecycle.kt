@@ -12,8 +12,8 @@ interface MediaItemLifecycle : AutoCloseable {
     val state: StateFlow<MediaPlayer.Item.State>
 
     /**
-     * This function updates the lifecycle scope specified when opening the media item. When the lifecycle scope is
-     * set to null, it removes the lifecycle completely.
+     * This function updates the lifecycle scope specified when opening the media item. When the lifecycle scope is set
+     * to null, it removes the lifecycle completely.
      *
      * @param lifecycleScope the new lifecycle scope or identifier for the removal of the lifecycle
      */
@@ -37,23 +37,23 @@ abstract class MediaItemLifecycleImpl(private val coroutineScope: CoroutineScope
         }
 
         log.debug { "Updating lifecycle of media item" }
-        lifecycleCompletionJob = lifecycleScope.coroutineContext.job.invokeOnCompletion {
-            if (state.value !is MediaPlayer.Item.State.Playing) {
-                log.debug { "Media player item is ready on completion of lifecycle, closing item..." }
-                close()
-                return@invokeOnCompletion
-            }
-
-            log.debug { "Media player item is still playing on completion of lifecycle, awaiting end..." }
-            lifecycleCompletionAwaitJob = coroutineScope.launch {
-                state.collect {
-                    if (it !is MediaPlayer.Item.State.Ready)
-                        return@collect
-
-                    log.debug { "Media player item is ready after waiting, closing item..." }
+        lifecycleCompletionJob =
+            lifecycleScope.coroutineContext.job.invokeOnCompletion {
+                if (state.value !is MediaPlayer.Item.State.Playing) {
+                    log.debug { "Media player item is ready on completion of lifecycle, closing item..." }
                     close()
+                    return@invokeOnCompletion
+                }
+
+                log.debug { "Media player item is still playing on completion of lifecycle, awaiting end..." }
+                lifecycleCompletionAwaitJob = coroutineScope.launch {
+                    state.collect {
+                        if (it !is MediaPlayer.Item.State.Ready) return@collect
+
+                        log.debug { "Media player item is ready after waiting, closing item..." }
+                        close()
+                    }
                 }
             }
-        }
     }
 }

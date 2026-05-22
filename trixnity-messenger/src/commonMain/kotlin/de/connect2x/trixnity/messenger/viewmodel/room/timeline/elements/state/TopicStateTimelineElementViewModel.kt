@@ -14,6 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMent
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
+import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlin.reflect.KClass
 
 interface TopicStateTimelineElementViewModelFactory : TimelineElementViewModelFactory<TopicEventContent> {
     override fun create(
@@ -33,13 +33,8 @@ interface TopicStateTimelineElementViewModelFactory : TimelineElementViewModelFa
         onOpenMention: OpenMentionCallback,
     ): TopicStateTimelineElementViewModel? =
         if (eventIdOrTransactionId is EventIdOrTransactionId.EventId)
-            TopicStateTimelineElementViewModelImpl(
-                viewModelContext,
-                content,
-                roomId,
-                eventIdOrTransactionId.eventId,
-            ) else null
-
+            TopicStateTimelineElementViewModelImpl(viewModelContext, content, roomId, eventIdOrTransactionId.eventId)
+        else null
 
     override val supports: KClass<TopicEventContent>
         get() = TopicEventContent::class
@@ -59,30 +54,32 @@ class TopicStateTimelineElementViewModelImpl(
 ) : TopicStateTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     override val changeMessage =
         flow {
-            val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
-            emitAll(
-                combine(
-                    matrixClient.user.getById(roomId, timelineEvent.sender),
-                    matrixClient.room.getById(roomId).filterNotNull().map { it.isDirect },
-                ) { userInfo, isDirect ->
-                    val unsigned = timelineEvent.event.unsigned
-                    val previousContent =
-                        if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent else null
-                    val from = if (previousContent is TopicEventContent) {
-                        i18n.eventChangeFrom(previousContent.topic?.text?.plain ?: previousContent.legacy.topic)
-                    } else ""
+                val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
+                emitAll(
+                    combine(
+                        matrixClient.user.getById(roomId, timelineEvent.sender),
+                        matrixClient.room.getById(roomId).filterNotNull().map { it.isDirect },
+                    ) { userInfo, isDirect ->
+                        val unsigned = timelineEvent.event.unsigned
+                        val previousContent =
+                            if (unsigned is UnsignedRoomEventData.UnsignedStateEventData) unsigned.previousContent
+                            else null
+                        val from =
+                            if (previousContent is TopicEventContent) {
+                                i18n.eventChangeFrom(previousContent.topic?.text?.plain ?: previousContent.legacy.topic)
+                            } else ""
 
-                    val groupOrChat =
-                        if (isDirect) i18n.eventChangeChatGenitive()
-                        else i18n.eventChangeGroupGenitive()
+                        val groupOrChat =
+                            if (isDirect) i18n.eventChangeChatGenitive() else i18n.eventChangeGroupGenitive()
 
-                    i18n.eventRoomTopicChange(
-                        userInfo?.name ?: timelineEvent.sender.full,
-                        groupOrChat,
-                        from,
-                        content.topic?.text?.plain ?: content.legacy.topic
-                    )
-                }
-            )
-        }.stateIn(coroutineScope, whileSubscribedWithTimeout, null)
+                        i18n.eventRoomTopicChange(
+                            userInfo?.name ?: timelineEvent.sender.full,
+                            groupOrChat,
+                            from,
+                            content.topic?.text?.plain ?: content.legacy.topic,
+                        )
+                    }
+                )
+            }
+            .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 }

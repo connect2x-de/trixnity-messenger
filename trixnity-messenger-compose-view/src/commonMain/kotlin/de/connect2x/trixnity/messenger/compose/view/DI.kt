@@ -364,7 +364,8 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 /**
- * @param messengerConfiguration if this is the DI for the UI of a MatrixMessenger, then add the configuration, else `null`
+ * @param messengerConfiguration if this is the DI for the UI of a MatrixMessenger, then add the configuration, else
+ *   `null`
  */
 fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Module = module {
     includes(
@@ -388,7 +389,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         verificationViewModule(),
         uiaViewModule(),
         getPlatformNotificationIconModule(),
-        mediaViewModule()
+        mediaViewModule(),
     )
 }
 
@@ -407,9 +408,7 @@ fun themeViewModule(): Module = module {
     single<ThemeDarkMessengerColors> { ThemeDarkMessengerColorsImpl() }
 }
 
-fun commonViewModule() = module {
-    single<MatrixUsernameView> { MatrixUsernameViewImpl() }
-}
+fun commonViewModule() = module { single<MatrixUsernameView> { MatrixUsernameViewImpl() } }
 
 fun rootViewModule() = module {
     single<ClientView> { ClientViewImpl() }
@@ -438,9 +437,7 @@ fun filesViewModule() = module {
     single<FilePickerTypeSelectionView> { FilePickerTypeSelectionViewImpl() }
 }
 
-fun mediaViewModule() = module {
-    single<AudioPlayerView> { AudioPlayerViewImpl() }
-}
+fun mediaViewModule() = module { single<AudioPlayerView> { AudioPlayerViewImpl() } }
 
 fun profileViewModule() = module {
     single<ProfilesView> { ProfilesViewImpl() }
@@ -545,10 +542,8 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<UserProfileView> { UserProfileViewImpl() }
 
     single<RoomSettingsPowerlevelView> {
-        if (features?.enablePowerlevelEventConfigurationInRoomSettings == true)
-            RoomSettingsPowerlevelViewImpl()
-        else
-            RoomSettingsPowerlevelViewImplEmpty()
+        if (features?.enablePowerlevelEventConfigurationInRoomSettings == true) RoomSettingsPowerlevelViewImpl()
+        else RoomSettingsPowerlevelViewImplEmpty()
     }
 }
 
@@ -573,7 +568,9 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     timelineElementView<NoticeRoomMessageTimelineElementView> { NoticeRoomMessageTimelineElementViewImpl() }
     timelineElementView<TextRoomMessageTimelineElementView> { TextRoomMessageTimelineElementViewImpl() }
     timelineElementView<VideoRoomMessageTimelineElementView> { VideoRoomMessageTimelineElementViewImpl() }
-    timelineElementView<VerificationRequestRoomMessageTimelineElementView> { VerificationRequestRoomMessageTimelineElementViewImpl() }
+    timelineElementView<VerificationRequestRoomMessageTimelineElementView> {
+        VerificationRequestRoomMessageTimelineElementViewImpl()
+    }
     timelineElementView<VerificationDoneMessageTimelineElementView> { VerificationDoneMessageTimelineElementViewImpl() }
     timelineElementView<VerificationCancelTimelineElementView> { VerificationCancelTimelineElementViewImpl() }
     timelineElementView<UnknownRoomMessageTimelineElementView> { UnknownRoomMessageTimelineElementViewImpl() }
@@ -590,7 +587,6 @@ fun timelineViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = 
     includes(timelineElementDetailsViewsModule(messengerConfiguration))
     single<TimelineElementViewSelector> { TimelineElementViewSelectorImpl(getAll()) }
     single<ElementDetailsViewSelector> { ElementDetailsViewSelectorImpl(getAll()) }
-
 
     single<RoomHeaderView> { RoomHeaderViewImpl() }
     single<InputAreaView> { InputAreaViewImpl() }

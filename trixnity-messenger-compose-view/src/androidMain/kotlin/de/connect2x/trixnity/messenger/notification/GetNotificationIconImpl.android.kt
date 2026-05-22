@@ -7,9 +7,9 @@ import androidx.core.graphics.scale
 import de.connect2x.sysnotify.NotificationIcon
 import de.connect2x.sysnotify.fromBitmap
 import de.connect2x.trixnity.messenger.util.ContextGetter
+import kotlin.coroutines.cancellation.CancellationException
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import kotlin.coroutines.cancellation.CancellationException
 
 actual fun getPlatformNotificationIconModule(): Module = module {
     single<GetNotificationIcon> {
@@ -22,8 +22,7 @@ actual fun getPlatformNotificationIconModule(): Module = module {
                     val scaledBitmap = bitmap.asAndroidBitmap().scale(width, height)
                     return NotificationIcon.fromBitmap(scaledBitmap)
                 } catch (e: Exception) {
-                    if (e is CancellationException) throw e
-                    else return null
+                    if (e is CancellationException) throw e else return null
                 }
             }
 
@@ -36,4 +35,3 @@ actual fun getPlatformNotificationIconModule(): Module = module {
         }
     }
 }
-

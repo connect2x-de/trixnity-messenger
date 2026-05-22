@@ -30,8 +30,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.NotificationLevel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsNotificationsViewModel
 
 interface RoomSettingsNotificationsView {
-    @Composable
-    fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel)
+    @Composable fun create(roomSettingsNotificationsViewModel: RoomSettingsNotificationsViewModel)
 }
 
 @Composable
@@ -58,17 +57,19 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                 headlineContent = {
                     Text(
                         i18n.commonNotifications().capitalize(Locale.current),
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 },
                 style = MaterialTheme.components.settingsItem,
             )
             if (isLoading) {
                 ThemedProgressIndicator(
-                    modifier = Modifier.semantics {
-                        focused = false
-                        text = AnnotatedString(i18n.notificationSettings() + ", " + i18n.loading())
-                    }, style = MaterialTheme.components.extraSmallCircularProgressIndicator
+                    modifier =
+                        Modifier.semantics {
+                            focused = false
+                            text = AnnotatedString(i18n.notificationSettings() + ", " + i18n.loading())
+                        },
+                    style = MaterialTheme.components.extraSmallCircularProgressIndicator,
                 )
                 return
             }
@@ -78,38 +79,46 @@ class RoomSettingsNotificationsViewImpl : RoomSettingsNotificationsView {
                         tooltip = { Text(selectedLevelExplanation) },
                         Modifier.semantics {
                             text =
-                                AnnotatedString(i18n.notificationSettings() + ", " + selectedLevelName + " " + i18n.selected())
+                                AnnotatedString(
+                                    i18n.notificationSettings() + ", " + selectedLevelName + " " + i18n.selected()
+                                )
                         },
                     ) {
                         Text(selectedLevelName, style = MaterialTheme.typography.titleSmall)
                     }
                 },
-                options = mapOf(
-                    roomNotificationLevelDefault to RadioSettingOption(
-                        roomNotificationLevelDefault.name.collectAsState().value,
-                        roomNotificationLevelDefault.explanation.collectAsState().value
+                options =
+                    mapOf(
+                        roomNotificationLevelDefault to
+                            RadioSettingOption(
+                                roomNotificationLevelDefault.name.collectAsState().value,
+                                roomNotificationLevelDefault.explanation.collectAsState().value,
+                            ),
+                        roomNotificationLevelAll to
+                            RadioSettingOption(
+                                roomNotificationLevelAll.name.collectAsState().value,
+                                roomNotificationLevelAll.explanation.collectAsState().value,
+                            ),
+                        roomNotificationLevelMentions to
+                            RadioSettingOption(
+                                roomNotificationLevelMentions.name.collectAsState().value,
+                                roomNotificationLevelMentions.explanation.collectAsState().value,
+                            ),
+                        roomNotificationLevelOFF to
+                            RadioSettingOption(
+                                roomNotificationLevelOFF.name.collectAsState().value,
+                                roomNotificationLevelOFF.explanation.collectAsState().value,
+                            ),
                     ),
-                    roomNotificationLevelAll to RadioSettingOption(
-                        roomNotificationLevelAll.name.collectAsState().value,
-                        roomNotificationLevelAll.explanation.collectAsState().value
-                    ),
-                    roomNotificationLevelMentions to RadioSettingOption(
-                        roomNotificationLevelMentions.name.collectAsState().value,
-                        roomNotificationLevelMentions.explanation.collectAsState().value
-                    ),
-                    roomNotificationLevelOFF to RadioSettingOption(
-                        roomNotificationLevelOFF.name.collectAsState().value,
-                        roomNotificationLevelOFF.explanation.collectAsState().value
-                    )
-                ),
                 value = selectedLevel,
                 set = { roomSettingsNotificationsViewModel.changeSelectedRoomNotificationsLevel(newLevel = it) },
-                icon = when (selectedLevel.key) {
-                    NotificationLevels.DEFAULT -> Icons.Default.Notifications
-                    NotificationLevels.ALL -> Icons.Default.NotificationsActive
-                    NotificationLevels.MENTIONS -> Icons.Default.NotificationImportant
-                    NotificationLevels.OFF -> Icons.Default.NotificationsOff
-                }
+                icon =
+                    when (selectedLevel.key) {
+                        NotificationLevels.DEFAULT -> Icons.Default.Notifications
+                        NotificationLevels.ALL -> Icons.Default.NotificationsActive
+                        NotificationLevels.MENTIONS -> Icons.Default.NotificationImportant
+                        NotificationLevels.OFF -> Icons.Default.NotificationsOff
+                    },
             )
         }
     }

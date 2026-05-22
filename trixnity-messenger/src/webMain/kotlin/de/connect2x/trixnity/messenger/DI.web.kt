@@ -7,6 +7,5 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
-    single<AppLanguageUpdater> { AppLanguageUpdaterImpl(get(), get()) }
-        .apply { bind<Worker>() }
+    single<AppLanguageUpdater> { AppLanguageUpdaterImpl(get(), get()) }.apply { bind<Worker>() }
 }

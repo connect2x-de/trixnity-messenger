@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.export
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.room
@@ -11,10 +12,13 @@ import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
-import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.DecryptionFailed
 import de.connect2x.trixnity.messenger.export.ExportRoomResult.Success.MissingMedia
 import de.connect2x.trixnity.messenger.viewmodel.util.takeWhileInclusive
+import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
@@ -36,30 +40,31 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import okio.ByteString.Companion.toByteString
-import kotlin.reflect.KClass
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.Instant
 
 data class ExportRoomProgress(val processed: Long? = null, val total: Long? = null)
 
 sealed interface ExportRoomResult {
     data object RoomNotFound : ExportRoomResult
+
     data class PropertiesNotSupported(val kClass: KClass<out ExportRoomSinkProperties>) : ExportRoomResult
+
     data class SinkError(val throwable: Throwable) : ExportRoomResult
+
     data class Success(
         val missingMedia: List<MissingMedia> = emptyList(),
         val decryptionFailed: List<DecryptionFailed> = emptyList(),
     ) : ExportRoomResult {
         data class MissingMedia(val eventId: EventId, val fileName: String?, val reason: String?)
+
         data class DecryptionFailed(val eventId: EventId, val reason: String?)
     }
 }
 
 interface ExportRoom {
     /**
-     * To find the export start position, archiving is started from the last known event. When the start position is found,
-     * the actual archiving is started. This means, that at first the [rangeStartCondition] is checked and after that [rangeEndCondition].
+     * To find the export start position, archiving is started from the last known event. When the start position is
+     * found, the actual archiving is started. This means, that at first the [rangeStartCondition] is checked and after
+     * that [rangeEndCondition].
      */
     suspend operator fun invoke(
         roomId: RoomId,
@@ -75,9 +80,7 @@ interface ExportRoom {
     ): ExportRoomResult
 }
 
-class ExportRoomImpl(
-    private val sinkFactories: List<ExportRoomSinkFactory>,
-) : ExportRoom {
+class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : ExportRoom {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.export.ExportRoomImpl")
     }
@@ -97,36 +100,44 @@ class ExportRoomImpl(
     ): ExportRoomResult {
         log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
-        val sink = sinkFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
-            ?: return ExportRoomResult.PropertiesNotSupported(properties::class)
-        val lastEventId = matrixClient.room.getById(roomId).firstOrNull()?.lastEventId
-            ?: return ExportRoomResult.RoomNotFound
+        val sink =
+            sinkFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
+                ?: return ExportRoomResult.PropertiesNotSupported(properties::class)
+        val lastEventId =
+            matrixClient.room.getById(roomId).firstOrNull()?.lastEventId ?: return ExportRoomResult.RoomNotFound
 
         log.debug { "search for archiving start event of $roomId (may take some time due to network requests)" }
-        val startFrom = matrixClient.room.getTimelineEvents(
-            roomId = roomId,
-            startFrom = lastEventId,
-            direction = GetEvents.Direction.BACKWARDS,
-            config = { this.decryptionTimeout = Duration.ZERO } // don't decrypt yet
-        )
-            .takeWhile { !rangeStartCondition(it.first()) }
-            .onEach { progress.update { it.copy(total = (it.total ?: 0) + 1) } }
-            .last().first().eventId
+        val startFrom =
+            matrixClient.room
+                .getTimelineEvents(
+                    roomId = roomId,
+                    startFrom = lastEventId,
+                    direction = GetEvents.Direction.BACKWARDS,
+                    config = { this.decryptionTimeout = Duration.ZERO }, // don't decrypt yet
+                )
+                .takeWhile { !rangeStartCondition(it.first()) }
+                .onEach { progress.update { it.copy(total = (it.total ?: 0) + 1) } }
+                .last()
+                .first()
+                .eventId
         log.debug { "start archiving of $roomId (start=$startFrom, total=${progress.value.total})" }
 
-        sink.start().onFailure { return ExportRoomResult.SinkError(it) }
+        sink.start().onFailure {
+            return ExportRoomResult.SinkError(it)
+        }
 
         val missingMedia = mutableListOf<MissingMedia>()
         val decryptionFailed = mutableListOf<DecryptionFailed>()
 
         try {
             coroutineScope {
-                matrixClient.room.getTimelineEvents(
-                    roomId = roomId,
-                    startFrom = startFrom,
-                    direction = GetEvents.Direction.FORWARDS,
-                    config = { this.decryptionTimeout = decryptionTimeout }
-                )
+                matrixClient.room
+                    .getTimelineEvents(
+                        roomId = roomId,
+                        startFrom = startFrom,
+                        direction = GetEvents.Direction.FORWARDS,
+                        config = { this.decryptionTimeout = decryptionTimeout },
+                    )
                     .buffer(buffer)
                     .takeWhile { !rangeEndCondition(it.first()) }
                     .takeWhileInclusive { it.first().eventId != lastEventId }
@@ -134,8 +145,7 @@ class ExportRoomImpl(
                     .chunked(buffer)
                     .map { list ->
                         log.trace { "wait for chunk to be processed (size=${list.size})" }
-                        list.awaitAll()
-                            .also { log.trace { "chunk fully processed (size=${list.size})" } }
+                        list.awaitAll().also { log.trace { "chunk fully processed (size=${list.size})" } }
                     }
                     .transform { list -> list.forEach { emit(it) } }
                     .collect { timelineEvent ->
@@ -145,38 +155,42 @@ class ExportRoomImpl(
                             val mediaFile = content.file
                             val fileName =
                                 (mediaFile?.url ?: mediaUrl)
-                                    ?.encodeToByteArray()?.toByteString()?.sha256()?.base64Url()
+                                    ?.encodeToByteArray()
+                                    ?.toByteString()
+                                    ?.sha256()
+                                    ?.base64Url()
                                     ?.let { baseName ->
-                                        val timestamp = exportTimestampFormat.format(
-                                            Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
-                                                .toLocalDateTime(timeZone)
-                                        )
+                                        val timestamp =
+                                            exportTimestampFormat.format(
+                                                Instant.fromEpochMilliseconds(timelineEvent.originTimestamp)
+                                                    .toLocalDateTime(timeZone)
+                                            )
                                         val prefix = "$timestamp $baseName - "
                                         val remainingLength = 255 - prefix.length
-                                        val originalFileName = (content.fileName ?: content.body)
-                                            .filter { allowedFileNameChars.contains(it) }
-                                            .takeLast(remainingLength)
+                                        val originalFileName =
+                                            (content.fileName ?: content.body)
+                                                .filter { allowedFileNameChars.contains(it) }
+                                                .takeLast(remainingLength)
                                         prefix + originalFileName
                                     }
                                     ?: run {
                                         log.warn { "content did not contain any url" }
                                         null
                                     }
-                            val media = when {
-                                mediaUrl != null && includeMedia -> matrixClient.media.getMedia(
-                                    mediaUrl,
-                                    saveToCache = false
-                                )
+                            val media =
+                                when {
+                                        mediaUrl != null && includeMedia ->
+                                            matrixClient.media.getMedia(mediaUrl, saveToCache = false)
 
-                                mediaFile != null && includeMedia -> matrixClient.media.getEncryptedMedia(
-                                    mediaFile,
-                                    saveToCache = false
-                                )
+                                        mediaFile != null && includeMedia ->
+                                            matrixClient.media.getEncryptedMedia(mediaFile, saveToCache = false)
 
-                                else -> null
-                            }?.onFailure {
-                                missingMedia.add(MissingMedia(timelineEvent.eventId, fileName, it.message))
-                            }?.getOrNull()
+                                        else -> null
+                                    }
+                                    ?.onFailure {
+                                        missingMedia.add(MissingMedia(timelineEvent.eventId, fileName, it.message))
+                                    }
+                                    ?.getOrNull()
                             if (fileName != null && media != null) {
                                 sink.processTimelineEvent(timelineEvent, ExportRoomSink.Media(media, fileName))
                             } else {
@@ -188,13 +202,8 @@ class ExportRoomImpl(
                                 when (exception) {
                                     TimelineEvent.TimelineEventContentError.DecryptionAlgorithmNotSupported,
                                     is TimelineEvent.TimelineEventContentError.DecryptionError,
-                                    TimelineEvent.TimelineEventContentError.DecryptionTimeout,
-                                        -> decryptionFailed.add(
-                                        DecryptionFailed(
-                                            timelineEvent.eventId,
-                                            exception.message
-                                        )
-                                    )
+                                    TimelineEvent.TimelineEventContentError.DecryptionTimeout ->
+                                        decryptionFailed.add(DecryptionFailed(timelineEvent.eventId, exception.message))
 
                                     TimelineEvent.TimelineEventContentError.NoContent -> {}
                                 }
@@ -206,9 +215,10 @@ class ExportRoomImpl(
                     }
             }
         } finally {
-            withContext(NonCancellable) {
-                sink.finish()
-            }.onFailure { return ExportRoomResult.SinkError(it) }
+            withContext(NonCancellable) { sink.finish() }
+                .onFailure {
+                    return ExportRoomResult.SinkError(it)
+                }
         }
 
         log.info { "export of $roomId finished" }
@@ -232,6 +242,4 @@ internal val exportTimestampFormat by lazy {
     }
 }
 
-private val allowedFileNameChars by lazy {
-    ('0'..'9') + ('a'..'z') + ('A'..'Z') + '-' + '.' + '_'
-}
+private val allowedFileNameChars by lazy { ('0'..'9') + ('a'..'z') + ('A'..'Z') + '-' + '.' + '_' }

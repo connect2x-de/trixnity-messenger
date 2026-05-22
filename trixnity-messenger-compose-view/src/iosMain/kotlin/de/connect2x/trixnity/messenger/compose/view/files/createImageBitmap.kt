@@ -16,8 +16,8 @@ actual inline fun createImageBitmap(width: Int, height: Int, crossinline drawPix
             val argb = color.toArgb()
             val index = (y * width + x) shl 2
             bytes[index + 0] = ((argb shr 16) and 0xFF).toByte() // R
-            bytes[index + 1] = ((argb shr 8) and 0xFF).toByte()  // G
-            bytes[index + 2] = ((argb shr 0) and 0xFF).toByte()  // B
+            bytes[index + 1] = ((argb shr 8) and 0xFF).toByte() // G
+            bytes[index + 2] = ((argb shr 0) and 0xFF).toByte() // B
             bytes[index + 3] = ((argb shr 24) and 0xFF).toByte() // A
         }
     }

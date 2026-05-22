@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.util
 
+import java.net.NetworkInterface
 import org.koin.core.module.Module
 import org.koin.dsl.module
-import java.net.NetworkInterface
 
 actual fun platformIsNetworkAvailableModule(): Module = module {
     single<IsNetworkAvailable> {

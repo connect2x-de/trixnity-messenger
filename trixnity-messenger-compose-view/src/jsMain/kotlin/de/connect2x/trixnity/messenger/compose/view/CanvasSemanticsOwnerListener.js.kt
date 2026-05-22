@@ -1,8 +1,4 @@
-@file:OptIn(
-    InternalComposeUiApi::class,
-    ExperimentalComposeUiApi::class,
-    Connect2xComposeUiApi::class,
-)
+@file:OptIn(InternalComposeUiApi::class, ExperimentalComposeUiApi::class, Connect2xComposeUiApi::class)
 
 package de.connect2x.trixnity.messenger.compose.view
 
@@ -23,10 +19,11 @@ internal actual fun ComposeViewport(
     viewportContainer: HTMLElement,
     semanticsListener: (a11yContainer: HTMLDivElement) -> PlatformContext.SemanticsOwnerListener,
     configure: ComposeViewportConfiguration.() -> Unit,
-    content: @Composable (() -> Unit)
-) = androidx.compose.ui.window.ComposeViewport(
-    viewportContainer = viewportContainer.unsafeCast<org.w3c.dom.Element>(),
-    semanticsListener = { semanticsListener(it.unsafeCast<HTMLDivElement>()) },
-    configure = configure,
-    content = content,
-)
+    content: @Composable (() -> Unit),
+) =
+    androidx.compose.ui.window.ComposeViewport(
+        viewportContainer = viewportContainer.unsafeCast<org.w3c.dom.Element>(),
+        semanticsListener = { semanticsListener(it.unsafeCast<HTMLDivElement>()) },
+        configure = configure,
+        content = content,
+    )

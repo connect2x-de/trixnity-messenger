@@ -62,7 +62,7 @@ interface UserProfileViewModelFactory {
         selectedRoomId: RoomId,
         onOpenRoom: (UserId, RoomId) -> Unit,
         onBack: () -> Unit,
-        onCloseSettings: () -> Unit
+        onCloseSettings: () -> Unit,
     ): UserProfileViewModel {
         return UserProfileViewModelImpl(
             viewModelContext = viewModelContext,
@@ -70,7 +70,7 @@ interface UserProfileViewModelFactory {
             selectedRoomId = selectedRoomId,
             onOpenRoom = onOpenRoom,
             onBack = onBack,
-            onCloseSettings = onCloseSettings
+            onCloseSettings = onCloseSettings,
         )
     }
 
@@ -113,24 +113,39 @@ interface UserProfileViewModel {
     val canVerifyUser: StateFlow<Boolean>
 
     fun openKickUserWarning()
+
     fun closeKickUserWarning()
+
     fun kickUser()
+
     fun openBanUserWarning()
+
     fun closeBanUserWarning()
+
     fun banUser()
+
     fun openUnbanUserWarning()
+
     fun closeUnbanUserWarning()
+
     fun unbanUser()
+
     fun blockUser()
+
     fun unblockUser()
+
     fun acceptKnock()
+
     fun rejectKnock()
 
     fun back()
+
     fun errorDismiss()
 
     fun openChat()
+
     fun startVerification(closeSettingsAfterStart: Boolean = false)
+
     fun openVerificationRoom()
 }
 
@@ -141,19 +156,23 @@ class UserProfileViewModelImpl(
     private val selectedRoomId: RoomId,
     private val onOpenRoom: (UserId, RoomId) -> Unit,
     private val onBack: () -> Unit,
-    private val onCloseSettings: () -> Unit
+    private val onCloseSettings: () -> Unit,
 ) : MatrixClientViewModelContext by viewModelContext, UserProfileViewModel {
     override val isMyself = userId == matrixClient.userId
 
-    private val roomUser = matrixClient.user.getById(selectedRoomId, userId)
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
+    private val roomUser =
+        matrixClient.user.getById(selectedRoomId, userId).shareIn(coroutineScope, SharingStarted.WhileSubscribed(), 1)
 
     override val canOpenChat =
-        matrixClient.user.getAccountData<DirectEventContent>().map { directEvent ->
-            val isDirectChatWithOtherUser = directEvent?.mappings?.get(userId)?.contains(selectedRoomId) ?: false
-            log.debug { "Checking whether chat can be opened: is direct chat with other user: $isDirectChatWithOtherUser" }
-            !isDirectChatWithOtherUser
-        }
+        matrixClient.user
+            .getAccountData<DirectEventContent>()
+            .map { directEvent ->
+                val isDirectChatWithOtherUser = directEvent?.mappings?.get(userId)?.contains(selectedRoomId) ?: false
+                log.debug {
+                    "Checking whether chat can be opened: is direct chat with other user: $isDirectChatWithOtherUser"
+                }
+                !isDirectChatWithOtherUser
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -163,12 +182,12 @@ class UserProfileViewModelImpl(
     override val banUserWarningOpen = MutableStateFlow(false)
     override val unbanUserWarningOpen = MutableStateFlow(false)
 
-    override val membershipReason: StateFlow<String?> = roomUser
-        .mapLatest { it?.event?.content?.reason }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-    override val membership: StateFlow<Membership?> = roomUser
-        .mapLatest { it?.membership }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val membershipReason: StateFlow<String?> =
+        roomUser
+            .mapLatest { it?.event?.content?.reason }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val membership: StateFlow<Membership?> =
+        roomUser.mapLatest { it?.membership }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
@@ -176,17 +195,21 @@ class UserProfileViewModelImpl(
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val roomUserOriginalName = MutableStateFlow<String?>(null)
 
-    private val isUserInRoom = matrixClient.user.getById(selectedRoomId, userId)
-        .map { it != null }
-        .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
+    private val isUserInRoom =
+        matrixClient.user
+            .getById(selectedRoomId, userId)
+            .map { it != null }
+            .shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    override val userTrustLevel: StateFlow<UserTrustLevel?> = matrixClient.key.getTrustLevel(userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val userTrustLevel: StateFlow<UserTrustLevel?> =
+        matrixClient.key.getTrustLevel(userId).stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val userInfo: StateFlow<UserInfoElement?>
     override val role = MutableStateFlow(Role.USER)
     override val showRole = MutableStateFlow(false)
-    override val powerLevel = matrixClient.user.getPowerLevel(selectedRoomId, matrixClient.userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val powerLevel =
+        matrixClient.user
+            .getPowerLevel(selectedRoomId, matrixClient.userId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     override val showPowerLevel = MutableStateFlow(false)
 
     private val _membershipChanging = MutableStateFlow(false)
@@ -195,26 +218,23 @@ class UserProfileViewModelImpl(
     override val kickUserReason = TextFieldViewModelImpl(maxLength = 1_000)
 
     override val iHavePowerToKickUser =
-        combine(
-            isUserInRoom,
-            matrixClient.user.canKickUser(selectedRoomId, userId)
-        ) { inRoom, canKick -> inRoom && canKick }
+        combine(isUserInRoom, matrixClient.user.canKickUser(selectedRoomId, userId)) { inRoom, canKick ->
+                inRoom && canKick
+            }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val iHavePowerToBanUser: StateFlow<Boolean> =
-        combine(
-            isUserInRoom,
-            matrixClient.user.canBanUser(selectedRoomId, userId)
-        ) { inRoom, canBan -> inRoom && canBan }
+        combine(isUserInRoom, matrixClient.user.canBanUser(selectedRoomId, userId)) { inRoom, canBan ->
+                inRoom && canBan
+            }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val banUserReason = TextFieldViewModelImpl(maxLength = 20_000)
 
     override val iHavePowerToUnbanUser: StateFlow<Boolean> =
-        combine(
-            isUserInRoom,
-            matrixClient.user.canUnbanUser(selectedRoomId, userId),
-        ) { inRoom, canUnBan -> inRoom && canUnBan }
+        combine(isUserInRoom, matrixClient.user.canUnbanUser(selectedRoomId, userId)) { inRoom, canUnBan ->
+                inRoom && canUnBan
+            }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val unbanUserReason = TextFieldViewModelImpl(maxLength = 20_000)
@@ -223,18 +243,17 @@ class UserProfileViewModelImpl(
         membership.map { it == Membership.KNOCK }.shareIn(coroutineScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     override val iHavePowerToAcceptKnock: StateFlow<Boolean> =
-        combine(
-            isKnocking,
-            matrixClient.user.canInviteUser(selectedRoomId, userId)
-        ) { it.all { it == true } }
+        combine(isKnocking, matrixClient.user.canInviteUser(selectedRoomId, userId)) { it.all { it == true } }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val iHavePowerToRejectKnock: StateFlow<Boolean> =
         combine(isKnocking, iHavePowerToKickUser) { it.all { it == true } }
             .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
-    override val isUserBlocked: StateFlow<Boolean> = userBlocking.isUserBlocked(matrixClient, userId)
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+    override val isUserBlocked: StateFlow<Boolean> =
+        userBlocking
+            .isUserBlocked(matrixClient, userId)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
     override val blockingInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     override val changePowerLevelViewModel: ChangePowerLevelViewModel =
@@ -243,10 +262,13 @@ class UserProfileViewModelImpl(
                 viewModelContext = viewModelContext.childContext("changePowerLevel-${userId.full}"),
                 targetUser = userId,
                 error = error,
-                selectedRoomId = selectedRoomId
+                selectedRoomId = selectedRoomId,
             )
-    override val presence = matrixClient.user.getPresence(userId).map { it?.presence ?: Presence.OFFLINE }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
+    override val presence =
+        matrixClient.user
+            .getPresence(userId)
+            .map { it?.presence ?: Presence.OFFLINE }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
@@ -259,44 +281,38 @@ class UserProfileViewModelImpl(
             }
         }
 
-        userInfo = roomUser.mapNotNull {
-            val name: String
-            val avatarUrl: String?
+        userInfo =
+            roomUser
+                .mapNotNull {
+                    val name: String
+                    val avatarUrl: String?
 
-            if (it == null) {
-                val profile = matrixClient.api.user.getProfile(userId).getOrNull() ?: return@mapNotNull null
-                name = profile.displayName ?: return@mapNotNull null
-                avatarUrl = profile.avatarUrl
-            } else {
-                roomUserOriginalName.value = it.originalName
-                name = it.name
-                avatarUrl = it.avatarUrl
-            }
+                    if (it == null) {
+                        val profile = matrixClient.api.user.getProfile(userId).getOrNull() ?: return@mapNotNull null
+                        name = profile.displayName ?: return@mapNotNull null
+                        avatarUrl = profile.avatarUrl
+                    } else {
+                        roomUserOriginalName.value = it.originalName
+                        name = it.name
+                        avatarUrl = it.avatarUrl
+                    }
 
-            UserInfoElement(
-                userId,
-                name,
-                initials.compute(name),
-                getImageLazy(
-                    matrixClient,
-                    avatarUrl
-                )
-            )
-        }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+                    UserInfoElement(userId, name, initials.compute(name), getImageLazy(matrixClient, avatarUrl))
+                }
+                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
     }
 
-    private fun getImageLazy(matrixClient: MatrixClient, avatarUrl: String?) = flow {
-        emit(getImage(matrixClient, avatarUrl))
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    private fun getImageLazy(matrixClient: MatrixClient, avatarUrl: String?) =
+        flow { emit(getImage(matrixClient, avatarUrl)) }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private suspend fun getImage(matrixClient: MatrixClient, avatarUrl: String?): ByteArray? {
         return avatarUrl?.let { url ->
-            matrixClient.media.getThumbnail(url, avatarSize().toLong(), avatarSize().toLong()).fold(
-                onSuccess = {
-                    it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-                },
-                onFailure = { null }
-            )
+            matrixClient.media
+                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                .fold(
+                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                    onFailure = { null },
+                )
         }
     }
 
@@ -337,111 +353,119 @@ class UserProfileViewModelImpl(
     }
 
     override fun kickUser() {
-        coroutineScope.launch {
-            if (_membershipChanging.getAndUpdate { true }) {
-                error.value = i18n.userProfileMembershipChanging()
-                return@launch
-            }
+        coroutineScope
+            .launch {
+                if (_membershipChanging.getAndUpdate { true }) {
+                    error.value = i18n.userProfileMembershipChanging()
+                    return@launch
+                }
 
-            if (matrixClient.syncState.value == SyncState.ERROR) {
-                error.value = i18n.settingsRoomMemberListKickUserErrorOffline()
-            } else {
-                matrixClient.api.room.kickUser(
-                    selectedRoomId,
-                    userId,
-                    kickUserReason.value.text.ifBlank { null },
-                ).fold(
-                    onSuccess = {
-                        kickUserReason.update("")
-                        error.value = null
-                    },
-                    onFailure = {
-                        if (it is CancellationException) {
-                            return@launch
-                        }
-                        log.error(it) { "cannot kick user $userId from $selectedRoomId" }
-                        error.value = i18n.settingsRoomMemberListKickUserError()
-                    }
-                )
+                if (matrixClient.syncState.value == SyncState.ERROR) {
+                    error.value = i18n.settingsRoomMemberListKickUserErrorOffline()
+                } else {
+                    matrixClient.api.room
+                        .kickUser(selectedRoomId, userId, kickUserReason.value.text.ifBlank { null })
+                        .fold(
+                            onSuccess = {
+                                kickUserReason.update("")
+                                error.value = null
+                            },
+                            onFailure = {
+                                if (it is CancellationException) {
+                                    return@launch
+                                }
+                                log.error(it) { "cannot kick user $userId from $selectedRoomId" }
+                                error.value = i18n.settingsRoomMemberListKickUserError()
+                            },
+                        )
+                }
             }
-        }.invokeOnCompletion { _membershipChanging.value = false }
+            .invokeOnCompletion { _membershipChanging.value = false }
     }
 
     override fun banUser() {
-        coroutineScope.launch {
-            if (_membershipChanging.getAndUpdate { true }) {
-                error.value = i18n.userProfileMembershipChanging()
-                return@launch
-            }
-
-            if (matrixClient.syncState.value == SyncState.ERROR) {
-                error.value = i18n.settingsRoomMemberBanUserErrorOffline()
-                return@launch
-            }
-
-            if (!iHavePowerToBanUser.value) {
-                error.value = i18n.settingsRoomMemberBanUserErrorNotPossible()
-                return@launch
-            }
-
-            matrixClient.api.room.banUser(
-                roomId = selectedRoomId,
-                userId = userId,
-                reason = banUserReason.value.text.ifBlank { null },
-            ).fold(
-                onSuccess = {
-                    banUserReason.update("")
-                    error.value = null
-                },
-                onFailure = {
-                    if (it is CancellationException) {
-                        return@launch
-                    }
-
-                    log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
-                    error.value = i18n.settingsRoomMemberBanUserError()
+        coroutineScope
+            .launch {
+                if (_membershipChanging.getAndUpdate { true }) {
+                    error.value = i18n.userProfileMembershipChanging()
+                    return@launch
                 }
-            )
-        }.invokeOnCompletion {
-            _membershipChanging.value = false
-        }
+
+                if (matrixClient.syncState.value == SyncState.ERROR) {
+                    error.value = i18n.settingsRoomMemberBanUserErrorOffline()
+                    return@launch
+                }
+
+                if (!iHavePowerToBanUser.value) {
+                    error.value = i18n.settingsRoomMemberBanUserErrorNotPossible()
+                    return@launch
+                }
+
+                matrixClient.api.room
+                    .banUser(
+                        roomId = selectedRoomId,
+                        userId = userId,
+                        reason = banUserReason.value.text.ifBlank { null },
+                    )
+                    .fold(
+                        onSuccess = {
+                            banUserReason.update("")
+                            error.value = null
+                        },
+                        onFailure = {
+                            if (it is CancellationException) {
+                                return@launch
+                            }
+
+                            log.error(it) { "cannot ban user $userId from $selectedRoomId: ${it.message}" }
+                            error.value = i18n.settingsRoomMemberBanUserError()
+                        },
+                    )
+            }
+            .invokeOnCompletion { _membershipChanging.value = false }
     }
 
     override fun unbanUser() {
         val roomUserId = userId
-        coroutineScope.launch {
-            if (_membershipChanging.getAndUpdate { true }) {
-                error.value = i18n.userProfileMembershipChanging()
-                return@launch
-            }
-
-            if (matrixClient.syncState.value == SyncState.ERROR) {
-                error.value = i18n.settingsRoomMemberUnbanUserErrorOffline()
-                return@launch
-            }
-
-            if (!iHavePowerToUnbanUser.value) {
-                log.error { "cannot unban user $roomUserId from $selectedRoomId: User is not able to unban this member" }
-                error.value = i18n.settingsRoomMemberUnbanUserErrorNotPossible()
-                return@launch
-            }
-
-            matrixClient.api.room.unbanUser(
-                roomId = selectedRoomId,
-                userId = roomUserId,
-                reason = unbanUserReason.value.text.ifBlank { null },
-            ).fold(
-                onSuccess = {
-                    unbanUserReason.update("")
-                    error.value = null
-                },
-                onFailure = {
-                    if (it is CancellationException) return@launch
-                    log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
-                    error.value = i18n.settingsRoomMemberUnbanUserError()
+        coroutineScope
+            .launch {
+                if (_membershipChanging.getAndUpdate { true }) {
+                    error.value = i18n.userProfileMembershipChanging()
+                    return@launch
                 }
-            )
-        }.invokeOnCompletion { _membershipChanging.value = false }
+
+                if (matrixClient.syncState.value == SyncState.ERROR) {
+                    error.value = i18n.settingsRoomMemberUnbanUserErrorOffline()
+                    return@launch
+                }
+
+                if (!iHavePowerToUnbanUser.value) {
+                    log.error {
+                        "cannot unban user $roomUserId from $selectedRoomId: User is not able to unban this member"
+                    }
+                    error.value = i18n.settingsRoomMemberUnbanUserErrorNotPossible()
+                    return@launch
+                }
+
+                matrixClient.api.room
+                    .unbanUser(
+                        roomId = selectedRoomId,
+                        userId = roomUserId,
+                        reason = unbanUserReason.value.text.ifBlank { null },
+                    )
+                    .fold(
+                        onSuccess = {
+                            unbanUserReason.update("")
+                            error.value = null
+                        },
+                        onFailure = {
+                            if (it is CancellationException) return@launch
+                            log.error(it) { "cannot unban user $roomUserId from $selectedRoomId: ${it.message}" }
+                            error.value = i18n.settingsRoomMemberUnbanUserError()
+                        },
+                    )
+            }
+            .invokeOnCompletion { _membershipChanging.value = false }
     }
 
     override fun blockUser() {
@@ -450,13 +474,11 @@ class UserProfileViewModelImpl(
             userBlocking.blockUser(
                 matrixClient = matrixClient,
                 userToBlock = userId,
-                onSuccess = {
-                    blockingInProgress.value = false
-                },
+                onSuccess = { blockingInProgress.value = false },
                 onFailure = {
                     error.value = i18n.blockUserError(userId.full)
                     blockingInProgress.value = false
-                }
+                },
             )
         }
     }
@@ -467,13 +489,11 @@ class UserProfileViewModelImpl(
             userBlocking.unblockUser(
                 matrixClient = matrixClient,
                 userToUnblock = userId,
-                onSuccess = {
-                    blockingInProgress.value = false
-                },
+                onSuccess = { blockingInProgress.value = false },
                 onFailure = {
                     error.value = i18n.settingsUnblockUserError(userId.full)
                     blockingInProgress.value = false
-                }
+                },
             )
         }
     }
@@ -484,24 +504,24 @@ class UserProfileViewModelImpl(
             return
         }
 
-        coroutineScope.launch {
-            matrixClient.api.room.inviteUser(
-                selectedRoomId,
-                userId
-            ).fold(
-                onSuccess = {
-                    log.debug { "user ${userId.full} was invited" }
-                    error.value = null
-                },
-                onFailure = {
-                    log.error(it) { "Failed to invite user ${userId.full}" }
-                    log.error { it.stackTraceToString() }
-                    error.value = i18n.acceptKnockFailed()
-                }
-            )
-        }.invokeOnCompletion { _membershipChanging.value = false }
+        coroutineScope
+            .launch {
+                matrixClient.api.room
+                    .inviteUser(selectedRoomId, userId)
+                    .fold(
+                        onSuccess = {
+                            log.debug { "user ${userId.full} was invited" }
+                            error.value = null
+                        },
+                        onFailure = {
+                            log.error(it) { "Failed to invite user ${userId.full}" }
+                            log.error { it.stackTraceToString() }
+                            error.value = i18n.acceptKnockFailed()
+                        },
+                    )
+            }
+            .invokeOnCompletion { _membershipChanging.value = false }
     }
-
 
     override fun rejectKnock() {
         kickUser()
@@ -516,7 +536,6 @@ class UserProfileViewModelImpl(
         }
     }
 
-
     override val openingChat = MutableStateFlow(false)
 
     override fun openChat() {
@@ -525,35 +544,34 @@ class UserProfileViewModelImpl(
             return
         }
         if (openingChat.compareAndSet(expect = false, update = true)) {
-            coroutineScope.launch {
-                getOrCreateRoom()?.also { roomId ->
-                    onOpenRoom(matrixClient.userId, roomId)
-                } ?: run {
-                    error.value = i18n.createNewRoomError(isChat = true)
+            coroutineScope
+                .launch {
+                    getOrCreateRoom()?.also { roomId -> onOpenRoom(matrixClient.userId, roomId) }
+                        ?: run { error.value = i18n.createNewRoomError(isChat = true) }
                 }
-            }.invokeOnCompletion {
-                openingChat.update { false }
-            }
+                .invokeOnCompletion { openingChat.update { false } }
         }
     }
 
     override val verificationIsRunning =
-        matrixClient.verification.activeUserVerifications.map { activeVerifications -> activeVerifications.any { it.theirUserId == userId } }
-            .stateIn(
-                coroutineScope,
-                SharingStarted.Eagerly,
-                false
-            )
+        matrixClient.verification.activeUserVerifications
+            .map { activeVerifications -> activeVerifications.any { it.theirUserId == userId } }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val verificationIsRunningInThisRoom: StateFlow<Boolean> =
-        matrixClient.verification.activeUserVerifications.map { activeUserVerifications -> activeUserVerifications.any { it.theirUserId == userId && it.roomId == selectedRoomId } }
+        matrixClient.verification.activeUserVerifications
+            .map { activeUserVerifications ->
+                activeUserVerifications.any { it.theirUserId == userId && it.roomId == selectedRoomId }
+            }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-
     override val canVerifyUser: StateFlow<Boolean> =
-        userTrustLevel.map {
-            it is UserTrustLevel.CrossSigned && !it.verified || it is UserTrustLevel.NotAllDevicesCrossSigned && !it.verified
-        }.stateIn(coroutineScope, SharingStarted.Eagerly, false)
+        userTrustLevel
+            .map {
+                it is UserTrustLevel.CrossSigned && !it.verified ||
+                    it is UserTrustLevel.NotAllDevicesCrossSigned && !it.verified
+            }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override fun startVerification(closeSettingsAfterStart: Boolean) {
         log.debug { "starting user verification" }
@@ -563,30 +581,36 @@ class UserProfileViewModelImpl(
         }
         if (!verificationIsRunning.value && canVerifyUser.value) {
             coroutineScope.launch {
-                val req = matrixClient.verification.createUserVerificationRequest(userId)
-                    .fold(
-                        onSuccess = {
-                            it.also {
-                                if (it.roomId != selectedRoomId) {
-                                    log.debug { "go to room ${it.roomId}, since the verification takes place there" }
-                                    onOpenRoom(matrixClient.userId, it.roomId)
-                                } else {
-                                    log.debug { "stay in room $selectedRoomId as the verification takes place here" }
+                val req =
+                    matrixClient.verification
+                        .createUserVerificationRequest(userId)
+                        .fold(
+                            onSuccess = {
+                                it.also {
+                                    if (it.roomId != selectedRoomId) {
+                                        log.debug {
+                                            "go to room ${it.roomId}, since the verification takes place there"
+                                        }
+                                        onOpenRoom(matrixClient.userId, it.roomId)
+                                    } else {
+                                        log.debug {
+                                            "stay in room $selectedRoomId as the verification takes place here"
+                                        }
+                                    }
+                                    if (closeSettingsAfterStart) {
+                                        log.debug { "closing the settings" }
+                                        onCloseSettings()
+                                    } else {
+                                        log.debug { "keep settings open" }
+                                    }
                                 }
-                                if (closeSettingsAfterStart) {
-                                    log.debug { "closing the settings" }
-                                    onCloseSettings()
-                                } else {
-                                    log.debug { "keep settings open" }
-                                }
-                            }
-                        },
-                        onFailure = {
-                            log.error(it) { "cannot verify user $userId" }
-                            error.value = i18n.userVerificationNoMatch() // TODO
-                            return@launch
-                        }
-                    )
+                            },
+                            onFailure = {
+                                log.error(it) { "cannot verify user $userId" }
+                                error.value = i18n.userVerificationNoMatch() // TODO
+                                return@launch
+                            },
+                        )
 
                 req.state.first(::isVerificationStateFinished)
             }
@@ -608,42 +632,44 @@ class UserProfileViewModelImpl(
         }
     }
 
+    private fun isVerificationStateFinished(verificationState: ActiveVerificationState) =
+        when (verificationState) {
+            ActiveVerificationState.Done,
+            is ActiveVerificationState.Cancel,
+            ActiveVerificationState.AcceptedByOtherDevice,
+            ActiveVerificationState.Undefined -> true
 
-    private fun isVerificationStateFinished(verificationState: ActiveVerificationState) = when (verificationState) {
-        ActiveVerificationState.Done,
-        is ActiveVerificationState.Cancel,
-        ActiveVerificationState.AcceptedByOtherDevice,
-        ActiveVerificationState.Undefined -> true
+            else -> false
+        }
 
-        else -> false
-    }
-
-    private suspend fun getOrCreateRoom() =
-        getExistingChat() ?: createNewChat()
+    private suspend fun getOrCreateRoom() = getExistingChat() ?: createNewChat()
 
     private suspend fun getExistingChat(): RoomId? =
-        matrixClient.user.getAccountData<DirectEventContent>().firstOrNull()
+        matrixClient.user
+            .getAccountData<DirectEventContent>()
+            .firstOrNull()
             ?.mappings
             ?.get(userId)
             ?.firstNotNullOfOrNull { roomId -> roomId.takeIf { isUserNotLeft(it, userId) } }
 
     private suspend fun isUserNotLeft(roomId: RoomId, userId: UserId) =
-        matrixClient.user.getById(roomId, userId).firstOrNull()
-            ?.membership.let { membership ->
-                membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
-            }
+        matrixClient.user.getById(roomId, userId).firstOrNull()?.membership.let { membership ->
+            membership == Membership.JOIN || membership == Membership.INVITE || membership == Membership.KNOCK
+        }
 
     private suspend fun createNewChat(): RoomId? =
-        matrixClient.api.room.createRoom(
-            isDirect = true,
-            invite = if (userId == matrixClient.userId) setOf() else setOf(userId),
-            initialState = listOf(
-                InitialStateEvent(EncryptionEventContent(), ""),
-            ),
-            preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE
-        ).fold(
-            onSuccess = { it },
-            onFailure = { log.error(it) { "could not create new direct chat" }; null }
-        )
+        matrixClient.api.room
+            .createRoom(
+                isDirect = true,
+                invite = if (userId == matrixClient.userId) setOf() else setOf(userId),
+                initialState = listOf(InitialStateEvent(EncryptionEventContent(), "")),
+                preset = CreateRoom.Request.Preset.TRUSTED_PRIVATE,
+            )
+            .fold(
+                onSuccess = { it },
+                onFailure = {
+                    log.error(it) { "could not create new direct chat" }
+                    null
+                },
+            )
 }
-

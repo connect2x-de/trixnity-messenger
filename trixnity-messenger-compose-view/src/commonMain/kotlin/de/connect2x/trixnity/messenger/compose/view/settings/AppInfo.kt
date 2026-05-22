@@ -17,17 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemButton
-import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.viewmodel.settings.AppInfoViewModel
 
 interface AppInfoView {
-    @Composable
-    fun create(appInfoViewModel: AppInfoViewModel)
+    @Composable fun create(appInfoViewModel: AppInfoViewModel)
 }
 
 @Composable
@@ -35,8 +34,7 @@ fun AppInfo(appInfoViewModel: AppInfoViewModel) {
     DI.get<AppInfoView>().create(appInfoViewModel)
 }
 
-@Composable
-expect fun PlatformAppInfo()
+@Composable expect fun PlatformAppInfo()
 
 class AppInfoViewImpl : AppInfoView {
     @Composable
@@ -50,8 +48,7 @@ class AppInfoViewImpl : AppInfoView {
             Column {
                 Header(
                     appInfoViewModel::close,
-                    i18n.accountAboutTheApp(DI.get<MatrixMessengerConfiguration>().appName)
-                        .capitalize(Locale.current),
+                    i18n.accountAboutTheApp(DI.get<MatrixMessengerConfiguration>().appName).capitalize(Locale.current),
                 )
                 AppInfoVersion(appInfoViewModel)
                 PrivacyLink(appInfoViewModel)

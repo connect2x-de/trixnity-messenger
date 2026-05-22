@@ -25,15 +25,15 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 
 class AccountsViewModelTest {
     private val ownUserId = UserId("bob", "localhost")
@@ -50,36 +50,24 @@ class AccountsViewModelTest {
 
     init {
         resetMocks(matrixClientMock, matrixClientMock2, mediaServiceMock, mediaServiceMock2)
-        every { matrixClientMock.di } returns koinApplication {
-            modules(
-                module {
-                    single { mediaServiceMock }
-                })
-        }.koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
         val profile = Profile(ProfileField.AvatarUrl("mxc://localhost/123456"))
         every { matrixClientMock.profile } returns MutableStateFlow(profile)
         every { matrixClientMock.userId } returns ownUserId
-        every { matrixClientMock.serverData } returns MutableStateFlow(
-            ServerData(
-                versions = GetVersions.Response(),
-                mediaConfig = GetMediaConfig.Response(),
-                capabilities = GetCapabilities.Response(
-                    capabilities = Capabilities(
-                        setOf(
-                            Capability.ProfileFields(enabled = true),
-                        )
-                    )
-                ),
+        every { matrixClientMock.serverData } returns
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities =
+                        GetCapabilities.Response(
+                            capabilities = Capabilities(setOf(Capability.ProfileFields(enabled = true)))
+                        ),
+                )
             )
-        )
 
         // mock2
-        every { matrixClientMock2.di } returns koinApplication {
-            modules(
-                module {
-                    single { mediaServiceMock2 }
-                })
-        }.koin
+        every { matrixClientMock2.di } returns koinApplication { modules(module { single { mediaServiceMock2 } }) }.koin
 
         val profile2 = Profile(ProfileField.DisplayName(displayName2), ProfileField.AvatarUrl("mxc://localhost/098765"))
         every { matrixClientMock2.profile } returns MutableStateFlow(profile2)
@@ -95,19 +83,17 @@ class AccountsViewModelTest {
                 any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
-        every { matrixClientMock2.serverData } returns MutableStateFlow(
-            ServerData(
-                versions = GetVersions.Response(),
-                mediaConfig = GetMediaConfig.Response(),
-                capabilities = GetCapabilities.Response(
-                    capabilities = Capabilities(
-                        setOf(
-                            Capability.ProfileFields(enabled = true),
-                        )
-                    )
-                ),
+        every { matrixClientMock2.serverData } returns
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities =
+                        GetCapabilities.Response(
+                            capabilities = Capabilities(setOf(Capability.ProfileFields(enabled = true)))
+                        ),
+                )
             )
-        )
     }
 
     @BeforeTest
@@ -117,10 +103,7 @@ class AccountsViewModelTest {
 
     @Test
     fun `show profiles initially`() = runTest {
-        val p = Profile(
-            ProfileField.DisplayName("Bob"),
-            ProfileField.AvatarUrl("mxc://localhost/123456"),
-        )
+        val p = Profile(ProfileField.DisplayName("Bob"), ProfileField.AvatarUrl("mxc://localhost/123456"))
         every { matrixClientMock.profile } returns MutableStateFlow(p)
         everySuspend {
             mediaServiceMock.getThumbnail(
@@ -135,9 +118,7 @@ class AccountsViewModelTest {
 
         val cut = profileViewModel()
         val accounts = cut.accountSingleViewModels
-        accounts.first {
-            it.size == 2 && it[0].userId == ownUserId && it[1].userId == ownUserId2
-        }
+        accounts.first { it.size == 2 && it[0].userId == ownUserId && it[1].userId == ownUserId2 }
 
         eventually(1.seconds) {
             cut.error.value shouldBe null
@@ -177,9 +158,7 @@ class AccountsViewModelTest {
         openAvatarCutter.value shouldBe null
         accounts.value[1].openAvatarCutter.value = true
 
-        eventually(1.seconds) {
-            openAvatarCutter.value shouldBe ownUserId2
-        }
+        eventually(1.seconds) { openAvatarCutter.value shouldBe ownUserId2 }
         cut.closeAvatarCutter()
         eventually(1.seconds) {
             accounts.value[1].openAvatarCutter.value shouldBe false
@@ -207,19 +186,17 @@ class AccountsViewModelTest {
     }
 
     private fun TestScope.profileViewModel(): AccountsViewModelImpl {
-        val di = koinApplication {
-            modules(
-                createTestDefaultTrixnityMessengerModules(
-                    mapOf(
-                        ownUserId to matrixClientMock, ownUserId2 to matrixClientMock2
+        val di =
+            koinApplication {
+                    modules(
+                        createTestDefaultTrixnityMessengerModules(
+                            mapOf(ownUserId to matrixClientMock, ownUserId2 to matrixClientMock2)
+                        )
                     )
-                )
-            )
-        }.koin
+                }
+                .koin
         return AccountsViewModelImpl(
-            viewModelContext = testViewModelContext(
-                di = di,
-            ),
+            viewModelContext = testViewModelContext(di = di),
             onCloseAccounts = mock(),
             onOpenAvatarCutter = mock(),
             onShowAccountSetup = mock(),

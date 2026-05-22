@@ -19,11 +19,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role as SemanticRole
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.client.user.PowerLevel
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.LoadingSpinner
@@ -36,9 +39,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModel.Role
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModel
-import de.connect2x.trixnity.client.user.PowerLevel
-import de.connect2x.trixnity.core.model.UserId
-import androidx.compose.ui.semantics.Role as SemanticRole
 
 interface RoomSettingsMemberListElementView {
     @Composable
@@ -79,7 +79,8 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
         val showPowerLevel = memberListElementViewModel.showPowerLevel.collectAsState().value
         val showRole = memberListElementViewModel.showRole.collectAsState().value
         val isLastMember =
-            memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId == memberListElementViewModel.memberUserId
+            memberListViewModel.elements.collectAsState().value.lastOrNull()?.memberUserId ==
+                memberListElementViewModel.memberUserId
         val presence = memberListElementViewModel.presence.collectAsState().value
         val image = memberElement?.image
         val isMemberElementLoading = memberElement == null
@@ -91,21 +92,24 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                 .clickable(
                     role = SemanticRole.Button,
                     interactionSource = interactionSource,
-                    indication = LocalIndication.current
-                ) { memberListElementViewModel.openUserProfile() }
+                    indication = LocalIndication.current,
+                ) {
+                    memberListElementViewModel.openUserProfile()
+                }
                 .focusHighlighting(interactionSource)
                 .buttonPointerModifier()
                 .clearAndSetSemantics {
                     if (!isMemberElementLoading)
                         text = AnnotatedString(memberElement.displayName + " " + i18n.profileTitle())
-                },
+                }
         ) {
             Column {
                 Row(
                     Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (isMemberElementLoading) LoadingSpinner() else {
+                    if (isMemberElementLoading) LoadingSpinner()
+                    else {
                         ThemedUserAvatar(initials = memberElement.initials, image = image, presence = presence) {
                             AvatarPresenceBadge(presence)
                         }
@@ -126,8 +130,10 @@ class RoomSettingsMemberListElementViewImpl : RoomSettingsMemberListElementView 
                         )
                         if (showRole || showPowerLevel) {
                             Text(
-                                text = getRoomSettingsMemberRoleName(role, i18n)
-                                        + if (showPowerLevel && powerLevel is PowerLevel.User) " (${powerLevel.level})" else "",
+                                text =
+                                    getRoomSettingsMemberRoleName(role, i18n) +
+                                        if (showPowerLevel && powerLevel is PowerLevel.User) " (${powerLevel.level})"
+                                        else "",
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1,
                             )

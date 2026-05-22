@@ -593,7 +593,8 @@ open class I18nView(
 
     open fun verificationVerifiedDevice() = translate {
         EN - "This device has been verified. Other users that trust you will trust messages sent from this device."
-        DE - "Dieses Gerät ist Ihnen zugeordnet. Andere Teilnehmer, die Ihnen vertrauen, vertrauen Nachrichten von diesem Gerät."
+        DE -
+            "Dieses Gerät ist Ihnen zugeordnet. Andere Teilnehmer, die Ihnen vertrauen, vertrauen Nachrichten von diesem Gerät."
     }
 
     open fun verificationVerifiedUser() = translate {
@@ -602,18 +603,24 @@ open class I18nView(
     }
 
     open fun verificationNotVerifiedDevice() = translate {
-        EN - "This device has not been verified by you. Other users might see a warning to not trust messages sent from this device."
-        DE - "Dieses Gerät ist Ihnen noch nicht zugeordnet. Andere Teilnehmer sehen evtl. eine Warnung, Ihren Nachrichten von diesem Gerät nicht zu vertrauen."
+        EN -
+            "This device has not been verified by you. Other users might see a warning to not trust messages sent from this device."
+        DE -
+            "Dieses Gerät ist Ihnen noch nicht zugeordnet. Andere Teilnehmer sehen evtl. eine Warnung, Ihren Nachrichten von diesem Gerät nicht zu vertrauen."
     }
 
     open fun verificationNotVerifiedUser() = translate {
-        EN - "This user has at least one unverified device activated. It cannot be verified that messages you receive are actually from this user."
-        DE - "Dieser Nutzer verwendet Geräte, die ihm nicht zugeordnet sind. Dass Nachrichten wirklich von ihm stammen, kann nicht überprüft werden."
+        EN -
+            "This user has at least one unverified device activated. It cannot be verified that messages you receive are actually from this user."
+        DE -
+            "Dieser Nutzer verwendet Geräte, die ihm nicht zugeordnet sind. Dass Nachrichten wirklich von ihm stammen, kann nicht überprüft werden."
     }
 
     open fun verificationNeutralUser() = translate {
-        EN - "This user has only verified devices. You have not verified yet that the user is the person you expect her/him to be."
-        DE - "Dieser Nutzer verwendet ausschließlich Geräte, die ihm zugeordnet sind. Sie haben noch nicht überprüft, ob es sich tatsächlich um die ausgegebene Person handelt."
+        EN -
+            "This user has only verified devices. You have not verified yet that the user is the person you expect her/him to be."
+        DE -
+            "Dieser Nutzer verwendet ausschließlich Geräte, die ihm zugeordnet sind. Sie haben noch nicht überprüft, ob es sich tatsächlich um die ausgegebene Person handelt."
     }
 
     open fun verificationTrusted() = translate {
@@ -632,8 +639,10 @@ open class I18nView(
     }
 
     open fun verificationAlreadyRunning() = translate {
-        EN - "There is already a verification process with this user, please finish/cancel it before starting a new verification"
-        DE - "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer, bitte beenden oder brechen Sie diesen ab, bevor Sie eine neue Verifikation starten"
+        EN -
+            "There is already a verification process with this user, please finish/cancel it before starting a new verification"
+        DE -
+            "Es läuft bereits ein Verifikationsprozess mit diesem Nutzer, bitte beenden oder brechen Sie diesen ab, bevor Sie eine neue Verifikation starten"
     }
 
     open fun verificationAlreadyRunningInAnotherRoom() = translate {
@@ -643,7 +652,8 @@ open class I18nView(
 
     open fun dehydratedDevice() = translate {
         EN - "This virtual (so called dehydrated) device is used to decrypt messages when no other device is online."
-        DE - "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
+        DE -
+            "Dieses virtuelle (sogenannte dehydrierte) Gerät wird verwendet um Nachrichten zu entschlüsseln, wenn kein anderes Gerät online ist."
     }
 
     open fun anErrorHasOccurred() = translate {
@@ -853,7 +863,8 @@ open class I18nView(
 
     open fun storeFailureLocalDbRestart(appName: String) = translate {
         EN - "A restart of $appName might solve the problem. If this problem persists, please file a bug report."
-        DE - "Sie können versuchen $appName neu zu starten. Falls das Problem bestehen bleibt, erstellen Sie bitte einen Fehlerbericht."
+        DE -
+            "Sie können versuchen $appName neu zu starten. Falls das Problem bestehen bleibt, erstellen Sie bitte einen Fehlerbericht."
     }
 
     open fun storeFailureDeleteLocalDb() = translate {
@@ -877,8 +888,10 @@ open class I18nView(
     }
 
     open fun storeFailureDeleteLocalDbWarning() = translate {
-        EN - "You can only restore your old messages on this device if you have the recovery key or another device with the account with you. Otherwise, those messages are lost!"
-        DE - "Nur mithilfe des Generalschlüssels oder der Freischaltung über ein anderes Gerät können Sie ihre alten Nachrichten lesen. Andernfalls sind diese Nachrichten verloren!"
+        EN -
+            "You can only restore your old messages on this device if you have the recovery key or another device with the account with you. Otherwise, those messages are lost!"
+        DE -
+            "Nur mithilfe des Generalschlüssels oder der Freischaltung über ein anderes Gerät können Sie ihre alten Nachrichten lesen. Andernfalls sind diese Nachrichten verloren!"
     }
 
     open fun storeFailureDeleteDb() = translate {
@@ -952,22 +965,28 @@ open class I18nView(
     }
 
     open fun userProfileNoteText() = translate {
-        EN - """Every user in a chat/group has a given power level (number).
+        EN -
+            """
+            |Every user in a chat/group has a given power level (number).
             |This value determines the rights a user has in this chat or group.
             |
             |The higher the value, the more rights a user has.
             |The correlation between the given value and certain rights is determined by an admin of the room.
             |
             |Standard values are: 0 (user), 50 (moderator) and 100 (administrator).
-        """.trimMargin()
-        DE - """Jedem Nutzer in einem Chat/Gruppe hat ein Berechtigungslevel (Zahl).
+            """
+                .trimMargin()
+        DE -
+            """
+            |Jedem Nutzer in einem Chat/Gruppe hat ein Berechtigungslevel (Zahl).
             |Dieser Wert bestimmt welche Rechte ein Nutzer in diesem Chat oder dieser Gruppe besitzt.
             |
             |Je höher dieser Wert ist, desto mehr Rechte besitzt der Nutzer.
             |Ab welchen Werten der Nutzer welche Rechte besitzt, kann durch berechtigte Personen festgelegt werden.
             |
             |Standardwerte sind 0 (Einfacher Nutzer), 50 (Moderator) und 100 (Administrator).
-        """.trimMargin()
+            """
+                .trimMargin()
     }
 
     open fun userProfileContact() = translate {
@@ -1676,18 +1695,24 @@ open class I18nView(
     }
 
     open fun accountsOverviewLogoutWarningExplanation() = translate {
-        EN - """You are about to log out of your account. In order to have further access to this account, please make sure you either have:
+        EN -
+            """
+            |You are about to log out of your account. In order to have further access to this account, please make sure you either have:
             | * your recovery key
             | * another device logged into this account
             | 
             |If you have neither, all your DATA WILL BE LOST!
-        """.trimMargin()
-        DE - """Sie sind dabei sich aus diesem Konto auszuloggen. Um weiterhin Zugriff zu diesem Konto zu haben, vergewissern Sie sich eines der folgenden Dinge zu haben:
+            """
+                .trimMargin()
+        DE -
+            """
+            |Sie sind dabei sich aus diesem Konto auszuloggen. Um weiterhin Zugriff zu diesem Konto zu haben, vergewissern Sie sich eines der folgenden Dinge zu haben:
             | * Ihren Generalschlüssel
             | * ein weiteres Gerät, das in diesem Konto eingeloggt ist
             | 
             |Falls Sie nichts davon besitzen, sind ALLE IHRE DATEN VERLOREN!
-        """.trimMargin()
+            """
+                .trimMargin()
     }
 
     open fun accountsOverviewLogout() = translate {
@@ -1827,7 +1852,8 @@ open class I18nView(
 
     open fun notificationSettingsPlatformEnablePermissionsWarning() = translate {
         EN - "The app does not have permission to send notifications. Please go to your device settings."
-        DE - "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."
+        DE -
+            "Der App fehlen die Berechtigungen zum Senden von Benachrichtigungen. Bitte gehen Sie in die Geräteeinstellungen."
     }
 
     open fun notificationsSettingsPlatformPushMode(mode: String) = translate {
@@ -1841,8 +1867,10 @@ open class I18nView(
     }
 
     open fun notificationsSettingsPlatformPushModePushExplantation() = translate {
-        EN - "You will receive a notification on your phone instantly when a new message is posted via Google Services. Google cannot access any contents of the messages, but notice that you have received a message."
-        DE - "Über Google Services wird im Falle einer neuen Nachricht an Sie sofort eine Meldung auf Ihr Mobilgerät übertragen. Google kann hierbei auf keine Nachrichteninhalte zugreifen, aber sehen, dass Sie eine Nachricht empfangen haben."
+        EN -
+            "You will receive a notification on your phone instantly when a new message is posted via Google Services. Google cannot access any contents of the messages, but notice that you have received a message."
+        DE -
+            "Über Google Services wird im Falle einer neuen Nachricht an Sie sofort eine Meldung auf Ihr Mobilgerät übertragen. Google kann hierbei auf keine Nachrichteninhalte zugreifen, aber sehen, dass Sie eine Nachricht empfangen haben."
     }
 
     open fun notificationsSettingsPlatformPushModePolling() = translate {
@@ -1851,8 +1879,10 @@ open class I18nView(
     }
 
     open fun notificationsSettingsPlatformPushModePollingExplanation() = translate {
-        EN - "Notifications are received with a delay. You might notice a permanent element in the notification bar that new messages are received."
-        DE - "Benachrichtigungen werden mit einer Verzögerung empfangen. Sie sehen evtl. dauerhaft ein Element in der Benachrichtigungsleiste, dass neue Nachrichten empfangen werden."
+        EN -
+            "Notifications are received with a delay. You might notice a permanent element in the notification bar that new messages are received."
+        DE -
+            "Benachrichtigungen werden mit einer Verzögerung empfangen. Sie sehen evtl. dauerhaft ein Element in der Benachrichtigungsleiste, dass neue Nachrichten empfangen werden."
     }
 
     open fun notificationsSettingsPlatformPlaySound() = translate {
@@ -1869,7 +1899,6 @@ open class I18nView(
         EN - "Show message details"
         DE - "Nachrichtendetails zeigen"
     }
-
 
     open fun notificationsSettingsAccountDefaultLevel(level: String) = translate {
         EN - "Default Level: $level"
@@ -2008,7 +2037,8 @@ open class I18nView(
 
     open fun profileYourNameInfo() = translate {
         EN - "This is your display name. It is public and is seen by other users in your chats and groups."
-        DE - "Die ist Ihr Anzeigename. Dieser ist öffentlich und wird von allen Teilnehmern in Ihren Chats und Gruppen gesehen."
+        DE -
+            "Die ist Ihr Anzeigename. Dieser ist öffentlich und wird von allen Teilnehmern in Ihren Chats und Gruppen gesehen."
     }
 
     open fun profileUserName() = translate {
@@ -2017,8 +2047,10 @@ open class I18nView(
     }
 
     open fun profileUserNameInfo() = translate {
-        EN - "Your username is required to login. It is public and is used to identify your account in case of of a display name duplication in a group."
-        DE - "Ihre Benutzerkennung wird zum Einloggen benötigt. Sie ist öffentlich und wird verwendet um Sie - im Falle einer Namensdopplung - in einer Gruppe eindeutig zu identifizieren."
+        EN -
+            "Your username is required to login. It is public and is used to identify your account in case of of a display name duplication in a group."
+        DE -
+            "Ihre Benutzerkennung wird zum Einloggen benötigt. Sie ist öffentlich und wird verwendet um Sie - im Falle einer Namensdopplung - in einer Gruppe eindeutig zu identifizieren."
     }
 
     open fun bootstrapRecoveryKeyExplanationTitle() = translate {
@@ -2027,13 +2059,17 @@ open class I18nView(
     }
 
     open fun bootstrapRecoveryKeyExplanation1() = translate {
-        EN - "During the setup of your account, a vault for your messages is created, in which your messages are safely stored. Only the device with which your are performing the setup now is able to access the vault."
-        DE - "Im Rahmen der Kontoeinrichtung wird nun ein Tresor für Ihre Nachrichten angelegt. In diesem werden Ihre Nachrichten sicher verwahrt. Nur das Gerät, mit dem Sie die Einrichtung gerade durchführen, hat Zugriff auf diesen Tresor."
+        EN -
+            "During the setup of your account, a vault for your messages is created, in which your messages are safely stored. Only the device with which your are performing the setup now is able to access the vault."
+        DE -
+            "Im Rahmen der Kontoeinrichtung wird nun ein Tresor für Ihre Nachrichten angelegt. In diesem werden Ihre Nachrichten sicher verwahrt. Nur das Gerät, mit dem Sie die Einrichtung gerade durchführen, hat Zugriff auf diesen Tresor."
     }
 
     open fun bootstrapRecoveryKeyExplanation2() = translate {
-        EN - "The message vault additionally can be opened with an individual recovery key. In case your device is lost, you can open the message vault on another device with the recovery key which is issued to you in the next step."
-        DE - "Dieser Tresor kann zudem mit einem individuellen Generalschlüssel (im Bild: \"RecoveryKey\") geöffnet werden. Um im Falle eines Geräteverlusts diesen Tresor auf einem neuen Gerät öffnen zu können, wird Ihnen der Generalschlüssel im nächsten Schritt ausgehändigt."
+        EN -
+            "The message vault additionally can be opened with an individual recovery key. In case your device is lost, you can open the message vault on another device with the recovery key which is issued to you in the next step."
+        DE -
+            "Dieser Tresor kann zudem mit einem individuellen Generalschlüssel (im Bild: \"RecoveryKey\") geöffnet werden. Um im Falle eines Geräteverlusts diesen Tresor auf einem neuen Gerät öffnen zu können, wird Ihnen der Generalschlüssel im nächsten Schritt ausgehändigt."
     }
 
     open fun bootstrapVault() = translate {
@@ -2062,13 +2098,16 @@ open class I18nView(
     }
 
     open fun bootstrapRecoveryKeyHandling() = translate {
-        EN - "Write down your recovery key and put it in a safe space. A password manager is recommended (e.g., KeePassXC, 1Password, etc.)."
-        DE - "Notieren Sie sich den Generalschlüssel und sichern Sie ihn an einem geeigneten Ort. Ein Passwort-Manager wird empfohlen (bspw. KeePassXC, 1Password, etc.)."
+        EN -
+            "Write down your recovery key and put it in a safe space. A password manager is recommended (e.g., KeePassXC, 1Password, etc.)."
+        DE -
+            "Notieren Sie sich den Generalschlüssel und sichern Sie ihn an einem geeigneten Ort. Ein Passwort-Manager wird empfohlen (bspw. KeePassXC, 1Password, etc.)."
     }
 
     open fun bootstrapRecoveryKeyWarning() = translate {
         EN - "In case your recovery key is stolen, the attacker can get access to your message vault!"
-        DE - "Falls Ihr Generalschlüssel in falsche Hände gerät, kann auf Ihren Tresor und damit alle Ihre Gespräche zugegriffen werden!"
+        DE -
+            "Falls Ihr Generalschlüssel in falsche Hände gerät, kann auf Ihren Tresor und damit alle Ihre Gespräche zugegriffen werden!"
     }
 
     open fun bootstrapRecoveryKeyAttention() = translate {
@@ -2138,12 +2177,15 @@ open class I18nView(
 
     open fun redoSelfVerificationDoIt() = translate {
         EN - "Restart the verification process again or continue with the aforementioned restrictions."
-        DE - "Starten Sie die Freischaltung des Gerätes erneut oder fahren Sie mit den zuvor genannten Einschränkungen fort."
+        DE -
+            "Starten Sie die Freischaltung des Gerätes erneut oder fahren Sie mit den zuvor genannten Einschränkungen fort."
     }
 
     open fun redoSelfVerificationDoItLater() = translate {
-        EN - "Without verification, it is recommended to redo the verification process at a later time. You can find the option in 'settings' -> 'devices'."
-        DE - "Ohne Freischaltung wird empfohlen diese zu einem späteren Zeitpunkt nachzuholen. Sie finden die Option in 'Einstellungen' -> 'Geräte'."
+        EN -
+            "Without verification, it is recommended to redo the verification process at a later time. You can find the option in 'settings' -> 'devices'."
+        DE -
+            "Ohne Freischaltung wird empfohlen diese zu einem späteren Zeitpunkt nachzuholen. Sie finden die Option in 'Einstellungen' -> 'Geräte'."
     }
 
     open fun redoSelfVerificationContinueWithoutVerification() = translate {
@@ -2182,18 +2224,24 @@ open class I18nView(
     }
 
     open fun selfVerificationHelpReason1() = translate {
-        EN - "This step is necessary to increase security and trust of all users among each other. You and your contacts want to make sure that messages are really delivered to the correct recipient."
-        DE - "Dieser Schritt ist notwendig um die Sicherheit und das Vertrauen aller Teilnehmer untereinander zu erhöhen. Sie und Ihre Gesprächspartner möchten sichergehen, dass Ihre Nachrichten auch wirklich beim korrekten Empfänger ankommen."
+        EN -
+            "This step is necessary to increase security and trust of all users among each other. You and your contacts want to make sure that messages are really delivered to the correct recipient."
+        DE -
+            "Dieser Schritt ist notwendig um die Sicherheit und das Vertrauen aller Teilnehmer untereinander zu erhöhen. Sie und Ihre Gesprächspartner möchten sichergehen, dass Ihre Nachrichten auch wirklich beim korrekten Empfänger ankommen."
     }
 
     open fun selfVerificationHelpReason2() = translate {
-        EN - "Despite all security measures an attacker can gain access to your account. The attacker can impersonate you and trick your contacts to disclose sensitive information."
-        DE - "Trotz aller Sicherheitsmaßnahmen kann es einem Angreifer gelingen, Zugriff auf Ihr Konto zu erlangen. Damit kann er sich als Sie ausgeben und andere Gesprächsteilnehmer täuschen ihm sensible Informationen anzuvertrauen."
+        EN -
+            "Despite all security measures an attacker can gain access to your account. The attacker can impersonate you and trick your contacts to disclose sensitive information."
+        DE -
+            "Trotz aller Sicherheitsmaßnahmen kann es einem Angreifer gelingen, Zugriff auf Ihr Konto zu erlangen. Damit kann er sich als Sie ausgeben und andere Gesprächsteilnehmer täuschen ihm sensible Informationen anzuvertrauen."
     }
 
     open fun selfVerificationHelpReason3() = translate {
-        EN - "With the device verification, an attacker would not only need access to your account, but also to your recovery key or a already verified device. This second factor increases the security and trustworthiness."
-        DE - "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eines freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
+        EN -
+            "With the device verification, an attacker would not only need access to your account, but also to your recovery key or a already verified device. This second factor increases the security and trustworthiness."
+        DE -
+            "Durch die Gerätefreischaltung benötigt ein Angreifer nun nicht nur Zugriff auf Ihr Konto, sondern muss zudem im Besitz des Generalschlüssels oder eines freigegebenen Gerätes sein. Dieser zweite Faktor erhöht die Sicherheit und Vertrauenswürdigkeit deutlich."
     }
 
     open fun selfVerificationMethodsTitle() = translate {
@@ -2207,8 +2255,10 @@ open class I18nView(
     }
 
     open fun selfVerificationMethodsOtherDeviceInfo() = translate {
-        EN - "You are asked to compare some emojis. If they match on both devices, the verification is complete and you can fully use this device."
-        DE - "Hierbei werden Sie aufgefordert, eine Reihe von Emojis zu vergleichen. Beim Übereinstimmen auf beiden Geräten wird die Freischaltung aktiviert und Sie können dieses Gerät vollumfänglich nutzen."
+        EN -
+            "You are asked to compare some emojis. If they match on both devices, the verification is complete and you can fully use this device."
+        DE -
+            "Hierbei werden Sie aufgefordert, eine Reihe von Emojis zu vergleichen. Beim Übereinstimmen auf beiden Geräten wird die Freischaltung aktiviert und Sie können dieses Gerät vollumfänglich nutzen."
     }
 
     open fun selfVerificationMethodsRecoveryKey() = translate {
@@ -2307,13 +2357,17 @@ open class I18nView(
     }
 
     open fun verificationRejected(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
+        EN -
+            "${type.capitalize(Locale.current)} was not successful. The emojis/numbers did not match. ${verificationTryAgain()}"
+        DE -
+            "${type.capitalize(Locale.current)} war nicht erfolgreich. Die übermittelten Emojis/Zahlen stimmen nicht überein. ${verificationTryAgain()}"
     }
 
     open fun verificationTimeout(type: String) = translate {
-        EN - "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
-        DE - "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
+        EN -
+            "${type.capitalize(Locale.current)} was not successful. The timeout has been reached. ${verificationTryAgain()}"
+        DE -
+            "${type.capitalize(Locale.current)} war nicht erfolgreich. Das Zeitfenster wurde überschritten. ${verificationTryAgain()}"
     }
 
     open fun verificationCancelled(type: String) = translate {
@@ -2343,7 +2397,8 @@ open class I18nView(
 
     open fun resetWarningLostAccessAndReVerify() = translate {
         EN - "You will be unable to access old encrypted messages and need to re-verify with your contacts."
-        DE - "Sie können nicht auf alte verschlüsselte Nachrichten zugreifen und müssen sich bei Ihren Kontakten erneut verifizieren."
+        DE -
+            "Sie können nicht auf alte verschlüsselte Nachrichten zugreifen und müssen sich bei Ihren Kontakten erneut verifizieren."
     }
 
     open fun resetWarningAcknowledge() = translate {
@@ -2358,7 +2413,8 @@ open class I18nView(
 
     open fun resetWarningLastResort() = translate {
         EN - "The reset should be your last resort, please double check and make sure that there is no other option."
-        DE - "Das Zurücksetzen sollte Ihre letzte Option sein. Bitte überprüfen Sie es sorgfältig und stellen Sie sicher, dass es keine andere Möglichkeit gibt."
+        DE -
+            "Das Zurücksetzen sollte Ihre letzte Option sein. Bitte überprüfen Sie es sorgfältig und stellen Sie sicher, dass es keine andere Möglichkeit gibt."
     }
 
     open fun syncOverlayTitle() = translate {
@@ -2378,7 +2434,8 @@ open class I18nView(
 
     open fun syncOverlayInitialSyncInfo(appName: String) = translate {
         EN - "This might take a while. It is only necessary the first time $appName is started on this device."
-        DE - "Dieser Vorgang kann einige Zeit dauern und ist nur beim ersten Start von $appName auf diesem Gerät notwendig."
+        DE -
+            "Dieser Vorgang kann einige Zeit dauern und ist nur beim ersten Start von $appName auf diesem Gerät notwendig."
     }
 
     open fun fileOverlayPreviewNotSupported() = translate {
@@ -2478,12 +2535,15 @@ open class I18nView(
 
     open fun roomTypeEncryptedInfo() = translate {
         EN - "Encrypted rooms are end-to-end encrypted. Only the participants of the room can read the messages."
-        DE - "Verschlüsselte Räume sind Ende-zu-Ende verschlüsselt. Nur die Teilnehmer des Raumes können die Nachrichten lesen."
+        DE -
+            "Verschlüsselte Räume sind Ende-zu-Ende verschlüsselt. Nur die Teilnehmer des Raumes können die Nachrichten lesen."
     }
 
     open fun roomTypeUnencryptedInfo() = translate {
-        EN - "Messages in unencrypted rooms can potentially be read by anyone. Use only for non-sensitive information. Otherwise, encrypted rooms are recommended."
-        DE - "Nachrichten in unverschlüsselten Räumen können potentiell von jedem gelesen werden. Verwenden Sie diese nur für nicht-sensible Informationen. Ansonsten werden verschlüsselte Räume empfohlen."
+        EN -
+            "Messages in unencrypted rooms can potentially be read by anyone. Use only for non-sensitive information. Otherwise, encrypted rooms are recommended."
+        DE -
+            "Nachrichten in unverschlüsselten Räumen können potentiell von jedem gelesen werden. Verwenden Sie diese nur für nicht-sensible Informationen. Ansonsten werden verschlüsselte Räume empfohlen."
     }
 
     open fun roomTypePublicInfo() = translate {
@@ -2493,7 +2553,8 @@ open class I18nView(
 
     open fun roomTypePrivateInfo() = translate {
         EN - "Private rooms are only visible to invited users. You can only join them with an invitation."
-        DE - "Private Räume sind nur für eingeladene Nutzer sichtbar. Sie können ihnen nur mit einer Einladung beitreten."
+        DE -
+            "Private Räume sind nur für eingeladene Nutzer sichtbar. Sie können ihnen nur mit einer Einladung beitreten."
     }
 
     open fun roomDirectoryVisibility() = translate {
@@ -2509,6 +2570,11 @@ open class I18nView(
     open fun roomDirectoryVisibilityExplanation() = translate {
         EN - "Private rooms cannot be visible"
         DE - "Private Räume können nicht angezeigt werden"
+    }
+
+    open fun roomEncryptionExplanation() = translate {
+        EN - "Public rooms cannot be encrypted"
+        DE - "Öffentliche Räume können nicht verschlüsselt sein"
     }
 
     open fun roomVisibility() = translate {
@@ -2613,7 +2679,8 @@ open class I18nView(
 
     open fun historyVisibilityWorldReadableExplanation() = translate {
         EN - "All Messages are visible for everyone, even participants that didn't join the room. Use with caution!"
-        DE - "Alle Nachrichten sind für jeden Nutzbar sichtbar, auch wenn Sie nicht Teilnehmer des Raumes sind. Verwenden Sie diese Einstellung mit Vorsicht!"
+        DE -
+            "Alle Nachrichten sind für jeden Nutzbar sichtbar, auch wenn Sie nicht Teilnehmer des Raumes sind. Verwenden Sie diese Einstellung mit Vorsicht!"
     }
 
     open fun historyVisibilityWorldReadableEncryptedExplanation() = translate {
@@ -2813,7 +2880,8 @@ open class I18nView(
 
     open fun joinRuleKnockExplanation() = translate {
         EN - "Only users who request an invite and are accepted or get one from a group member are able to join"
-        DE - "Nur Nutzer, die eine Beitrittsanfrage stellen und akzeptiert werden oder von einem Gruppenmitglied eingeladen werden, können beitreten"
+        DE -
+            "Nur Nutzer, die eine Beitrittsanfrage stellen und akzeptiert werden oder von einem Gruppenmitglied eingeladen werden, können beitreten"
     }
 
     open fun joinRuleRestrictedExplanation() = translate {
@@ -2822,8 +2890,10 @@ open class I18nView(
     }
 
     open fun joinRuleKnockRestrictedExplanation() = translate {
-        EN - "Only users who satisfy a specified condition, whose requested invitation gets accepted or are invited by a group member are able to join"
-        DE - "Nur Nutzer, die eine Bedingung erfüllen, deren Beitrittsanfrage akzeptiert wird oder die von einem Gruppenmitglied eingeladen werden, können beitreten"
+        EN -
+            "Only users who satisfy a specified condition, whose requested invitation gets accepted or are invited by a group member are able to join"
+        DE -
+            "Nur Nutzer, die eine Bedingung erfüllen, deren Beitrittsanfrage akzeptiert wird oder die von einem Gruppenmitglied eingeladen werden, können beitreten"
     }
 
     open fun joinRulePrivateExplanation() = translate {
@@ -2922,8 +2992,10 @@ open class I18nView(
     }
 
     open fun formattedForgetRoomWarningBody(roomName: String?, isDirect: Boolean) = translate {
-        EN - "Do you really want to forget ${if (isDirect) "chat" else "group"} ${if (roomName != null) "'$roomName'" else ""}? If you continue, you can't access the room and it's content anymore."
-        DE - "Wollen Sie ${if (isDirect) "den Chat" else "die Gruppe"} ${if (roomName != null) "'$roomName'" else ""} wirklich vergessen? Wenn sie fortfahren, können Sie auf den Raum und dessen Inhalte nicht mehr zugreifen."
+        EN -
+            "Do you really want to forget ${if (isDirect) "chat" else "group"} ${if (roomName != null) "'$roomName'" else ""}? If you continue, you can't access the room and it's content anymore."
+        DE -
+            "Wollen Sie ${if (isDirect) "den Chat" else "die Gruppe"} ${if (roomName != null) "'$roomName'" else ""} wirklich vergessen? Wenn sie fortfahren, können Sie auf den Raum und dessen Inhalte nicht mehr zugreifen."
     }
 
     open fun formattedInvitationBody(inviterName: String, roomName: String?) = translate {
@@ -2972,8 +3044,10 @@ open class I18nView(
     }
 
     open fun accountSetupWizardExplanationMessage() = translate {
-        DE - "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
-        EN - "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
+        DE -
+            "Um Ihren Messenger nach Ihren Vorlieben zu konfigurieren, können Sie im Folgenden einige der wichtigsten Einstellungen konfigurieren. Sämtliche Einstellungen können Sie später verändern."
+        EN -
+            "To configure your messenger to your liking, you can configure some of the most important settings now. You can change all settings later."
     }
 
     open fun accountSetupWizardFinishSetup() = translate {
@@ -2991,27 +3065,32 @@ open class I18nView(
         EN - "Reset setup"
     }
 
-    open fun shareDataTitle(data: SharedData) = when (data) {
-        is SharedData.PlainText -> translate {
-            EN - "Sharing Text"
-            DE - "Teile Text"
-        }
+    open fun shareDataTitle(data: SharedData) =
+        when (data) {
+            is SharedData.PlainText ->
+                translate {
+                    EN - "Sharing Text"
+                    DE - "Teile Text"
+                }
 
-        is SharedData.SingleFile -> translate {
-            EN - "Sharing 1 file"
-            DE - "Teile 1 Datei"
-        }
+            is SharedData.SingleFile ->
+                translate {
+                    EN - "Sharing 1 file"
+                    DE - "Teile 1 Datei"
+                }
 
-        is SharedData.MultipleFiles -> translate {
-            EN - "Sharing ${data.files.size} files"
-            DE - "Teile ${data.files.size} Dateien"
-        }
+            is SharedData.MultipleFiles ->
+                translate {
+                    EN - "Sharing ${data.files.size} files"
+                    DE - "Teile ${data.files.size} Dateien"
+                }
 
-        is SharedData.Url -> translate {
-            EN - "Sharing URL"
-            DE - "Teile URL"
+            is SharedData.Url ->
+                translate {
+                    EN - "Sharing URL"
+                    DE - "Teile URL"
+                }
         }
-    }
 
     open fun shareFilesTitle(count: Int) = translate {
         EN - "Sharing $count files"
@@ -3399,13 +3478,17 @@ open class I18nView(
     }
 
     open fun accountOverviewWarning() = translate {
-        EN - "This function is not intended for adding accounts belonging to different people. Instead, it enables one person to manage multiple accounts."
-        DE - "Diese Funktion sollte nicht verwendet werden um die Konten mehrerer Personen zu verwalten. Stattdessen sollte sie genutzt werden, um auf mehrere Konten im Besitz der gleichen Person zuzugreifen."
+        EN -
+            "This function is not intended for adding accounts belonging to different people. Instead, it enables one person to manage multiple accounts."
+        DE -
+            "Diese Funktion sollte nicht verwendet werden um die Konten mehrerer Personen zu verwalten. Stattdessen sollte sie genutzt werden, um auf mehrere Konten im Besitz der gleichen Person zuzugreifen."
     }
 
     open fun accountOverviewWarningMultipleAccounts() = translate {
-        EN - "If you want to give another person permission to add accounts, please log out of your profile and create a new one."
-        DE - "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte aus Ihrem Profil ab und legen Sie ein neues Profil an."
+        EN -
+            "If you want to give another person permission to add accounts, please log out of your profile and create a new one."
+        DE -
+            "Wenn Sie einer weiteren Person erlauben möchten, Konten hinzuzufügen, melden Sie sich bitte aus Ihrem Profil ab und legen Sie ein neues Profil an."
     }
 
     open fun profilesSettings() = translate {
@@ -3495,7 +3578,8 @@ open class I18nView(
 
     open fun redactionWarningInfo() = translate {
         EN - "Are you sure you want to delete this message? This action cannot be reversed!"
-        DE - "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
+        DE -
+            "Sind Sie sicher, dass Sie diese Nachricht löschen wollen? Dieser Vorgang kann nicht rückgängig gemacht werden!"
     }
 
     open fun redactionWarningSettingTitle() = translate {
@@ -3539,24 +3623,38 @@ open class I18nView(
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)
+
     fun actionMore() = commonMore().capitalize(Locale.current)
+
     fun actionClose() = commonClose().capitalize(Locale.current)
+
     fun actionOk() = commonOk().capitalize(Locale.current)
+
     fun actionBack() = commonBack().capitalize(Locale.current)
+
     fun actionNext() = commonNext().capitalize(Locale.current)
+
     fun actionRemove() = commonRemove().capitalize(Locale.current)
+
     fun actionDelete() = commonDelete().capitalize(Locale.current)
+
     fun actionCreate() = commonCreate().capitalize(Locale.current)
+
     fun actionSelect() = commonSelect().capitalize(Locale.current)
+
     fun actionCopy() = commonCopy().capitalize(Locale.current)
+
     fun actionConfirm() = commonConfirm().capitalize(Locale.current)
+
     fun actionExpand() = commonExpand().capitalize(Locale.current)
+
     fun actionCollapse() = commonCollapse().capitalize(Locale.current)
+
     fun actionZoomIn() = commonZoomIn().capitalize(Locale.current)
+
     fun actionZoomOut() = commonZoomOut().capitalize(Locale.current)
+
     fun actionSubmit() = commonSubmit().capitalize(Locale.current)
 }
 
-fun i18nViewModule() = module {
-    single<I18nView> { I18nView(get(), get(), get(), get()) }
-}
+fun i18nViewModule() = module { single<I18nView> { I18nView(get(), get(), get(), get()) } }

@@ -14,13 +14,10 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 @Composable
 private fun DownloadProgressPreview() {
     InitMessengerPreview {
-        Box(
-            Modifier
-                .background(Color.Gray)
-        ) {
+        Box(Modifier.background(Color.Gray)) {
             DownloadProgress(
                 progressElement = FileTransferProgressElement(0.3f, "3.4 / 7.9 MB"),
-                cancel = { },
+                cancel = {},
                 color = Color.DarkGray,
             )
         }

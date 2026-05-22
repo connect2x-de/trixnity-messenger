@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-
 sealed interface ProgressIndicatorStyle {
     data class LinearProgressIndicatorStyle(
         val color: Color,
@@ -32,13 +31,7 @@ sealed interface ProgressIndicatorStyle {
                 strokeCap: StrokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                 gapSize: Dp = ProgressIndicatorDefaults.LinearIndicatorTrackGapSize,
                 padding: PaddingValues = PaddingValues(0.dp),
-            ) = LinearProgressIndicatorStyle(
-                color,
-                trackColor,
-                strokeCap,
-                gapSize,
-                padding,
-            )
+            ) = LinearProgressIndicatorStyle(color, trackColor, strokeCap, gapSize, padding)
         }
     }
 
@@ -59,24 +52,13 @@ sealed interface ProgressIndicatorStyle {
                 trackColor: Color = ProgressIndicatorDefaults.circularDeterminateTrackColor,
                 strokeCap: StrokeCap = ProgressIndicatorDefaults.CircularDeterminateStrokeCap,
                 padding: PaddingValues = PaddingValues(0.dp),
-            ) = CircularProgressIndicatorStyle(
-                size,
-                color,
-                strokeWidth,
-                trackColor,
-                strokeCap,
-                padding,
-            )
+            ) = CircularProgressIndicatorStyle(size, color, strokeWidth, trackColor, strokeCap, padding)
         }
     }
-
 }
 
 @Composable
-fun ThemedProgressIndicator(
-    modifier: Modifier = Modifier,
-    style: ProgressIndicatorStyle,
-) {
+fun ThemedProgressIndicator(modifier: Modifier = Modifier, style: ProgressIndicatorStyle) {
     when (style) {
         is ProgressIndicatorStyle.LinearProgressIndicatorStyle ->
             LinearProgressIndicator(
@@ -99,11 +81,7 @@ fun ThemedProgressIndicator(
 }
 
 @Composable
-fun ThemedProgressIndicator(
-    progress: () -> Float,
-    modifier: Modifier = Modifier,
-    style: ProgressIndicatorStyle,
-) {
+fun ThemedProgressIndicator(progress: () -> Float, modifier: Modifier = Modifier, style: ProgressIndicatorStyle) {
     when (style) {
         is ProgressIndicatorStyle.LinearProgressIndicatorStyle ->
             LinearProgressIndicator(

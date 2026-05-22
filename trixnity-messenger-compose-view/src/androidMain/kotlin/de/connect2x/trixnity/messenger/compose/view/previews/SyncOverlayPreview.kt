@@ -9,7 +9,5 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.PreviewSyncViewMode
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun SyncOverlayPreview() {
-    InitMessengerPreview {
-        SyncOverlay(PreviewSyncViewModel())
-    }
+    InitMessengerPreview { SyncOverlay(PreviewSyncViewModel()) }
 }

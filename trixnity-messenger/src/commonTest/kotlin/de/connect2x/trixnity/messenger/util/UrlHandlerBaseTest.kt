@@ -3,12 +3,12 @@ package de.connect2x.trixnity.messenger.util
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import io.kotest.matchers.shouldBe
+import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.yield
-import kotlin.test.BeforeTest
-import kotlin.test.Test
 
 class UrlHandlerBaseTest {
     @BeforeTest
@@ -52,9 +52,7 @@ class UrlHandlerBaseTest {
         cutState.value shouldBe null
     }
 
-    class Cut(appUri: String) : UriHandlerBase(
-        MatrixMessengerConfiguration(appUri = appUri)
-    ) {
+    class Cut(appUri: String) : UriHandlerBase(MatrixMessengerConfiguration(appUri = appUri)) {
         val baseFlow = urlHandlerFlow
     }
 }

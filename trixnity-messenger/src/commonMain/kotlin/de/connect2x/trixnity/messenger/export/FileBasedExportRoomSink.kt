@@ -1,12 +1,12 @@
 package de.connect2x.trixnity.messenger.export
 
 import de.connect2x.lognity.api.logger.Logger
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.core.model.RoomId
-import okio.ByteString.Companion.toByteString
 import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import okio.ByteString.Companion.toByteString
 
 expect class Destination
 
@@ -26,22 +26,18 @@ class FileBasedExportRoomSinkFactory(
 
     override fun create(roomId: RoomId, properties: ExportRoomSinkProperties): ExportRoomSink? {
         if (properties !is FileBasedExportRoomProperties) return null
-        val converter = converterFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
-            ?: run {
-                log.warn { "properties are not supported" }
-                return null
-            }
+        val converter =
+            converterFactories.firstNotNullOfOrNull { it.create(roomId, properties) }
+                ?: run {
+                    log.warn { "properties are not supported" }
+                    return null
+                }
         val roomIdAsUnPaddedBase64 = roomId.full.encodeToByteArray().toByteString().base64Url()
-        val currentTimestamp = exportTimestampFormat.format(
-            clock.now().toLocalDateTime(timeZone)
-        )
+        val currentTimestamp = exportTimestampFormat.format(clock.now().toLocalDateTime(timeZone))
         val fileName = "$currentTimestamp ${roomIdAsUnPaddedBase64}.${converter.extension}"
 
         val writer = writerFactory.create(properties.destination, fileName)
-        return FileBasedExportRoomSinkBase(
-            converter = converter,
-            writer = writer,
-        )
+        return FileBasedExportRoomSinkBase(converter = converter, writer = writer)
     }
 }
 

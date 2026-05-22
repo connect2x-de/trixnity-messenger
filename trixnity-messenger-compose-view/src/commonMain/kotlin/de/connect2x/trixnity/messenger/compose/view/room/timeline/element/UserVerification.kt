@@ -1,81 +1,81 @@
-//package de.connect2x.trixnity.messenger.compose.view.room.timeline.element
+// package de.connect2x.trixnity.messenger.compose.view.room.timeline.element
 //
-//import androidx.compose.foundation.layout.Arrangement
-//import androidx.compose.foundation.layout.Box
-//import androidx.compose.foundation.layout.BoxScope
-//import androidx.compose.foundation.layout.BoxWithConstraints
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.Row
-//import androidx.compose.foundation.layout.Spacer
-//import androidx.compose.foundation.layout.fillMaxWidth
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.foundation.layout.size
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.filled.Cancel
-//import androidx.compose.material.icons.filled.CheckCircle
-//import androidx.compose.material.icons.filled.Close
-//import androidx.compose.material.icons.filled.Shield
-//import androidx.compose.material.icons.filled.SportsScore
-//import androidx.compose.material3.Button
-//import androidx.compose.material3.ButtonDefaults
-//import androidx.compose.material3.Icon
-//import androidx.compose.material3.IconButton
-//import androidx.compose.material3.MaterialTheme
-//import androidx.compose.material3.ProvideTextStyle
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.collectAsState
-//import androidx.compose.runtime.mutableStateOf
-//import androidx.compose.runtime.remember
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.draw.clip
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.text.TextStyle
-//import androidx.compose.ui.text.capitalize
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.text.intl.Locale
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.unit.min
-//import androidx.compose.ui.unit.sp
-//import com.arkivanov.decompose.extensions.compose.stack.Children
-//import com.arkivanov.decompose.extensions.compose.stack.animation.fade
-//import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
-//import de.connect2x.trixnity.messenger.compose.view.DI
-//import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
-//import de.connect2x.trixnity.messenger.compose.view.CloseModalButton
-//import de.connect2x.trixnity.messenger.compose.view.MessengerModalButtonRow
-//import de.connect2x.trixnity.messenger.compose.view.get
-//import de.connect2x.trixnity.messenger.compose.view.I18nView
-//import de.connect2x.trixnity.messenger.compose.view.CompareEmojisOrNumbersContent
-//import de.connect2x.trixnity.messenger.compose.view.SelectVerificationMethodContent
-//import de.connect2x.trixnity.messenger.compose.view.VerificationCancelledContent
-//import de.connect2x.trixnity.messenger.compose.view.VerificationRejectedContent
-//import de.connect2x.trixnity.messenger.compose.view.VerificationTimeoutContent
-//import de.connect2x.trixnity.messenger.compose.view.verification.VerificationWaitForOtherContent
-//import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
-//import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
+// import androidx.compose.foundation.layout.Arrangement
+// import androidx.compose.foundation.layout.Box
+// import androidx.compose.foundation.layout.BoxScope
+// import androidx.compose.foundation.layout.BoxWithConstraints
+// import androidx.compose.foundation.layout.Column
+// import androidx.compose.foundation.layout.Row
+// import androidx.compose.foundation.layout.Spacer
+// import androidx.compose.foundation.layout.fillMaxWidth
+// import androidx.compose.foundation.layout.padding
+// import androidx.compose.foundation.layout.size
+// import androidx.compose.foundation.shape.RoundedCornerShape
+// import androidx.compose.material.icons.Icons
+// import androidx.compose.material.icons.filled.Cancel
+// import androidx.compose.material.icons.filled.CheckCircle
+// import androidx.compose.material.icons.filled.Close
+// import androidx.compose.material.icons.filled.Shield
+// import androidx.compose.material.icons.filled.SportsScore
+// import androidx.compose.material3.Button
+// import androidx.compose.material3.ButtonDefaults
+// import androidx.compose.material3.Icon
+// import androidx.compose.material3.IconButton
+// import androidx.compose.material3.MaterialTheme
+// import androidx.compose.material3.ProvideTextStyle
+// import androidx.compose.material3.Text
+// import androidx.compose.runtime.Composable
+// import androidx.compose.runtime.collectAsState
+// import androidx.compose.runtime.mutableStateOf
+// import androidx.compose.runtime.remember
+// import androidx.compose.ui.Alignment
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.draw.clip
+// import androidx.compose.ui.graphics.Color
+// import androidx.compose.ui.text.TextStyle
+// import androidx.compose.ui.text.capitalize
+// import androidx.compose.ui.text.font.FontWeight
+// import androidx.compose.ui.text.intl.Locale
+// import androidx.compose.ui.unit.dp
+// import androidx.compose.ui.unit.min
+// import androidx.compose.ui.unit.sp
+// import com.arkivanov.decompose.extensions.compose.stack.Children
+// import com.arkivanov.decompose.extensions.compose.stack.animation.fade
+// import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+// import de.connect2x.trixnity.messenger.compose.view.DI
+// import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+// import de.connect2x.trixnity.messenger.compose.view.CloseModalButton
+// import de.connect2x.trixnity.messenger.compose.view.MessengerModalButtonRow
+// import de.connect2x.trixnity.messenger.compose.view.get
+// import de.connect2x.trixnity.messenger.compose.view.I18nView
+// import de.connect2x.trixnity.messenger.compose.view.CompareEmojisOrNumbersContent
+// import de.connect2x.trixnity.messenger.compose.view.SelectVerificationMethodContent
+// import de.connect2x.trixnity.messenger.compose.view.VerificationCancelledContent
+// import de.connect2x.trixnity.messenger.compose.view.VerificationRejectedContent
+// import de.connect2x.trixnity.messenger.compose.view.VerificationTimeoutContent
+// import de.connect2x.trixnity.messenger.compose.view.verification.VerificationWaitForOtherContent
+// import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.UserVerificationViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.AcceptSasStartViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.SelectVerificationMethodViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCancelledViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepCompareViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRejectedViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepRequestViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationStepTimeoutViewModel
+// import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewModel
 //
-//interface UserVerificationView {
+// interface UserVerificationView {
 //    @Composable
 //    fun create(userVerificationViewModel: UserVerificationViewModel)
-//}
+// }
 //
-//@Composable
-//fun UserVerification(userVerificationViewModel: UserVerificationViewModel) {
+// @Composable
+// fun UserVerification(userVerificationViewModel: UserVerificationViewModel) {
 //    DI.get<UserVerificationView>().create(userVerificationViewModel)
-//}
+// }
 //
-//class UserVerificationViewImpl : UserVerificationView {
+// class UserVerificationViewImpl : UserVerificationView {
 //    @Composable
 //    override fun create(userVerificationViewModel: UserVerificationViewModel) {
 //        val i18n = DI.get<I18nView>()
@@ -161,10 +161,10 @@
 //            }
 //        }
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationStepSwitch(viewModel: VerificationViewModel) {
+// @Composable
+// fun UserVerificationStepSwitch(viewModel: VerificationViewModel) {
 //    Column {
 //        Children(
 //            stack = viewModel.stack,
@@ -175,7 +175,8 @@
 //                when (val child = it.instance) {
 //                    is VerificationViewModel.Wrapper.Request -> UserVerificationRequest(child.viewModel)
 //                    is VerificationViewModel.Wrapper.Wait -> UserVerificationWaitForOther(viewModel::cancel)
-//                    is VerificationViewModel.Wrapper.SelectVerificationMethod -> UserVerificationSelectVerificationMethod(
+//                    is VerificationViewModel.Wrapper.SelectVerificationMethod ->
+// UserVerificationSelectVerificationMethod(
 //                        child.viewModel
 //                    )
 //
@@ -193,10 +194,10 @@
 //            }
 //        }
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
+// @Composable
+// fun UserVerificationRequest(verificationStepRequestViewModel: VerificationStepRequestViewModel) {
 //    val i18n = DI.get<I18nView>()
 //    val theirDisplayName =
 //        verificationStepRequestViewModel.theirDisplayName.collectAsState().value ?: i18n.commonUnknown()
@@ -211,10 +212,10 @@
 //            }
 //        }
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationWaitForOther(cancelAction: (() -> Unit)? = null) {
+// @Composable
+// fun UserVerificationWaitForOther(cancelAction: (() -> Unit)? = null) {
 //    val i18n = DI.get<I18nView>()
 //    Column(horizontalAlignment = Alignment.CenterHorizontally) {
 //        VerificationWaitForOtherContent()
@@ -230,23 +231,24 @@
 //            )
 //        }
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationSelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificationMethodViewModel) {
+// @Composable
+// fun UserVerificationSelectVerificationMethod(selectVerificationMethodViewModel: SelectVerificationMethodViewModel) {
 //    val verificationMethods = selectVerificationMethodViewModel.verificationMethods
 //    val selectedVerificationMethod =
 //        remember { mutableStateOf(verificationMethods.firstOrNull()?.first) }
 //    Column {
 //        SelectVerificationMethodContent(selectVerificationMethodViewModel, selectedVerificationMethod)
 //        Spacer(Modifier.size(20.dp))
-//        OkButton { selectedVerificationMethod.value?.let { selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
+//        OkButton { selectedVerificationMethod.value?.let {
+// selectVerificationMethodViewModel.acceptVerificationMethod(it) } }
 //    }
-//}
+// }
 //
 //
-//@Composable
-//fun UserVerificationAcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
+// @Composable
+// fun UserVerificationAcceptSasStart(acceptSasStartViewModel: AcceptSasStartViewModel) {
 //    val i18n = DI.get<I18nView>()
 //    Column {
 //        Text(i18n.verificationStartEmoji())
@@ -254,10 +256,11 @@
 //        OkButton(acceptSasStartViewModel::accept)
 //    }
 //
-//}
+// }
 //
-//@Composable
-//fun BoxScope.UserVerificationCompareEmojisOrNumbers(verificationStepCompareViewModel: VerificationStepCompareViewModel) {
+// @Composable
+// fun BoxScope.UserVerificationCompareEmojisOrNumbers(verificationStepCompareViewModel:
+// VerificationStepCompareViewModel) {
 //    val i18n = DI.get<I18nView>()
 //    Column(Modifier.fillMaxWidth().align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
 //        Box {
@@ -281,20 +284,20 @@
 //            }
 //        }
 //    }
-//}
+// }
 //
 //
-//@Composable
-//fun UserVerificationSuccess() {
+// @Composable
+// fun UserVerificationSuccess() {
 //    val i18n = DI.get<I18nView>()
 //    Row(verticalAlignment = Alignment.CenterVertically) {
 //        Text(i18n.userVerificationSuccessMessage())
 //        Icon(Icons.Default.CheckCircle, i18n.userVerificationSuccess())
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationRejected(
+// @Composable
+// fun UserVerificationRejected(
 //    verificationStepRejectedViewModel: VerificationStepRejectedViewModel,
 //
 //    ) {
@@ -303,38 +306,38 @@
 //        Spacer(Modifier.size(20.dp))
 //        OkButton(verificationStepRejectedViewModel::ok)
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationTimeout(
+// @Composable
+// fun UserVerificationTimeout(
 //    verificationStepTimeoutViewModel: VerificationStepTimeoutViewModel,
-//) {
+// ) {
 //    Column {
 //        VerificationTimeoutContent(false)
 //        Spacer(Modifier.size(20.dp))
 //        OkButton(verificationStepTimeoutViewModel::ok)
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationCancelled(
+// @Composable
+// fun UserVerificationCancelled(
 //    verificationStepCancelledViewModel: VerificationStepCancelledViewModel,
-//) {
+// ) {
 //    Column {
 //        VerificationCancelledContent(false)
 //        Spacer(Modifier.size(20.dp))
 //        OkButton(verificationStepCancelledViewModel::ok)
 //    }
-//}
+// }
 //
-//@Composable
-//fun UserVerificationAcceptedByOtherClient() {
+// @Composable
+// fun UserVerificationAcceptedByOtherClient() {
 //    val i18n = DI.get<I18nView>()
 //    Text(i18n.userVerificationOtherDevice())
-//}
+// }
 //
-//@Composable
-//private fun OkButton(onClick: () -> Unit) {
+// @Composable
+// private fun OkButton(onClick: () -> Unit) {
 //    val i18n = DI.get<I18nView>()
 //    Row(Modifier.fillMaxWidth()) {
 //        Spacer(Modifier.weight(1.0f, fill = true))
@@ -342,4 +345,4 @@
 //            Text(i18n.commonOk())
 //        }
 //    }
-//}
+// }

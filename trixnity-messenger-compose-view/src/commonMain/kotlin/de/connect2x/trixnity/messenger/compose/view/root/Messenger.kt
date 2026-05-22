@@ -21,10 +21,8 @@ import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
 import kotlinx.coroutines.flow.map
 
-
 interface MessengerView {
-    @Composable
-    fun create(mainViewModel: MainViewModel, isSinglePane: Boolean)
+    @Composable fun create(mainViewModel: MainViewModel, isSinglePane: Boolean)
 }
 
 @Composable
@@ -35,35 +33,30 @@ fun Messenger(mainViewModel: MainViewModel, isSinglePane: Boolean) {
 class MessengerViewImpl : MessengerView {
     @Composable
     override fun create(mainViewModel: MainViewModel, isSinglePane: Boolean) {
-        val isRoomShown = remember {
-            mainViewModel.roomRouterStack.toFlow().map { it.active.configuration !is RoomRouter.Config.None }
-        }.collectAsState(initial = false).value
+        val isRoomShown =
+            remember {
+                    mainViewModel.roomRouterStack.toFlow().map { it.active.configuration !is RoomRouter.Config.None }
+                }
+                .collectAsState(initial = false)
+                .value
         Row(modifier = Modifier.fillMaxSize()) {
 
             // Room List
-            if (!isRoomShown || !isSinglePane) Box(
-                modifier = Modifier
-                    .weight(if (isSinglePane) 1F else ROOM_LIST_WEIGHT)
-            ) {
-                RoomListSwitch(mainViewModel)
-            }
+            if (!isRoomShown || !isSinglePane)
+                Box(modifier = Modifier.weight(if (isSinglePane) 1F else ROOM_LIST_WEIGHT)) {
+                    RoomListSwitch(mainViewModel)
+                }
 
             // Pane Divider
             if (!isSinglePane) {
-                ThemedVerticalDivider(
-                    Modifier
-                        .fillMaxHeight()
-                        .align(Alignment.CenterVertically)
-                )
+                ThemedVerticalDivider(Modifier.fillMaxHeight().align(Alignment.CenterVertically))
             }
 
             // Room Pane
-            if (isRoomShown || !isSinglePane) Box(
-                modifier = Modifier
-                    .weight(if (isSinglePane) 1F else ROOM_WEIGHT)
-            ) {
-                RoomSwitch(mainViewModel.roomRouterStack)
-            }
+            if (isRoomShown || !isSinglePane)
+                Box(modifier = Modifier.weight(if (isSinglePane) 1F else ROOM_WEIGHT)) {
+                    RoomSwitch(mainViewModel.roomRouterStack)
+                }
         }
     }
 }

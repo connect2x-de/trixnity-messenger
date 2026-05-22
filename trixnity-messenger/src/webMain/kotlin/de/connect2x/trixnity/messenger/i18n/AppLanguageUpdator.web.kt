@@ -14,7 +14,8 @@ private val log = Logger("de.connect2x.trixnity.messenger.i18n.AppLanguageUpdate
 class AppLanguageUpdaterImpl(private val settings: MatrixMessengerSettingsHolder, private val i18n: I18n) :
     AppLanguageUpdater {
     override suspend fun doWork() =
-        settings.map { it.base.preferredLang ?: i18n.currentLang.code }
+        settings
+            .map { it.base.preferredLang ?: i18n.currentLang.code }
             .distinctUntilChanged()
             .collect {
                 log.debug { "changing lang tag to $it" }

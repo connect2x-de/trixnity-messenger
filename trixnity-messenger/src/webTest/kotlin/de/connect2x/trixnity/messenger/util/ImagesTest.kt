@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.messenger.util
 
+import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
-import kotlinx.coroutines.test.runTest
-import de.connect2x.trixnity.utils.toByteArrayFlow
-import org.koin.dsl.koinApplication
 import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
+import org.koin.dsl.koinApplication
 
-val catJpg = """
+val catJpg =
+    """
     ffd8ffe000104a46494600010100000100010000ffdb008400050505050505050606050808070808
     0b0a09090a0b110c0d0c0d0c111a1013101013101a171b1615161b1729201c1c20292f2725272f39
     3333394744475d5d7d010505050505050506060508080708080b0a09090a0b110c0d0c0d0c111a10
@@ -859,19 +860,17 @@ val catJpg = """
     5dfa77ebdfa72b04e500864a242bf45585ded1e3a828151cae6114541acdce21c6b84c91b206ede1
     0200ca2e04e138e6828981e4129cc00202c945b9caec8f1d00b450282ae9dd14177417a23ca1d020
     822bbaecbb23c21e4082d1ccf6481a384e79a080a4ccb944d002714d1614b80bffd9
-""".trimIndent().replace("\n", "")
+    """
+        .trimIndent()
+        .replace("\n", "")
 
 class ImagesTest {
-    private val koin = koinApplication {
-        modules(platformGetImageDimensionsModule())
-    }.koin
+    private val koin = koinApplication { modules(platformGetImageDimensionsModule()) }.koin
 
     fun String.decodeHex(): ByteArray {
         check(length % 2 == 0) { "Must have an even length" }
 
-        val byteIterator = chunkedSequence(2)
-            .map { it.toInt(16).toByte() }
-            .iterator()
+        val byteIterator = chunkedSequence(2).map { it.toInt(16).toByte() }.iterator()
 
         return ByteArray(length / 2) { byteIterator.next() }
     }

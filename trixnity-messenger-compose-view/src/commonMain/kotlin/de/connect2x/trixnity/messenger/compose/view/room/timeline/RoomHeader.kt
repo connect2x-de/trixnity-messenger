@@ -59,11 +59,7 @@ interface RoomHeaderView {
 }
 
 @Composable
-fun RoomHeader(
-    roomHeaderViewModel: RoomHeaderViewModel,
-    showSettingsButton: Boolean,
-    showBackButton: Boolean,
-) {
+fun RoomHeader(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean, showBackButton: Boolean) {
     with(DI.get<RoomHeaderView>()) { create(roomHeaderViewModel, showSettingsButton, showBackButton) }
 }
 
@@ -84,15 +80,14 @@ class RoomHeaderViewImpl : RoomHeaderView {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.minHeaderHeight()
+                    modifier = Modifier.minHeaderHeight(),
                 ) {
                     if (showBackButton) {
                         Spacer(Modifier.size(8.dp))
                         RoomBackButton(roomHeaderViewModel)
                     }
                     Row(
-                        Modifier
-                            .padding(vertical = 4.dp)
+                        Modifier.padding(vertical = 4.dp)
                             .align(Alignment.CenterVertically)
                             .fillMaxWidth()
                             .weight(1f, true),
@@ -103,17 +98,16 @@ class RoomHeaderViewImpl : RoomHeaderView {
                         ThemedButton(
                             style = MaterialTheme.components.accountSelector,
                             onClick = { roomHeaderViewModel.openRoomSettings() },
-                            modifier = Modifier.semantics(mergeDescendants = true) {
-
-                            }
+                            modifier = Modifier.semantics(mergeDescendants = true) {},
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.semantics {
-                                    text = AnnotatedString(roomHeaderElement.roomName)
-                                    role = Role.Button
-                                }
+                                modifier =
+                                    Modifier.semantics {
+                                        text = AnnotatedString(roomHeaderElement.roomName)
+                                        role = Role.Button
+                                    },
                             ) {
                                 Box {
                                     ThemedUserAvatar(
@@ -138,15 +132,9 @@ class RoomHeaderViewImpl : RoomHeaderView {
                                 if (knockingMembersCount > 0) {
                                     ThemedIconButton(
                                         style = MaterialTheme.components.commonIconButton,
-                                        onClick = { roomHeaderViewModel.openRoomSettings() }
+                                        onClick = { roomHeaderViewModel.openRoomSettings() },
                                     ) {
-                                        BadgedBox(
-                                            badge = {
-                                                Badge {
-                                                    Text("$knockingMembersCount")
-                                                }
-                                            }
-                                        ) {
+                                        BadgedBox(badge = { Badge { Text("$knockingMembersCount") } }) {
                                             Icon(
                                                 Icons.Default.DoorFront,
                                                 i18n.roomHeaderKnockingUsersCount(knockingMembersCount),
@@ -187,15 +175,11 @@ class RoomHeaderViewImpl : RoomHeaderView {
 @Composable
 fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
     val i18n = DI.get<I18nView>()
-    Tooltip(
-        tooltip = { Text(i18n.commonBack()) },
-    ) {
+    Tooltip(tooltip = { Text(i18n.commonBack()) }) {
         ThemedIconButton(
             style = MaterialTheme.components.commonIconButton,
             onClick = { roomHeaderViewModel.back() },
-            modifier = Modifier.semantics(mergeDescendants = true) {
-                contentDescription = i18n.roomHeaderClose()
-            }
+            modifier = Modifier.semantics(mergeDescendants = true) { contentDescription = i18n.roomHeaderClose() },
         ) {
             Icon(Icons.AutoMirrored.Default.KeyboardArrowLeft, contentDescription = null)
         }
@@ -203,9 +187,7 @@ fun RowScope.RoomBackButton(roomHeaderViewModel: RoomHeaderViewModel) {
 }
 
 @Composable
-fun RoomName(
-    roomHeaderElement: RoomHeaderInfo,
-) {
+fun RoomName(roomHeaderElement: RoomHeaderInfo) {
     Tooltip({ Text(roomHeaderElement.roomName) }) {
         Text(
             roomHeaderElement.roomName,
@@ -232,30 +214,18 @@ fun UsersTyping(usersTyping: String) {
 fun ColumnScope.RoomTopic(roomHeaderElement: RoomHeaderInfo) {
     val topic = roomHeaderElement.roomTopic
     if (topic.isNotBlank()) {
-        Tooltip(tooltip = {
-            Text(topic)
-        }) {
-            Text(
-                topic,
-                style = MaterialTheme.typography.labelMedium,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 1,
-            )
+        Tooltip(tooltip = { Text(topic) }) {
+            Text(topic, style = MaterialTheme.typography.labelMedium, overflow = TextOverflow.Ellipsis, maxLines = 1)
         }
     }
 }
 
 @Composable
-fun RoomExtras(
-    roomHeaderViewModel: RoomHeaderViewModel,
-    showSettingsButton: Boolean,
-) {
+fun RoomExtras(roomHeaderViewModel: RoomHeaderViewModel, showSettingsButton: Boolean) {
     val i18n = DI.get<I18nView>()
 
     if (showSettingsButton) {
-        Tooltip(
-            tooltip = { Text(i18n.roomHeaderSettings()) }
-        ) {
+        Tooltip(tooltip = { Text(i18n.roomHeaderSettings()) }) {
             ThemedIconButton(
                 style = MaterialTheme.components.commonIconButton,
                 onClick = { roomHeaderViewModel.openRoomSettings() },

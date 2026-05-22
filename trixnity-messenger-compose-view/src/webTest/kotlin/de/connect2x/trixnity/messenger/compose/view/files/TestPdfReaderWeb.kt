@@ -3,12 +3,12 @@
 package de.connect2x.trixnity.messenger.compose.view.files
 
 import js.array.jsArrayOf
-import kotlinx.coroutines.test.runTest
-import web.blob.Blob
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsString
 import kotlin.test.Test
 import kotlin.test.assertFails
+import kotlinx.coroutines.test.runTest
+import web.blob.Blob
 
 class TestPdfReaderWeb {
     @Test

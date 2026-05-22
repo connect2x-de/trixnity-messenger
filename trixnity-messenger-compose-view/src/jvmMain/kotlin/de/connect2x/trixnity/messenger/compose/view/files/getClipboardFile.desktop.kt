@@ -4,12 +4,10 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.PathFileDescriptor
-import io.ktor.http.*
 import de.connect2x.trixnity.utils.byteArrayFlowFromInputStream
 import de.connect2x.trixnity.utils.nextString
 import de.connect2x.trixnity.utils.toByteArrayFlow
-import okio.FileSystem
-import okio.Path.Companion.toPath
+import io.ktor.http.*
 import java.awt.Image
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
@@ -25,6 +23,8 @@ import java.net.URI
 import java.net.URISyntaxException
 import javax.imageio.ImageIO
 import kotlin.random.Random
+import okio.FileSystem
+import okio.Path.Companion.toPath
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.files.getClipboardFileKt")
 
@@ -32,9 +32,13 @@ private val uriListContentType = ContentType.parse("text/uri-list")
 
 private interface ClipboardType {
     data object Image : ClipboardType
+
     data object AwtImage : ClipboardType
+
     data object UriList : ClipboardType
+
     data object FileList : ClipboardType
+
     data object Text : ClipboardType
 }
 
@@ -60,8 +64,8 @@ private inline fun <reified T> Clipboard.getDataOrNull(flavor: DataFlavor): T? {
 
 private fun isPreviewableImage(contentType: ContentType): Boolean {
     return contentType.match(ContentType.Image.PNG) ||
-            contentType.match(ContentType.Image.JPEG) ||
-            contentType.match(ContentType.Image.GIF)
+        contentType.match(ContentType.Image.JPEG) ||
+        contentType.match(ContentType.Image.GIF)
 }
 
 actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Result<FileDescriptor?> {
@@ -75,17 +79,18 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
             val contentType = ContentType.parse(flavor.mimeType)
             log.info { "content type of current flavor is $contentType" }
 
-            val clipboardType = when {
-                isPreviewableImage(contentType) -> ClipboardType.Image
-                flavor.representationClass == Image::class.java -> ClipboardType.AwtImage
-                contentType.match(uriListContentType) -> ClipboardType.UriList
-                flavor.isFlavorJavaFileListType -> ClipboardType.FileList
-                flavor.isFlavorTextType -> ClipboardType.Text
-                else -> {
-                    log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
-                    return@forEach
+            val clipboardType =
+                when {
+                    isPreviewableImage(contentType) -> ClipboardType.Image
+                    flavor.representationClass == Image::class.java -> ClipboardType.AwtImage
+                    contentType.match(uriListContentType) -> ClipboardType.UriList
+                    flavor.isFlavorJavaFileListType -> ClipboardType.FileList
+                    flavor.isFlavorTextType -> ClipboardType.Text
+                    else -> {
+                        log.trace { "unknown clipboard flavor: ${flavor.humanPresentableName}" }
+                        return@forEach
+                    }
                 }
-            }
 
             if (clipboardType == ClipboardType.Image && !flavor.isRepresentationClassInputStream) {
                 log.warn { "cannot handle image stored in ${flavor.representationClass}" }
@@ -101,7 +106,9 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
                     log.info { "Sending image via clipboard" }
                     val estimatedSize =
                         clipboard.getDataOrNull<InputStream>(flavor)?.use { it.available().toLong() }
-                            ?: run { return Result.success(null) }
+                            ?: run {
+                                return Result.success(null)
+                            }
                     val baseName = Random.nextString(12)
                     val extStr = contentType.fileExtensions().firstOrNull()?.let { ".$it" } ?: ""
 
@@ -112,7 +119,7 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
                             contentType,
                             byteArrayFlowFromInputStream {
                                 clipboard.getDataOrNull<InputStream>(flavor) ?: InputStream.nullInputStream()
-                            }
+                            },
                         )
                     )
                 }
@@ -147,27 +154,29 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
                 ClipboardType.UriList -> {
                     val data =
                         clipboard.getDataOrNull<Reader>(flavor)
-                            ?: run { return Result.failure(NotPasteableException()) }
+                            ?: run {
+                                return Result.failure(NotPasteableException())
+                            }
 
                     // TODO: Attach multiple files at once
-                    val fileName = data.useLines { lines -> lines.firstOrNull() } ?: run {
-                        log.info { "the selected files list is empty" }
-                        return Result.failure(EmptyFileListException())
-                    }
-                    val uri = try {
-                        URI(fileName)
-                    } catch (_: URISyntaxException) {
-                        null
-                    }
+                    val fileName =
+                        data.useLines { lines -> lines.firstOrNull() }
+                            ?: run {
+                                log.info { "the selected files list is empty" }
+                                return Result.failure(EmptyFileListException())
+                            }
+                    val uri =
+                        try {
+                            URI(fileName)
+                        } catch (_: URISyntaxException) {
+                            null
+                        }
                     if (uri?.scheme != "file") {
                         log.warn { "improperly formatted uri: $fileName" }
                         return Result.success(null)
                     }
                     return Result.success(
-                        PathFileDescriptor(
-                            uri.path.toPath(normalize = true),
-                            fileSystem = fileSystem
-                        )
+                        PathFileDescriptor(uri.path.toPath(normalize = true), fileSystem = fileSystem)
                     )
                 }
 
@@ -175,12 +184,7 @@ actual fun getClipboardFile(fileSystem: FileSystem, maxAttachmentSize: Long): Re
                     log.info { "Sending fileList via clipboard" }
                     val data = clipboard.getDataOrNull<List<File>>(flavor)
                     data?.get(0)?.let {
-                        return Result.success(
-                            PathFileDescriptor(
-                                it.path.toPath(),
-                                fileSystem
-                            )
-                        )
+                        return Result.success(PathFileDescriptor(it.path.toPath(), fileSystem))
                     }
                 }
 

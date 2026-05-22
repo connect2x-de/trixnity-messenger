@@ -31,13 +31,8 @@ interface AccountViewModelFactory {
         onUserSettingsSelected: () -> Unit,
         onShowAppInfo: () -> Unit,
         onShowAccounts: () -> Unit,
-    ): AccountViewModel = AccountViewModelImpl(
-        viewModelContext,
-        onAccountSelected,
-        onUserSettingsSelected,
-        onShowAppInfo,
-        onShowAccounts,
-    )
+    ): AccountViewModel =
+        AccountViewModelImpl(viewModelContext, onAccountSelected, onUserSettingsSelected, onShowAppInfo, onShowAccounts)
 
     companion object : AccountViewModelFactory
 }
@@ -45,31 +40,33 @@ interface AccountViewModelFactory {
 interface AccountViewModel {
     val accounts: StateFlow<List<AccountInfo>>
 
-    /**
-     * If `null`, no account is selected -> all accounts should be displayed.
-     */
+    /** If `null`, no account is selected -> all accounts should be displayed. */
     val activeAccount: StateFlow<UserId?>
 
     /**
-     * When there is only one account, UIs can decide to display the information about the singular account differently (i.e., without a selection of other accounts).
+     * When there is only one account, UIs can decide to display the information about the singular account differently
+     * (i.e., without a selection of other accounts).
      */
     val isSingleAccount: StateFlow<Boolean>
 
     /**
-     * A display string representing the global number of unread notifications.
-     * The string is processed according to [getNotificationDisplayCount].
+     * A display string representing the global number of unread notifications. The string is processed according to
+     * [getNotificationDisplayCount].
      */
     val globalNotificationCount: StateFlow<String?>
 
     /**
-     * A display string representing the number of unread notifications for a given account.
-     * Each count string is processed according to [getNotificationDisplayCount].
+     * A display string representing the number of unread notifications for a given account. Each count string is
+     * processed according to [getNotificationDisplayCount].
      */
     val accountNotificationCounts: StateFlow<Map<UserId, String?>>
 
     fun selectActiveAccount(userId: UserId?)
+
     fun openUserSettings()
+
     fun openUserAccounts()
+
     fun openAppInfo()
 }
 
@@ -86,28 +83,39 @@ open class AccountViewModelImpl(
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     override val accounts: StateFlow<List<AccountInfo>> =
-        matrixClients.toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
+        matrixClients
+            .toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
-    override val activeAccount: StateFlow<UserId?> = messengerSettings.map { it.base.selectedAccount }
-        .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+    override val activeAccount: StateFlow<UserId?> =
+        messengerSettings
+            .map { it.base.selectedAccount }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val isSingleAccount: StateFlow<Boolean> =
         accounts.map { it.size <= 1 }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
 
-    override val globalNotificationCount: StateFlow<String?> = matrixClients.flatMapLatest { clients ->
-        combine(clients.values.map { client -> client.notification.getCount() }) { flows ->
-            getNotificationDisplayCount(flows.sum())
-        }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
-
-    override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = matrixClients.flatMapLatest { clients ->
-        combine(clients.map { (userId, client) ->
-            client.notification.getCount().map { count ->
-                userId to getNotificationDisplayCount(count)
+    override val globalNotificationCount: StateFlow<String?> =
+        matrixClients
+            .flatMapLatest { clients ->
+                combine(clients.values.map { client -> client.notification.getCount() }) { flows ->
+                    getNotificationDisplayCount(flows.sum())
+                }
             }
-        }) { pairs -> pairs.toMap() }
-    }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val accountNotificationCounts: StateFlow<Map<UserId, String?>> =
+        matrixClients
+            .flatMapLatest { clients ->
+                combine(
+                    clients.map { (userId, client) ->
+                        client.notification.getCount().map { count -> userId to getNotificationDisplayCount(count) }
+                    }
+                ) { pairs ->
+                    pairs.toMap()
+                }
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
     override fun selectActiveAccount(userId: UserId?) {
         coroutineScope.launch {
@@ -117,50 +125,45 @@ open class AccountViewModelImpl(
     }
 
     override fun openUserSettings() {
-        coroutineScope.launch {
-            onUserSettingsSelected()
-        }
+        coroutineScope.launch { onUserSettingsSelected() }
     }
 
     override fun openUserAccounts() {
-        coroutineScope.launch {
-            onShowAccounts()
-        }
+        coroutineScope.launch { onShowAccounts() }
     }
 
     override fun openAppInfo() {
-        coroutineScope.launch {
-            onShowAppInfo()
-        }
+        coroutineScope.launch { onShowAppInfo() }
     }
 }
 
 class PreviewAccountViewModel : AccountViewModel {
-    override val accounts: MutableStateFlow<List<AccountInfo>> = MutableStateFlow(
-        listOf(
-            AccountInfo(
-                userId = UserId("@bruce.wayne:localhost"),
-                displayName = "Bruce Wayne",
-                initials = "BW",
-                avatar = previewImageByteArray(),
-                displayColor = null,
-            ),
-            AccountInfo(
-                userId = UserId("@scrooge.mcduck:localhost"),
-                displayName = "Scrooge McDuck",
-                initials = "SM",
-                avatar = null,
-                displayColor = null,
-            ),
-            AccountInfo(
-                userId = UserId("@arthur.dent:localhost"),
-                displayName = "Arthur Dent",
-                initials = "AD",
-                avatar = null,
-                displayColor = null,
-            ),
+    override val accounts: MutableStateFlow<List<AccountInfo>> =
+        MutableStateFlow(
+            listOf(
+                AccountInfo(
+                    userId = UserId("@bruce.wayne:localhost"),
+                    displayName = "Bruce Wayne",
+                    initials = "BW",
+                    avatar = previewImageByteArray(),
+                    displayColor = null,
+                ),
+                AccountInfo(
+                    userId = UserId("@scrooge.mcduck:localhost"),
+                    displayName = "Scrooge McDuck",
+                    initials = "SM",
+                    avatar = null,
+                    displayColor = null,
+                ),
+                AccountInfo(
+                    userId = UserId("@arthur.dent:localhost"),
+                    displayName = "Arthur Dent",
+                    initials = "AD",
+                    avatar = null,
+                    displayColor = null,
+                ),
+            )
         )
-    )
 
     override val activeAccount: MutableStateFlow<UserId?> = MutableStateFlow(null)
     override val isSingleAccount: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -168,7 +171,10 @@ class PreviewAccountViewModel : AccountViewModel {
     override val accountNotificationCounts: StateFlow<Map<UserId, String?>> = MutableStateFlow(emptyMap())
 
     override fun selectActiveAccount(userId: UserId?) {}
+
     override fun openUserSettings() {}
+
     override fun openUserAccounts() {}
+
     override fun openAppInfo() {}
 }

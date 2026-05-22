@@ -12,29 +12,23 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 
-
 @OptIn(ExperimentalTestApi::class, InternalComposeUiApi::class, InternalTestApi::class)
-actual fun runComposeUiTest(
-    block: suspend ComposeUiTestWithBackgroundScope.() -> Unit
-) {
+actual fun runComposeUiTest(block: suspend ComposeUiTestWithBackgroundScope.() -> Unit) {
     val testScheduler = StandardTestDispatcher()
 
-    return runComposeUiTest(
-        runTestContext = testScheduler,
-    ) {
-        val combined = ComposeUiTestWithBackgroundScope(
-            composeUiTest = this@runComposeUiTest,
-            testScheduler = testScheduler.scheduler,
-            backgroundScope = CoroutineScope(currentCoroutineContext() + SupervisorJob()),
-        )
+    return runComposeUiTest(runTestContext = testScheduler) {
+        val combined =
+            ComposeUiTestWithBackgroundScope(
+                composeUiTest = this@runComposeUiTest,
+                testScheduler = testScheduler.scheduler,
+                backgroundScope = CoroutineScope(currentCoroutineContext() + SupervisorJob()),
+            )
 
         // Just used as a marker, typically we have a real TestScope but ComposeUiTest does not expose it
         TestBackend.testScope = TestScope()
 
         try {
-            with(combined) {
-                block()
-            }
+            with(combined) { block() }
         } finally {
             combined.backgroundScope.cancel()
             TestBackend.testScope = null

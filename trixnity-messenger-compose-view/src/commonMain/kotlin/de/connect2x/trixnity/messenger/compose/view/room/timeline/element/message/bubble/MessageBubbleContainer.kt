@@ -62,31 +62,35 @@ fun MessageBubbleContainer(
     val sender = holder.sender.collectAsState().value
     val timelineElementViewSelector = DI.get<TimelineElementViewSelector>()
 
-    val messagePadding = remember(holder.isByMe) {
-        if (holder.isByMe) Modifier.padding(end = 8.dp) else Modifier.padding(start = 8.dp)
-    }
-    val messageBubbleStyle = when {
-        sendError != null -> MaterialTheme.components.messageBubbleError
-        holder.isByMe -> MaterialTheme.components.messageBubbleOwn
-        else -> MaterialTheme.components.messageBubbleOther
-    }
+    val messagePadding =
+        remember(holder.isByMe) { if (holder.isByMe) Modifier.padding(end = 8.dp) else Modifier.padding(start = 8.dp) }
+    val messageBubbleStyle =
+        when {
+            sendError != null -> MaterialTheme.components.messageBubbleError
+            holder.isByMe -> MaterialTheme.components.messageBubbleOwn
+            else -> MaterialTheme.components.messageBubbleOther
+        }
 
     Box(
-        modifier = if (isPreview) Modifier else Modifier
-            .pointerMoveFilter(
-                onEnter = {
-                    hoverMessage.value = true
-                    true
-                }, onExit = {
-                    hoverMessage.value = false
-                    true
-                })
-            .pointerInput(holder) { // key is important to react to changes
-                detectTapGestures(onLongPress = {
-                    showActionMenu.value = ThemedActionMenuState.Anchored
-                }) // in case the child element has no tap / click detection, we can use this
-                size
-            }
+        modifier =
+            if (isPreview) Modifier
+            else
+                Modifier.pointerMoveFilter(
+                        onEnter = {
+                            hoverMessage.value = true
+                            true
+                        },
+                        onExit = {
+                            hoverMessage.value = false
+                            true
+                        },
+                    )
+                    .pointerInput(holder) { // key is important to react to changes
+                        detectTapGestures(
+                            onLongPress = { showActionMenu.value = ThemedActionMenuState.Anchored }
+                        ) // in case the child element has no tap / click detection, we can use this
+                        size
+                    }
     ) {
         val interactionSource = remember { MutableInteractionSource() }
         val hoverInteractionSource = remember { MutableInteractionSource() }
@@ -95,23 +99,25 @@ fun MessageBubbleContainer(
         ThemedSurface(
             style = messageBubbleStyle,
             focused = hasFocus,
-            modifier = Modifier
-                .then(messagePadding)
-                .drawWithCache {
-                    onDrawBehind {
-                        if (isFirstInUserSequence) {
-                            drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+            modifier =
+                Modifier.then(messagePadding)
+                    .drawWithCache {
+                        onDrawBehind {
+                            if (isFirstInUserSequence) {
+                                drawChatEdge(holder.isByMe, messageBubbleStyle.color)
+                            }
                         }
                     }
-                }
-                .focusable(true, interactionSource)
-                .hoverable(hoverInteractionSource)
-                .semantics {
-                    collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
-                    this.text = AnnotatedString(
-                        "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
-                            (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: ""))
-                },
+                    .focusable(true, interactionSource)
+                    .hoverable(hoverInteractionSource)
+                    .semantics {
+                        collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
+                        this.text =
+                            AnnotatedString(
+                                "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
+                                    (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: "")
+                            )
+                    },
         ) {
             if (!isPreview) {
                 MessageBubbleActionMenu(
@@ -124,32 +130,32 @@ fun MessageBubbleContainer(
                     hoverInteractionSource = hoverInteractionSource,
                     focusInteractionSource = actionMenuFocusState,
                     additionalContextActions = additionalContextActions,
-                    onRedact = onRedact
+                    onRedact = onRedact,
                 )
             }
 
-            MessageBubbleContent(holder, needsMaxWidth, { showActionMenu.value = ThemedActionMenuState.Anchored }, content)
+            MessageBubbleContent(
+                holder,
+                needsMaxWidth,
+                { showActionMenu.value = ThemedActionMenuState.Anchored },
+                content,
+            )
         }
     }
 }
 
-private val ChatEdge = Path().apply {
-    moveTo(x = -1f, y = 0f)
-    lineTo(x = 0f, y = 1f)
-    lineTo(x = 1f, y = 0f)
-    close()
-}
+private val ChatEdge =
+    Path().apply {
+        moveTo(x = -1f, y = 0f)
+        lineTo(x = 0f, y = 1f)
+        lineTo(x = 1f, y = 0f)
+        close()
+    }
 
 fun DrawScope.drawChatEdge(isByMe: Boolean, color: Color) {
     if (isByMe) {
-        translate(left = size.width) {
-            scale(8.dp.toPx(), pivot = Offset.Zero) {
-                drawPath(ChatEdge, color)
-            }
-        }
+        translate(left = size.width) { scale(8.dp.toPx(), pivot = Offset.Zero) { drawPath(ChatEdge, color) } }
     } else {
-        scale(8.dp.toPx(), pivot = Offset.Zero) {
-            drawPath(ChatEdge, color)
-        }
+        scale(8.dp.toPx(), pivot = Offset.Zero) { drawPath(ChatEdge, color) }
     }
 }

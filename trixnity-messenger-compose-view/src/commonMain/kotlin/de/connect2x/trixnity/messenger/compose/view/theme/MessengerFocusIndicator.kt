@@ -13,6 +13,4 @@ object MessengerFocusIndicator {
 }
 
 val MaterialTheme.messengerFocusIndicator: MessengerFocusIndicator
-    @Composable
-    @ReadOnlyComposable
-    get() = MessengerFocusIndicator
+    @Composable @ReadOnlyComposable get() = MessengerFocusIndicator

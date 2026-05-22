@@ -18,8 +18,8 @@ import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
-import org.koin.dsl.module
 import kotlin.coroutines.CoroutineContext
+import org.koin.dsl.module
 
 private val log = Logger("de.connect2x.trixnity.messenger.MatrixClientFactory")
 
@@ -48,7 +48,7 @@ class MatrixClientFactoryImpl(
     override suspend fun create(
         userId: UserId,
         authProviderData: MatrixClientAuthProviderData,
-        configuration: MatrixClientConfiguration.() -> Unit
+        configuration: MatrixClientConfiguration.() -> Unit,
     ): Result<MatrixClient> =
         MatrixClient.create(
             repositoriesModule = createRepositoriesModuleOrThrow(userId),
@@ -65,7 +65,7 @@ class MatrixClientFactoryImpl(
     override suspend fun load(
         userId: UserId,
         authProviderData: MatrixClientAuthProviderData?,
-        configuration: MatrixClientConfiguration.() -> Unit
+        configuration: MatrixClientConfiguration.() -> Unit,
     ): Result<MatrixClient> =
         MatrixClient.create(
             repositoriesModule = loadRepositoriesModuleOrThrow(userId),
@@ -79,30 +79,27 @@ class MatrixClientFactoryImpl(
             messengerConfiguration.client.invoke(this)
         }
 
-
-    private suspend fun createRepositoriesModuleOrThrow(
-        userId: UserId,
-    ): RepositoriesModule {
+    private suspend fun createRepositoriesModuleOrThrow(userId: UserId): RepositoriesModule {
         log.debug { "create repositories module" }
-        val repositoriesModule = try {
-            createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
-        } catch (exc: Exception) {
-            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
-            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
-        }
+        val repositoriesModule =
+            try {
+                createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
+            } catch (exc: Exception) {
+                if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+                else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
+            }
         return repositoriesModule
     }
 
-    private suspend fun loadRepositoriesModuleOrThrow(
-        userId: UserId,
-    ): RepositoriesModule {
+    private suspend fun loadRepositoriesModuleOrThrow(userId: UserId): RepositoriesModule {
         log.debug { "load repositories module" }
-        val repositoriesModule = try {
-            createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
-        } catch (exc: Exception) {
-            if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
-            else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
-        }
+        val repositoriesModule =
+            try {
+                createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
+            } catch (exc: Exception) {
+                if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
+                else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
+            }
         return repositoriesModule
     }
 
@@ -137,8 +134,7 @@ class MatrixClientFactoryImpl(
             module {
                 single<EventContentSerializerMappings> {
                     val customEventContentSerializerMappings = getAll<CustomEventContentSerializerMappings>()
-                    customEventContentSerializerMappings
-                        .fold(EventContentSerializerMappings.default) { a, b -> a + b }
+                    customEventContentSerializerMappings.fold(EventContentSerializerMappings.default) { a, b -> a + b }
                 }
             }
         }
@@ -147,8 +143,11 @@ class MatrixClientFactoryImpl(
 
 interface CustomEventContentSerializerMappings : EventContentSerializerMappings {
     companion object {
-        operator fun invoke(builder: EventContentSerializerMappingsBuilder.() -> Unit): CustomEventContentSerializerMappings =
-            object : CustomEventContentSerializerMappings,
+        operator fun invoke(
+            builder: EventContentSerializerMappingsBuilder.() -> Unit
+        ): CustomEventContentSerializerMappings =
+            object :
+                CustomEventContentSerializerMappings,
                 EventContentSerializerMappings by EventContentSerializerMappingsBuilder().apply(builder).build() {}
     }
 }

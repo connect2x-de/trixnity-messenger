@@ -24,8 +24,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModal
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsViewModel
 
 interface RoomSettingsLeaveRoomView {
-    @Composable
-    fun create(roomSettingsViewModel: RoomSettingsViewModel)
+    @Composable fun create(roomSettingsViewModel: RoomSettingsViewModel)
 }
 
 @Composable
@@ -45,13 +44,10 @@ class RoomSettingsLeaveRoomViewImpl : RoomSettingsLeaveRoomView {
                 Icon(
                     Icons.AutoMirrored.Filled.Logout,
                     leaveRoomSettingEntryText,
-                    modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize)
+                    modifier = Modifier.size(MaterialTheme.components.destructiveButton.iconSize),
                 )
                 Spacer(Modifier.size(MaterialTheme.components.destructiveButton.iconSpacing))
-                Text(
-                    text = leaveRoomSettingEntryText,
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Text(text = leaveRoomSettingEntryText, style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -68,12 +64,8 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
     val confirm = roomSettingsViewModel.leaveRoomWarningConfirmButtonText.collectAsState().value
 
     ThemedModalDialog({ roomSettingsViewModel.closeLeaveRoomWarningDialog() }) {
-        ModalDialogHeader {
-            Text(title)
-        }
-        ModalDialogContent {
-            Text(message)
-        }
+        ModalDialogHeader { Text(title) }
+        ModalDialogContent { Text(message) }
         ModalDialogFooter {
             ThemedButton(
                 style = MaterialTheme.components.commonButton,
@@ -90,7 +82,7 @@ fun RoomSettingsLeaveRoomWarning(roomSettingsViewModel: RoomSettingsViewModel) {
                         roomSettingsViewModel.leaveRoom()
                     }
                     roomSettingsViewModel.closeLeaveRoomWarningDialog()
-                }
+                },
             ) {
                 Text(confirm)
             }

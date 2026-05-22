@@ -79,13 +79,7 @@ fun ExpandableSection(
 ) {
     val expanded = remember { mutableStateOf(false) }
 
-    ExpandableSection(
-        heading = heading,
-        expanded = expanded,
-        modifier = modifier,
-        icon = icon,
-        content = content,
-    )
+    ExpandableSection(heading = heading, expanded = expanded, modifier = modifier, icon = icon, content = content)
 }
 
 @Composable
@@ -96,13 +90,7 @@ fun ExpandableSection(
     icon: ImageVector? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    ExpandableSectionImpl(
-        heading = heading,
-        expanded = expanded,
-        modifier = modifier,
-        icon = icon,
-        content = content,
-    )
+    ExpandableSectionImpl(heading = heading, expanded = expanded, modifier = modifier, icon = icon, content = content)
 }
 
 @Composable
@@ -120,42 +108,33 @@ private inline fun ExpandableSectionImpl(
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier
-            .focusHighlighting(interactionSource, shape = MaterialTheme.shapes.small)
-            .fillMaxWidth()
+        modifier = modifier.focusHighlighting(interactionSource, shape = MaterialTheme.shapes.small).fillMaxWidth(),
     ) {
         Column {
             Row(
-                modifier = Modifier
-                    .clickable(interactionSource, LocalIndication.current) {
-                        expanded.value = !expanded.value
-                    }
-                    .expandable(expanded)
-                    .semantics { role = Role.Button }
-                    .buttonPointerModifier(true).padding(16.dp)
-                    .fillMaxWidth(),
+                modifier =
+                    Modifier.clickable(interactionSource, LocalIndication.current) { expanded.value = !expanded.value }
+                        .expandable(expanded)
+                        .semantics { role = Role.Button }
+                        .buttonPointerModifier(true)
+                        .padding(16.dp)
+                        .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (icon != null) {
                     Icon(icon, contentDescription = null)
                     Spacer(Modifier.size(10.dp))
                 }
-                Box(Modifier.weight(1f, true)) {
-                    heading()
-                }
+                Box(Modifier.weight(1f, true)) { heading() }
                 Spacer(Modifier.padding(end = 10.dp))
                 Icon(
                     Icons.Default.ArrowDropDown,
                     contentDescription = null,
-                    modifier = Modifier.animateRotation(rotateState)
+                    modifier = Modifier.animateRotation(rotateState),
                 )
             }
-            AnimatedVisibility(expanded.value) {
-                Column(Modifier.padding(8.dp)) {
-                    content()
-                }
-            }
+            AnimatedVisibility(expanded.value) { Column(Modifier.padding(8.dp)) { content() } }
         }
     }
 }

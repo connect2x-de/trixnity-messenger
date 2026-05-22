@@ -7,14 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerDpConstants
 
-@Composable
-fun VerySmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.verySmall))
+@Composable fun VerySmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.verySmall))
 
-@Composable
-fun SmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.small))
+@Composable fun SmallSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.small))
 
-@Composable
-fun MiddleSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.middle))
+@Composable fun MiddleSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.middle))
 
-@Composable
-fun LargeSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.large))
+@Composable fun LargeSpacer() = Spacer(Modifier.size(MaterialTheme.messengerDpConstants.large))

@@ -1,7 +1,7 @@
 services:
   synapse:
     # https://github.com/element-hq/synapse/releases
-    image: "matrixdotorg/synapse:v1.138.0"
+    image: "${CI_DOCKER_HUB_PROXY:-}matrixdotorg/synapse:v1.138.0"
     container_name: "uitest-synapse"
     volumes:
       - "./data:/data"

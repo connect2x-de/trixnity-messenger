@@ -15,9 +15,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun AppearanceSettingsColorPreview(value: Color) {
     Box(
-        modifier = Modifier.clip(CircleShape)
-            .background(value)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-            .size(24.dp)
+        modifier =
+            Modifier.clip(CircleShape)
+                .background(value)
+                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                .size(24.dp)
     ) {}
 }

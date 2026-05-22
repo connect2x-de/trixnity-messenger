@@ -33,8 +33,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.dp
 import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 
 interface TextReplyView {
-    @Composable
-    fun create(text: String, maxLines: Int)
+    @Composable fun create(text: String, maxLines: Int)
 }
 
 @Composable
@@ -56,8 +55,7 @@ class TextReplyViewImpl : TextReplyView {
 }
 
 interface ImageReplyView {
-    @Composable
-    fun create(imageBitmap: ImageBitmap)
+    @Composable fun create(imageBitmap: ImageBitmap)
 }
 
 @Composable
@@ -72,14 +70,13 @@ class ImageReplyViewImpl : ImageReplyView {
             imageBitmap,
             "",
             Modifier.heightIn(max = 100.dp).clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Fit,
         )
     }
 }
 
 interface ImageReplyDefaultView {
-    @Composable
-    fun create(fileName: String)
+    @Composable fun create(fileName: String)
 }
 
 @Composable
@@ -95,7 +92,7 @@ class ImageReplyDefaultViewImpl : ImageReplyDefaultView {
             Icon(
                 MaterialTheme.messengerIcons.typeImage,
                 i18n.commonImage(),
-                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp)
+                modifier = Modifier.size(MaterialTheme.typography.bodySmall.dp),
             )
             FileName(fileName)
         }
@@ -103,8 +100,7 @@ class ImageReplyDefaultViewImpl : ImageReplyDefaultView {
 }
 
 interface VideoReplyView {
-    @Composable
-    fun create(imageBitmap: ImageBitmap)
+    @Composable fun create(imageBitmap: ImageBitmap)
 }
 
 @Composable
@@ -134,8 +130,7 @@ class VideoReplyViewImpl : VideoReplyView {
 }
 
 interface VideoReplyDefaultView {
-    @Composable
-    fun create(fileName: String)
+    @Composable fun create(fileName: String)
 }
 
 @Composable
@@ -160,8 +155,7 @@ class VideoReplyDefaultViewImpl : VideoReplyDefaultView {
 }
 
 interface AudioReplyView {
-    @Composable
-    fun create(fileName: String)
+    @Composable fun create(fileName: String)
 }
 
 @Composable
@@ -187,8 +181,7 @@ class AudioReplyViewImpl : AudioReplyView {
 }
 
 interface FileReplyView {
-    @Composable
-    fun create(fileName: String)
+    @Composable fun create(fileName: String)
 }
 
 @Composable
@@ -202,20 +195,14 @@ class FileReplyViewImpl : FileReplyView {
 
         val i18n = DI.get<I18nView>()
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                Icons.Default.Attachment,
-                i18n.commonAttachment(),
-                Modifier.size(30.dp),
-                tint = Color.DarkGray,
-            )
+            Icon(Icons.Default.Attachment, i18n.commonAttachment(), Modifier.size(30.dp), tint = Color.DarkGray)
             FileName(fileName)
         }
     }
 }
 
 interface LocationReplyView {
-    @Composable
-    fun create(name: String, location: String)
+    @Composable fun create(name: String, location: String)
 }
 
 @Composable
@@ -227,27 +214,23 @@ class LocationReplyViewImpl : LocationReplyView {
     @Composable
     override fun create(name: String, location: String) {
         val i18n = DI.get<I18nView>()
-        val (geoUrl, pos) = location
-            .removePrefix("geo:").substringBefore(";").split(",")
-            .let { (lat, lon) ->
+        val (geoUrl, pos) =
+            location.removePrefix("geo:").substringBefore(";").split(",").let { (lat, lon) ->
                 "https://www.openstreetmap.org/?mlat=$lat&mlon=$lon" to Pair(lat, lon)
             }
 
         val uriHandler = LocalUriHandler.current
         ClickableText(
             text = AnnotatedString(i18n.locationClickText(pos)),
-            onClick = {
-                uriHandler.openUri(geoUrl)
-            },
+            onClick = { uriHandler.openUri(geoUrl) },
             onLongPress = {},
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
 
 interface UnknownReplyView {
-    @Composable
-    fun create()
+    @Composable fun create()
 }
 
 @Composable
@@ -259,11 +242,6 @@ class UnknownReplyViewImpl : UnknownReplyView {
     @Composable
     override fun create() {
         val i18n = DI.get<I18nView>()
-        Icon(
-            Icons.Default.QuestionMark,
-            i18n.commonUnknown(),
-            Modifier.size(30.dp),
-            tint = Color.DarkGray,
-        )
+        Icon(Icons.Default.QuestionMark, i18n.commonUnknown(), Modifier.size(30.dp), tint = Color.DarkGray)
     }
 }

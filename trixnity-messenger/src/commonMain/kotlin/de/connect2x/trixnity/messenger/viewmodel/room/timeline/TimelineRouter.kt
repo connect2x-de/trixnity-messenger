@@ -20,20 +20,21 @@ import org.koin.core.component.get
 
 interface TimelineRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
+
     suspend fun openTimeline(id: RoomId)
+
     suspend fun closeTimeline()
 
     @Serializable
     sealed class Config {
-        @Serializable
-        data object None : Config()
+        @Serializable data object None : Config()
 
-        @Serializable
-        data class View(val roomId: String) : Config()
+        @Serializable data class View(val roomId: String) : Config()
     }
 
     sealed class Wrapper {
         data class View(val viewModel: TimelineViewModel) : Wrapper()
+
         data object None : Wrapper()
     }
 }
@@ -60,23 +61,23 @@ class TimelineRouterImpl(
             childFactory = ::createTimelineChild,
         )
 
-    private fun createTimelineChild(
-        timelineConfig: Config,
-        componentContext: ComponentContext,
-    ): Wrapper =
+    private fun createTimelineChild(timelineConfig: Config, componentContext: ComponentContext): Wrapper =
         when (timelineConfig) {
             is Config.None -> Wrapper.None
-            is Config.View -> Wrapper.View(
-                viewModelContext.get<TimelineViewModelFactory>().create(
-                    viewModelContext = viewModelContext.childContext("Timeline", componentContext),
-                    roomId = RoomId(timelineConfig.roomId),
-                    onBack = onCloseRoom,
-                    onOpenRoomSettings = onOpenRoomSettings,
-                    onOpenUserProfile = onOpenUserProfile,
-                    onOpenMention = onOpenMention,
-                    onOpenMetadata = onOpenMetadata,
+            is Config.View ->
+                Wrapper.View(
+                    viewModelContext
+                        .get<TimelineViewModelFactory>()
+                        .create(
+                            viewModelContext = viewModelContext.childContext("Timeline", componentContext),
+                            roomId = RoomId(timelineConfig.roomId),
+                            onBack = onCloseRoom,
+                            onOpenRoomSettings = onOpenRoomSettings,
+                            onOpenUserProfile = onOpenUserProfile,
+                            onOpenMention = onOpenMention,
+                            onOpenMetadata = onOpenMetadata,
+                        )
                 )
-            )
         }
 
     override suspend fun openTimeline(id: RoomId) {

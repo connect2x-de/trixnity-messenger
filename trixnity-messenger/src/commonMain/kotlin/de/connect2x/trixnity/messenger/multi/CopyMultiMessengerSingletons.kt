@@ -8,9 +8,9 @@ import org.koin.core.module.Module
 import org.koin.core.scope.Scope
 
 /**
- * In case you introduce new settings in the [de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger], you need
- * to make sure that these settings are copied to each of your [de.connect2x.trixnity.messenger.MatrixMessenger]s
- * for the SDK to work properly.
+ * In case you introduce new settings in the [de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger], you need to
+ * make sure that these settings are copied to each of your [de.connect2x.trixnity.messenger.MatrixMessenger]s for the
+ * SDK to work properly.
  */
 fun interface CopyMultiMessengerSingletons {
     fun copy(from: Scope, to: Module)
@@ -27,4 +27,3 @@ val DefaultCopyMultiMessengerSingletons = CopyMultiMessengerSingletons { from: S
     val sharedDataHandler = from.getOrNull<SharedDataHandler>()
     if (sharedDataHandler != null) to.single<SharedDataHandler> { sharedDataHandler }
 }
-

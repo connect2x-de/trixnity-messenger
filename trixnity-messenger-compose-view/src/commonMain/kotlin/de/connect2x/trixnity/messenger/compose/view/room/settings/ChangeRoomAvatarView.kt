@@ -28,8 +28,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserA
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModel
 
 interface ChangeRoomAvatarView {
-    @Composable
-    fun create(changeRoomAvatarViewModel: ChangeRoomAvatarViewModel)
+    @Composable fun create(changeRoomAvatarViewModel: ChangeRoomAvatarViewModel)
 }
 
 @Composable
@@ -68,13 +67,11 @@ class ChangeRoomAvatarViewImpl : ChangeRoomAvatarView {
                 }
             }
         }
-        if (openSelector) LoadFileDialog(
-            filterFilePickerOptionsByAvailability(
-                IMAGE_FILE,
-                PHOTO_CAPTURE,
-            ),
-            onFileSelect = changeRoomAvatarViewModel::openAvatarCutter,
-            { changeRoomAvatarViewModel.openImageSelector.value = false },
-        )
+        if (openSelector)
+            LoadFileDialog(
+                filterFilePickerOptionsByAvailability(IMAGE_FILE, PHOTO_CAPTURE),
+                onFileSelect = changeRoomAvatarViewModel::openAvatarCutter,
+                { changeRoomAvatarViewModel.openImageSelector.value = false },
+            )
     }
 }

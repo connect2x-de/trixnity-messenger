@@ -25,5 +25,4 @@ open class VerificationStepTimeoutViewModelImpl(
     override fun ok() {
         onVerificationTimeoutOk()
     }
-
 }

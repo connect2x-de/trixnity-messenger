@@ -1,8 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.util
 
-inline fun <T> Iterable<T>.takeWhileInclusive(
-    predicate: (T) -> Boolean
-): List<T> {
+inline fun <T> Iterable<T>.takeWhileInclusive(predicate: (T) -> Boolean): List<T> {
     var shouldContinue = true
     return takeWhile {
         val result = shouldContinue
@@ -11,9 +9,7 @@ inline fun <T> Iterable<T>.takeWhileInclusive(
     }
 }
 
-inline fun <T> List<T>.takeLastWhileInclusive(
-    predicate: (T) -> Boolean
-): List<T> {
+inline fun <T> List<T>.takeLastWhileInclusive(predicate: (T) -> Boolean): List<T> {
     var shouldContinue = true
     return takeLastWhile {
         val result = shouldContinue

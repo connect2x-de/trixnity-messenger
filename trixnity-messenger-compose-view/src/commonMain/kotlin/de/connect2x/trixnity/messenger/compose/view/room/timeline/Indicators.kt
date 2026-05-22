@@ -37,7 +37,7 @@ fun HorizontalDividerWithText(text: String) {
         HorizontalDivider(
             Modifier.weight(1.0f).padding(end = 20.dp),
             color = MaterialTheme.colorScheme.tertiary,
-            thickness = 3.dp
+            thickness = 3.dp,
         )
         Text(
             text = text,
@@ -48,7 +48,7 @@ fun HorizontalDividerWithText(text: String) {
         HorizontalDivider(
             Modifier.weight(1.0f).padding(start = 20.dp),
             color = MaterialTheme.colorScheme.tertiary,
-            thickness = 3.dp
+            thickness = 3.dp,
         )
     }
 }
@@ -71,13 +71,12 @@ fun Indicator(
     containerColor: Color,
     withPadding: Boolean = true,
     focusable: Boolean = false,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     BoxWithConstraints {
         Box(
-            Modifier
-                .fillMaxWidth()
+            Modifier.fillMaxWidth()
                 .padding(
                     top = if (withPadding) 10.dp else 0.dp,
                     start = maxWidth / 4, // only use max half the screen's width (on both sides == 4 // )
@@ -85,33 +84,33 @@ fun Indicator(
                 )
         ) {
             if (focusable) {
-                // When Surface gets an onClick handler it sets the minimum size via LocalMinimumInteractiveComponentSize.
+                // When Surface gets an onClick handler it sets the minimum size via
+                // LocalMinimumInteractiveComponentSize.
                 // In this case it's too large, however.
                 CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
                     ThemedSurface(
-                        style = SurfaceStyle.default(
-                            shape = RoundedCornerShape(8.dp),
-                            color = containerColor,
-                            contentPadding = PaddingValues(5.dp)
-                        ),
+                        style =
+                            SurfaceStyle.default(
+                                shape = RoundedCornerShape(8.dp),
+                                color = containerColor,
+                                contentPadding = PaddingValues(5.dp),
+                            ),
                         onClick = {},
                         interactionSource = interactionSource,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .focusHighlighting(interactionSource)
+                        modifier = Modifier.align(Alignment.Center).focusHighlighting(interactionSource),
                     ) {
                         content()
                     }
                 }
             } else {
                 ThemedSurface(
-                    style = SurfaceStyle.default(
-                        shape = RoundedCornerShape(8.dp),
-                        color = containerColor,
-                        contentPadding = PaddingValues(5.dp)
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.Center)
+                    style =
+                        SurfaceStyle.default(
+                            shape = RoundedCornerShape(8.dp),
+                            color = containerColor,
+                            contentPadding = PaddingValues(5.dp),
+                        ),
+                    modifier = Modifier.align(Alignment.Center),
                 ) {
                     content()
                 }

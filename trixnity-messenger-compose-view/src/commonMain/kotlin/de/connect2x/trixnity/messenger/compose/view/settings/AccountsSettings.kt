@@ -34,8 +34,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloat
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModel
 
 interface AccountsSettingsView {
-    @Composable
-    fun create(accountsViewModel: AccountsViewModel)
+    @Composable fun create(accountsViewModel: AccountsViewModel)
 }
 
 @Composable
@@ -47,14 +46,12 @@ class AccountsSettingsViewImpl : AccountsSettingsView {
     @Composable
     override fun create(accountsViewModel: AccountsViewModel) {
         val openAvatarCutter = accountsViewModel.openAvatarCutter.collectAsState().value
-        if (openAvatarCutter != null) LoadFileDialog(
-            filterFilePickerOptionsByAvailability(
-                FilePickerType.IMAGE_FILE,
-                FilePickerType.PHOTO_CAPTURE,
-            ),
-            { accountsViewModel.openAvatarCutter(openAvatarCutter, it) },
-            { accountsViewModel.closeAvatarCutter() },
-        )
+        if (openAvatarCutter != null)
+            LoadFileDialog(
+                filterFilePickerOptionsByAvailability(FilePickerType.IMAGE_FILE, FilePickerType.PHOTO_CAPTURE),
+                { accountsViewModel.openAvatarCutter(openAvatarCutter, it) },
+                { accountsViewModel.closeAvatarCutter() },
+            )
         AccountsOverview(accountsViewModel)
     }
 }
@@ -80,10 +77,7 @@ fun AccountsOverview(accountsViewModel: AccountsViewModel) {
                         // leave space so that the floating action button does not cover up other elements
                         Spacer(Modifier.height(MaterialTheme.components.floatingActionButton.size + 2 * 20.dp))
                     }
-                    VerticalScrollbar(
-                        Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        scroll,
-                    )
+                    VerticalScrollbar(Modifier.align(Alignment.CenterEnd).fillMaxHeight(), scroll)
                     Box(Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 20.dp)) {
                         ThemedFloatingActionButton(
                             expanded = true,

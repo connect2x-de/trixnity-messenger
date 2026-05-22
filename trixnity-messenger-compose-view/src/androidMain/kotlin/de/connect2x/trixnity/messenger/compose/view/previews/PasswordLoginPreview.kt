@@ -9,7 +9,5 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.PreviewPasswordLogin
 @Preview(showBackground = true, backgroundColor = 0xFFFFFF)
 @Composable
 private fun PasswordLoginPreview() {
-    InitMessengerPreview {
-        PasswordLogin(PreviewPasswordLoginViewModel())
-    }
+    InitMessengerPreview { PasswordLogin(PreviewPasswordLoginViewModel()) }
 }

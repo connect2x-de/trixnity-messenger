@@ -13,7 +13,7 @@ private fun TimelineElementMetadataPreview() {
         TimelineElementMetadata(
             viewModel = PreviewTimelineElementMetadataViewModel1(),
             isBottomOfStack = false,
-            isSinglePane = true
+            isSinglePane = true,
         )
     }
 }

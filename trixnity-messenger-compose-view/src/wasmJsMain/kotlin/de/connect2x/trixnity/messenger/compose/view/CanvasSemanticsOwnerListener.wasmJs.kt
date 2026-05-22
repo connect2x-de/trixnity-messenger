@@ -17,7 +17,6 @@ import org.jetbrains.skiko.wasm.onWasmReady as skikoOnWasmReady
 import web.html.HTMLDivElement
 import web.html.HTMLElement
 
-
 internal actual fun onWasmReady(onReady: () -> Unit) = skikoOnWasmReady(onReady)
 
 @Suppress("FunctionName")
@@ -25,10 +24,11 @@ internal actual fun ComposeViewport(
     viewportContainer: HTMLElement,
     semanticsListener: (a11yContainer: HTMLDivElement) -> PlatformContext.SemanticsOwnerListener,
     configure: ComposeViewportConfiguration.() -> Unit,
-    content: @Composable (() -> Unit)
-) = androidx.compose.ui.window.ComposeViewport(
-    viewportContainer = viewportContainer.unsafeCast(),
-    semanticsListener = { semanticsListener(it.unsafeCast()) },
-    configure = configure,
-    content = content,
-)
+    content: @Composable (() -> Unit),
+) =
+    androidx.compose.ui.window.ComposeViewport(
+        viewportContainer = viewportContainer.unsafeCast(),
+        semanticsListener = { semanticsListener(it.unsafeCast()) },
+        configure = configure,
+        content = content,
+    )

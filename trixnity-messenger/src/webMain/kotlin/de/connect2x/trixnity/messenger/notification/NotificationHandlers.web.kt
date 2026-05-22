@@ -7,14 +7,15 @@ import org.koin.dsl.module
 
 actual fun platformNotificationHandlersModule(): Module = module {
     single<NotificationHandlers> {
-        NotificationHandlersImpl(
-            config = get(),
-            notificationProviders = get(),
-            multiSettings = getOrNull(),
-            matrixClients = get(),
-        )
-    }.apply {
-        bind<AutoCloseable>()
-        bind<Worker>()
-    }
+            NotificationHandlersImpl(
+                config = get(),
+                notificationProviders = get(),
+                multiSettings = getOrNull(),
+                matrixClients = get(),
+            )
+        }
+        .apply {
+            bind<AutoCloseable>()
+            bind<Worker>()
+        }
 }

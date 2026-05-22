@@ -6,15 +6,10 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.BaseTime
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OutboxElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 
-
 @Composable
 internal fun BaseTimelineElementHolderViewModel.asOutboxElementHolder(): OutboxElementHolderViewModel? =
-    remember(this) {
-        this as? OutboxElementHolderViewModel
-    }
+    remember(this) { this as? OutboxElementHolderViewModel }
 
 @Composable
 internal fun BaseTimelineElementHolderViewModel.asTimelineElementHolder(): TimelineElementHolderViewModel? =
-    remember(this) {
-        this as? TimelineElementHolderViewModel
-    }
+    remember(this) { this as? TimelineElementHolderViewModel }

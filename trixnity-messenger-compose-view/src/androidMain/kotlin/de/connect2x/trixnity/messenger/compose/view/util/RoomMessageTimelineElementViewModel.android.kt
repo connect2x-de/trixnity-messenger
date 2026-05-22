@@ -15,32 +15,23 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.
 actual fun RoomMessageTimelineElementViewModel<*>.toClipEntry(): ClipEntry? {
     val i18n = DI.get<I18nView>()
 
-    val clipData = when (this) {
-        is FileBased -> null // TODO should deliver caption
+    val clipData =
+        when (this) {
+            is FileBased -> null // TODO should deliver caption
 
-        is Location ->
-            ClipData.newPlainText(
-                i18n.commonLocation(),
-                this.coordinates // TODO should deliver proper location description (placename, coordinates)
-            )
-
-        is TextBased ->
-            this.formattedBody?.let {
-                ClipData.newHtmlText(
-                    i18n.commonRichText(),
-                    this.body,
-                    this.formattedBody
+            is Location ->
+                ClipData.newPlainText(
+                    i18n.commonLocation(),
+                    this.coordinates, // TODO should deliver proper location description (placename, coordinates)
                 )
-            } ?: ClipData.newPlainText(
-                i18n.commonText(),
-                this.body
-            )
 
-        is RoomMessageTimelineElementViewModel.Unknown,
-        is RoomMessageTimelineElementViewModel.VerificationRequest -> null
-    }
+            is TextBased ->
+                this.formattedBody?.let { ClipData.newHtmlText(i18n.commonRichText(), this.body, this.formattedBody) }
+                    ?: ClipData.newPlainText(i18n.commonText(), this.body)
 
-    return clipData?.let {
-        ClipEntry(it)
-    }
+            is RoomMessageTimelineElementViewModel.Unknown,
+            is RoomMessageTimelineElementViewModel.VerificationRequest -> null
+        }
+
+    return clipData?.let { ClipEntry(it) }
 }

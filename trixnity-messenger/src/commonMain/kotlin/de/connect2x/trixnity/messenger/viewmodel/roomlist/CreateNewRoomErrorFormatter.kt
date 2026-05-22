@@ -1,15 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
-import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
-
+import de.connect2x.trixnity.messenger.i18n.I18n
 
 class CreateNewRoomErrorFormatter(private val i18n: I18n) {
-    fun error(
-        throwable: Throwable,
-        isChat: Boolean
-    ): String {
+    fun error(throwable: Throwable, isChat: Boolean): String {
         return if (throwable is MatrixServerException) {
             when (throwable.errorResponse) {
                 is ErrorResponse.BadJson -> i18n.createNewRoomBadJson(isChat)
@@ -28,5 +24,4 @@ class CreateNewRoomErrorFormatter(private val i18n: I18n) {
             throwable.errorResponse.error
         } else throwable.message
     }
-
 }

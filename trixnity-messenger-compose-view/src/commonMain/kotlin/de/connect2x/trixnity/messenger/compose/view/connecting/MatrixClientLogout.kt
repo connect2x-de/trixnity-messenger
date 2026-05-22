@@ -23,8 +23,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModel
 
 interface RemoveMatrixAccountView {
-    @Composable
-    fun create(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel)
+    @Composable fun create(removeMatrixAccountViewModel: RemoveMatrixAccountViewModel)
 }
 
 @Composable
@@ -52,7 +51,7 @@ class RemoveMatrixAccountViewImpl : RemoveMatrixAccountView {
                 } else {
                     ThemedProgressIndicator(
                         Modifier.align(Alignment.CenterHorizontally),
-                        MaterialTheme.components.circularProgressIndicator
+                        MaterialTheme.components.circularProgressIndicator,
                     )
                     Text(i18n.matrixClientLogout(removeMatrixAccountViewModel.userId.full))
                 }

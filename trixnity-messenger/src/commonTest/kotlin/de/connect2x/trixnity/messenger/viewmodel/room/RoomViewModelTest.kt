@@ -64,6 +64,12 @@ import io.kotest.assertions.withClue
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldNot
 import io.kotest.matchers.types.beOfType
+import kotlin.reflect.KClass
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.fail
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -76,13 +82,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
-import kotlin.test.AfterTest
-import kotlin.test.BeforeTest
-import kotlin.test.Test
-import kotlin.test.fail
-import kotlin.time.Duration.Companion.milliseconds
-
 
 class RoomViewModelTest {
     private var lifecycle: LifecycleRegistry
@@ -124,14 +123,18 @@ class RoomViewModelTest {
         )
         lifecycle = LifecycleRegistry()
         lifecycle.resume()
-        every { matrixClientMock.di } returns koinApplication {
-            modules(module {
-                single { roomServiceMock }
-                single { keyServiceMock }
-                single { userServiceMock }
-                single { verificationServiceMock }
-            })
-        }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                    modules(
+                        module {
+                            single { roomServiceMock }
+                            single { keyServiceMock }
+                            single { userServiceMock }
+                            single { verificationServiceMock }
+                        }
+                    )
+                }
+                .koin
         every { matrixClientMock.userId } returns myUserId
         every { matrixClientMock.deviceId } returns myDeviceId
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
@@ -142,9 +145,8 @@ class RoomViewModelTest {
         every { matrixClientServerApiClientMock.sync } returns syncApiClientMock
         every { roomServiceMock.getAll() } returns roomsFlow
         every { roomServiceMock.getById(roomId) } returns MutableStateFlow(Room(roomId))
-        every {
-            roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, "")
-        } returns MutableStateFlow(null)
+        every { roomServiceMock.getAccountData(roomId, FullyReadEventContent::class, "") } returns
+            MutableStateFlow(null)
         every {
             roomServiceMock.getTimeline(
                 any<suspend (TimelineStateChange<TimelineViewModelImpl.TimelineElementWrapper>) -> Unit>(),
@@ -152,48 +154,30 @@ class RoomViewModelTest {
             )
         } returns NoOpTimeline()
         every { roomServiceMock.getById(any()) } returns flowOf(null)
-        every {
-            roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "")
-        } returns flowOf(null)
+        every { roomServiceMock.getAccountData(any(), FullyReadEventContent::class, "") } returns flowOf(null)
         every { roomServiceMock.getOutbox() } returns MutableStateFlow(listOf())
         every { roomServiceMock.getOutbox(roomId = any()) } returns MutableStateFlow(listOf())
-        every {
-            roomServiceMock.getState(any(), CreateEventContent::class, any())
-        } returns MutableStateFlow(null)
-        every {
-            roomServiceMock.getState(any(), PowerLevelsEventContent::class, any())
-        } returns MutableStateFlow(null)
-        every {
-            roomServiceMock.usersTyping
-        } returns MutableStateFlow(mapOf())
+        every { roomServiceMock.getState(any(), CreateEventContent::class, any()) } returns MutableStateFlow(null)
+        every { roomServiceMock.getState(any(), PowerLevelsEventContent::class, any()) } returns MutableStateFlow(null)
+        every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
-        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
-                MutableStateFlow(emptyMap())
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
         every { roomServiceMock.getState<HistoryVisibilityEventContent>(any(), any(), any()) } returns
-                flowOf(
-                    ClientEvent.StrippedStateEvent(
-                        HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
-                        sender = UserId("unused", "unused"),
-                        stateKey = "unused",
-                    )
+            flowOf(
+                ClientEvent.StrippedStateEvent(
+                    HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
+                    sender = UserId("unused", "unused"),
+                    stateKey = "unused",
                 )
+            )
         every { roomServiceMock.getDraftMessage(any()) } returns flowOf(null)
-        every { verificationServiceMock.activeDeviceVerification } returns
-                MutableStateFlow(null)
+        every { verificationServiceMock.activeDeviceVerification } returns MutableStateFlow(null)
         every { verificationServiceMock.activeUserVerifications } returns MutableStateFlow(listOf())
-        every { verificationServiceMock.getSelfVerificationMethods() }.also {
-            selfVerificationMethods = it
-        } returns MutableStateFlow(
-            VerificationService.SelfVerificationMethods
-                .PreconditionsNotMet(emptySet())
-        )
-        every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns
-                flowOf(DeviceTrustLevel.Valid(false))
-        every { keyServiceMock.getTrustLevel(any<UserId>()) } returns
-                flowOf(UserTrustLevel.Blocked)
-        everySuspend {
-            userServiceMock.loadMembers(any(), any())
-        } returns Unit
+        every { verificationServiceMock.getSelfVerificationMethods() }.also { selfVerificationMethods = it } returns
+            MutableStateFlow(VerificationService.SelfVerificationMethods.PreconditionsNotMet(emptySet()))
+        every { keyServiceMock.getTrustLevel(any<UserId>(), any()) } returns flowOf(DeviceTrustLevel.Valid(false))
+        every { keyServiceMock.getTrustLevel(any<UserId>()) } returns flowOf(UserTrustLevel.Blocked)
+        everySuspend { userServiceMock.loadMembers(any(), any()) } returns Unit
         every { userServiceMock.getById(any(), any()) } returns MutableStateFlow(null)
         every { userServiceMock.getPresence(any()) } returns flowOf(null)
         every { userServiceMock.getAll(roomId) } returns MutableStateFlow(mapOf())
@@ -204,19 +188,15 @@ class RoomViewModelTest {
         every { userServiceMock.canBanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canUnbanUser(roomId, any()) } returns MutableStateFlow(false)
         every { userServiceMock.canSetPowerLevelToMax(roomId, any()) } returns MutableStateFlow(PowerLevel.User(0L))
-        every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns
-                MutableStateFlow(null)
-        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns
-                MutableStateFlow(null)
-        every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns
-                MutableStateFlow(null)
+        every { userServiceMock.getAccountData(DirectEventContent::class, "") } returns MutableStateFlow(null)
+        every { userServiceMock.getAccountData(IgnoredUserListEventContent::class, "") } returns MutableStateFlow(null)
+        every { userServiceMock.getAccountData(PushRulesEventContent::class, "") } returns MutableStateFlow(null)
         every { userServiceMock.getPowerLevel(any(), any()) } returns MutableStateFlow(PowerLevel.User(50))
         every { userServiceMock.canSendEvent(any(), any<KClass<out RoomEventContent>>()) } returns flowOf(true)
         every { userServiceMock.getReceiptsById(any(), any()) } returns flowOf(null)
         every { minimizeMessengerMock.invoke() } returns Unit
-        every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns flowOf(
-            MarkedUnreadEventContent(false)
-        )
+        every { roomServiceMock.getAccountData(roomId, MarkedUnreadEventContent::class, any()) } returns
+            flowOf(MarkedUnreadEventContent(false))
     }
 
     @BeforeTest
@@ -250,8 +230,7 @@ class RoomViewModelTest {
         val cut = cutRoomViewModel()
         cut shouldShowTimeline true
         cut shouldShowExtras false
-        cut.timelineAs<View>().viewModel
-            .roomHeaderViewModel.openRoomSettings()
+        cut.timelineAs<View>().viewModel.roomHeaderViewModel.openRoomSettings()
         cut shouldShowExtras true
         cut shouldShowExtrasOfType RoomSettings::class
     }
@@ -368,66 +347,89 @@ class RoomViewModelTest {
         cut shouldShowExtras false
     }
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun TestScope.cutRoomViewModel(): RoomViewModelImpl {
         Dispatchers.setMain(testDispatcher)
         return RoomViewModelImpl(
-            viewModelContext = MatrixClientViewModelContextImpl(
-                componentContext = DefaultComponentContext(
-                    lifecycle,
-                    backHandler = backPressedHandler,
-                ),
-                di = koinApplication {
-                    modules(
-                        createTestDefaultTrixnityMessengerModules(
-                            mapOf(
-                                UserId(
-                                    "test",
-                                    "server"
-                                ) to matrixClientMock
-                            ),
-                        ) + module {
-                            single { downloadManagerMock }
-                            single { isNetworkAvailable }
-                            single { runInitialSyncMock }
-                            single<RoomHeaderViewModelFactory> {
-                                object : RoomHeaderViewModelFactory {
-                                    override fun create(
-                                        viewModelContext: MatrixClientViewModelContext,
-                                        selectedRoomId: RoomId,
-                                        onBack: () -> Unit,
-                                        onVerifyUser: () -> Unit,
-                                        onOpenRoomSettings: () -> Unit,
-                                        onOpenUserProfile: (UserId) -> Unit,
-                                    ): RoomHeaderViewModel = object : RoomHeaderViewModel {
-                                        override val error: StateFlow<String?> = MutableStateFlow(null)
-                                        override val roomHeaderInfo: StateFlow<RoomHeaderInfo> = MutableStateFlow(
-                                            RoomHeaderInfo("", "", "", null, null, false, false, false)
-                                        )
-                                        override val usersTyping: StateFlow<String?> = MutableStateFlow(null)
-                                        override val userTrustLevel: StateFlow<UserTrustLevel?> = MutableStateFlow(null)
-                                        override val canVerifyUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val knockingMembersCount: StateFlow<Int> = MutableStateFlow(0)
-                                        override val canBlockUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val canUnblockUser: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val isUserBlocked: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override val isDirectChat: StateFlow<Boolean> = MutableStateFlow(false)
-                                        override fun blockUser() {}
-                                        override fun unblockUser() {}
-                                        override fun verifyUser() {}
-                                        override fun openRoomSettings() = onOpenRoomSettings()
-                                        override fun openUserProfile() = onOpenUserProfile(UserId("user1"))
-                                        override fun back() = onBack()
-                                    }
-                                }
+            viewModelContext =
+                MatrixClientViewModelContextImpl(
+                    componentContext = DefaultComponentContext(lifecycle, backHandler = backPressedHandler),
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    ) +
+                                        module {
+                                            single { downloadManagerMock }
+                                            single { isNetworkAvailable }
+                                            single { runInitialSyncMock }
+                                            single<RoomHeaderViewModelFactory> {
+                                                object : RoomHeaderViewModelFactory {
+                                                    override fun create(
+                                                        viewModelContext: MatrixClientViewModelContext,
+                                                        selectedRoomId: RoomId,
+                                                        onBack: () -> Unit,
+                                                        onVerifyUser: () -> Unit,
+                                                        onOpenRoomSettings: () -> Unit,
+                                                        onOpenUserProfile: (UserId) -> Unit,
+                                                    ): RoomHeaderViewModel =
+                                                        object : RoomHeaderViewModel {
+                                                            override val error: StateFlow<String?> =
+                                                                MutableStateFlow(null)
+                                                            override val roomHeaderInfo: StateFlow<RoomHeaderInfo> =
+                                                                MutableStateFlow(
+                                                                    RoomHeaderInfo(
+                                                                        "",
+                                                                        "",
+                                                                        "",
+                                                                        null,
+                                                                        null,
+                                                                        false,
+                                                                        false,
+                                                                        false,
+                                                                    )
+                                                                )
+                                                            override val usersTyping: StateFlow<String?> =
+                                                                MutableStateFlow(null)
+                                                            override val userTrustLevel: StateFlow<UserTrustLevel?> =
+                                                                MutableStateFlow(null)
+                                                            override val canVerifyUser: StateFlow<Boolean> =
+                                                                MutableStateFlow(false)
+                                                            override val knockingMembersCount: StateFlow<Int> =
+                                                                MutableStateFlow(0)
+                                                            override val canBlockUser: StateFlow<Boolean> =
+                                                                MutableStateFlow(false)
+                                                            override val canUnblockUser: StateFlow<Boolean> =
+                                                                MutableStateFlow(false)
+                                                            override val isUserBlocked: StateFlow<Boolean> =
+                                                                MutableStateFlow(false)
+                                                            override val isDirectChat: StateFlow<Boolean> =
+                                                                MutableStateFlow(false)
+
+                                                            override fun blockUser() {}
+
+                                                            override fun unblockUser() {}
+
+                                                            override fun verifyUser() {}
+
+                                                            override fun openRoomSettings() = onOpenRoomSettings()
+
+                                                            override fun openUserProfile() =
+                                                                onOpenUserProfile(UserId("user1"))
+
+                                                            override fun back() = onBack()
+                                                        }
+                                                }
+                                            }
+                                        }
+                                )
                             }
-                        })
-                }.koin,
-                userId = UserId("test", "server"),
-                coroutineContext = backgroundScope.coroutineContext,
-                name = "Room"
-            ),
+                            .koin,
+                    userId = UserId("test", "server"),
+                    coroutineContext = backgroundScope.coroutineContext,
+                    name = "Room",
+                ),
             roomId = roomId,
             onOpenRoom = mock(),
             onCloseRoom = mock(),
@@ -468,7 +470,7 @@ private suspend inline fun <reified T : ExtrasRouter.Wrapper> RoomViewModelImpl.
     } catch (_: ClassCastException) {
         fail(
             "expected extras pane to be of instance ${T::class.simpleName}" +
-                    " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
+                " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )
     }
 
@@ -479,6 +481,6 @@ private suspend inline fun <reified T : TimelineRouter.Wrapper> RoomViewModelImp
     } catch (_: ClassCastException) {
         fail(
             "expected timeline to be of instance ${T::class.simpleName}" +
-                    " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
+                " but instead was: ${this.extrasStack.value.active.instance::class.simpleName}"
         )
     }
