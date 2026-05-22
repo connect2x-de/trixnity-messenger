@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
+  `de.connect2x.trixnity.messenger.util`
+
 ### Deprecated
 
 ### Removed

@@ -154,6 +154,7 @@ kotlin {
             dependencies {
                 // since with iOS projects, we cannot include the engine, we select it here
                 implementation(sharedLibs.ktor.client.darwin)
+                implementation(libs.filekit.core)
             }
         }
         webMain {

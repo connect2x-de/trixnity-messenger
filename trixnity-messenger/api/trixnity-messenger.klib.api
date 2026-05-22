@@ -15944,6 +15944,20 @@ final class de.connect2x.trixnity.messenger.uikit/WindowSceneDelegate : platform
 }
 
 // Targets: [ios]
+final class de.connect2x.trixnity.messenger.util/FileKitFileDescriptor : de.connect2x.trixnity.messenger.util/FileDescriptor { // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor|null[0]
+    constructor <init>(io.github.vinceglb.filekit/PlatformFile) // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.<init>|<init>(io.github.vinceglb.filekit.PlatformFile){}[0]
+
+    final val content // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.content|{}content[0]
+        final fun <get-content>(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.content.<get-content>|<get-content>(){}[0]
+    final val fileName // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileName|{}fileName[0]
+        final fun <get-fileName>(): kotlin/String // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileName.<get-fileName>|<get-fileName>(){}[0]
+    final val fileSize // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileSize|{}fileSize[0]
+        final fun <get-fileSize>(): kotlin/Long // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileSize.<get-fileSize>|<get-fileSize>(){}[0]
+    final val mimeType // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.mimeType|{}mimeType[0]
+        final fun <get-mimeType>(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
+}
+
+// Targets: [ios]
 final class de.connect2x.trixnity.messenger.util/PathFileDescriptor : de.connect2x.trixnity.messenger.util/FileDescriptor { // de.connect2x.trixnity.messenger.util/PathFileDescriptor|null[0]
     constructor <init>(okio/Path, okio/FileSystem) // de.connect2x.trixnity.messenger.util/PathFileDescriptor.<init>|<init>(okio.Path;okio.FileSystem){}[0]
 
