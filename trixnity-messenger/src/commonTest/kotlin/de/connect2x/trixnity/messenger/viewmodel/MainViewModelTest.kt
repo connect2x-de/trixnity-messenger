@@ -269,6 +269,7 @@ class MainViewModelTest {
     fun `show room when room is selected`() = runTest {
         val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { roomServiceMock.getById(roomId) } returns flowOf(Room(roomId, membership = Membership.JOIN))
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -284,6 +285,7 @@ class MainViewModelTest {
     fun `show room list when the room view is closed`() = runTest {
         val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { roomServiceMock.getById(roomId) } returns flowOf(Room(roomId, membership = Membership.JOIN))
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)

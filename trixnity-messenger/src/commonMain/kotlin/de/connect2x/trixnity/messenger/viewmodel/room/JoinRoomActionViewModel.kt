@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.util.isKnock
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -114,9 +114,10 @@ class JoinRoomActionViewModelImpl(
                         }
                     }
 
-                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Private -> {
+                    joinRuleContent?.joinRule in
+                        setOf(JoinRulesEventContent.JoinRule.Private, JoinRulesEventContent.JoinRule.Invite) -> {
                         log.debug {
-                            "No action to join room $roomId with join rule ${joinRuleContent.joinRule} available, returning private action"
+                            "No action to join room $roomId with join rule ${joinRuleContent?.joinRule} available, returning private action"
                         }
                         JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
                     }
@@ -127,7 +128,7 @@ class JoinRoomActionViewModelImpl(
                     }
                 }
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, Eagerly, null)
 
     private val _error = MutableStateFlow<String?>(null)
     override val error: StateFlow<String?> = _error.asStateFlow()

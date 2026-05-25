@@ -191,6 +191,15 @@ class JoinRoomActionViewModelTest {
     }
 
     @Test
+    fun `show room not found when no join rule for room exists`() = runTest {
+        verifyJoinAction(null) {
+            eventually(2.seconds) {
+                it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.NotFound>()
+            }
+        }
+    }
+
+    @Test
     fun `show null action when room is already joined and open room`() = allJoinRules.forEach { joinRule ->
         runTest {
             var openRoomCalled = 0
@@ -259,7 +268,7 @@ class JoinRoomActionViewModelTest {
     }
 
     private suspend fun TestScope.verifyJoinAction(
-        joinRule: JoinRule,
+        joinRule: JoinRule?,
         membership: Membership? = null,
         allowCondition: Set<JoinRulesEventContent.AllowCondition>? = null,
         additionalMocks: () -> Unit = {},
@@ -269,13 +278,17 @@ class JoinRoomActionViewModelTest {
         every { roomServiceMock.getById(any()) } returns
             flowOf(if (membership == null) null else Room(room, membership = membership))
         every { roomServiceMock.getState<JoinRulesEventContent>(room, any(), any()) } returns
-            flowOf(
-                ClientEvent.StrippedStateEvent(
-                    content = JoinRulesEventContent(joinRule = joinRule, allow = allowCondition),
-                    sender = user,
-                    stateKey = "state",
+            if (joinRule != null) {
+                flowOf(
+                    ClientEvent.StrippedStateEvent(
+                        content = JoinRulesEventContent(joinRule = joinRule, allow = allowCondition),
+                        sender = user,
+                        stateKey = "state",
+                    )
                 )
-            )
+            } else {
+                flowOf(null)
+            }
         additionalMocks()
         val cut = JoinRoomActionViewModel(onOpenRoom = onOpenRoom)
         val jobAction = cut.actionNecessary.launchIn(this)
