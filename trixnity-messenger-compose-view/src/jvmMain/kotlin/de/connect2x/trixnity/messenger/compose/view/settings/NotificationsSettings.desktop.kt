@@ -5,4 +5,6 @@ import androidx.compose.runtime.Composable
 import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSingleAccountViewModel
 
 @Composable
-actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {}
+actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
+    // Used to configure ios and android
+}

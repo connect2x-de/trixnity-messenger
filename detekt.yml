@@ -48,7 +48,8 @@ empty-blocks:
   EmptyForBlock:
     active: true
   EmptyFunctionBlock:
-    active: false
+    active: true
+    ignoreOverridden: true
   EmptyIfBlock:
     active: true
   EmptyInitBlock:
@@ -171,3 +172,9 @@ potential-bugs:
   WrongEqualsTypeParameter:
     active: true
 
+style:
+  ForbiddenSuppress:
+    active: true
+    rules:
+      # You should add a comment explaining why the function is empty
+      - EmptyFunctionBlock
