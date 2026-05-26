@@ -1233,6 +1233,12 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun invitationBlock ()Ljava/lang/String;
 	public fun invitationReject ()Ljava/lang/String;
 	public fun invitationRejectHeader ()Ljava/lang/String;
+	public fun joinRoomActionAcceptInvite ()Ljava/lang/String;
+	public fun joinRoomActionImpossible ()Ljava/lang/String;
+	public fun joinRoomActionJoin ()Ljava/lang/String;
+	public fun joinRoomActionKnock ()Ljava/lang/String;
+	public fun joinRoomActionNotFound ()Ljava/lang/String;
+	public fun joinRoomActionRestricted (Ljava/util/Set;)Ljava/lang/String;
 	public fun joinRuleInvited ()Ljava/lang/String;
 	public fun joinRuleInvitedExplanation ()Ljava/lang/String;
 	public fun joinRuleKnock ()Ljava/lang/String;
@@ -1775,6 +1781,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/ComposableS
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/ComposableSingletons$RoomSwitchKt;
 	public fun <init> ()V
 	public final fun getLambda$-1190857861$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionViewImpl : de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/RoomJoinActionKt {
+	public static final fun JoinRoomAction (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/RoomKt {
