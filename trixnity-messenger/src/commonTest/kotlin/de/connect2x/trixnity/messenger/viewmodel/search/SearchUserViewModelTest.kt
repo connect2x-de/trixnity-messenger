@@ -293,7 +293,7 @@ class SearchUserViewModelTest {
         cut.providerSettings[SettingsIdColor]?.setValue("grey")
         delay(10.milliseconds)
 
-        cut.providerSettingsString.value shouldContain
+        cut.providerSettingsList.value shouldContain
             "options: loud" shouldContain
             "color: grey (color)" shouldContain
             "city: Berlin" shouldNotContain
@@ -365,7 +365,7 @@ class SearchUserViewModelTest {
         cut.providerSettings[SettingsIdCity]?.setValue("Berlin")
         cut.setProvider("test-1", false) // provider2 still has city
         delay(10.milliseconds)
-        cut.providerSettingsString.value shouldBe listOf("city: Berlin")
+        cut.providerSettingsList.value shouldBe listOf("city: Berlin")
     }
 
     @Test
@@ -457,7 +457,7 @@ class SearchUserViewModelTest {
             )
         backgroundScope.launch { searchUserViewModelImpl.searchResult.collect() }
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
-        backgroundScope.launch { searchUserViewModelImpl.providerSettingsString.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.providerSettingsList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
         return searchUserViewModelImpl
     }

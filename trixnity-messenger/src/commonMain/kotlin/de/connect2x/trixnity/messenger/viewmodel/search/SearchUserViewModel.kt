@@ -76,7 +76,7 @@ interface SearchUserViewModel {
     val providerSettings: Map<SettingsId, SearchSettingCombined>
 
     /** Accumulation of all settings the search providers have, e.g., "city: Berlin, country: Germany". */
-    val providerSettingsString: StateFlow<List<String>>
+    val providerSettingsList: StateFlow<List<String>>
 
     /** (De-)activate a [SearchUserProvider] by its [SearchUserProviderId]. */
     fun setProvider(providerId: SearchUserProviderId, active: Boolean)
@@ -177,13 +177,19 @@ class SearchUserViewModelImpl(
         }
     }
 
-    override val providerSettingsString: StateFlow<List<String>> =
+    private data class SearchSettingData(val id: SettingsId, val name: String, val value: String?)
+
+    override val providerSettingsList: StateFlow<List<String>> =
         combine(
                 providerSearchActive,
                 combine(
                     providerSettings.map { (settingsId, setting) ->
                         setting.value.map { settingsValue ->
-                            Triple(settingsId, setting.name, settingsValue?.let { setting.getDisplayValue(it) })
+                            SearchSettingData(
+                                id = settingsId,
+                                name = setting.name,
+                                value = settingsValue?.let { setting.getDisplayValue(it) },
+                            )
                         }
                     }
                 ) {
@@ -191,21 +197,19 @@ class SearchUserViewModelImpl(
                 },
             ) { active, settings ->
                 log.debug {
-                    "provider settings: $active, ${settings.joinToString { "${it.first} -> ${it.second}: ${it.third}" }}"
+                    "provider settings: $active, ${settings.joinToString { "${it.id} -> ${it.name}: ${it.value}" }}"
                 }
                 settings
-                    .filter { (settingsId, settingsName, setting) ->
-                        setting.isNullOrBlank().not() &&
+                    .filter { (id, _, value) ->
+                        value.isNullOrBlank().not() &&
                             searchUserProviders
                                 .mapIndexed { index, provider ->
                                     active[index] &&
-                                        provider.settings.entries.any { searchSettings ->
-                                            searchSettings.key == settingsId
-                                        }
+                                        provider.settings.entries.any { searchSettings -> searchSettings.key == id }
                                 }
                                 .isNotEmpty()
                     }
-                    .map { (_, settingsName, setting) -> "$settingsName: $setting" }
+                    .map { (_, name, value) -> "$name: $value" }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -268,7 +272,7 @@ class SearchUserViewModelImpl(
     private suspend fun search() {
         combine(
                 triggerSearch,
-                providerSettingsString,
+                providerSettingsList,
                 searchTerm
                     .onEach { log.trace { "Searching for user **** (redacted for privacy)" } }
                     .map { it.text }
@@ -387,7 +391,7 @@ class PreviewSearchUserViewModel : SearchUserViewModel {
     override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
     override val providerSearchActive: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = emptyMap()
-    override val providerSettingsString: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    override val providerSettingsList: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
     override val providerSearchCanBeActivated: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
 

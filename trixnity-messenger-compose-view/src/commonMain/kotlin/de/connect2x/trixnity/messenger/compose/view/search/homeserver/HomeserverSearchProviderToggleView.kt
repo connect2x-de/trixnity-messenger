@@ -16,7 +16,12 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
     override val supports: KClass<out HomeserverSearchUserProvider> = HomeserverSearchUserProvider::class
 
     @Composable
-    override fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) {
+    override fun create(
+        searchUserProvider: SearchUserProvider,
+        providerSearchCanBeActivated: Boolean,
+        active: Boolean,
+        setActive: () -> Unit,
+    ) {
         ThemedFilterChip(
             selected = active,
             onClick = setActive,
@@ -27,6 +32,7 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
                     Icon(Icons.Default.Check, contentDescription = null)
                 }
             },
+            enabled = providerSearchCanBeActivated,
         )
     }
 }

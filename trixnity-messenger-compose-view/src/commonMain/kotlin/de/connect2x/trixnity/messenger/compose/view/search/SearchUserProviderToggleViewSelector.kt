@@ -12,8 +12,12 @@ import kotlinx.coroutines.flow.update
 
 interface SearchUserProviderToggleViewSelector {
     @Composable
-    fun create(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) =
-        rememberFactory(searchUserProvider).create(searchUserProvider, active, setActive)
+    fun create(
+        searchUserProvider: SearchUserProvider,
+        providerSearchCanBeActivated: Boolean,
+        active: Boolean,
+        setActive: () -> Unit,
+    ) = rememberFactory(searchUserProvider).create(searchUserProvider, providerSearchCanBeActivated, active, setActive)
 
     @Composable
     private fun rememberFactory(element: SearchUserProvider): SearchUserProviderToggleView<*> =
@@ -23,8 +27,15 @@ interface SearchUserProviderToggleViewSelector {
 }
 
 @Composable
-fun SearchUserProviderToggleSelector(searchUserProvider: SearchUserProvider, active: Boolean, setActive: () -> Unit) {
-    with(DI.get<SearchUserProviderToggleViewSelector>()) { create(searchUserProvider, active, setActive) }
+fun SearchUserProviderToggleSelector(
+    searchUserProvider: SearchUserProvider,
+    providerSearchCanBeActivated: Boolean,
+    active: Boolean,
+    setActive: () -> Unit,
+) {
+    with(DI.get<SearchUserProviderToggleViewSelector>()) {
+        create(searchUserProvider, providerSearchCanBeActivated, active, setActive)
+    }
 }
 
 class SearchUserProviderToggleViewSelectorImpl(private val factories: List<SearchUserProviderToggleView<*>>) :

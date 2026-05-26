@@ -3622,6 +3622,11 @@ open class I18nView(
         DE - "Filter auswählen"
     }
 
+    open fun searchUserProviderDeactivated() = translate {
+        EN - "deactivated, since a filter of another search is used"
+        DE - "deaktiviert, da ein Filter einer anderen Suche verwendet wird"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
 
     fun actionMore() = commonMore().capitalize(Locale.current)

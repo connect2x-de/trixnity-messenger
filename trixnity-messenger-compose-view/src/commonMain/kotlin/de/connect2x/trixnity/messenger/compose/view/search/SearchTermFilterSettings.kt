@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
@@ -48,7 +49,7 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
     val i18n = DI.get<I18nView>()
 
-    val providerSettings by searchUserViewModel.providerSettingsString.collectAsState()
+    val providerSettings by searchUserViewModel.providerSettingsList.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
     val rotateState = animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
@@ -83,8 +84,10 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
                         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
                     ) {
-                        providerSettings.forEach { setting ->
-                            ThemedInfoChip(label = { Text(setting, style = MaterialTheme.typography.bodySmall) })
+                        providerSettings.forEach { providerSetting ->
+                            ThemedInfoChip(
+                                label = { Text(providerSetting, style = MaterialTheme.typography.bodySmall) }
+                            )
                         }
                     }
                     SmallSpacer()
@@ -104,7 +107,7 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                         .forEach { (sources, settings) ->
                             Column(Modifier.padding(bottom = 10.dp)) {
                                 Text(sources.joinToString(), style = MaterialTheme.typography.bodyMediumEmphasized)
-                                SmallSpacer()
+                                VerySmallSpacer()
                                 settings.forEach { setting -> SearchSettingInputSelector(setting) }
                             }
                         }
