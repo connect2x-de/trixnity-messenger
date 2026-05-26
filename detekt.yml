@@ -133,7 +133,7 @@ potential-bugs:
   IteratorHasNextCallsNextMethod:
     active: true
   IteratorNotThrowingNoSuchElementException:
-    active: false
+    active: true
   MapGetWithNotNullAssertionOperator:
     active: true
   MissingPackageDeclaration:
