@@ -91,7 +91,7 @@ performance:
   SpreadOperator:
     active: true
   UnnecessaryInitOnArray:
-    active: false
+    active: true
   UnnecessaryPartOfBinaryExpression:
     active: true
   UnnecessaryTemporaryInstantiation:
