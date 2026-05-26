@@ -9,6 +9,7 @@ import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.clientserverapi.model.room.GetSummary
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
@@ -92,6 +93,7 @@ class JoinRoomActionViewModelTest {
     fun `show join action necessary when room is joinable and no invite exists and join`() = runTest {
         verifyJoinAction(
             JoinRule.Public,
+            getJoinRuleViaSummary = true,
             additionalMocks = {
                 everySuspend { roomApiClientMock.joinRoom(room, any(), any(), any()) } returns Result.success(room)
             },
@@ -108,6 +110,7 @@ class JoinRoomActionViewModelTest {
     fun `show knock action necessary when room is knock and no invite exists and knock`() = runTest {
         verifyJoinAction(
             JoinRule.Knock,
+            getJoinRuleViaSummary = true,
             additionalMocks = {
                 everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns Result.success(room)
             },
@@ -124,6 +127,7 @@ class JoinRoomActionViewModelTest {
     fun `show knock action necessary when room is knock restricted and no invite exists and knock`() = runTest {
         verifyJoinAction(
             JoinRule.KnockRestricted,
+            getJoinRuleViaSummary = true,
             additionalMocks = {
                 everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns Result.success(room)
             },
@@ -142,17 +146,8 @@ class JoinRoomActionViewModelTest {
         val restrictedRoom2 = RoomId("needToJoin2")
         verifyJoinAction(
             JoinRule.Restricted,
-            allowCondition =
-                setOf(
-                    JoinRulesEventContent.AllowCondition(
-                        restrictedRoom1,
-                        JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership,
-                    ),
-                    JoinRulesEventContent.AllowCondition(
-                        restrictedRoom2,
-                        JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership,
-                    ),
-                ),
+            getJoinRuleViaSummary = true,
+            allowRooms = setOf(restrictedRoom1, restrictedRoom2),
         ) {
             eventually(2.seconds) {
                 val value = it.actionNecessary.value
@@ -164,7 +159,7 @@ class JoinRoomActionViewModelTest {
 
     @Test
     fun `show private action when room is restricted and no allow condition rooms or invite exists`() = runTest {
-        verifyJoinAction(JoinRule.Restricted, allowCondition = setOf()) {
+        verifyJoinAction(JoinRule.Restricted, getJoinRuleViaSummary = true, allowRooms = setOf()) {
             eventually(2.seconds) {
                 val value = it.actionNecessary.value
                 value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Private>()
@@ -174,7 +169,7 @@ class JoinRoomActionViewModelTest {
 
     @Test
     fun `show joining private action when room is invite only and no invite exists`() = runTest {
-        verifyJoinAction(JoinRule.Invite) {
+        verifyJoinAction(JoinRule.Invite, getJoinRuleViaSummary = true) {
             eventually(2.seconds) {
                 it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Private>()
             }
@@ -183,7 +178,7 @@ class JoinRoomActionViewModelTest {
 
     @Test
     fun `show joining private action when room is private and no invite exists`() = runTest {
-        verifyJoinAction(JoinRule.Private) {
+        verifyJoinAction(JoinRule.Private, getJoinRuleViaSummary = true) {
             eventually(2.seconds) {
                 it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Private>()
             }
@@ -191,8 +186,8 @@ class JoinRoomActionViewModelTest {
     }
 
     @Test
-    fun `show room not found when no join rule for room exists`() = runTest {
-        verifyJoinAction(null) {
+    fun `show room not found when room can't be found `() = runTest {
+        verifyJoinAction(null, getJoinRuleViaSummary = true) {
             eventually(2.seconds) {
                 it.actionNecessary.value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.NotFound>()
             }
@@ -237,6 +232,7 @@ class JoinRoomActionViewModelTest {
     fun `update error when join fails`() = runTest {
         verifyJoinAction(
             JoinRule.Public,
+            getJoinRuleViaSummary = true,
             additionalMocks = {
                 everySuspend { roomApiClientMock.joinRoom(room, any(), any()) } returns
                     Result.failure(IllegalStateException())
@@ -254,6 +250,7 @@ class JoinRoomActionViewModelTest {
     fun `update error when knock fails`() = runTest {
         verifyJoinAction(
             JoinRule.Knock,
+            getJoinRuleViaSummary = true,
             additionalMocks = {
                 everySuspend { roomApiClientMock.knockRoom(room, any(), any()) } returns
                     Result.failure(IllegalStateException())
@@ -269,8 +266,9 @@ class JoinRoomActionViewModelTest {
 
     private suspend fun TestScope.verifyJoinAction(
         joinRule: JoinRule?,
+        getJoinRuleViaSummary: Boolean = false,
         membership: Membership? = null,
-        allowCondition: Set<JoinRulesEventContent.AllowCondition>? = null,
+        allowRooms: Set<RoomId>? = null,
         additionalMocks: () -> Unit = {},
         onOpenRoom: (RoomId) -> Unit = {},
         expectedResult: suspend (JoinRoomActionViewModel) -> Unit,
@@ -278,10 +276,22 @@ class JoinRoomActionViewModelTest {
         every { roomServiceMock.getById(any()) } returns
             flowOf(if (membership == null) null else Room(room, membership = membership))
         every { roomServiceMock.getState<JoinRulesEventContent>(room, any(), any()) } returns
-            if (joinRule != null) {
+            if (joinRule != null && !getJoinRuleViaSummary) {
                 flowOf(
                     ClientEvent.StrippedStateEvent(
-                        content = JoinRulesEventContent(joinRule = joinRule, allow = allowCondition),
+                        content =
+                            JoinRulesEventContent(
+                                joinRule = joinRule,
+                                allow =
+                                    allowRooms
+                                        ?.map {
+                                            JoinRulesEventContent.AllowCondition(
+                                                it,
+                                                JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership,
+                                            )
+                                        }
+                                        ?.toSet(),
+                            ),
                         sender = user,
                         stateKey = "state",
                     )
@@ -289,6 +299,23 @@ class JoinRoomActionViewModelTest {
             } else {
                 flowOf(null)
             }
+        if (getJoinRuleViaSummary) {
+            everySuspend { roomApiClientMock.getSummary(any<RoomId>(), any()) } returns
+                if (joinRule != null) {
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = room,
+                            guestCanJoin = true,
+                            worldReadable = false,
+                            joinedMembersCount = 1,
+                            joinRule = joinRule,
+                            allowedRoomIds = allowRooms,
+                        )
+                    )
+                } else {
+                    Result.failure(IllegalStateException("No room found"))
+                }
+        }
         additionalMocks()
         val cut = JoinRoomActionViewModel(onOpenRoom = onOpenRoom)
         val jobAction = cut.actionNecessary.launchIn(this)

@@ -3639,9 +3639,10 @@ open class I18nView(
     }
 
     open fun joinRoomActionNotFound() = translate {
-        EN - "Couldn't find the mentioned room. Please check the id to make sure it is correct."
+        EN -
+            "Couldn't find the mentioned room. Either the id isn't valid or the homeserver doesn't allow checking the join rules of rooms. Please request an invitation to the room instead."
         DE -
-            "Der Raum konnte nicht gefunden werden. Bitte überprüfen Sie die ID, um sicherzugehen, dass der Raum existiert."
+            "Der Raum konnte nicht gefunden werden. Das liegt daran, dass die id des Raumes ungültig ist oder die Beitrittsregeln des Raumes nicht öffentlich sind. Bitte fordern Sie stattdessen eine Einladung in den Raum an."
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

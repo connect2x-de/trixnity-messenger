@@ -66,8 +66,21 @@ class JoinRoomActionViewModelImpl(
     override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
         combine(
                 matrixClient.room.getById(roomId).map { it?.membership },
-                matrixClient.room.getState(roomId, JoinRulesEventContent::class).map { it?.content },
-            ) { membership, joinRuleContent ->
+                matrixClient.room.getState(roomId, JoinRulesEventContent::class).map {
+                    // if room isn't locally accessible, request summary from server
+                    if (it?.content != null) {
+                        it.content.joinRule to
+                            it.content.allow
+                                ?.filter {
+                                    it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership
+                                }
+                                ?.map { it.roomId }
+                                ?.toSet()
+                    } else {
+                        matrixClient.api.room.getSummary(roomId).getOrNull().let { it?.joinRule to it?.allowedRoomIds }
+                    }
+                },
+            ) { membership, joinRule ->
                 return@combine when {
                     membership == Membership.JOIN -> {
                         log.warn {
@@ -82,25 +95,19 @@ class JoinRoomActionViewModelImpl(
                         JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation(::onConfirmJoin, onDismiss)
                     }
 
-                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Public -> {
+                    joinRule.first == JoinRulesEventContent.JoinRule.Public -> {
                         log.debug { "Room $roomId is public, showing option to join" }
                         JoinRoomActionViewModel.JoinRoomAction.Join(::onConfirmJoin, onDismiss)
                     }
 
-                    joinRuleContent?.joinRule?.isKnock ?: false -> {
+                    joinRule.first?.isKnock ?: false -> {
                         log.debug { "Room $roomId is knock, showing option to knock" }
                         JoinRoomActionViewModel.JoinRoomAction.Knock(::onConfirmKnock, onDismiss)
                     }
 
                     // Only show restricted action when there are room join conditions
-                    joinRuleContent?.joinRule == JoinRulesEventContent.JoinRule.Restricted -> {
-                        val allowConditionsRooms =
-                            joinRuleContent.allow
-                                ?.filter {
-                                    it.type == JoinRulesEventContent.AllowCondition.AllowConditionType.RoomMembership
-                                }
-                                ?.map { it.roomId }
-                                ?.toSet()
+                    joinRule.first == JoinRulesEventContent.JoinRule.Restricted -> {
+                        val allowConditionsRooms = joinRule.second
                         if (allowConditionsRooms?.isNotEmpty() ?: false) {
                             log.debug {
                                 "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition"
@@ -114,10 +121,10 @@ class JoinRoomActionViewModelImpl(
                         }
                     }
 
-                    joinRuleContent?.joinRule in
+                    joinRule.first in
                         setOf(JoinRulesEventContent.JoinRule.Private, JoinRulesEventContent.JoinRule.Invite) -> {
                         log.debug {
-                            "No action to join room $roomId with join rule ${joinRuleContent?.joinRule} available, returning private action"
+                            "No action to join room $roomId with join rule ${joinRule.first} available, returning private action"
                         }
                         JoinRoomActionViewModel.JoinRoomAction.Private(onDismiss)
                     }
