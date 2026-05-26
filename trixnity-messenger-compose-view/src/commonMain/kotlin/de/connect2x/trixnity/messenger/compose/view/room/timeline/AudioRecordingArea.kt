@@ -193,5 +193,4 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             AudioRecorder.State.Ready -> Unit
         }
     }
-
 }

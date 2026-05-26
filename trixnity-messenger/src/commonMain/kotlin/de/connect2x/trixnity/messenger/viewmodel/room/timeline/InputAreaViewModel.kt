@@ -45,7 +45,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.utils.concurrentMutableMap
-import io.ktor.http.ContentType
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -215,7 +214,7 @@ open class InputAreaViewModelImpl(
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
-    //TODO: Move this to an init block
+    // TODO: Move this to an init block
     @Suppress("unused")
     private val completeAudioRecordingOnReplace =
         isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
@@ -231,13 +230,14 @@ open class InputAreaViewModelImpl(
 
     override val useMarkdown = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel =
-        get<AudioRecordingAreaViewModelFactory>().create(
-            viewModelContext = childContext("audioRecordingAreaViewModel"),
-            roomId,
-            currentReply,
-            ::resetCurrentReply,
-            draftMutex
-        )
+        get<AudioRecordingAreaViewModelFactory>()
+            .create(
+                viewModelContext = childContext("audioRecordingAreaViewModel"),
+                roomId,
+                currentReply,
+                ::resetCurrentReply,
+                draftMutex,
+            )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -330,13 +330,7 @@ open class InputAreaViewModelImpl(
         coroutineScope.launch {
             if (enableMessageDrafts) {
                 loadDraftIntoTextArea()
-                textField
-                    .debounce(2.seconds)
-                    .collect {
-                        draftMutex.withLock {
-                            saveTextAsDraft()
-                        }
-                    }
+                textField.debounce(2.seconds).collect { draftMutex.withLock { saveTextAsDraft() } }
             } else {
                 matrixClient.room.deleteDraftMessage(roomId)
             }
@@ -344,11 +338,7 @@ open class InputAreaViewModelImpl(
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
                 get<CoroutineScope>().launch {
-                    withContext(NonCancellable) {
-                        draftMutex.withLock {
-                            saveTextAsDraft()
-                        }
-                    }
+                    withContext(NonCancellable) { draftMutex.withLock { saveTextAsDraft() } }
                 }
             }
         }
@@ -475,7 +465,6 @@ open class InputAreaViewModelImpl(
         }
         matrixClient.room.setDraftMessage(roomId = roomId, builder = getTextMessageBuilder(text))
     }
-
 
     override fun selectMention(userId: UserId) {
         if (listOfMentions.value?.any { it.userId == userId } != true) return
@@ -745,9 +734,6 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
 }
 
 internal suspend fun MessageBuilder.reply(matrixClient: MatrixClient, repliedEvent: Pair<RoomId, EventId>) {
-    val event =
-        matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second)
-            .filterNotNull()
-            .first()
+    val event = matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second).filterNotNull().first()
     reply(event)
 }

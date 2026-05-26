@@ -94,6 +94,7 @@ class AudioRecorderImpl(
 
         data class Recording(val start: Instant, val loudness: () -> Float?, val complete: (Recording) -> Completed?) :
             State
+
         data class Completed(
             val capture: PlatformMedia,
             val duration: Duration,

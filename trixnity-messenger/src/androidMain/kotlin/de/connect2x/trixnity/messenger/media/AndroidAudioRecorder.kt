@@ -55,10 +55,8 @@ internal class AndroidAudioRecorder(
             capture = state.data,
             duration = state.duration,
             sizeBytes = state.sizeBytes,
-            contentType = state.contentType
-        ) {
-
-        }
+            contentType = state.contentType,
+        ) {}
     }
 
     override fun close() {
