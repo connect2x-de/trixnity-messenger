@@ -77,6 +77,8 @@ interface AccountSingleViewModel {
     fun deleteAvatar()
 }
 
+private const val MIN_MATRIX_VERSION_FOR_PROFILE_FIELDS = "v1.16"
+
 class AccountSingleViewModelImpl(
     viewModelContext: ViewModelContext,
     override val userId: UserId,
@@ -127,9 +129,15 @@ class AccountSingleViewModelImpl(
     override val canDeleteAvatar =
         matrixClient.serverData
             .map { serverData ->
+                val hasProfileFieldSupport =
+                    serverData?.versions?.versions?.any { it == MIN_MATRIX_VERSION_FOR_PROFILE_FIELDS } == true
                 val capabilities = serverData?.capabilities?.capabilities
-                capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true ||
-                    capabilities.setAvatarUrl.enabled
+                val hasProfileFieldCapability =
+                    capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true
+                val hasSetAvatarUrlCapability = capabilities?.setAvatarUrl?.enabled ?: true
+
+                (hasProfileFieldSupport && hasProfileFieldCapability) ||
+                    (!hasProfileFieldSupport && hasSetAvatarUrlCapability)
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
