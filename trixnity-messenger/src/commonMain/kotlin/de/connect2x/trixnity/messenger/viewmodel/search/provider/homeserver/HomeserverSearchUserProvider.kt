@@ -46,6 +46,7 @@ open class HomeserverSearchUserProvider(
 
     override val providerId: String = HOMESERVER_PROVIDER_ID
     override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
+    override val priority: Int = 100
 
     override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 

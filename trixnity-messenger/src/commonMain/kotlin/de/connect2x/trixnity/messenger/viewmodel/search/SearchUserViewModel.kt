@@ -8,6 +8,7 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchR
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import kotlin.random.Random
@@ -18,6 +19,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.core.component.get
 
 interface SearchUserViewModelFactory {
     fun create(matrixClientViewModelContext: MatrixClientViewModelContext): SearchUserViewModel {
@@ -60,6 +63,9 @@ interface SearchUserViewModel {
     /** Indicates whether the search provider is active at the moment. Can be set inactive via [setProvider]. */
     val providerSearchActive: StateFlow<List<Boolean>>
 
+    /** Indicates whether a provider can be activated. */
+    val providerSearchCanBeActivated: StateFlow<List<Boolean>>
+
     /**
      * The settings of all [SearchUserProvider]s, already combined for the same [SettingsId]s. E.g, "city" that is used
      * in multiple providers is only listed as one setting here.
@@ -84,7 +90,8 @@ class SearchUserViewModelImpl(
     matrixClientViewModelContext: MatrixClientViewModelContext,
     private val debounceDuration: Duration = 300.milliseconds,
 ) : SearchUserViewModel, MatrixClientViewModelContext by matrixClientViewModelContext {
-    override val searchUserProviders: List<SearchUserProvider> = getKoin().getAll<SearchUserProvider>()
+    override val searchUserProviders: List<SearchUserProvider> =
+        get<SearchUserProviderSorter>().sort(getKoin().getAll<SearchUserProvider>())
     private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
@@ -95,6 +102,7 @@ class SearchUserViewModelImpl(
                 activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchActive.value)
+    override val providerSearchCanBeActivated: StateFlow<List<Boolean>> = providerSearchCanBeActive.asStateFlow()
     private val triggerSearch = MutableStateFlow<Unit?>(null)
 
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
@@ -381,6 +389,7 @@ class PreviewSearchUserViewModel : SearchUserViewModel {
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = emptyMap()
     override val providerSettingsString: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
+    override val providerSearchCanBeActivated: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
 
     override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {}
 

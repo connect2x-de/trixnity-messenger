@@ -21,6 +21,14 @@ interface SearchUserProvider {
     val providerDisplayName: String
 
     /**
+     * Determines the order with which the search providers and their settings are presented. This does _not_ include
+     * the results as those are mixed randomly together to make all types appear near the top of the search result list.
+     *
+     * A lower number means a higher priority. The homeserver search default priority is 100.
+     */
+    val priority: Int
+
+    /**
      * The [SettingsId] allows the usage of settings/filters in multiple providers. E.g., a setting could be a filter
      * for "city" in multiple providers.
      *

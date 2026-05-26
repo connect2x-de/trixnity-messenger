@@ -344,6 +344,21 @@ class SearchUserViewModelTest {
     }
 
     @Test
+    fun `should disable activating search provider which does not have the selected filter`() = runTest {
+        val cut = searchUserViewModel()
+        cut.searchTerm.update("u")
+        delay(10.milliseconds)
+        cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2")
+        cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true)
+
+        // only provider 1 has an address
+        cut.providerSettings[SettingsIdAddress]?.setValue("somewhere")
+        delay(10.milliseconds)
+
+        cut.providerSearchCanBeActivated.value shouldBe listOf(false, true, false)
+    }
+
+    @Test
     fun `should display the provider's setting if the setting is set in another deactivated provider`() = runTest {
         val cut = searchUserViewModel()
         cut.searchTerm.update("u")
@@ -412,6 +427,7 @@ class SearchUserViewModelTest {
                                                 object : SearchUserProvider {
                                                     override val providerId: String = "homeserver"
                                                     override val providerDisplayName: String = "Homeserver"
+                                                    override val priority: Int = 100
 
                                                     override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
@@ -449,6 +465,7 @@ class SearchUserViewModelTest {
     class SearchUserProvider1 : SearchUserProvider {
         override val providerId: String = "test-1"
         override val providerDisplayName: String = "Test 1"
+        override val priority: Int = 150
 
         private var city: String? = null
         private var address: String? = null
@@ -487,6 +504,7 @@ class SearchUserViewModelTest {
     class SearchUserProvider2 : SearchUserProvider {
         override val providerId: String = "test-2"
         override val providerDisplayName: String = "Test 2"
+        override val priority: Int = 151
 
         private var city: String? = null
         private var options: String? = null
@@ -530,6 +548,7 @@ class SearchUserViewModelTest {
     class SearchUserProviderWithResumedSearch : SearchUserProvider {
         override val providerId: String = "test-99"
         override val providerDisplayName: String = "Test 99"
+        override val priority: Int = 500
         override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
         private val resumeSearch = MutableStateFlow(false)

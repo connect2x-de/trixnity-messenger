@@ -135,6 +135,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorter
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorterImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
@@ -350,11 +352,12 @@ private fun roomListViewModels() = module {
 }
 
 inline fun <reified F : SearchUserProvider> Module.searchUserProvider(
-    noinline definition: Scope.(ParametersHolder) -> SearchUserProvider,
+    noinline definition: Scope.(ParametersHolder) -> SearchUserProvider
 ) = single<SearchUserProvider>(named<F>(), definition = definition)
 
 private fun newSearchViewModels() = module {
     searchUserProvider<HomeserverSearchUserProvider> { HomeserverSearchUserProvider(get(), get(), get(), get()) }
+    single<SearchUserProviderSorter> { SearchUserProviderSorterImpl() }
     single<SearchUserViewModelFactory> { SearchUserViewModelFactory }
     single<CreateNewChatViewModelFactory> {
         object : CreateNewChatViewModelFactory {
@@ -363,28 +366,29 @@ private fun newSearchViewModels() = module {
                 createNewRoomViewModel: CreateNewRoomViewModel,
                 onCreateGroup: (UserId) -> Unit,
                 onSearchGroup: (UserId) -> Unit,
-                onCancel: () -> Unit
+                onCancel: () -> Unit,
             ): CreateNewChatViewModel {
                 return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
                     CreateNewChatNewSearchViewModelImpl(
-                        viewModelContext = viewModelContext,
-                        createNewChatViewModel = CreateNewChatViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewChatViewModel =
+                                CreateNewChatViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    createNewRoomViewModel = createNewRoomViewModel,
+                                    onCreateGroup = onCreateGroup,
+                                    onSearchGroup = onSearchGroup,
+                                    onCancel = onCancel,
+                                ),
+                        )
+                        .also { log.debug { "CreateNewChatViewModel -> CreateNewChatNewSearchViewModel" } }
+                } else {
+                    CreateNewChatViewModelImpl(
                             viewModelContext = viewModelContext,
                             createNewRoomViewModel = createNewRoomViewModel,
                             onCreateGroup = onCreateGroup,
                             onSearchGroup = onSearchGroup,
                             onCancel = onCancel,
-                        ),
-                    )
-                        .also { log.debug { "CreateNewChatViewModel -> CreateNewChatNewSearchViewModel" } }
-                } else {
-                    CreateNewChatViewModelImpl(
-                        viewModelContext = viewModelContext,
-                        createNewRoomViewModel = createNewRoomViewModel,
-                        onCreateGroup = onCreateGroup,
-                        onSearchGroup = onSearchGroup,
-                        onCancel = onCancel,
-                    )
+                        )
                         .also { log.debug { "CreateNewChatViewModel" } }
                 }
             }
@@ -395,23 +399,25 @@ private fun newSearchViewModels() = module {
             override fun create(
                 viewModelContext: MatrixClientViewModelContext,
                 createNewRoomViewModel: CreateNewRoomViewModel,
-                onBack: () -> Unit
+                onBack: () -> Unit,
             ): CreateNewGroupViewModel {
                 return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
                     CreateNewGroupNewSearchViewModelImpl(
-                        viewModelContext = viewModelContext,
-                        createNewGroupViewModel = CreateNewGroupViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewGroupViewModel =
+                                CreateNewGroupViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    createNewRoomViewModel = createNewRoomViewModel,
+                                    onBack = onBack,
+                                ),
+                        )
+                        .also { log.debug { "CreateNewGroupViewModel -> CreateNewGroupNewSearchViewModelImpl" } }
+                } else {
+                    CreateNewGroupViewModelImpl(
                             viewModelContext = viewModelContext,
                             createNewRoomViewModel = createNewRoomViewModel,
                             onBack = onBack,
-                        ),
-                    ).also { log.debug { "CreateNewGroupViewModel -> CreateNewGroupNewSearchViewModelImpl" } }
-                } else {
-                    CreateNewGroupViewModelImpl(
-                        viewModelContext = viewModelContext,
-                        createNewRoomViewModel = createNewRoomViewModel,
-                        onBack = onBack,
-                    )
+                        )
                         .also { log.debug { "CreateNewGroupViewModel" } }
                 }
             }
