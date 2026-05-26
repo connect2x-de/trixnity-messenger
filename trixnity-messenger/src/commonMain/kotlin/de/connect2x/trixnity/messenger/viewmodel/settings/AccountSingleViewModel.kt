@@ -128,7 +128,8 @@ class AccountSingleViewModelImpl(
         matrixClient.serverData
             .map { serverData ->
                 val capabilities = serverData?.capabilities?.capabilities
-                (capabilities?.profileFields?.enabled ?: true) || capabilities.setAvatarUrl.enabled
+                capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true ||
+                    capabilities.setAvatarUrl.enabled
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
