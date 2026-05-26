@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.media
 import android.content.ComponentName
 import android.media.MediaMetadataRetriever
 import androidx.core.content.ContextCompat
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -65,6 +66,11 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: Corout
                                     "Failed to acquire media controller: Unable to init player in 10 seconds"
                                 }
                             }
+                        }
+
+                        override fun onPlayerError(error: PlaybackException) {
+                            val item = currentItemPlaying.value ?: return
+                            item.setError(error.message ?: "Unknown error while playing")
                         }
                     }
                 )

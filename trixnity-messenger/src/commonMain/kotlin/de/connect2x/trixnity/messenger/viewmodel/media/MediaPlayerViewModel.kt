@@ -136,7 +136,6 @@ class MediaPlayerViewModelImpl(
                 }
 
                 item.value?.play()
-                state.value = MediaPlayerViewModel.State.Playing
             }
         }
     }
@@ -147,12 +146,7 @@ class MediaPlayerViewModelImpl(
             return
         }
 
-        coroutineScope.launch {
-            mutex.withLock {
-                item.value?.pause()
-                state.value = MediaPlayerViewModel.State.Ready
-            }
-        }
+        coroutineScope.launch { mutex.withLock { item.value?.pause() } }
     }
 
     override fun seekTo(position: Duration) {

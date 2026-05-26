@@ -10,6 +10,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemDidPlayToEndTimeNotification
+import platform.AVFoundation.AVPlayerItemFailedToPlayToEndTimeErrorKey
+import platform.AVFoundation.AVPlayerItemFailedToPlayToEndTimeNotification
 import platform.AVFoundation.AVURLAsset
 import platform.AVFoundation.addPeriodicTimeObserverForInterval
 import platform.AVFoundation.pause
@@ -33,18 +35,36 @@ internal class ApplePlayerItem(
     private val player: AppleMediaPlayer,
 ) : AbstractMediaItem(coroutineScope, player.playerMutex, player.currentItemPlaying) {
     private var playerItem: AVPlayerItem = AVPlayerItem.playerItemWithAsset(asset)
+    private var playFailedObserver: NSObjectProtocol? = null
     private var playEndObserver: NSObjectProtocol? = null
     private var timeObserver: Any? = null
 
     init {
+        val notificationCenter = NSNotificationCenter.defaultCenter
         playEndObserver =
-            NSNotificationCenter.defaultCenter.addObserverForName(
+            notificationCenter.addObserverForName(
                 name = AVPlayerItemDidPlayToEndTimeNotification,
                 queue = NSOperationQueue.mainQueue,
                 `object` = playerItem,
             ) {
                 elapsedTime.value = Duration.ZERO
-                coroutineScope.launch { pauseWithoutLock() }
+                coroutineScope.launch {
+                    pause()
+                    elapsedTime.value = Duration.ZERO
+                }
+            }
+
+        playFailedObserver =
+            notificationCenter.addObserverForName(
+                name = AVPlayerItemFailedToPlayToEndTimeNotification,
+                queue = NSOperationQueue.mainQueue,
+                `object` = playerItem,
+            ) {
+                val error =
+                    it?.userInfo?.get(AVPlayerItemFailedToPlayToEndTimeErrorKey)?.toString()
+                        ?: "Unknown error while playing"
+                log.error { "Playback failed for item $id: $error" }
+                setError(error)
             }
     }
 
@@ -78,7 +98,10 @@ internal class ApplePlayerItem(
     override suspend fun onSeekTo(position: Duration) = onSeekToNotBlocking(position)
 
     override fun close() {
-        playEndObserver?.let { observer -> NSNotificationCenter.defaultCenter.removeObserver(observer) }
+        val notificationCenter = NSNotificationCenter.defaultCenter
+        playEndObserver?.let { observer -> notificationCenter.removeObserver(observer) }
+
+        playFailedObserver?.let { observer -> notificationCenter.removeObserver(observer) }
 
         coroutineScope.launch {
             if (state.value is MediaPlayer.Item.State.Playing) {

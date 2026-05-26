@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Some containers not being focusable, when selected item was out of view
 - SDK: Slow compilation times
 - UI,A11y: Some containers not being focusable, when selected item was out of view
+- SDK: Add error handling for player on iOS and Android
 - UI: Flickering in timeline when sending a reply
 - UI,SDK: It is no longer possible to create encrypted public rooms
 - UI,SDK: It is now possible to create unencrypted private rooms
