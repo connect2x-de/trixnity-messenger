@@ -202,10 +202,7 @@ open class RoomListElementViewModelImpl(
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomName: StateFlow<String?> =
-        roomNameCalculations
-            .getRoomName(roomId, matrixClient)
-            .map { it }
-            .stateIn(coroutineScope, WhileSubscribed(), null)
+        roomNameCalculations.getRoomName(roomId, matrixClient).stateIn(coroutineScope, WhileSubscribed(), null)
 
     override val roomImageInitials: StateFlow<String?> =
         roomNameCalculations

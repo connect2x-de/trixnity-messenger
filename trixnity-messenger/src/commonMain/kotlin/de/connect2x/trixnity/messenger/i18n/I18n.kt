@@ -81,7 +81,7 @@ open class I18n(
     }
 
     open fun roomNameKnockFor(roomId: String) = translate {
-        EN - "Mebership request for $roomId"
+        EN - "Membership request for $roomId"
         DE - "Beitrittsanfrage für $roomId"
     }
 
