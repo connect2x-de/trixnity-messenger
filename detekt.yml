@@ -42,7 +42,7 @@ empty-blocks:
   EmptyDoWhileBlock:
     active: true
   EmptyElseBlock:
-    active: false
+    active: true
   EmptyFinallyBlock:
     active: true
   EmptyForBlock:
