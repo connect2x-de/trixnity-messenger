@@ -102,7 +102,9 @@ abstract class AbstractMediaItem(
     }
 
     protected suspend fun pauseWithoutLock() {
-        if (state.value !is MediaPlayer.Item.State.Playing) {
+        val itemState = state.value
+        val isInPausableErrorState = (currentItemPlaying.value == this && itemState is MediaPlayer.Item.State.Failed)
+        if (itemState !is MediaPlayer.Item.State.Playing && !isInPausableErrorState) {
             log.error { "Unable to stop playback: Media file is not in the state to be stopped" }
             return
         }
@@ -110,6 +112,14 @@ abstract class AbstractMediaItem(
         log.debug { "Pausing playback of media file" }
         onPause()
         currentItemPlaying.value = null
-        state.value = MediaPlayer.Item.State.Ready
+        if (itemState !is MediaPlayer.Item.State.Failed) state.value = MediaPlayer.Item.State.Ready
+    }
+
+    internal fun setError(error: String) {
+        state.value = MediaPlayer.Item.State.Failed(error)
+        coroutineScope.launch {
+            pause()
+            elapsedTime.value = Duration.ZERO
+        }
     }
 }
