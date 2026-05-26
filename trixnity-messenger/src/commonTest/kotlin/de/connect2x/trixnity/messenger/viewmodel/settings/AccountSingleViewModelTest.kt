@@ -204,7 +204,7 @@ class AccountSingleViewModelTest {
 
         val cut = accountSingleViewModel()
         backgroundScope.launch { cut.canDeleteAvatar.collect {} }
-        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
 
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
@@ -239,7 +239,7 @@ class AccountSingleViewModelTest {
 
         val cut = accountSingleViewModel()
         backgroundScope.launch { cut.canDeleteAvatar.collect {} }
-        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
 
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
@@ -276,7 +276,7 @@ class AccountSingleViewModelTest {
 
         val cut = accountSingleViewModel()
         backgroundScope.launch { cut.canDeleteAvatar.collect {} }
-        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
 
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue
@@ -332,7 +332,7 @@ class AccountSingleViewModelTest {
 
         val cut = accountSingleViewModel()
         backgroundScope.launch { cut.canDeleteAvatar.collect {} }
-        backgroundScope.launch { cut.hasAvatarUrl.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
 
         delay(200.milliseconds)
         cut.avatar.value shouldBe initialAvatarValue

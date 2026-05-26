@@ -118,7 +118,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
     val avatar = accountSingleViewModel.avatar.collectAsState().value
     val canChangeAvatar = accountSingleViewModel.canChangeAvatar.collectAsState().value
     val canDeleteAvatar = accountSingleViewModel.canDeleteAvatar.collectAsState().value
-    val hasAvatarUrl = accountSingleViewModel.hasAvatarUrl.collectAsState().value
+    val hasAvatar = accountSingleViewModel.hasAvatar.collectAsState().value
     val initials = accountSingleViewModel.initials.collectAsState().value
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -139,7 +139,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
                         }
                     }
                 }
-                if (hasAvatarUrl) {
+                if (hasAvatar) {
                     Box(Modifier.align(Alignment.TopEnd).padding(10.dp)) {
                         Tooltip({
                             if (canDeleteAvatar) Text(i18n.profileAvatarDelete())

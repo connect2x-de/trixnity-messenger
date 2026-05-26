@@ -61,7 +61,7 @@ interface AccountSingleViewModel {
     val avatar: StateFlow<ByteArray?>
     val canChangeAvatar: StateFlow<Boolean>
     val canDeleteAvatar: StateFlow<Boolean>
-    val hasAvatarUrl: StateFlow<Boolean>
+    val hasAvatar: StateFlow<Boolean>
     val initials: StateFlow<String>
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
@@ -132,10 +132,10 @@ class AccountSingleViewModelImpl(
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
 
-    override val hasAvatarUrl =
+    override val hasAvatar =
         matrixClient.profile
             .map { profile -> profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank() }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val initials =
         matrixClient.profile
@@ -180,7 +180,7 @@ class AccountSingleViewModelImpl(
     override fun deleteAvatar() {
         coroutineScope.launch {
             val matrixClient = getMatrixClient(userId)
-            if (hasAvatarUrl.value && canDeleteAvatar.value) {
+            if (hasAvatar.value && canDeleteAvatar.value) {
                 matrixClient.deleteProfileField(ProfileField.AvatarUrl).onFailure {
                     log.error(it) { "Cannot delete avatar." }
                     if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
