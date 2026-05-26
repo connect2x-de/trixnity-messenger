@@ -20,6 +20,7 @@ import kotlin.collections.plus
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
@@ -58,6 +59,25 @@ class MediaPlayerViewModelTest {
         cut.state.value shouldBe MediaPlayerViewModel.State.Ready
         mediaPlayer.playingItem.value shouldBe null
     }
+
+    @Test
+    fun `should correctly stop when being paused while in error state`() = runTest {
+        val mediaPlayer = MediaPlayerMock(coroutineContext)
+        val cut = mediaPlayerViewModel("a", "", mediaPlayer)
+
+        cut.play()
+        delay(100.milliseconds)
+        cut.state.value shouldBe MediaPlayerViewModel.State.Playing
+        mediaPlayer.playingItem.value shouldNotBe null
+
+        mediaPlayer.errorAllItems()
+        delay(100.milliseconds)
+        println(cut.state.value)
+        cut.state.value.isTypeOf<_, MediaPlayerViewModel.State.Failure>()
+        mediaPlayer.playingItem.value shouldBe null
+    }
+
+    inline fun <reified T : Any, reified S : T> T.isTypeOf() = assertTrue(this is S)
 
     @Test
     fun `should correctly transition states when playing another item`() = runTest {
