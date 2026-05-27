@@ -23,7 +23,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldNotContain
-import io.kotest.matchers.maps.shouldContainAll
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
@@ -425,18 +424,38 @@ class SearchUserViewModelTest {
         val cut = searchUserViewModel(searchUserProviderWithResumedSearch)
         cut.searchTerm.update("onlyResumedReturnsUser1")
         delay(10.milliseconds)
-        cut.isSearching.value shouldContainAll
-            mapOf("test-1" to false, "test-2" to false, searchUserProviderWithResumedSearch.providerId to true)
+        cut.isSearching.value shouldBe true
         cut.searchResultList.value shouldNotBeNull {} shouldBe emptyList()
         searchUserProviderWithResumedSearch.resumeSearch()
         delay(10.milliseconds)
-        cut.isSearching.value shouldContainAll
-            mapOf("test-1" to false, "test-2" to false, searchUserProviderWithResumedSearch.providerId to false)
+        cut.isSearching.value shouldBe false
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1)
 
         cut.searchTerm.update("changedAgain")
         delay(10.milliseconds)
         cut.searchResultList.value shouldNotBeNull {} shouldBe emptyList() // result is reset until search finishes
+    }
+
+    @Test
+    fun `should indicate that no results have been found after a search is conducted`() = runTest {
+        val searchUserProviderWithResumedSearch = SearchUserProviderWithResumedSearch()
+        val cut = searchUserViewModel(searchUserProviderWithResumedSearch)
+
+        delay(10.milliseconds)
+        cut.noResultsFound.value shouldBe null // undetermined
+
+        cut.searchTerm.update("onlyResumedReturnsUser1")
+        delay(10.milliseconds)
+        cut.noResultsFound.value shouldBe null // still undetermined
+
+        searchUserProviderWithResumedSearch.resumeSearch()
+        delay(10.milliseconds)
+        cut.noResultsFound.value shouldBe false // found 1 user
+
+        cut.searchTerm.update("emptyList")
+        searchUserProviderWithResumedSearch.resumeSearch()
+        delay(10.milliseconds)
+        cut.noResultsFound.value shouldBe true // should not find anything
     }
 
     @Test
@@ -533,6 +552,7 @@ class SearchUserViewModelTest {
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSettingsList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.noResultsFound.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSearchEnabled.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSearchCanBeEnabled.collect() }
         return searchUserViewModelImpl
@@ -674,7 +694,11 @@ class SearchUserViewModelTest {
             resumeSearch.first { it }
             resumeSearch.value = false
 
-            return ProviderSearchResult.Success(listOf(user1))
+            return if (searchTerm == "emptyList") {
+                ProviderSearchResult.Success(listOf())
+            } else {
+                ProviderSearchResult.Success(listOf(user1))
+            }
         }
     }
 }

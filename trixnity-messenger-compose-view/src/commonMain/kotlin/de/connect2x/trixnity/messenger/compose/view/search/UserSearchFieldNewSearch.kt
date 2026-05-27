@@ -58,7 +58,7 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
             modifier =
                 Modifier.background(MaterialTheme.colorScheme.surface).fillMaxWidth().focusRequester(focusRequester),
             leadingIcon = {
-                if (isSearching.values.any { it }) {
+                if (isSearching) {
                     ThemedProgressIndicator(Modifier, MaterialTheme.components.smallCircularProgressIndicator)
                 } else {
                     Icon(Icons.Default.Search, i18n.userSearchSearchPeople())

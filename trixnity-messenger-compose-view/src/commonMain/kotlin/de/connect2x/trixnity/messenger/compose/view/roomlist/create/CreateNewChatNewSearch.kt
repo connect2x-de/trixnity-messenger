@@ -38,9 +38,10 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
         if (createNewChatViewModel is CreateNewChatNewSearchViewModel) {
             val i18n = DI.get<I18nView>()
             val isCreating by createNewChatViewModel.isCreating.collectAsState()
-            val error = createNewChatViewModel.error.collectAsState().value
-            val errorDetails = createNewChatViewModel.errorDetails.collectAsState().value
-            val searchResultList = createNewChatViewModel.searchUserViewModel.searchResultList.collectAsState().value
+            val error by createNewChatViewModel.error.collectAsState()
+            val errorDetails by createNewChatViewModel.errorDetails.collectAsState()
+            val searchResultList by createNewChatViewModel.searchUserViewModel.searchResultList.collectAsState()
+            val noResultsFound by createNewChatViewModel.searchUserViewModel.noResultsFound.collectAsState()
             val listState = rememberLazyListState()
 
             Box(Modifier.fillMaxSize()) {
@@ -67,6 +68,7 @@ class CreateNewChatNewSearchViewImpl : CreateNewChatView {
                                         createNewChatViewModel.searchUserViewModel.searchUserProviders,
                                     onUserClick = createNewChatViewModel::onUserClick,
                                     searchResultList = searchResultList,
+                                    noResultsFound = noResultsFound,
                                 )
                             }
                             VerticalScrollbar(

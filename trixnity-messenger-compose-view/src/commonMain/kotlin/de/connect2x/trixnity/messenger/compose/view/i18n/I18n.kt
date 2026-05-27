@@ -3632,6 +3632,11 @@ open class I18nView(
         DE - "deaktiviert, da Suche nicht aktiv"
     }
 
+    open fun searchUserNoResultsFound() = translate {
+        EN - "no search results found"
+        DE - "keine Suchergebnisse gefunden"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
 
     fun actionMore() = commonMore().capitalize(Locale.current)

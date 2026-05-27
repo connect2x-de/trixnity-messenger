@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -55,10 +57,16 @@ interface SearchUserViewModel {
      * has a result list. If you do not want your presentation to jump on search results popping up, try to `debounce`
      * this list.
      */
-    val searchResultList: StateFlow<List<UserSearchResult>?>
+    val searchResultList: StateFlow<List<UserSearchResult>>
 
-    /** Indicates whether a search is currently running for each individual [SearchUserProvider]. */
-    val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>>
+    /** Indicates whether a search is currently running for any [SearchUserProvider]. */
+    val isSearching: StateFlow<Boolean>
+
+    /**
+     * Indicates whether the search was not successful for _all_ [SearchUserProvider]s. If there is at least one
+     * [SearchUserProvider] still searching, this is undetermined (`null`).
+     */
+    val noResultsFound: StateFlow<Boolean?>
 
     /** Indicates whether the search provider is enabled at the moment. Can be set disabled via [setProvider]. */
     val providerSearchEnabled: StateFlow<List<Boolean>>
@@ -141,13 +149,13 @@ class SearchUserViewModelImpl(
             .mapLatest { it } // optimization
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override val searchResultList: StateFlow<List<UserSearchResult>?> =
+    override val searchResultList: StateFlow<List<UserSearchResult>> =
         combine(searchResult, filteredUserSearchResults) { results, filteredUserSearchResults ->
                 if (results != null) {
                     randomSequence(results, filteredUserSearchResults)
-                } else null
+                } else emptyList()
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = buildMap {
         searchUserProviders.forEach { searchUserProvider ->
@@ -244,14 +252,30 @@ class SearchUserViewModelImpl(
             }
     }
 
-    override val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>> =
-        combine(providerSearchLoading) { it }
-            .map { it.mapIndexed { index, loading -> searchUserProviders[index].providerId to loading }.toMap() }
-            .stateIn(
-                coroutineScope,
-                SharingStarted.WhileSubscribed(),
-                searchUserProviders.associate { it.providerId to false },
-            )
+    override val isSearching: StateFlow<Boolean> =
+        combine(providerSearchLoading) { loading -> loading.any { it } }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override val noResultsFound: StateFlow<Boolean?> =
+        combine(providerSearchLoading) { loading ->
+                if (loading.all { it.not() }) {
+                    combine(providerSearchResult) { providerSearchResults ->
+                        providerSearchResults
+                            .map {
+                                when (it) {
+                                    is ProviderSearchResult.Success -> it.result.isEmpty()
+                                    else -> null
+                                }
+                            }
+                            .fold(null as Boolean?) { acc, ele -> if (acc == null) ele else acc && (ele ?: true) }
+                    }
+                } else {
+                    flowOf(null)
+                }
+            }
+            .flatMapLatest { it }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     init {
         log.debug { "searchUserProviders: $searchUserProviders" }
@@ -308,9 +332,10 @@ class SearchUserViewModelImpl(
                         searchTerm.isNotBlank() ||
                             providerSettings.any { entry -> entry.value.value.value.isNullOrBlank().not() }
                     ) {
+                        providerSearchResult[index].value = null // reset old search results
+
                         if (providerSearchEnabled.value[index]) {
                             providerSearchLoading[index].value = true
-                            providerSearchResult[index].value = null // reset old search results
                             launch {
                                 providerSearchResult[index].value =
                                     searchUserProvider.search(searchTerm, matrixClient.userId, this)
@@ -399,11 +424,12 @@ class SearchUserViewModelImpl(
 class PreviewSearchUserViewModel : SearchUserViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
     override val searchUserProviders: List<SearchUserProvider> = emptyList()
-    override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
+    override val searchResultList: MutableStateFlow<List<UserSearchResult>> = MutableStateFlow(emptyList())
     override val providerSearchEnabled: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = emptyMap()
     override val providerSettingsList: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
-    override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
+    override val isSearching: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val noResultsFound: StateFlow<Boolean?> = MutableStateFlow(null)
     override val providerSearchCanBeEnabled: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
 
     override fun setProvider(providerId: SearchUserProviderId, enabled: Boolean) {}
