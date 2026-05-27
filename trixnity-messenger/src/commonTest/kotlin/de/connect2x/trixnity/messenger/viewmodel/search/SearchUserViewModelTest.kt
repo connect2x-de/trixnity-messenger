@@ -13,6 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImp
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import dev.mokkery.answering.returns
@@ -405,6 +406,28 @@ class SearchUserViewModelTest {
         cut.searchResultList.value shouldNotBeNull {} shouldBe listOf(martin)
     }
 
+    @Test
+    fun `should set a not enabled by default search provider to inactive initially, but can be activated afterwards`() =
+        runTest {
+            val cut = searchUserViewModel(SearchUserProvider4(SearchUserProvider1()))
+            delay(10.milliseconds)
+            cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2", "test-4")
+            cut.providerSearchActive.value shouldBe listOf(true, true, true, false)
+            cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true, true)
+
+            cut.setProvider("test-4", active = true)
+            delay(10.milliseconds)
+            cut.providerSearchActive.value shouldBe listOf(true, true, true, true)
+            cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true, true)
+        }
+
+    @Test
+    fun `should enable combined setting when one search provider is enabled`() = runTest {
+        val cut = searchUserViewModel(SearchUserProvider4(SearchUserProvider1()))
+        delay(10.milliseconds)
+        cut.providerSettings[SettingsIdCity]?.enabled?.value shouldBe true
+    }
+
     private fun TestScope.searchUserViewModel(): SearchUserViewModelImpl = searchUserViewModel(null)
 
     private inline fun <reified T : SearchUserProvider> TestScope.searchUserViewModel(
@@ -428,6 +451,7 @@ class SearchUserViewModelTest {
                                                     override val providerId: String = "homeserver"
                                                     override val providerDisplayName: String = "Homeserver"
                                                     override val priority: Int = 100
+                                                    override val disabledByDefault: Boolean = false
 
                                                     override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
@@ -459,6 +483,8 @@ class SearchUserViewModelTest {
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSettingsList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.providerSearchActive.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.providerSearchCanBeActivated.collect() }
         return searchUserViewModelImpl
     }
 
@@ -466,6 +492,7 @@ class SearchUserViewModelTest {
         override val providerId: String = "test-1"
         override val providerDisplayName: String = "Test 1"
         override val priority: Int = 150
+        override val disabledByDefault: Boolean = false
 
         private var city: String? = null
         private var address: String? = null
@@ -505,6 +532,7 @@ class SearchUserViewModelTest {
         override val providerId: String = "test-2"
         override val providerDisplayName: String = "Test 2"
         override val priority: Int = 151
+        override val disabledByDefault: Boolean = false
 
         private var city: String? = null
         private var options: String? = null
@@ -545,10 +573,18 @@ class SearchUserViewModelTest {
         }
     }
 
+    class SearchUserProvider4(searchUserProvider: SearchUserProvider) : SearchUserProvider by searchUserProvider {
+        override val providerId: SearchUserProviderId = "test-4"
+        override val providerDisplayName: String = "Test 4"
+        override val priority: Int = 1_000
+        override val disabledByDefault: Boolean = true
+    }
+
     class SearchUserProviderWithResumedSearch : SearchUserProvider {
         override val providerId: String = "test-99"
         override val providerDisplayName: String = "Test 99"
         override val priority: Int = 500
+        override val disabledByDefault: Boolean = false
         override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
         private val resumeSearch = MutableStateFlow(false)

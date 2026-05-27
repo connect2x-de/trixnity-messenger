@@ -3627,6 +3627,11 @@ open class I18nView(
         DE - "deaktiviert, da ein Filter einer anderen Suche verwendet wird"
     }
 
+    open fun searchUserDisabledFilter() = translate {
+        EN - "disabled since search is not active"
+        DE - "deaktiviert, da Suche nicht aktiv"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
 
     fun actionMore() = commonMore().capitalize(Locale.current)

@@ -3,12 +3,9 @@ package de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.model.UserId
-import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -17,20 +14,11 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
 internal const val HOMESERVER_DISPLAY_NAME = "Homeserver"
@@ -47,6 +35,7 @@ open class HomeserverSearchUserProvider(
     override val providerId: String = HOMESERVER_PROVIDER_ID
     override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
     override val priority: Int = 100
+    override val disabledByDefault: Boolean = false
 
     override val settings: Map<SettingsId, SearchSetting> = emptyMap()
 
@@ -83,12 +72,6 @@ open class HomeserverSearchUserProvider(
                 .getProfile(userId)
                 .onFailure { exc -> log.error(exc) { "Cannot access user profile for $userId." } }
                 .getOrNull()
-        val image = getImage(coroutineScope, matrixClient, profile?.avatarUrl, maxMediaSizeInMemory)
-
-        val presence =
-            getPresence(matrixClient, userId)
-                .map { presence -> presence ?: matrixClient.api.user.getPresence(userId).getOrNull()?.presence }
-                .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
         return ProviderSearchResult.Success(
             listOf(
@@ -96,8 +79,8 @@ open class HomeserverSearchUserProvider(
                     userId = userId,
                     displayName = profile?.displayName ?: "",
                     initials = initials.compute(profile?.displayName ?: userId.full),
-                    image = image,
-                    presence = presence,
+                    image = getImage(profile?.avatarUrl, matrixClient, maxMediaSizeInMemory, coroutineScope),
+                    presence = getPresence(userId, matrixClient, coroutineScope),
                 )
             )
         )
@@ -121,23 +104,18 @@ open class HomeserverSearchUserProvider(
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
                             .map { searchUser ->
                                 async {
-                                    val image =
-                                        getImage(
-                                            coroutineScope,
-                                            matrixClient,
-                                            searchUser.avatarUrl,
-                                            maxMediaSizeInMemory,
-                                        )
-                                    val presence =
-                                        getPresence(matrixClient, searchUser.userId)
-                                            .stateIn(coroutineScope, WhileSubscribed(), null)
-
                                     HomeserverUserSearchResult(
                                         userId = searchUser.userId,
                                         displayName = searchUser.displayName ?: "",
                                         initials = initials.compute(searchUser.displayName ?: searchUser.userId.full),
-                                        image = image,
-                                        presence = presence,
+                                        image =
+                                            getImage(
+                                                searchUser.avatarUrl,
+                                                matrixClient,
+                                                maxMediaSizeInMemory,
+                                                coroutineScope,
+                                            ),
+                                        presence = getPresence(searchUser.userId, matrixClient, coroutineScope),
                                     )
                                 }
                             }
@@ -151,30 +129,4 @@ open class HomeserverSearchUserProvider(
                     ProviderSearchResult.Failure("Error fetching users.")
                 },
             )
-
-    private fun getImage(
-        coroutineScope: CoroutineScope,
-        matrixClient: MatrixClient,
-        avatarUrl: String?,
-        maxMediaSizeInMemory: Long,
-    ): StateFlow<ByteArray?> {
-        return avatarUrl?.let { avatarUrl ->
-            flow {
-                    // TODO some sort of retry (see retryLoopFlow)
-                    emit(
-                        matrixClient.media
-                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                            .fold(
-                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                                onFailure = { null },
-                            )
-                    )
-                }
-                .stateIn(coroutineScope, WhileSubscribed(), null)
-        } ?: MutableStateFlow(null)
-    }
-
-    private fun getPresence(matrixClient: MatrixClient, userId: UserId): Flow<Presence?> {
-        return matrixClient.user.getPresence(userId).map { it?.presence }
-    }
 }

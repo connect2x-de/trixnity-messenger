@@ -96,7 +96,7 @@ class SearchUserViewModelImpl(
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
     private val providerSearchCanBeActive = MutableStateFlow(searchUserProviders.map { true })
-    private val _providerSearchActive = MutableStateFlow(searchUserProviders.map { true })
+    private val _providerSearchActive = MutableStateFlow(searchUserProviders.map { it.disabledByDefault.not() })
     override val providerSearchActive =
         combine(_providerSearchActive, providerSearchCanBeActive) { activeList, canBeActiveList ->
                 activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
@@ -160,6 +160,10 @@ class SearchUserViewModelImpl(
                             id = settingsId,
                             name = setting.name,
                             sourceDisplayNames = listOf(searchUserProvider.providerDisplayName),
+                            enabled =
+                                _providerSearchActive
+                                    .map { it[searchUserProviders.indexOf(searchUserProvider)] }
+                                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true),
                             getDisplayValue = setting.getDisplayValue,
                             setValue = listOf(setting.setValue),
                         ),
@@ -169,6 +173,17 @@ class SearchUserViewModelImpl(
                         settingsId,
                         existing.copy(
                             sourceDisplayNames = existing.sourceDisplayNames + searchUserProvider.providerDisplayName,
+                            // as long as one provider is enabled, the combined setting should be enabled
+                            enabled =
+                                combine(
+                                        existing.enabled,
+                                        _providerSearchActive.map {
+                                            it[searchUserProviders.indexOf(searchUserProvider)]
+                                        },
+                                    ) { existingEnabled, providerEnabled ->
+                                        existingEnabled || providerEnabled
+                                    }
+                                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true),
                             setValue = existing.setValue + setting.setValue,
                         ),
                     )

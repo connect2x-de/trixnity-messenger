@@ -29,6 +29,12 @@ interface SearchUserProvider {
     val priority: Int
 
     /**
+     * If `false`, the UI will show the settings inside a collapsed element and the provider is disabled initially (but
+     * can be enabled by user interaction).
+     */
+    val disabledByDefault: Boolean
+
+    /**
      * The [SettingsId] allows the usage of settings/filters in multiple providers. E.g., a setting could be a filter
      * for "city" in multiple providers.
      *

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,8 @@ data class SearchSettingCombined(
     val name: String,
     /** The display names of the providers that provide this setting. Are used to group the filter options. */
     val sourceDisplayNames: List<String>,
+    /** When at least one [SearchUserProvider] that contributes to this setting is active, this returns `true`. */
+    val enabled: StateFlow<Boolean>,
     internal val getDisplayValue: (String) -> String,
     internal val setValue: List<(String?) -> Unit>,
 ) {

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -52,13 +53,12 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
     val providerSettings by searchUserViewModel.providerSettingsList.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
-    val rotateState = animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
+    val rotateState by animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
     val interactionSource = remember { MutableInteractionSource() }
 
     if (
         searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
     ) {
-        SmallSpacer()
         Card(
             modifier =
                 Modifier.clickable(interactionSource, indication = null, onClick = { showFilters = showFilters.not() })
@@ -96,7 +96,7 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                     Icon(
                         Icons.Default.ArrowDropDown,
                         i18n.userSearchSelectFilter(),
-                        modifier = Modifier.rotate(rotateState.value),
+                        modifier = Modifier.rotate(rotateState),
                     )
                 }
             }
@@ -105,10 +105,24 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                     searchUserViewModel.providerSettings.values
                         .groupBy { searchSettingCombined -> searchSettingCombined.sourceDisplayNames }
                         .forEach { (sources, settings) ->
+                            val settingsEnabled by settings[0].enabled.collectAsState()
                             Column(Modifier.padding(bottom = 10.dp)) {
-                                Text(sources.joinToString(), style = MaterialTheme.typography.bodyMediumEmphasized)
-                                VerySmallSpacer()
-                                settings.forEach { setting -> SearchSettingInputSelector(setting) }
+                                if (settingsEnabled) {
+                                    Text(sources.joinToString(), style = MaterialTheme.typography.bodyMediumEmphasized)
+                                    VerySmallSpacer()
+                                    settings.forEach { setting -> SearchSettingInputSelector(setting) }
+                                } else {
+                                    Tooltip("disabled") { // FIXME i18n
+                                        Text(
+                                            sources.joinToString(),
+                                            style =
+                                                MaterialTheme.typography.bodyMedium.copy(
+                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                                ),
+                                        )
+                                        SmallSpacer()
+                                    }
+                                }
                             }
                         }
                 }
