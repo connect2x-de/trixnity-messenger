@@ -176,14 +176,14 @@ class SearchUserViewModelTest {
                     listOf(
                         SearchResult(
                             id = "test-1",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user1)),
                         ),
                         SearchResult(
                             id = "test-2",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
@@ -214,14 +214,14 @@ class SearchUserViewModelTest {
                     listOf(
                         SearchResult(
                             id = "test-1",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user1)),
                         ),
                         SearchResult(
                             id = "test-2",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(emptyList()),
@@ -245,14 +245,14 @@ class SearchUserViewModelTest {
                     listOf(
                         SearchResult(
                             id = "test-1",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf()), // user1 is not in Berlin Ost
                         ),
                         SearchResult(
                             id = "test-2",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
@@ -269,14 +269,14 @@ class SearchUserViewModelTest {
                     listOf(
                         SearchResult(
                             id = "test-1",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user1)), // user1 is in Berlin
                         ),
                         SearchResult(
                             id = "test-2",
-                            active = true,
+                            enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
                             providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
@@ -319,26 +319,26 @@ class SearchUserViewModelTest {
         // both custom providers have a city filter
         cut.providerSettings[SettingsIdCity]?.setValue("Berlin")
         delay(10.milliseconds)
-        cut.providerSearchActive.value shouldBe
+        cut.providerSearchEnabled.value shouldBe
             cut.searchUserProviders.map { searchUserProvider ->
                 searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
             }
         // only provider 1 has an address
         cut.providerSettings[SettingsIdAddress]?.setValue("somewhere")
         delay(10.milliseconds)
-        cut.providerSearchActive.value shouldBe
+        cut.providerSearchEnabled.value shouldBe
             cut.searchUserProviders.map { searchUserProvider -> searchUserProvider is SearchUserProvider1 }
         // reset address
         cut.providerSettings[SettingsIdAddress]?.setValue(null)
         delay(10.milliseconds)
-        cut.providerSearchActive.value shouldBe
+        cut.providerSearchEnabled.value shouldBe
             cut.searchUserProviders.map { searchUserProvider ->
                 searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
             }
         // reset address to empty String -> same as null
         cut.providerSettings[SettingsIdAddress]?.setValue("")
         delay(10.milliseconds)
-        cut.providerSearchActive.value shouldBe
+        cut.providerSearchEnabled.value shouldBe
             cut.searchUserProviders.map { searchUserProvider ->
                 searchUserProvider is SearchUserProvider1 || searchUserProvider is SearchUserProvider2
             }
@@ -350,13 +350,13 @@ class SearchUserViewModelTest {
         cut.searchTerm.update("u")
         delay(10.milliseconds)
         cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2")
-        cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true)
+        cut.providerSearchCanBeEnabled.value shouldBe listOf(true, true, true)
 
         // only provider 1 has an address
         cut.providerSettings[SettingsIdAddress]?.setValue("somewhere")
         delay(10.milliseconds)
 
-        cut.providerSearchCanBeActivated.value shouldBe listOf(false, true, false)
+        cut.providerSearchCanBeEnabled.value shouldBe listOf(false, true, false)
     }
 
     @Test
@@ -396,29 +396,29 @@ class SearchUserViewModelTest {
         delay(10.milliseconds)
         cut.searchResultList.value shouldNotBeNull {} shouldContainOnly listOf(user1, user2, user3)
 
-        cut.setProvider("test-1", active = false)
+        cut.setProvider("test-1", enabled = false)
         cut.searchTerm.update("martinInProvider1")
         delay(10.milliseconds)
         cut.searchResultList.value shouldNotBeNull {} shouldBe listOf()
 
-        cut.setProvider("test-1", active = true)
+        cut.setProvider("test-1", enabled = true)
         delay(10.milliseconds)
         cut.searchResultList.value shouldNotBeNull {} shouldBe listOf(martin)
     }
 
     @Test
-    fun `should set a not enabled by default search provider to inactive initially, but can be activated afterwards`() =
+    fun `should set a not enabled by default search provider to disabled initially, but can be activated afterwards`() =
         runTest {
             val cut = searchUserViewModel(SearchUserProvider4(SearchUserProvider1()))
             delay(10.milliseconds)
             cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2", "test-4")
-            cut.providerSearchActive.value shouldBe listOf(true, true, true, false)
-            cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true, true)
+            cut.providerSearchEnabled.value shouldBe listOf(true, true, true, false)
+            cut.providerSearchCanBeEnabled.value shouldBe listOf(true, true, true, true)
 
-            cut.setProvider("test-4", active = true)
+            cut.setProvider("test-4", enabled = true)
             delay(10.milliseconds)
-            cut.providerSearchActive.value shouldBe listOf(true, true, true, true)
-            cut.providerSearchCanBeActivated.value shouldBe listOf(true, true, true, true)
+            cut.providerSearchEnabled.value shouldBe listOf(true, true, true, true)
+            cut.providerSearchCanBeEnabled.value shouldBe listOf(true, true, true, true)
         }
 
     @Test
@@ -483,8 +483,8 @@ class SearchUserViewModelTest {
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSettingsList.collect() }
         backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
-        backgroundScope.launch { searchUserViewModelImpl.providerSearchActive.collect() }
-        backgroundScope.launch { searchUserViewModelImpl.providerSearchCanBeActivated.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.providerSearchEnabled.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.providerSearchCanBeEnabled.collect() }
         return searchUserViewModelImpl
     }
 

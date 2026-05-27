@@ -12,7 +12,7 @@ data class SearchResult(
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s id. */
     val id: String,
     /** Indicates whether the search should be performed at all. */
-    val active: Boolean,
+    val enabled: Boolean,
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s display name. */
     val providerDisplayName: String,
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s search result. */

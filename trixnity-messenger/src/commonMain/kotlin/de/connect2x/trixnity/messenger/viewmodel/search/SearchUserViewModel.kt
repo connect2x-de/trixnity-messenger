@@ -60,11 +60,11 @@ interface SearchUserViewModel {
     /** Indicates whether a search is currently running for each individual [SearchUserProvider]. */
     val isSearching: StateFlow<Map<SearchUserProviderId, Boolean>>
 
-    /** Indicates whether the search provider is active at the moment. Can be set inactive via [setProvider]. */
-    val providerSearchActive: StateFlow<List<Boolean>>
+    /** Indicates whether the search provider is enabled at the moment. Can be set disabled via [setProvider]. */
+    val providerSearchEnabled: StateFlow<List<Boolean>>
 
     /** Indicates whether a provider can be activated. */
-    val providerSearchCanBeActivated: StateFlow<List<Boolean>>
+    val providerSearchCanBeEnabled: StateFlow<List<Boolean>>
 
     /**
      * The settings of all [SearchUserProvider]s, already combined for the same [SettingsId]s. E.g, "city" that is used
@@ -78,8 +78,8 @@ interface SearchUserViewModel {
     /** Accumulation of all settings the search providers have, e.g., "city: Berlin, country: Germany". */
     val providerSettingsList: StateFlow<List<String>>
 
-    /** (De-)activate a [SearchUserProvider] by its [SearchUserProviderId]. */
-    fun setProvider(providerId: SearchUserProviderId, active: Boolean)
+    /** (Dis-)able a [SearchUserProvider] by its [SearchUserProviderId]. */
+    fun setProvider(providerId: SearchUserProviderId, enabled: Boolean)
 
     fun filterUserSearchResult(userSearchResult: UserSearchResult)
 
@@ -95,14 +95,14 @@ class SearchUserViewModelImpl(
     private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
-    private val providerSearchCanBeActive = MutableStateFlow(searchUserProviders.map { true })
-    private val _providerSearchActive = MutableStateFlow(searchUserProviders.map { it.disabledByDefault.not() })
-    override val providerSearchActive =
-        combine(_providerSearchActive, providerSearchCanBeActive) { activeList, canBeActiveList ->
-                activeList.zip(canBeActiveList).map { (active, canBeActive) -> active && canBeActive }
+    private val _providerSearchCanBeEnabled = MutableStateFlow(searchUserProviders.map { true })
+    private val _providerSearchEnabled = MutableStateFlow(searchUserProviders.map { it.disabledByDefault.not() })
+    override val providerSearchEnabled =
+        combine(_providerSearchEnabled, _providerSearchCanBeEnabled) { enabledList, canBeEnabledList ->
+                enabledList.zip(canBeEnabledList).map { (enabled, canBeEnabled) -> enabled && canBeEnabled }
             }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchActive.value)
-    override val providerSearchCanBeActivated: StateFlow<List<Boolean>> = providerSearchCanBeActive.asStateFlow()
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _providerSearchEnabled.value)
+    override val providerSearchCanBeEnabled: StateFlow<List<Boolean>> = _providerSearchCanBeEnabled.asStateFlow()
     private val triggerSearch = MutableStateFlow<Unit?>(null)
 
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
@@ -121,17 +121,17 @@ class SearchUserViewModelImpl(
     internal val searchResult: StateFlow<List<SearchResult>?> =
         combine(
                 combine(providerSearchResult) { it },
-                providerSearchActive,
+                providerSearchEnabled,
                 combine(providerSearchLoading) { it },
                 filteredUserSearchResults,
-            ) { results, active, loading, filteredResults ->
+            ) { results, enabled, loading, filteredResults ->
                 log.debug {
-                    "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, active=$active, loading=${loading.contentToString()}, filteredResults=${filteredResults.joinToString { it.userId.full }}"
+                    "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, enabled=$enabled, loading=${loading.contentToString()}, filteredResults=${filteredResults.joinToString { it.userId.full }}"
                 }
                 results.mapIndexed { index, result ->
                     SearchResult(
                         id = searchUserProviders[index].providerId,
-                        active = active[index], // FIXME needed?
+                        enabled = enabled[index], // FIXME needed?
                         providerDisplayName = searchUserProviders[index].providerDisplayName,
                         providerSearchResult = result,
                         isSearching = loading[index],
@@ -161,7 +161,7 @@ class SearchUserViewModelImpl(
                             name = setting.name,
                             sourceDisplayNames = listOf(searchUserProvider.providerDisplayName),
                             enabled =
-                                _providerSearchActive
+                                _providerSearchEnabled
                                     .map { it[searchUserProviders.indexOf(searchUserProvider)] }
                                     .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true),
                             getDisplayValue = setting.getDisplayValue,
@@ -177,7 +177,7 @@ class SearchUserViewModelImpl(
                             enabled =
                                 combine(
                                         existing.enabled,
-                                        _providerSearchActive.map {
+                                        _providerSearchEnabled.map {
                                             it[searchUserProviders.indexOf(searchUserProvider)]
                                         },
                                     ) { existingEnabled, providerEnabled ->
@@ -196,7 +196,7 @@ class SearchUserViewModelImpl(
 
     override val providerSettingsList: StateFlow<List<String>> =
         combine(
-                providerSearchActive,
+                providerSearchEnabled,
                 combine(
                     providerSettings.map { (settingsId, setting) ->
                         setting.value.map { settingsValue ->
@@ -210,16 +210,16 @@ class SearchUserViewModelImpl(
                 ) {
                     it
                 },
-            ) { active, settings ->
+            ) { enabled, settings ->
                 log.debug {
-                    "provider settings: $active, ${settings.joinToString { "${it.id} -> ${it.name}: ${it.value}" }}"
+                    "provider settings: $enabled, ${settings.joinToString { "${it.id} -> ${it.name}: ${it.value}" }}"
                 }
                 settings
                     .filter { (id, _, value) ->
                         value.isNullOrBlank().not() &&
                             searchUserProviders
                                 .mapIndexed { index, provider ->
-                                    active[index] &&
+                                    enabled[index] &&
                                         provider.settings.entries.any { searchSettings -> searchSettings.key == id }
                                 }
                                 .isNotEmpty()
@@ -228,14 +228,14 @@ class SearchUserViewModelImpl(
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {
+    override fun setProvider(providerId: SearchUserProviderId, enabled: Boolean) {
         val index = searchUserProviders.indexOfFirst { it.providerId == providerId }
         val rest =
-            if (index == providerSearchActive.value.size - 1) emptyList()
-            else providerSearchActive.value.subList(index + 1, providerSearchActive.value.size)
-        _providerSearchActive.value = _providerSearchActive.value.subList(0, index) + active + rest
+            if (index == providerSearchEnabled.value.size - 1) emptyList()
+            else providerSearchEnabled.value.subList(index + 1, providerSearchEnabled.value.size)
+        _providerSearchEnabled.value = _providerSearchEnabled.value.subList(0, index) + enabled + rest
 
-        if (active) { // means: re-activating a search provider -> we need to initiate a new search
+        if (enabled) { // means: re-activating a search provider -> we need to initiate a new search
             emitTriggerSearch()
         }
     }
@@ -265,14 +265,14 @@ class SearchUserViewModelImpl(
                         setting.value.map { Triple(settingsId, setting.name, it) }
                     }
                 ) { settings ->
-                    val activeSettings = settings.filter { (_, _, setting) -> setting.isNullOrBlank().not() }
-                    providerSearchCanBeActive.value = searchUserProviders.map { searchUserProvider ->
-                        if (activeSettings.isEmpty()) {
+                    val enabledSettings = settings.filter { (_, _, setting) -> setting.isNullOrBlank().not() }
+                    _providerSearchCanBeEnabled.value = searchUserProviders.map { searchUserProvider ->
+                        if (enabledSettings.isEmpty()) {
                             true
                         } else {
-                            activeSettings.all { (activeSettingsId, _, _) ->
+                            enabledSettings.all { (enabledSettingsId, _, _) ->
                                 searchUserProvider.settings.entries.any { (settingsId, setting) ->
-                                    settingsId == activeSettingsId
+                                    settingsId == enabledSettingsId
                                 }
                             }
                         }
@@ -300,7 +300,7 @@ class SearchUserViewModelImpl(
                         } else it
                     },
             ) { _, _, searchTerm ->
-                searchTerm // we just need to react to provider active and providerSettings changes
+                searchTerm // we just need to react to provider enabled and providerSettings changes
             }
             .scopedCollectLatest { searchTerm ->
                 log.trace { "search for users in search providers" }
@@ -312,7 +312,7 @@ class SearchUserViewModelImpl(
                         searchTerm.isNotBlank() ||
                             providerSettings.any { entry -> entry.value.value.value.isNullOrBlank().not() }
                     ) {
-                        if (providerSearchActive.value[index]) {
+                        if (providerSearchEnabled.value[index]) {
                             providerSearchLoading[index].value = true
                             providerSearchResult[index].value = null // reset old search results
                             launch {
@@ -322,7 +322,7 @@ class SearchUserViewModelImpl(
                                 providerSearchLoading[index].value = false
                             }
                         } else {
-                            log.debug { "searchProvider ${searchUserProvider.providerId} is not active -> no search" }
+                            log.debug { "searchProvider ${searchUserProvider.providerId} is not enabled -> no search" }
                         }
                     } else {
                         log.trace { "user search blank -> empty list" }
@@ -383,7 +383,7 @@ class SearchUserViewModelImpl(
                 .toList()
 
         val userSearchResults = results.map { searchResult ->
-            if (searchResult.active) {
+            if (searchResult.enabled) {
                 when (val providerSearchResult = searchResult.providerSearchResult) {
                     is ProviderSearchResult.Success -> {
                         providerSearchResult.result
@@ -404,13 +404,13 @@ class PreviewSearchUserViewModel : SearchUserViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
     override val searchUserProviders: List<SearchUserProvider> = emptyList()
     override val searchResultList: MutableStateFlow<List<UserSearchResult>?> = MutableStateFlow(null)
-    override val providerSearchActive: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
+    override val providerSearchEnabled: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = emptyMap()
     override val providerSettingsList: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Map<SearchUserProviderId, Boolean>> = MutableStateFlow(mapOf())
-    override val providerSearchCanBeActivated: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
+    override val providerSearchCanBeEnabled: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
 
-    override fun setProvider(providerId: SearchUserProviderId, active: Boolean) {}
+    override fun setProvider(providerId: SearchUserProviderId, enabled: Boolean) {}
 
     override fun filterUserSearchResult(userSearchResult: UserSearchResult) {}
 

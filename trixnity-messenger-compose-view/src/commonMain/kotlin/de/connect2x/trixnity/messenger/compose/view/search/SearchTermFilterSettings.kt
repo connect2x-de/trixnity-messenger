@@ -112,7 +112,7 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                                     VerySmallSpacer()
                                     settings.forEach { setting -> SearchSettingInputSelector(setting) }
                                 } else {
-                                    Tooltip("disabled") { // FIXME i18n
+                                    Tooltip(i18n.searchUserDisabledFilter()) {
                                         Text(
                                             sources.joinToString(),
                                             style =

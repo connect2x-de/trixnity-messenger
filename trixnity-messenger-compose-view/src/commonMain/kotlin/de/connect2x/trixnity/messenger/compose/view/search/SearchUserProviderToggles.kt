@@ -15,8 +15,8 @@ import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 @Composable
 fun SearchUserProviderToggles(searchUserViewModel: SearchUserViewModel) {
     val i18n = DI.get<I18nView>()
-    val providerSearchActive by searchUserViewModel.providerSearchActive.collectAsState()
-    val providerSearchCanBeActivated by searchUserViewModel.providerSearchCanBeActivated.collectAsState()
+    val providerSearchActive by searchUserViewModel.providerSearchEnabled.collectAsState()
+    val providerSearchCanBeActivated by searchUserViewModel.providerSearchCanBeEnabled.collectAsState()
 
     if (searchUserViewModel.searchUserProviders.size > 1) {
         FlowRow(
