@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Flickering in timeline when sending a reply
 - UI,SDK: It is no longer possible to create encrypted public rooms
 - UI,SDK: It is now possible to create unencrypted private rooms
+- SDK: Failure on first login under Windows
 - SDK: Shortly wait for decrypting before show wait message
 
 ### Security
