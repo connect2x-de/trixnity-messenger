@@ -261,7 +261,6 @@ class SearchUserViewModelImpl(
                         setting.value.map { Triple(settingsId, setting.name, it) }
                     }
                 ) { settings ->
-                    println(" --- settings: ${settings.contentToString()}")
                     val enabledSettings = settings.filter { (_, _, setting) -> setting.isNullOrBlank().not() }
                     _providerSearchCanBeEnabled.value = searchUserProviders.map { searchUserProvider ->
                         if (enabledSettings.isEmpty()) {
@@ -274,7 +273,6 @@ class SearchUserViewModelImpl(
                             }
                         }
                     }
-                    println(" +++ ${_providerSearchCanBeEnabled.value}")
                 }
                 .collect {}
         }

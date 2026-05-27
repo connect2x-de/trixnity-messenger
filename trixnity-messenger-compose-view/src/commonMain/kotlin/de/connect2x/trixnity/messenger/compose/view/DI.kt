@@ -261,6 +261,8 @@ import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldViewIm
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementView
+import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultView
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepListImpl
@@ -493,6 +495,7 @@ fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfig
     if (messengerConfiguration?.features?.enableNewSearch == true) {
         searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
         searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
+        single<HomeserverSearchResultElementView> { HomeserverSearchResultElementViewImpl() }
         single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
         single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
         single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
