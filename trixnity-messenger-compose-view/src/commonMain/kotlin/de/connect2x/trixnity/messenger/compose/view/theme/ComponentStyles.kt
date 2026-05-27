@@ -38,6 +38,7 @@ data class ComponentStyles(
     val secondaryIconButton: IconButtonStyle,
     val commonIconButton: IconButtonStyle,
     val destructiveIconButton: IconButtonStyle,
+    val destructiveIconButtonFilled: IconButtonStyle,
     val floatingActionButton: FloatingActionButtonStyle,
     val floatingActionButtonDisabled: FloatingActionButtonStyle,
     val reactionButton: ButtonStyle,

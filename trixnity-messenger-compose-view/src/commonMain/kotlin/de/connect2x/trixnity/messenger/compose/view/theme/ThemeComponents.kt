@@ -152,6 +152,15 @@ class ThemeComponentsImpl : ThemeComponents {
                     colors = IconButtonDefaults.iconToggleButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     focusedBorder = focusedBorder(MaterialTheme.colorScheme.onErrorContainer),
                 ),
+            destructiveIconButtonFilled =
+                IconButtonStyle.filled(
+                    colors =
+                        IconButtonDefaults.filledIconToggleButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
+                    focusedBorder = focusedBorder(MaterialTheme.colorScheme.onErrorContainer),
+                ),
             floatingActionButton =
                 FloatingActionButtonStyle.default(
                     size = 40.dp,

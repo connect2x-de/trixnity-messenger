@@ -37,6 +37,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.koin.dsl.koinApplication
@@ -49,6 +50,7 @@ class AccountSingleViewModelTest {
     val mediaServiceMock = mock<MediaService>()
 
     private lateinit var setDisplayNameMocker: SuspendAnsweringScope<Result<Unit>>
+    private lateinit var deleteAvatarMocker: SuspendAnsweringScope<Result<Unit>>
 
     private val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -61,7 +63,8 @@ class AccountSingleViewModelTest {
         every { matrixClientMock.serverData } returns
             MutableStateFlow(
                 ServerData(
-                    versions = GetVersions.Response(),
+                    versions =
+                        GetVersions.Response(listOf("v1.12", "v1.13", "v1.14", "v1.15", "v1.16", "v1.17", "v1.18")),
                     mediaConfig = GetMediaConfig.Response(),
                     capabilities =
                         GetCapabilities.Response(
@@ -174,6 +177,267 @@ class AccountSingleViewModelTest {
 
         error.value shouldContain "not allowed"
         cut.displayName.value shouldBe "Bob"
+    }
+
+    @Test
+    fun `delete avatar image and reload profile`() = runTest {
+        val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+        every { matrixClientMock.profile } returns profile
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker calls
+            {
+                profile.value -= ProfileField.AvatarUrl
+                Result.success(Unit)
+            }
+
+        val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+        val initialAvatarValue = initialAvatar.toByteArray()
+        everySuspend {
+            mediaServiceMock.getThumbnail(
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(initialAvatar)
+
+        val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
+
+        delay(200.milliseconds)
+        cut.avatar.value shouldBe initialAvatarValue
+
+        cut.deleteAvatar()
+        delay(200.milliseconds)
+
+        // after successful deletion avatar must be null
+        verifySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        cut.avatar.value shouldBe null
+    }
+
+    @Test
+    fun `show error when avatar image cannot be deleted`() = runTest {
+        val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+        every { matrixClientMock.profile } returns profile
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker returns Result.failure(RuntimeException("Something went wrong!"))
+
+        val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+        val initialAvatarValue = initialAvatar.toByteArray()
+        everySuspend {
+            mediaServiceMock.getThumbnail(
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(initialAvatar)
+
+        val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
+
+        delay(200.milliseconds)
+        cut.avatar.value shouldBe initialAvatarValue
+
+        cut.deleteAvatar()
+        delay(200.milliseconds)
+
+        error.value shouldNotBe null
+        cut.avatar.value shouldBe initialAvatarValue
+    }
+
+    @Test
+    fun `display an error message when the user has not enough rights to delete the avatar image`() = runTest {
+        val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+        every { matrixClientMock.profile } returns profile
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker returns
+            Result.failure(
+                MatrixServerException(HttpStatusCode.Forbidden, ErrorResponse.Forbidden("You shall not pass"))
+            )
+
+        val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+        val initialAvatarValue = initialAvatar.toByteArray()
+        everySuspend {
+            mediaServiceMock.getThumbnail(
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(initialAvatar)
+
+        val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
+
+        delay(200.milliseconds)
+        cut.avatar.value shouldBe initialAvatarValue
+
+        cut.deleteAvatar()
+        delay(200.milliseconds)
+
+        error.value shouldContain "not allowed"
+        cut.avatar.value shouldBe initialAvatarValue
+    }
+
+    @Test
+    fun `don't delete avatar image when capabilities are disabled`() = runTest {
+        val capabilities =
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(listOf("v1.13", "v1.14", "v1.15", "v1.16", "v1.17")),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities =
+                        GetCapabilities.Response(
+                            capabilities =
+                                Capabilities(
+                                    setOf(
+                                        Capability.ProfileFields(enabled = false),
+                                        Capability.SetAvatarUrl(enabled = false),
+                                    )
+                                )
+                        ),
+                )
+            )
+        every { matrixClientMock.serverData } returns capabilities
+        val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+        every { matrixClientMock.profile } returns profile
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker calls
+            {
+                profile.value -= ProfileField.AvatarUrl
+                Result.success(Unit)
+            }
+
+        val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+        val initialAvatarValue = initialAvatar.toByteArray()
+        everySuspend {
+            mediaServiceMock.getThumbnail(
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(initialAvatar)
+
+        val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
+
+        delay(200.milliseconds)
+        cut.avatar.value shouldBe initialAvatarValue
+
+        cut.deleteAvatar()
+        delay(200.milliseconds)
+
+        cut.avatar.value shouldBe initialAvatarValue
+    }
+
+    @Test
+    fun `don't delete avatar image when legacy capabilities are disabled configured like older api v115 and under`() =
+        runTest {
+            val capabilities =
+                MutableStateFlow(
+                    ServerData(
+                        versions = GetVersions.Response(listOf("v1.13", "v1.14", "v1.15")),
+                        mediaConfig = GetMediaConfig.Response(),
+                        capabilities =
+                            GetCapabilities.Response(
+                                capabilities = Capabilities(setOf(Capability.SetAvatarUrl(enabled = false)))
+                            ),
+                    )
+                )
+            every { matrixClientMock.serverData } returns capabilities
+            val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+            every { matrixClientMock.profile } returns profile
+            deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+            deleteAvatarMocker calls
+                {
+                    profile.value -= ProfileField.AvatarUrl
+                    Result.success(Unit)
+                }
+
+            val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+            val initialAvatarValue = initialAvatar.toByteArray()
+            everySuspend {
+                mediaServiceMock.getThumbnail(
+                    "mxc://localhost/123456",
+                    avatarSize().toLong(),
+                    avatarSize().toLong(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns Result.success(initialAvatar)
+
+            val cut = accountSingleViewModel()
+            backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+            backgroundScope.launch { cut.hasAvatar.collect {} }
+
+            delay(200.milliseconds)
+            cut.avatar.value shouldBe initialAvatarValue
+
+            cut.deleteAvatar()
+            delay(200.milliseconds)
+
+            cut.avatar.value shouldBe initialAvatarValue
+        }
+
+    @Test
+    fun `delete avatar image when capabilities are null and default to true`() = runTest {
+        val capabilities =
+            MutableStateFlow(
+                ServerData(
+                    versions = GetVersions.Response(listOf("v1.13", "v1.14", "v1.15", "v1.16")),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities = null,
+                )
+            )
+        every { matrixClientMock.serverData } returns capabilities
+        val profile = MutableStateFlow(Profile(ProfileField.AvatarUrl("mxc://localhost/123456")))
+        every { matrixClientMock.profile } returns profile
+        deleteAvatarMocker = everySuspend { matrixClientMock.deleteProfileField(ProfileField.AvatarUrl) }
+        deleteAvatarMocker calls
+            {
+                profile.value -= ProfileField.AvatarUrl
+                Result.success(Unit)
+            }
+
+        val initialAvatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
+        val initialAvatarValue = initialAvatar.toByteArray()
+        everySuspend {
+            mediaServiceMock.getThumbnail(
+                "mxc://localhost/123456",
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns Result.success(initialAvatar)
+
+        val cut = accountSingleViewModel()
+        backgroundScope.launch { cut.canDeleteAvatar.collect {} }
+        backgroundScope.launch { cut.hasAvatar.collect {} }
+
+        delay(200.milliseconds)
+        cut.avatar.value shouldBe initialAvatarValue
+
+        cut.deleteAvatar()
+        delay(200.milliseconds)
+
+        cut.avatar.value shouldBe null
     }
 
     private fun TestScope.accountSingleViewModel(): AccountSingleViewModelImpl {

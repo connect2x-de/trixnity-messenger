@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
 - SDK: Ability for rovingFocusContainer to change focused item for lazy loading containers
 - CI, INTERNAL: Add and enforce ktfmt formatting
+- SDK,UI: Add delete avatar functionality
 
 ### Changed
 
