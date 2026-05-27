@@ -161,9 +161,9 @@ class SearchUserViewModelImpl(
                             name = setting.name,
                             sourceDisplayNames = listOf(searchUserProvider.providerDisplayName),
                             enabled =
-                                _providerSearchEnabled
+                                providerSearchEnabled
                                     .map { it[searchUserProviders.indexOf(searchUserProvider)] }
-                                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true),
+                                    .stateIn(coroutineScope, SharingStarted.Eagerly, true),
                             getDisplayValue = setting.getDisplayValue,
                             setValue = listOf(setting.setValue),
                         ),
@@ -175,15 +175,11 @@ class SearchUserViewModelImpl(
                             sourceDisplayNames = existing.sourceDisplayNames + searchUserProvider.providerDisplayName,
                             // as long as one provider is enabled, the combined setting should be enabled
                             enabled =
-                                combine(
-                                        existing.enabled,
-                                        _providerSearchEnabled.map {
-                                            it[searchUserProviders.indexOf(searchUserProvider)]
-                                        },
-                                    ) { existingEnabled, providerEnabled ->
-                                        existingEnabled || providerEnabled
+                                combine(existing.enabled, providerSearchEnabled) { existingEnabled, providerEnabled ->
+                                        existingEnabled ||
+                                            providerEnabled[searchUserProviders.indexOf(searchUserProvider)]
                                     }
-                                    .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true),
+                                    .stateIn(coroutineScope, SharingStarted.Eagerly, true),
                             setValue = existing.setValue + setting.setValue,
                         ),
                     )
@@ -265,6 +261,7 @@ class SearchUserViewModelImpl(
                         setting.value.map { Triple(settingsId, setting.name, it) }
                     }
                 ) { settings ->
+                    println(" --- settings: ${settings.contentToString()}")
                     val enabledSettings = settings.filter { (_, _, setting) -> setting.isNullOrBlank().not() }
                     _providerSearchCanBeEnabled.value = searchUserProviders.map { searchUserProvider ->
                         if (enabledSettings.isEmpty()) {
@@ -277,6 +274,7 @@ class SearchUserViewModelImpl(
                             }
                         }
                     }
+                    println(" +++ ${_providerSearchCanBeEnabled.value}")
                 }
                 .collect {}
         }

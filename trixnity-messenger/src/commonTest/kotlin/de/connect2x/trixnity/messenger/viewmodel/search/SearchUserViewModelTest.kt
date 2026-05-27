@@ -52,6 +52,8 @@ private object SettingsIdOptions : SettingsId
 
 private object SettingsIdColor : SettingsId
 
+private object SettingsIdDifferent : SettingsId
+
 private enum class Color(val value: String) {
     BLACK("black"),
     WHITE("white"),
@@ -360,6 +362,54 @@ class SearchUserViewModelTest {
     }
 
     @Test
+    fun `should disable filter settings that are not compatible with current settings`() = runTest {
+        val cut = searchUserViewModel(SearchUserProvider5())
+        delay(10.milliseconds)
+        cut.providerSettings.entries.map { (key, value) -> key to value.enabled.value } shouldContainOnly
+            listOf(
+                SettingsIdCity to true,
+                SettingsIdAddress to true,
+                SettingsIdOptions to true,
+                SettingsIdColor to true,
+                SettingsIdDifferent to true,
+            )
+
+        cut.providerSettings[SettingsIdAddress]?.setValue("Somewhere")
+        delay(10.milliseconds)
+        // only Provider1 has city and address
+        cut.providerSettings.entries.map { (key, value) -> key to value.enabled.value } shouldContainOnly
+            listOf(
+                SettingsIdCity to true,
+                SettingsIdAddress to true,
+                SettingsIdOptions to false,
+                SettingsIdColor to false,
+                SettingsIdDifferent to false,
+            )
+
+        cut.providerSettings[SettingsIdAddress]?.setValue(null)
+        delay(10.milliseconds)
+        cut.providerSettings.entries.map { (key, value) -> key to value.enabled.value } shouldContainOnly
+            listOf(
+                SettingsIdCity to true,
+                SettingsIdAddress to true,
+                SettingsIdOptions to true,
+                SettingsIdColor to true,
+                SettingsIdDifferent to true,
+            )
+
+        cut.providerSettings[SettingsIdDifferent]?.setValue("Oh no!")
+        delay(10.milliseconds)
+        cut.providerSettings.entries.map { (key, value) -> key to value.enabled.value } shouldContainOnly
+            listOf(
+                SettingsIdCity to false,
+                SettingsIdOptions to false,
+                SettingsIdAddress to false,
+                SettingsIdColor to false,
+                SettingsIdDifferent to true,
+            )
+    }
+
+    @Test
     fun `should display the provider's setting if the setting is set in another deactivated provider`() = runTest {
         val cut = searchUserViewModel()
         cut.searchTerm.update("u")
@@ -578,6 +628,27 @@ class SearchUserViewModelTest {
         override val providerDisplayName: String = "Test 4"
         override val priority: Int = 1_000
         override val disabledByDefault: Boolean = true
+    }
+
+    class SearchUserProvider5 : SearchUserProvider {
+        override val providerId: String = "test-5"
+        override val providerDisplayName: String = "Test 5"
+        override val priority: Int = 152
+        override val disabledByDefault: Boolean = false
+
+        private var different: String? = null
+
+        val differentSetting = SearchSetting("different") { different = it }
+
+        override val settings: Map<SettingsId, SearchSetting> = mapOf(SettingsIdDifferent to differentSetting)
+
+        override suspend fun search(
+            searchTerm: String,
+            activeAccount: UserId,
+            coroutineScope: CoroutineScope,
+        ): ProviderSearchResult {
+            return ProviderSearchResult.Success(listOf())
+        }
     }
 
     class SearchUserProviderWithResumedSearch : SearchUserProvider {
