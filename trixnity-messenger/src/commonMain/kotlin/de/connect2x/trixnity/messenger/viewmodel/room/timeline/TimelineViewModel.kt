@@ -496,8 +496,7 @@ class TimelineViewModelImpl(
                 log.error { "could not load start point of timeline" }
             }
             timelineStartFrom.emit(initTimelineFrom)
-            _scrollTo.value =
-                matrixClient.room.getTimelineEvent(roomId, initTimelineFrom).filterNotNull().first().asKey()
+            jumpToKey(matrixClient.room.getTimelineEvent(roomId, initTimelineFrom).filterNotNull().first().asKey())
         }
         coroutineScope.launch {
             timelineStartFrom.collect { startFrom ->
