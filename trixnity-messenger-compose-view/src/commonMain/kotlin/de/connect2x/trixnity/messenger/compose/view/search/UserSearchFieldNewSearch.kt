@@ -1,6 +1,5 @@
 package de.connect2x.trixnity.messenger.compose.view.search
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -49,14 +48,12 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
         val isSearching by searchUserViewModel.isSearching.collectAsState()
 
         val focusRequester = remember { FocusRequester() }
-
         LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
         OutlinedTextField(
             value = userSearchTerm,
             onValueChange = { userSearchTerm = it },
-            modifier =
-                Modifier.background(MaterialTheme.colorScheme.surface).fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             leadingIcon = {
                 if (isSearching) {
                     ThemedProgressIndicator(Modifier, MaterialTheme.components.smallCircularProgressIndicator)

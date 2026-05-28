@@ -13,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -37,6 +35,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
+import de.connect2x.trixnity.messenger.compose.view.common.ErrorDialog
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
@@ -45,9 +44,9 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUsersView
 import de.connect2x.trixnity.messenger.compose.view.search.SearchResultState
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
+import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroup
 import de.connect2x.trixnity.messenger.compose.view.search.collectUserSearchResult
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFloatingActionButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
@@ -67,7 +66,6 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
     @Composable
     override fun create(createNewGroupViewModel: CreateNewGroupViewModel) {
         val i18n = DI.get<I18nView>()
-        val canCreateNewGroup = createNewGroupViewModel.canCreateNewGroup.collectAsState()
         val error = createNewGroupViewModel.error.collectAsState().value
         val errorDetails = createNewGroupViewModel.errorDetails.collectAsState().value
         val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
@@ -102,13 +100,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     createNewGroupViewModel::back,
                     { Text(i18n.createNewGroupNewGroup(), fontWeight = Bold, fontSize = 16.sp) },
                 )
+                if (isCreating) {
+                    ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
+                }
                 Box(Modifier.fillMaxSize()) {
-                    if (isCreating) {
-                        ThemedProgressIndicator(
-                            Modifier.fillMaxWidth(),
-                            MaterialTheme.components.linearProgressIndicator,
-                        )
-                    }
                     val listState = rememberLazyListState()
 
                     val focusedItem =
@@ -161,18 +156,10 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                     VerticalScrollbar(Modifier.fillMaxHeight().align(Alignment.CenterEnd), listState, false)
                 }
             }
-            Box(Modifier.align(Alignment.BottomEnd).padding(bottom = 20.dp, end = 20.dp)) {
-                ThemedFloatingActionButton(
-                    expanded = true,
-                    enabled = !isCreating && canCreateNewGroup.value,
-                    onClick = { createNewGroupViewModel.createNewGroup() },
-                    text = { Text(i18n.createNewGroupCreate()) },
-                    icon = { Icon(Icons.Default.Check, i18n.createNewGroupCreate()) },
-                )
-            }
+            CreateNewGroupButton(createNewGroupViewModel)
         }
 
-        CreateNewRoomErrorDialog(error, errorDetails, onDismiss = { createNewGroupViewModel.errorDismiss() })
+        ErrorDialog(error, errorDetails, onDismiss = { createNewGroupViewModel.errorDismiss() })
     }
 }
 

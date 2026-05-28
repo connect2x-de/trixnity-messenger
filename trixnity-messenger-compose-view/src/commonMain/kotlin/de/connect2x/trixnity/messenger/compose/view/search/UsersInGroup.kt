@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.roomlist.create
+package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll

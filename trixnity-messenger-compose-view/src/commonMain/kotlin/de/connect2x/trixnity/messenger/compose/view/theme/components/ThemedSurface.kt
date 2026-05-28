@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import de.connect2x.trixnity.messenger.compose.view.LocalSurfaceStyle
 
 data class SurfaceStyle(
     val shape: Shape,
@@ -84,8 +85,10 @@ fun ThemedSurface(
         shadowElevation = style.shadowElevation,
         border = if (focused) style.focusedBorder else style.border,
     ) {
-        Box(Modifier.padding(style.contentPadding)) {
-            style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+        CompositionLocalProvider(LocalSurfaceStyle provides style) {
+            Box(Modifier.padding(style.contentPadding)) {
+                style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+            }
         }
     }
 
@@ -109,8 +112,10 @@ fun ThemedSurface(
         shadowElevation = style.shadowElevation,
         border = if (focused) style.focusedBorder else style.border,
     ) {
-        Box(Modifier.padding(style.contentPadding)) {
-            style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+        CompositionLocalProvider(LocalSurfaceStyle provides style) {
+            Box(Modifier.padding(style.contentPadding)) {
+                style.textStyle?.let { CompositionLocalProvider(LocalTextStyle provides it) { content() } } ?: content()
+            }
         }
     }
 

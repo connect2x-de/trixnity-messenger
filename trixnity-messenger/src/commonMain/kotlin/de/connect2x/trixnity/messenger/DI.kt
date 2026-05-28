@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
@@ -62,13 +63,19 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
@@ -289,7 +296,6 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::connectingViewModels,
         ::syncViewModels,
         ::roomListViewModels,
-        ::newSearchViewModels,
         ::settingsViewModels,
         ::timelineElementViewModels,
         ::timelineViewModels,
@@ -299,6 +305,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::mediaViewModels,
         ::exportModule,
         ::notificationModule,
+        // include last as they override some other already registered view models
+        ::newSearchViewModels,
 
         // Platform-specific implementations:
         ::platformModule,
@@ -325,7 +333,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
 
 /*
  * Factories for view models: Provide your own factory to
- * change or enhance behaviours of existing view models.
+ * change or enhance behaviors of existing view models.
  */
 
 private fun connectingViewModels() = module {
@@ -419,6 +427,64 @@ private fun newSearchViewModels() = module {
                             onBack = onBack,
                         )
                         .also { log.debug { "CreateNewGroupViewModel" } }
+                }
+            }
+        }
+    }
+    single<AddMembersViewModelFactory> {
+        object : AddMembersViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                roomId: RoomId,
+                potentialMembersViewModel: PotentialMembersViewModel,
+                onBack: () -> Unit,
+            ): AddMembersViewModel {
+                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                    AddMembersNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            addMembersViewModel =
+                                AddMembersViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    roomId = roomId,
+                                    potentialMembersViewModel = potentialMembersViewModel,
+                                    onBack = onBack,
+                                ),
+                            potentialMembersNewSearchViewModel =
+                                PotentialMembersNewSearchViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    potentialMembersViewModel = potentialMembersViewModel,
+                                ),
+                        )
+                        .also { log.debug { "AddMembersViewModel -> AddMembersNewSearchViewModelImpl" } }
+                } else {
+                    AddMembersViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            roomId = roomId,
+                            potentialMembersViewModel = potentialMembersViewModel,
+                            onBack = onBack,
+                        )
+                        .also { log.debug { "AddMembersViewModel" } }
+                }
+            }
+        }
+    }
+    single<PotentialMembersViewModelFactory> {
+        object : PotentialMembersViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                roomId: RoomId,
+            ): PotentialMembersViewModel {
+                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                    PotentialMembersNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            potentialMembersViewModel =
+                                PotentialMembersViewModelImpl(viewModelContext = viewModelContext, roomId = roomId),
+                        )
+                        .also { log.debug { "PotentialMembersViewModel -> PotentialMembersNewSearchViewModelImpl" } }
+                } else {
+                    PotentialMembersViewModelImpl(viewModelContext = viewModelContext, roomId = roomId).also {
+                        log.debug { "PotentialMembersViewModel" }
+                    }
                 }
             }
         }

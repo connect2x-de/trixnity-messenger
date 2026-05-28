@@ -1,22 +1,13 @@
-package de.connect2x.trixnity.messenger.viewmodel.roomlist
+package de.connect2x.trixnity.messenger.viewmodel.room.settings
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/**
- * Create a new group, using the new search.
- *
- * **Attention**: Be aware to not use properties or methods from [CreateNewGroupViewModel] that reference
- * [de.connect2x.trixnity.messenger.util.Search.SearchUserElement]. The replacements of those are using
- * [UserSearchResult].
- */
-interface CreateNewGroupNewSearchViewModel : CreateNewGroupViewModel {
-    val searchUserViewModel: SearchUserViewModel
+interface AddMembersNewSearchViewModel : AddMembersViewModel {
+    val potentialMembersNewSearchViewModel: PotentialMembersNewSearchViewModel
     val groupUsersNewSearch: StateFlow<List<UserSearchResult>>
 
     fun onUserClick(user: UserSearchResult)
@@ -28,15 +19,14 @@ interface CreateNewGroupNewSearchViewModel : CreateNewGroupViewModel {
     fun addUserToList(user: UserSearchResult)
 }
 
-class CreateNewGroupNewSearchViewModelImpl(
+class AddMembersNewSearchViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    createNewGroupViewModel: CreateNewGroupViewModel,
+    addMembersViewModel: AddMembersViewModel,
+    override val potentialMembersNewSearchViewModel: PotentialMembersNewSearchViewModel,
 ) :
-    CreateNewGroupNewSearchViewModel,
-    CreateNewGroupViewModel by createNewGroupViewModel,
-    ViewModelContext by viewModelContext {
-    override val searchUserViewModel: SearchUserViewModel =
-        createNewGroupViewModel.createNewRoomViewModel.searchUserViewModel
+    MatrixClientViewModelContext by viewModelContext,
+    AddMembersViewModel by addMembersViewModel,
+    AddMembersNewSearchViewModel {
 
     private val _groupUsersNewSearch = MutableStateFlow<List<UserSearchResult>>(emptyList())
     override val groupUsersNewSearch: StateFlow<List<UserSearchResult>> = _groupUsersNewSearch.asStateFlow()
@@ -47,7 +37,7 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun removeUserFromList(user: UserSearchResult) {
         _groupUsersNewSearch.value += user
-        searchUserViewModel.filterUserSearchResult(user)
+        potentialMembersNewSearchViewModel.searchUserViewModel.filterUserSearchResult(user)
     }
 
     override fun removeUserFromGroup(user: UserSearchResult) {
@@ -56,6 +46,6 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        searchUserViewModel.unfilterUserSearchResult(user)
+        potentialMembersNewSearchViewModel.searchUserViewModel.unfilterUserSearchResult(user)
     }
 }

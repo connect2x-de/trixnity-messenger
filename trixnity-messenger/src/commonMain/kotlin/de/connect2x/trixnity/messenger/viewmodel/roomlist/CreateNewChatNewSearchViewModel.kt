@@ -41,7 +41,7 @@ class CreateNewChatNewSearchViewModelImpl(
 
     override val searchUserViewModel = createNewChatViewModel.createNewRoomViewModel.searchUserViewModel
 
-    // FIXME can we refactor the onUserClick to accept UserId? Breaking change?
+    // cannot be changed to UserId, since UI will break otherwise
     override fun onUserClick(user: UserSearchResult) {
         val userId = user.userId
         coroutineScope.launch {

@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.roomlist.create
+package de.connect2x.trixnity.messenger.compose.view.common
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -20,14 +19,12 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButto
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 
 @Composable
-fun CreateNewRoomErrorDialog(error: String?, errorDetails: String?, onDismiss: () -> Unit) {
+fun ErrorDialog(error: String?, errorDetails: String?, onDismiss: () -> Unit) {
     val i18n = DI.get<I18nView>()
 
     if (error != null) {
         ThemedModalDialog({ onDismiss() }) {
-            ModalDialogHeader {
-                Text(i18n.anErrorHasOccurred())
-            }
+            ModalDialogHeader { Text(i18n.anErrorHasOccurred()) }
             ModalDialogContent {
                 Text(error)
                 if (errorDetails != null) {
@@ -37,10 +34,7 @@ fun CreateNewRoomErrorDialog(error: String?, errorDetails: String?, onDismiss: (
                 }
             }
             ModalDialogFooter {
-                ThemedButton(
-                    style = MaterialTheme.components.primaryButton,
-                    onClick = { onDismiss() },
-                ) {
+                ThemedButton(style = MaterialTheme.components.primaryButton, onClick = { onDismiss() }) {
                     Text(i18n.actionOk())
                 }
             }

@@ -7,6 +7,7 @@ import com.arkivanov.decompose.extensions.compose.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersContainer
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExtrasRouter
 
 @Composable

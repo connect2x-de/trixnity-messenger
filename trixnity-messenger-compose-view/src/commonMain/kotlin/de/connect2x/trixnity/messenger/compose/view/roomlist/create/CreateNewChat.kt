@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
+import de.connect2x.trixnity.messenger.compose.view.common.ErrorDialog
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
@@ -81,16 +82,11 @@ class CreateNewChatViewImpl : CreateNewChatView {
 
         Column(Modifier.fillMaxSize()) {
             Header(createNewChatViewModel::cancel, i18n.createNewChatTitle())
+            if (isCreating) {
+                ThemedProgressIndicator(Modifier.fillMaxWidth(), MaterialTheme.components.linearProgressIndicator)
+            }
             Box(Modifier.fillMaxSize()) {
                 LazyColumn(Modifier.rovingFocusContainer(listState = listState, focusedItem = focusedItem), listState) {
-                    item(key = "CreatingIndicator") {
-                        if (isCreating) {
-                            ThemedProgressIndicator(
-                                Modifier.fillMaxWidth(),
-                                MaterialTheme.components.linearProgressIndicator,
-                            )
-                        }
-                    }
                     item(key = "AddOrSearchGroup") {
                         AddOrSearchGroup(createNewChatViewModel)
                         HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
@@ -115,7 +111,7 @@ class CreateNewChatViewImpl : CreateNewChatView {
             }
         }
 
-        CreateNewRoomErrorDialog(error, errorDetails, onDismiss = { createNewChatViewModel.errorDismiss() })
+        ErrorDialog(error, errorDetails, onDismiss = { createNewChatViewModel.errorDismiss() })
     }
 }
 

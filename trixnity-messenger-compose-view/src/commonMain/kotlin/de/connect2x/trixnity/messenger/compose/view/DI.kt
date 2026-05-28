@@ -43,8 +43,6 @@ import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesView
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.RoomView
 import de.connect2x.trixnity.messenger.compose.view.room.RoomViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangePowerLevelView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangePowerLevelViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangeRoomAvatarView
@@ -86,6 +84,9 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElemen
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioReplyView
@@ -209,8 +210,6 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewCha
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupViewImpl
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroupView
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroupViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatarView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatarViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountDataView
@@ -260,6 +259,8 @@ import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupView
+import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchProviderToggleView
 import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementView
 import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementViewImpl
@@ -531,7 +532,6 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<RoomSettingsHistoryVisibilityView> { RoomSettingsHistoryVisibilityViewImpl() }
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
-    single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
     single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
     single<EventContentSerializerMappings> { EventContentSerializerMappings.default }
     single<UserProfileView> { UserProfileViewImpl() }
@@ -539,6 +539,14 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<RoomSettingsPowerlevelView> {
         if (features?.enablePowerlevelEventConfigurationInRoomSettings == true) RoomSettingsPowerlevelViewImpl()
         else RoomSettingsPowerlevelViewImplEmpty()
+    }
+
+    single<AddMembersToRoomView> {
+        if (features?.enableNewSearch == true) {
+            AddMembersToRoomNewSearchViewImpl()
+        } else {
+            AddMembersToRoomViewImpl()
+        }
     }
 }
 
