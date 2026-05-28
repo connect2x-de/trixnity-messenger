@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: It is no longer possible to create encrypted public rooms
 - UI,SDK: It is now possible to create unencrypted private rooms
 - SDK: Failure on first login under Windows
+- UI,SDK: Wrong text when receiving member state events with no change
 
 ### Security
 
