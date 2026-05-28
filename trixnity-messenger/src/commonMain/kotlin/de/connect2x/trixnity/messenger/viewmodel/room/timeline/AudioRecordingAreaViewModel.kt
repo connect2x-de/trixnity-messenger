@@ -145,8 +145,9 @@ class AudioRecordingAreaViewModelImpl(
                 is AudioRecorder.State.Completed -> {
                     {
                         audio(
-                            "voice message",
+                            "",
                             audioRecorderStateValue.data,
+                            fileName = "voice_message.m4a",
                             type = audioRecorderStateValue.contentType,
                             duration = audioRecorderStateValue.duration.inWholeMilliseconds,
                             size = audioRecorderStateValue.sizeBytes,

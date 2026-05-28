@@ -189,10 +189,10 @@ class AudioRecordingAreaViewModelTest {
         delay(1.seconds)
         draftMessage.value?.content shouldBe
             RoomMessageEventContent.FileBased.Audio(
-                body = "voice message",
+                body = "",
                 format = null,
                 formattedBody = null,
-                fileName = null,
+                fileName = "voice_message.m4a",
                 info = AudioInfo(duration = 5000, mimeType = "audio/ogg", size = 1000),
                 url = "testUrl",
                 file = null,
