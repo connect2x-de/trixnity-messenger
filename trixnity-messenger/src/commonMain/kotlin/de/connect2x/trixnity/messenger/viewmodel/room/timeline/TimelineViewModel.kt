@@ -516,18 +516,14 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         val outboxTransactionIds =
-            outbox.flatten(Duration.ZERO).map { outboxMessages ->
-                outboxMessages.associateBy(
-                    { outboxMessage -> outboxMessage.transactionId },
-                    { outboxMessage -> outboxMessage.createdAt },
-                )
-            }
+            outbox.flatten(Duration.ZERO).map { outboxMessages -> outboxMessages.map { it.transactionId } }
         outboxTransactionIds
-            .scan(mapOf<String, Instant>()) { old, current ->
-                val new = current - old.keys
+            .scan(listOf<String>()) { old, current ->
+                // this cannot be a set since order is important
+                val new = current - old
                 if (new.isNotEmpty()) {
                     log.debug { "submitted a new message to the outbox, scroll to end of timeline" }
-                    val newestKey = new.maxByOrNull { it.value }!!.key.asKey(roomId)
+                    val newestKey = new.first()
                     val elementsComputationFinished =
                         withTimeoutOrNull(10.seconds) {
                             elements.first { elementList -> elementList.any { it.key == newestKey } }
