@@ -2679,6 +2679,18 @@ public final class de/connect2x/trixnity/messenger/util/ActivityGetterKt {
 	public static final fun getDefaultActivityGetter (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;)Lde/connect2x/trixnity/messenger/util/ActivityGetter;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/util/AudioMetadata {
+	public abstract fun duration-LV8wdWc (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/util/AudioMetadataFactory {
+	public abstract fun invoke (Lde/connect2x/trixnity/messenger/util/FileDescriptor;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/util/AudioMetadata_androidKt {
+	public static final fun audioMetadataFactoryModule ()Lorg/koin/core/module/Module;
+}
+
 public final class de/connect2x/trixnity/messenger/util/BackCallback {
 	public fun <init> (ILkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> (ILkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -3269,6 +3281,12 @@ public final class de/connect2x/trixnity/messenger/util/StringsKt {
 public final class de/connect2x/trixnity/messenger/util/SupportedMimeTypes {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/util/SupportedMimeTypes;
 	public final fun isSupportedImage (Lio/ktor/http/ContentType;)Z
+}
+
+public final class de/connect2x/trixnity/messenger/util/UnsupportedFileDescriptor : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/UriCaller {

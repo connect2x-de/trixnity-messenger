@@ -19,6 +19,7 @@ markdown = "0.7.3" # https://github.com/JetBrains/markdown
 pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.7" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
 icu4j = "78.2" # https://github.com/unicode-org/icu/releases
+tika = "3.2.3" # https://tika.apache.org/
 testContainers = "2.0.3" # https://github.com/testcontainers/testcontainers-java/releases
 ksoup = "0.2.6" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
@@ -55,6 +56,8 @@ kim = { module = "com.ashampoo:kim", version.ref = "kim" }
 markdown = { module = "org.jetbrains:markdown", version.ref = "markdown" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
+tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika" }
+tika-parser-audiovideo-module = { module = "org.apache.tika:tika-parser-audiovideo-module", version.ref = "tika" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }

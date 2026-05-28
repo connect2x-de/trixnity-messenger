@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ModalDialog
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedModalDialog
 import de.connect2x.trixnity.messenger.util.FileDescriptor
+import de.connect2x.trixnity.messenger.util.FileKitFileDescriptor
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.compressImage
 import io.github.vinceglb.filekit.dialogs.FileKitCameraType
