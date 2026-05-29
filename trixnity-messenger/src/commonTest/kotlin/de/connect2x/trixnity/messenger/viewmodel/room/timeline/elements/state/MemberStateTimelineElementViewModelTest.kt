@@ -177,7 +177,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.KNOCK),
                         stateKey = joiningUser.full,
                     )
                 )
@@ -201,7 +201,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = joiningUser.full,
                     )
                 )
@@ -233,7 +233,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.KNOCK),
                         stateKey = "@bob:localhost",
                     )
                 )
@@ -289,7 +289,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = currentUser.full,
                     )
                 )
@@ -688,7 +688,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = currentUser.full,
                     )
                 )
