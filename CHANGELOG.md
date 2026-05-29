@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI, INTERNAL: Add and enforce ktfmt formatting
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
+- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users
 
 ### Changed
 
