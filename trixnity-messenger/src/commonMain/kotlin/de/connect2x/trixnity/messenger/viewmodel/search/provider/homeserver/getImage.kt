@@ -18,7 +18,6 @@ fun getImage(
 ): StateFlow<ByteArray?> {
     return avatarUrl?.let { avatarUrl ->
         flow {
-                // TODO some sort of retry (see retryLoopFlow)
                 emit(
                     matrixClient.media
                         .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())

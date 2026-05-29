@@ -11,11 +11,10 @@ interface SearchResultView<V : UserSearchResult> {
 }
 
 object EmptySearchResultView : SearchResultView<UserSearchResult> {
-    override val supports: KClass<out UserSearchResult>
-        get() = TODO("Not yet implemented")
+    override val supports: KClass<out UserSearchResult> = UserSearchResult::class
 
     @Composable
     override fun create(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) {
-        // TODO empty
+        // empty
     }
 }

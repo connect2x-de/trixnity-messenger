@@ -32,7 +32,7 @@ fun SearchUsers(addMembersNewSearchViewModel: AddMembersNewSearchViewModel, abov
             item("aboveSearch") { aboveSearch() }
             stickyHeader("searchTerm") {
                 val containerColor = LocalSurfaceStyle.current?.color
-                Column(if (containerColor != null) Modifier.background(containerColor) else Modifier.Companion) {
+                Column(if (containerColor != null) Modifier.background(containerColor) else Modifier) {
                     UsersInGroup(addMembersNewSearchViewModel.groupUsersNewSearch) {
                         addMembersNewSearchViewModel.removeUserFromGroup(it)
                     }

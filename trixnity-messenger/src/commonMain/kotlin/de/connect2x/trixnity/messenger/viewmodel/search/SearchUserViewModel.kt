@@ -139,7 +139,7 @@ class SearchUserViewModelImpl(
                 results.mapIndexed { index, result ->
                     SearchResult(
                         id = searchUserProviders[index].providerId,
-                        enabled = enabled[index], // FIXME needed?
+                        enabled = enabled[index],
                         providerDisplayName = searchUserProviders[index].providerDisplayName,
                         providerSearchResult = result,
                         isSearching = loading[index],

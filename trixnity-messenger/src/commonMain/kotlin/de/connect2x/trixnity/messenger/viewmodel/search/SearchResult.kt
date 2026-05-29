@@ -5,8 +5,6 @@ import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchR
 /**
  * A [SearchResult] is a search result from a
  * [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider].
- *
- * FIXME needed?
  */
 data class SearchResult(
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s id. */
