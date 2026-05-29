@@ -11,7 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorDialog
+import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.SearchUsersSettings
 import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroup
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
@@ -37,9 +39,11 @@ class AddMembersToRoomViewImpl : AddMembersToRoomView {
     override fun create(addMembersViewModel: AddMembersViewModel) {
         val error = addMembersViewModel.error.collectAsState().value
         val errorCause = addMembersViewModel.errorCause.collectAsState().value
+        val i18n = DI.get<I18nView>()
 
         Box(Modifier.fillMaxSize()) {
             Column {
+                Header(addMembersViewModel::back, i18n.addMembers())
                 UndecryptableHistoryInfo(addMembersViewModel)
                 UsersInGroup(addMembersViewModel.potentialMembersViewModel.searchHandler)
                 SearchUsersSettings(
