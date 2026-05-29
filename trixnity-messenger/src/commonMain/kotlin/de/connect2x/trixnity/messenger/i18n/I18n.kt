@@ -1010,6 +1010,16 @@ open class I18n(
         DE - "Der Nutzername darf von Ihnen nicht geändert werden."
     }
 
+    open fun profileAvatarDeleteError() = translate {
+        EN - "The avatar image could not be deleted."
+        DE - "Das Nutzerbild konnte nicht gelöscht werden."
+    }
+
+    open fun profileAvatarDeleteForbidden() = translate {
+        EN - "You are not allowed to delete the avatar image."
+        DE - "Das Nutzerbild darf von Ihnen nicht gelöscht werden."
+    }
+
     open fun matrixClientInitLoading() = translate {
         EN - "Loading..."
         DE - "Lade Daten..."

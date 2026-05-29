@@ -10,14 +10,23 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.internal.SynchronizedObject
+import kotlinx.coroutines.internal.synchronized
 import kotlinx.coroutines.sync.Mutex
 
+@OptIn(InternalCoroutinesApi::class)
 internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) : MediaPlayer {
     override val playingItem: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerMock")
     private val operationMutex: Mutex = Mutex()
+
+    private val items: ArrayList<MediaItemMock> = ArrayList()
+    private val itemsMutex: SynchronizedObject = SynchronizedObject()
+
+    fun errorAllItems() = synchronized(itemsMutex) { items.forEach { it.setError() } }
 
     override suspend fun open(
         id: String,
@@ -33,14 +42,17 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         }
 
         log.debug { "Creating new media item and return" }
-        return Result.success(
+        val newItem =
             MediaItemMock(
                 id = id,
                 coroutineScope = CoroutineScope(coroutineContext + SupervisorJob()),
                 operationMutex = operationMutex,
                 currentItemPlaying = playingItem,
             )
-        )
+
+        items.add(newItem)
+        log.debug { "Creating new media item and return" }
+        return Result.success(newItem)
     }
 
     override fun close() = Unit
@@ -67,5 +79,7 @@ internal class MediaPlayerMock(private val coroutineContext: CoroutineContext) :
         override suspend fun onClose() {
             isClosed.store(true)
         }
+
+        fun setError() = setError("This is an error")
     }
 }

@@ -35,6 +35,7 @@ import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.SearchImpl
 import de.connect2x.trixnity.messenger.util.SharedDataHandler
 import de.connect2x.trixnity.messenger.util.SharedDataHandlerImpl
+import de.connect2x.trixnity.messenger.util.audioMetadataFactoryModule
 import de.connect2x.trixnity.messenger.util.platformCloseAppModule
 import de.connect2x.trixnity.messenger.util.platformDeleteAccountDataModule
 import de.connect2x.trixnity.messenger.util.platformGetDefaultDisplayNameModule
@@ -329,6 +330,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::platformDeleteProfileDataModule,
         ::platformProcessImageUploadModule,
         ::platformGetImageDimensionsModule,
+        ::audioMetadataFactoryModule,
     )
 
 /*

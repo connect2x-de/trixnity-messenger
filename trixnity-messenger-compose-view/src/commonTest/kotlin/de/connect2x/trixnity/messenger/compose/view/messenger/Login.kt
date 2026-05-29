@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import de.connect2x.trixnity.messenger.compose.view.PlatformType
+import de.connect2x.trixnity.messenger.compose.view.TestConfig
 import de.connect2x.trixnity.messenger.compose.view.platformType
 import de.connect2x.trixnity.messenger.compose.view.util.screenshot
 import de.connect2x.trixnity.messenger.compose.view.util.waitUntilExactlyOneExists
@@ -32,7 +33,8 @@ suspend fun ComposeUiTest.login(testName: String, username: String, password: St
 }
 
 private fun getUrl(): String {
-    return if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:8008" else "http://localhost:8008"
+    return if (platformType() == PlatformType.ANDROID) "http://10.0.2.2:${TestConfig.synapsePort}"
+    else "http://localhost:${TestConfig.synapsePort}"
 }
 
 private suspend fun ComposeUiTest.serverLogin(testName: String, username: String, password: String) {

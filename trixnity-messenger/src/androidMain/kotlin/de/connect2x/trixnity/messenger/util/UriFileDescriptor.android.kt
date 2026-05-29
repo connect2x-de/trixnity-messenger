@@ -13,7 +13,7 @@ import okio.source
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriFileDescriptorKt")
 
-class UriFileDescriptor(private val context: Context, private val fileUri: Uri, i18n: I18n) : FileDescriptor {
+class UriFileDescriptor(private val context: Context, internal val fileUri: Uri, i18n: I18n) : FileDescriptor {
 
     private val computedFileInfo = getComputeFileInfo(fileUri)
 
