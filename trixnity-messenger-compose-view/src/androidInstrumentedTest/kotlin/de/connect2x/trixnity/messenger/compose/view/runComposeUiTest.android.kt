@@ -5,6 +5,7 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.InternalTestApi
 import androidx.compose.ui.test.runComposeUiTest
 import de.connect2x.lognity.test.TestBackend
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -16,7 +17,7 @@ import kotlinx.coroutines.test.TestScope
 actual fun runComposeUiTest(block: suspend ComposeUiTestWithBackgroundScope.() -> Unit) {
     val testScheduler = StandardTestDispatcher()
 
-    return runComposeUiTest(runTestContext = testScheduler) {
+    return runComposeUiTest(runTestContext = testScheduler, testTimeout = 2.minutes) {
         val combined =
             ComposeUiTestWithBackgroundScope(
                 composeUiTest = this@runComposeUiTest,

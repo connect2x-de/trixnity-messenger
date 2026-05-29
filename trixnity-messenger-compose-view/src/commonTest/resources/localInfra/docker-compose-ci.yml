@@ -1,3 +1,0 @@
-services:
-  synapse:
-    network_mode: host

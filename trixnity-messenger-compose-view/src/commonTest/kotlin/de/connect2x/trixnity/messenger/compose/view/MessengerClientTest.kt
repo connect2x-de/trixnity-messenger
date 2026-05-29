@@ -30,6 +30,11 @@ class MessengerClientTest {
 
     init {
         Backend.set(TestBackend)
+        val defaultSpec = TestBackend.configSpec
+        TestBackend.configSpec = {
+            defaultSpec()
+            modifyLogging()
+        }
     }
 
     @Test

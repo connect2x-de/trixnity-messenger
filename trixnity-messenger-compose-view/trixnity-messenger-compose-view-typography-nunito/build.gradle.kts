@@ -2,7 +2,7 @@
 
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
-import de.connect2x.conventions.withAndroid
+import de.connect2x.conventions.withAndroidLibrary
 import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
@@ -24,7 +24,7 @@ kotlin {
     withJvm()
     withWeb { withBrowser() }
     withIos()
-    withAndroid("$group.compose.view.typography.nunito", minSdk = libs.versions.minSdkVersion)
+    withAndroidLibrary("$group.compose.view.typography.nunito", minSdk = libs.versions.minSdkVersion)
 
     sourceSets {
         commonMain.dependencies {
