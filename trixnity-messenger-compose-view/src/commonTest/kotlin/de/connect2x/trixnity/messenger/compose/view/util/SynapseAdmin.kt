@@ -50,7 +50,7 @@ object SynapseAdmin {
 
     /** @return matrixId */
     suspend fun registerNewUser(username: String, password: String): String? {
-        val matrixId = "@$username:localhost:8008"
+        val matrixId = "@$username:localhost"
         logger.debug { "mxId: $matrixId" }
 
         val accessToken = adminAccessToken()
