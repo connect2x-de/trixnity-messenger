@@ -156,6 +156,10 @@ abstract fun interface de.connect2x.trixnity.messenger.secrets/GetKey { // de.co
     abstract suspend fun invoke(kotlin/Int): kotlin/ByteArray // de.connect2x.trixnity.messenger.secrets/GetKey.invoke|invoke(kotlin.Int){}[0]
 }
 
+abstract fun interface de.connect2x.trixnity.messenger.util/AudioMetadataFactory { // de.connect2x.trixnity.messenger.util/AudioMetadataFactory|null[0]
+    abstract suspend fun invoke(de.connect2x.trixnity.messenger.util/FileDescriptor): de.connect2x.trixnity.messenger.util/AudioMetadata? // de.connect2x.trixnity.messenger.util/AudioMetadataFactory.invoke|invoke(de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
+}
+
 abstract fun interface de.connect2x.trixnity.messenger.util/CloseApp { // de.connect2x.trixnity.messenger.util/CloseApp|null[0]
     abstract fun invoke() // de.connect2x.trixnity.messenger.util/CloseApp.invoke|invoke(){}[0]
 }
@@ -469,6 +473,10 @@ abstract interface de.connect2x.trixnity.messenger.secrets/SecretByteArrays { //
 abstract interface de.connect2x.trixnity.messenger.settings/SettingsStorage { // de.connect2x.trixnity.messenger.settings/SettingsStorage|null[0]
     abstract suspend fun read(): kotlin/String? // de.connect2x.trixnity.messenger.settings/SettingsStorage.read|read(){}[0]
     abstract suspend fun write(kotlin/String) // de.connect2x.trixnity.messenger.settings/SettingsStorage.write|write(kotlin.String){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.util/AudioMetadata { // de.connect2x.trixnity.messenger.util/AudioMetadata|null[0]
+    abstract suspend fun duration(): kotlin.time/Duration? // de.connect2x.trixnity.messenger.util/AudioMetadata.duration|duration(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.util/BackHandler { // de.connect2x.trixnity.messenger.util/BackHandler|null[0]
@@ -3330,10 +3338,14 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountSin
         abstract fun <get-canChangeAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.canChangeAvatar.<get-canChangeAvatar>|<get-canChangeAvatar>(){}[0]
     abstract val canChangeDisplayName // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.canChangeDisplayName|{}canChangeDisplayName[0]
         abstract fun <get-canChangeDisplayName>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.canChangeDisplayName.<get-canChangeDisplayName>|<get-canChangeDisplayName>(){}[0]
+    abstract val canDeleteAvatar // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.canDeleteAvatar|{}canDeleteAvatar[0]
+        abstract fun <get-canDeleteAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.canDeleteAvatar.<get-canDeleteAvatar>|<get-canDeleteAvatar>(){}[0]
     abstract val displayName // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.displayName|{}displayName[0]
         abstract fun <get-displayName>(): kotlinx.coroutines.flow/StateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.displayName.<get-displayName>|<get-displayName>(){}[0]
     abstract val editDisplayName // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.editDisplayName|{}editDisplayName[0]
         abstract fun <get-editDisplayName>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModelImpl // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.editDisplayName.<get-editDisplayName>|<get-editDisplayName>(){}[0]
+    abstract val hasAvatar // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.hasAvatar|{}hasAvatar[0]
+        abstract fun <get-hasAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.hasAvatar.<get-hasAvatar>|<get-hasAvatar>(){}[0]
     abstract val initials // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.initials|{}initials[0]
         abstract fun <get-initials>(): kotlinx.coroutines.flow/StateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.initials.<get-initials>|<get-initials>(){}[0]
     abstract val openAvatarCutter // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.openAvatarCutter|{}openAvatarCutter[0]
@@ -3342,6 +3354,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountSin
         abstract fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.userId.<get-userId>|<get-userId>(){}[0]
 
     abstract fun cancelEditDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.cancelEditDisplayName|cancelEditDisplayName(){}[0]
+    abstract fun deleteAvatar() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.deleteAvatar|deleteAvatar(){}[0]
     abstract fun logout() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.logout|logout(){}[0]
     abstract fun resetSetup() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.resetSetup|resetSetup(){}[0]
     abstract fun saveDisplayName() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModel.saveDisplayName|saveDisplayName(){}[0]
@@ -6610,6 +6623,10 @@ final class de.connect2x.trixnity.messenger.util/SearchImpl : de.connect2x.trixn
     final suspend fun searchUsers(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.client/MatrixClient, kotlin/String, kotlin/Long?): kotlin.collections/List<de.connect2x.trixnity.messenger.util/Search.SearchUserElement> // de.connect2x.trixnity.messenger.util/SearchImpl.searchUsers|searchUsers(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.client.MatrixClient;kotlin.String;kotlin.Long?){}[0]
 
     final object Companion // de.connect2x.trixnity.messenger.util/SearchImpl.Companion|null[0]
+}
+
+final class de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor : kotlin/Exception { // de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor|null[0]
+    constructor <init>(kotlin/String? = ..., kotlin/Throwable? = ...) // de.connect2x.trixnity.messenger.util/UnsupportedFileDescriptor.<init>|<init>(kotlin.String?;kotlin.Throwable?){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatrixAccountViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatrixAccountViewModel|null[0]
@@ -10656,6 +10673,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleView
         final fun <get-canChangeAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.canChangeAvatar.<get-canChangeAvatar>|<get-canChangeAvatar>(){}[0]
     final val canChangeDisplayName // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.canChangeDisplayName|{}canChangeDisplayName[0]
         final fun <get-canChangeDisplayName>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.canChangeDisplayName.<get-canChangeDisplayName>|<get-canChangeDisplayName>(){}[0]
+    final val canDeleteAvatar // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.canDeleteAvatar|{}canDeleteAvatar[0]
+        final fun <get-canDeleteAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.canDeleteAvatar.<get-canDeleteAvatar>|<get-canDeleteAvatar>(){}[0]
     final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.componentContextFactory|{}componentContextFactory[0]
         final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
     final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.coroutineScope|{}coroutineScope[0]
@@ -10664,6 +10683,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleView
         final fun <get-displayName>(): kotlinx.coroutines.flow/StateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.displayName.<get-displayName>|<get-displayName>(){}[0]
     final val editDisplayName // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.editDisplayName|{}editDisplayName[0]
         final fun <get-editDisplayName>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModelImpl // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.editDisplayName.<get-editDisplayName>|<get-editDisplayName>(){}[0]
+    final val hasAvatar // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.hasAvatar|{}hasAvatar[0]
+        final fun <get-hasAvatar>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.hasAvatar.<get-hasAvatar>|<get-hasAvatar>(){}[0]
     final val initials // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.initials|{}initials[0]
         final fun <get-initials>(): kotlinx.coroutines.flow/StateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.initials.<get-initials>|<get-initials>(){}[0]
     final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.instanceKeeper|{}instanceKeeper[0]
@@ -10687,6 +10708,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleView
     final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun deleteAvatar() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.deleteAvatar|deleteAvatar(){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.getKoin|getKoin(){}[0]
     final fun logout() // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.logout|logout(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSingleViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
@@ -13531,6 +13553,8 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun powerLevelUpdateStateDefault(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.powerLevelUpdateStateDefault|powerLevelUpdateStateDefault(kotlin.Long){}[0]
     open fun powerLevelUpdateUsersDefault(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.powerLevelUpdateUsersDefault|powerLevelUpdateUsersDefault(kotlin.Long){}[0]
     open fun powerLevelWronglyConfiguredError(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.powerLevelWronglyConfiguredError|powerLevelWronglyConfiguredError(){}[0]
+    open fun profileAvatarDeleteError(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.profileAvatarDeleteError|profileAvatarDeleteError(){}[0]
+    open fun profileAvatarDeleteForbidden(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.profileAvatarDeleteForbidden|profileAvatarDeleteForbidden(){}[0]
     open fun profileAvatarError(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.profileAvatarError|profileAvatarError(){}[0]
     open fun profileCreationDuplicate(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.profileCreationDuplicate|profileCreationDuplicate(){}[0]
     open fun profileLoadError(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.profileLoadError|profileLoadError(){}[0]
@@ -15690,6 +15714,7 @@ final fun de.connect2x.trixnity.messenger.notification/platformNotificationHandl
 final fun de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule|platformSecretByteArrayKeyProviderModule(){}[0]
 final fun de.connect2x.trixnity.messenger.secrets/secretsModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/secretsModule|secretsModule(){}[0]
 final fun de.connect2x.trixnity.messenger.settings/jsonMerge(kotlinx.serialization.json/JsonObject, kotlinx.serialization.json/JsonObject, kotlin.collections/List<kotlin/String>? = ...): kotlinx.serialization.json/JsonObject // de.connect2x.trixnity.messenger.settings/jsonMerge|jsonMerge(kotlinx.serialization.json.JsonObject;kotlinx.serialization.json.JsonObject;kotlin.collections.List<kotlin.String>?){}[0]
+final fun de.connect2x.trixnity.messenger.util/audioMetadataFactoryModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/audioMetadataFactoryModule|audioMetadataFactoryModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformCloseAppModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformCloseAppModule|platformCloseAppModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformGetDefaultDisplayNameModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformGetDefaultDisplayNameModule|platformGetDefaultDisplayNameModule(){}[0]
 final fun de.connect2x.trixnity.messenger.util/platformGetImageDimensionsModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.util/platformGetImageDimensionsModule|platformGetImageDimensionsModule(){}[0]
@@ -16123,6 +16148,20 @@ final class de.connect2x.trixnity.messenger.uikit/WindowSceneDelegate : platform
         final fun superclass(): kotlinx.cinterop/ObjCClass? // de.connect2x.trixnity.messenger.uikit/WindowSceneDelegate.Companion.superclass|objc:superclass[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.uikit/WindowSceneDelegate.Companion.toString|toString(){}[0]
     }
+}
+
+// Targets: [ios]
+final class de.connect2x.trixnity.messenger.util/FileKitFileDescriptor : de.connect2x.trixnity.messenger.util/FileDescriptor { // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor|null[0]
+    constructor <init>(io.github.vinceglb.filekit/PlatformFile) // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.<init>|<init>(io.github.vinceglb.filekit.PlatformFile){}[0]
+
+    final val content // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.content|{}content[0]
+        final fun <get-content>(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.content.<get-content>|<get-content>(){}[0]
+    final val fileName // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileName|{}fileName[0]
+        final fun <get-fileName>(): kotlin/String // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileName.<get-fileName>|<get-fileName>(){}[0]
+    final val fileSize // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileSize|{}fileSize[0]
+        final fun <get-fileSize>(): kotlin/Long // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.fileSize.<get-fileSize>|<get-fileSize>(){}[0]
+    final val mimeType // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.mimeType|{}mimeType[0]
+        final fun <get-mimeType>(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.util/FileKitFileDescriptor.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
 }
 
 // Targets: [ios]

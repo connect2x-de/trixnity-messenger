@@ -85,7 +85,7 @@ fun ProfileList(
 fun RenameProfileButton(renameProfile: () -> Unit) {
     val i18n = DI.get<I18nView>()
     Tooltip({ Text(i18n.profileRenameButtonTooltip()) }) {
-        ThemedIconButton(style = MaterialTheme.components.destructiveIconButton, onClick = renameProfile) {
+        ThemedIconButton(style = MaterialTheme.components.commonIconButton, onClick = renameProfile) {
             EditIcon(Icons.Default.Edit, i18n.profileRenameButtonTooltip())
         }
     }

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.secrets
 
 import com.sun.jna.Memory
+import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.platform.mac.CoreFoundation
 import com.sun.jna.platform.mac.CoreFoundation.CFBooleanRef
@@ -97,6 +98,7 @@ private suspend fun getSecret(appId: String, secretId: String): ByteArray? =
                 val targetName = "$appId-$secretId"
                 val credentialRef = PointerByReference()
                 val success = WinCredentials.CredReadA(targetName = targetName, credentialRef = credentialRef)
+                val error = if (!success) Native.getLastError() else 0
                 log.debug { "Read secret ('$targetName') from credentials store: $success" }
                 if (success) {
                     try {
@@ -106,7 +108,7 @@ private suspend fun getSecret(appId: String, secretId: String): ByteArray? =
                         WinCredentials.CredFree(credentialRef.value)
                     }
                 } else {
-                    when (val error = Kernel32.INSTANCE.GetLastError()) {
+                    when (error) {
                         Kernel32.ERROR_NOT_FOUND -> {
                             log.warn {
                                 "Cannot read secret ('$targetName') from credentials store. Cannot find target name '$targetName'"
@@ -199,10 +201,11 @@ private fun setSecret(appId: String, secretId: String, secretValue: ByteArray) {
                     Credential(targetName = targetName, credentialBlob = memory, credentialBlobSize = secretValue.size),
                     WinDef.DWORD(0),
                 )
+            val error = if (!success) Native.getLastError() else 0
             memory.clear()
             log.debug { "Write secret ('$targetName') to credentials store: $success" }
             if (success.not()) {
-                when (val error = Kernel32.INSTANCE.GetLastError()) {
+                when (error) {
                     Kernel32.ERROR_NO_SUCH_LOGON_SESSION ->
                         log.error {
                             "Cannot write secret ('$targetName') to credentials store. The logon session cannot be found."

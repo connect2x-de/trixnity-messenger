@@ -136,6 +136,8 @@ kotlin {
                 implementation(sharedLibs.jna)
                 implementation(sharedLibs.jna.platform)
                 implementation(libs.icu4j)
+                implementation(libs.tika.core)
+                implementation(libs.tika.parser.audiovideo.module)
             }
         }
         androidMain {
@@ -154,6 +156,7 @@ kotlin {
             dependencies {
                 // since with iOS projects, we cannot include the engine, we select it here
                 implementation(sharedLibs.ktor.client.darwin)
+                implementation(libs.filekit.core)
             }
         }
         webMain {

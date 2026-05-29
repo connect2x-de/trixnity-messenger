@@ -13,9 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
 - SDK: Ability for rovingFocusContainer to change focused item for lazy loading containers
 - CI, INTERNAL: Add and enforce ktfmt formatting
+- SDK,UI: Add delete avatar functionality
+- SDK: Sending audio files now sets `info.duration` if possible
 - UI, SDK: Add options to join room when clicking on room mention of a not joined room
 
 ### Changed
+
+- SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
+  `de.connect2x.trixnity.messenger.util`
 
 ### Deprecated
 
@@ -26,9 +31,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Some containers not being focusable, when selected item was out of view
 - SDK: Slow compilation times
 - UI,A11y: Some containers not being focusable, when selected item was out of view
+- SDK: Add error handling for player on iOS and Android
 - UI: Flickering in timeline when sending a reply
 - UI,SDK: It is no longer possible to create encrypted public rooms
 - UI,SDK: It is now possible to create unencrypted private rooms
+- SDK: Failure on first login under Windows
 
 ### Security
 

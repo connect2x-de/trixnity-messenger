@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.SettingsSuggest
@@ -116,6 +117,8 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
     val i18n = DI.get<I18nView>()
     val avatar = accountSingleViewModel.avatar.collectAsState().value
     val canChangeAvatar = accountSingleViewModel.canChangeAvatar.collectAsState().value
+    val canDeleteAvatar = accountSingleViewModel.canDeleteAvatar.collectAsState().value
+    val hasAvatar = accountSingleViewModel.hasAvatar.collectAsState().value
     val initials = accountSingleViewModel.initials.collectAsState().value
 
     BoxWithConstraints(Modifier.fillMaxWidth()) {
@@ -125,7 +128,7 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
                 image = avatar,
                 size = this@BoxWithConstraints.maxWidth.coerceAtMost(200.dp),
             ) {
-                Box(Modifier.padding(10.dp)) {
+                Box(Modifier.align(Alignment.BottomEnd).padding(10.dp)) {
                     Tooltip({ Text(i18n.profileAvatarChange()) }) {
                         ThemedIconButton(
                             enabled = canChangeAvatar,
@@ -133,6 +136,22 @@ fun AccountAvatar(accountSingleViewModel: AccountSingleViewModel) {
                             onClick = { accountSingleViewModel.openAvatarCutter.value = true },
                         ) {
                             Icon(Icons.Default.PhotoCamera, i18n.profileAvatarChange())
+                        }
+                    }
+                }
+                if (hasAvatar) {
+                    Box(Modifier.align(Alignment.TopEnd).padding(10.dp)) {
+                        Tooltip({
+                            if (canDeleteAvatar) Text(i18n.profileAvatarDelete())
+                            else Text(i18n.profileAvatarDeleteNoPermission())
+                        }) {
+                            ThemedIconButton(
+                                enabled = canDeleteAvatar,
+                                style = MaterialTheme.components.destructiveIconButtonFilled,
+                                onClick = { accountSingleViewModel.deleteAvatar() },
+                            ) {
+                                Icon(Icons.Default.Delete, i18n.profileAvatarDelete())
+                            }
                         }
                     }
                 }

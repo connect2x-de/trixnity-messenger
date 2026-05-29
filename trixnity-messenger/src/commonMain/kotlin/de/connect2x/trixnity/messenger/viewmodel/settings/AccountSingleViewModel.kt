@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.viewmodel.settings
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
+import de.connect2x.trixnity.clientserverapi.model.server.setAvatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.ErrorResponse
@@ -59,6 +60,8 @@ interface AccountSingleViewModel {
     val canChangeDisplayName: StateFlow<Boolean>
     val avatar: StateFlow<ByteArray?>
     val canChangeAvatar: StateFlow<Boolean>
+    val canDeleteAvatar: StateFlow<Boolean>
+    val hasAvatar: StateFlow<Boolean>
     val initials: StateFlow<String>
     val editDisplayName: TextFieldViewModelImpl
     val openAvatarCutter: MutableStateFlow<Boolean>
@@ -70,7 +73,11 @@ interface AccountSingleViewModel {
     fun logout()
 
     fun resetSetup()
+
+    fun deleteAvatar()
 }
+
+private const val MIN_MATRIX_VERSION_FOR_PROFILE_FIELDS = "v1.16"
 
 class AccountSingleViewModelImpl(
     viewModelContext: ViewModelContext,
@@ -96,18 +103,20 @@ class AccountSingleViewModelImpl(
         matrixClient.profile
             .map { profile ->
                 profile?.get(ProfileField.AvatarUrl)?.let { avatarUrl ->
-                    avatarUrl.value?.let { avatarUrl ->
-                        matrixClient.media
-                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
-                            .fold(
-                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                                onFailure = {
-                                    log.error(it) { "Cannot load user avatar." }
-                                    error.value = i18n.profileLoadError()
-                                    null
-                                },
-                            )
-                    }
+                    avatarUrl.value
+                        ?.takeIf { it.isNotBlank() }
+                        ?.let { avatarUrl ->
+                            matrixClient.media
+                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                                .fold(
+                                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                    onFailure = {
+                                        log.error(it) { "Cannot load user avatar." }
+                                        error.value = i18n.profileLoadError()
+                                        null
+                                    },
+                                )
+                        }
                 }
             }
             .stateIn(coroutineScope, SharingStarted.Eagerly, null)
@@ -116,6 +125,26 @@ class AccountSingleViewModelImpl(
         matrixClient.serverData
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
+
+    override val canDeleteAvatar =
+        matrixClient.serverData
+            .map { serverData ->
+                val hasProfileFieldSupport =
+                    serverData?.versions?.versions?.any { it == MIN_MATRIX_VERSION_FOR_PROFILE_FIELDS } == true
+                val capabilities = serverData?.capabilities?.capabilities
+                val hasProfileFieldCapability =
+                    capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true
+                val hasSetAvatarUrlCapability = capabilities?.setAvatarUrl?.enabled ?: true
+
+                (hasProfileFieldSupport && hasProfileFieldCapability) ||
+                    (!hasProfileFieldSupport && hasSetAvatarUrlCapability)
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), false)
+
+    override val hasAvatar =
+        matrixClient.profile
+            .map { profile -> profile?.get(ProfileField.AvatarUrl)?.value.orEmpty().isNotBlank() }
+            .stateIn(coroutineScope, SharingStarted.Eagerly, false)
 
     override val initials =
         matrixClient.profile
@@ -156,4 +185,22 @@ class AccountSingleViewModelImpl(
     override fun logout() = removeAccount()
 
     override fun resetSetup() = showAccountSetup()
+
+    override fun deleteAvatar() {
+        coroutineScope.launch {
+            val matrixClient = getMatrixClient(userId)
+            if (hasAvatar.value && canDeleteAvatar.value) {
+                matrixClient.deleteProfileField(ProfileField.AvatarUrl).onFailure {
+                    log.error(it) { "Cannot delete avatar." }
+                    if (it is MatrixServerException && it.errorResponse is ErrorResponse.Forbidden) {
+                        error.value = i18n.profileAvatarDeleteForbidden()
+                    } else {
+                        error.value = i18n.profileAvatarDeleteError()
+                    }
+                }
+            } else {
+                log.warn { "Missing server capability to remove the avatar url." }
+            }
+        }
+    }
 }
