@@ -704,6 +704,28 @@ class MemberStateTimelineElementViewModelTest {
             cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
         }
 
+    @Test
+    fun `no change event » no message should be displayed`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+
+        val mockMemberEventContent = memberEventContent("", currentUser.full, Membership.JOIN, false)
+        val cut =
+            memberStatusViewModel(
+                mockTimelineEvent(
+                    "",
+                    currentUser.full,
+                    Membership.JOIN,
+                    false,
+                    previousMemberEventContent = mockMemberEventContent,
+                )
+            )
+
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(1.seconds)
+        cut.changeMessage.value.isNullOrBlank() shouldBe true
+    }
+
     private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
         val di =
             koinApplication {
