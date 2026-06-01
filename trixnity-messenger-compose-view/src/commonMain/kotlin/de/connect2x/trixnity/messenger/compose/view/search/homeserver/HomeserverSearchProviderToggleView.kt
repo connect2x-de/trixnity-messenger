@@ -25,7 +25,7 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
         ThemedFilterChip(
             selected = active,
             onClick = setActive,
-            label = { Text(searchUserProvider.providerDisplayName) },
+            label = { Text(searchUserProvider.displayName) },
             trailingIcon = { Icon(HomeHealth, contentDescription = null) },
             leadingIcon = {
                 if (active) {

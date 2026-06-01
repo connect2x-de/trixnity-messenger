@@ -4,12 +4,12 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import kotlin.random.Random
 import kotlin.time.Duration
@@ -78,7 +78,7 @@ interface SearchUserViewModel {
      * The settings of all [SearchUserProvider]s, already combined for the same [SettingsId]s. E.g, "city" that is used
      * in multiple providers is only listed as one setting here.
      *
-     * **Attention**: only manipulate [SearchSetting]s of a provider via this map as through merging there is no
+     * **Attention**: only manipulate [SearchFilter]s of a provider via this map as through merging there is no
      * guarantee which provider actually provides the value and should be treated as non-deterministic.
      */
     val providerSettings: Map<SettingsId, SearchSettingCombined>
@@ -100,7 +100,7 @@ class SearchUserViewModelImpl(
 ) : SearchUserViewModel, MatrixClientViewModelContext by matrixClientViewModelContext {
     override val searchUserProviders: List<SearchUserProvider> =
         get<SearchUserProviderSorter>().sort(getKoin().getAll<SearchUserProvider>())
-    private val providerSearchResult = searchUserProviders.map { MutableStateFlow<ProviderSearchResult?>(null) }
+    private val providerSearchResult = searchUserProviders.map { MutableStateFlow<UserSearchProviderResult?>(null) }
     private val providerSearchLoading = searchUserProviders.map { MutableStateFlow(false) }
 
     private val _providerSearchCanBeEnabled = MutableStateFlow(searchUserProviders.map { true })
@@ -138,9 +138,9 @@ class SearchUserViewModelImpl(
                 }
                 results.mapIndexed { index, result ->
                     SearchResult(
-                        id = searchUserProviders[index].providerId,
+                        id = searchUserProviders[index].id,
                         enabled = enabled[index],
-                        providerDisplayName = searchUserProviders[index].providerDisplayName,
+                        providerDisplayName = searchUserProviders[index].displayName,
                         providerSearchResult = result,
                         isSearching = loading[index],
                     )
@@ -159,7 +159,7 @@ class SearchUserViewModelImpl(
 
     override val providerSettings: Map<SettingsId, SearchSettingCombined> = buildMap {
         searchUserProviders.forEach { searchUserProvider ->
-            searchUserProvider.settings.forEach { (settingsId, setting) ->
+            searchUserProvider.supportedFilters.forEach { (settingsId, setting) ->
                 val existing = get(settingsId)
                 if (existing == null) {
                     put(
@@ -167,7 +167,7 @@ class SearchUserViewModelImpl(
                         SearchSettingCombined(
                             id = settingsId,
                             name = setting.name,
-                            sourceDisplayNames = listOf(searchUserProvider.providerDisplayName),
+                            sourceDisplayNames = listOf(searchUserProvider.displayName),
                             enabled =
                                 providerSearchEnabled
                                     .map { it[searchUserProviders.indexOf(searchUserProvider)] }
@@ -180,7 +180,7 @@ class SearchUserViewModelImpl(
                     put(
                         settingsId,
                         existing.copy(
-                            sourceDisplayNames = existing.sourceDisplayNames + searchUserProvider.providerDisplayName,
+                            sourceDisplayNames = existing.sourceDisplayNames + searchUserProvider.displayName,
                             // as long as one provider is enabled, the combined setting should be enabled
                             enabled =
                                 combine(existing.enabled, providerSearchEnabled) { existingEnabled, providerEnabled ->
@@ -224,7 +224,9 @@ class SearchUserViewModelImpl(
                             searchUserProviders
                                 .mapIndexed { index, provider ->
                                     enabled[index] &&
-                                        provider.settings.entries.any { searchSettings -> searchSettings.key == id }
+                                        provider.supportedFilters.entries.any { searchSettings ->
+                                            searchSettings.key == id
+                                        }
                                 }
                                 .isNotEmpty()
                     }
@@ -233,7 +235,7 @@ class SearchUserViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
     override fun setProvider(providerId: SearchUserProviderId, enabled: Boolean) {
-        val index = searchUserProviders.indexOfFirst { it.providerId == providerId }
+        val index = searchUserProviders.indexOfFirst { it.id == providerId }
         val rest =
             if (index == providerSearchEnabled.value.size - 1) emptyList()
             else providerSearchEnabled.value.subList(index + 1, providerSearchEnabled.value.size)
@@ -264,7 +266,7 @@ class SearchUserViewModelImpl(
                         providerSearchResults
                             .map {
                                 when (it) {
-                                    is ProviderSearchResult.Success -> it.result.isEmpty()
+                                    is UserSearchProviderResult.Success -> it.result.isEmpty()
                                     else -> null
                                 }
                             }
@@ -291,7 +293,7 @@ class SearchUserViewModelImpl(
                             true
                         } else {
                             enabledSettings.all { (enabledSettingsId, _, _) ->
-                                searchUserProvider.settings.entries.any { (settingsId, setting) ->
+                                searchUserProvider.supportedFilters.entries.any { (settingsId, setting) ->
                                     settingsId == enabledSettingsId
                                 }
                             }
@@ -325,9 +327,7 @@ class SearchUserViewModelImpl(
             .scopedCollectLatest { searchTerm ->
                 log.trace { "search for users in search providers" }
                 searchUserProviders.mapIndexed { index, searchUserProvider ->
-                    log.debug {
-                        " - in search provider ${searchUserProvider.providerDisplayName} (${searchUserProvider.providerId})"
-                    }
+                    log.debug { " - in search provider ${searchUserProvider.displayName} (${searchUserProvider.id})" }
                     if (
                         searchTerm.isNotBlank() ||
                             providerSettings.any { entry -> entry.value.value.value.isNullOrBlank().not() }
@@ -339,11 +339,11 @@ class SearchUserViewModelImpl(
                             launch {
                                 providerSearchResult[index].value =
                                     searchUserProvider.search(searchTerm, matrixClient.userId, this)
-                                log.trace { " searchProvider ${searchUserProvider.providerId} finished search" }
+                                log.trace { " searchProvider ${searchUserProvider.id} finished search" }
                                 providerSearchLoading[index].value = false
                             }
                         } else {
-                            log.debug { "searchProvider ${searchUserProvider.providerId} is not enabled -> no search" }
+                            log.debug { "searchProvider ${searchUserProvider.id} is not enabled -> no search" }
                         }
                     } else {
                         log.trace { "user search blank -> empty list" }
@@ -406,7 +406,7 @@ class SearchUserViewModelImpl(
         val userSearchResults = results.map { searchResult ->
             if (searchResult.enabled) {
                 when (val providerSearchResult = searchResult.providerSearchResult) {
-                    is ProviderSearchResult.Success -> {
+                    is UserSearchProviderResult.Success -> {
                         providerSearchResult.result
                             .filterNot { filteredUserSearchResults.contains(it) }
                             .splitIntoRandomChunks()

@@ -34,10 +34,7 @@ fun SearchUserProviderToggles(searchUserViewModel: SearchUserViewModel) {
                             providerSearchCanBeEnabled[index],
                             providerSearchEnabled[index],
                         ) {
-                            searchUserViewModel.setProvider(
-                                searchUserProvider.providerId,
-                                providerSearchEnabled[index].not(),
-                            )
+                            searchUserViewModel.setProvider(searchUserProvider.id, providerSearchEnabled[index].not())
                         }
                     }
                 }

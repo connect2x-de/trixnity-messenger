@@ -10,11 +10,11 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.searchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderId
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -180,14 +180,14 @@ class SearchUserViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user1)),
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user1)),
                         ),
                         SearchResult(
                             id = "test-2",
                             enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user2, user3)),
                         ),
                     )
                 )
@@ -218,14 +218,14 @@ class SearchUserViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user1)),
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user1)),
                         ),
                         SearchResult(
                             id = "test-2",
                             enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(emptyList()),
+                            providerSearchResult = UserSearchProviderResult.Success(emptyList()),
                         ),
                     )
                 )
@@ -249,14 +249,15 @@ class SearchUserViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf()), // user1 is not in Berlin Ost
+                            providerSearchResult =
+                                UserSearchProviderResult.Success(listOf()), // user1 is not in Berlin Ost
                         ),
                         SearchResult(
                             id = "test-2",
                             enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user2, user3)),
                         ),
                     )
                 )
@@ -273,14 +274,14 @@ class SearchUserViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user1)), // user1 is in Berlin
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user1)), // user1 is in Berlin
                         ),
                         SearchResult(
                             id = "test-2",
                             enabled = true,
                             providerDisplayName = "Test 2",
                             isSearching = false,
-                            providerSearchResult = ProviderSearchResult.Success(listOf(user2, user3)),
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user2, user3)),
                         ),
                     )
                 )
@@ -350,7 +351,7 @@ class SearchUserViewModelTest {
         val cut = searchUserViewModel()
         cut.searchTerm.update("u")
         delay(10.milliseconds)
-        cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2")
+        cut.searchUserProviders.map { it.id } shouldBe listOf("homeserver", "test-1", "test-2")
         cut.providerSearchCanBeEnabled.value shouldBe listOf(true, true, true)
 
         // only provider 1 has an address
@@ -480,7 +481,7 @@ class SearchUserViewModelTest {
         runTest {
             val cut = searchUserViewModel(SearchUserProvider4(SearchUserProvider1()))
             delay(10.milliseconds)
-            cut.searchUserProviders.map { it.providerId } shouldBe listOf("homeserver", "test-1", "test-2", "test-4")
+            cut.searchUserProviders.map { it.id } shouldBe listOf("homeserver", "test-1", "test-2", "test-4")
             cut.providerSearchEnabled.value shouldBe listOf(true, true, true, false)
             cut.providerSearchCanBeEnabled.value shouldBe listOf(true, true, true, true)
 
@@ -517,20 +518,21 @@ class SearchUserViewModelTest {
                                             // dummy implementation to avoid mocking the standard impl
                                             single<SearchUserProvider>(named<HomeserverSearchUserProvider>()) {
                                                 object : SearchUserProvider {
-                                                    override val providerId: String = "homeserver"
-                                                    override val providerDisplayName: String = "Homeserver"
+                                                    override val id: String = "homeserver"
+                                                    override val displayName: String = "Homeserver"
                                                     override val priority: Int = 100
                                                     override val disabledByDefault: Boolean = false
 
-                                                    override val settings: Map<SettingsId, SearchSetting> = emptyMap()
+                                                    override val supportedFilters: Map<SettingsId, SearchFilter> =
+                                                        emptyMap()
 
                                                     override suspend fun search(
                                                         searchTerm: String,
                                                         activeAccount: UserId,
                                                         coroutineScope: CoroutineScope,
-                                                    ): ProviderSearchResult {
+                                                    ): UserSearchProviderResult {
                                                         log.debug { "homeserver search" }
-                                                        return ProviderSearchResult.Success(listOf())
+                                                        return UserSearchProviderResult.Success(listOf())
                                                     }
                                                 }
                                             }
@@ -559,48 +561,48 @@ class SearchUserViewModelTest {
     }
 
     class SearchUserProvider1 : SearchUserProvider {
-        override val providerId: String = "test-1"
-        override val providerDisplayName: String = "Test 1"
+        override val id: String = "test-1"
+        override val displayName: String = "Test 1"
         override val priority: Int = 150
         override val disabledByDefault: Boolean = false
 
         private var city: String? = null
         private var address: String? = null
 
-        val citySetting = SearchSetting("city") { city = it }
-        val addressSetting = SearchSetting("address") { address = it }
+        val citySetting = SearchFilter("city") { city = it }
+        val addressSetting = SearchFilter("address") { address = it }
 
-        override val settings: Map<SettingsId, SearchSetting> =
+        override val supportedFilters: Map<SettingsId, SearchFilter> =
             mapOf(SettingsIdCity to citySetting, SettingsIdAddress to addressSetting)
 
         override suspend fun search(
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope,
-        ): ProviderSearchResult {
+        ): UserSearchProviderResult {
             log.debug { "test-1 search" }
             return when (searchTerm) {
                 "u",
                 "" -> { // "" for testing filter settings
                     if (city == null || city == "Berlin") {
-                        ProviderSearchResult.Success(listOf(user1))
+                        UserSearchProviderResult.Success(listOf(user1))
                     } else {
-                        ProviderSearchResult.Success(listOf())
+                        UserSearchProviderResult.Success(listOf())
                     }
                 }
                 "martinInProvider1" -> {
-                    ProviderSearchResult.Success(listOf(martin))
+                    UserSearchProviderResult.Success(listOf(martin))
                 }
                 else -> {
-                    ProviderSearchResult.Success(listOf())
+                    UserSearchProviderResult.Success(listOf())
                 }
             }
         }
     }
 
     class SearchUserProvider2 : SearchUserProvider {
-        override val providerId: String = "test-2"
-        override val providerDisplayName: String = "Test 2"
+        override val id: String = "test-2"
+        override val displayName: String = "Test 2"
         override val priority: Int = 151
         override val disabledByDefault: Boolean = false
 
@@ -608,26 +610,26 @@ class SearchUserViewModelTest {
         private var options: String? = null
         private var color: Color? = null
 
-        val citySetting = SearchSetting("city") { city = it }
-        val optionsSetting = SearchSetting("options") { options = it }
+        val citySetting = SearchFilter("city") { city = it }
+        val optionsSetting = SearchFilter("options") { options = it }
         val colorSetting =
-            SearchSetting("color", getDisplayValue = { stringValue -> "$stringValue (color)" }) { stringValue ->
+            SearchFilter("color", getDisplayValue = { stringValue -> "$stringValue (color)" }) { stringValue ->
                 color = stringValue?.let { Color.fromValue(it) }
             }
 
-        override val settings: Map<SettingsId, SearchSetting> =
+        override val supportedFilters: Map<SettingsId, SearchFilter> =
             mapOf(SettingsIdCity to citySetting, SettingsIdOptions to optionsSetting, SettingsIdColor to colorSetting)
 
         override suspend fun search(
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope,
-        ): ProviderSearchResult {
+        ): UserSearchProviderResult {
             log.debug { "test-2 search" }
             return if (searchTerm == "u") {
-                ProviderSearchResult.Success(listOf(user2, user3))
+                UserSearchProviderResult.Success(listOf(user2, user3))
             } else {
-                ProviderSearchResult.Success(listOf())
+                UserSearchProviderResult.Success(listOf())
             }
         }
     }
@@ -637,46 +639,46 @@ class SearchUserViewModelTest {
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope,
-        ): ProviderSearchResult {
+        ): UserSearchProviderResult {
             log.debug { "test-2' search" }
-            return ProviderSearchResult.Success(listOf(martin, alex, merlin))
+            return UserSearchProviderResult.Success(listOf(martin, alex, merlin))
         }
     }
 
     class SearchUserProvider4(searchUserProvider: SearchUserProvider) : SearchUserProvider by searchUserProvider {
-        override val providerId: SearchUserProviderId = "test-4"
-        override val providerDisplayName: String = "Test 4"
+        override val id: SearchUserProviderId = "test-4"
+        override val displayName: String = "Test 4"
         override val priority: Int = 1_000
         override val disabledByDefault: Boolean = true
     }
 
     class SearchUserProvider5 : SearchUserProvider {
-        override val providerId: String = "test-5"
-        override val providerDisplayName: String = "Test 5"
+        override val id: String = "test-5"
+        override val displayName: String = "Test 5"
         override val priority: Int = 152
         override val disabledByDefault: Boolean = false
 
         private var different: String? = null
 
-        val differentSetting = SearchSetting("different") { different = it }
+        val differentSetting = SearchFilter("different") { different = it }
 
-        override val settings: Map<SettingsId, SearchSetting> = mapOf(SettingsIdDifferent to differentSetting)
+        override val supportedFilters: Map<SettingsId, SearchFilter> = mapOf(SettingsIdDifferent to differentSetting)
 
         override suspend fun search(
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope,
-        ): ProviderSearchResult {
-            return ProviderSearchResult.Success(listOf())
+        ): UserSearchProviderResult {
+            return UserSearchProviderResult.Success(listOf())
         }
     }
 
     class SearchUserProviderWithResumedSearch : SearchUserProvider {
-        override val providerId: String = "test-99"
-        override val providerDisplayName: String = "Test 99"
+        override val id: String = "test-99"
+        override val displayName: String = "Test 99"
         override val priority: Int = 500
         override val disabledByDefault: Boolean = false
-        override val settings: Map<SettingsId, SearchSetting> = emptyMap()
+        override val supportedFilters: Map<SettingsId, SearchFilter> = emptyMap()
 
         private val resumeSearch = MutableStateFlow(false)
 
@@ -688,16 +690,16 @@ class SearchUserViewModelTest {
             searchTerm: String,
             activeAccount: UserId,
             coroutineScope: CoroutineScope,
-        ): ProviderSearchResult {
+        ): UserSearchProviderResult {
             log.debug { "test-99 search" }
 
             resumeSearch.first { it }
             resumeSearch.value = false
 
             return if (searchTerm == "emptyList") {
-                ProviderSearchResult.Success(listOf())
+                UserSearchProviderResult.Success(listOf())
             } else {
-                ProviderSearchResult.Success(listOf(user1))
+                UserSearchProviderResult.Success(listOf(user1))
             }
         }
     }

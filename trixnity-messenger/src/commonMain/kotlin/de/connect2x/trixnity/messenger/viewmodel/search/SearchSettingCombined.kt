@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Combines multiple [SearchSetting]s with the same [SettingsId] into one setting.
+ * Combines multiple [SearchFilter]s with the same [SettingsId] into one setting.
  *
- * Also holds the [value] of the setting and distributes it to every [SearchSetting].
+ * Also holds the [value] of the setting and distributes it to every [SearchFilter].
  */
 data class SearchSettingCombined(
     /** The id of the setting. */
@@ -29,7 +29,7 @@ data class SearchSettingCombined(
     /** The current value of the setting. Can only be updated via [setValue]. */
     val value: StateFlow<String?> = _value.asStateFlow()
 
-    /** Updates the [value] and distributes it to every [SearchSetting]. */
+    /** Updates the [value] and distributes it to every [SearchFilter]. */
     fun setValue(newValue: String?) {
         setValue.forEach { function -> function(newValue) }
         _value.value = newValue

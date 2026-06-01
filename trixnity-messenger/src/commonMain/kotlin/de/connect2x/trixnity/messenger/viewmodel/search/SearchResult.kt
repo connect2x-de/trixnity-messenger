@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 
 /**
  * A [SearchResult] is a search result from a
@@ -14,7 +14,7 @@ data class SearchResult(
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s display name. */
     val providerDisplayName: String,
     /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s search result. */
-    val providerSearchResult: ProviderSearchResult?,
+    val providerSearchResult: UserSearchProviderResult?,
     /**
      * Indicates whether the search for the
      * [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider] is currently running.

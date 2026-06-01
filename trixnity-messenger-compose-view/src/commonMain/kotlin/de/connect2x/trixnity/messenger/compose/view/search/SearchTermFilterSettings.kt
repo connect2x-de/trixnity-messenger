@@ -57,7 +57,9 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
     val interactionSource = remember { MutableInteractionSource() }
 
     if (
-        searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
+        searchUserViewModel.searchUserProviders.any { searchUserProvider ->
+            searchUserProvider.supportedFilters.isNotEmpty()
+        }
     ) {
         Card(
             modifier =
