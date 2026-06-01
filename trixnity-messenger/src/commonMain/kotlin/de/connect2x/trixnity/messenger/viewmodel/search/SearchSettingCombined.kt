@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Combines multiple [SearchSetting]s with the same [SettingsId] into one setting.
+ * Combines multiple [SearchSetting]s with the same [SettingsId] into one setting. The setting's UI representation is
+ * also combined, e.g., "city" is only shown once in the UI, but could update and be used in multiple
+ * [SearchUserProvider]s that declare this specific setting.
  *
  * Also holds the [value] of the setting and distributes it to every [SearchSetting].
  */
