@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- UI: Some containers not being focusable, when selected item was out of view
+- UI: Draft not showing in roomlist when room empty
 - SDK: Slow compilation times
 - UI,A11y: Some containers not being focusable, when selected item was out of view
 - SDK: Add error handling for player on iOS and Android
