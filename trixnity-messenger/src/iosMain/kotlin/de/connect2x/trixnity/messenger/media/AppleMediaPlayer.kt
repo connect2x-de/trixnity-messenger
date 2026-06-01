@@ -59,15 +59,15 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
                             return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                         }
 
-                    val mediaItem =
-                        ApplePlayerItem(
-                            id = id,
-                            asset = asset,
-                            duration = duration.seconds,
-                            tempFile = tempFile,
-                            coroutineScope = coroutineScope,
-                            player = this
-                        )
+                        val mediaItem =
+                            ApplePlayerItem(
+                                id = id,
+                                asset = asset,
+                                duration = duration.seconds,
+                                tempFile = tempFile,
+                                coroutineScope = coroutineScope,
+                                player = this,
+                            )
 
                         mediaItem.updateLifecycle(lifecycleScope)
                         return Result.success(mediaItem)

@@ -23,11 +23,7 @@ actual fun platformModule(): Module = module {
             }
         )
     }
-    single<MediaPlayer> {
-        AppleMediaPlayer(get())
-    }.apply {
-        bind<AutoCloseable>()
-    }
+    single<MediaPlayer> { AppleMediaPlayer(get()) }.apply { bind<AutoCloseable>() }
 }
 
 fun delegateModule(): Module = module {

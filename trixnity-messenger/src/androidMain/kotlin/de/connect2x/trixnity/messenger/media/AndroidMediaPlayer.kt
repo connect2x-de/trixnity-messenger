@@ -112,7 +112,7 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, private val corouti
                                 tempFile = tempFile,
                                 coroutineScope = coroutineScope,
                                 player = this@AndroidMediaPlayer,
-                                duration = duration.milliseconds
+                                duration = duration.milliseconds,
                             )
 
                         playerItem.updateLifecycle(lifecycleScope)

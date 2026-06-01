@@ -10,9 +10,5 @@ import org.koin.dsl.module
 
 actual fun platformModule(): Module = module {
     single<AppLanguageUpdater> { AppLanguageUpdaterImpl(get(), get()) }.apply { bind<Worker>() }
-    single<MediaPlayer> {
-        WebMediaPlayer(get())
-    }.apply {
-        bind<AutoCloseable>()
-    }
+    single<MediaPlayer> { WebMediaPlayer(get()) }.apply { bind<AutoCloseable>() }
 }

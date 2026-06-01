@@ -22,15 +22,8 @@ actual fun platformModule(): Module = module {
         }
     }
 
-    single<MediaPlayer> {
-        AndroidMediaPlayer(get(), get())
-    }.apply {
-        bind<AutoCloseable>()
-    }
+    single<MediaPlayer> { AndroidMediaPlayer(get(), get()) }.apply { bind<AutoCloseable>() }
 
-    single<PlatformAudioRecorder> {
-        AndroidAudioRecorder(get(), get(), get(), get(), get())
-    }.apply {
-        bind<AutoCloseable>()
-    }
+    single<PlatformAudioRecorder> { AndroidAudioRecorder(get(), get(), get(), get(), get()) }
+        .apply { bind<AutoCloseable>() }
 }

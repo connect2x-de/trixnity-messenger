@@ -5,7 +5,7 @@ import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -112,11 +112,11 @@ class AudioRecorderImpl(
         val contentType: ContentType,
     ) {
         enum class SampleRateHz(val value: Int) {
-            AAC_SAMPLING_RATE_HZ(44_100),
+            AAC_SAMPLING_RATE_HZ(44_100)
         }
 
         enum class BitRate(val value: Int) {
-            AAC_BIT_RATE(32_000),
+            AAC_BIT_RATE(32_000)
         }
     }
 
