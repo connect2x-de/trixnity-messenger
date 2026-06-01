@@ -170,7 +170,7 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
         delay(1.seconds)
         cut.capturePlayer.value shouldBe player
     }
@@ -185,7 +185,7 @@ class AudioRecordingAreaViewModelTest {
         draftMessage.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
         delay(1.seconds)
         draftMessage.value?.content shouldBe
             RoomMessageEventContent.FileBased.Audio(
@@ -193,7 +193,7 @@ class AudioRecordingAreaViewModelTest {
                 format = null,
                 formattedBody = null,
                 fileName = "voice_message.m4a",
-                info = AudioInfo(duration = 5000, mimeType = "audio/ogg", size = 1000),
+                info = AudioInfo(duration = 5000, mimeType = "audio/mp4", size = 1000),
                 url = "testUrl",
                 file = null,
                 relatesTo = null,
@@ -210,7 +210,7 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Ready
         delay(1.seconds)
@@ -218,7 +218,7 @@ class AudioRecordingAreaViewModelTest {
         cut.capturePlayer.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Recording(5.seconds, 5F)
         delay(1.seconds)
@@ -255,7 +255,7 @@ class AudioRecordingAreaViewModelTest {
         eventually(300.milliseconds) { sent shouldBe false }
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         cut.sendAudioMessage()
         eventually(300.milliseconds) { sent shouldBe true }
     }
