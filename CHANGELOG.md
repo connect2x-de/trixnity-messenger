@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI, INTERNAL: Add and enforce ktfmt formatting
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
+- UI,SDK,ANDROID: Drafts for voice messages
 
 ### Changed
 
@@ -62,7 +63,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI,SDK,ANDROID: Drafts for voice messages
 - UI,SDK,ANDROID: Experimental voice messages
 - UI: Per-account notification counter bubbles in roomlist avatar area
 - UI,ANDROID,IOS,MACOS: First-class support for system notification count app icon badges
