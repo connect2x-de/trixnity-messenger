@@ -134,7 +134,7 @@ class AccountSingleViewModelImpl(
                 val capabilities = serverData?.capabilities?.capabilities
                 val hasProfileFieldCapability =
                     capabilities?.profileFields?.isChangeAllowed(ProfileField.AvatarUrl) ?: true
-                val hasSetAvatarUrlCapability = capabilities?.setAvatarUrl?.enabled ?: true
+                val hasSetAvatarUrlCapability = @Suppress("DEPRECATION") capabilities?.setAvatarUrl?.enabled ?: true
 
                 (hasProfileFieldSupport && hasProfileFieldCapability) ||
                     (!hasProfileFieldSupport && hasSetAvatarUrlCapability)
