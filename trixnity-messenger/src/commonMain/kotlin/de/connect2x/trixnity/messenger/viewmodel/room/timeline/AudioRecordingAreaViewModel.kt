@@ -147,7 +147,7 @@ class AudioRecordingAreaViewModelImpl(
                         audio(
                             "voice message",
                             audioRecorderStateValue.data,
-                            type = ContentType.Audio.OGG,
+                            type = audioRecorderStateValue.contentType,
                             duration = audioRecorderStateValue.duration.inWholeMilliseconds,
                             size = audioRecorderStateValue.sizeBytes,
                         )

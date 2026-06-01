@@ -1543,15 +1543,16 @@ public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Compa
 }
 
 public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format {
-	public static final field Companion Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$Companion;
-	public fun <init> (Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lio/ktor/http/ContentType;)V
+	public fun <init> (Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;Lio/ktor/http/ContentType;)V
 	public final fun component1 ()Ljava/lang/Object;
 	public final fun component2 ()Ljava/lang/Object;
 	public final fun component3 ()Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;
-	public final fun component4 ()Lio/ktor/http/ContentType;
-	public final fun copy (Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lio/ktor/http/ContentType;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;
+	public final fun component4 ()Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;
+	public final fun component5 ()Lio/ktor/http/ContentType;
+	public final fun copy (Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;Lio/ktor/http/ContentType;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;Ljava/lang/Object;Ljava/lang/Object;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBitRate ()Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;
 	public final fun getContainer ()Ljava/lang/Object;
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getEncoder ()Ljava/lang/Object;
@@ -1560,13 +1561,16 @@ public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Forma
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$Companion {
-	public final fun getAmrWbContentType ()Lio/ktor/http/ContentType;
+public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate : java/lang/Enum {
+	public static final field AAC_BIT_RATE Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getValue ()I
+	public static fun valueOf (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;
+	public static fun values ()[Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$BitRate;
 }
 
 public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz : java/lang/Enum {
-	public static final field AMR_WB_SAMPLING_RATE_HZ Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;
-	public static final field OPUS_SAMPLING_RATE_HZ Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;
+	public static final field AAC_SAMPLING_RATE_HZ Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getValue ()I
 	public static fun valueOf (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$Format$SampleRateHz;

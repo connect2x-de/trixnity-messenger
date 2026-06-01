@@ -8,10 +8,7 @@ import de.connect2x.trixnity.messenger.util.toNSUrl
 import kotlin.Any
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,19 +59,13 @@ internal class AppleMediaPlayer(private val coroutineScope: CoroutineScope) : Me
                             return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                         }
 
-                        val coroutineCtx = coroutineScope.coroutineContext
-                        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                            log.error(throwable) { "Unexpected error while running media player" }
-                        }
-
-                        val scope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]) + exceptionHandler)
                         val mediaItem =
                             ApplePlayerItem(
                                 id = id,
                                 asset = asset,
                                 duration = duration.seconds,
                                 tempFile = tempFile,
-                                coroutineScope = scope,
+                                coroutineScope = coroutineScope,
                                 player = this,
                             )
 
