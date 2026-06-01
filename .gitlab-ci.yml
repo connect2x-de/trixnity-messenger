@@ -70,7 +70,7 @@ compile:jvm-android-js:
 check:formatting:
   stage: check
   interruptible: true
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   needs: [ ]
   rules:
     - *if-merge-request
@@ -98,7 +98,7 @@ check:vulnerable-dependencies:
   interruptible: true
   timeout: 30m
   needs: [ ]
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       allow_failure: true
@@ -123,7 +123,7 @@ check:changelog:
   interruptible: true
   needs: [ ]
   timeout: 5m
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   rules:
     - *if-merge-request
   script:
@@ -161,7 +161,7 @@ test:sdk:unit:jvm:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -179,7 +179,7 @@ test:sdk:unit:js:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -197,7 +197,7 @@ test:sdk:integration:jvm:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
@@ -213,7 +213,7 @@ test:ui:integration:android:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts:
     when: always
     paths: [ "**/screenshots", "**/build/reports", "**/managed_device_android_test_additional_output" ]
@@ -231,7 +231,7 @@ test:ui:integration:jvm:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts:
     when: always
     paths: [ "**/screenshots", "**/build/reports" ]
@@ -249,7 +249,7 @@ test:ui:integration:js:
   needs:
     - job: "compile:jvm-android-js"
       artifacts: false
-  tags: [ "connect2x-linux-shell" ]
+  tags: [ "connect2x-linux-shell-small" ]
   artifacts:
     when: always
     paths: [ "**/screenshots", "**/build/reports" ]
