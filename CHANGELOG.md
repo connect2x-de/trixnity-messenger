@@ -62,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI,SDK,ANDROID: Drafts for voice messages
 - UI,SDK,ANDROID: Experimental voice messages
 - UI: Per-account notification counter bubbles in roomlist avatar area
 - UI,ANDROID,IOS,MACOS: First-class support for system notification count app icon badges

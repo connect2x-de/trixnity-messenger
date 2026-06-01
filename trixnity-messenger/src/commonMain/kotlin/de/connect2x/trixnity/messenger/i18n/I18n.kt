@@ -420,6 +420,11 @@ open class I18n(
         DE - "Entwurf"
     }
 
+    open fun audioDraftMessage() = translate {
+        EN - "audio message"
+        DE - "Sprachnachricht"
+    }
+
     open fun roomListYou() = translate {
         EN - "you"
         DE - "ich"
