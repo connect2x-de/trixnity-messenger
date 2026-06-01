@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
-- CI: Use shell runner for linux
+- CI: Use shell runner for linux (two different runners depending on workload)
 
 ### Deprecated
 

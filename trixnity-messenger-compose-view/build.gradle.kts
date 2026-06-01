@@ -188,7 +188,7 @@ fun findAvailablePort(range: IntRange): Int {
     error("Could not find an available port in range $range")
 }
 
-val synapsePort = if (CI.isCI) findAvailablePort(10_000..20_000) else 8008
+val synapsePort = findAvailablePort(10_000..20_000)
 val uiTestInfraServiceProvider =
     gradle.sharedServices.registerIfAbsent("uiTestInfraService", UITestInfraService::class) {
         parameters.projectDir.set(layout.projectDirectory)
