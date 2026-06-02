@@ -13,20 +13,20 @@ import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.Tooltip
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 @Composable
-fun SearchUserProviderToggles(searchUserViewModel: SearchUserViewModel) {
+fun SearchUserProviderToggles(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
-    val providerSearchEnabled by searchUserViewModel.providerSearchEnabled.collectAsState()
-    val providerSearchCanBeEnabled by searchUserViewModel.providerSearchCanBeEnabled.collectAsState()
+    val providerSearchEnabled by userSearchViewModel.providerSearchEnabled.collectAsState()
+    val providerSearchCanBeEnabled by userSearchViewModel.providerSearchCanBeEnabled.collectAsState()
 
-    if (searchUserViewModel.searchUserProviders.size > 1) {
+    if (userSearchViewModel.searchProviders.size > 1) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp), // FilterChips have a minimum height
         ) {
-            searchUserViewModel.searchUserProviders.forEachIndexed { index, searchUserProvider ->
+            userSearchViewModel.searchProviders.forEachIndexed { index, searchUserProvider ->
                 Tooltip(i18n.searchUserProviderDeactivated(), enabled = providerSearchCanBeEnabled[index].not()) {
                     Box(Modifier.buttonPointerModifier(enabled = providerSearchEnabled[index])) {
                         SearchUserProviderToggleSelector(
@@ -34,7 +34,7 @@ fun SearchUserProviderToggles(searchUserViewModel: SearchUserViewModel) {
                             providerSearchCanBeEnabled[index],
                             providerSearchEnabled[index],
                         ) {
-                            searchUserViewModel.setProvider(searchUserProvider.id, providerSearchEnabled[index].not())
+                            userSearchViewModel.setProvider(searchUserProvider.id, providerSearchEnabled[index].not())
                         }
                     }
                 }

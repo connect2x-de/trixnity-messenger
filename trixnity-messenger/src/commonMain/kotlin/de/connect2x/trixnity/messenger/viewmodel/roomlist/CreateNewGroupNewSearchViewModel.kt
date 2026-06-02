@@ -2,8 +2,8 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * [UserSearchResult].
  */
 interface CreateNewGroupNewSearchViewModel : CreateNewGroupViewModel {
-    val searchUserViewModel: SearchUserViewModel
+    val userSearchViewModel: UserSearchViewModel
     val groupUsersNewSearch: StateFlow<List<UserSearchResult>>
 
     fun onUserClick(user: UserSearchResult)
@@ -35,8 +35,8 @@ class CreateNewGroupNewSearchViewModelImpl(
     CreateNewGroupNewSearchViewModel,
     CreateNewGroupViewModel by createNewGroupViewModel,
     ViewModelContext by viewModelContext {
-    override val searchUserViewModel: SearchUserViewModel =
-        createNewGroupViewModel.createNewRoomViewModel.searchUserViewModel
+    override val userSearchViewModel: UserSearchViewModel =
+        createNewGroupViewModel.createNewRoomViewModel.userSearchViewModel
 
     private val _groupUsersNewSearch = MutableStateFlow<List<UserSearchResult>>(emptyList())
     override val groupUsersNewSearch: StateFlow<List<UserSearchResult>> = _groupUsersNewSearch.asStateFlow()
@@ -47,7 +47,7 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun removeUserFromList(user: UserSearchResult) {
         _groupUsersNewSearch.value += user
-        searchUserViewModel.filterUserSearchResult(user)
+        userSearchViewModel.filterUserSearchResult(user)
     }
 
     override fun removeUserFromGroup(user: UserSearchResult) {
@@ -56,6 +56,6 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        searchUserViewModel.unfilterUserSearchResult(user)
+        userSearchViewModel.unfilterUserSearchResult(user)
     }
 }

@@ -8,16 +8,16 @@ import androidx.compose.runtime.Composable
 import de.connect2x.messenger.compose.view.common.icons.HomeHealth
 import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFilterChip
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchProvider
 import kotlin.reflect.KClass
 
-class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<HomeserverSearchUserProvider> {
-    override val supports: KClass<out HomeserverSearchUserProvider> = HomeserverSearchUserProvider::class
+class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<HomeserverSearchProvider> {
+    override val supports: KClass<out HomeserverSearchProvider> = HomeserverSearchProvider::class
 
     @Composable
     override fun create(
-        searchUserProvider: SearchUserProvider,
+        searchProvider: SearchProvider<*>,
         providerSearchCanBeActivated: Boolean,
         active: Boolean,
         setActive: () -> Unit,
@@ -25,7 +25,7 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
         ThemedFilterChip(
             selected = active,
             onClick = setActive,
-            label = { Text(searchUserProvider.displayName) },
+            label = { Text(searchProvider.displayName) },
             trailingIcon = { Icon(HomeHealth, contentDescription = null) },
             leadingIcon = {
                 if (active) {

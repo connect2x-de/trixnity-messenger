@@ -4,14 +4,12 @@ package de.connect2x.trixnity.messenger.viewmodel.search.provider
  * Holds information on a special search filters, e.g., "city" -> "Berlin". The value itself is delegated to the
  * provider to perform the search.
  */
-interface SearchFilter {
+interface SearchFilterValue {
     val key: Key<*>
 
-    interface Key<T : SearchFilter>
-}
+    interface Key<T : SearchFilterValue>
 
-data class FulltextSearchFilter(val value: String) : SearchFilter {
-    override val key = Key
+    fun isEmpty(): Boolean
 
-    companion object Key : SearchFilter.Key<FulltextSearchFilter> {}
+    fun displayValue(): String
 }

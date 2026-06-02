@@ -123,7 +123,8 @@ data class MatrixMessengerConfiguration(
         var enableMediaPlayer: Boolean = true,
         /**
          * Mainly can be used by extensions such as TI-Messenger to provide more search providers.
-         * @see [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider].
+         *
+         * @see [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider].
          */
         var enableNewSearch: Boolean = true,
     )

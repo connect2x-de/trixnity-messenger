@@ -3,15 +3,19 @@ package de.connect2x.trixnity.messenger.viewmodel.search.provider
 import de.connect2x.trixnity.core.model.UserId
 import kotlinx.coroutines.CoroutineScope
 
+typealias SearchProviderId = String
+
+interface SettingsId
+
 /**
  * A place to search for users that at least have a UserId. For standard Matrix clients this is the homeserver search
  * which is already included by default.
  *
  * Other places could be an LDAP or central registry for users.
  */
-interface SearchUserProvider<T : SearchProviderResult> {
+interface SearchProvider<T : SearchProviderResult> {
     /** A unique identifier for the provider. */
-    val id: String
+    val id: SearchProviderId
 
     /** A display name, e.g. "homeserver", "LDAP", etc. */
     val displayName: String
@@ -31,20 +35,21 @@ interface SearchUserProvider<T : SearchProviderResult> {
     val disabledByDefault: Boolean
 
     /**
-     * The [SearchFilter] allows the usage of filters in multiple providers. E.g., there could be a filter for "city" in
-     * multiple providers.
+     * The [SearchFilterValue] allows the usage of filters in multiple providers. E.g., there could be a filter for
+     * "city" in multiple providers.
      *
      * When a setting has a value that is not blank, all providers that do not have the setting are automatically
      * disabled (as searching and filtering for the setting does not make sense in this provider).
      */
-    val supportedFilters: List<SearchFilter.Key<*>>
+    val supportedFilters: List<SearchFilterValue.Key<*>>
 
     /**
      * Do the actual search in the search provider. The provider is responsible to include any [filters] it might have
      * defined (e.g., "city" -> "Berlin" and thus results only from Berlin should be returned).
      */
     suspend fun search(
-        filters: List<SearchFilter>,
+        searchTerm: String,
+        filters: List<SearchFilterValue>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): SearchProviderResult

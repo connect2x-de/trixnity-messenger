@@ -5,27 +5,30 @@ import androidx.compose.runtime.remember
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchSettingCombined
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 interface SearchSettingInputSelector {
     @Composable
-    fun create(searchSettingCombined: SearchSettingCombined) =
-        rememberFactory(searchSettingCombined).create(searchSettingCombined)
+    fun create(userSearchViewModel: UserSearchViewModel, searchFilterValueKey: SearchFilterValue.Key<*>) =
+        rememberFactory(searchFilterValueKey).create(userSearchViewModel, searchFilterValueKey)
 
     @Composable
-    private fun rememberFactory(element: SearchSettingCombined): SearchSettingInputView<*> =
+    private fun rememberFactory(element: SearchFilterValue.Key<*>): SearchSettingInputView<*> =
         remember(element) { selectFactory(element) }
 
-    fun selectFactory(element: SearchSettingCombined): SearchSettingInputView<*>
+    fun selectFactory(element: SearchFilterValue.Key<*>): SearchSettingInputView<*>
 }
 
 @Composable
-fun SearchSettingInputSelector(searchSettingCombined: SearchSettingCombined) {
-    with(DI.get<SearchSettingInputSelector>()) { create(searchSettingCombined) }
+fun SearchSettingInputSelector(
+    userSearchViewModel: UserSearchViewModel,
+    searchFilterValueKey: SearchFilterValue.Key<*>,
+) {
+    with(DI.get<SearchSettingInputSelector>()) { create(userSearchViewModel, searchFilterValueKey) }
 }
 
 class SearchSettingInputSelectorImpl(private val factories: List<SearchSettingInputView<*>>) :
@@ -33,18 +36,18 @@ class SearchSettingInputSelectorImpl(private val factories: List<SearchSettingIn
     private val log =
         Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchSettingInputSelectorImpl")
 
-    private val factoryMapping = MutableStateFlow<Map<KClass<out SettingsId>, SearchSettingInputView<*>>>(emptyMap())
+    private val factoryMapping =
+        MutableStateFlow<Map<KClass<out SearchFilterValue.Key<*>>, SearchSettingInputView<*>>>(emptyMap())
 
-    override fun selectFactory(element: SearchSettingCombined): SearchSettingInputView<*> {
-        val target = element.id
-        val searchSettingInputClass = target::class
+    override fun selectFactory(element: SearchFilterValue.Key<*>): SearchSettingInputView<*> {
+        val searchSettingInputClass = element::class
         return factoryMapping.value[searchSettingInputClass]
             ?: run {
                 val foundFactory =
-                    factories.firstOrNull { it.supports.isInstance(target) }
+                    factories.firstOrNull { it.supports.isInstance(element) }
                         ?: run {
                             log.warn {
-                                "There are no registered view for ${target::class.simpleName}. " +
+                                "There are no registered view for ${element::class.simpleName}. " +
                                     "This can be a missing view in the DI."
                             }
                             EmptySearchSettingInputView

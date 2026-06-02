@@ -9,10 +9,9 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.FulltextSearchFilter
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
@@ -24,12 +23,12 @@ import kotlinx.coroutines.coroutineScope
 internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
 internal const val HOMESERVER_DISPLAY_NAME = "Homeserver"
 
-open class HomeserverSearchUserProvider(
+open class HomeserverSearchProvider(
     private val initials: Initials,
     private val i18n: I18n,
     private val matrixClients: MatrixClients,
     private val matrixMessengerConfiguration: MatrixMessengerConfiguration,
-) : SearchUserProvider<UserSearchProviderResult> {
+) : SearchProvider<UserSearchProviderResult> {
     private val log =
         Logger("de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider")
 
@@ -38,14 +37,16 @@ open class HomeserverSearchUserProvider(
     override val priority: Int = 100
     override val disabledByDefault: Boolean = false
 
-    override val supportedFilters = listOf(FulltextSearchFilter)
+    override val supportedFilters: List<SearchFilterValue.Key<*>> = emptyList()
 
     override suspend fun search(
-        filters: List<SearchFilter>,
+        searchTerm: String,
+        filters: List<SearchFilterValue>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): SearchProviderResult {
-        val searchTerm = filters.filterIsInstance<FulltextSearchFilter>().firstOrNull()?.value ?: ""
+        // FIXME
+        //        val searchTerm = filters.filterIsInstance<FulltextSearchFilterValue>().firstOrNull()?.value ?: ""
         return matrixClients.value[activeAccount]?.let { matrixClient ->
             val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
             coroutineScope {
