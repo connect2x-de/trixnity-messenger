@@ -15457,9 +15457,6 @@ final object de.connect2x.trixnity.messenger.viewmodel.util/RoomPresenceImpl : d
     final fun invoke(de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events.m/Presence?> // de.connect2x.trixnity.messenger.viewmodel.util/RoomPresenceImpl.invoke|invoke(de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId){}[0]
 }
 
-final const val de.connect2x.trixnity.messenger.viewmodel.room.timeline/fallbackAudioFileExtension // de.connect2x.trixnity.messenger.viewmodel.room.timeline/fallbackAudioFileExtension|{}fallbackAudioFileExtension[0]
-    final fun <get-fallbackAudioFileExtension>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/fallbackAudioFileExtension.<get-fallbackAudioFileExtension>|<get-fallbackAudioFileExtension>(){}[0]
-
 final val de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons // de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons|{}DefaultCopyMultiMessengerSingletons[0]
     final fun <get-DefaultCopyMultiMessengerSingletons>(): de.connect2x.trixnity.messenger.multi/CopyMultiMessengerSingletons // de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons.<get-DefaultCopyMultiMessengerSingletons>|<get-DefaultCopyMultiMessengerSingletons>(){}[0]
 final val de.connect2x.trixnity.messenger.notification/notificationProviderNoOp // de.connect2x.trixnity.messenger.notification/notificationProviderNoOp|@de.connect2x.trixnity.messenger.MatrixMessengerAccountSettings{}notificationProviderNoOp[0]

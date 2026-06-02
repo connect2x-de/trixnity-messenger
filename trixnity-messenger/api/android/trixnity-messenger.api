@@ -7221,10 +7221,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Audio
 	public fun sendAudioMessage ()V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/AudioRecordingAreaViewModelKt {
-	public static final field fallbackAudioFileExtension Ljava/lang/String;
-}
-
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel {
 	public abstract fun cancelReplace ()V
 	public abstract fun cancelReply ()V
