@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,21 +44,24 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlig
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedInfoChip
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
+fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
 
-    val providerSettings by searchUserViewModel.providerSettingsList.collectAsState()
+    val providerSettings by userSearchViewModel.providerSettingsList.collectAsState()
+    val providerFilters by userSearchViewModel.providedFilters.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
     val rotateState by animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
     val interactionSource = remember { MutableInteractionSource() }
 
     if (
-        searchUserViewModel.searchUserProviders.any { searchUserProvider -> searchUserProvider.settings.isNotEmpty() }
+        userSearchViewModel.searchProviders.any { searchUserProvider ->
+            searchUserProvider.supportedFilters.isNotEmpty()
+        }
     ) {
         Card(
             modifier =
@@ -100,31 +104,32 @@ fun SearchTermFilterSettings(searchUserViewModel: SearchUserViewModel) {
                     )
                 }
             }
+            val saveableStateHolder = rememberSaveableStateHolder()
             AnimatedVisibility(visible = showFilters) {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    searchUserViewModel.providerSettings.values
-                        .groupBy { searchSettingCombined -> searchSettingCombined.sourceDisplayNames }
-                        .forEach { (sources, settings) ->
-                            val settingsEnabled by settings[0].enabled.collectAsState()
-                            Column(Modifier.padding(bottom = 10.dp)) {
-                                if (settingsEnabled) {
-                                    Text(sources.joinToString(), style = MaterialTheme.typography.bodyMediumEmphasized)
-                                    VerySmallSpacer()
-                                    settings.forEach { setting -> SearchSettingInputSelector(setting) }
-                                } else {
-                                    Tooltip(i18n.searchUserDisabledFilter()) {
-                                        Text(
-                                            sources.joinToString(),
-                                            style =
-                                                MaterialTheme.typography.bodyMedium.copy(
-                                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                                                ),
-                                        )
-                                        SmallSpacer()
-                                    }
-                                }
+                    providerFilters.forEach { searchFilter ->
+                        if (searchFilter.isEnabled) {
+                            Text(
+                                searchFilter.sources.joinToString { it.displayName },
+                                style = MaterialTheme.typography.bodyMediumEmphasized,
+                            )
+                            VerySmallSpacer()
+                            searchFilter.searchFilterValueKeys.forEach { key ->
+                                SearchSettingInputSelector(userSearchViewModel, key)
+                            }
+                        } else {
+                            Tooltip(i18n.searchUserDisabledFilter()) {
+                                Text(
+                                    searchFilter.sources.joinToString { it.displayName },
+                                    style =
+                                        MaterialTheme.typography.bodyMedium.copy(
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                        ),
+                                )
+                                SmallSpacer()
                             }
                         }
+                    }
                 }
             }
         }

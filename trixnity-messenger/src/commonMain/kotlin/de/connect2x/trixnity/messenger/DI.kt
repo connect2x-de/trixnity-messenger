@@ -141,11 +141,11 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorter
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProviderSorterImpl
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderSorter
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderSorterImpl
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
@@ -361,14 +361,14 @@ private fun roomListViewModels() = module {
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
 }
 
-inline fun <reified F : SearchUserProvider> Module.searchUserProvider(
-    noinline definition: Scope.(ParametersHolder) -> SearchUserProvider
-) = single<SearchUserProvider>(named<F>(), definition = definition)
+inline fun <reified F : SearchProvider<*>> Module.searchUserProvider(
+    noinline definition: Scope.(ParametersHolder) -> SearchProvider<*>
+) = single<SearchProvider<*>>(named<F>(), definition = definition)
 
 private fun newSearchViewModels() = module {
-    searchUserProvider<HomeserverSearchUserProvider> { HomeserverSearchUserProvider(get(), get(), get(), get()) }
-    single<SearchUserProviderSorter> { SearchUserProviderSorterImpl() }
-    single<SearchUserViewModelFactory> { SearchUserViewModelFactory }
+    searchUserProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
+    single<UserSearchProviderSorter> { UserSearchProviderSorterImpl() }
+    single<UserSearchViewModelFactory> { UserSearchViewModelFactory }
     single<CreateNewChatViewModelFactory> {
         object : CreateNewChatViewModelFactory {
             override fun create(

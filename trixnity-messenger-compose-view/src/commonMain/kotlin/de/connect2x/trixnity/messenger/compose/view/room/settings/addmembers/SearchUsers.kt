@@ -22,7 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSear
 
 @Composable
 fun SearchUsers(addMembersNewSearchViewModel: AddMembersNewSearchViewModel, aboveSearch: @Composable () -> Unit) {
-    val searchUserViewModel = addMembersNewSearchViewModel.potentialMembersNewSearchViewModel.searchUserViewModel
+    val searchUserViewModel = addMembersNewSearchViewModel.potentialMembersNewSearchViewModel.userSearchViewModel
     val searchResultList by searchUserViewModel.searchResultList.collectAsState()
     val noResultsFound by searchUserViewModel.noResultsFound.collectAsState()
 
@@ -40,7 +40,7 @@ fun SearchUsers(addMembersNewSearchViewModel: AddMembersNewSearchViewModel, abov
                 }
             }
             searchResults(
-                searchUserProviders = searchUserViewModel.searchUserProviders,
+                searchProviders = searchUserViewModel.searchProviders,
                 onUserClick = addMembersNewSearchViewModel::onUserClick,
                 searchResultList = searchResultList,
                 noResultsFound = noResultsFound,

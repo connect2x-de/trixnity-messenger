@@ -23,8 +23,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearch
 fun SearchUsers(createNewChatViewModel: CreateNewChatNewSearchViewModel) {
     val listState = rememberLazyListState()
 
-    val searchResultList by createNewChatViewModel.searchUserViewModel.searchResultList.collectAsState()
-    val noResultsFound by createNewChatViewModel.searchUserViewModel.noResultsFound.collectAsState()
+    val searchResultList by createNewChatViewModel.userSearchViewModel.searchResultList.collectAsState()
+    val noResultsFound by createNewChatViewModel.userSearchViewModel.noResultsFound.collectAsState()
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(state = listState) {
@@ -32,9 +32,9 @@ fun SearchUsers(createNewChatViewModel: CreateNewChatNewSearchViewModel) {
                 AddOrSearchGroup(createNewChatViewModel)
                 HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
             }
-            stickyHeader("searchTerm") { SearchTerm(createNewChatViewModel.searchUserViewModel) }
+            stickyHeader("searchTerm") { SearchTerm(createNewChatViewModel.userSearchViewModel) }
             searchResults(
-                searchUserProviders = createNewChatViewModel.searchUserViewModel.searchUserProviders,
+                searchProviders = createNewChatViewModel.userSearchViewModel.searchProviders,
                 onUserClick = createNewChatViewModel::onUserClick,
                 searchResultList = searchResultList,
                 noResultsFound = noResultsFound,

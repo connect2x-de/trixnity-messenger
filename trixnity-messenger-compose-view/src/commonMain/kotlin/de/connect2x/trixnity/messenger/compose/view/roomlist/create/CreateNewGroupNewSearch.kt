@@ -56,8 +56,8 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
             val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
             val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
             val isCreating by createNewGroupViewModel.isCreating.collectAsState()
-            val searchResultList by createNewGroupViewModel.searchUserViewModel.searchResultList.collectAsState()
-            val noResultsFound by createNewGroupViewModel.searchUserViewModel.noResultsFound.collectAsState()
+            val searchResultList by createNewGroupViewModel.userSearchViewModel.searchResultList.collectAsState()
+            val noResultsFound by createNewGroupViewModel.userSearchViewModel.noResultsFound.collectAsState()
             val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
             val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
 
@@ -122,9 +122,9 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                                     createNewGroupViewModel.removeUserFromGroup(it)
                                 }
                             }
-                            stickyHeader("searchTerm") { SearchTerm(createNewGroupViewModel.searchUserViewModel) }
+                            stickyHeader("searchTerm") { SearchTerm(createNewGroupViewModel.userSearchViewModel) }
                             searchResults(
-                                searchUserProviders = createNewGroupViewModel.searchUserViewModel.searchUserProviders,
+                                searchProviders = createNewGroupViewModel.userSearchViewModel.searchProviders,
                                 onUserClick = createNewGroupViewModel::onUserClick,
                                 searchResultList = searchResultList,
                                 noResultsFound = noResultsFound,

@@ -1,19 +1,20 @@
 package de.connect2x.trixnity.messenger.compose.view.search
 
 import androidx.compose.runtime.Composable
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchSettingCombined
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
 import kotlin.reflect.KClass
 
-interface SearchSettingInputView<S : SettingsId> {
+interface SearchSettingInputView<S : SearchFilterValue.Key<*>> {
     val supports: KClass<out S>
 
-    @Composable fun create(searchSettingCombined: SearchSettingCombined)
+    @Composable fun create(userSearchViewModel: UserSearchViewModel, searchFilterValueKey: SearchFilterValue.Key<*>)
 }
 
-object EmptySearchSettingInputView : SearchSettingInputView<SettingsId> {
-    override val supports: KClass<SettingsId>
-        get() = SettingsId::class
+object EmptySearchSettingInputView : SearchSettingInputView<SearchFilterValue.Key<*>> {
+    override val supports: KClass<SearchFilterValue.Key<*>>
+        get() = SearchFilterValue.Key::class
 
-    @Composable override fun create(searchSettingCombined: SearchSettingCombined) {}
+    @Composable
+    override fun create(userSearchViewModel: UserSearchViewModel, searchFilterValueKey: SearchFilterValue.Key<*>) {}
 }

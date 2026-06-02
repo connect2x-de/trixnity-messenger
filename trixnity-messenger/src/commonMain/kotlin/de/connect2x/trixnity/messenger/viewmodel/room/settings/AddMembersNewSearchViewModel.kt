@@ -37,7 +37,7 @@ class AddMembersNewSearchViewModelImpl(
 
     override fun removeUserFromList(user: UserSearchResult) {
         _groupUsersNewSearch.value += user
-        potentialMembersNewSearchViewModel.searchUserViewModel.filterUserSearchResult(user)
+        potentialMembersNewSearchViewModel.userSearchViewModel.filterUserSearchResult(user)
     }
 
     override fun removeUserFromGroup(user: UserSearchResult) {
@@ -46,6 +46,6 @@ class AddMembersNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        potentialMembersNewSearchViewModel.searchUserViewModel.unfilterUserSearchResult(user)
+        potentialMembersNewSearchViewModel.userSearchViewModel.unfilterUserSearchResult(user)
     }
 }

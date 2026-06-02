@@ -7,9 +7,9 @@ import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.PreviewSearchUserViewModel
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.PreviewUserSearchViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.koin.core.component.get
 
@@ -26,7 +26,7 @@ interface CreateNewRoomViewModelFactory {
 
 interface CreateNewRoomViewModel {
     val searchHandler: UserSearchHandler
-    val searchUserViewModel: SearchUserViewModel
+    val userSearchViewModel: UserSearchViewModel
     val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>>
     val error: MutableStateFlow<String?>
     val errorDetails: MutableStateFlow<String?>
@@ -39,7 +39,7 @@ open class CreateNewRoomViewModelImpl(
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)
-    override val searchUserViewModel: SearchUserViewModel = get<SearchUserViewModelFactory>().create(viewModelContext)
+    override val userSearchViewModel: UserSearchViewModel = get<UserSearchViewModelFactory>().create(viewModelContext)
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -47,7 +47,7 @@ open class CreateNewRoomViewModelImpl(
 
 class PreviewCreateNewRoomViewModel : CreateNewRoomViewModel {
     override val searchHandler: UserSearchHandler = PreviewUserSearchHandler
-    override val searchUserViewModel: SearchUserViewModel = PreviewSearchUserViewModel()
+    override val userSearchViewModel: UserSearchViewModel = PreviewUserSearchViewModel()
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)

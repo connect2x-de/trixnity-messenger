@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -13,28 +13,28 @@ import kotlinx.coroutines.flow.update
 interface SearchUserProviderToggleViewSelector {
     @Composable
     fun create(
-        searchUserProvider: SearchUserProvider,
+        searchProvider: SearchProvider<*>,
         providerSearchCanBeActivated: Boolean,
         active: Boolean,
         setActive: () -> Unit,
-    ) = rememberFactory(searchUserProvider).create(searchUserProvider, providerSearchCanBeActivated, active, setActive)
+    ) = rememberFactory(searchProvider).create(searchProvider, providerSearchCanBeActivated, active, setActive)
 
     @Composable
-    private fun rememberFactory(element: SearchUserProvider): SearchUserProviderToggleView<*> =
+    private fun rememberFactory(element: SearchProvider<*>): SearchUserProviderToggleView<*> =
         remember(element) { selectFactory(element) }
 
-    fun selectFactory(element: SearchUserProvider): SearchUserProviderToggleView<*>
+    fun selectFactory(element: SearchProvider<*>): SearchUserProviderToggleView<*>
 }
 
 @Composable
 fun SearchUserProviderToggleSelector(
-    searchUserProvider: SearchUserProvider,
+    searchProvider: SearchProvider<*>,
     providerSearchCanBeActivated: Boolean,
     active: Boolean,
     setActive: () -> Unit,
 ) {
     with(DI.get<SearchUserProviderToggleViewSelector>()) {
-        create(searchUserProvider, providerSearchCanBeActivated, active, setActive)
+        create(searchProvider, providerSearchCanBeActivated, active, setActive)
     }
 }
 
@@ -44,9 +44,9 @@ class SearchUserProviderToggleViewSelectorImpl(private val factories: List<Searc
         Logger("de.connect2x.trixnity.messenger.compose.view.roomlist.search.SearchUserProviderToggleViewSelectorImpl")
 
     private val factoryMapping =
-        MutableStateFlow<Map<KClass<out SearchUserProvider>, SearchUserProviderToggleView<*>>>(emptyMap())
+        MutableStateFlow<Map<KClass<out SearchProvider<*>>, SearchUserProviderToggleView<*>>>(emptyMap())
 
-    override fun selectFactory(element: SearchUserProvider): SearchUserProviderToggleView<*> {
+    override fun selectFactory(element: SearchProvider<*>): SearchUserProviderToggleView<*> {
         val searchUserProviderClass = element::class
         return factoryMapping.value[searchUserProviderClass]
             ?: run {

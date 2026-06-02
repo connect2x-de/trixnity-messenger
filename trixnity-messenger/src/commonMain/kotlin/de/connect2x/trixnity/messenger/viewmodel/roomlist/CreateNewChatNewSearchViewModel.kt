@@ -11,8 +11,8 @@ import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.get
 
 interface CreateNewChatNewSearchViewModel : CreateNewChatViewModel {
-    val searchUserViewModel: SearchUserViewModel
+    val userSearchViewModel: UserSearchViewModel
 
     fun onUserClick(user: UserSearchResult)
 }
@@ -39,7 +39,7 @@ class CreateNewChatNewSearchViewModelImpl(
     private val _isCreating = MutableStateFlow(false)
     override val isCreating: StateFlow<Boolean> = _isCreating
 
-    override val searchUserViewModel = createNewChatViewModel.createNewRoomViewModel.searchUserViewModel
+    override val userSearchViewModel = createNewChatViewModel.createNewRoomViewModel.userSearchViewModel
 
     // cannot be changed to UserId, since UI will break otherwise
     override fun onUserClick(user: UserSearchResult) {

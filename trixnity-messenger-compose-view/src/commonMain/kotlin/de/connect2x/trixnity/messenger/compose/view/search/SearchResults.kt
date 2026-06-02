@@ -12,10 +12,10 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 
 fun LazyListScope.searchResults(
-    searchUserProviders: List<SearchUserProvider>,
+    searchProviders: List<SearchProvider<*>>,
     onUserClick: (UserSearchResult) -> Unit,
     searchResultList: List<UserSearchResult>,
     noResultsFound: Boolean?,
@@ -36,7 +36,7 @@ fun LazyListScope.searchResults(
                 Box(Modifier.padding(horizontal = 10.dp)) {
                     SearchResultSelector(
                         userSearchResult = searchResult,
-                        showOrigin = searchUserProviders.size > 1,
+                        showOrigin = searchProviders.size > 1,
                         onClick = { onUserClick(it) },
                     )
                 }

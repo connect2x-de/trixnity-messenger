@@ -9,10 +9,10 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchSetting
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SettingsId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderResult
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
 import kotlinx.coroutines.CoroutineScope
@@ -23,27 +23,30 @@ import kotlinx.coroutines.coroutineScope
 internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
 internal const val HOMESERVER_DISPLAY_NAME = "Homeserver"
 
-open class HomeserverSearchUserProvider(
+open class HomeserverSearchProvider(
     private val initials: Initials,
     private val i18n: I18n,
     private val matrixClients: MatrixClients,
     private val matrixMessengerConfiguration: MatrixMessengerConfiguration,
-) : SearchUserProvider {
+) : SearchProvider<UserSearchProviderResult> {
     private val log =
         Logger("de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchUserProvider")
 
-    override val providerId: String = HOMESERVER_PROVIDER_ID
-    override val providerDisplayName: String = HOMESERVER_DISPLAY_NAME
+    override val id: String = HOMESERVER_PROVIDER_ID
+    override val displayName: String = HOMESERVER_DISPLAY_NAME
     override val priority: Int = 100
     override val disabledByDefault: Boolean = false
 
-    override val settings: Map<SettingsId, SearchSetting> = emptyMap()
+    override val supportedFilters: List<SearchFilterValue.Key<*>> = emptyList()
 
     override suspend fun search(
         searchTerm: String,
+        filters: List<SearchFilterValue>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
-    ): ProviderSearchResult {
+    ): SearchProviderResult {
+        // FIXME
+        //        val searchTerm = filters.filterIsInstance<FulltextSearchFilterValue>().firstOrNull()?.value ?: ""
         return matrixClients.value[activeAccount]?.let { matrixClient ->
             val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
             coroutineScope {
@@ -57,7 +60,7 @@ open class HomeserverSearchUserProvider(
         }
             ?: run {
                 log.error { "No active MatrixClient found. This is something unexpected and should not happen." }
-                ProviderSearchResult.Failure("No MatrixClient found.")
+                UserSearchProviderResult.Failure("No MatrixClient found.")
             }
     }
 
@@ -66,14 +69,14 @@ open class HomeserverSearchUserProvider(
         userId: UserId,
         coroutineScope: CoroutineScope,
         maxMediaSizeInMemory: Long,
-    ): ProviderSearchResult.Success {
+    ): UserSearchProviderResult.Success {
         val profile =
             matrixClient.api.user
                 .getProfile(userId)
                 .onFailure { exc -> log.error(exc) { "Cannot access user profile for $userId." } }
                 .getOrNull()
 
-        return ProviderSearchResult.Success(
+        return UserSearchProviderResult.Success(
             listOf(
                 HomeserverUserSearchResult(
                     userId = userId,
@@ -91,14 +94,14 @@ open class HomeserverSearchUserProvider(
         searchTerm: String,
         coroutineScope: CoroutineScope,
         maxMediaSizeInMemory: Long,
-    ): ProviderSearchResult =
+    ): UserSearchProviderResult =
         // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
         matrixClient.api.user
             .searchUsers(searchTerm, i18n.currentLang.code, 100) // FIXME set limit?
             .fold( // TODO get correct language
                 onSuccess = { response ->
                     log.trace { "got users $searchTerm" }
-                    ProviderSearchResult.Success(
+                    UserSearchProviderResult.Success(
                         response.results
                             .asSequence()
                             .filter { searchUser -> searchUser.userId != matrixClient.userId }
@@ -126,7 +129,7 @@ open class HomeserverSearchUserProvider(
                 },
                 onFailure = {
                     log.error(it) { "search for users resulted in error" }
-                    ProviderSearchResult.Failure("Error fetching users.")
+                    UserSearchProviderResult.Failure("Error fetching users.")
                 },
             )
 }

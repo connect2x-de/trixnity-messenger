@@ -28,24 +28,24 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
-import de.connect2x.trixnity.messenger.viewmodel.search.SearchUserViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 interface UserSearchFieldNewSearchView {
-    @Composable fun create(searchUserViewModel: SearchUserViewModel)
+    @Composable fun create(userSearchViewModel: UserSearchViewModel)
 }
 
 @Composable
-fun UserSearchFieldNewSearch(searchUserViewModel: SearchUserViewModel) {
-    with(DI.get<UserSearchFieldNewSearchView>()) { create(searchUserViewModel) }
+fun UserSearchFieldNewSearch(userSearchViewModel: UserSearchViewModel) {
+    with(DI.get<UserSearchFieldNewSearchView>()) { create(userSearchViewModel) }
 }
 
 class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
     @Composable
-    override fun create(searchUserViewModel: SearchUserViewModel) {
+    override fun create(userSearchViewModel: UserSearchViewModel) {
         val i18n = DI.get<I18nView>()
 
-        var userSearchTerm by searchUserViewModel.searchTerm.collectAsTextFieldValueState()
-        val isSearching by searchUserViewModel.isSearching.collectAsState()
+        var userSearchTerm by userSearchViewModel.searchTerm.collectAsTextFieldValueState()
+        val isSearching by userSearchViewModel.isSearching.collectAsState()
 
         val focusRequester = remember { FocusRequester() }
         LaunchedEffect(Unit) { focusRequester.requestFocus() }

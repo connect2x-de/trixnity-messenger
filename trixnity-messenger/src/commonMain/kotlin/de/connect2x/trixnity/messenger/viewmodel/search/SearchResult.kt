@@ -1,23 +1,19 @@
 package de.connect2x.trixnity.messenger.viewmodel.search
 
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.ProviderSearchResult
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderId
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderResult
 
-/**
- * A [SearchResult] is a search result from a
- * [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider].
- */
+/** A [SearchResult] is a search result from a [SearchProvider]. */
 data class SearchResult(
-    /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s id. */
-    val id: String,
+    /** The [SearchProvider]'s id. */
+    val id: SearchProviderId,
     /** Indicates whether the search should be performed at all. */
     val enabled: Boolean,
-    /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s display name. */
+    /** The [SearchProvider]'s display name. */
     val providerDisplayName: String,
-    /** The [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider]'s search result. */
-    val providerSearchResult: ProviderSearchResult?,
-    /**
-     * Indicates whether the search for the
-     * [de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchUserProvider] is currently running.
-     */
+    /** The [SearchProvider]'s search result. */
+    val providerSearchResult: SearchProviderResult?,
+    /** Indicates whether the search for the [SearchProvider] is currently running. */
     val isSearching: Boolean,
 )
