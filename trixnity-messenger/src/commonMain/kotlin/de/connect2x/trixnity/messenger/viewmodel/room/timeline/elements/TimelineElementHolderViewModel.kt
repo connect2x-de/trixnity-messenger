@@ -50,11 +50,13 @@ import de.connect2x.trixnity.messenger.viewmodel.util.IsOneToOneRoom
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -79,6 +81,7 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -338,9 +341,17 @@ class TimelineElementHolderViewModelImpl(
     )
 
     override val element =
-        combine(timelineEventFlow.distinctUntilChangedBy { it.content }, newContentIfReplaced.distinctUntilChanged()) {
-                timelineEvent,
-                newContent ->
+        combine(
+                timelineEventFlow
+                    .transformLatest {
+                        if (it.content == null) {
+                            delay(100.milliseconds)
+                        }
+                        emit(it)
+                    }
+                    .distinctUntilChangedBy { it.content },
+                newContentIfReplaced.distinctUntilChanged(),
+            ) { timelineEvent, newContent ->
                 val currentElement = elementCache.value
                 currentElement?.lifecycle?.destroy()
 

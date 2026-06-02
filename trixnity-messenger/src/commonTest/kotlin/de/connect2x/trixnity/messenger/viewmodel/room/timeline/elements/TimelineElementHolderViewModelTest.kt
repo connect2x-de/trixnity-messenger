@@ -27,9 +27,11 @@ import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.Mentions
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedMessageEventContent.MegolmEncryptedMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.model.keys.MegolmMessageValue
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -40,6 +42,7 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
 import dev.mokkery.answering.calls
@@ -596,6 +599,57 @@ class TimelineElementHolderViewModelTest {
             )
         }
         eventually(100.milliseconds) { cut.showUnreadMarker.value shouldBe false }
+    }
+
+    @Test
+    fun `element » shortly wait for decryption before create wait view model`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        val timeline =
+            timeline(roomServiceMock, roomId) {
+                +MessageEvent(
+                    content =
+                        MegolmEncryptedMessageEventContent(MegolmMessageValue("ciphertext"), sessionId = "sessionId"),
+                    id = eventId,
+                    sender = aliceId,
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                )
+            }
+        val event = timeline.eventsInStore.value[0]
+        val eventHolder = cut(timelineEvent = event.value, timelineEventFlow = event)
+        backgroundScope.launch { eventHolder.element.collect() }
+        val eventElement = eventHolder.element
+        delay(99.milliseconds)
+        eventElement.value shouldBe null
+        delay(2.milliseconds)
+        eventElement.value.shouldBeInstanceOf<EncryptedWaitTimelineElementViewModel>()
+    }
+
+    @Test
+    fun `element » shortly wait for decryption and create view model when successful`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        var timelineEvent: MutableStateFlow<TimelineEvent>? = null
+        timeline(roomServiceMock, roomId) {
+            timelineEvent =
+                +MessageEvent(
+                    content =
+                        MegolmEncryptedMessageEventContent(MegolmMessageValue("ciphertext"), sessionId = "sessionId"),
+                    id = eventId,
+                    sender = aliceId,
+                    roomId = roomId,
+                    originTimestamp = 1234,
+                )
+        }
+        requireNotNull(timelineEvent)
+        val eventHolder = cut(timelineEvent = timelineEvent.value, timelineEventFlow = timelineEvent)
+        backgroundScope.launch { eventHolder.element.collect() }
+        val eventElement = eventHolder.element
+        delay(20.milliseconds)
+        eventElement.value shouldBe null
+        timelineEvent.update { it.copy(content = Result.success(TextBased.Text("dino!"))) }
+
+        delay(2.milliseconds)
+        eventElement.value.shouldBeInstanceOf<RoomMessageTimelineElementViewModel.TextBased.Text>()
     }
 
     @Test
