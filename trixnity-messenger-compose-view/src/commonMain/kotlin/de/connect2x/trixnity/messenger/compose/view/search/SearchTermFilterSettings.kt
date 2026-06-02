@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -29,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +43,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedInfoChip
+import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedInputChip
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -51,7 +51,7 @@ import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
 
-    val providerSettings by userSearchViewModel.providerSettingsList.collectAsState()
+    val providerSettings by userSearchViewModel.activeSearchFilters.collectAsState()
     val providerFilters by userSearchViewModel.providedFilters.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
@@ -89,8 +89,12 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
                     ) {
                         providerSettings.forEach { providerSetting ->
-                            ThemedInfoChip(
-                                label = { Text(providerSetting, style = MaterialTheme.typography.bodySmall) }
+                            ThemedInputChip(
+                                selected = true,
+                                onClick = { providerSetting.remove() },
+                                label = { Text(providerSetting.value, style = MaterialTheme.typography.bodySmall) },
+                                trailingIcon = { Icon(Icons.Default.Close, "") },
+                                modifier = Modifier.buttonPointerModifier(),
                             )
                         }
                     }
@@ -104,7 +108,6 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                     )
                 }
             }
-            val saveableStateHolder = rememberSaveableStateHolder()
             AnimatedVisibility(visible = showFilters) {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     providerFilters.forEach { searchFilter ->
@@ -117,6 +120,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                             searchFilter.searchFilterValueKeys.forEach { key ->
                                 SearchSettingInputSelector(userSearchViewModel, key)
                             }
+                            SmallSpacer()
                         } else {
                             Tooltip(i18n.searchUserDisabledFilter()) {
                                 Text(

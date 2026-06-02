@@ -40,7 +40,10 @@ interface UserSearchViewModelFactory {
     companion object : UserSearchViewModelFactory
 }
 
-/** Searches for users in different [SearchProvider]s and provides a combined search result list. */
+/**
+ * Searches for users with a [searchTerm] and current values of the [providedFilters] in different [searchProviders] and
+ * provides a combined [searchResultList].
+ */
 interface UserSearchViewModel {
     /**
      * Global search term for every [SearchProvider]. When changed, all providers use this term to initiate a search and
@@ -58,7 +61,7 @@ interface UserSearchViewModel {
     val providedFilters: StateFlow<List<SearchFilter>>
 
     /** Accumulation of all settings the search providers have, e.g., "Berlin, Germany". */
-    val providerSettingsList: StateFlow<List<String>>
+    val activeSearchFilters: StateFlow<List<ActiveFilter>>
 
     /**
      * The current list of set [SearchFilterValue]s. UI elements for filters can query this list and filter for a
@@ -146,32 +149,33 @@ class UserSearchViewModelImpl(
                         searchProvider.supportedFilters.map { Triple(it, searchProvider, enabled[index]) }
                     }
                     .fold(emptyList<SearchFilter>()) { acc, (key, provider, enabled) ->
-                        val existing = acc.find { it.searchFilterValueKeys.contains(key) }
-                        if (existing != null) { // maybe the search filter is already present
+                        val existingKey = acc.find { it.searchFilterValueKeys.contains(key) }
+                        if (existingKey != null) { // the search filter is already present
                             val withoutCurrentKey =
-                                existing.copy(
-                                    searchFilterValueKeys = existing.searchFilterValueKeys.filter { it != key }
+                                existingKey.copy(
+                                    searchFilterValueKeys = existingKey.searchFilterValueKeys.filter { it != key }
                                 )
-                            val alreadyCombined = acc.find { it.sources == existing.sources + provider }
+                            val alreadyCombined = acc.find { it.sources == existingKey.sources + provider }
+                            // we already combined with another provider -> we need to
                             if (alreadyCombined != null) {
-                                acc - existing + withoutCurrentKey - alreadyCombined +
+                                acc - existingKey + withoutCurrentKey - alreadyCombined +
                                     alreadyCombined.copy(
                                         sources = alreadyCombined.sources,
                                         searchFilterValueKeys = alreadyCombined.searchFilterValueKeys + key,
                                         isEnabled = alreadyCombined.isEnabled || enabled,
                                     )
-                            } else {
-                                acc - existing +
+                            } else { // no need to split, just add to the list of sources
+                                acc - existingKey +
                                     withoutCurrentKey +
                                     SearchFilter(
-                                        sources = existing.sources + provider,
+                                        sources = existingKey.sources + provider,
                                         searchFilterValueKeys = listOf(key),
-                                        isEnabled = existing.isEnabled || enabled,
+                                        isEnabled = existingKey.isEnabled || enabled,
                                     )
                             }
                         } else {
                             val existing = acc.find { it.sources.size == 1 && it.sources.first() == provider }
-                            if (existing != null) { // maybe the search provider already has registered a filter
+                            if (existing != null) { // the search provider already has registered a filter
                                 acc - existing +
                                     existing.copy(searchFilterValueKeys = existing.searchFilterValueKeys + key)
                             } else {
@@ -221,7 +225,7 @@ class UserSearchViewModelImpl(
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    override val providerSettingsList: StateFlow<List<String>> =
+    override val activeSearchFilters: StateFlow<List<ActiveFilter>> =
         combine(providerSearchEnabled, searchFilterValues) { enabled, filterValues ->
                 log.debug {
                     "provider settings: $enabled, ${filterValues.joinToString { "${it.key}: ${it.displayValue()}" }}"
@@ -235,8 +239,11 @@ class UserSearchViewModelImpl(
                                 }
                                 .isNotEmpty()
                     }
-                    .map { it.displayValue() }
-                //   .map { "${it.key}: ${it.displayValue()}" } // FIXME who is responsible for i18n?
+                    .map {
+                        ActiveFilter(it.displayValue()) {
+                            removeFilterValue(it.key)
+                        }
+                    }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -287,7 +294,7 @@ class UserSearchViewModelImpl(
 
     override fun setSearchFilterValue(searchFilterValue: SearchFilterValue) {
         if (searchFilterValue.isEmpty()) {
-            searchFilterValues.value = searchFilterValues.value.filter { it.key != searchFilterValue.key }
+            removeFilterValue(searchFilterValue.key)
         } else {
             val existing = searchFilterValues.value.find { it.key == searchFilterValue.key }
             if (existing != null) {
@@ -296,6 +303,10 @@ class UserSearchViewModelImpl(
                 searchFilterValues.value += searchFilterValue
             }
         }
+    }
+
+    private fun removeFilterValue(key: SearchFilterValue.Key<*>) {
+        searchFilterValues.value = searchFilterValues.value.filter { it.key != key }
     }
 
     init {
@@ -439,7 +450,7 @@ class PreviewUserSearchViewModel : UserSearchViewModel {
     override val providedFilters: StateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
     override val searchResultList: MutableStateFlow<List<UserSearchResult>> = MutableStateFlow(emptyList())
     override val providerSearchEnabled: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
-    override val providerSettingsList: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
+    override val activeSearchFilters: MutableStateFlow<List<ActiveFilter>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val noResultsFound: StateFlow<Boolean?> = MutableStateFlow(null)
     override val providerSearchCanBeEnabled: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())

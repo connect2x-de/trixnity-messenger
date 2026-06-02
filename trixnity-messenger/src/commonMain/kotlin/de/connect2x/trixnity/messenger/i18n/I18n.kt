@@ -1724,6 +1724,11 @@ open class I18n(
         EN - "Go to Permissions and allow Microphone"
         DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
     }
+
+    open fun userSearchHomeserver() = translate {
+        EN - "Homeserver"
+        DE - "Homeserver"
+    }
 }
 
 internal fun getLang(

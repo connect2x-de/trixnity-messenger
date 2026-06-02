@@ -232,7 +232,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should search for term in displayname and userId`() = runTest {
-        val cut = searchUserViewModel(SearchProvider3(SearchProvider1()))
+        val cut = searchUserViewModel(listOf(SearchProvider3(SearchProvider1())))
         cut.searchTerm.update("st")
         delay(10.milliseconds)
 
@@ -310,7 +310,8 @@ class UserSearchViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult = UserSearchProviderResult.Success(listOf(user1)), // user1 is in Berlin
+                            providerSearchResult =
+                                UserSearchProviderResult.Success(listOf(user1)), // user1 is in Berlin
                         ),
                         SearchResult(
                             id = "test-2",
@@ -332,7 +333,7 @@ class UserSearchViewModelTest {
         cut.setSearchFilterValue(ColorSearchFilterValue(Color.GREY))
         delay(10.milliseconds)
 
-        cut.providerSettingsList.value shouldContain
+        cut.activeSearchFilters.value.map { it.value } shouldContain
             "loud" shouldContain
             "grey" shouldContain
             "Berlin" shouldNotContain
@@ -392,7 +393,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should disable filter settings that are not compatible with current settings`() = runTest {
-        val cut = searchUserViewModel(SearchProvider5())
+        val cut = searchUserViewModel(listOf(SearchProvider5()))
         delay(10.milliseconds)
         cut.providedFilters.value.map { it.searchFilterValueKeys to it.isEnabled } shouldContainAll
             listOf(
@@ -440,13 +441,13 @@ class UserSearchViewModelTest {
         cut.setSearchFilterValue(CitySearchFilterValue("Berlin"))
         cut.setProvider("test-1", false) // provider2 still has city
         delay(10.milliseconds)
-        cut.providerSettingsList.value shouldBe listOf("Berlin")
+        cut.activeSearchFilters.value.map { it.value } shouldBe listOf("Berlin")
     }
 
     @Test
     fun `should show searching for provider when search is ongoing`() = runTest {
         val searchUserProviderWithResumedSearch = SearchUserProviderWithResumedSearch()
-        val cut = searchUserViewModel(searchUserProviderWithResumedSearch)
+        val cut = searchUserViewModel(listOf(searchUserProviderWithResumedSearch))
         cut.searchTerm.update("onlyResumedReturnsUser1")
         delay(10.milliseconds)
         cut.isSearching.value shouldBe true
@@ -464,7 +465,7 @@ class UserSearchViewModelTest {
     @Test
     fun `should indicate that no results have been found after a search is conducted`() = runTest {
         val searchUserProviderWithResumedSearch = SearchUserProviderWithResumedSearch()
-        val cut = searchUserViewModel(searchUserProviderWithResumedSearch)
+        val cut = searchUserViewModel(listOf(searchUserProviderWithResumedSearch))
 
         delay(10.milliseconds)
         cut.noResultsFound.value shouldBe null // undetermined
@@ -503,7 +504,7 @@ class UserSearchViewModelTest {
     @Test
     fun `should set a not enabled by default search provider to disabled initially, but can be activated afterwards`() =
         runTest {
-            val cut = searchUserViewModel(SearchProvider4(SearchProvider1()))
+            val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1())))
             delay(10.milliseconds)
             cut.searchProviders.map { it.id } shouldBe listOf("homeserver", "test-1", "test-2", "test-4")
             cut.providerSearchEnabled.value shouldBe listOf(true, true, true, false)
@@ -517,7 +518,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should enable combined setting when one search provider is enabled`() = runTest {
-        val cut = searchUserViewModel(SearchProvider4(SearchProvider1()))
+        val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1())))
         delay(10.milliseconds)
         cut.providedFilters.value.map {
             Triple(it.sources.map { it.id }, it.searchFilterValueKeys, it.isEnabled)
@@ -529,10 +530,25 @@ class UserSearchViewModelTest {
             )
     }
 
-    private fun TestScope.searchUserViewModel(): UserSearchViewModelImpl = searchUserViewModel(null)
+    @Test
+    fun `should combine filters from different providers correctly`() = runTest {
+        val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1()), SearchProvider5(), SearchProvider6()))
+        delay(10.milliseconds)
+        cut.providedFilters.value.map {
+            Triple(it.sources.map { it.id }, it.searchFilterValueKeys, it.isEnabled)
+        } shouldContainAll
+            listOf(
+                Triple(listOf("test-1", "test-2", "test-6", "test-4"), listOf(CitySearchFilterValue.Key), true),
+                Triple(listOf("test-1", "test-4"), listOf(AddressSearchFilterValue.Key), true),
+                Triple(listOf("test-2"), listOf(OptionsSearchFilterValue.Key, ColorSearchFilterValue.Key), true),
+                Triple(listOf("test-5", "test-6"), listOf(DifferentSearchFilterValue.Key), true),
+            )
+    }
+
+    private fun TestScope.searchUserViewModel(): UserSearchViewModelImpl = searchUserViewModel<SearchProvider<*>>(null)
 
     private inline fun <reified T : SearchProvider<*>> TestScope.searchUserViewModel(
-        additionalSearchUserProvider: T?
+        additionalSearchUserProviders: List<T>? = null
     ): UserSearchViewModelImpl {
         val searchUserViewModelImpl =
             UserSearchViewModelImpl(
@@ -568,8 +584,12 @@ class UserSearchViewModelTest {
                                                     }
                                                 }
                                             }
-                                            if (additionalSearchUserProvider != null) {
-                                                searchUserProvider<T> { additionalSearchUserProvider }
+                                            additionalSearchUserProviders?.forEach { additionalSearchUserProvider ->
+                                                single<SearchProvider<*>>(
+                                                    named(additionalSearchUserProvider::class.simpleName ?: "")
+                                                ) {
+                                                    additionalSearchUserProvider
+                                                }
                                             }
                                         }
                                 )
@@ -585,7 +605,7 @@ class UserSearchViewModelTest {
         backgroundScope.launch { searchUserViewModelImpl.providedFilters.collect() }
         backgroundScope.launch { searchUserViewModelImpl.searchResult.collect() }
         backgroundScope.launch { searchUserViewModelImpl.searchResultList.collect() }
-        backgroundScope.launch { searchUserViewModelImpl.providerSettingsList.collect() }
+        backgroundScope.launch { searchUserViewModelImpl.activeSearchFilters.collect() }
         backgroundScope.launch { searchUserViewModelImpl.isSearching.collect() }
         backgroundScope.launch { searchUserViewModelImpl.noResultsFound.collect() }
         backgroundScope.launch { searchUserViewModelImpl.providerSearchEnabled.collect() }
@@ -682,6 +702,28 @@ class UserSearchViewModelTest {
         override val disabledByDefault: Boolean = false
 
         override val supportedFilters: List<SearchFilterValue.Key<*>> = listOf(DifferentSearchFilterValue.Key)
+
+        override suspend fun search(
+            searchTerm: String,
+            filters: List<SearchFilterValue>,
+            activeAccount: UserId,
+            coroutineScope: CoroutineScope,
+        ): SearchProviderResult {
+            return UserSearchProviderResult.Success(listOf())
+        }
+    }
+
+    class SearchProvider6 : SearchProvider<UserSearchProviderResult> {
+        override val id: String = "test-6"
+        override val displayName: String = "Test 6"
+        override val priority: Int = 153
+        override val disabledByDefault: Boolean = false
+
+        override val supportedFilters: List<SearchFilterValue.Key<*>> =
+            listOf(
+                CitySearchFilterValue.Key,
+                DifferentSearchFilterValue.Key,
+            )
 
         override suspend fun search(
             searchTerm: String,

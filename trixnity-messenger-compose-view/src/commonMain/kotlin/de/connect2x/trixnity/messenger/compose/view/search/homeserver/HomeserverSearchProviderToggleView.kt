@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger.compose.view.search.homeserver
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import de.connect2x.messenger.compose.view.common.icons.HomeHealth
 import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFilterChip
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
@@ -26,7 +26,7 @@ class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<Homeserv
             selected = active,
             onClick = setActive,
             label = { Text(searchProvider.displayName) },
-            trailingIcon = { Icon(HomeHealth, contentDescription = null) },
+            trailingIcon = { Icon(Icons.Outlined.Home, contentDescription = null) },
             leadingIcon = {
                 if (active) {
                     Icon(Icons.Default.Check, contentDescription = null)

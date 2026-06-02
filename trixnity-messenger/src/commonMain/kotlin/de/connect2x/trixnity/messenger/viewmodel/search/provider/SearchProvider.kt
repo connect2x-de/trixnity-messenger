@@ -5,11 +5,18 @@ import kotlinx.coroutines.CoroutineScope
 
 typealias SearchProviderId = String
 
-interface SettingsId
-
 /**
- * A place to search for users that at least have a UserId. For standard Matrix clients this is the homeserver search
- * which is already included by default.
+ * An extension point of the search functionality. The core search framework organizes [SearchProvider]s and their
+ * filters and passes the search query to them.
+ *
+ * A [SearchProvider] declares which kind of filters it supports ([supportedFilters]). When a search is initiated by the
+ * search framework, [search] is called with the current search term and all the currently active filter values,
+ * including those of other [SearchProvider]s. It is the [SearchProvider]'s job to use only those filters it is
+ * interested in. [search] returns a [SearchProviderResult].
+ *
+ * ### User Search
+ * In case of the user search, this represents a place to search for users that at least have a UserId. For standard
+ * Matrix clients this is the homeserver search which is already included by default.
  *
  * Other places could be an LDAP or central registry for users.
  */
@@ -35,8 +42,11 @@ interface SearchProvider<T : SearchProviderResult> {
     val disabledByDefault: Boolean
 
     /**
-     * The [SearchFilterValue] allows the usage of filters in multiple providers. E.g., there could be a filter for
-     * "city" in multiple providers.
+     * A list of [SearchFilterValue.Key]s the [SearchProvider] supports. Filters are used in addition to the search term
+     * and the core search framework's UI implementation displays filters in addition to the search term text field.
+     *
+     * It is possible to share the same [SearchFilterValue.Key] between different [SearchProvider]s. The core search
+     * framework merges those values and presents them as one filter that influences all declaring [SearchProvider]s.
      *
      * When a setting has a value that is not blank, all providers that do not have the setting are automatically
      * disabled (as searching and filtering for the setting does not make sense in this provider).
@@ -44,8 +54,20 @@ interface SearchProvider<T : SearchProviderResult> {
     val supportedFilters: List<SearchFilterValue.Key<*>>
 
     /**
-     * Do the actual search in the search provider. The provider is responsible to include any [filters] it might have
+     * Do the actual search in the search provider. The provider is responsible to retrieve any [filters] it might have
      * defined (e.g., "city" -> "Berlin" and thus results only from Berlin should be returned).
+     *
+     * ```kotlin
+     * override suspend fun search(
+     *   searchTerm: String,
+     *   filters: List<SearchFilterValue>,
+     *   activeAccount: UserId,
+     *   coroutineScope: CoroutineScope,
+     * ): SearchProviderResult {
+     * val myFilterValue = filters.filterIsInstance<MySearchFilterValue>().firstOrNull() ?: MySearchFilterValue("")
+     *   // do something with myFilterValue
+     * }
+     * ```
      */
     suspend fun search(
         searchTerm: String,
