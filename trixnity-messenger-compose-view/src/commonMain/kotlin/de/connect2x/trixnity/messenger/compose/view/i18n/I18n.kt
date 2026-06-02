@@ -3602,6 +3602,16 @@ open class I18nView(
         DE - "Zeige vor dem Löschen von Nachrichten eine Warnung an."
     }
 
+    open fun blockInvitesSettingTitle() = translate {
+        EN - "Block invites"
+        DE - "Einladungen ablehnen"
+    }
+
+    open fun blockInvitesSettingDescription() = translate {
+        EN - "Invites are automatically rejected."
+        DE - "Einladungen werden automatisch abgelehnt."
+    }
+
     open fun markRoomAsUnread() = translate {
         EN - "Mark room as unread"
         DE - "Raum als ungelesen markieren"
