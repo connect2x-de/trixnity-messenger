@@ -34,6 +34,9 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
+import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.util.DragAndDropHandler
@@ -516,7 +519,15 @@ class TimelineViewModelImpl(
 
     private fun scrollToEndOnNewOutboxElement() {
         val outboxTransactionIds =
-            outbox.flatten(Duration.ZERO).map { outboxMessages -> outboxMessages.map { it.transactionId } }
+            outbox.flatten(Duration.ZERO).map { outboxMessages ->
+                outboxMessages
+                    .filterNot {
+                        it.content is ReactionEventContent ||
+                            it.content is RedactionEventContent ||
+                            it.content.relatesTo is RelatesTo.Replace
+                    }
+                    .map { it.transactionId }
+            }
         outboxTransactionIds
             .scan(listOf<String>()) { old, current ->
                 // this cannot be a set since order is important
