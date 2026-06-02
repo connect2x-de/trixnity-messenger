@@ -72,6 +72,8 @@ private sealed class ChangeEvent(open val event: StateEvent<*>) {
     ) : ChangeEvent(event)
 
     data class NoPreviousContent(val kind: MembershipChange, override val event: StateEvent<*>) : ChangeEvent(event)
+
+    data class NoChange(override val event: StateEvent<*>) : ChangeEvent(event)
 }
 
 class MemberStateTimelineElementViewModelImpl(
@@ -104,9 +106,7 @@ class MemberStateTimelineElementViewModelImpl(
                     }
 
                     else -> {
-                        // This event is not very precise because it is also triggered when there is no change at all.
-                        // Emitting null would lead to the UI waiting for a vaue.
-                        membershipEvent
+                        ChangeEvent.NoChange(event)
                     }
                 }
             } else {
@@ -148,6 +148,8 @@ class MemberStateTimelineElementViewModelImpl(
 
                     is ChangeEvent.NoPreviousContent ->
                         membershipChangedText(event, content, senderName, changeEvent.kind)
+
+                    is ChangeEvent.NoChange -> flowOf("")
                 }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
