@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - UI,SDK,WEB: Play audio on web (enabled by default, can be disabled with existing feature toggle `media player`)
 - UI: Add proper rendering for "All accounts" avatar
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: It is now possible to create unencrypted private rooms
 - SDK: Failure on first login under Windows
 - UI,SDK: Wrong text when receiving member state events with no change
+- SDK: Voice messages are saved with correct file extension
 
 ### Security
 
@@ -117,7 +119,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Fast successive keyboard-inputs being misordered on web
 - UI: hovering over a room list element does hide unencrypted symbol
 - CI: Don't publish kmmBridge module to Maven Central
-- SDK: Voice messages are saved with correct file extension
 
 ## 4.4.0
 
