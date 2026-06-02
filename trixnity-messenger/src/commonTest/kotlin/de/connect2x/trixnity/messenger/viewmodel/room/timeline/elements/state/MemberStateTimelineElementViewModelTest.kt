@@ -709,21 +709,21 @@ class MemberStateTimelineElementViewModelTest {
         val currentUser = UserId("@alice:localhost")
         every { matrixClientMock.userId } returns currentUser
 
-        val mockMemberEventContent = memberEventContent("", currentUser.full, Membership.JOIN, false)
+        val memberEventContentMock = memberEventContent("", currentUser.full, Membership.JOIN, false)
         val cut =
             memberStatusViewModel(
                 mockTimelineEvent(
-                    "",
-                    currentUser.full,
-                    Membership.JOIN,
-                    false,
-                    previousMemberEventContent = mockMemberEventContent,
+                    memberEventContentMock.avatarUrl!!,
+                    memberEventContentMock.displayName!!,
+                    memberEventContentMock.membership,
+                    memberEventContentMock.isDirect!!,
+                    previousMemberEventContent = memberEventContentMock,
                 )
             )
 
         backgroundScope.launch { cut.changeMessage.collect {} }
         delay(1.seconds)
-        cut.changeMessage.value.isNullOrBlank() shouldBe true
+        cut.changeMessage.value shouldBe ""
     }
 
     private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
