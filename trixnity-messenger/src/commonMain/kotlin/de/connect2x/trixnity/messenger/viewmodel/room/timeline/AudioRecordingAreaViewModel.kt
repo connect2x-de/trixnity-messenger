@@ -58,8 +58,6 @@ interface AudioRecordingAreaViewModelFactory {
     companion object : AudioRecordingAreaViewModelFactory
 }
 
-const val fallbackAudioFileExtension = "m4a"
-
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val roomId: RoomId,
@@ -221,15 +219,23 @@ class AudioRecordingAreaViewModelImpl(
 
                 data
                     .await()
-                    .onSuccess {
+                    .onSuccess { response ->
                         val contentType =
                             content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) }
-                                ?: ContentType.Audio.MP4
-                        val fileExtension = content.fileName?.substringAfterLast(".") ?: fallbackAudioFileExtension
+                                ?: run {
+                                    log.warn { "Failed to retrieve content type for audio message draft" }
+                                    return@onSuccess
+                                }
+                        val fileExtension =
+                            content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "")
+                                ?: run {
+                                    log.warn { "Failed to retrieve file extension for audio message draft" }
+                                    return@onSuccess
+                                }
 
                         recorder?.loadSuspending(
                             AudioRecorder.State.Completed(
-                                data = it,
+                                data = response,
                                 duration = duration.milliseconds,
                                 sizeBytes = content.info?.size,
                                 contentType = contentType,
