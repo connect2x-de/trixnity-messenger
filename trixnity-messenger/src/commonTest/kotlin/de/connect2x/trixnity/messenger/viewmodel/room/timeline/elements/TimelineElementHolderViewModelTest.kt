@@ -4,6 +4,7 @@ import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
+import de.connect2x.trixnity.client.store.ServerData
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
 import de.connect2x.trixnity.client.store.eventId
@@ -12,6 +13,8 @@ import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
+import de.connect2x.trixnity.clientserverapi.model.media.GetMediaConfig
+import de.connect2x.trixnity.clientserverapi.model.server.GetVersions
 import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -29,7 +32,10 @@ import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
+import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
+import de.connect2x.trixnity.core.serialization.events.default
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -157,6 +163,7 @@ class TimelineElementHolderViewModelTest {
     private val scope = TestScope()
 
     private val settings = createTestMatrixMessengerSettingsHolder()
+    private val serverData = MutableStateFlow(ServerData(GetVersions.Response(), GetMediaConfig.Response(), null, null))
     private val di =
         koinApplication {
                 modules(scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings))
@@ -172,10 +179,12 @@ class TimelineElementHolderViewModelTest {
                         module {
                             single { roomServiceMock }
                             single { userServiceMock }
+                            single { EventContentSerializerMappings.default }
                         }
                     )
                 }
                 .koin
+        every { matrixClientMock.serverData } returns serverData
         every { matrixClientMock.userId } returns usId
         every { userServiceMock.getAccountData(DirectEventContent::class, any()) } returns
             flowOf(DirectEventContent(mapOf(bobId to emptySet(), aliceId to emptySet())))
@@ -211,6 +220,7 @@ class TimelineElementHolderViewModelTest {
     @BeforeTest
     fun setup() {
         configureTestLogging()
+        serverData.value = ServerData(GetVersions.Response(), GetMediaConfig.Response(), null, null)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -656,6 +666,27 @@ class TimelineElementHolderViewModelTest {
     }
 
     @Test
+    fun `isReplaced » should be false when new content in outbox is redaction`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns
+            flowOf(
+                listOf(
+                    flowOf(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "",
+                            createdAt = Instant.DISTANT_PAST,
+                            content = RedactionEventContent(eventId),
+                        )
+                    )
+                )
+            )
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        val cut = cut(eventId = eventId)
+        backgroundScope.launch { cut.isReplaced.collect() }
+        eventually(100.milliseconds) { cut.isReplaced.value shouldBe false }
+    }
+
+    @Test
     fun `isReplaced » should be true when replaced`() = runTest {
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
         every { roomServiceMock.getTimelineEventRelations(roomId, eventId, RelationType.Replace) } returns
@@ -740,6 +771,43 @@ class TimelineElementHolderViewModelTest {
         cut.redact()
         continually(100.milliseconds) { cut.showRedactionWarning.value shouldBe false }
         eventually(100.milliseconds) { redactCalled shouldBe true }
+    }
+
+    @Test
+    fun `redact » should redact using outbox when supported`() = runTest {
+        settings.create(usId, MatrixMessengerAccountSettingsBase.withConfigDefaults(null, config))
+        settings.update<MatrixMessengerAccountSettingsBase>(usId) { it.copy(redactionWarningIsEnabled = false) }
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getAll(roomId) } returns flowOf(mapOf())
+        serverData.value =
+            ServerData(
+                versions = GetVersions.Response(listOf("v1.18")),
+                mediaConfig = GetMediaConfig.Response(),
+                capabilities = null,
+                auth = null,
+            )
+        var oldRedactCalled = false
+        var newRedactCalled = false
+        everySuspend { roomApiClientMock.redactEvent(any(), any(), txnId = any()) } calls
+            {
+                oldRedactCalled = true
+                Result.success(it.args[1] as EventId)
+            }
+        everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls
+            {
+                newRedactCalled = true
+                "t1"
+            }
+        every { userServiceMock.canRedactEvent(any(), any()) } returns flowOf(true)
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        val cut = cut()
+        delay(100.milliseconds)
+        cut.redact()
+        continually(100.milliseconds) { cut.showRedactionWarning.value shouldBe false }
+        eventually(100.milliseconds) {
+            oldRedactCalled shouldBe false
+            newRedactCalled shouldBe true
+        }
     }
 
     private fun TestScope.cut(
