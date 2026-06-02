@@ -1,16 +1,20 @@
 services:
   synapse:
     # https://github.com/element-hq/synapse/releases
-    image: "${CI_DOCKER_HUB_PROXY:-}matrixdotorg/synapse:v1.138.0"
-    container_name: "uitest-synapse"
+    image: "matrixdotorg/synapse:v1.138.0"
+    container_name: "trixnity-messenger-uitest-synapse-${GRADLE_TEST_SYNAPSE_PORT}"
     volumes:
-      - "./data:/data"
+      - "./data/homeserver.yaml:/data/homeserver.yaml:ro"
+      - "./data/localhost.log.config:/data/localhost.log.config:ro"
+      - "./data/localhost.signing.key:/data/localhost.signing.key:ro"
+    tmpfs:
+      - /data
     environment:
       VIRTUAL_HOST: "localhost"
       VIRTUAL_PORT: 8008
       SYNAPSE_SERVER_NAME: "localhost"
       SYNAPSE_REPORT_STATS: "no"
-      UID: "1000"
-      GID: "1000"
+      UID: "0"
+      GID: "0"
     ports:
-      - 8008:8008
+      - ${GRADLE_TEST_SYNAPSE_PORT}:8008

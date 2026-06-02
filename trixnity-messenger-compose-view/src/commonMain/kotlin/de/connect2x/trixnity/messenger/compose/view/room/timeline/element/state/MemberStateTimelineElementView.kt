@@ -87,10 +87,12 @@ class MemberStateTimelineElementViewImpl : MemberStateTimelineElementView {
     @Composable
     private fun StateElement(element: MemberStateTimelineElementViewModel) {
         val changeMessage = element.changeMessage.collectAsState().value
-        changeMessage?.let {
-            Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
-                IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
+        changeMessage
+            ?.takeIf { it.isNotBlank() }
+            ?.let {
+                Indicator(MaterialTheme.colorScheme.tertiary, focusable = true) {
+                    IndicatorText(changeMessage, MaterialTheme.colorScheme.onTertiary)
+                }
             }
-        }
     }
 }

@@ -1,70 +1,57 @@
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.nio.charset.StandardCharsets
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.Path
-import kotlin.io.path.deleteExisting
-import kotlin.io.path.deleteRecursively
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 
 interface UITestInfraServiceParams : BuildServiceParameters {
     val projectDir: DirectoryProperty
+    val port: Property<Int>
 }
 
+@OptIn(ExperimentalAtomicApi::class)
 abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, AutoCloseable {
 
     private var logger: Logger? = null
+    private val projectName = "trixnity-messenger-uitest-${parameters.port.get()}"
+    private val containerName = "trixnity-messenger-uitest-synapse-${parameters.port.get()}"
+
+    private val isRunning = AtomicBoolean(false)
 
     fun startInfra(logger: Logger) {
-        println("Starting UITest infra service")
-        this.logger = logger
-        val dir = parameters.projectDir.get().asFile
+        if (!isRunning.exchange(true)) {
+            println("Starting UITest infra service")
+            this.logger = logger
 
-        if (synapseNotRunning()) {
-            startSynapse(dir)
-            createAdmin(dir)
-            deleteOldScreenshots(dir)
+            startSynapse()
+            waitHealthy()
+            createAdmin()
+        } else {
+            waitHealthy()
         }
     }
 
     override fun close() {
         println("Stopping UITest infra service")
-        val dir = parameters.projectDir.get().asFile
-
-        stopSynapse(dir)
-        cleanupDb(dir)
+        stopSynapse()
+        isRunning.exchange(false)
     }
 
-    private fun synapseNotRunning(): Boolean {
-        val startDocker = ProcessBuilder("docker", "ps").redirectErrorStream(true).start()
-        val output: String?
-        startDocker.inputStream.use { `is` ->
-            ByteArrayOutputStream().use { baos ->
-                val buffer = ByteArray(1024)
-                var length: Int
-                while ((`is`.read(buffer).also { length = it }) != -1) {
-                    baos.write(buffer, 0, length)
-                }
-                output = baos.toString(StandardCharsets.UTF_8)
-            }
-        }
-        return (output != null && output.contains("uitest-synapse")).not()
-    }
-
-    private fun startSynapse(dir: File) {
+    private fun startSynapse() {
         val startDocker =
             ProcessBuilder(
                     "docker",
                     "compose",
+                    "-p",
+                    projectName,
                     "-f",
-                    "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
-                    *ciEnv(dir),
+                    "${parameters.projectDir.get().asFile}/src/commonTest/resources/localInfra/docker-compose.yml",
                     "up",
                     "-d",
                 )
+                .apply { environment()["GRADLE_TEST_SYNAPSE_PORT"] = parameters.port.get().toString() }
                 .redirectErrorStream(true)
                 .start()
         streamLogs(startDocker)
@@ -74,33 +61,76 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
         }
     }
 
-    private fun createAdmin(dir: File) {
-        val addUsersBuilder =
-            ProcessBuilder("bash", "$dir/src/commonTest/resources/localInfra/createAdmin.sh").redirectErrorStream(true)
-        addUsersBuilder.directory(File("$dir/src/commonTest/resources/localInfra"))
-        val addUsers = addUsersBuilder.start()
+    private fun waitHealthy() {
+        repeat(30) {
+            val startDocker =
+                ProcessBuilder("docker", "inspect", "--format='{{.State.Health.Status}}'", containerName)
+                    .redirectErrorStream(true)
+                    .start()
+
+            val output = startDocker.inputStream.bufferedReader().readText().trim().replace("'", "")
+            val exitCode = startDocker.waitFor()
+
+            if (exitCode != 0) {
+                error("Could not inspect docker container '$containerName', exit code $exitCode")
+            }
+
+            when (output) {
+                "healthy" -> {
+                    logger?.info("Docker container '$containerName' is healthy now")
+                    return
+                }
+                "unhealthy" -> error("Container '$containerName' became unhealthy")
+            }
+            logger?.warn("Docker container '$containerName' is not healthy yet ($output)")
+            Thread.sleep(1000)
+        }
+        error("Timed out waiting for container '$containerName' to become healthy")
+    }
+
+    private fun createAdmin() {
+        val addUsers =
+            ProcessBuilder(
+                    "docker",
+                    "compose",
+                    "-p",
+                    projectName,
+                    "-f",
+                    "${parameters.projectDir.get().asFile}/src/commonTest/resources/localInfra/docker-compose.yml",
+                    "exec",
+                    "synapse",
+                    "register_new_matrix_user",
+                    "-a",
+                    "-u",
+                    "admin",
+                    "-p",
+                    "admin",
+                    "-c",
+                    "/data/homeserver.yaml",
+                )
+                .apply { environment()["GRADLE_TEST_SYNAPSE_PORT"] = parameters.port.get().toString() }
+                .redirectErrorStream(true)
+                .start()
         streamLogs(addUsers)
         val exitCodeAddUsers = addUsers.waitFor()
         if (exitCodeAddUsers != 0) {
-            logger?.warn("Admin user was not created (maybe already exists?).")
+            error("Admin user could not be created.")
         }
     }
 
-    @OptIn(ExperimentalPathApi::class)
-    private fun deleteOldScreenshots(dir: File) {
-        Path("$dir/screenshots").deleteRecursively()
-    }
-
-    private fun stopSynapse(dir: File) {
+    private fun stopSynapse() {
         val stopDocker =
             ProcessBuilder(
                     "docker",
                     "compose",
+                    "-p",
+                    projectName,
                     "-f",
-                    "$dir/src/commonTest/resources/localInfra/docker-compose.yml",
-                    *ciEnv(dir),
+                    "${parameters.projectDir.get().asFile}/src/commonTest/resources/localInfra/docker-compose.yml",
                     "down",
+                    "-v",
                 )
+                .apply { environment()["GRADLE_TEST_SYNAPSE_PORT"] = parameters.port.get().toString() }
                 .redirectErrorStream(true)
                 .start()
         streamLogs(stopDocker)
@@ -108,16 +138,6 @@ abstract class UITestInfraService : BuildService<UITestInfraServiceParams>, Auto
         if (exitCodeDocker != 0) {
             logger?.warn("Could not shut down Synapse docker container.")
         }
-    }
-
-    private fun ciEnv(dir: File): Array<String> {
-        return if (System.getenv("CI")?.toBooleanStrictOrNull() == true) {
-            listOf("-f", "$dir/src/commonTest/resources/localInfra/docker-compose-ci.yml").toTypedArray()
-        } else emptyArray<String>()
-    }
-
-    private fun cleanupDb(dir: File) {
-        Path("$dir/src/commonTest/resources/localInfra/data/homeserver.db").deleteExisting()
     }
 
     private fun streamLogs(process: Process) {

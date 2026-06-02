@@ -420,6 +420,11 @@ open class I18n(
         DE - "Entwurf"
     }
 
+    open fun audioDraftMessage() = translate {
+        EN - "audio message"
+        DE - "Sprachnachricht"
+    }
+
     open fun roomListYou() = translate {
         EN - "you"
         DE - "ich"
@@ -1008,6 +1013,16 @@ open class I18n(
     open fun profileNameForbidden() = translate {
         EN - "You are not allowed to change the username."
         DE - "Der Nutzername darf von Ihnen nicht geändert werden."
+    }
+
+    open fun profileAvatarDeleteError() = translate {
+        EN - "The avatar image could not be deleted."
+        DE - "Das Nutzerbild konnte nicht gelöscht werden."
+    }
+
+    open fun profileAvatarDeleteForbidden() = translate {
+        EN - "You are not allowed to delete the avatar image."
+        DE - "Das Nutzerbild darf von Ihnen nicht gelöscht werden."
     }
 
     open fun matrixClientInitLoading() = translate {

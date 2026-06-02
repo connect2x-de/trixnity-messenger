@@ -1,11 +1,17 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.essenty.lifecycle.doOnDestroy
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.core.model.EventId
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.media.AudioRecorderHolder
+import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
@@ -14,12 +20,17 @@ import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import io.ktor.http.ContentType
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.koin.core.component.get
 
 @TrixnityMessengerPrivateApi
 interface AudioRecordingAreaViewModel {
@@ -27,14 +38,21 @@ interface AudioRecordingAreaViewModel {
     val capturePlayer: StateFlow<MediaPlayerViewModel?>
 
     fun sendAudioMessage()
+
+    fun deleteAudioMessage()
+
+    fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio)
 }
 
 interface AudioRecordingAreaViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
-        sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
+        roomId: RoomId,
+        currentReply: MutableStateFlow<Pair<RoomId, EventId>?>,
+        resetCurrentReply: () -> Unit,
+        draftMutex: Mutex,
     ): AudioRecordingAreaViewModel {
-        return AudioRecordingAreaViewModelImpl(viewModelContext, sendAudioMessage)
+        return AudioRecordingAreaViewModelImpl(viewModelContext, roomId, currentReply, resetCurrentReply, draftMutex)
     }
 
     companion object : AudioRecordingAreaViewModelFactory
@@ -42,8 +60,14 @@ interface AudioRecordingAreaViewModelFactory {
 
 class AudioRecordingAreaViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    private val sendAudioMessage: (suspend MessageBuilder.() -> Unit) -> Unit,
+    private val roomId: RoomId,
+    private val currentReply: MutableStateFlow<Pair<RoomId, EventId>?>,
+    private val resetCurrentReply: () -> Unit,
+    private val draftMutex: Mutex,
 ) : MatrixClientViewModelContext by viewModelContext, AudioRecordingAreaViewModel {
+
+    private val downloadManager = viewModelContext.get<DownloadManager>()
+    private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
 
     override val recorder: AudioRecorderViewModel? = run {
         val recorderHolder = getOrNull<AudioRecorderHolder>()
@@ -96,32 +120,122 @@ class AudioRecordingAreaViewModelImpl(
         }
     }
 
-    override fun sendAudioMessage() {
-        val message: (suspend MessageBuilder.() -> Unit)? =
+    init {
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                recorder?.state?.collect { state ->
+                    when (state) {
+                        is AudioRecorder.State.Completed -> draftMutex.withLock { saveAudioAsDraft() }
+                        else -> {}
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getAudioMessageBuilder(): (suspend MessageBuilder.() -> Unit)? {
+        val repliedEvent = currentReply.value
+
+        val audioMessage: (suspend MessageBuilder.() -> Unit)? =
             when (val audioRecorderStateValue = recorder?.state?.value) {
-                AudioRecorder.State.Ready -> {
-                    null
-                }
-                is AudioRecorder.State.Recording -> {
-                    null
-                }
+                AudioRecorder.State.Ready -> null
+
+                is AudioRecorder.State.Recording -> null
+
                 is AudioRecorder.State.Completed -> {
                     {
                         audio(
                             "voice message",
                             audioRecorderStateValue.data,
-                            type = ContentType.Audio.OGG,
+                            type = audioRecorderStateValue.contentType,
                             duration = audioRecorderStateValue.duration.inWholeMilliseconds,
                             size = audioRecorderStateValue.sizeBytes,
                         )
                     }
                 }
-                null -> {
-                    null
-                }
+
+                null -> null
             }
-        if (message != null) {
-            sendAudioMessage(message)
+
+        return audioMessage?.let {
+            {
+                when {
+                    repliedEvent != null -> {
+                        reply(repliedEvent)
+                    }
+                }
+                audioMessage()
+            }
+        }
+    }
+
+    private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
+        reply(matrixClient, repliedEvent)
+    }
+
+    private suspend fun saveAudioAsDraft(): Boolean {
+        val builder = getAudioMessageBuilder() ?: return false
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = builder)
+        return true
+    }
+
+    override fun sendAudioMessage() {
+        log.trace { "try to send audio message" }
+        coroutineScope.launch {
+            if (enableMessageDrafts) {
+                draftMutex.withLock {
+                    if (saveAudioAsDraft()) {
+                        matrixClient.room.sendDraftMessage(roomId)
+                    }
+                }
+            } else {
+                getAudioMessageBuilder()?.let { matrixClient.room.sendMessage(roomId = roomId, builder = it) }
+            }
+            recorder?.close()
+            resetCurrentReply()
+        }
+    }
+
+    override fun deleteAudioMessage() {
+        if (enableMessageDrafts) {
+            coroutineScope.launch { matrixClient.room.deleteDraftMessage(roomId) }
+        }
+        recorder?.close()
+    }
+
+    override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) {
+        coroutineScope.launch {
+            val duration = content.info?.duration
+
+            if (duration != null) {
+                val data =
+                    downloadManager.startDownloadAsync(
+                        matrixClient,
+                        content,
+                        content.fileName ?: content.body,
+                        MutableStateFlow(null),
+                    )
+
+                data
+                    .await()
+                    .onSuccess {
+                        val contentType =
+                            content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) }
+                                ?: ContentType.Audio.OGG
+
+                        recorder?.loadSuspending(
+                            AudioRecorder.State.Completed(
+                                data = it,
+                                duration = duration.milliseconds,
+                                sizeBytes = content.info?.size,
+                                contentType = contentType,
+                            )
+                        )
+                    }
+                    .onFailure { log.warn { "Failed downloading audio message draft" } }
+            } else {
+                log.warn { "Failed loading audio message draft, because the duration was null" }
+            }
         }
     }
 }
@@ -131,4 +245,8 @@ class PreviewAudioRecordingAreaViewModel : AudioRecordingAreaViewModel {
     override val capturePlayer: StateFlow<MediaPlayerViewModel?> = MutableStateFlow(null)
 
     override fun sendAudioMessage() = Unit
+
+    override fun deleteAudioMessage() = Unit
+
+    override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) = Unit
 }

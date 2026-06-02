@@ -5,7 +5,7 @@ import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -32,6 +32,8 @@ interface AudioRecorder : AutoCloseable {
     suspend fun startSuspending()
 
     fun complete()
+
+    suspend fun loadSuspending(state: State.Completed)
 
     sealed interface State {
         object Ready : State
@@ -71,6 +73,12 @@ class AudioRecorderImpl(
         }
     }
 
+    override suspend fun loadSuspending(state: AudioRecorder.State.Completed) {
+        close()
+
+        platformAudioRecorder.load(state)?.let { stateImpl.value = it }
+    }
+
     override fun complete() {
         stateImpl.value = complete(stateImpl.value)
     }
@@ -100,15 +108,15 @@ class AudioRecorderImpl(
         val container: Container,
         val encoder: Encoder,
         val sampleRate: SampleRateHz,
+        val bitRate: BitRate,
         val contentType: ContentType,
     ) {
-        companion object {
-            val amrWbContentType = ContentType("audio", "amr-wb")
+        enum class SampleRateHz(val value: Int) {
+            AAC_SAMPLING_RATE_HZ(44_100)
         }
 
-        enum class SampleRateHz(val value: Int) {
-            OPUS_SAMPLING_RATE_HZ(48_000),
-            AMR_WB_SAMPLING_RATE_HZ(16_000),
+        enum class BitRate(val value: Int) {
+            AAC_BIT_RATE(32_000)
         }
     }
 
@@ -156,6 +164,7 @@ class AudioRecorderImpl(
                     } catch (t: Throwable) {
                         log.warn(t) { "Failed to close audio recorder" }
                     }
+
                 State.Ready -> Unit
                 is State.Recording -> Unit
             }
@@ -174,6 +183,7 @@ class AudioRecorderImpl(
                                 emit(state)
                                 delay(50.milliseconds)
                             }
+
                         is State.Completed,
                         State.Ready -> {
                             emit(state)
@@ -212,6 +222,7 @@ class AudioRecorderImpl(
                         callback()
                     }
                 }
+
                 is AudioRecorder.State.Completed,
                 AudioRecorder.State.Ready -> Unit
             }

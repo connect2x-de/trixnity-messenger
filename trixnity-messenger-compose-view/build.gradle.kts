@@ -1,6 +1,8 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import co.touchlab.skie.util.cache.readTextOrNull
+import com.android.build.gradle.internal.tasks.ManagedDeviceInstrumentationTestTask
+import de.connect2x.conventions.CI
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
 import de.connect2x.conventions.registerCoverageTask
@@ -9,8 +11,10 @@ import de.connect2x.conventions.withBrowser
 import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
+import java.net.ServerSocket
 import java.time.Duration
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
@@ -36,7 +40,9 @@ kotlin {
     withJvm {
         testRuns.named("test") { executionTask.configure { useJUnitPlatform() } }
         tasks.withType<Test>().configureEach {
-            maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            if (!CI.isCI) {
+                maxParallelForks = (Runtime.getRuntime().availableProcessors() / 2).takeIf { it > 0 } ?: 1
+            }
         }
     }
     withWeb {
@@ -155,11 +161,38 @@ android {
         debug { isDefault = true }
         release { isMinifyEnabled = false }
     }
+    testOptions {
+        managedDevices {
+            localDevices {
+                register("emulator") {
+                    device = "Pixel 6"
+                    apiLevel = sharedLibs.versions.androidTargetSdk.get().toInt()
+                    systemImageSource = "aosp" // TODO use -atd image as soon as available for current target sdk
+                }
+            }
+        }
+    }
 }
 
+fun findAvailablePort(range: IntRange): Int {
+    repeat(100) {
+        val candidate = range.random()
+        try {
+            ServerSocket(candidate).use {
+                return candidate
+            }
+        } catch (_: Exception) {
+            // Port is already in use, try another one
+        }
+    }
+    error("Could not find an available port in range $range")
+}
+
+val synapsePort = findAvailablePort(10_000..20_000)
 val uiTestInfraServiceProvider =
     gradle.sharedServices.registerIfAbsent("uiTestInfraService", UITestInfraService::class) {
         parameters.projectDir.set(layout.projectDirectory)
+        parameters.port.set(synapsePort)
     }
 
 fun Task.configureTestInfra() {
@@ -174,12 +207,7 @@ tasks.withType(KotlinTest::class).configureEach { configureTestInfra() }
 tasks.withType(Test::class) { configureTestInfra() }
 
 // Android Instrumented
-tasks
-    .matching { it.name == "connectedDebugAndroidTest" }
-    .configureEach {
-        configureTestInfra()
-        finalizedBy(exportAndroidScreenshots)
-    }
+tasks.withType(ManagedDeviceInstrumentationTestTask::class).configureEach { configureTestInfra() }
 
 tasks.named("iosSimulatorArm64Test") { finalizedBy(exportIosScreenshots) }
 
@@ -221,35 +249,30 @@ val exportIosScreenshots by
         into(layout.projectDirectory.dir("screenshots"))
     }
 
-val exportAndroidScreenshots by
-    tasks.registering(Exec::class) {
-        finalizedBy(removeAndroidScreenshots)
+val buildConfigTask =
+    tasks.register("generateTestConfig") {
+        group = "build config"
+        val generatedSrc = layout.buildDirectory.dir("generatedSrc/commonTest/kotlin")
+        doLast {
+            val packageName = "de.connect2x.trixnity.messenger.compose.view"
+            val outputFile = generatedSrc.get().dir(packageName.replace(".", "/")).file("TestConfig.kt")
 
-        val packageName = "de.connect2x.trixnity.messenger.compose.view"
-        val localPath = layout.projectDirectory.dir("screenshots").asFile
-
-        doFirst { localPath.mkdirs() }
-
-        commandLine(
-            "bash",
-            "-c",
-            """
-        adb exec-out run-as $packageName sh -c 'cd files/screenshots && tar -cf - "Android instrumented"' | tar -xf - -C ${localPath.absolutePath}
-        """
-                .trimIndent(),
-        )
+            val buildConfigString =
+                """
+                    package $packageName            
+                    
+                    object TestConfig {
+                        val synapsePort: Int = $synapsePort
+                    }
+                """
+                    .trimIndent()
+            outputFile.asFile.apply {
+                ensureParentDirsCreated()
+                createNewFile()
+                writeText(buildConfigString)
+            }
+        }
+        outputs.dirs(generatedSrc)
     }
 
-val removeAndroidScreenshots by
-    tasks.registering(Exec::class) {
-        val packageName = "de.connect2x.trixnity.messenger.compose.view"
-
-        commandLine(
-            "bash",
-            "-c",
-            """
-        adb exec-out run-as $packageName sh -c 'rm -rf files/screenshots'
-        """
-                .trimIndent(),
-        )
-    }
+kotlin.sourceSets.named("commonTest") { kotlin.srcDir(buildConfigTask.map { it.outputs }) }
