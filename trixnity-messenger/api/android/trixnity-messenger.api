@@ -7443,6 +7443,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Previ
 	public fun loadAfter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadBefore (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun markAsRead (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onProcessedScrollTo (Ljava/lang/String;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/ReportMessageViewModel {
@@ -7754,6 +7755,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun loadAfter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun loadBefore (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun markAsRead (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onProcessedScrollTo (Ljava/lang/String;)V
 }
 
 public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel$Config {
@@ -7855,8 +7857,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Timel
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getReportMessageStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getRoomHeaderViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;
-	public synthetic fun getScrollTo ()Lkotlinx/coroutines/flow/Flow;
-	public fun getScrollTo ()Lkotlinx/coroutines/flow/MutableSharedFlow;
+	public fun getScrollTo ()Lkotlinx/coroutines/flow/Flow;
 	public fun getSendAttachmentStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
@@ -7869,6 +7870,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Timel
 	public fun loadAfter (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadBefore (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun markAsRead (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun onProcessedScrollTo (Ljava/lang/String;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
