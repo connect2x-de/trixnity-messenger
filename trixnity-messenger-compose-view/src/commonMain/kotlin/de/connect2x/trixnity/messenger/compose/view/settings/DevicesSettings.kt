@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.settings
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -181,14 +182,20 @@ fun DeviceItem(
                 }
             },
             headlineContent = {
-                Text(displayName)
-                if (device.isDehydrated) {
-                    Tooltip({ Text(i18n.dehydratedDevice()) }) {
-                        Icon(Icons.Default.RestoreFromTrash, i18n.dehydratedDevice())
+                Row {
+                    Text(displayName)
+                    if (device.isDehydrated) {
+                        Tooltip({ Text(i18n.dehydratedDevice()) }) {
+                            Icon(Icons.Default.RestoreFromTrash, i18n.dehydratedDevice())
+                        }
                     }
                 }
             },
-            supportingContent = { Text(device.deviceId + " - " + device.lastSeenAt) },
+            supportingContent = {
+                if (!device.isDehydrated) {
+                    Text(device.deviceId + " - " + device.lastSeenAt)
+                }
+            },
             trailingContent = {
                 Box {
                     Tooltip({ Text(i18n.commonMore()) }) {
