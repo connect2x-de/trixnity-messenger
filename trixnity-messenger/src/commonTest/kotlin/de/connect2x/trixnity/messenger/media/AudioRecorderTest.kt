@@ -66,6 +66,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {}
                     },
                 )
@@ -94,6 +95,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {
                             captureDeleted = true
                         }
@@ -142,6 +144,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {}
                 },
             )
@@ -183,6 +186,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {}
                 },
             )
@@ -213,6 +217,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {}
                 },
             )
@@ -238,6 +243,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {}
                 },
             )
@@ -265,6 +271,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {
                             captureDeleted = true
                         }
@@ -308,6 +315,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {}
                     },
                 )
@@ -319,7 +327,7 @@ class AudioRecorderTest {
             delay(1.seconds)
 
             cut.state.value shouldBe
-                AudioRecorder.State.Completed(PlatformMediaMock, 1.seconds, 1000L, ContentType("audio", "ogg"))
+                AudioRecorder.State.Completed(PlatformMediaMock, 1.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         }
 
     @Test
@@ -354,6 +362,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {}
                 },
             )
@@ -386,6 +395,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {
                             captureDeleted = true
                         }
@@ -423,6 +433,7 @@ class AudioRecorderTest {
                             1.seconds,
                             1000L,
                             ContentType("audio", "ogg"),
+                            "ogg",
                         ) {
                             captureDeleted = true
                         }
@@ -464,6 +475,7 @@ class AudioRecorderTest {
                         1.seconds,
                         1000L,
                         ContentType("audio", "ogg"),
+                        "ogg",
                     ) {
                         throw IllegalStateException()
                     }

@@ -214,6 +214,7 @@ open class InputAreaViewModelImpl(
     override val isReplace: StateFlow<Boolean> =
         currentReplace.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
 
+    // TODO: Move this to an init block
     @Suppress("unused")
     private val completeAudioRecordingOnReplace =
         isReplace.filter { it }.onEach { audio.recorder?.complete() }.launchIn(coroutineScope)
@@ -224,10 +225,19 @@ open class InputAreaViewModelImpl(
     private val _listOfMentionsLoading = MutableStateFlow(false)
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
 
+    private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
+    private val draftMutex: Mutex = Mutex()
+
     override val useMarkdown = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel =
         get<AudioRecordingAreaViewModelFactory>()
-            .create(childContext("audioRecordingAreaViewModel"), ::sendAudioMessage)
+            .create(
+                viewModelContext = childContext("audioRecordingAreaViewModel"),
+                roomId,
+                currentReply,
+                ::resetCurrentReply,
+                draftMutex,
+            )
     private val markdownFlavourDescriptor = get<MatrixMarkdownFlavour>()
     private val markdownParser = MarkdownParser(markdownFlavourDescriptor)
 
@@ -314,23 +324,22 @@ open class InputAreaViewModelImpl(
             }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
-    private val draftMutex: Mutex = Mutex()
-
     init {
         coroutineScope.launch { isStillTyping.debounce(3.seconds).collect { userIsNotTyping() } }
         coroutineScope.launch { textField.collect { if (it.text.isEmpty()) userIsNotTyping() else typing() } }
         coroutineScope.launch {
             if (enableMessageDrafts) {
-                loadDraftIntoTextField()
-                textField.debounce(2.seconds).collect { draftMutex.withLock { saveAsDraft() } }
+                loadDraftIntoTextArea()
+                textField.debounce(2.seconds).collect { draftMutex.withLock { saveTextAsDraft() } }
             } else {
                 matrixClient.room.deleteDraftMessage(roomId)
             }
         }
         if (enableMessageDrafts) {
             lifecycle.doOnDestroy {
-                get<CoroutineScope>().launch { withContext(NonCancellable) { draftMutex.withLock { saveAsDraft() } } }
+                get<CoroutineScope>().launch {
+                    withContext(NonCancellable) { draftMutex.withLock { saveTextAsDraft() } }
+                }
             }
         }
     }
@@ -338,31 +347,52 @@ open class InputAreaViewModelImpl(
     override val hasShownAttachmentSelectDialog =
         showAttachmentSelectDialog.debounce(200).shareIn(coroutineScope, Eagerly, replay = 1)
 
-    private suspend fun loadDraftIntoTextField() {
+    private suspend fun loadDraftIntoTextArea() {
         val draftMessage = draftMessage.first()
         val content = draftMessage?.content
-        if (content is TextBased.Text) {
-            when (val relatesTo = content.relatesTo) {
-                is RelatesTo.Reply -> {
-                    currentReply.value = draftMessage.roomId to relatesTo.eventId
-                    textField.update(content.body)
-                }
+        when (content) {
+            is TextBased.Text -> {
+                when (val relatesTo = content.relatesTo) {
+                    is RelatesTo.Reply -> {
+                        currentReply.value = draftMessage.roomId to relatesTo.eventId
+                        textField.update(content.body)
+                    }
 
-                is RelatesTo.Replace -> {
-                    currentReplace.value = draftMessage.roomId to relatesTo.eventId
-                    (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
-                }
+                    is RelatesTo.Replace -> {
+                        currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                        (relatesTo.newContent as? TextBased.Text)?.let { textField.update(it.body) }
+                    }
 
-                else -> {
-                    textField.update(content.body)
+                    else -> {
+                        textField.update(content.body)
+                    }
+                }
+            }
+
+            is RoomMessageEventContent.FileBased.Audio -> {
+                when (val relatesTo = content.relatesTo) {
+                    is RelatesTo.Reply -> {
+                        currentReply.value = draftMessage.roomId to relatesTo.eventId
+                        audio.loadAudioMessage(content)
+                    }
+
+                    is RelatesTo.Replace -> {
+                        currentReplace.value = draftMessage.roomId to relatesTo.eventId
+                        (relatesTo.newContent as? RoomMessageEventContent.FileBased.Audio)?.let {
+                            audio.loadAudioMessage(it)
+                        }
+                    }
+
+                    else -> {
+                        audio.loadAudioMessage(content)
+                    }
                 }
             }
         }
     }
 
     private suspend fun MessageBuilder.reply(repliedEvent: Pair<RoomId, EventId>) {
-        val event = matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second).filterNotNull().first()
-        reply(event)
+        reply(matrixClient, repliedEvent)
     }
 
     private fun resetCurrentReply() {
@@ -372,24 +402,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private fun sendAudioMessage(audioMessage: suspend MessageBuilder.() -> Unit) {
-        coroutineScope.launch {
-            val repliedEvent = currentReply.value
-            log.debug { "send audio message" }
-            matrixClient.room.sendMessage(roomId) {
-                when {
-                    repliedEvent != null -> {
-                        reply(repliedEvent)
-                    }
-                }
-                audioMessage()
-            }
-            audio.recorder?.close()
-            resetCurrentReply()
-        }
-    }
-
-    private suspend fun getMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
+    private suspend fun getTextMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
         val formattedReferences =
@@ -443,12 +456,14 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private suspend fun saveAsDraft(text: String = textField.value.text) {
+    private suspend fun saveTextAsDraft(text: String = textField.value.text) {
         if (text.isEmpty()) {
-            matrixClient.room.deleteDraftMessage(roomId)
+            if (draftMessage.first()?.content is TextBased.Text) {
+                matrixClient.room.deleteDraftMessage(roomId)
+            }
             return
         }
-        matrixClient.room.setDraftMessage(roomId = roomId, builder = getMessageBuilder(text))
+        matrixClient.room.setDraftMessage(roomId = roomId, builder = getTextMessageBuilder(text))
     }
 
     override fun selectMention(userId: UserId) {
@@ -487,12 +502,12 @@ open class InputAreaViewModelImpl(
             coroutineScope.launch {
                 if (enableMessageDrafts) {
                     draftMutex.withLock {
-                        saveAsDraft(text)
+                        saveTextAsDraft(text)
                         log.debug { "send message" }
                         matrixClient.room.sendDraftMessage(roomId)
                     }
                 } else {
-                    matrixClient.room.sendMessage(roomId = roomId, builder = getMessageBuilder(text))
+                    matrixClient.room.sendMessage(roomId = roomId, builder = getTextMessageBuilder(text))
                 }
                 currentReplace.value?.also {
                     currentReplace.value = null
@@ -716,4 +731,9 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override fun replyMessage(roomId: RoomId, eventId: EventId) {}
 
     override fun cancelReply() {}
+}
+
+internal suspend fun MessageBuilder.reply(matrixClient: MatrixClient, repliedEvent: Pair<RoomId, EventId>) {
+    val event = matrixClient.room.getTimelineEvent(repliedEvent.first, repliedEvent.second).filterNotNull().first()
+    reply(event)
 }

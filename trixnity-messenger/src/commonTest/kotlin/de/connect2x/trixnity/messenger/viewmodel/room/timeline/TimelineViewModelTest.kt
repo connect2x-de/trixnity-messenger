@@ -20,9 +20,11 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEven
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
@@ -588,7 +590,7 @@ class TimelineViewModelTest {
         timelineMock.addEvents { +messageEvent(sender = alice) { text("Hello!") } }
 
         cut.elements waitForSize 1
-        scrollToCalled.map { it.size }.firstWithClue(10.seconds) { 1 } // initial scroll ("0")
+        scrollToCalled.map { it.size }.firstWithClue(2.seconds) { 1 } // initial scroll ("0")
 
         outboxMessagesFlow.value =
             listOf(
@@ -621,7 +623,86 @@ class TimelineViewModelTest {
     }
 
     @Test
-    fun `scrollTo » scroll to the end when a new message is added at the end of the timeline where the user is active`() =
+    fun `scrollTo » not scroll to the end when we put a reaction in the outbox`() = runTest {
+        val timelineMock = timeline(roomServiceMock, roomId) {}
+        val cut = timelineViewModel()
+        val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+
+        timelineMock.addEvents { +messageEvent(sender = alice) { text("Hello!") } }
+
+        cut.elements waitForSize 1
+        scrollToCalled.map { it.size }.firstWithClue(2.seconds) { 1 } // initial scroll ("0")
+
+        outboxMessagesFlow.value =
+            listOf(
+                RoomOutboxMessage(
+                    transactionId = "transactionId-1",
+                    roomId = roomId,
+                    content = ReactionEventContent(null, null),
+                    createdAt = Instant.fromEpochMilliseconds(0),
+                )
+            )
+        cut.elements waitForSize 2
+        delay(1.seconds)
+        scrollToCalled.firstWithClue(listOf("$roomId-0"))
+    }
+
+    @Test
+    fun `scrollTo » not scroll to the end when we put a redaction in the outbox`() = runTest {
+        val timelineMock = timeline(roomServiceMock, roomId) {}
+        val cut = timelineViewModel()
+        val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+
+        timelineMock.addEvents { +messageEvent(sender = alice) { text("Hello!") } }
+
+        cut.elements waitForSize 1
+        scrollToCalled.map { it.size }.firstWithClue(2.seconds) { 1 } // initial scroll ("0")
+
+        outboxMessagesFlow.value =
+            listOf(
+                RoomOutboxMessage(
+                    transactionId = "transactionId-1",
+                    roomId = roomId,
+                    content = RedactionEventContent(EventId("dinonugget"), null, null),
+                    createdAt = Instant.fromEpochMilliseconds(0),
+                )
+            )
+        cut.elements waitForSize 2
+        delay(1.seconds)
+        scrollToCalled.firstWithClue(listOf("$roomId-0"))
+    }
+
+    @Test
+    fun `scrollTo » not scroll to the end when we put a replace event in the outbox`() = runTest {
+        val timelineMock = timeline(roomServiceMock, roomId) {}
+        val cut = timelineViewModel()
+        val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+
+        timelineMock.addEvents { +messageEvent(sender = alice) { text("Hello!") } }
+
+        cut.elements waitForSize 1
+        scrollToCalled.map { it.size }.firstWithClue(2.seconds) { 1 } // initial scroll ("0")
+
+        outboxMessagesFlow.value =
+            listOf(
+                RoomOutboxMessage(
+                    transactionId = "transactionId-1",
+                    roomId = roomId,
+                    content =
+                        RoomMessageEventContent.TextBased.Text(
+                            body = "My second message.",
+                            relatesTo = RelatesTo.Replace(EventId("dinonuggers")),
+                        ),
+                    createdAt = Instant.fromEpochMilliseconds(0),
+                )
+            )
+        cut.elements waitForSize 2
+        delay(1.seconds)
+        scrollToCalled.firstWithClue(listOf("$roomId-0"))
+    }
+
+    @Test
+    fun `scrollTo » scroll to the end when a new message is added at the end of the timeline where the user is at the bottom`() =
         runTest {
             val timelineMock = timeline(roomServiceMock, roomId) { +messageEvent(sender = alice) { text("Hello!") } }
             val cut = timelineViewModel()
@@ -647,6 +728,77 @@ class TimelineViewModelTest {
         }
 
     @Test
+    fun `scrollTo » scroll to the end when a new message is added at the end of the timeline and a previous scroll was initiated but not yet finished`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) { +messageEvent(sender = alice) { text("Hello!") } }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 1
+            cut.viewState.value =
+                TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-0",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    timelineIsFocused = true,
+                )
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
+
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-0") // initial loading
+
+            timelineMock.addEvents { +messageEvent(sender = alice) { text("World!") } }
+
+            cut.elements waitForSize 2
+            scrollToCalled.firstWithClue(listOf("!room1-0", "$roomId-1"))
+
+            timelineMock.addEvents { +messageEvent(sender = alice) { text("World2!") } }
+
+            cut.elements waitForSize 3
+            scrollToCalled.firstWithClue(listOf("!room1-0", "$roomId-1", "$roomId-2"))
+        }
+
+    @Test
+    fun `scrollTo » don't scroll to the end when a new message is added at the end of the timeline and there is an outbox message`() =
+        runTest {
+            val timelineMock = timeline(roomServiceMock, roomId) { +messageEvent(sender = alice) { text("Hello!") } }
+            val cut = timelineViewModel()
+
+            cut.elements waitForSize 1
+            cut.viewState.value =
+                TimelineViewModel.ViewState(
+                    firstVisibleElement = "notRelevant",
+                    lastVisibleElement = "$roomId-transactionId-1",
+                    firstLoadedElement = "notRelevant",
+                    lastLoadedElement = "notRelevant",
+                    timelineIsFocused = true,
+                )
+            delay(200.milliseconds) // give the viewmodel time to compute derived values
+
+            val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
+            scrollToCalled.value shouldBe listOf("!room1-0") // initial
+
+            outboxMessagesFlow.value =
+                listOf(
+                    RoomOutboxMessage(
+                        transactionId = "transactionId-1",
+                        roomId = roomId,
+                        content = RoomMessageEventContent.TextBased.Text(body = "Hello to you!"),
+                        createdAt = Instant.fromEpochMilliseconds(0),
+                    )
+                )
+
+            delay(200.milliseconds)
+
+            scrollToCalled.value shouldBe listOf("!room1-0", "!room1-transactionId-1")
+
+            timelineMock.addEvents { +messageEvent(sender = alice) { text("World!") } }
+
+            cut.elements waitForSize 3
+            scrollToCalled.firstWithClue(listOf("!room1-0", "!room1-transactionId-1"))
+        }
+
+    @Test
     fun `scrollTo » not scroll to the end when a new message is added but the end of the timeline is not visible`() =
         runTest {
             val timelineMock =
@@ -666,10 +818,11 @@ class TimelineViewModelTest {
                     lastLoadedElement = "notRelevant",
                     timelineIsFocused = true,
                 )
-            delay(500.milliseconds) // give scrollTo time to be cleared
 
             val scrollToCalled = cut.scrollTo.scan(listOf<String>()) { old, new -> old + new }.stateIn(backgroundScope)
             scrollToCalled.value shouldBe listOf("!room1-1") // initial loading
+
+            cut.onProcessedScrollTo("!room1-1")
 
             // this will not trigger a creation of a viewmodel as we are not at the end of the timeline
             timelineMock.addEvents { +messageEvent(sender = alice) { text("Dino!") } }
