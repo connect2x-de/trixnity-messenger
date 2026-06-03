@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
+- DEPENDENCY: (**breaking**) update Lognity to 2.1.0
 - CI: Use shell runner for linux (two different runners depending on workload)
 
 ### Deprecated
