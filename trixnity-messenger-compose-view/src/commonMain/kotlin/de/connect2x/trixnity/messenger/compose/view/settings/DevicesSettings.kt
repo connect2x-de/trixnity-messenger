@@ -191,7 +191,11 @@ fun DeviceItem(
                     }
                 }
             },
-            supportingContent = { Text(device.deviceId + " - " + device.lastSeenAt) },
+            supportingContent = {
+                if (!device.isDehydrated) {
+                    Text(device.deviceId + " - " + device.lastSeenAt)
+                }
+            },
             trailingContent = {
                 Box {
                     Tooltip({ Text(i18n.commonMore()) }) {
