@@ -170,7 +170,7 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
         delay(1.seconds)
         cut.capturePlayer.value shouldBe player
     }
@@ -185,15 +185,15 @@ class AudioRecordingAreaViewModelTest {
         draftMessage.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
         delay(1.seconds)
         draftMessage.value?.content shouldBe
             RoomMessageEventContent.FileBased.Audio(
-                body = "voice message",
+                body = "",
                 format = null,
                 formattedBody = null,
-                fileName = null,
-                info = AudioInfo(duration = 5000, mimeType = "audio/ogg", size = 1000),
+                fileName = "voice_message.m4a",
+                info = AudioInfo(duration = 5000, mimeType = "audio/mp4", size = 1000),
                 url = "testUrl",
                 file = null,
                 relatesTo = null,
@@ -210,7 +210,7 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Ready
         delay(1.seconds)
@@ -218,7 +218,7 @@ class AudioRecordingAreaViewModelTest {
         cut.capturePlayer.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Recording(5.seconds, 5F)
         delay(1.seconds)
@@ -255,7 +255,7 @@ class AudioRecordingAreaViewModelTest {
         eventually(300.milliseconds) { sent shouldBe false }
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"))
+            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
         cut.sendAudioMessage()
         eventually(300.milliseconds) { sent shouldBe true }
     }
@@ -267,11 +267,15 @@ class AudioRecordingAreaViewModelTest {
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
+        val fileName = "cool_audio.m4a"
+        val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
         everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
 
-        val builder: (suspend MessageBuilder.() -> Unit) = { audio(body = body, audio = platformMedia, duration = 69) }
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 69)
+        }
 
         val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
 
@@ -289,12 +293,14 @@ class AudioRecordingAreaViewModelTest {
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
+        val fileName = "cool_audio.m4a"
+        val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
         everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
-            audio(body = body, audio = platformMedia, duration = null)
+            audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = null)
         }
 
         val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
@@ -313,11 +319,66 @@ class AudioRecordingAreaViewModelTest {
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
+        val fileName = "cool_audio.m4a"
+        val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
         everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.failure(Exception())
 
-        val builder: (suspend MessageBuilder.() -> Unit) = { audio(body = body, audio = platformMedia, duration = 420) }
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 420)
+        }
+
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
+
+        cut.loadAudioMessage(content as RoomMessageEventContent.FileBased.Audio)
+
+        eventually(300.milliseconds) { wasLoaded shouldBe false }
+    }
+
+    @Test
+    fun `load - should not load draft into recorder if content type missing`() = runTest {
+        var wasLoaded = false
+        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val body = "cool audio"
+        val contentType = null
+        val platformMedia = PlatformMediaMock
+
+        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, type = contentType, duration = 69)
+        }
+
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
+
+        cut.loadAudioMessage(content as RoomMessageEventContent.FileBased.Audio)
+
+        eventually(300.milliseconds) { wasLoaded shouldBe false }
+    }
+
+    @Test
+    fun `load - should not load draft into recorder if file extension missing`() = runTest {
+        var wasLoaded = false
+        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
+
+        val body = "cool audio"
+        val fileName = "cool_audio"
+        val contentType = ContentType("audio", "mp4")
+        val platformMedia = PlatformMediaMock
+
+        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+
+        val builder: (suspend MessageBuilder.() -> Unit) = {
+            audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 69)
+        }
 
         val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
 

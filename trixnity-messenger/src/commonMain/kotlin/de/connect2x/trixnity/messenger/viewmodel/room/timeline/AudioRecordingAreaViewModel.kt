@@ -145,8 +145,9 @@ class AudioRecordingAreaViewModelImpl(
                 is AudioRecorder.State.Completed -> {
                     {
                         audio(
-                            "voice message",
+                            "",
                             audioRecorderStateValue.data,
+                            fileName = "voice_message.${audioRecorderStateValue.fileExtension}",
                             type = audioRecorderStateValue.contentType,
                             duration = audioRecorderStateValue.duration.inWholeMilliseconds,
                             size = audioRecorderStateValue.sizeBytes,
@@ -218,17 +219,27 @@ class AudioRecordingAreaViewModelImpl(
 
                 data
                     .await()
-                    .onSuccess {
+                    .onSuccess { response ->
                         val contentType =
                             content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) }
-                                ?: ContentType.Audio.OGG
+                                ?: run {
+                                    log.warn { "Failed to retrieve content type for audio message draft" }
+                                    return@onSuccess
+                                }
+                        val fileExtension =
+                            content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "")
+                                ?: run {
+                                    log.warn { "Failed to retrieve file extension for audio message draft" }
+                                    return@onSuccess
+                                }
 
                         recorder?.loadSuspending(
                             AudioRecorder.State.Completed(
-                                data = it,
+                                data = response,
                                 duration = duration.milliseconds,
                                 sizeBytes = content.info?.size,
                                 contentType = contentType,
+                                fileExtension = fileExtension,
                             )
                         )
                     }

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - UI,SDK,WEB: Play audio on web (enabled by default, can be disabled with existing feature toggle `media player`)
 - UI: Add proper rendering for "All accounts" avatar
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
@@ -40,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Failure on first login under Windows
 - SDK: Shortly wait for decrypting before show wait message
 - UI,SDK: Wrong text when receiving member state events with no change
+- SDK: Voice messages are saved with correct file extension
 
 ### Security
 

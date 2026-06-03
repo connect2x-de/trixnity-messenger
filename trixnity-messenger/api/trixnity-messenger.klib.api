@@ -5840,7 +5840,7 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
 
     sealed interface State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State|null[0]
         final class Completed : de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed|null[0]
-            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/String, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
 
             final val capture // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture|{}capture[0]
                 final fun <get-capture>(): de.connect2x.trixnity.client.media/PlatformMedia // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture.<get-capture>|<get-capture>(){}[0]
@@ -5850,6 +5850,8 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
                 final fun <get-deleteCapture>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.deleteCapture.<get-deleteCapture>|<get-deleteCapture>(){}[0]
             final val duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration|{}duration[0]
                 final fun <get-duration>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration.<get-duration>|<get-duration>(){}[0]
+            final val fileExtension // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension|{}fileExtension[0]
+                final fun <get-fileExtension>(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension.<get-fileExtension>|<get-fileExtension>(){}[0]
             final val sizeBytes // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes|{}sizeBytes[0]
                 final fun <get-sizeBytes>(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes.<get-sizeBytes>|<get-sizeBytes>(){}[0]
 
@@ -5857,8 +5859,9 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
             final fun component2(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component2|component2(){}[0]
             final fun component3(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component3|component3(){}[0]
             final fun component4(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component4|component4(){}[0]
-            final fun component5(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
-            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun component5(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
+            final fun component6(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component6|component6(){}[0]
+            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/String = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.toString|toString(){}[0]

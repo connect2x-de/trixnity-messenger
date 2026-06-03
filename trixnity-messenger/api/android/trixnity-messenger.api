@@ -1572,17 +1572,19 @@ public abstract interface class de/connect2x/trixnity/messenger/media/AudioRecor
 }
 
 public final class de/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed : de/connect2x/trixnity/messenger/media/AudioRecorder$State {
-	public synthetic fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/client/media/PlatformMedia;
 	public final fun component2-UwyO8pc ()J
 	public final fun component3 ()Ljava/lang/Long;
 	public final fun component4 ()Lio/ktor/http/ContentType;
-	public final fun copy-dWUq8MI (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;)Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;
-	public static synthetic fun copy-dWUq8MI$default (Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun copy-WPwdCS8 (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;
+	public static synthetic fun copy-WPwdCS8$default (Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorder$State$Completed;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getData ()Lde/connect2x/trixnity/client/media/PlatformMedia;
 	public final fun getDuration-UwyO8pc ()J
+	public final fun getFileExtension ()Ljava/lang/String;
 	public final fun getSizeBytes ()Ljava/lang/Long;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1662,19 +1664,21 @@ public abstract interface class de/connect2x/trixnity/messenger/media/AudioRecor
 }
 
 public final class de/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed : de/connect2x/trixnity/messenger/media/AudioRecorderImpl$State {
-	public synthetic fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lde/connect2x/trixnity/client/media/PlatformMedia;
 	public final fun component2-UwyO8pc ()J
 	public final fun component3 ()Ljava/lang/Long;
 	public final fun component4 ()Lio/ktor/http/ContentType;
-	public final fun component5 ()Lkotlin/jvm/functions/Function0;
-	public final fun copy-WPwdCS8 (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;
-	public static synthetic fun copy-WPwdCS8$default (Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Lkotlin/jvm/functions/Function0;
+	public final fun copy-NcHsxvU (Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;
+	public static synthetic fun copy-NcHsxvU$default (Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;Lde/connect2x/trixnity/client/media/PlatformMedia;JLjava/lang/Long;Lio/ktor/http/ContentType;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/media/AudioRecorderImpl$State$Completed;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCapture ()Lde/connect2x/trixnity/client/media/PlatformMedia;
 	public final fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getDeleteCapture ()Lkotlin/jvm/functions/Function0;
 	public final fun getDuration-UwyO8pc ()J
+	public final fun getFileExtension ()Ljava/lang/String;
 	public final fun getSizeBytes ()Ljava/lang/Long;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
