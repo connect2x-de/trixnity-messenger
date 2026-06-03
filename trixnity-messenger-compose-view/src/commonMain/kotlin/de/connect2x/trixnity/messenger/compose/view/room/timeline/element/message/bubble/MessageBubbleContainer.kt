@@ -51,6 +51,7 @@ fun MessageBubbleContainer(
     interactionSource: MutableInteractionSource,
     index: Int,
     onRedact: () -> Unit,
+    isFocusable: Boolean = true,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
     val sendError = holder.asOutboxElementHolder()?.sendError?.collectAsState()?.value
@@ -108,7 +109,7 @@ fun MessageBubbleContainer(
                             }
                         }
                     }
-                    .focusable(true, interactionSource)
+                    .focusable(isFocusable, interactionSource)
                     .hoverable(hoverInteractionSource)
                     .semantics {
                         collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
