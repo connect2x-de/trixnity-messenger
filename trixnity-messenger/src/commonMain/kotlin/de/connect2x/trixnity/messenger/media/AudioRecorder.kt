@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 @TrixnityMessengerPrivateApi
 interface AudioRecorder : AutoCloseable {
@@ -31,7 +32,7 @@ interface AudioRecorder : AutoCloseable {
 
     suspend fun startSuspending()
 
-    fun complete()
+    suspend fun complete()
 
     suspend fun loadSuspending(state: State.Completed)
 
@@ -55,7 +56,7 @@ class AudioRecorderHolder(val getOrNull: AudioRecorder?)
 class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
-    parentScope: CoroutineScope,
+    private val parentScope: CoroutineScope,
 ) : AudioRecorder {
     private val stateImpl: MutableStateFlow<State> = MutableStateFlow(State.Ready)
 
@@ -80,20 +81,24 @@ class AudioRecorderImpl(
         platformAudioRecorder.load(state)?.let { stateImpl.value = it }
     }
 
-    override fun complete() {
+    override suspend fun complete() {
         stateImpl.value = complete(stateImpl.value)
     }
 
     override fun close() {
         platformAudioRecorder.close()
-        stateImpl.value = close(stateImpl.value)
+        parentScope.launch {
+            stateImpl.value = close(stateImpl.value)
+        }
+
+
     }
 
     /** Abstract effectful platform-specific actions by storing them here as function values */
     sealed interface State {
         object Ready : State
 
-        data class Recording(val start: Instant, val loudness: () -> Float?, val complete: (Recording) -> Completed?) :
+        data class Recording(val start: Instant, val loudness: () -> Float?, val complete: suspend (Recording) -> Completed?) :
             State
 
         data class Completed(
@@ -125,7 +130,7 @@ class AudioRecorderImpl(
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.CommonAudioRecorder")
 
-        private fun complete(stateImpl: State): State {
+        private suspend fun complete(stateImpl: State): State {
             return when (stateImpl) {
                 State.Ready -> {
                     log.debug { "Audio recorder not started" }
@@ -157,7 +162,7 @@ class AudioRecorderImpl(
             }
         }
 
-        private fun close(stateImpl: State): State {
+        private suspend fun close(stateImpl: State): State {
             log.debug { "Cleaning audio recorder" }
             when (val completed = complete(stateImpl)) {
                 is State.Completed ->
@@ -218,7 +223,7 @@ class AudioRecorderImpl(
             return emitRepeatedlyWhileRecording(this).map { toPublicState(it) }
         }
 
-        private fun onMaxDuration(state: AudioRecorder.State, callback: () -> Unit) {
+        private suspend fun onMaxDuration(state: AudioRecorder.State, callback: suspend () -> Unit) {
             when (state) {
                 is AudioRecorder.State.Recording -> {
                     if (state.duration >= 5.hours) {

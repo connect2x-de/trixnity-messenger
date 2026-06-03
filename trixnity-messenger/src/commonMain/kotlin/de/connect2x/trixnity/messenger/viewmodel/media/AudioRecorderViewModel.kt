@@ -11,17 +11,32 @@ import kotlinx.coroutines.launch
 @TrixnityMessengerPrivateApi
 interface AudioRecorderViewModel : AudioRecorder {
     fun start()
+    fun completeNonSuspending()
 }
 
 class AudioRecorderViewModelImpl(viewModelContext: MatrixClientViewModelContext, recorder: AudioRecorder) :
     MatrixClientViewModelContext by viewModelContext, AudioRecorder by recorder, AudioRecorderViewModel {
     init {
         doOnDestroy { close() }
-        doOnStop { complete() }
-        doOnPause { complete() }
+        doOnStop {
+            coroutineScope.launch {
+                complete()
+            }
+        }
+        doOnPause {
+            coroutineScope.launch {
+                complete()
+            }
+        }
     }
 
     override fun start() {
         coroutineScope.launch { startSuspending() }
+    }
+
+    override fun completeNonSuspending() {
+        coroutineScope.launch {
+            complete()
+        }
     }
 }
