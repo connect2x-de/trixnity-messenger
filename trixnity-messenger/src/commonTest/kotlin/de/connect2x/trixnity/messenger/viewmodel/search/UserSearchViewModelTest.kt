@@ -502,7 +502,7 @@ class UserSearchViewModelTest {
     }
 
     @Test
-    fun `should set a not enabled by default search provider to disabled initially, but can be activated afterwards`() =
+    fun `should set a not enabled by default search provider to disabled initially but can be activated afterwards`() =
         runTest {
             val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1())))
             delay(10.milliseconds)
