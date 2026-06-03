@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: Wrong text when receiving member state events with no change
 - SDK: Voice messages are saved with correct file extension
 - UI: Dehydrated device icon not visible and removed supported content
+- SDK: Removed app icon creation script from app resources
 
 ### Security
 
