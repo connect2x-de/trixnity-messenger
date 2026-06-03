@@ -6,6 +6,7 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
@@ -17,12 +18,14 @@ import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.originTimestamp
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.client.user.canSendEvent
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
 import de.connect2x.trixnity.core.model.events.m.room.bodyWithoutFallback
@@ -33,6 +36,7 @@ import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.MatrixMarkdownFlavour
 import de.connect2x.trixnity.messenger.util.html.toLink
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
@@ -41,6 +45,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -54,11 +59,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
@@ -149,6 +156,18 @@ interface InputAreaViewModelFactory {
     companion object : InputAreaViewModelFactory
 }
 
+sealed interface MentionElement {
+    val id: String
+
+    data class User(val user: UserInfoElement) : MentionElement {
+        override val id: String = user.userId.full
+    }
+
+    data class AllRoomMembers(val room: RoomInfoElement) : MentionElement {
+        override val id = "@room"
+    }
+}
+
 interface InputAreaViewModel {
     val isAllowedToSendMessages: StateFlow<Boolean>
     val textField: TextFieldViewModel
@@ -158,12 +177,12 @@ interface InputAreaViewModel {
     val isReplace: StateFlow<Boolean>
     val isReply: StateFlow<Boolean>
     val repliedElement: StateFlow<TimelineElementHolderViewModel?>
-    val listOfMentions: StateFlow<List<UserInfoElement>?>
+    val listOfMentions: StateFlow<List<MentionElement>?>
     val listOfMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
     val audio: AudioRecordingAreaViewModel
 
-    fun selectMention(userId: UserId)
+    fun selectMention(id: String)
 
     fun sendMessage()
 
@@ -181,6 +200,8 @@ interface InputAreaViewModel {
 
     fun cancelReply()
 }
+
+const val roomMentionPattern = "(?<!\\S)@room(?!\\S)"
 
 @OptIn(FlowPreview::class)
 open class InputAreaViewModelImpl(
@@ -311,15 +332,18 @@ open class InputAreaViewModelImpl(
         override fun printHtml(html: CharSequence): CharSequence = html
     }
 
-    override val listOfMentions: StateFlow<List<UserInfoElement>?> =
+    override val listOfMentions: StateFlow<List<MentionElement>?> =
         textField
             .map { textFieldValue ->
-                val userIdLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
-                if (userIdLocalPartBeforeCursor != null) {
+                val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
+                if (idLocalPartBeforeCursor != null) {
                     _listOfMentionsLoading.value = true
-                    val listOfUsers = listOfUsers(userIdLocalPartBeforeCursor)
+                    val listOfMentions = mutableListOf<MentionElement>()
+                    val listOfUsers = listOfUsers(idLocalPartBeforeCursor)
+                    listOfMentions.addAll(listOfUsers)
+                    getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { listOfMentions.add(it) }
                     _listOfMentionsLoading.value = false
-                    listOfUsers
+                    listOfMentions
                 } else null
             }
             .stateIn(coroutineScope, WhileSubscribed(), null)
@@ -405,6 +429,8 @@ open class InputAreaViewModelImpl(
     private suspend fun getTextMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
+        val hasRoomMention = roomMentionPattern.toRegex().containsMatchIn(text)
+        val roomMentionEnabled = canRoomMention.value == true && hasRoomMention
         val formattedReferences =
             references
                 .filterValues { it !is TrixnityReference.Link }
@@ -451,7 +477,7 @@ open class InputAreaViewModelImpl(
                     reply(repliedEvent)
                 }
             }
-            mentions(userReferences)
+            mentions(userReferences, roomMentionEnabled)
             text(body = text, format = "org.matrix.custom.html", formattedBody = formattedBody)
         }
     }
@@ -466,21 +492,21 @@ open class InputAreaViewModelImpl(
         matrixClient.room.setDraftMessage(roomId = roomId, builder = getTextMessageBuilder(text))
     }
 
-    override fun selectMention(userId: UserId) {
-        if (listOfMentions.value?.any { it.userId == userId } != true) return
+    override fun selectMention(id: String) {
+        if (listOfMentions.value?.any { it.id == id } != true) return
         val textFieldValue = textField.value
         val (text, selection) = textFieldValue
-        val userIdLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
-        if (userIdLocalPartBeforeCursor != null && selection != null) {
-            val userIdStart = selection.last - userIdLocalPartBeforeCursor.length - 2 // 1 for @ and 1 for cursor
+        val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
+        if (idLocalPartBeforeCursor != null && selection != null) {
+            val userIdStart = selection.last - idLocalPartBeforeCursor.length - 2 // 1 for @ and 1 for cursor
             textField.update(
                 text =
                     buildString {
                         append(text.substring(0..userIdStart))
-                        append(userId)
+                        append(id)
                         append(text.substring(selection.last.coerceAtMost(text.length)))
                     },
-                selection = IntRange(userIdStart + userId.full.length + 1),
+                selection = IntRange(userIdStart + id.length + 1),
             )
         }
     }
@@ -645,7 +671,7 @@ open class InputAreaViewModelImpl(
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    private suspend fun listOfUsers(search: String): List<UserInfoElement> {
+    private suspend fun listOfUsers(search: String): List<MentionElement.User> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
         return allUsers.entries
             .asFlow()
@@ -662,7 +688,58 @@ open class InputAreaViewModelImpl(
             .map { roomUser ->
                 roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxMediaSizeInMemory)
             }
+            .map { userInfoElement -> MentionElement.User(userInfoElement) }
             .toList()
+    }
+
+    private val roomInfoElement =
+        matrixClient.room
+            .getById(roomId)
+            .filterNotNull()
+            .map { room ->
+                val roomName = room.name?.explicitName.orEmpty()
+                RoomInfoElement(
+                    roomName,
+                    roomId,
+                    initials.compute(roomName),
+                    room.avatarUrl?.let { fetchRoomThumbnail(it) },
+                )
+            }
+            .stateIn(coroutineScope, SharingStarted.Lazily, null)
+
+    private suspend fun fetchRoomThumbnail(avatarUrl: String): ByteArray? {
+        val size = avatarSize().toLong()
+        return matrixClient.media
+            .getThumbnail(avatarUrl, size, size)
+            .onFailure { log.error(it) { "Cannot load room avatar." } }
+            .getOrNull()
+            ?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+    }
+
+    private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
+    private val defaultRoomNotificationPowerLevel = 50L
+    private val requiredRoomMentionPowerLevel =
+        matrixClient.room.getState(roomId, PowerLevelsEventContent::class).filterNotNull().map { powerLevelEvent ->
+            powerLevelEvent.content.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
+        }
+
+    private val canRoomMention: StateFlow<Boolean?> =
+        combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
+                when (userPowerLevel) {
+                    is PowerLevel.Creator -> true
+                    is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
+                }
+            }
+            .stateIn(coroutineScope, SharingStarted.Lazily, null)
+
+    private suspend fun getRoomMentionIfAllowed(search: String): MentionElement.AllRoomMembers? {
+        val isAllowed = canRoomMention.filterNotNull().first()
+        if (canRoomMention.value == false) return null
+
+        val roomInfo = roomInfoElement.filterNotNull().first()
+        return roomInfoElement.value
+            ?.let { MentionElement.AllRoomMembers(it) }
+            ?.takeIf { it.id.contains(search, ignoreCase = true) }
     }
 
     private suspend fun typing() {
@@ -709,12 +786,12 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val isReplace: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val listOfMentions: MutableStateFlow<List<UserInfoElement>?> = MutableStateFlow(null)
+    override val listOfMentions: MutableStateFlow<List<MentionElement>?> = MutableStateFlow(null)
     override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 
-    override fun selectMention(userId: UserId) {}
+    override fun selectMention(id: String) {}
 
     override fun sendMessage() {}
 

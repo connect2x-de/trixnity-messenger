@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.bubble
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.hoverable
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionItemInfo
@@ -48,6 +50,7 @@ fun MessageBubbleContainer(
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     isPreview: Boolean,
+    isCurrentUserMentioned: Boolean,
     interactionSource: MutableInteractionSource,
     index: Int,
     onRedact: () -> Unit,
@@ -69,6 +72,17 @@ fun MessageBubbleContainer(
             sendError != null -> MaterialTheme.components.messageBubbleError
             holder.isByMe -> MaterialTheme.components.messageBubbleOwn
             else -> MaterialTheme.components.messageBubbleOther
+        }
+    val messageBorder =
+        if (!holder.isByMe && isCurrentUserMentioned) {
+            Modifier.border(
+                    2.dp,
+                    lerp(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, 0.4f),
+                    messageBubbleStyle.shape,
+                )
+                .padding(5.dp)
+        } else {
+            Modifier
         }
 
     Box(
@@ -108,6 +122,7 @@ fun MessageBubbleContainer(
                             }
                         }
                     }
+                    .then(messageBorder)
                     .focusable(true, interactionSource)
                     .hoverable(hoverInteractionSource)
                     .semantics {

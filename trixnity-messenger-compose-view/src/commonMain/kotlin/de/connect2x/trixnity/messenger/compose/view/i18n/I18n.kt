@@ -3200,6 +3200,11 @@ open class I18nView(
         DE - "Warum möchtest du beitreten? (Optional)"
     }
 
+    open fun allRoomMembers() = translate {
+        EN - "All members in room"
+        DE - "Alle Mitglieder im Raum"
+    }
+
     open fun mentionEventInRoom(roomName: String) = translate {
         EN - "Message in $roomName"
         DE - "Nachricht in $roomName"

@@ -49,6 +49,9 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
     /** Users, Events and Room mentioned in the event's formatted body */
     val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>>
 
+    /** Indicates if the current user is mentioned in the message via ID or a room mention */
+    val isCurrentUserMentioned: Boolean
+
     /** Open the mention in the UI */
     fun openMention(mention: TimelineElementMention)
 
@@ -165,6 +168,11 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
 
     val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+
+    val isCurrentUserMentioned: Boolean =
+        content.mentions?.let { mentions ->
+            mentions.users?.contains(userId) == true || mentions.room == true
+        } ?: false
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

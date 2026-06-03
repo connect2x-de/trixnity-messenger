@@ -211,6 +211,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isCurrentUserMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }
@@ -283,6 +284,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isCurrentUserMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }
