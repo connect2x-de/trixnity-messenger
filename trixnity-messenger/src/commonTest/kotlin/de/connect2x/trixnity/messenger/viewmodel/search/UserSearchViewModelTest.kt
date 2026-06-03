@@ -720,10 +720,7 @@ class UserSearchViewModelTest {
         override val disabledByDefault: Boolean = false
 
         override val supportedFilters: List<SearchFilterValue.Key<*>> =
-            listOf(
-                CitySearchFilterValue.Key,
-                DifferentSearchFilterValue.Key,
-            )
+            listOf(CitySearchFilterValue.Key, DifferentSearchFilterValue.Key)
 
         override suspend fun search(
             searchTerm: String,

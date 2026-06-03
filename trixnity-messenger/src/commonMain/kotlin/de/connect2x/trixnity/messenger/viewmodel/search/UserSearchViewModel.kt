@@ -239,11 +239,7 @@ class UserSearchViewModelImpl(
                                 }
                                 .isNotEmpty()
                     }
-                    .map {
-                        ActiveFilter(it.displayValue()) {
-                            removeFilterValue(it.key)
-                        }
-                    }
+                    .map { ActiveFilter(it.displayValue()) { removeFilterValue(it.key) } }
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyList())
 

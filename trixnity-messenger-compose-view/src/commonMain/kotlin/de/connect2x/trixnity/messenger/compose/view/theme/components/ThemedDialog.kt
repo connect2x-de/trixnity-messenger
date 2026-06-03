@@ -328,7 +328,10 @@ fun ColumnScope.ModalDialogContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ModalDialogFooter(style: DialogStyle = MaterialTheme.components.modalDialog, content: @Composable RowScope.() -> Unit) {
+fun ModalDialogFooter(
+    style: DialogStyle = MaterialTheme.components.modalDialog,
+    content: @Composable RowScope.() -> Unit,
+) {
     ThemedSurface(modifier = Modifier.fillMaxWidth(), style = style.footer) {
         FlowRow(
             modifier = Modifier.align(Alignment.CenterEnd),
