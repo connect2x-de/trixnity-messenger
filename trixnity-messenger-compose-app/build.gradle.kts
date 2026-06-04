@@ -164,7 +164,15 @@ defaultComposeDesktopApplication(
     mainClassName = "$appId.Main",
     applicationConfig = {
         javaHome = distributionJavaHome
-        jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
+        jvmArgs(
+            "-Xmx1G",
+            "-XX:+HeapDumpOnOutOfMemoryError",
+            "--add-opens",
+            "java.desktop/sun.awt.X11=ALL-UNNAMED",
+            "--add-opens",
+            "java.desktop/sun.awt.wl=ALL-UNNAMED",
+            "-Djava.desktop.appName=$appName.desktop",
+        )
         nativeDistributions {
             modules("java.net.http", "java.sql", "java.naming")
             linux { modules("jdk.security.auth") }

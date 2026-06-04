@@ -22,6 +22,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.extensions.compose.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.compose.view.profiles.Profiles
 import de.connect2x.trixnity.messenger.compose.view.profiles.ShowProfileCreation
@@ -34,13 +35,55 @@ import de.connect2x.trixnity.messenger.util.defaultDragAndDropHandler
 import de.connect2x.trixnity.messenger.util.defaultUriHandler
 import java.awt.GraphicsEnvironment
 import java.awt.Taskbar
+import java.awt.Toolkit
 import java.awt.dnd.DropTarget
+import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import okio.FileSystem
+import sun.misc.Unsafe
+
+private val logger: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.messengerAppKt")
+
+/**
+ * Workaround for https://youtrack.jetbrains.com/issue/CMP-3308 adjusted to use an unsafe callback.
+ *
+ * Since the module system security makes it impossible to use reflection for this on our minimum target JDK, we need to
+ * use sun.misc.Unsafe to try to override the field value, without tripping up reflection security checks. What a
+ * beautiful mess.
+ */
+private fun updateAppClassName(name: String) {
+    try {
+        val toolkit = Toolkit.getDefaultToolkit()
+        logger.debug { "AWT Toolkit implementation is ${toolkit::class.java.name}" }
+        val classNameField = toolkit.javaClass.getDeclaredField("awtAppClassName")
+        logger.debug { "Got field reference $classNameField" }
+
+        try {
+            classNameField.isAccessible = true
+            classNameField.set(null, name)
+        } catch (_: Throwable) {
+            val theUnsafe = Unsafe::class.java.getDeclaredField("theUnsafe")
+            theUnsafe.isAccessible = true
+            val unsafe = theUnsafe.get(null) as? Unsafe ?: return
+            logger.debug { "Obtained sun.misc.Unsafe instance $unsafe" }
+
+            val fieldBase = unsafe.staticFieldBase(classNameField)
+            val fieldOffset = unsafe.staticFieldOffset(classNameField)
+            unsafe.putObjectVolatile(fieldBase, fieldOffset, name)
+        }
+
+        logger.debug { "Successfully swapped AWT app class to $name" }
+    } catch (_: Throwable) {
+        // SILENCE
+    }
+}
 
 fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: LifecycleRegistry) {
+    val appName = matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>().appName
+    updateAppClassName(appName)
+
     application(exitProcessOnExit = false) { // Make sure this unblocks and returns after application is closed
         val gd = GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
         val width = gd.displayMode.width
@@ -51,8 +94,8 @@ fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: Lifecycl
 
         Window(
             onCloseRequest = ::exitApplication,
-            icon = MessengerTrayIcon(0),
-            title = matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>().appName,
+            title = appName,
+            icon = MessengerTrayIcon(0, iconSize = 1024F),
             state = windowState,
             onPreviewKeyEvent = { event ->
                 if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
@@ -61,6 +104,13 @@ fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: Lifecycl
                 } else false
             },
         ) {
+            SwingUtilities.invokeLater { // AWT API should be called from underlying EDT
+                if (Taskbar.isTaskbarSupported()) {
+                    if (!Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE)) return@invokeLater
+                    Taskbar.getTaskbar().iconImage =
+                        MessengerTrayIcon(0, iconSize = 1024F).toAwtImage(Density(1F), LayoutDirection.Ltr)
+                }
+            }
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,
                 componentContext = DefaultComponentContext(lifecycle),
@@ -80,14 +130,6 @@ fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: Lifecycl
                     if (isTraySupported) { // e.g., for GNOME this is false
                         Tray(state = trayState, icon = MessengerTrayIcon(unreadMessages.value))
                     }
-                    if (Taskbar.isTaskbarSupported()) {
-                        if (Taskbar.getTaskbar().isSupported(Taskbar.Feature.ICON_IMAGE)) {
-                            Taskbar.getTaskbar().iconImage =
-                                MessengerTrayIcon(unreadMessages.value, iconSize = 1024f)
-                                    .toAwtImage(Density(1f), LayoutDirection.Ltr)
-                        }
-                    }
-
                     val isFocusHighlighting =
                         matrixMessenger.di
                             .get<MatrixMessengerSettingsHolder>()
@@ -104,7 +146,7 @@ fun messengerApp(matrixMultiMessenger: MatrixMultiMessenger, lifecycle: Lifecycl
                         MessengerTheme { Client(rootViewModel) }
                     }
                 },
-                nonActiveMessenger = { existingProfiles ->
+                nonActiveMessenger = {
                     val showProfileCreation = remember { mutableStateOf(false) }
                     CompositionLocalProvider(
                         Platform provides PlatformType.DESKTOP,
