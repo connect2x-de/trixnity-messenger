@@ -164,15 +164,12 @@ defaultComposeDesktopApplication(
     mainClassName = "$appId.Main",
     applicationConfig = {
         javaHome = distributionJavaHome
-        jvmArgs(
-            "-Xmx1G",
-            "-XX:+HeapDumpOnOutOfMemoryError"
-        )
+        jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
         nativeDistributions {
             modules("java.net.http", "java.sql", "java.naming")
             linux { modules("jdk.security.auth") }
         }
-    }
+    },
 )
 
 android {
