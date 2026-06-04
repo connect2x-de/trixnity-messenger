@@ -286,18 +286,24 @@ class TimelineElementHolderViewModelImpl(
             .debounce { if (it) 1.seconds else Duration.ZERO } // prevent indicator on fast loading
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
-    private fun isEventReplacedOrRedacted(message: RoomOutboxMessage<*>?): Boolean =
-        (message?.content?.relatesTo as? RelatesTo.Replace)?.eventId == eventId ||
-            (message?.content as? RedactionEventContent)?.redacts == eventId
-
     private val outboxElementIfReplacedOrRedacted: SharedFlow<RoomOutboxMessage<*>?> =
-        if (!ignoreReplacedEvents) MutableStateFlow(null)
-        else
-            matrixClient.room
-                .getOutbox(roomId)
-                .flatten()
-                .map { outbox -> outbox.reversed().firstOrNull { isEventReplacedOrRedacted(it) } }
-                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+        timelineEventFlow
+            .flatMapLatest { timelineEvent ->
+                val redactionEventId =
+                    if (timelineEvent.event.content is RedactedEventContent)
+                        timelineEvent.event.unsigned?.redactedBecause?.id
+                    else null
+                when {
+                    redactionEventId != null -> flowOf(null)
+                    else ->
+                        matrixClient.room.getOutbox(roomId).flatten().map { outbox ->
+                            outbox.reversed().firstOrNull {
+                                it.isRedactionFor(eventId) || ignoreReplacedEvents && it.isReplacementFor(eventId)
+                            }
+                        }
+                }
+            }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val newContentIfReplacedOrRedacted: SharedFlow<MessageEventContent?> =
         combine(timelineEventFlow, outboxElementIfReplacedOrRedacted) { timelineEvent, newContent ->
@@ -374,7 +380,7 @@ class TimelineElementHolderViewModelImpl(
                         emit(it)
                     }
                     .distinctUntilChangedBy { it.content },
-            newContentIfReplacedOrRedacted.distinctUntilChanged(),
+                newContentIfReplacedOrRedacted.distinctUntilChanged(),
             ) { timelineEvent, newContent ->
                 val currentElement = elementCache.value
                 currentElement?.lifecycle?.destroy()
@@ -530,18 +536,25 @@ class TimelineElementHolderViewModelImpl(
 
     override val isByMe: Boolean = senderUserId == userId
 
-    private val lastReplacement =
-        if (!ignoreReplacedEvents) MutableStateFlow(null)
-        else
-            matrixClient.room
-                .getTimelineEventReplaceAggregation(roomId, eventId)
-                .map { it.replacedBy }
-                .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
+    private val lastReplaceOrRedaction =
+        timelineEventFlow
+            .flatMapLatest { timelineEvent ->
+                val redactionEventId =
+                    if (timelineEvent.event.content is RedactedEventContent)
+                        timelineEvent.event.unsigned?.redactedBecause?.id
+                    else null
+                when {
+                    redactionEventId != null -> flowOf(redactionEventId)
+                    !ignoreReplacedEvents -> flowOf(null)
+                    else -> matrixClient.room.getTimelineEventReplaceAggregation(roomId, eventId).map { it.replacedBy }
+                }
+            }
+            .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
     private val getEventReaders = get<GetEventReaders>()
 
     override val readers =
-        lastReplacement
+        lastReplaceOrRedaction
             .flatMapLatest {
                 getEventReaders.isReadBy(
                     matrixClient = matrixClient,
@@ -568,7 +581,6 @@ class TimelineElementHolderViewModelImpl(
 
     override val canBeEdited: StateFlow<Boolean> =
         timelineEventFlow
-            .filterNotNull()
             .map { it.event.sender == matrixClient.userId && it.content?.getOrNull() is TextBased }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
@@ -583,7 +595,7 @@ class TimelineElementHolderViewModelImpl(
             .stateIn(coroutineScope, whileSubscribedWithTimeout, false)
 
     override val isRead: StateFlow<Boolean> =
-        lastReplacement
+        lastReplaceOrRedaction
             .flatMapLatest {
                 getEventReaders.isRead(
                     matrixClient = matrixClient,
@@ -710,6 +722,12 @@ class TimelineElementHolderViewModelImpl(
     override fun jumpTo() {
         jumpTo(roomId, eventId)
     }
+
+    private fun RoomOutboxMessage<*>.isReplacementFor(eventId: EventId) =
+        (content.relatesTo as? RelatesTo.Replace)?.eventId == eventId
+
+    private fun RoomOutboxMessage<*>.isRedactionFor(eventId: EventId) =
+        (content as? RedactionEventContent)?.redacts == eventId
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
