@@ -11,6 +11,8 @@ import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException as KxCancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +60,15 @@ class MatrixMessengerImpl private constructor(override val di: Koin) : MatrixMes
             log.debug { "create MatrixMessengerImpl" }
             val config = MatrixMessengerConfiguration().apply(configuration)
             val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
-                log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
+                when (throwable) {
+                    is KxCancellationException,
+                    is CancellationException ->
+                        log.debug { "MatrixMessenger coroutine cancelled early $exceptionCoroutineContext" }
+                    else ->
+                        log.error(throwable) {
+                            "Exception in global MatrixMessenger CoroutineScope $exceptionCoroutineContext"
+                        }
+                }
             }
             val coroutineScope =
                 CoroutineScope(
@@ -105,8 +115,8 @@ class MatrixMessengerImpl private constructor(override val di: Koin) : MatrixMes
     }
 
     override fun close() {
-        di.getAll<AutoCloseable>().forEach { it.close() }
-        di.get<CoroutineScope>().apply { cancel("stopped MatrixMessenger") }
+        di.getAll<AutoCloseable>().forEach(AutoCloseable::close)
+        di.get<CoroutineScope>().cancel("stopped MatrixMessenger")
         if (di.getOrNull<MatrixMultiMessengerConfiguration>() == null) {
             di.get<MatrixMessengerConfiguration>().httpClientEngine?.close()
         }

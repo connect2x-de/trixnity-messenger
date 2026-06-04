@@ -2686,6 +2686,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Timel
     abstract fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.errorDismiss|errorDismiss(){}[0]
     abstract fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     abstract fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.leaveRoom|leaveRoom(){}[0]
+    abstract fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     abstract suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.dropAfter|dropAfter(kotlin.String){}[0]
     abstract suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.dropBefore|dropBefore(kotlin.String){}[0]
     abstract suspend fun loadAfter() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.loadAfter|loadAfter(){}[0]
@@ -5840,7 +5841,7 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
 
     sealed interface State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State|null[0]
         final class Completed : de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed|null[0]
-            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/String, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
 
             final val capture // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture|{}capture[0]
                 final fun <get-capture>(): de.connect2x.trixnity.client.media/PlatformMedia // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture.<get-capture>|<get-capture>(){}[0]
@@ -5850,6 +5851,8 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
                 final fun <get-deleteCapture>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.deleteCapture.<get-deleteCapture>|<get-deleteCapture>(){}[0]
             final val duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration|{}duration[0]
                 final fun <get-duration>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration.<get-duration>|<get-duration>(){}[0]
+            final val fileExtension // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension|{}fileExtension[0]
+                final fun <get-fileExtension>(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension.<get-fileExtension>|<get-fileExtension>(){}[0]
             final val sizeBytes // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes|{}sizeBytes[0]
                 final fun <get-sizeBytes>(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes.<get-sizeBytes>|<get-sizeBytes>(){}[0]
 
@@ -5857,8 +5860,9 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
             final fun component2(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component2|component2(){}[0]
             final fun component3(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component3|component3(){}[0]
             final fun component4(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component4|component4(){}[0]
-            final fun component5(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
-            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun component5(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
+            final fun component6(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component6|component6(){}[0]
+            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/String = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.toString|toString(){}[0]
@@ -5936,6 +5940,12 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
     }
 
     final object Companion // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Companion|null[0]
+}
+
+final class de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl : de.connect2x.trixnity.messenger.multi/MatrixMessengerFactory { // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl|null[0]
+    constructor <init>(org.koin.core.scope/Scope, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration, kotlin.collections/List<de.connect2x.trixnity.messenger.multi/CopyMultiMessengerSingletons>, kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.util/RootPath) // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl.<init>|<init>(org.koin.core.scope.Scope;de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration;kotlin.collections.List<de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons>;kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.util.RootPath){}[0]
+
+    final suspend fun invoke(kotlin/String): de.connect2x.trixnity.messenger/MatrixMessenger // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl.invoke|invoke(kotlin.String){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration : de.connect2x.trixnity.messenger/MatrixMessengerBaseConfiguration { // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration|null[0]
@@ -9225,6 +9235,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimel
     final fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.errorDismiss|errorDismiss(){}[0]
     final fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.leaveRoom|leaveRoom(){}[0]
+    final fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     final suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.dropAfter|dropAfter(kotlin.String){}[0]
     final suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.dropBefore|dropBefore(kotlin.String){}[0]
     final suspend fun loadAfter() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.loadAfter|loadAfter(){}[0]
@@ -9366,7 +9377,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineView
     final val roomHeaderViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.roomHeaderViewModel|{}roomHeaderViewModel[0]
         final fun <get-roomHeaderViewModel>(): de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.roomHeaderViewModel.<get-roomHeaderViewModel>|<get-roomHeaderViewModel>(){}[0]
     final val scrollTo // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo|{}scrollTo[0]
-        final fun <get-scrollTo>(): kotlinx.coroutines.flow/MutableSharedFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo.<get-scrollTo>|<get-scrollTo>(){}[0]
+        final fun <get-scrollTo>(): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo.<get-scrollTo>|<get-scrollTo>(){}[0]
     final val sendAttachmentStack // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.sendAttachmentStack|{}sendAttachmentStack[0]
         final fun <get-sendAttachmentStack>(): com.arkivanov.decompose.value/Value<com.arkivanov.decompose.router.stack/ChildStack<de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.Config, de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.Wrapper>> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.sendAttachmentStack.<get-sendAttachmentStack>|<get-sendAttachmentStack>(){}[0]
     final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.stateKeeper|{}stateKeeper[0]
@@ -9390,6 +9401,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineView
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.leaveRoom|leaveRoom(){}[0]
+    final fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.dropAfter|dropAfter(kotlin.String){}[0]
     final suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.dropBefore|dropBefore(kotlin.String){}[0]

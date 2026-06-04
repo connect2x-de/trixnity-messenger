@@ -177,7 +177,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.KNOCK),
                         stateKey = joiningUser.full,
                     )
                 )
@@ -201,7 +201,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = joiningUser.full,
                     )
                 )
@@ -233,7 +233,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.KNOCK),
                         stateKey = "@bob:localhost",
                     )
                 )
@@ -289,7 +289,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = currentUser.full,
                     )
                 )
@@ -688,7 +688,7 @@ class MemberStateTimelineElementViewModelTest {
                 memberStatusViewModel(
                     mockTimelineEvent(
                         membership = Membership.JOIN,
-                        previousMemberEventContent = memberEventContent(),
+                        previousMemberEventContent = memberEventContent(membership = Membership.INVITE),
                         stateKey = currentUser.full,
                     )
                 )
@@ -703,6 +703,28 @@ class MemberStateTimelineElementViewModelTest {
             cut.changeMessage.value shouldBe "Bob has joined the chat"
             cut.undecryptableHistoryInfo.value shouldBe "Previous messages cannot be decrypted"
         }
+
+    @Test
+    fun `no change event » no message should be displayed`() = runTest {
+        val currentUser = UserId("@alice:localhost")
+        every { matrixClientMock.userId } returns currentUser
+
+        val memberEventContentMock = memberEventContent("", currentUser.full, Membership.JOIN, false)
+        val cut =
+            memberStatusViewModel(
+                mockTimelineEvent(
+                    memberEventContentMock.avatarUrl!!,
+                    memberEventContentMock.displayName!!,
+                    memberEventContentMock.membership,
+                    memberEventContentMock.isDirect!!,
+                    previousMemberEventContent = memberEventContentMock,
+                )
+            )
+
+        backgroundScope.launch { cut.changeMessage.collect {} }
+        delay(1.seconds)
+        cut.changeMessage.value shouldBe ""
+    }
 
     private fun TestScope.memberStatusViewModel(timelineEvent: TimelineEvent): MemberStateTimelineElementViewModelImpl {
         val di =

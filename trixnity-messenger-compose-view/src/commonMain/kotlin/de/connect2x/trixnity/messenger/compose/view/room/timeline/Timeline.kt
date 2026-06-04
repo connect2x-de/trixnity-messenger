@@ -72,7 +72,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -109,7 +108,7 @@ class TimelineViewImpl : TimelineView {
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
         var scrollTo by remember { mutableStateOf<String?>(null) }
-        LaunchedEffect(Unit) { timelineViewModel.scrollTo.drop(1).collect { scrollTo = it } }
+        LaunchedEffect(Unit) { timelineViewModel.scrollTo.collect { scrollTo = it } }
 
         val timelineViewElements = rememberTimelineViewElements(timelineViewModel)
         val isTimelineLoading = timelineViewElements.value.isEmpty()
@@ -131,13 +130,14 @@ class TimelineViewImpl : TimelineView {
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
 
                 LaunchedEffect(scrollTo, timelineViewElements.value, showTypingIndicator) {
-                    if (scrollTo != null) {
+                    val scrollToKey = scrollTo
+                    if (scrollToKey != null) {
                         val index =
                             withTimeoutOrNull(5.seconds) {
-                                timelineViewElements.value.indexOfFirst { it.key == scrollTo }
+                                timelineViewElements.value.indexOfFirst { it.key == scrollToKey }
                             } ?: -1
                         if (index >= 0) {
-                            log.debug { "scrolling to $scrollTo (index=$index)" }
+                            log.debug { "scrolling to $scrollToKey (index=$index)" }
                             listState.animateScrollToItem(
                                 when {
                                     index == 0 && showTypingIndicator -> 0
@@ -145,6 +145,7 @@ class TimelineViewImpl : TimelineView {
                                     else -> index
                                 }
                             )
+                            timelineViewModel.onProcessedScrollTo(scrollToKey)
                             scrollTo = null
                         }
                     }

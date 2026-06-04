@@ -148,7 +148,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
                 content,
             )
 
-            if (element.hasCaption) {
+            if (element.hasCaption && element.body.isNotBlank()) {
                 TextRoomMessageTimelineElementView(holder, element, showActionMenu)
             }
         }

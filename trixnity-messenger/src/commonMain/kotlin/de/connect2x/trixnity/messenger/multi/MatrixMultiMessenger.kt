@@ -8,6 +8,8 @@ import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.Worker
 import de.connect2x.trixnity.messenger.settings.SettingsHolder
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.CancellationException as KxCancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +51,15 @@ class MatrixMultiMessengerImpl private constructor(override val di: Koin, privat
         ): MatrixMultiMessengerImpl {
             val config = MatrixMultiMessengerConfiguration().apply(configuration)
             val exceptionHandler = CoroutineExceptionHandler { exceptionCoroutineContext, throwable ->
-                log.error(throwable) { "Exception in global CoroutineScope $exceptionCoroutineContext" }
+                when (throwable) {
+                    is KxCancellationException,
+                    is CancellationException ->
+                        log.debug { "MatrixMultiMessenger coroutine cancelled early $exceptionCoroutineContext" }
+                    else ->
+                        log.error(throwable) {
+                            "Exception in global MatrixMultiMessenger CoroutineScope $exceptionCoroutineContext"
+                        }
+                }
             }
             val coroutineScope =
                 CoroutineScope(
@@ -89,8 +99,8 @@ class MatrixMultiMessengerImpl private constructor(override val di: Koin, privat
     }
 
     override fun close() {
-        di.getAll<AutoCloseable>().forEach { it.close() }
-        di.get<CoroutineScope>().apply { cancel("stopped MatrixMultiMessenger") }
+        di.getAll<AutoCloseable>().forEach(AutoCloseable::close)
+        di.get<CoroutineScope>().cancel("stopped MatrixMultiMessenger")
         activeMatrixMessenger.value?.close()
         di.get<MatrixMultiMessengerConfiguration>().httpClientEngine?.close()
     }

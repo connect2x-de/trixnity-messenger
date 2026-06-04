@@ -7,7 +7,7 @@
         {
             "type": "system_console",
             "name": "console",
-            "pattern": "{{levelColor}}>> {{levelSymbol}} [{{hh}}:{{mm}}:{{ss}}.{{SSS}}] ({{name}} @ {{threadId}}) {{message}}{{r}}",
+            "pattern": "{{levelColor}}>> {{levelSymbol}} [{{dd}}/{{MM}}/{{yyyy}} {{hh}}:{{mm}}:{{ss}}.{{SSS}}] ({{name}}) {{message}}{{r}}",
             "formatter": "default"
         }
     ]

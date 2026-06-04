@@ -25,6 +25,7 @@ internal class AndroidAudioRecorder(
     private val i18n: I18n,
 ) : PlatformAudioRecorder {
     private val tempFilePath = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "voice_messages"
+    private val audioFileExtension = "m4a"
 
     var registeredRequestPermission: ActivityResultLauncher<String>? = null
 
@@ -57,6 +58,7 @@ internal class AndroidAudioRecorder(
             duration = state.duration,
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
+            fileExtension = state.fileExtension,
         ) {}
     }
 
@@ -105,6 +107,7 @@ internal class AndroidAudioRecorder(
                             duration = clock.now() - recordingState.start,
                             sizeBytes = fileSystem.metadata(tempFilePath).size,
                             contentType = format.contentType,
+                            fileExtension = audioFileExtension,
                         ) {
                             fileSystem.delete(tempFilePath)
                         }

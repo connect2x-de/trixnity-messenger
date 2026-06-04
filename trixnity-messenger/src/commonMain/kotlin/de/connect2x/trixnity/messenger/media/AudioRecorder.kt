@@ -45,6 +45,7 @@ interface AudioRecorder : AutoCloseable {
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
+            val fileExtension: String,
         ) : State
     }
 }
@@ -100,6 +101,7 @@ class AudioRecorderImpl(
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
+            val fileExtension: String,
             val deleteCapture: () -> Unit,
         ) : State
     }
@@ -208,6 +210,7 @@ class AudioRecorderImpl(
                             stateImpl.duration,
                             stateImpl.sizeBytes,
                             stateImpl.contentType,
+                            stateImpl.fileExtension,
                         )
                 }
             }
