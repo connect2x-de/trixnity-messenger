@@ -935,7 +935,7 @@ class TimelineViewModelImpl(
 
                                 val outboxIsEmpty = (elements.lastOrNull() as? OutboxElementHolderViewModel) == null
 
-                            if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
+                                if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
                                     val newLastEvent = timelineStateChange.addedElements.last().key
 
                                     val currentReadEvent = readEvent.value
