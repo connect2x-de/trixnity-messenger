@@ -12,7 +12,7 @@ import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.ktor.http.Url
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,10 +36,7 @@ interface PasswordLoginViewModelFactory {
     companion object : PasswordLoginViewModelFactory
 }
 
-interface PasswordLoginViewModel {
-    val isFirstMatrixClient: StateFlow<Boolean?>
-    val serverUrl: String
-
+interface PasswordLoginViewModel : LoginViewModel {
     val canLogin: StateFlow<Boolean>
 
     val username: TextFieldViewModel

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.filled.DevicesOther
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Web
@@ -30,7 +31,7 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgr
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel.ServerDiscoveryState
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel
 
 interface ServerDiscoveryStateView {
     @Composable fun create(addMatrixAccountViewModel: AddMatrixAccountViewModel)
@@ -55,20 +56,29 @@ class ServerDiscoveryStateViewImpl : ServerDiscoveryStateView {
                     remember(serverDiscoveryState.addMatrixAccountMethods) {
                         serverDiscoveryState.addMatrixAccountMethods.sortedBy {
                             when (it) {
-                                is AddMatrixAccountMethod.OAuth2 -> 0
-                                is AddMatrixAccountMethod.Password -> 1
-                                is AddMatrixAccountMethod.SSO -> 2
+                                is AddMatrixAccountMethod.OAuth2AuthorizationCode ->
+                                    when (it.type) {
+                                        OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN -> 1
+                                        OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> 3
+                                    }
+                                is AddMatrixAccountMethod.OAuth2DeviceAuthorization -> 2
+                                is AddMatrixAccountMethod.Password -> 3
+                                is AddMatrixAccountMethod.SSO -> 4
                                 is AddMatrixAccountMethod.Register -> 99
                             }
                         }
                     }
                 OAuth2LoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
-                val hasOAuth2Login = addMatrixAccountMethods.any { it is AddMatrixAccountMethod.OAuth2 }
-                if (hasOAuth2Login) {
-                    val nonOauth2AddMatrixAccountMethods = addMatrixAccountMethods.filter {
-                        it !is AddMatrixAccountMethod.OAuth2
+                val hasOAuth2AuthorizationCodeLogin = addMatrixAccountMethods.any {
+                    it is AddMatrixAccountMethod.OAuth2AuthorizationCode ||
+                        it is AddMatrixAccountMethod.OAuth2DeviceAuthorization
+                }
+                if (hasOAuth2AuthorizationCodeLogin) {
+                    val nonOauth2AuthorizationCodeAddMatrixAccountMethods = addMatrixAccountMethods.filter {
+                        it !is AddMatrixAccountMethod.OAuth2AuthorizationCode &&
+                            it !is AddMatrixAccountMethod.OAuth2DeviceAuthorization
                     }
-                    if (nonOauth2AddMatrixAccountMethods.isNotEmpty())
+                    if (nonOauth2AuthorizationCodeAddMatrixAccountMethods.isNotEmpty())
                         ExpandableSection(heading = i18n.loginWithMoreClassic(), icon = Icons.Outlined.AlternateEmail) {
                             ClassicLoginItems(addMatrixAccountMethods, i18n, addMatrixAccountViewModel)
                         }
@@ -90,9 +100,9 @@ private fun OAuth2LoginItems(
 ) {
     for (type in addMatrixAccountMethods) {
         when (type) {
-            is AddMatrixAccountMethod.OAuth2 -> {
+            is AddMatrixAccountMethod.OAuth2AuthorizationCode -> {
                 when (type.type) {
-                    OAuth2LoginViewModel.Type.LOGIN -> {
+                    OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN -> {
                         ThemedListItem(
                             headlineContent = { Text(i18n.loginWithOAuth2()) },
                             leadingContent = {
@@ -104,7 +114,7 @@ private fun OAuth2LoginItems(
                         )
                     }
 
-                    OAuth2LoginViewModel.Type.REGISTER -> {
+                    OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> {
                         ThemedListItem(
                             headlineContent = { Text(i18n.registerWithOAuth2()) },
                             leadingContent = {
@@ -116,6 +126,17 @@ private fun OAuth2LoginItems(
                         )
                     }
                 }
+            }
+            is AddMatrixAccountMethod.OAuth2DeviceAuthorization -> {
+                ThemedListItem(
+                    headlineContent = { Text(i18n.loginWithOAuth2Device()) },
+                    leadingContent = {
+                        Icon(Icons.Default.DevicesOther, i18n.loginWithOAuth2Device(), Modifier.fillMaxHeight())
+                    },
+                    modifier =
+                        Modifier.clickable { addMatrixAccountViewModel.selectAddMatrixAccountMethod(type) }
+                            .buttonPointerModifier(),
+                )
             }
 
             is AddMatrixAccountMethod.Password,
@@ -173,7 +194,8 @@ private fun ClassicLoginItems(
                 )
             }
 
-            is AddMatrixAccountMethod.OAuth2 -> {}
+            is AddMatrixAccountMethod.OAuth2AuthorizationCode,
+            is AddMatrixAccountMethod.OAuth2DeviceAuthorization -> {}
         }
     }
 }

@@ -17,9 +17,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountStat
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.utils.nextString
-import io.ktor.http.URLBuilder
-import io.ktor.http.Url
-import io.ktor.http.path
+import io.ktor.http.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,9 +53,7 @@ interface SSOLoginViewModelFactory {
     companion object : SSOLoginViewModelFactory
 }
 
-interface SSOLoginViewModel {
-    val isFirstMatrixClient: StateFlow<Boolean?>
-    val serverUrl: String
+interface SSOLoginViewModel : LoginViewModel {
     val providerName: String?
 
     val addMatrixAccountState: StateFlow<AddMatrixAccountState>

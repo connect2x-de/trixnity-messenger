@@ -63,7 +63,10 @@ class AddMatrixAccountViewModelTest {
         cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe
             ServerDiscoveryState.Success(
                 setOf(
-                    AddMatrixAccountMethod.OAuth2("https://matrix.server.host", type = OAuth2LoginViewModel.Type.LOGIN),
+                    AddMatrixAccountMethod.OAuth2AuthorizationCode(
+                        "https://matrix.server.host",
+                        type = OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN,
+                    ),
                     AddMatrixAccountMethod.Password("https://matrix.server.host"),
                     AddMatrixAccountMethod.SSO(
                         serverUrl = "https://matrix.server.host",
@@ -106,7 +109,10 @@ class AddMatrixAccountViewModelTest {
         cut.serverDiscoveryState.first { it is ServerDiscoveryState.Success } shouldBe
             ServerDiscoveryState.Success(
                 setOf(
-                    AddMatrixAccountMethod.OAuth2("https://server.host", type = OAuth2LoginViewModel.Type.LOGIN),
+                    AddMatrixAccountMethod.OAuth2AuthorizationCode(
+                        "https://server.host",
+                        type = OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN,
+                    ),
                     AddMatrixAccountMethod.Password("https://server.host"),
                 )
             )
