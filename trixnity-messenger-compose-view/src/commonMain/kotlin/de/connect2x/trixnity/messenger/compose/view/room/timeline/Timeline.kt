@@ -215,9 +215,7 @@ class TimelineViewImpl : TimelineView {
                             ) {
                                 log.trace { "rendering timeline elements" }
                                 if (showTypingIndicator) {
-                                    item(key = "typing", contentType = "typing") {
-                                        TypingIndicator(timelineViewModel, false)
-                                    }
+                                    item(key = "typing", contentType = "typing") { TypingIndicator(timelineViewModel) }
                                 }
                                 itemsIndexed(
                                     items = timelineViewElements.value,

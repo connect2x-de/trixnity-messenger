@@ -32,17 +32,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface TypingIndicatorView {
-    @Composable fun create(timelineViewModel: TimelineViewModel, isFocusable: Boolean = true)
+    @Composable fun create(timelineViewModel: TimelineViewModel)
 }
 
 @Composable
-fun TypingIndicator(timelineViewModel: TimelineViewModel, isFocusable: Boolean = true) {
-    with(DI.get<TypingIndicatorView>()) { create(timelineViewModel, isFocusable) }
+fun TypingIndicator(timelineViewModel: TimelineViewModel) {
+    with(DI.get<TypingIndicatorView>()) { create(timelineViewModel) }
 }
 
 class TypingIndicatorViewImpl : TypingIndicatorView {
     @Composable
-    override fun create(timelineViewModel: TimelineViewModel, isFocusable: Boolean) {
+    override fun create(timelineViewModel: TimelineViewModel) {
         val typing = timelineViewModel.roomHeaderViewModel.usersTyping.collectAsState().value != null
         AnimatedVisibility(
             visible = typing,
@@ -54,7 +54,7 @@ class TypingIndicatorViewImpl : TypingIndicatorView {
                 needsMaxWidth = false,
                 isPreview = true, // removes the action menu
                 index = -1,
-                isFocusable = isFocusable,
+                isFocusable = false,
             ) {
                 val style = MaterialTheme.typography.titleLarge
                 TypingIndicator(
