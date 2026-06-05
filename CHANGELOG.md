@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
 - SDK: Ability for rovingFocusContainer to change focused item for lazy loading containers
 - CI, INTERNAL: Add and enforce ktfmt formatting
+- SDK: Add `MatrixMessengerFactoryImpl`
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
 - UI,SDK,ANDROID: Drafts for voice messages
@@ -25,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
 - DEPENDENCY: (**breaking**) update Lognity to 2.1.0
+- INTERNAL: Add categories for demo app on macOS and Linux
+- INTERNAL: Update to Gradle 9.4.1
+- INTERNAL: Use shared Compose desktop configuration from conventions for demo app
 - CI: Use shell runner for linux (two different runners depending on workload)
 
 ### Deprecated
@@ -33,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI,Android: Android app doesn't crash anymore when opening the message's info view
 - UI: Multiple timeline-jump issues
 - UI: Some containers not being focusable, when selected item was out of view
 - UI: Draft not showing in roomlist when room empty
@@ -47,6 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,SDK: Wrong text when receiving member state events with no change
 - SDK: Voice messages are saved with correct file extension
 - UI: Dehydrated device icon not visible and removed supported content
+- SDK: Fixed broken application name and icon on some Linux distributions because of [CMP-3308](https://youtrack.jetbrains.com/issue/CMP-3308)
+- SDK: Removed app icon creation script from app resources
 
 ### Security
 

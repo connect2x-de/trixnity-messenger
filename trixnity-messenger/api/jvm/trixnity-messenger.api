@@ -1711,6 +1711,11 @@ public abstract interface class de/connect2x/trixnity/messenger/multi/MatrixMess
 	public abstract fun invoke (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class de/connect2x/trixnity/messenger/multi/MatrixMessengerFactoryImpl : de/connect2x/trixnity/messenger/multi/MatrixMessengerFactory {
+	public synthetic fun <init> (Lorg/koin/core/scope/Scope;Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessengerConfiguration;Ljava/util/List;Lkotlinx/coroutines/CoroutineScope;Lokio/Path;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun invoke (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class de/connect2x/trixnity/messenger/multi/MatrixMessengerFactoryKt {
 	public static final fun matrixMessengerFactoryModule ()Lorg/koin/core/module/Module;
 }
