@@ -306,8 +306,7 @@ class UserSearchViewModelTest {
                             enabled = true,
                             providerDisplayName = "Test 1",
                             isSearching = false,
-                            providerSearchResult =
-                                UserSearchProviderResult.Success(listOf(user1)), // user1 is in Berlin
+                            providerSearchResult = UserSearchProviderResult.Success(listOf(user1)), // user1 is in Berlin
                         ),
                         SearchResult(
                             id = SearchProvider2.Key,
