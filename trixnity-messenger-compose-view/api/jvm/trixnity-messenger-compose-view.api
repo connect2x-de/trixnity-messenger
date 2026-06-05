@@ -1748,6 +1748,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/profiles/WithPro
 	public static final fun WithProfileSelection (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionViewImpl : de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/ComposableSingletons$BlockContentKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/richtext/ComposableSingletons$BlockContentKt;
 	public fun <init> ()V
