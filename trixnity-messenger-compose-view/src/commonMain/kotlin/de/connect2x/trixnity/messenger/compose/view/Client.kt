@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
 import de.connect2x.trixnity.messenger.compose.view.root.RootSwitch
 import de.connect2x.trixnity.messenger.compose.view.theme.components
-import de.connect2x.trixnity.messenger.compose.view.theme.components.SurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedSurface
 import de.connect2x.trixnity.messenger.compose.view.uia.UiaSwitch
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
@@ -46,9 +44,6 @@ val PlatformType.isDesktop
 
 val Platform = compositionLocalOf<PlatformType> { error("compositionLocal not defined") }
 val DI = compositionLocalOf<Koin> { error("DI is not defined as compositionLocal") }
-
-/** Can be used to determine the backgground inside a Surface. */
-val LocalSurfaceStyle = staticCompositionLocalOf<SurfaceStyle?> { null }
 
 /**
  * Needs to be registered at an element that - at all times - consumes key events. Compose does only get keyboard events

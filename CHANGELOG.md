@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
 - UI,SDK,ANDROID: Drafts for voice messages
-- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details)
+- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
 
 ### Changed
 

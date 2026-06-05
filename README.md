@@ -573,7 +573,7 @@ Most of the UI elements are hidden if there is only 1 `SearchProvider`, which is
 
 In case more `SearchProvider`s are registered, the UI allows the user to enable or disable certain search providers (Chips below the search term text field). To register your toggle, use:
 ```kotlin
-class MySearchProviderToggleView : SearchUserProviderToggleView<MySearchProvider> {
+class MySearchProviderToggleView : SearchProviderToggleView<MySearchProvider> {
     override val supports: KClass<out MySearchProvider> = MySearchProvider::class
 
     @Composable
@@ -589,13 +589,13 @@ class MySearchProviderToggleView : SearchUserProviderToggleView<MySearchProvider
 
 // registration via DI
 module {
-    searchUserProviderToggleView { MySearchProviderToggleView() }
+    searchProviderToggleView { MySearchProviderToggleView() }
 }
 ```
 
 In case one of the registered `SearchProvider`s defines any `supportedFilters`, a minimizable filter card is shown which includes all UI elements for `FilterValue`s.
 ```kotlin
-class MySearchSettingInputView : SearchSettingInputView<SearchFilterValue.Key<*>> {
+class MySearchFilterInputView : SearchFilterInputView<SearchFilterValue.Key<*>> {
     override val supports: KClass<out SearchFilterValue.Key<*>> = MySearchFilterValue.Key::class
 
     @Composable
@@ -609,7 +609,7 @@ class MySearchSettingInputView : SearchSettingInputView<SearchFilterValue.Key<*>
 
 // registration via DI
 module {
-    searchSettingInputView { MySearchSettingInputView() }
+    searchFilterInputView { MySearchFilterInputView() }
 }
 ```
 

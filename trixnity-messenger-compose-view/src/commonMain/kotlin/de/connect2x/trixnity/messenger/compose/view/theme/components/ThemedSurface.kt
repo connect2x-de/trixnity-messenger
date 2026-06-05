@@ -16,6 +16,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,7 +27,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.LocalSurfaceStyle
+
+/** Can be used to determine the backgground inside a Surface. */
+val LocalSurfaceStyle = staticCompositionLocalOf<SurfaceStyle?> { null }
 
 data class SurfaceStyle(
     val shape: Shape,

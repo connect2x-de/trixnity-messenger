@@ -35,9 +35,9 @@ import de.connect2x.trixnity.messenger.compose.view.common.VerySmallSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.compose.view.search.SearchTerm
-import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroup
-import de.connect2x.trixnity.messenger.compose.view.search.searchResults
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchTerm
+import de.connect2x.trixnity.messenger.compose.view.search.user.UsersInGroup
+import de.connect2x.trixnity.messenger.compose.view.search.user.searchResults
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedProgressIndicator
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupNewSearchViewModel

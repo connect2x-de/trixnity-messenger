@@ -56,6 +56,6 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        userSearchViewModel.unfilterUserSearchResult(user)
+        userSearchViewModel.filterNotUserSearchResult(user)
     }
 }

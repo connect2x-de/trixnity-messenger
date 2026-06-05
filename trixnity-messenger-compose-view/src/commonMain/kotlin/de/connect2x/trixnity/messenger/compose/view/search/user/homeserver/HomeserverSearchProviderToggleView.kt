@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.search.homeserver
+package de.connect2x.trixnity.messenger.compose.view.search.user.homeserver
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -6,13 +6,13 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleView
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedFilterChip
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchProvider
 import kotlin.reflect.KClass
 
-class HomeserverSearchProviderToggleView : SearchUserProviderToggleView<HomeserverSearchProvider> {
+class HomeserverSearchProviderToggleView : SearchProviderToggleView<HomeserverSearchProvider> {
     override val supports: KClass<out HomeserverSearchProvider> = HomeserverSearchProvider::class
 
     @Composable

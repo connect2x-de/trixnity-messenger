@@ -1,7 +1,7 @@
-package de.connect2x.trixnity.messenger.compose.view.search.homeserver
+package de.connect2x.trixnity.messenger.compose.view.search.user.homeserver
 
 import androidx.compose.runtime.Composable
-import de.connect2x.trixnity.messenger.compose.view.search.SearchResultView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultView
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
 import kotlin.reflect.KClass
 

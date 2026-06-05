@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.search
+package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -51,8 +51,8 @@ import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
 
-    val providerSettings by userSearchViewModel.activeSearchFilters.collectAsState()
-    val providerFilters by userSearchViewModel.providedFilters.collectAsState()
+    val availableFilters by userSearchViewModel.availableFilters.collectAsState()
+    val searchFilterValues by userSearchViewModel.searchFilterValues.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
     val rotateState by animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
@@ -78,7 +78,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
             ) {
                 Icon(Icons.Default.FilterList, i18n.userSearchFilter())
                 Spacer(Modifier.size(10.dp))
-                val showChips = providerSettings.isNotEmpty() && showFilters.not()
+                val showChips = searchFilterValues.isNotEmpty() && showFilters.not()
                 AnimatedVisibility(showChips.not()) {
                     Text(text = i18n.userSearchFilterOptions(), style = MaterialTheme.typography.titleSmall)
                 }
@@ -88,11 +88,13 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
                         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
                     ) {
-                        providerSettings.forEach { providerSetting ->
+                        searchFilterValues.forEach { searchFilterValue ->
                             ThemedInputChip(
                                 selected = true,
-                                onClick = { providerSetting.remove() },
-                                label = { Text(providerSetting.value, style = MaterialTheme.typography.bodySmall) },
+                                onClick = { userSearchViewModel.removeFilterValue(searchFilterValue.key) },
+                                label = {
+                                    Text(searchFilterValue.displayValue, style = MaterialTheme.typography.bodySmall)
+                                },
                                 trailingIcon = { Icon(Icons.Default.Close, "") },
                                 modifier = Modifier.buttonPointerModifier(),
                             )
@@ -110,7 +112,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
             }
             AnimatedVisibility(visible = showFilters) {
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    providerFilters.forEach { searchFilter ->
+                    availableFilters.forEach { searchFilter ->
                         if (searchFilter.isEnabled) {
                             Text(
                                 searchFilter.sources.joinToString { it.displayName },
@@ -118,7 +120,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                             )
                             VerySmallSpacer()
                             searchFilter.searchFilterValueKeys.forEach { key ->
-                                SearchSettingInputSelector(userSearchViewModel, key)
+                                SearchFilterInputSelector(userSearchViewModel, key)
                             }
                             SmallSpacer()
                         } else {

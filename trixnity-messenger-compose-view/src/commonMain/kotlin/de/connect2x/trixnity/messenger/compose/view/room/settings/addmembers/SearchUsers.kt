@@ -12,17 +12,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import de.connect2x.trixnity.messenger.compose.view.LocalSurfaceStyle
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
-import de.connect2x.trixnity.messenger.compose.view.search.SearchTerm
-import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroup
-import de.connect2x.trixnity.messenger.compose.view.search.searchResults
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchTerm
+import de.connect2x.trixnity.messenger.compose.view.search.user.UsersInGroup
+import de.connect2x.trixnity.messenger.compose.view.search.user.searchResults
+import de.connect2x.trixnity.messenger.compose.view.theme.components.LocalSurfaceStyle
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModel
 
 @Composable
 fun SearchUsers(addMembersNewSearchViewModel: AddMembersNewSearchViewModel, aboveSearch: @Composable () -> Unit) {
-    val searchUserViewModel = addMembersNewSearchViewModel.potentialMembersNewSearchViewModel.userSearchViewModel
+    val searchUserViewModel = addMembersNewSearchViewModel.userSearchViewModel
     val searchResultList by searchUserViewModel.searchResultList.collectAsState()
     val noResultsFound by searchUserViewModel.noResultsFound.collectAsState()
 

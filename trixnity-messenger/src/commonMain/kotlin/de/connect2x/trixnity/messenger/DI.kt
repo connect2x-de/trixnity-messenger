@@ -143,8 +143,8 @@ import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFacto
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderSorter
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderSorterImpl
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderSorter
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderSorterImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
@@ -367,7 +367,7 @@ inline fun <reified F : SearchProvider<*>> Module.searchUserProvider(
 
 private fun newSearchViewModels() = module {
     searchUserProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
-    single<UserSearchProviderSorter> { UserSearchProviderSorterImpl() }
+    single<SearchProviderSorter> { SearchProviderSorterImpl() }
     single<UserSearchViewModelFactory> { UserSearchViewModelFactory }
     single<CreateNewChatViewModelFactory> {
         object : CreateNewChatViewModelFactory {

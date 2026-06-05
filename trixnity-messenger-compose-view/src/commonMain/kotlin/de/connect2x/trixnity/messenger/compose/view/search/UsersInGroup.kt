@@ -34,7 +34,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
-import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 
 interface UsersInGroupView {
     @Composable fun create(userSearchHandler: UserSearchHandler)
@@ -43,11 +42,6 @@ interface UsersInGroupView {
 @Composable
 fun UsersInGroup(userSearchHandler: UserSearchHandler) {
     DI.get<UsersInGroupView>().create(userSearchHandler)
-}
-
-@Composable
-fun UsersInGroup(createNewGroupViewModel: CreateNewGroupViewModel) {
-    DI.get<UsersInGroupView>().create(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
 }
 
 class UsersInGroupViewImpl : UsersInGroupView {

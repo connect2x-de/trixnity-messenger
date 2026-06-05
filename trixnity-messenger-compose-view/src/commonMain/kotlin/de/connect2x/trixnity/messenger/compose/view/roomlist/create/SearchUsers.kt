@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
-import de.connect2x.trixnity.messenger.compose.view.search.SearchTerm
-import de.connect2x.trixnity.messenger.compose.view.search.searchResults
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchTerm
+import de.connect2x.trixnity.messenger.compose.view.search.user.searchResults
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModel
 
 @Composable

@@ -244,27 +244,27 @@ import de.connect2x.trixnity.messenger.compose.view.root.MessengerView
 import de.connect2x.trixnity.messenger.compose.view.root.MessengerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayView
 import de.connect2x.trixnity.messenger.compose.view.root.SyncOverlayViewImpl
-import de.connect2x.trixnity.messenger.compose.view.search.SearchResultView
-import de.connect2x.trixnity.messenger.compose.view.search.SearchResultViewSelector
-import de.connect2x.trixnity.messenger.compose.view.search.SearchResultViewSelectorImpl
-import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputSelector
-import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputSelectorImpl
-import de.connect2x.trixnity.messenger.compose.view.search.SearchSettingInputView
-import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleView
-import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleViewSelector
-import de.connect2x.trixnity.messenger.compose.view.search.SearchUserProviderToggleViewSelectorImpl
-import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchView
-import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupView
 import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupViewImpl
-import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchProviderToggleView
-import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementView
-import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultElementViewImpl
-import de.connect2x.trixnity.messenger.compose.view.search.homeserver.HomeserverSearchResultView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleViewSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultViewSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.UserSearchFieldNewSearchView
+import de.connect2x.trixnity.messenger.compose.view.search.user.UserSearchFieldNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultElementView
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultView
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepListImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSingleSettingsView
@@ -470,13 +470,13 @@ inline fun <reified F : SearchResultView<*>> Module.searchResultView(
     noinline definition: Scope.(ParametersHolder) -> F
 ) = single<SearchResultView<*>>(named<F>(), definition = definition)
 
-inline fun <reified F : SearchUserProviderToggleView<*>> Module.searchUserProviderToggleView(
+inline fun <reified F : SearchProviderToggleView<*>> Module.searchProviderToggleView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<SearchUserProviderToggleView<*>>(named<F>(), definition = definition)
+) = single<SearchProviderToggleView<*>>(named<F>(), definition = definition)
 
-inline fun <reified F : SearchSettingInputView<*>> Module.searchSettingInputView(
+inline fun <reified F : SearchFilterInputView<*>> Module.searchFilterInputView(
     noinline definition: Scope.(ParametersHolder) -> F
-) = single<SearchSettingInputView<*>>(named<F>(), definition = definition)
+) = single<SearchFilterInputView<*>>(named<F>(), definition = definition)
 
 fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     // We have to do it here reliably as the order in which modules in a list of Koin modules is evaluated is an
@@ -494,11 +494,11 @@ fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?)
 
 fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
     if (messengerConfiguration?.features?.enableNewSearch == true) {
-        searchUserProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
+        searchProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
         searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
         single<HomeserverSearchResultElementView> { HomeserverSearchResultElementViewImpl() }
         single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
-        single<SearchUserProviderToggleViewSelector> { SearchUserProviderToggleViewSelectorImpl(getAll()) }
+        single<SearchProviderToggleViewSelector> { SearchProviderToggleViewSelectorImpl(getAll()) }
         single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
     }
 }
@@ -506,7 +506,7 @@ fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfig
 fun searchViewModule() = module {
     single<SearchGroupView> { SearchGroupViewImpl() }
     single<SearchUsersView> { SearchUsersViewImpl() }
-    single<SearchSettingInputSelector> { SearchSettingInputSelectorImpl(getAll()) }
+    single<SearchFilterInputSelector> { SearchFilterInputSelectorImpl(getAll()) }
 }
 
 fun roomViewModule() = module {

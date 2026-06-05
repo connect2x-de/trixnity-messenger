@@ -6,8 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-interface AddMembersNewSearchViewModel : AddMembersViewModel {
-    val potentialMembersNewSearchViewModel: PotentialMembersNewSearchViewModel
+interface AddMembersNewSearchViewModel : AddMembersViewModel, PotentialMembersNewSearchViewModel {
     val groupUsersNewSearch: StateFlow<List<UserSearchResult>>
 
     fun onUserClick(user: UserSearchResult)
@@ -22,10 +21,11 @@ interface AddMembersNewSearchViewModel : AddMembersViewModel {
 class AddMembersNewSearchViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     addMembersViewModel: AddMembersViewModel,
-    override val potentialMembersNewSearchViewModel: PotentialMembersNewSearchViewModel,
+    private val potentialMembersNewSearchViewModel: PotentialMembersNewSearchViewModel,
 ) :
     MatrixClientViewModelContext by viewModelContext,
     AddMembersViewModel by addMembersViewModel,
+    PotentialMembersNewSearchViewModel by potentialMembersNewSearchViewModel,
     AddMembersNewSearchViewModel {
 
     private val _groupUsersNewSearch = MutableStateFlow<List<UserSearchResult>>(emptyList())
@@ -46,6 +46,6 @@ class AddMembersNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        potentialMembersNewSearchViewModel.userSearchViewModel.unfilterUserSearchResult(user)
+        potentialMembersNewSearchViewModel.userSearchViewModel.filterNotUserSearchResult(user)
     }
 }

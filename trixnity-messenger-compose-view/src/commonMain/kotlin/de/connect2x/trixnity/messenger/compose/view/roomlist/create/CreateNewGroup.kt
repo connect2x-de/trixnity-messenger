@@ -142,7 +142,9 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                             Spacer(Modifier.height(15.dp))
                         }
                         item(key = "RoomTopic") { OptionalRoomTopicInput(optionalRoomTopic) }
-                        item(key = "UsersInGroup") { UsersInGroup(createNewGroupViewModel) }
+                        item(key = "UsersInGroup") {
+                            UsersInGroup(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
+                        }
                         userSearchView.create(
                             createNewGroupViewModel.createNewRoomViewModel,
                             { user -> createNewGroupViewModel.onUserClick(user) },

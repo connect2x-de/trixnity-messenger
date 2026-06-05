@@ -3,8 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.search.provider
 import de.connect2x.trixnity.core.model.UserId
 import kotlinx.coroutines.CoroutineScope
 
-typealias SearchProviderId = String
-
 /**
  * An extension point of the search functionality. The core search framework organizes [SearchProvider]s and their
  * filters and passes the search query to them.
@@ -21,8 +19,10 @@ typealias SearchProviderId = String
  * Other places could be an LDAP or central registry for users.
  */
 interface SearchProvider<T : SearchProviderResult> {
+    interface Key<T : SearchProvider<*>>
+
     /** A unique identifier for the provider. */
-    val id: SearchProviderId
+    val key: Key<*>
 
     /** A display name, e.g. "homeserver", "LDAP", etc. */
     val displayName: String
@@ -74,5 +74,5 @@ interface SearchProvider<T : SearchProviderResult> {
         filters: List<SearchFilterValue>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
-    ): SearchProviderResult
+    ): T
 }

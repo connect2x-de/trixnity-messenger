@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.search
+package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import de.connect2x.trixnity.messenger.compose.view.LocalSurfaceStyle
+import de.connect2x.trixnity.messenger.compose.view.theme.components.LocalSurfaceStyle
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 @Composable
@@ -26,7 +26,7 @@ fun SearchTerm(userSearchViewModel: UserSearchViewModel) {
             verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             UserSearchFieldNewSearch(userSearchViewModel)
-            SearchUserProviderToggles(userSearchViewModel)
+            SearchProviderToggles(userSearchViewModel)
             SearchTermFilterSettings(userSearchViewModel)
         }
     }

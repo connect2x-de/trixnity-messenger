@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.search.homeserver
+package de.connect2x.trixnity.messenger.compose.view.search.user.homeserver
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.compose.view.search.SearchProviderIcon
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderIcon
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult

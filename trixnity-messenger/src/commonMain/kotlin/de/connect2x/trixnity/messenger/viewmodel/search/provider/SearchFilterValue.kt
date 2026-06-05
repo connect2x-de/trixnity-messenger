@@ -23,11 +23,14 @@ interface SearchFilterValue {
     interface Key<T : SearchFilterValue>
 
     /**
-     * When the filter value is empty (e.g., an empty String), the filter will not be considered for searches. If it is
-     * not empty, it could lead to search providers being disabled when they do not support the [SearchFilterValue.Key].
+     * Signifies that this filter is active and should be considered for the search. A filter should be considered
+     * inactive if it is empty in case of a String.
+     *
+     * If it is active, it could lead to search providers being disabled when they do not support the
+     * [SearchFilterValue.Key].
      */
-    fun isEmpty(): Boolean
+    val isActive: Boolean
 
     /** The value to display in the UI. If the filter wraps a complex object, this can be more elaborate. */
-    fun displayValue(): String
+    val displayValue: String
 }

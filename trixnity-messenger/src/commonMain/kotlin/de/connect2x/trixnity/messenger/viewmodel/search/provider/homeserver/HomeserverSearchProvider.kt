@@ -11,7 +11,6 @@ import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
@@ -19,8 +18,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-
-internal const val HOMESERVER_PROVIDER_ID = "de.connect2x.trixnity.messenger.search.homeserver"
 
 open class HomeserverSearchProvider(
     private val initials: Initials,
@@ -31,8 +28,11 @@ open class HomeserverSearchProvider(
     private val log =
         Logger("de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverSearchProvider")
 
-    override val id: String = HOMESERVER_PROVIDER_ID
-    override val displayName: String = i18n.userSearchHomeserver() // FIXME override in TIM
+    override val key: Key = Key
+
+    companion object Key : SearchProvider.Key<HomeserverSearchProvider>
+
+    override val displayName: String = i18n.userSearchHomeserver()
     override val priority: Int = 100
     override val disabledByDefault: Boolean = false
 
@@ -43,7 +43,7 @@ open class HomeserverSearchProvider(
         filters: List<SearchFilterValue>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
-    ): SearchProviderResult {
+    ): UserSearchProviderResult {
         return matrixClients.value[activeAccount]?.let { matrixClient ->
             val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
             coroutineScope {

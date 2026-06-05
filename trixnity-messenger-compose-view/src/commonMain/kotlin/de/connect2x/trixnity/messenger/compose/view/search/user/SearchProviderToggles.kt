@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.compose.view.search
+package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,10 +16,10 @@ import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 
 @Composable
-fun SearchUserProviderToggles(userSearchViewModel: UserSearchViewModel) {
+fun SearchProviderToggles(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
-    val providerSearchEnabled by userSearchViewModel.providerSearchEnabled.collectAsState()
-    val providerSearchCanBeEnabled by userSearchViewModel.providerSearchCanBeEnabled.collectAsState()
+    val providerSearchEnabled by userSearchViewModel.searchProviderEnabled.collectAsState()
+    val providerSearchCanBeEnabled by userSearchViewModel.searchProviderCanBeEnabled.collectAsState()
 
     if (userSearchViewModel.searchProviders.size > 1) {
         FlowRow(
@@ -29,12 +29,12 @@ fun SearchUserProviderToggles(userSearchViewModel: UserSearchViewModel) {
             userSearchViewModel.searchProviders.forEachIndexed { index, searchUserProvider ->
                 Tooltip(i18n.searchUserProviderDeactivated(), enabled = providerSearchCanBeEnabled[index].not()) {
                     Box(Modifier.buttonPointerModifier(enabled = providerSearchEnabled[index])) {
-                        SearchUserProviderToggleSelector(
+                        SearchProviderToggleSelector(
                             searchUserProvider,
                             providerSearchCanBeEnabled[index],
                             providerSearchEnabled[index],
                         ) {
-                            userSearchViewModel.setProvider(searchUserProvider.id, providerSearchEnabled[index].not())
+                            userSearchViewModel.setProvider(searchUserProvider.key, providerSearchEnabled[index].not())
                         }
                     }
                 }

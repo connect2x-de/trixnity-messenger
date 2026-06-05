@@ -1,10 +1,10 @@
-package de.connect2x.trixnity.messenger.compose.view.search
+package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.runtime.Composable
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import kotlin.reflect.KClass
 
-interface SearchUserProviderToggleView<S : SearchProvider<*>> {
+interface SearchProviderToggleView<S : SearchProvider<*>> {
     val supports: KClass<out S>
 
     @Composable
@@ -16,7 +16,7 @@ interface SearchUserProviderToggleView<S : SearchProvider<*>> {
     )
 }
 
-object EmptySearchUserProviderToggleView : SearchUserProviderToggleView<SearchProvider<*>> {
+object EmptySearchProviderToggleView : SearchProviderToggleView<SearchProvider<*>> {
     override val supports: KClass<SearchProvider<*>>
         get() = SearchProvider::class
 
