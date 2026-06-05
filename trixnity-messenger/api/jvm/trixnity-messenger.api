@@ -5132,16 +5132,15 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/RoomViewModelImpl : 
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel : de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel {
 	public abstract fun addUserToList (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public abstract fun getGroupUsersNewSearch ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getPotentialMembersNewSearchViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel;
 	public abstract fun onUserClick (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public abstract fun removeUserFromGroup (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public abstract fun removeUserFromList (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel {
+public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel;)V
 	public fun addMembers ()V
 	public fun addUserToList (Lde/connect2x/trixnity/messenger/util/Search$SearchUserElement;)V
@@ -5169,12 +5168,13 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMe
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
-	public fun getPotentialMembersNewSearchViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel;
 	public fun getPotentialMembersViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersViewModel;
+	public fun getSelectedUsersNewSearch ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUndecryptableHistoryInfo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun getUserSearchViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;
 	public fun isAddingMembers ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun onUserClick (Lde/connect2x/trixnity/messenger/util/Search$SearchUserElement;)V
 	public fun onUserClick (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
@@ -10817,39 +10817,25 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/SearchGrou
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/search/ActiveFilter {
-	public fun <init> (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lkotlin/jvm/functions/Function0;
-	public final fun copy (Ljava/lang/String;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/search/ActiveFilter;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/search/ActiveFilter;Ljava/lang/String;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/search/ActiveFilter;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getRemove ()Lkotlin/jvm/functions/Function0;
-	public final fun getValue ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class de/connect2x/trixnity/messenger/viewmodel/search/PreviewUserSearchViewModel : de/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel {
 	public fun <init> ()V
+	public fun filterNotUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public fun filterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
-	public fun getActiveSearchFilters ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public synthetic fun getActiveSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProvidedFilters ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProviderSearchCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProviderSearchEnabled ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public synthetic fun getProviderSearchEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchFilterValues ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchProviders ()Ljava/util/List;
 	public fun getSearchResultList ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getSearchResultList ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchTerm ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public fun isSearching ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun isSearching ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun setProvider (Ljava/lang/String;Z)V
+	public fun removeFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue$Key;)V
+	public fun setProvider (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key;Z)V
 	public fun setSearchFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue;)V
-	public fun unfilterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/search/SearchFilter {
@@ -10876,20 +10862,20 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel {
+	public abstract fun filterNotUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public abstract fun filterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
-	public abstract fun getActiveSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getProvidedFilters ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getProviderSearchCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun getProviderSearchEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSearchFilterValues ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSearchProviders ()Ljava/util/List;
 	public abstract fun getSearchResultList ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSearchTerm ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public abstract fun isSearching ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun setProvider (Ljava/lang/String;Z)V
+	public abstract fun removeFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue$Key;)V
+	public abstract fun setProvider (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key;Z)V
 	public abstract fun setSearchFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue;)V
-	public abstract fun unfilterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModelFactory {
@@ -10916,8 +10902,9 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchVi
 	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun filterNotUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 	public fun filterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
-	public fun getActiveSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
@@ -10927,11 +10914,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchVi
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProvidedFilters ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProviderSearchCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getProviderSearchEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchFilterValues ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getSearchFilterValues ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchProviders ()Ljava/util/List;
 	public fun getSearchResultList ()Lkotlinx/coroutines/flow/StateFlow;
 	public synthetic fun getSearchTerm ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
@@ -10941,15 +10927,15 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchVi
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun isSearching ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
-	public fun setProvider (Ljava/lang/String;Z)V
+	public fun removeFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue$Key;)V
+	public fun setProvider (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key;Z)V
 	public fun setSearchFilterValue (Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue;)V
-	public fun unfilterUserSearchResult (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue {
-	public abstract fun displayValue ()Ljava/lang/String;
+	public abstract fun getDisplayValue ()Ljava/lang/String;
 	public abstract fun getKey ()Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue$Key;
-	public abstract fun isEmpty ()Z
+	public abstract fun isActive ()Z
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchFilterValue$Key {
@@ -10958,13 +10944,25 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider {
 	public abstract fun getDisabledByDefault ()Z
 	public abstract fun getDisplayName ()Ljava/lang/String;
-	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getKey ()Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key;
 	public abstract fun getPriority ()I
 	public abstract fun getSupportedFilters ()Ljava/util/List;
 	public abstract fun search-G1SzmBg (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key {
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProviderResult {
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProviderSorter {
+	public abstract fun sort (Ljava/util/List;)Ljava/util/List;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProviderSorterImpl : de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProviderSorter {
+	public fun <init> ()V
+	public fun sort (Ljava/util/List;)Ljava/util/List;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/UserSearchProviderResult : de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProviderResult {
@@ -10992,15 +10990,6 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/Use
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/provider/UserSearchProviderSorter {
-	public abstract fun sort (Ljava/util/List;)Ljava/util/List;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/UserSearchProviderSorterImpl : de/connect2x/trixnity/messenger/viewmodel/search/provider/UserSearchProviderSorter {
-	public fun <init> ()V
-	public fun sort (Ljava/util/List;)Ljava/util/List;
-}
-
 public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/GetImageKt {
 	public static final fun getImage (Ljava/lang/String;Lde/connect2x/trixnity/client/MatrixClient;JLkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/flow/StateFlow;
 }
@@ -11010,13 +10999,18 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/hom
 }
 
 public class de/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverSearchProvider : de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider {
+	public static final field Key Lde/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverSearchProvider$Key;
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/messenger/MatrixClients;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
 	public fun getDisabledByDefault ()Z
 	public fun getDisplayName ()Ljava/lang/String;
-	public fun getId ()Ljava/lang/String;
+	public synthetic fun getKey ()Lde/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key;
+	public fun getKey ()Lde/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverSearchProvider$Key;
 	public fun getPriority ()I
 	public fun getSupportedFilters ()Ljava/util/List;
 	public fun search-G1SzmBg (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlinx/coroutines/CoroutineScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverSearchProvider$Key : de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider$Key {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverUserSearchResult : de/connect2x/trixnity/messenger/viewmodel/search/UserSearchResult {
