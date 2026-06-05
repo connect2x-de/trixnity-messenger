@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI,INTERNAL: Provide WithProfileSelection via koin
 - SDK,INTERNAL: Separate Uia logic from UiaRouter
+- SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
 
 ### Deprecated
 

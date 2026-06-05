@@ -1,10 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.Child
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -43,8 +40,6 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.getOrNull
-import de.connect2x.trixnity.messenger.util.launchPopWhile
-import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
@@ -381,32 +376,12 @@ class TimelineViewModelImpl(
 
     override val reportMessageStack = reportMessageRouter.stack
 
-    // TODO should be router
-    private val sendAttachmentNavigation = StackNavigation<Config>()
-    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> =
-        childStack(
-            source = sendAttachmentNavigation,
-            serializer = null,
-            initialConfiguration = Config.None,
-            handleBackButton = true,
-            childFactory = ::createChild,
-            key = "sendAttachmentRouter",
+    private val sendAttachmentRouter =
+        SendAttachmentRouterImpl(
+            viewModelContext = viewModelContext.childContext("SendAttachmentRouter"),
+            roomId = roomId,
         )
-
-    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
-        when (config) {
-            is Config.None -> Wrapper.None
-            is Config.SendAttachmentView ->
-                Wrapper.View(
-                    get<SendAttachmentViewModelFactory>()
-                        .create(
-                            viewModelContext = childContext("SendAttachmentView", componentContext),
-                            file = config.file,
-                            selectedRoomId = roomId,
-                            onCloseAttachmentSendView = ::closeAttachmentSendView,
-                        )
-                )
-        }
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = sendAttachmentRouter.stack
 
     init {
         outerScope.removeMarkAsUnread()
@@ -749,17 +724,12 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
+        coroutineScope.launch { sendAttachmentRouter.showAttachmentSendView(file) }
     }
 
     private fun onShowReportMessageModal(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
         log.debug { "report to message $eventId" }
         reportMessageRouter.showReportMessage(roomId, eventId)
-    }
-
-    private fun closeAttachmentSendView() {
-        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
-        jumpToEndOfTimeline()
     }
 
     private fun onMessageReplace(roomId: RoomId, eventId: EventId) {
