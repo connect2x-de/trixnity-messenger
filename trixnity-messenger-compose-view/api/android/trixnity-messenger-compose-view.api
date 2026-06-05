@@ -2410,7 +2410,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Co
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$TypingIndicatorKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$TypingIndicatorKt;
 	public fun <init> ()V
-	public final fun getLambda$-1952408184$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$579106320$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$964642604$trixnity_messenger_compose_view_release ()Lkotlin/jvm/functions/Function3;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/FileReplyView {
@@ -2668,21 +2669,17 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Ti
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorKt {
-	public static final fun TypingIndicator (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;ZLandroidx/compose/runtime/Composer;II)V
+	public static final fun TypingIndicator (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;ZLandroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorView$ComposeDefaultImpls {
-	public static final fun create$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;ZLde/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorView;Landroidx/compose/runtime/Composer;II)V
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorViewImpl : de/connect2x/trixnity/messenger/compose/view/room/timeline/TypingIndicatorView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;ZLandroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/UnknownReplyView {
