@@ -171,11 +171,15 @@ defaultComposeDesktopApplication(
             "java.desktop/sun.awt.X11=ALL-UNNAMED",
             "--add-opens",
             "java.desktop/sun.awt.wl=ALL-UNNAMED",
-            "-Djava.desktop.appName=$appName.desktop",
+            "-Djava.desktop.appName=$appName",
         )
         nativeDistributions {
             modules("java.net.http", "java.sql", "java.naming")
-            linux { modules("jdk.security.auth") }
+            linux {
+                modules("jdk.security.auth")
+                appCategory = "Network;Chat;"
+            }
+            macOS { appCategory = "public.app-category.social-networking" }
         }
     },
 )
