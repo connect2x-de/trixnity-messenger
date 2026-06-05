@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
 import de.connect2x.trixnity.messenger.compose.view.common.SmallSpacer
+import de.connect2x.trixnity.messenger.compose.view.common.ThemedLoadingButton
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
@@ -42,34 +43,46 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
     override fun create(viewModel: JoinRoomActionViewModel) {
         val action = viewModel.actionNecessary.collectAsState().value
         val error = viewModel.error.collectAsState().value
+        val isLoading = viewModel.isLoading.collectAsState().value
         val i18n = DI.current.get<I18nView>()
         Box(Modifier.fillMaxSize()) {
             Column(Modifier.align(Alignment.Center)) {
                 when (action) {
                     is JoinRoomActionViewModel.JoinRoomAction.Private -> {
-                        JoinRoomActionOverview(i18n.joinRoomActionImpossible(), error, onDismiss = viewModel.onDismiss)
+                        JoinRoomActionOverview(
+                            i18n.joinRoomActionImpossible(),
+                            error,
+                            isLoading,
+                            onDismiss = viewModel.onDismiss,
+                        )
                     }
 
                     is JoinRoomActionViewModel.JoinRoomAction.Join ->
                         JoinRoomActionOverview(
                             i18n.joinRoomActionJoin(),
                             error,
+                            isLoading,
                             onConfirm = action.onJoinRoom,
                             onDismiss = viewModel.onDismiss,
                         )
 
-                    is JoinRoomActionViewModel.JoinRoomAction.Knock ->
+                    is JoinRoomActionViewModel.JoinRoomAction.Knock -> {
+                        val hasKnocked = action.hasKnocked.collectAsState().value
                         JoinRoomActionOverview(
                             i18n.joinRoomActionKnock(),
                             error,
+                            isLoading,
                             onConfirm = action.onKnock,
                             onDismiss = viewModel.onDismiss,
+                            additionalInfo = if (hasKnocked == true) i18n.joinRoomActionKnockSuccess() else null,
                         )
+                    }
 
                     is JoinRoomActionViewModel.JoinRoomAction.Restricted ->
                         JoinRoomActionOverview(
                             i18n.joinRoomActionRestricted(action.requiredRooms),
                             error,
+                            isLoading,
                             onDismiss = viewModel.onDismiss,
                         )
 
@@ -77,13 +90,19 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
                         JoinRoomActionOverview(
                             i18n.joinRoomActionAcceptInvite(),
                             error,
+                            isLoading,
                             onConfirm = action.onAcceptInvite,
                             onDismiss = viewModel.onDismiss,
                         )
                     }
 
                     is JoinRoomActionViewModel.JoinRoomAction.NotFound ->
-                        JoinRoomActionOverview(i18n.joinRoomActionNotFound(), error, onDismiss = viewModel.onDismiss)
+                        JoinRoomActionOverview(
+                            i18n.joinRoomActionNotFound(),
+                            error,
+                            isLoading,
+                            onDismiss = viewModel.onDismiss,
+                        )
 
                     null -> {}
                 }
@@ -96,8 +115,10 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
 private fun JoinRoomActionOverview(
     text: String,
     error: String?,
+    isLoading: Boolean,
     onConfirm: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
+    additionalInfo: String? = null,
 ) {
     val i18n = DI.current.get<I18nView>()
     Box(Modifier.fillMaxWidth(0.5f)) {
@@ -107,9 +128,15 @@ private fun JoinRoomActionOverview(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(text)
+                additionalInfo?.let {
+                    SmallSpacer()
+                    ThemedSurface(style = MaterialTheme.components.popup, modifier = Modifier.fillMaxWidth()) {
+                        Text(additionalInfo)
+                    }
+                }
                 error?.let {
                     SmallSpacer()
-                    ThemedSurface(style = MaterialTheme.components.popup) {
+                    ThemedSurface(style = MaterialTheme.components.popup, modifier = Modifier.fillMaxWidth()) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(MaterialTheme.messengerDpConstants.small),
@@ -134,14 +161,16 @@ private fun JoinRoomActionOverview(
                         ) {
                             Text(i18n.actionCancel())
                         }
-                        onConfirm?.let {
-                            ThemedButton(
-                                onClick = it,
-                                modifier = Modifier.buttonPointerModifier(),
-                                style = MaterialTheme.components.primaryButton,
-                            ) {
-                                Text(i18n.actionConfirm())
-                            }
+                    }
+                    onConfirm?.let {
+                        ThemedLoadingButton(
+                            onClick = onConfirm,
+                            isLoading = isLoading,
+                            modifier = Modifier.buttonPointerModifier(),
+                            style = MaterialTheme.components.primaryButton,
+                            enabled = !isLoading,
+                        ) {
+                            Text(i18n.actionConfirm())
                         }
                     }
                 }

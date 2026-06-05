@@ -3631,7 +3631,14 @@ open class I18nView(
     open fun joinRoomActionKnock() = translate {
         EN - "Without an invitation you need to knock on the room and be let in. Please confirm you want to knock."
         DE -
-            "Um ohne eine Einladung beizutreten, müssen Sie an dem Raum anklopfen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+            "Um ohne eine Einladung beizutreten, müssen Sie eine Beitrittsanfrage stellen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+    }
+
+    open fun joinRoomActionKnockSuccess() = translate {
+        EN -
+            "Successfully knocked, you will be redirected to the room once the request is accepted. Alternatively you can check back later."
+        DE -
+            "Die Beitrittsanfrage war erfolgreich. Der Raum wird geöffnet, sobald die Anfrage akzeptiert wurde. Andernfalls können Sie das Öffnen später erneut versuchen. "
     }
 
     open fun joinRoomActionRestricted(requiredRooms: Set<RoomId>) = translate {

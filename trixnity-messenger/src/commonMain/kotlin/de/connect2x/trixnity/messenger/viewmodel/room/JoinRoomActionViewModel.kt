@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.Jo
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.JoinRoomAction.Private
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.JoinRoomAction.Restricted
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +24,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 interface JoinRoomActionViewModelFactory {
     fun create(
@@ -40,11 +43,12 @@ interface JoinRoomActionViewModel {
     val actionNecessary: StateFlow<JoinRoomAction?>
     val error: StateFlow<String?>
     val onDismiss: () -> Unit
+    val isLoading: StateFlow<Boolean>
 
     sealed class JoinRoomAction {
         data class Join(val onJoinRoom: () -> Unit) : JoinRoomAction()
 
-        data class Knock(val onKnock: () -> Unit) : JoinRoomAction()
+        data class Knock(val onKnock: () -> Unit, val hasKnocked: StateFlow<Boolean?>) : JoinRoomAction()
 
         data class Restricted(val requiredRooms: Set<RoomId>) : JoinRoomAction()
 
@@ -68,6 +72,17 @@ class JoinRoomActionViewModelImpl(
         val backCallback = BackCallback(onBack = onDismiss)
         trixnityMessengerBackHandler.registerBackCallback(backCallback)
     }
+
+    private val _isLoading = MutableStateFlow(false)
+    override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val hasKnocked =
+        matrixClient.room
+            .getById(roomId)
+            .map {
+                it?.membership == Membership.KNOCK
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
         combine(
@@ -111,7 +126,10 @@ class JoinRoomActionViewModelImpl(
                             JoinRulesEventContent.JoinRule.Knock,
                             JoinRulesEventContent.JoinRule.KnockRestricted -> {
                                 log.debug { "Room $roomId is knock, showing option to knock" }
-                                Knock(::onConfirmKnock)
+                                Knock(
+                                    ::onConfirmKnock,
+                                    hasKnocked,
+                                )
                             }
 
                             // Only show restricted action when there are room join conditions
@@ -159,42 +177,52 @@ class JoinRoomActionViewModelImpl(
     private val _error = MutableStateFlow<String?>(null)
     override val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val joinActionMutex = Mutex()
+
     private fun onConfirmJoin() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value != SyncState.RUNNING) {
-                log.debug { "try to join room while not connected" }
-                _error.value = i18n.joinRoomConfirmJoinOffline()
-            } else {
-                log.debug { "try to join room $roomId via $via" }
-                matrixClient.api.room
-                    .joinRoom(roomId, via)
-                    .fold(
-                        onSuccess = { onOpenRoom(it) },
-                        onFailure = {
-                            log.error(it) { "Cannot join room." }
-                            _error.value = i18n.roomListInvitationError()
-                        },
-                    )
+            joinActionMutex.withLock {
+                _isLoading.value = true
+                if (matrixClient.syncState.value != SyncState.RUNNING) {
+                    log.debug { "try to join room while not connected" }
+                    _error.value = i18n.joinRoomConfirmJoinOffline()
+                } else {
+                    log.debug { "try to join room $roomId via $via" }
+                    matrixClient.api.room
+                        .joinRoom(roomId, via)
+                        .fold(
+                            onSuccess = { _error.value = null },
+                            onFailure = {
+                                log.error(it) { "Cannot join room." }
+                                _error.value = i18n.roomListInvitationError()
+                            },
+                        )
+                }
+                _isLoading.value = false
             }
         }
     }
 
     private fun onConfirmKnock() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value != SyncState.RUNNING) {
-                log.debug { "try to knock on room while not connected" }
-                _error.value = i18n.joinRoomConfirmJoinOffline()
-            } else {
-                log.debug { "try to knock on room $roomId" }
-                matrixClient.api.room
-                    .knockRoom(roomId, via)
-                    .fold(
-                        onSuccess = { onOpenRoom(it) },
-                        onFailure = {
-                            log.error(it) { "Cannot knock on room." }
-                            _error.value = i18n.roomListInvitationError()
-                        },
-                    )
+            joinActionMutex.withLock {
+                _isLoading.value = true
+                if (matrixClient.syncState.value != SyncState.RUNNING) {
+                    log.debug { "try to knock on room while not connected" }
+                    _error.value = i18n.joinRoomConfirmJoinOffline()
+                } else {
+                    log.debug { "try to knock on room $roomId" }
+                    matrixClient.api.room
+                        .knockRoom(roomId, via)
+                        .fold(
+                            onSuccess = { _error.value = null },
+                            onFailure = {
+                                log.error(it) { "Cannot knock on room." }
+                                _error.value = i18n.roomListInvitationError()
+                            },
+                        )
+                }
+                _isLoading.value = false
             }
         }
     }

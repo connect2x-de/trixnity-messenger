@@ -442,7 +442,7 @@ open class I18n(
 
     open fun roomListInvitationError() = translate {
         EN - "There has been an error. Please try again later."
-        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später erneut."
     }
 
     open fun roomListKnockOffline() = translate {
@@ -452,7 +452,7 @@ open class I18n(
 
     open fun roomListKnockError() = translate {
         EN - "There has been an error. Please try again later."
-        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später erneut."
     }
 
     open fun roomListContentImage() = translate {
