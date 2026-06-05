@@ -8,7 +8,6 @@ import de.connect2x.trixnity.client.flatten
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getTimelineEventReplaceAggregation
 import de.connect2x.trixnity.client.room.message.react
-import de.connect2x.trixnity.client.room.message.redact
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
@@ -43,6 +42,8 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isRedactionFor
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isReplacementFor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whileSubscribedWithTimeout
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
@@ -298,7 +299,8 @@ class TimelineElementHolderViewModelImpl(
                     else ->
                         matrixClient.room.getOutbox(roomId).flatten().map { outbox ->
                             outbox.reversed().firstOrNull {
-                                it.isRedactionFor(eventId) || ignoreReplacedEvents && it.isReplacementFor(eventId)
+                                it.isRedactionFor(roomId, eventId) ||
+                                    ignoreReplacedEvents && it.isReplacementFor(roomId, eventId)
                             }
                         }
                 }
@@ -722,12 +724,6 @@ class TimelineElementHolderViewModelImpl(
     override fun jumpTo() {
         jumpTo(roomId, eventId)
     }
-
-    private fun RoomOutboxMessage<*>.isReplacementFor(eventId: EventId) =
-        (content.relatesTo as? RelatesTo.Replace)?.eventId == eventId
-
-    private fun RoomOutboxMessage<*>.isRedactionFor(eventId: EventId) =
-        (content as? RedactionEventContent)?.redacts == eventId
 }
 
 class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {

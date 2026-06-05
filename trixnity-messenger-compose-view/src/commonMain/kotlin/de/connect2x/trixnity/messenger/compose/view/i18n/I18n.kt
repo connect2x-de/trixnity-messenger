@@ -735,7 +735,7 @@ open class I18nView(
 
     open fun loginWithOAuth2DeviceWaiting(serverUrl: String) = translate {
         EN - "Try to obtain a login code."
-        DE - "Es wird versucht, ein Login Code zu erhalten."
+        DE - "Es wird versucht, einen Login Code zu erhalten."
     }
 
     open fun registerWithOAuth2() = translate {

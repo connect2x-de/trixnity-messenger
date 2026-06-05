@@ -10,6 +10,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.originTimestampOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isRedactionFor
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlin.reflect.KClass
@@ -78,7 +79,7 @@ class RedactedTimelineElementViewModelImpl(
                 matrixClient.room
                     .getOutbox(roomId)
                     .first()
-                    .find { it.first()?.content is RedactionEventContent }
+                    .find { it.first()?.isRedactionFor(roomId, eventId) == true }
                     ?.first()
             if (outboxRedaction == null) return@async null
             RedactionData(
