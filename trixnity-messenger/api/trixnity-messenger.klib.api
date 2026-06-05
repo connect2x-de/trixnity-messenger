@@ -2766,96 +2766,77 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomAction
         abstract fun <get-actionNecessary>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.actionNecessary.<get-actionNecessary>|<get-actionNecessary>(){}[0]
     abstract val error // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.error|{}error[0]
         abstract fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.error.<get-error>|<get-error>(){}[0]
+    abstract val isLoading // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.isLoading|{}isLoading[0]
+        abstract fun <get-isLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.isLoading.<get-isLoading>|<get-isLoading>(){}[0]
+    abstract val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.onDismiss|{}onDismiss[0]
+        abstract fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
 
     sealed class JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction|null[0]
         final class AcceptInvitation : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation|null[0]
-            constructor <init>(kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.<init>|<init>(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
 
             final val onAcceptInvite // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onAcceptInvite|{}onAcceptInvite[0]
                 final fun <get-onAcceptInvite>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onAcceptInvite.<get-onAcceptInvite>|<get-onAcceptInvite>(){}[0]
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
 
             final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.component1|component1(){}[0]
-            final fun component2(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.component2|component2(){}[0]
-            final fun copy(kotlin/Function0<kotlin/Unit> = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.copy|copy(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.toString|toString(){}[0]
         }
 
         final class Join : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join|null[0]
-            constructor <init>(kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.<init>|<init>(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
 
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
             final val onJoinRoom // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onJoinRoom|{}onJoinRoom[0]
                 final fun <get-onJoinRoom>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onJoinRoom.<get-onJoinRoom>|<get-onJoinRoom>(){}[0]
 
             final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.component1|component1(){}[0]
-            final fun component2(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.component2|component2(){}[0]
-            final fun copy(kotlin/Function0<kotlin/Unit> = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.copy|copy(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.toString|toString(){}[0]
         }
 
         final class Knock : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock|null[0]
-            constructor <init>(kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.<init>|<init>(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>, kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.<init>|<init>(kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.flow.StateFlow<kotlin.Boolean?>){}[0]
 
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
+            final val hasKnocked // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hasKnocked|{}hasKnocked[0]
+                final fun <get-hasKnocked>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hasKnocked.<get-hasKnocked>|<get-hasKnocked>(){}[0]
             final val onKnock // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onKnock|{}onKnock[0]
                 final fun <get-onKnock>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onKnock.<get-onKnock>|<get-onKnock>(){}[0]
 
             final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.component1|component1(){}[0]
-            final fun component2(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.component2|component2(){}[0]
-            final fun copy(kotlin/Function0<kotlin/Unit> = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.copy|copy(kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun component2(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.component2|component2(){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ..., kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.copy|copy(kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.flow.StateFlow<kotlin.Boolean?>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.toString|toString(){}[0]
         }
 
-        final class NotFound : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound|null[0]
-            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
+        final class Restricted : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted|null[0]
+            constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>){}[0]
 
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
+            final val requiredRooms // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms|{}requiredRooms[0]
+                final fun <get-requiredRooms>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms.<get-requiredRooms>|<get-requiredRooms>(){}[0]
 
-            final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.component1|component1(){}[0]
-            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
+            final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.component1|component1(){}[0]
+            final fun copy(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.toString|toString(){}[0]
+        }
+
+        final object NotFound : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound|null[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.toString|toString(){}[0]
         }
 
-        final class Private : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private|null[0]
-            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
-
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
-
-            final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.component1|component1(){}[0]
-            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
+        final object Private : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private|null[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.toString|toString(){}[0]
-        }
-
-        final class Restricted : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted|null[0]
-            constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>;kotlin.Function0<kotlin.Unit>){}[0]
-
-            final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.onDismiss|{}onDismiss[0]
-                final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
-            final val requiredRooms // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms|{}requiredRooms[0]
-                final fun <get-requiredRooms>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms.<get-requiredRooms>|<get-requiredRooms>(){}[0]
-
-            final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.component1|component1(){}[0]
-            final fun component2(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.component2|component2(){}[0]
-            final fun copy(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomId> = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomId>;kotlin.Function0<kotlin.Unit>){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.toString|toString(){}[0]
         }
     }
 }
@@ -9577,12 +9558,16 @@ final class de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewMod
         final fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.error.<get-error>|<get-error>(){}[0]
     final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.instanceKeeper|{}instanceKeeper[0]
         final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isLoading // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.isLoading|{}isLoading[0]
+        final fun <get-isLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.isLoading.<get-isLoading>|<get-isLoading>(){}[0]
     final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.lifecycle|{}lifecycle[0]
         final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
     final val log // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.log|{}log[0]
         final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.log.<get-log>|<get-log>(){}[0]
     final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.matrixClient|{}matrixClient[0]
         final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.onDismiss|{}onDismiss[0]
+        final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
     final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.stateKeeper|{}stateKeeper[0]
         final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
     final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
