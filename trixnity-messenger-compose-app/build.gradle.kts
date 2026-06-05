@@ -1,6 +1,7 @@
 import de.connect2x.conventions.CI
 import de.connect2x.conventions.configureJava
 import de.connect2x.conventions.defaultCompilerOptions
+import de.connect2x.conventions.defaultComposeDesktopApplication
 import de.connect2x.conventions.registerMultiplatformLicensesTasks
 import de.connect2x.conventions.withAndroid
 import de.connect2x.conventions.withBrowser
@@ -8,7 +9,6 @@ import de.connect2x.conventions.withIos
 import de.connect2x.conventions.withJvm
 import de.connect2x.conventions.withWeb
 import org.gradle.internal.extensions.stdlib.capitalized
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 
 plugins {
@@ -156,33 +156,33 @@ val distributionJavaHome: String =
             .asFile
             .absolutePath
 
-compose {
-    desktop {
-        application {
-            mainClass = "$appId.Main"
-            jvmArgs("-Xmx1G", "-XX:+HeapDumpOnOutOfMemoryError")
-            javaHome = distributionJavaHome
-            buildTypes.release.proguard { isEnabled = false }
-            nativeDistributions {
-                modules("java.net.http", "java.sql", "java.naming")
-                targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-                packageName = appName
-                packageVersion = appVersion
-                windows {
-                    menu = true
-                    iconFile.set(project.file("src/jvmMain/resources/logo.ico"))
-                }
-                macOS {
-                    appCategory = "public.app-category.productivity"
-                    bundleID = appId
-                    dockName = appName
-                    iconFile.set(project.file("src/jvmMain/resources/logo.icns"))
-                }
-                linux { modules("jdk.security.auth") }
+defaultComposeDesktopApplication(
+    appName = appName,
+    appId = appId,
+    appVersion = appVersion,
+    iconFileName = "logo",
+    mainClassName = "$appId.Main",
+    applicationConfig = {
+        javaHome = distributionJavaHome
+        jvmArgs(
+            "-Xmx1G",
+            "-XX:+HeapDumpOnOutOfMemoryError",
+            "--add-opens",
+            "java.desktop/sun.awt.X11=ALL-UNNAMED",
+            "--add-opens",
+            "java.desktop/sun.awt.wl=ALL-UNNAMED",
+            "-Djava.desktop.appName=$appName",
+        )
+        nativeDistributions {
+            modules("java.net.http", "java.sql", "java.naming")
+            linux {
+                modules("jdk.security.auth")
+                appCategory = "Network;Chat;"
             }
+            macOS { appCategory = "public.app-category.social-networking" }
         }
-    }
-}
+    },
+)
 
 android {
     namespace = appId

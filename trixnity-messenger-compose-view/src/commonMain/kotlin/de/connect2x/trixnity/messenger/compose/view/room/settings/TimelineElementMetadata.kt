@@ -206,7 +206,7 @@ fun ColumnScope.ReadersAndReactions(
             )
             Box {
                 LazyColumn(Modifier.rovingFocusContainer(listState = state, focusedItem = focusedItem), state) {
-                    items(allReadersAndReactions, { it.sender.userId }) { eventReaction ->
+                    items(allReadersAndReactions, { it.sender.userId.full }) { eventReaction ->
                         UserInfo(
                             eventReaction.sender,
                             Modifier.rovingFocusItem(
