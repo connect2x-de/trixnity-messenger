@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Don't show verification twice on account setup
+
 ### Security
 
 ## v4.6.1

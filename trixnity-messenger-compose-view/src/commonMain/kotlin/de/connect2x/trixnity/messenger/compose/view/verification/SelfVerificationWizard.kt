@@ -127,55 +127,58 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
 
-        val steps = stepList.mapNotNull {
-            when (it) {
-                is SelfVerificationWizardStep.SelfVerificationWizardHelp ->
-                    selfVerificationWizardHelpStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardHelp,
-                        i18n,
-                    )
+        val wizardSteps =
+            remember(selfVerificationViewModel, i18n) {
+                stepList.mapNotNull {
+                    when (it) {
+                        is SelfVerificationWizardStep.SelfVerificationWizardHelp ->
+                            selfVerificationWizardHelpStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardHelp,
+                                i18n,
+                            )
 
-                is SelfVerificationWizardStep.SelfVerificationWizardMethods ->
-                    selfVerificationWizardMethodStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardMethods,
-                        i18n,
-                    )
+                        is SelfVerificationWizardStep.SelfVerificationWizardMethods ->
+                            selfVerificationWizardMethodStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardMethods,
+                                i18n,
+                            )
 
-                is SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey ->
-                    selfVerificationWizardRecoveryKeyStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
-                        i18n,
-                    )
+                        is SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey ->
+                            selfVerificationWizardRecoveryKeyStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardRecoveryKey,
+                                i18n,
+                            )
 
-                is SelfVerificationWizardStep.SelfVerificationWizardPassphrase ->
-                    selfVerificationWizardPassphraseStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
-                        i18n,
-                    )
+                        is SelfVerificationWizardStep.SelfVerificationWizardPassphrase ->
+                            selfVerificationWizardPassphraseStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardPassphrase,
+                                i18n,
+                            )
 
-                is SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation ->
-                    selfVerificationWizardResetRecoveryKeyConfirmationStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
-                        i18n,
-                    )
+                        is SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation ->
+                            selfVerificationWizardResetRecoveryKeyConfirmationStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardResetRecoveryKeyConfirmation,
+                                i18n,
+                            )
 
-                is SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation ->
-                    selfVerificationWizardVerificationConfirmationStep(
-                        selfVerificationViewModel,
-                        SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
-                        i18n,
-                    )
+                        is SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation ->
+                            selfVerificationWizardVerificationConfirmationStep(
+                                selfVerificationViewModel,
+                                SelfVerificationWizardStep.SelfVerificationWizardVerificationConfirmation,
+                                i18n,
+                            )
 
-                else -> null
+                        else -> null
+                    }
+                }
             }
-        }
 
-        Wizard(steps, wizardId = "SelfVerificationWizard")
+        Wizard(wizardSteps = wizardSteps, wizardId = "SelfVerificationWizard")
     }
 
     private fun selfVerificationWizardHelpStep(

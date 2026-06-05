@@ -6137,7 +6137,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/RoomMessage
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt;
 	public fun <init> ()V
-	public final fun getLambda$672162611$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$902009801$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$SelfVerificationWizardKt {
