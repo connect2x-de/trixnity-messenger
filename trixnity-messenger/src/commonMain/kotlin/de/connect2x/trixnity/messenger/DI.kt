@@ -361,12 +361,12 @@ private fun roomListViewModels() = module {
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
 }
 
-inline fun <reified F : SearchProvider<*>> Module.searchUserProvider(
+inline fun <reified F : SearchProvider<*>> Module.searchProvider(
     noinline definition: Scope.(ParametersHolder) -> SearchProvider<*>
 ) = single<SearchProvider<*>>(named<F>(), definition = definition)
 
 private fun newSearchViewModels() = module {
-    searchUserProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
+    searchProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
     single<SearchProviderSorter> { SearchProviderSorterImpl() }
     single<UserSearchViewModelFactory> { UserSearchViewModelFactory }
     single<CreateNewChatViewModelFactory> {

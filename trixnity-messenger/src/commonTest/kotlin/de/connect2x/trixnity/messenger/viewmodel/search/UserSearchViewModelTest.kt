@@ -8,7 +8,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
-import de.connect2x.trixnity.messenger.searchUserProvider
+import de.connect2x.trixnity.messenger.searchProvider
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
@@ -574,8 +574,8 @@ class UserSearchViewModelTest {
                                         mapOf(UserId("test", "server") to matrixClientMock)
                                     ) +
                                         module {
-                                            searchUserProvider<SearchProvider1> { SearchProvider1() }
-                                            searchUserProvider<SearchProvider2> { SearchProvider2() }
+                                            searchProvider<SearchProvider1> { SearchProvider1() }
+                                            searchProvider<SearchProvider2> { SearchProvider2() }
                                             // dummy implementation to avoid mocking the standard impl
                                             single<SearchProvider<*>>(named<HomeserverSearchProvider>()) {
                                                 TestHomeserverSearchProvider()
