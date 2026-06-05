@@ -79,9 +79,7 @@ class JoinRoomActionViewModelImpl(
     private val hasKnocked =
         matrixClient.room
             .getById(roomId)
-            .map {
-                it?.membership == Membership.KNOCK
-            }
+            .map { it?.membership == Membership.KNOCK }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val actionNecessary: StateFlow<JoinRoomActionViewModel.JoinRoomAction?> =
@@ -126,10 +124,7 @@ class JoinRoomActionViewModelImpl(
                             JoinRulesEventContent.JoinRule.Knock,
                             JoinRulesEventContent.JoinRule.KnockRestricted -> {
                                 log.debug { "Room $roomId is knock, showing option to knock" }
-                                Knock(
-                                    ::onConfirmKnock,
-                                    hasKnocked,
-                                )
+                                Knock(::onConfirmKnock, hasKnocked)
                             }
 
                             // Only show restricted action when there are room join conditions
@@ -157,9 +152,7 @@ class JoinRoomActionViewModelImpl(
                             }
 
                             is JoinRulesEventContent.JoinRule.Unknown -> {
-                                log.debug {
-                                    "Join rule of room $roomId is unknown, returning private action"
-                                }
+                                log.debug { "Join rule of room $roomId is unknown, returning private action" }
                                 Private
                             }
                             null -> {

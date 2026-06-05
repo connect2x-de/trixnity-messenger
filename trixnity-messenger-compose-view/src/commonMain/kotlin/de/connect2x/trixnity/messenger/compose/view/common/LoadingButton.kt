@@ -29,9 +29,7 @@ fun ThemedLoadingButton(
 ) {
     ThemedButton(onClick, modifier, enabled, style, interactionSource) {
         Box {
-            Row(if (isLoading) Modifier.alpha(0f) else Modifier) {
-                content()
-            }
+            Row(if (isLoading) Modifier.alpha(0f) else Modifier) { content() }
             if (isLoading) {
                 ThemedProgressIndicator(
                     modifier = Modifier.size(MaterialTheme.messengerDpConstants.middle).align(Alignment.Center),
