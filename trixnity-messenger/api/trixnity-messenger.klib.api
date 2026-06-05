@@ -2461,7 +2461,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.eleme
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory|null[0]
-    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function1<kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.client.room.message/MessageBuilder, kotlin/Unit>, kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function1<kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.client.room.message.MessageBuilder,kotlin.Unit>,kotlin.Unit>){}[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlinx.coroutines.flow/MutableStateFlow<kotlin/Pair<de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId>?>, kotlin/Function0<kotlin/Unit>, kotlinx.coroutines.sync/Mutex): de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlinx.coroutines.flow.MutableStateFlow<kotlin.Pair<de.connect2x.trixnity.core.model.RoomId,de.connect2x.trixnity.core.model.EventId>?>;kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.sync.Mutex){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelFactory.Companion|null[0]
 }
@@ -2686,6 +2686,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Timel
     abstract fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.errorDismiss|errorDismiss(){}[0]
     abstract fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     abstract fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.leaveRoom|leaveRoom(){}[0]
+    abstract fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     abstract suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.dropAfter|dropAfter(kotlin.String){}[0]
     abstract suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.dropBefore|dropBefore(kotlin.String){}[0]
     abstract suspend fun loadAfter() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.loadAfter|loadAfter(){}[0]
@@ -5987,11 +5988,12 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
 
     final fun close() // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.close|close(){}[0]
     final fun complete() // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.complete|complete(){}[0]
+    final suspend fun loadSuspending(de.connect2x.trixnity.messenger.media/AudioRecorder.State.Completed) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.loadSuspending|loadSuspending(de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed){}[0]
     final suspend fun startSuspending() // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.startSuspending|startSuspending(){}[0]
 
     sealed interface State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State|null[0]
         final class Completed : de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed|null[0]
-            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin.time/Duration, kotlin/Long?, io.ktor.http/ContentType, kotlin/String, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
 
             final val capture // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture|{}capture[0]
                 final fun <get-capture>(): de.connect2x.trixnity.client.media/PlatformMedia // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.capture.<get-capture>|<get-capture>(){}[0]
@@ -6001,6 +6003,8 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
                 final fun <get-deleteCapture>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.deleteCapture.<get-deleteCapture>|<get-deleteCapture>(){}[0]
             final val duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration|{}duration[0]
                 final fun <get-duration>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.duration.<get-duration>|<get-duration>(){}[0]
+            final val fileExtension // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension|{}fileExtension[0]
+                final fun <get-fileExtension>(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.fileExtension.<get-fileExtension>|<get-fileExtension>(){}[0]
             final val sizeBytes // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes|{}sizeBytes[0]
                 final fun <get-sizeBytes>(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.sizeBytes.<get-sizeBytes>|<get-sizeBytes>(){}[0]
 
@@ -6008,8 +6012,9 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
             final fun component2(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component2|component2(){}[0]
             final fun component3(): kotlin/Long? // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component3|component3(){}[0]
             final fun component4(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component4|component4(){}[0]
-            final fun component5(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
-            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.Function0<kotlin.Unit>){}[0]
+            final fun component5(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component5|component5(){}[0]
+            final fun component6(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.component6|component6(){}[0]
+            final fun copy(de.connect2x.trixnity.client.media/PlatformMedia = ..., kotlin.time/Duration = ..., kotlin/Long? = ..., io.ktor.http/ContentType = ..., kotlin/String = ..., kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.copy|copy(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.time.Duration;kotlin.Long?;io.ktor.http.ContentType;kotlin.String;kotlin.Function0<kotlin.Unit>){}[0]
             final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.equals|equals(kotlin.Any?){}[0]
             final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.hashCode|hashCode(){}[0]
             final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.State.Completed.toString|toString(){}[0]
@@ -6038,8 +6043,10 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
     }
 
     final class <#A1: kotlin/Any?, #B1: kotlin/Any?> Format { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format|null[0]
-        constructor <init>(#A1, #B1, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz, io.ktor.http/ContentType) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.<init>|<init>(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;io.ktor.http.ContentType){}[0]
+        constructor <init>(#A1, #B1, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz, de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate, io.ktor.http/ContentType) // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.<init>|<init>(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate;io.ktor.http.ContentType){}[0]
 
+        final val bitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.bitRate|{}bitRate[0]
+            final fun <get-bitRate>(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.bitRate.<get-bitRate>|<get-bitRate>(){}[0]
         final val container // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.container|{}container[0]
             final fun <get-container>(): #A1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.container.<get-container>|<get-container>(){}[0]
         final val contentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.contentType|{}contentType[0]
@@ -6052,15 +6059,27 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
         final fun component1(): #A1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component1|component1(){}[0]
         final fun component2(): #B1 // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component2|component2(){}[0]
         final fun component3(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component3|component3(){}[0]
-        final fun component4(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component4|component4(){}[0]
-        final fun copy(#A1 = ..., #B1 = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz = ..., io.ktor.http/ContentType = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format<#A1, #B1> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.copy|copy(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;io.ktor.http.ContentType){}[0]
+        final fun component4(): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component4|component4(){}[0]
+        final fun component5(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.component5|component5(){}[0]
+        final fun copy(#A1 = ..., #B1 = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz = ..., de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate = ..., io.ktor.http/ContentType = ...): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format<#A1, #B1> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.copy|copy(1:0;1:1;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.SampleRateHz;de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate;io.ktor.http.ContentType){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.toString|toString(){}[0]
 
+        final enum class BitRate : kotlin/Enum<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate|null[0]
+            enum entry AAC_BIT_RATE // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.AAC_BIT_RATE|null[0]
+
+            final val entries // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.entries|#static{}entries[0]
+                final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.entries.<get-entries>|<get-entries>#static(){}[0]
+            final val value // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.value|{}value[0]
+                final fun <get-value>(): kotlin/Int // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.value.<get-value>|<get-value>(){}[0]
+
+            final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.valueOf|valueOf#static(kotlin.String){}[0]
+            final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.BitRate.values|values#static(){}[0]
+        }
+
         final enum class SampleRateHz : kotlin/Enum<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz|null[0]
-            enum entry AMR_WB_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.AMR_WB_SAMPLING_RATE_HZ|null[0]
-            enum entry OPUS_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.OPUS_SAMPLING_RATE_HZ|null[0]
+            enum entry AAC_SAMPLING_RATE_HZ // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.AAC_SAMPLING_RATE_HZ|null[0]
 
             final val entries // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.entries|#static{}entries[0]
                 final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.entries.<get-entries>|<get-entries>#static(){}[0]
@@ -6070,14 +6089,15 @@ final class de.connect2x.trixnity.messenger.media/AudioRecorderImpl : de.connect
             final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.valueOf|valueOf#static(kotlin.String){}[0]
             final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz> // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.SampleRateHz.values|values#static(){}[0]
         }
-
-        final object Companion { // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion|null[0]
-            final val amrWbContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion.amrWbContentType|{}amrWbContentType[0]
-                final fun <get-amrWbContentType>(): io.ktor.http/ContentType // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Format.Companion.amrWbContentType.<get-amrWbContentType>|<get-amrWbContentType>(){}[0]
-        }
     }
 
     final object Companion // de.connect2x.trixnity.messenger.media/AudioRecorderImpl.Companion|null[0]
+}
+
+final class de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl : de.connect2x.trixnity.messenger.multi/MatrixMessengerFactory { // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl|null[0]
+    constructor <init>(org.koin.core.scope/Scope, de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration, kotlin.collections/List<de.connect2x.trixnity.messenger.multi/CopyMultiMessengerSingletons>, kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.util/RootPath) // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl.<init>|<init>(org.koin.core.scope.Scope;de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration;kotlin.collections.List<de.connect2x.trixnity.messenger.multi.CopyMultiMessengerSingletons>;kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.util.RootPath){}[0]
+
+    final suspend fun invoke(kotlin/String): de.connect2x.trixnity.messenger/MatrixMessenger // de.connect2x.trixnity.messenger.multi/MatrixMessengerFactoryImpl.invoke|invoke(kotlin.String){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration : de.connect2x.trixnity.messenger/MatrixMessengerBaseConfiguration { // de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration|null[0]
@@ -6927,6 +6947,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewMod
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModelImpl.getKoin|getKoin(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final fun start() // de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModelImpl.start|start(){}[0]
+    final suspend fun loadSuspending(de.connect2x.trixnity.messenger.media/AudioRecorder.State.Completed) // de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModelImpl.loadSuspending|loadSuspending(de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed){}[0]
     final suspend fun startSuspending() // de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModelImpl.startSuspending|startSuspending(){}[0]
 }
 
@@ -9175,7 +9196,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/Tim
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function1<kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.client.room.message/MessageBuilder, kotlin/Unit>, kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function1<kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.client.room.message.MessageBuilder,kotlin.Unit>,kotlin.Unit>){}[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlinx.coroutines.flow/MutableStateFlow<kotlin/Pair<de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId>?>, kotlin/Function0<kotlin/Unit>, kotlinx.coroutines.sync/Mutex) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlinx.coroutines.flow.MutableStateFlow<kotlin.Pair<de.connect2x.trixnity.core.model.RoomId,de.connect2x.trixnity.core.model.EventId>?>;kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.sync.Mutex){}[0]
 
     final val backHandler // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.backHandler|{}backHandler[0]
         final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
@@ -9208,7 +9229,9 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordi
     final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun deleteAudioMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.deleteAudioMessage|deleteAudioMessage(){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.getKoin|getKoin(){}[0]
+    final fun loadAudioMessage(de.connect2x.trixnity.core.model.events.m.room/RoomMessageEventContent.FileBased.Audio) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.loadAudioMessage|loadAudioMessage(de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased.Audio){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final fun sendAudioMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/AudioRecordingAreaViewModelImpl.sendAudioMessage|sendAudioMessage(){}[0]
 }
@@ -9221,6 +9244,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudio
     final val recorder // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudioRecordingAreaViewModel.recorder|{}recorder[0]
         final fun <get-recorder>(): de.connect2x.trixnity.messenger.viewmodel.media/AudioRecorderViewModel? // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudioRecordingAreaViewModel.recorder.<get-recorder>|<get-recorder>(){}[0]
 
+    final fun deleteAudioMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudioRecordingAreaViewModel.deleteAudioMessage|deleteAudioMessage(){}[0]
+    final fun loadAudioMessage(de.connect2x.trixnity.core.model.events.m.room/RoomMessageEventContent.FileBased.Audio) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudioRecordingAreaViewModel.loadAudioMessage|loadAudioMessage(de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.FileBased.Audio){}[0]
     final fun sendAudioMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewAudioRecordingAreaViewModel.sendAudioMessage|sendAudioMessage(){}[0]
 }
 
@@ -9362,6 +9387,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimel
     final fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.errorDismiss|errorDismiss(){}[0]
     final fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.leaveRoom|leaveRoom(){}[0]
+    final fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     final suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.dropAfter|dropAfter(kotlin.String){}[0]
     final suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.dropBefore|dropBefore(kotlin.String){}[0]
     final suspend fun loadAfter() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewTimelineViewModel.loadAfter|loadAfter(){}[0]
@@ -9503,7 +9529,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineView
     final val roomHeaderViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.roomHeaderViewModel|{}roomHeaderViewModel[0]
         final fun <get-roomHeaderViewModel>(): de.connect2x.trixnity.messenger.viewmodel.room.timeline/RoomHeaderViewModel // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.roomHeaderViewModel.<get-roomHeaderViewModel>|<get-roomHeaderViewModel>(){}[0]
     final val scrollTo // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo|{}scrollTo[0]
-        final fun <get-scrollTo>(): kotlinx.coroutines.flow/MutableSharedFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo.<get-scrollTo>|<get-scrollTo>(){}[0]
+        final fun <get-scrollTo>(): kotlinx.coroutines.flow/Flow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.scrollTo.<get-scrollTo>|<get-scrollTo>(){}[0]
     final val sendAttachmentStack // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.sendAttachmentStack|{}sendAttachmentStack[0]
         final fun <get-sendAttachmentStack>(): com.arkivanov.decompose.value/Value<com.arkivanov.decompose.router.stack/ChildStack<de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.Config, de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModel.Wrapper>> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.sendAttachmentStack.<get-sendAttachmentStack>|<get-sendAttachmentStack>(){}[0]
     final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.stateKeeper|{}stateKeeper[0]
@@ -9527,6 +9553,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineView
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.getKoin|getKoin(){}[0]
     final fun jumpToEndOfTimeline() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.jumpToEndOfTimeline|jumpToEndOfTimeline(){}[0]
     final fun leaveRoom() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.leaveRoom|leaveRoom(){}[0]
+    final fun onProcessedScrollTo(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.onProcessedScrollTo|onProcessedScrollTo(kotlin.String){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     final suspend fun dropAfter(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.dropAfter|dropAfter(kotlin.String){}[0]
     final suspend fun dropBefore(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.dropBefore|dropBefore(kotlin.String){}[0]
@@ -13432,6 +13459,7 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun aliasesChanged(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.aliasesChanged|aliasesChanged(kotlin.String){}[0]
     open fun alreadyRunningError(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.alreadyRunningError|alreadyRunningError(kotlin.String){}[0]
     open fun attachmentSizeMaxSizeError(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.attachmentSizeMaxSizeError|attachmentSizeMaxSizeError(kotlin.Long){}[0]
+    open fun audioDraftMessage(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.audioDraftMessage|audioDraftMessage(){}[0]
     open fun audioRecordingManuallyGiveMicrophonePermissionPrompt(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.audioRecordingManuallyGiveMicrophonePermissionPrompt|audioRecordingManuallyGiveMicrophonePermissionPrompt(){}[0]
     open fun avatarSizeMaxSizeError(kotlin/Long): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.avatarSizeMaxSizeError|avatarSizeMaxSizeError(kotlin.Long){}[0]
     open fun banningFailed(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.banningFailed|banningFailed(){}[0]
@@ -16352,6 +16380,28 @@ final class de.connect2x.trixnity.messenger.i18n/AppLanguageUpdaterImpl : de.con
 }
 
 // Targets: [js, wasmJs]
+final class de.connect2x.trixnity.messenger.media/WebMediaPlayer : de.connect2x.trixnity.messenger.media/MediaPlayer { // de.connect2x.trixnity.messenger.media/WebMediaPlayer|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineScope) // de.connect2x.trixnity.messenger.media/WebMediaPlayer.<init>|<init>(kotlinx.coroutines.CoroutineScope){}[0]
+
+    final val playingItem // de.connect2x.trixnity.messenger.media/WebMediaPlayer.playingItem|{}playingItem[0]
+        final fun <get-playingItem>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.media/MediaPlayer.Item?> // de.connect2x.trixnity.messenger.media/WebMediaPlayer.playingItem.<get-playingItem>|<get-playingItem>(){}[0]
+
+    final fun close() // de.connect2x.trixnity.messenger.media/WebMediaPlayer.close|close(){}[0]
+    final suspend fun open(kotlin/String, de.connect2x.trixnity.client.media/PlatformMedia, kotlin/String, kotlinx.coroutines/CoroutineScope?): kotlin/Result<de.connect2x.trixnity.messenger.media/MediaPlayer.Item> // de.connect2x.trixnity.messenger.media/WebMediaPlayer.open|open(kotlin.String;de.connect2x.trixnity.client.media.PlatformMedia;kotlin.String;kotlinx.coroutines.CoroutineScope?){}[0]
+    final suspend fun resumeAudioContext() // de.connect2x.trixnity.messenger.media/WebMediaPlayer.resumeAudioContext|resumeAudioContext(){}[0]
+}
+
+// Targets: [js, wasmJs]
+final class de.connect2x.trixnity.messenger.media/WebPlayerItem : de.connect2x.trixnity.messenger.media/AbstractMediaItem { // de.connect2x.trixnity.messenger.media/WebPlayerItem|null[0]
+    constructor <init>(kotlin/String, de.connect2x.trixnity.client.media/PlatformMedia.TemporaryFile, kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.media/WebMediaPlayer, web.html/Audio) // de.connect2x.trixnity.messenger.media/WebPlayerItem.<init>|<init>(kotlin.String;de.connect2x.trixnity.client.media.PlatformMedia.TemporaryFile;kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.media.WebMediaPlayer;web.html.Audio){}[0]
+
+    final val duration // de.connect2x.trixnity.messenger.media/WebPlayerItem.duration|{}duration[0]
+        final fun <get-duration>(): kotlin.time/Duration // de.connect2x.trixnity.messenger.media/WebPlayerItem.duration.<get-duration>|<get-duration>(){}[0]
+    final val id // de.connect2x.trixnity.messenger.media/WebPlayerItem.id|{}id[0]
+        final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.media/WebPlayerItem.id.<get-id>|<get-id>(){}[0]
+}
+
+// Targets: [js, wasmJs]
 final class de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage : de.connect2x.trixnity.messenger.settings/SettingsStorage { // de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage|null[0]
     constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.settings/LocalStorageSettingsStorage.<init>|<init>(kotlin.String){}[0]
 
@@ -16384,6 +16434,9 @@ final class de.connect2x.trixnity.messenger.util/UriHandlerImpl : de.connect2x.t
 
 // Targets: [js, wasmJs]
 final object de.connect2x.trixnity.messenger/JsJodaTimeZoneModule // de.connect2x.trixnity.messenger/JsJodaTimeZoneModule|null[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.util/handleFirst(web.events/EventTarget, kotlin.collections/Map<web.events/EventType<web.events/Event>, kotlin/Function0<kotlin/Unit>>) // de.connect2x.trixnity.messenger.util/handleFirst|handleFirst(web.events.EventTarget;kotlin.collections.Map<web.events.EventType<web.events.Event>,kotlin.Function0<kotlin.Unit>>){}[0]
 
 // Targets: [js, wasmJs]
 final suspend fun (okio/Path).de.connect2x.trixnity.messenger.util/deleteVirtualFileSystemData() // de.connect2x.trixnity.messenger.util/deleteVirtualFileSystemData|deleteVirtualFileSystemData@okio.Path(){}[0]

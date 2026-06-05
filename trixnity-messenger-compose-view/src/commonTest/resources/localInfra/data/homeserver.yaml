@@ -1,4 +1,4 @@
-server_name: "localhost:8008"
+server_name: "localhost"
 pid_file: /data/homeserver.pid
 listeners:
   - port: 8008

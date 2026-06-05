@@ -15,14 +15,10 @@ import de.connect2x.trixnity.client.media.okio.OkioPlatformMedia
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
-import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,10 +27,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 
-internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: CoroutineScope) : MediaPlayer {
+internal class AndroidMediaPlayer(getContext: ContextGetter, private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AndroidMediaPlayer")
-    private val coroutineCtx: CoroutineContext = parentScope.coroutineContext
-    private val coroutineScope: CoroutineScope = CoroutineScope(coroutineCtx + SupervisorJob(coroutineCtx[Job]))
     private val controller: ListenableFuture<MediaController>
 
     internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
@@ -111,18 +105,12 @@ internal class AndroidMediaPlayer(getContext: ContextGetter, parentScope: Corout
                             return Result.failure(IllegalArgumentException("Media duration could not be extracted"))
                         }
 
-                        val coroutineCtx = coroutineScope.coroutineContext
-                        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-                            log.error(throwable) { "Unexpected error while running media player" }
-                        }
-
-                        val scope = CoroutineScope(coroutineCtx + Job(coroutineCtx[Job]) + exceptionHandler)
                         val playerItem =
                             AndroidPlayerItem(
                                 id = id,
                                 mimeType = mimeType,
                                 tempFile = tempFile,
-                                coroutineScope = scope,
+                                coroutineScope = coroutineScope,
                                 player = this@AndroidMediaPlayer,
                                 duration = duration.milliseconds,
                             )
