@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - UI,INTERNAL: Provide WithProfileSelection via koin
+- SDK,INTERNAL: Separate Uia logic from UiaRouter
 
 ### Deprecated
 
