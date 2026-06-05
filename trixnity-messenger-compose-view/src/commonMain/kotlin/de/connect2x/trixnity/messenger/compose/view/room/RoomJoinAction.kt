@@ -47,43 +47,43 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
             Column(Modifier.align(Alignment.Center)) {
                 when (action) {
                     is JoinRoomActionViewModel.JoinRoomAction.Private -> {
-                        JoinRoomActionModal(i18n.joinRoomActionImpossible(), error, onDismiss = action.onDismiss)
+                        JoinRoomActionOverview(i18n.joinRoomActionImpossible(), error, onDismiss = viewModel.onDismiss)
                     }
 
                     is JoinRoomActionViewModel.JoinRoomAction.Join ->
-                        JoinRoomActionModal(
+                        JoinRoomActionOverview(
                             i18n.joinRoomActionJoin(),
                             error,
                             onConfirm = action.onJoinRoom,
-                            onDismiss = action.onDismiss,
+                            onDismiss = viewModel.onDismiss,
                         )
 
                     is JoinRoomActionViewModel.JoinRoomAction.Knock ->
-                        JoinRoomActionModal(
+                        JoinRoomActionOverview(
                             i18n.joinRoomActionKnock(),
                             error,
                             onConfirm = action.onKnock,
-                            onDismiss = action.onDismiss,
+                            onDismiss = viewModel.onDismiss,
                         )
 
                     is JoinRoomActionViewModel.JoinRoomAction.Restricted ->
-                        JoinRoomActionModal(
+                        JoinRoomActionOverview(
                             i18n.joinRoomActionRestricted(action.requiredRooms),
                             error,
-                            onDismiss = action.onDismiss,
+                            onDismiss = viewModel.onDismiss,
                         )
 
                     is JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation -> {
-                        JoinRoomActionModal(
+                        JoinRoomActionOverview(
                             i18n.joinRoomActionAcceptInvite(),
                             error,
                             onConfirm = action.onAcceptInvite,
-                            onDismiss = action.onDismiss,
+                            onDismiss = viewModel.onDismiss,
                         )
                     }
 
                     is JoinRoomActionViewModel.JoinRoomAction.NotFound ->
-                        JoinRoomActionModal(i18n.joinRoomActionNotFound(), error, onDismiss = action.onDismiss)
+                        JoinRoomActionOverview(i18n.joinRoomActionNotFound(), error, onDismiss = viewModel.onDismiss)
 
                     null -> {}
                 }
@@ -93,7 +93,7 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
 }
 
 @Composable
-private fun JoinRoomActionModal(
+private fun JoinRoomActionOverview(
     text: String,
     error: String?,
     onConfirm: (() -> Unit)? = null,

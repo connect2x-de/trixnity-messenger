@@ -3620,7 +3620,7 @@ open class I18nView(
 
     open fun joinRoomActionImpossible() = translate {
         EN - "This room is private, please request an invitation to join."
-        DE - "Dieser Raum ist privat, bitte fordern Sie eine Einladung an um beizutreten."
+        DE - "Dieser Raum ist privat, bitte fordern Sie eine Einladung an, um beizutreten."
     }
 
     open fun joinRoomActionJoin() = translate {
@@ -3629,7 +3629,7 @@ open class I18nView(
     }
 
     open fun joinRoomActionKnock() = translate {
-        EN - "Without an invitation you need to knock on the room an be let in. Please confirm you want to knock."
+        EN - "Without an invitation you need to knock on the room and be let in. Please confirm you want to knock."
         DE -
             "Um ohne eine Einladung beizutreten, müssen Sie an dem Raum anklopfen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
     }
