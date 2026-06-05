@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import de.connect2x.messenger.compose.view.common.icons.HomeHealth
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -66,7 +67,7 @@ class HomeserverSearchResultElementViewImpl : HomeserverSearchResultElementView 
                     }
                     if (showOrigin) {
                         SearchProviderIcon(modifier = Modifier.align(Alignment.TopEnd)) {
-                            Icon(HomeHealth, contentDescription = "eigene Organisation")
+                            Icon(Icons.Outlined.Home, contentDescription = "")
                         }
                     }
                 }
