@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - UI: Don't show verification twice on account setup
+- SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
 
 ### Security
 
