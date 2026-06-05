@@ -56,6 +56,7 @@ private val logger: Logger = Logger("de.connect2x.trixnity.messenger.compose.vie
 private fun updateAppClassName(name: String) {
     try {
         val toolkit = Toolkit.getDefaultToolkit()
+        if (toolkit::class.java.simpleName != "XToolkit") return
         logger.debug { "AWT Toolkit implementation is ${toolkit::class.java.name}" }
         val classNameField = toolkit.javaClass.getDeclaredField("awtAppClassName")
         logger.debug { "Got field reference $classNameField" }
