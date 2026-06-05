@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI,Android: Android app doesn't crash anymore when opening the message's info view
 - UI: Multiple timeline-jump issues
 - UI: Some containers not being focusable, when selected item was out of view
 - UI: Draft not showing in roomlist when room empty
