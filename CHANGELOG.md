@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- SDK (**breaking change**): Added `TimelineViewModel.onProcessedScrollTo`, which should be called, when the UI fully finished processing `TimelineViewModel.scrollTo`
+- SDK (**breaking change**): Added `TimelineViewModel.onProcessedScrollTo`, which should be called, when the UI fully
+  finished processing `TimelineViewModel.scrollTo`
 - UI,SDK,WEB: Play audio on web (enabled by default, can be disabled with existing feature toggle `media player`)
 - UI: Add proper rendering for "All accounts" avatar
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
@@ -19,12 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
 - UI,SDK,ANDROID: Drafts for voice messages
+- SDK,UI: Support Matrix 1.18
 
 ### Changed
 
 - SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
 - DEPENDENCY: (**breaking**) update Lognity to 2.1.0
+- DEPENDENCY: update Trixnity to 5.6.0
 - CI: Use shell runner for linux (two different runners depending on workload)
 
 ### Deprecated
