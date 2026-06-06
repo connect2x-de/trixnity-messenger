@@ -48,16 +48,6 @@ allprojects {
     }
 }
 
-println("#################")
-
-println("version. " + version)
-
-println("isCI: " + CI.isCI)
-
-println("isRelease: " + CI.isRelease)
-
-println("CI_COMMIT_TAG: " + System.getenv("CI_COMMIT_TAG"))
-
 subprojects {
     applyKtfmt()
 
