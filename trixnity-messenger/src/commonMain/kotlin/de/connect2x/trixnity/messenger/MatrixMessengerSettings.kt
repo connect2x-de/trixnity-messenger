@@ -3,7 +3,7 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
@@ -20,7 +20,7 @@ import de.connect2x.trixnity.messenger.settings.get
 import de.connect2x.trixnity.messenger.settings.set
 import de.connect2x.trixnity.messenger.settings.update
 import de.connect2x.trixnity.messenger.util.ByteArrayBase64Serializer
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -62,8 +62,8 @@ data class MatrixMessengerSettingsBase(
     @Serializable
     data class OAuth2LoginState(
         val serverUrl: String,
-        val type: OAuth2LoginViewModel.Type,
-        val state: OAuth2LoginFlow.AuthRequestData.State,
+        val type: OAuth2AuthorizationCodeLoginViewModel.Type,
+        val state: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State,
     )
 }
 

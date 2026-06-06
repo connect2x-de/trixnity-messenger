@@ -126,25 +126,32 @@ open class AddMatrixAccountViewModelImpl(
                 httpClientConfig = config.httpClientConfig,
             )
             .use { api ->
-                val oAuth2LoginMethods =
+                val oAuth2AuthorizationCodeLoginMethods =
                     api.authentication
                         .getOAuth2ServerMetadata()
                         .fold(
                             onSuccess = { serverMetadata ->
                                 buildSet {
                                     add(
-                                        AddMatrixAccountMethod.OAuth2(
+                                        AddMatrixAccountMethod.OAuth2AuthorizationCode(
                                             serverUrl = serverDiscoveryUrl.toString(),
-                                            type = OAuth2LoginViewModel.Type.LOGIN,
+                                            type = OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN,
                                         )
                                     )
                                     if (serverMetadata.promptValuesSupported?.contains(PromptValue.Create) == true)
                                         add(
-                                            AddMatrixAccountMethod.OAuth2(
+                                            AddMatrixAccountMethod.OAuth2AuthorizationCode(
                                                 serverUrl = serverDiscoveryUrl.toString(),
-                                                type = OAuth2LoginViewModel.Type.REGISTER,
+                                                type = OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER,
                                             )
                                         )
+                                    if (serverMetadata.deviceAuthorizationEndpoint != null) {
+                                        add(
+                                            AddMatrixAccountMethod.OAuth2DeviceAuthorization(
+                                                serverUrl = serverDiscoveryUrl.toString()
+                                            )
+                                        )
+                                    }
                                 }
                             },
                             onFailure = {
@@ -231,7 +238,7 @@ open class AddMatrixAccountViewModelImpl(
                                 emptySet()
                             },
                         )
-                return oAuth2LoginMethods + classicLoginMethods + registerLoginMethod
+                return oAuth2AuthorizationCodeLoginMethods + classicLoginMethods + registerLoginMethod
             }
     }
 

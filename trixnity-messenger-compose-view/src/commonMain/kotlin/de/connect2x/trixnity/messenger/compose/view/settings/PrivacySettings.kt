@@ -70,6 +70,7 @@ fun PrivacySettingsSingleAccount(privacySettingViewModel: PrivacySettingsSingleA
         PrivacySettingsToggleReadMarker(privacySettingViewModel)
         PrivacySettingsToggleTyping(privacySettingViewModel)
         PrivacySettingsToggleRedactionWarning(privacySettingViewModel)
+        PrivacySettingsToggleBlockInvite(privacySettingViewModel)
 
         PrivacySettingsBlockedAccounts(privacySettingViewModel)
     }
@@ -127,6 +128,22 @@ fun PrivacySettingsToggleRedactionWarning(privacySettingViewModel: PrivacySettin
         selected = redactionWarningEnabled,
         onChange = { privacySettingViewModel.toggleRedactionWarningIsEnabled() },
     )
+}
+
+@Composable
+fun PrivacySettingsToggleBlockInvite(privacySettingViewModel: PrivacySettingsSingleAccountViewModel) {
+    val i18n = DI.get<I18nView>()
+    val canBlockInvites = privacySettingViewModel.canBlockInvites.collectAsState().value
+    if (canBlockInvites) {
+        val blockInvites = privacySettingViewModel.blockInvites.collectAsState().value
+        ThemedListItemSwitch(
+            style = MaterialTheme.components.settingsItem,
+            headlineContent = { Text(i18n.blockInvitesSettingTitle()) },
+            supportingContent = { Text(i18n.blockInvitesSettingDescription()) },
+            selected = blockInvites,
+            onChange = { privacySettingViewModel.toggleBlockInvites() },
+        )
+    }
 }
 
 @Composable

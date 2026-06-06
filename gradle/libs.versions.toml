@@ -1,12 +1,12 @@
 [versions]
 
-trixnityMessenger = "4.5.3"
+trixnityMessenger = "4.6.0"
 
 minSdkVersion = "28"
 
 seskar = "4.34.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
 
-trixnity = "5.5.3-SNAPSHOT.CI-20260602.125200" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.6.0" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.6.3" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.6" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
