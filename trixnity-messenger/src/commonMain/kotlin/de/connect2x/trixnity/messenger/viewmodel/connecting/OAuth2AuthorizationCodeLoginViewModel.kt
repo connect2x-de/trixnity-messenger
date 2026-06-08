@@ -2,10 +2,9 @@ package de.connect2x.trixnity.messenger.viewmodel.connecting
 
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
-import de.connect2x.trixnity.clientserverapi.client.oauth2.ApplicationType
 import de.connect2x.trixnity.clientserverapi.client.oauth2.LocalizedField
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
-import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2Login
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow
+import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2AuthorizationCodeLogin
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.ResponseMode
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -18,10 +17,10 @@ import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.GetDefaultDeviceDisplayName
 import de.connect2x.trixnity.messenger.util.UriCaller
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.State
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.State
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import io.ktor.http.Url
+import io.ktor.http.*
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,16 +34,28 @@ import kotlinx.serialization.Serializable
 import org.koin.core.component.get
 import org.koin.core.component.inject
 
-interface OAuth2LoginViewModelFactory {
+@Deprecated(
+    "use OAuth2AuthorizationCodeLoginViewModelFactory",
+    ReplaceWith("OAuth2AuthorizationCodeLoginViewModelFactory"),
+)
+typealias OAuth2LoginViewModelFactory = OAuth2AuthorizationCodeLoginViewModelFactory
+
+@Deprecated("use OAuth2AuthorizationCodeLoginViewModel", ReplaceWith("OAuth2AuthorizationCodeLoginViewModel"))
+typealias OAuth2LoginViewModel = OAuth2AuthorizationCodeLoginViewModel
+
+@Deprecated("use OAuth2AuthorizationCodeLoginViewModelImpl", ReplaceWith("OAuth2AuthorizationCodeLoginViewModelImpl"))
+typealias OAuth2LoginViewModelImpl = OAuth2AuthorizationCodeLoginViewModelImpl
+
+interface OAuth2AuthorizationCodeLoginViewModelFactory {
     fun create(
         viewModelContext: ViewModelContext,
-        type: OAuth2LoginViewModel.Type,
+        type: OAuth2AuthorizationCodeLoginViewModel.Type,
         serverUrl: String,
-        initialState: OAuth2LoginFlow.AuthRequestData.State?,
+        initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?,
         onLogin: () -> Unit,
         onBack: () -> Unit,
-    ): OAuth2LoginViewModel {
-        return OAuth2LoginViewModelImpl(
+    ): OAuth2AuthorizationCodeLoginViewModel {
+        return OAuth2AuthorizationCodeLoginViewModelImpl(
             viewModelContext = viewModelContext,
             type = type,
             serverUrl = serverUrl,
@@ -54,12 +65,10 @@ interface OAuth2LoginViewModelFactory {
         )
     }
 
-    companion object : OAuth2LoginViewModelFactory
+    companion object : OAuth2AuthorizationCodeLoginViewModelFactory
 }
 
-interface OAuth2LoginViewModel {
-    val isFirstMatrixClient: StateFlow<Boolean?>
-    val serverUrl: String
+interface OAuth2AuthorizationCodeLoginViewModel : LoginViewModel {
     val type: Type
 
     val state: StateFlow<State>
@@ -95,26 +104,26 @@ interface OAuth2LoginViewModel {
     }
 }
 
-open class OAuth2LoginViewModelImpl(
+open class OAuth2AuthorizationCodeLoginViewModelImpl(
     viewModelContext: ViewModelContext,
-    override val type: OAuth2LoginViewModel.Type,
+    override val type: OAuth2AuthorizationCodeLoginViewModel.Type,
     override val serverUrl: String,
-    private val initialState: OAuth2LoginFlow.AuthRequestData.State?,
+    private val initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
-) : ViewModelContext by viewModelContext, OAuth2LoginViewModel {
+) : ViewModelContext by viewModelContext, OAuth2AuthorizationCodeLoginViewModel {
     override val isFirstMatrixClient: StateFlow<Boolean?> =
         matrixClients.map { it.isEmpty() }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
 
-    private val flow: MutableStateFlow<OAuth2LoginFlow> = MutableStateFlow(makeLoginFlow())
+    private val flow: MutableStateFlow<OAuth2AuthorizationCodeLoginFlow> = MutableStateFlow(makeLoginFlow())
 
     private fun makeLoginFlow(loginHint: String? = null, promptValue: PromptValue? = null) =
-        MatrixClientAuthProviderData.oAuth2Login(
+        MatrixClientAuthProviderData.oAuth2AuthorizationCodeLogin(
             baseUrl = Url(serverUrl),
-            applicationType = platformApplicationType,
+            applicationType = platformOAuth2LoginApplicationType,
             clientUri = config.oAuth2ClientUrl,
             redirectUri = "${config.appUri}/${config.appUriOAuth2Redirect}",
             responseMode = ResponseMode.Fragment,
@@ -122,7 +131,7 @@ open class OAuth2LoginViewModelImpl(
             promptValue =
                 when {
                     promptValue != null -> promptValue
-                    type == OAuth2LoginViewModel.Type.REGISTER -> PromptValue.Create
+                    type == OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> PromptValue.Create
                     else -> null
                 },
             initialState = initialState,
@@ -239,11 +248,9 @@ open class OAuth2LoginViewModelImpl(
         } == requestedState
 }
 
-expect val platformApplicationType: ApplicationType
-
-class PreviewOAuth2LoginViewModel : OAuth2LoginViewModel {
+class PreviewOAuth2AuthorizationCodeLoginViewModel : OAuth2AuthorizationCodeLoginViewModel {
     override val serverUrl: String = "https://timmy-messenger.de"
-    override val type: OAuth2LoginViewModel.Type = OAuth2LoginViewModel.Type.LOGIN
+    override val type: OAuth2AuthorizationCodeLoginViewModel.Type = OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN
     override val state: StateFlow<State> = MutableStateFlow(State.None)
     override val isFirstMatrixClient: StateFlow<Boolean?> = MutableStateFlow(false)
 

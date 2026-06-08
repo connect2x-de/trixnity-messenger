@@ -50,7 +50,8 @@ import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2DeviceAuthorizationLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountViewModelFactory
@@ -319,7 +320,8 @@ private fun connectingViewModels() = module {
     single<MatrixClientInitializationFailureViewModelFactory> { MatrixClientInitializationFailureViewModelFactory }
     single<AddMatrixAccountViewModelFactory> { AddMatrixAccountViewModelFactory }
     single<PasswordLoginViewModelFactory> { PasswordLoginViewModelFactory }
-    single<OAuth2LoginViewModelFactory> { OAuth2LoginViewModelFactory }
+    single<OAuth2AuthorizationCodeLoginViewModelFactory> { OAuth2AuthorizationCodeLoginViewModelFactory }
+    single<OAuth2DeviceAuthorizationLoginViewModelFactory> { OAuth2DeviceAuthorizationLoginViewModelFactory }
     single<SSOLoginViewModelFactory> { SSOLoginViewModelFactory }
     single<RegisterMatrixAccountViewModelFactory> { RegisterMatrixAccountViewModelFactory }
 }

@@ -28,7 +28,7 @@ interface GetEventReactions {
     ): Flow<EventReactions>
 }
 
-// TODO: should consider outbox to get immediate feedback
+// TODO: should consider outbox (react and redact) to get immediate feedback
 class GetEventReactionsImpl : GetEventReactions {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun invoke(

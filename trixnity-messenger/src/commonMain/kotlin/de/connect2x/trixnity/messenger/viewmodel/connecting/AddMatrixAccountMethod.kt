@@ -38,5 +38,10 @@ sealed interface AddMatrixAccountMethod {
 
     data class Register(override val serverUrl: String) : AddMatrixAccountMethod
 
-    data class OAuth2(override val serverUrl: String, val type: OAuth2LoginViewModel.Type) : AddMatrixAccountMethod
+    data class OAuth2AuthorizationCode(
+        override val serverUrl: String,
+        val type: OAuth2AuthorizationCodeLoginViewModel.Type,
+    ) : AddMatrixAccountMethod
+
+    data class OAuth2DeviceAuthorization(override val serverUrl: String) : AddMatrixAccountMethod
 }

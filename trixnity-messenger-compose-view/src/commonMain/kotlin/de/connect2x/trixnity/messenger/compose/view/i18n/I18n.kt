@@ -677,6 +677,11 @@ open class I18nView(
         DE - "Anmelden"
     }
 
+    open fun openLoginPage() = translate {
+        EN - "Open link"
+        DE - "Link öffnen"
+    }
+
     open fun register() = translate {
         EN - "Register"
         DE - "Registrieren"
@@ -703,8 +708,13 @@ open class I18nView(
     }
 
     open fun loginWithOAuth2() = translate {
-        EN - "Login on Matrix server"
-        DE - "Anmelden am Matrix Server"
+        EN - "Login in Browser"
+        DE - "Anmelden im Browser"
+    }
+
+    open fun loginWithOAuth2Device() = translate {
+        EN - "Login with other device"
+        DE - "Anmelden mit anderem Gerät"
     }
 
     open fun loginWithOAuth2Description(serverUrl: String) = translate {
@@ -712,14 +722,26 @@ open class I18nView(
         DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl anzumelden."
     }
 
+    open fun loginWithOAuth2DeviceDescription(serverUrl: String) = translate {
+        EN -
+            "To login into $serverUrl, open the following link on any device and enter the code. You will be logged in here automatically when successful."
+        DE -
+            "Um sich auf $serverUrl anzumelden, öffnen sie folgenden link auf einem beliebigen Gerät und geben sie den Code ein. Sie werden bei Erfolg hier automatisch angemeldet."
+    }
+
     open fun loginWithOAuth2Waiting(serverUrl: String) = translate {
         EN - "You have been redirected to log in on $serverUrl. Please follow the instructions there."
         DE - "Sie wurden weitergeleitet, um sich auf $serverUrl anzumelden. Bitte folgen Sie dort den Anweisungen."
     }
 
+    open fun loginWithOAuth2DeviceWaiting(serverUrl: String) = translate {
+        EN - "Try to obtain a login code."
+        DE - "Es wird versucht, einen Login Code zu erhalten."
+    }
+
     open fun registerWithOAuth2() = translate {
-        EN - "Register on Matrix server"
-        DE - "Registrieren am Matrix Server"
+        EN - "Register in Browser"
+        DE - "Registrieren im Browser"
     }
 
     open fun registerWithOAuth2Description(serverUrl: String) = translate {
@@ -3601,6 +3623,16 @@ open class I18nView(
     open fun redactionWarningSettingDescription() = translate {
         EN - "Display warning before deleting messages."
         DE - "Zeige vor dem Löschen von Nachrichten eine Warnung an."
+    }
+
+    open fun blockInvitesSettingTitle() = translate {
+        EN - "Block invites"
+        DE - "Einladungen ablehnen"
+    }
+
+    open fun blockInvitesSettingDescription() = translate {
+        EN - "Invites are automatically rejected."
+        DE - "Einladungen werden automatisch abgelehnt."
     }
 
     open fun markRoomAsUnread() = translate {
