@@ -771,7 +771,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Conne
 	public static final field SSO_LOGIN Ljava/lang/String;
 	public static final fun AddMatrixAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/AddMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
 	public static final fun ConnectingWizard (Ljava/lang/Object;Landroidx/compose/runtime/Composer;I)V
-	public static final fun LoginWithOAuth2Step (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2LoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public static final fun LoginWithOAuth2AuthenticationCodeStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
+	public static final fun LoginWithOAuth2DeviceAuthenticationStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
 	public static final fun LoginWithPasswordStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/PasswordLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
 	public static final fun LoginWithSSOStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/SSOLoginViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
 	public static final fun RegisterNewAccountStep (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RegisterMatrixAccountViewModel;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Lde/connect2x/trixnity/messenger/compose/view/common/WizardStep;
@@ -805,18 +806,32 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Matri
 	public static final fun RemoveMatrixAccount (Lde/connect2x/trixnity/messenger/viewmodel/connecting/RemoveMatrixAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2LoginKt {
-	public static final fun OAuth2Login (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2LoginViewModel;Landroidx/compose/runtime/Composer;I)V
+public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthenticationCodeLoginKt {
+	public static final fun OAuth2AuthorizationCodeLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2LoginView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2LoginViewModel;Landroidx/compose/runtime/Composer;I)V
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthorizationCodeLoginView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2LoginViewImpl : de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2LoginView {
+public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthorizationCodeLoginViewImpl : de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2AuthorizationCodeLoginView {
 	public static final field $stable I
 	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2LoginViewModel;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2AuthorizationCodeLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginKt {
+	public static final fun OAuth2DeviceAuthorizationLogin (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginViewImpl : de/connect2x/trixnity/messenger/compose/view/connecting/OAuth2DeviceAuthorizationLoginView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/connecting/OAuth2DeviceAuthorizationLoginViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/PasswordLoginKt {
@@ -1048,6 +1063,8 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun ban ()Ljava/lang/String;
 	public fun banned ()Ljava/lang/String;
 	public fun block ()Ljava/lang/String;
+	public fun blockInvitesSettingDescription ()Ljava/lang/String;
+	public fun blockInvitesSettingTitle ()Ljava/lang/String;
 	public fun blockedContactDescription ()Ljava/lang/String;
 	public fun blockedContactsAccountLabel (Ljava/lang/String;)Ljava/lang/String;
 	public fun blockedContactsButtonCaption (I)Ljava/lang/String;
@@ -1262,6 +1279,9 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun loginWithMoreClassic ()Ljava/lang/String;
 	public fun loginWithOAuth2 ()Ljava/lang/String;
 	public fun loginWithOAuth2Description (Ljava/lang/String;)Ljava/lang/String;
+	public fun loginWithOAuth2Device ()Ljava/lang/String;
+	public fun loginWithOAuth2DeviceDescription (Ljava/lang/String;)Ljava/lang/String;
+	public fun loginWithOAuth2DeviceWaiting (Ljava/lang/String;)Ljava/lang/String;
 	public fun loginWithOAuth2Waiting (Ljava/lang/String;)Ljava/lang/String;
 	public fun loginWithPassword ()Ljava/lang/String;
 	public fun loginWithSSO (Ljava/lang/String;)Ljava/lang/String;
@@ -1366,6 +1386,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun notificationsSettingsPlatformShowDetails ()Ljava/lang/String;
 	public fun notificationsSettingsPlatformShowPopup ()Ljava/lang/String;
 	public fun notificationsSettingsProvider ()Ljava/lang/String;
+	public fun openLoginPage ()Ljava/lang/String;
 	public fun optionalGroupNameLabel ()Ljava/lang/String;
 	public fun optionalGroupTopicLabel ()Ljava/lang/String;
 	public fun passwordVisibility ()Ljava/lang/String;
@@ -4749,6 +4770,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/settings/Privacy
 	public static final fun PrivacySettings (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsAllAccountsViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsBlockedAccounts (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsSingleAccount (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun PrivacySettingsToggleBlockInvite (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsTogglePresence (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsToggleReadMarker (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun PrivacySettingsToggleRedactionWarning (Lde/connect2x/trixnity/messenger/viewmodel/settings/PrivacySettingsSingleAccountViewModel;Landroidx/compose/runtime/Composer;I)V

@@ -742,6 +742,13 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatri
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel|null[0]
+    abstract val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
+        abstract fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
+    abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel.serverUrl|{}serverUrl[0]
+        abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationFailureViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationFailureViewModel|null[0]
     abstract val deleteEnabled // de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationFailureViewModel.deleteEnabled|{}deleteEnabled[0]
         abstract fun <get-deleteEnabled>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationFailureViewModel.deleteEnabled.<get-deleteEnabled>|<get-deleteEnabled>(){}[0]
@@ -769,100 +776,158 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixCl
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationViewModelFactory.Companion|null[0]
 }
 
-abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel|null[0]
-    abstract val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        abstract fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
-    abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.serverUrl|{}serverUrl[0]
-        abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
-    abstract val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.state|{}state[0]
-        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.state.<get-state>|<get-state>(){}[0]
-    abstract val type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.type|{}type[0]
-        abstract fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.type.<get-type>|<get-type>(){}[0]
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel|null[0]
+    abstract val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.state.<get-state>|<get-state>(){}[0]
+    abstract val type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.type|{}type[0]
+        abstract fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.type.<get-type>|<get-type>(){}[0]
 
-    abstract fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.abortLogin|abortLogin(){}[0]
-    abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.back|back(){}[0]
-    abstract fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.resumeLogin|resumeLogin(kotlin.String){}[0]
-    abstract fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.startLogin|startLogin(){}[0]
+    abstract fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.abortLogin|abortLogin(){}[0]
+    abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.back|back(){}[0]
+    abstract fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.resumeLogin|resumeLogin(kotlin.String){}[0]
+    abstract fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.startLogin|startLogin(){}[0]
 
-    final enum class Type : kotlin/Enum<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type> { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type|null[0]
-        enum entry LOGIN // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.LOGIN|null[0]
-        enum entry REGISTER // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.REGISTER|null[0]
+    final enum class Type : kotlin/Enum<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type> { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type|null[0]
+        enum entry LOGIN // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN|null[0]
+        enum entry REGISTER // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER|null[0]
 
-        final val entries // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.entries.<get-entries>|<get-entries>#static(){}[0]
+        final val entries // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.entries|#static{}entries[0]
+            final fun <get-entries>(): kotlin.enums/EnumEntries<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.entries.<get-entries>|<get-entries>#static(){}[0]
 
-        final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.values|values#static(){}[0]
+        final fun valueOf(kotlin/String): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.valueOf|valueOf#static(kotlin.String){}[0]
+        final fun values(): kotlin/Array<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.values|values#static(){}[0]
 
-        final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.Companion|null[0]
-            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.Companion.serializer|serializer(){}[0]
-            final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
+        final object Companion : kotlinx.serialization.internal/SerializerFactory { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.Companion|null[0]
+            final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.Companion.serializer|serializer(){}[0]
+            final fun serializer(kotlin/Array<out kotlinx.serialization/KSerializer<*>>...): kotlinx.serialization/KSerializer<*> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type.Companion.serializer|serializer(kotlin.Array<out|kotlinx.serialization.KSerializer<*>>...){}[0]
         }
     }
 
-    sealed interface State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State|null[0]
-        final class Failure : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure|null[0]
-            constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.<init>|<init>(kotlin.String){}[0]
+    sealed interface State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State|null[0]
+        final class Failure : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.<init>|<init>(kotlin.String){}[0]
 
-            final val message // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.message|{}message[0]
-                final fun <get-message>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.message.<get-message>|<get-message>(){}[0]
+            final val message // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.message|{}message[0]
+                final fun <get-message>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.message.<get-message>|<get-message>(){}[0]
 
-            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.component1|component1(){}[0]
-            final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.copy|copy(kotlin.String){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Failure.toString|toString(){}[0]
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.component1|component1(){}[0]
+            final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.copy|copy(kotlin.String){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Failure.toString|toString(){}[0]
         }
 
-        final object None : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.None|null[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.None.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.None.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.None.toString|toString(){}[0]
+        final object None : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.None|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.None.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.None.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.None.toString|toString(){}[0]
         }
 
-        final object ResumeLogin : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.ResumeLogin|null[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.ResumeLogin.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.ResumeLogin.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.ResumeLogin.toString|toString(){}[0]
+        final object ResumeLogin : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.ResumeLogin|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.ResumeLogin.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.ResumeLogin.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.ResumeLogin.toString|toString(){}[0]
         }
 
-        final object StartLogin : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.StartLogin|null[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.StartLogin.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.StartLogin.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.StartLogin.toString|toString(){}[0]
+        final object StartLogin : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.StartLogin|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.StartLogin.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.StartLogin.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.StartLogin.toString|toString(){}[0]
         }
 
-        final object Success : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Success|null[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Success.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Success.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.Success.toString|toString(){}[0]
+        final object Success : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Success|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Success.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Success.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.Success.toString|toString(){}[0]
         }
 
-        final object WaitingForRedirect : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.WaitingForRedirect|null[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.WaitingForRedirect.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.WaitingForRedirect.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State.WaitingForRedirect.toString|toString(){}[0]
+        final object WaitingForRedirect : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.WaitingForRedirect|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.WaitingForRedirect.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.WaitingForRedirect.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State.WaitingForRedirect.toString|toString(){}[0]
         }
     }
 }
 
-abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelFactory|null[0]
-    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type, kotlin/String, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State?, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;kotlin.String;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State?;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type, kotlin/String, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;kotlin.String;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
-    final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelFactory.Companion|null[0]
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelFactory.Companion|null[0]
 }
 
-abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel|null[0]
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel|null[0]
+    abstract val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.state|{}state[0]
+        abstract fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.state.<get-state>|<get-state>(){}[0]
+
+    abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.back|back(){}[0]
+    abstract fun openLoginPage() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.openLoginPage|openLoginPage(){}[0]
+
+    sealed interface State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State|null[0]
+        final class CheckCode : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode|null[0]
+            constructor <init>(kotlin/String, kotlin/String, kotlin/String?) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.<init>|<init>(kotlin.String;kotlin.String;kotlin.String?){}[0]
+
+            final val uri // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.uri|{}uri[0]
+                final fun <get-uri>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.uri.<get-uri>|<get-uri>(){}[0]
+            final val userCode // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.userCode|{}userCode[0]
+                final fun <get-userCode>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.userCode.<get-userCode>|<get-userCode>(){}[0]
+            final val verificationUri // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.verificationUri|{}verificationUri[0]
+                final fun <get-verificationUri>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.verificationUri.<get-verificationUri>|<get-verificationUri>(){}[0]
+
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.component1|component1(){}[0]
+            final fun component2(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.component2|component2(){}[0]
+            final fun component3(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.component3|component3(){}[0]
+            final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String? = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.copy|copy(kotlin.String;kotlin.String;kotlin.String?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode.toString|toString(){}[0]
+        }
+
+        final class Failure : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.<init>|<init>(kotlin.String){}[0]
+
+            final val message // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.message|{}message[0]
+                final fun <get-message>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.message.<get-message>|<get-message>(){}[0]
+
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.component1|component1(){}[0]
+            final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.copy|copy(kotlin.String){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Failure.toString|toString(){}[0]
+        }
+
+        final object None : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.None|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.None.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.None.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.None.toString|toString(){}[0]
+        }
+
+        final object ObtainCode : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.ObtainCode.toString|toString(){}[0]
+        }
+
+        final object Success : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Success|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Success.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Success.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State.Success.toString|toString(){}[0]
+        }
+    }
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/String, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.String;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel|null[0]
     abstract val addMatrixAccountState // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.addMatrixAccountState|{}addMatrixAccountState[0]
         abstract fun <get-addMatrixAccountState>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountState> // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.addMatrixAccountState.<get-addMatrixAccountState>|<get-addMatrixAccountState>(){}[0]
     abstract val canLogin // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.canLogin|{}canLogin[0]
         abstract fun <get-canLogin>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.canLogin.<get-canLogin>|<get-canLogin>(){}[0]
-    abstract val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        abstract fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
     abstract val password // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.password|{}password[0]
         abstract fun <get-password>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.password.<get-password>|<get-password>(){}[0]
-    abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.serverUrl|{}serverUrl[0]
-        abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
     abstract val username // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.username|{}username[0]
         abstract fun <get-username>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel.username.<get-username>|<get-username>(){}[0]
 
@@ -876,21 +941,17 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/Password
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModelFactory.Companion|null[0]
 }
 
-abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel|null[0]
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel|null[0]
     abstract val addMatrixAccountState // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.addMatrixAccountState|{}addMatrixAccountState[0]
         abstract fun <get-addMatrixAccountState>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountState> // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.addMatrixAccountState.<get-addMatrixAccountState>|<get-addMatrixAccountState>(){}[0]
     abstract val canRegisterNewUser // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.canRegisterNewUser|{}canRegisterNewUser[0]
         abstract fun <get-canRegisterNewUser>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.canRegisterNewUser.<get-canRegisterNewUser>|<get-canRegisterNewUser>(){}[0]
     abstract val error // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.error|{}error[0]
         abstract fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.error.<get-error>|<get-error>(){}[0]
-    abstract val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        abstract fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
     abstract val isRegisteringNewUser // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.isRegisteringNewUser|{}isRegisteringNewUser[0]
         abstract fun <get-isRegisteringNewUser>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.isRegisteringNewUser.<get-isRegisteringNewUser>|<get-isRegisteringNewUser>(){}[0]
     abstract val password // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.password|{}password[0]
         abstract fun <get-password>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.password.<get-password>|<get-password>(){}[0]
-    abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.serverUrl|{}serverUrl[0]
-        abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
     abstract val username // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.username|{}username[0]
         abstract fun <get-username>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.connecting/RegisterMatrixAccountViewModel.username.<get-username>|<get-username>(){}[0]
 
@@ -920,17 +981,13 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/RemoveMa
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.connecting/RemoveMatrixAccountViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/RemoveMatrixAccountViewModelFactory.Companion|null[0]
 }
 
-abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel|null[0]
+abstract interface de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel|null[0]
     abstract val addMatrixAccountState // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.addMatrixAccountState|{}addMatrixAccountState[0]
         abstract fun <get-addMatrixAccountState>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountState> // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.addMatrixAccountState.<get-addMatrixAccountState>|<get-addMatrixAccountState>(){}[0]
-    abstract val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        abstract fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
     abstract val isResumingLogin // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.isResumingLogin|{}isResumingLogin[0]
         abstract fun <get-isResumingLogin>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.isResumingLogin.<get-isResumingLogin>|<get-isResumingLogin>(){}[0]
     abstract val providerName // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.providerName|{}providerName[0]
         abstract fun <get-providerName>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.providerName.<get-providerName>|<get-providerName>(){}[0]
-    abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.serverUrl|{}serverUrl[0]
-        abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
     abstract val waitForRedirect // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.waitForRedirect|{}waitForRedirect[0]
         abstract fun <get-waitForRedirect>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.connecting/SSOLoginViewModel.waitForRedirect.<get-waitForRedirect>|<get-waitForRedirect>(){}[0]
 
@@ -3605,8 +3662,12 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySet
 abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel { // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel|null[0]
     abstract val account // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.account|{}account[0]
         abstract fun <get-account>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.account.<get-account>|<get-account>(){}[0]
+    abstract val blockInvites // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.blockInvites|{}blockInvites[0]
+        abstract fun <get-blockInvites>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.blockInvites.<get-blockInvites>|<get-blockInvites>(){}[0]
     abstract val blockedContactsCount // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.blockedContactsCount|{}blockedContactsCount[0]
         abstract fun <get-blockedContactsCount>(): kotlinx.coroutines.flow/StateFlow<kotlin/Int> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.blockedContactsCount.<get-blockedContactsCount>|<get-blockedContactsCount>(){}[0]
+    abstract val canBlockInvites // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.canBlockInvites|{}canBlockInvites[0]
+        abstract fun <get-canBlockInvites>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.canBlockInvites.<get-canBlockInvites>|<get-canBlockInvites>(){}[0]
     abstract val deactiveAccountError // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.deactiveAccountError|{}deactiveAccountError[0]
         abstract fun <get-deactiveAccountError>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.deactiveAccountError.<get-deactiveAccountError>|<get-deactiveAccountError>(){}[0]
     abstract val deactiveAccountLoading // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.deactiveAccountLoading|{}deactiveAccountLoading[0]
@@ -3622,6 +3683,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySet
 
     abstract fun deactiveAccount(kotlin/Boolean = ...) // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.deactiveAccount|deactiveAccount(kotlin.Boolean){}[0]
     abstract fun showBlockedContactsSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.showBlockedContactsSettings|showBlockedContactsSettings(){}[0]
+    abstract fun toggleBlockInvites() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.toggleBlockInvites|toggleBlockInvites(){}[0]
     abstract fun togglePresenceIsPublic() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.togglePresenceIsPublic|togglePresenceIsPublic(){}[0]
     abstract fun toggleReadMarkerIsPublic() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.toggleReadMarkerIsPublic|toggleReadMarkerIsPublic(){}[0]
     abstract fun toggleRedactionWarningIsEnabled() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModel.toggleRedactionWarningIsEnabled|toggleRedactionWarningIsEnabled(){}[0]
@@ -5158,20 +5220,33 @@ sealed interface de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixA
     abstract val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.serverUrl|{}serverUrl[0]
         abstract fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
 
-    final class OAuth2 : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod { // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2|null[0]
-        constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type) // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type){}[0]
+    final class OAuth2AuthorizationCode : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod { // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode|null[0]
+        constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type) // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type){}[0]
 
-        final val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.serverUrl|{}serverUrl[0]
-            final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
-        final val type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.type|{}type[0]
-            final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.type.<get-type>|<get-type>(){}[0]
+        final val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.serverUrl|{}serverUrl[0]
+            final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+        final val type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.type|{}type[0]
+            final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.type.<get-type>|<get-type>(){}[0]
 
-        final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.component1|component1(){}[0]
-        final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.component2|component2(){}[0]
-        final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2 // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2.toString|toString(){}[0]
+        final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.component1|component1(){}[0]
+        final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2AuthorizationCode.toString|toString(){}[0]
+    }
+
+    final class OAuth2DeviceAuthorization : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod { // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization|null[0]
+        constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.<init>|<init>(kotlin.String){}[0]
+
+        final val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.serverUrl|{}serverUrl[0]
+            final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+
+        final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.OAuth2DeviceAuthorization.toString|toString(){}[0]
     }
 
     final class Password : de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod { // de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod.Password|null[0]
@@ -6661,22 +6736,22 @@ final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatri
     final fun selectAddMatrixAccountMethod(de.connect2x.trixnity.messenger.viewmodel.connecting/AddMatrixAccountMethod) // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewAddMatrixAccountViewModel.selectAddMatrixAccountMethod|selectAddMatrixAccountMethod(de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountMethod){}[0]
 }
 
-final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel|null[0]
-    constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.<init>|<init>(){}[0]
+final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.<init>|<init>(){}[0]
 
-    final val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        final fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
-    final val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.serverUrl|{}serverUrl[0]
-        final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
-    final val state // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.state|{}state[0]
-        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.state.<get-state>|<get-state>(){}[0]
-    final val type // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.type|{}type[0]
-        final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.type.<get-type>|<get-type>(){}[0]
+    final val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.isFirstMatrixClient|{}isFirstMatrixClient[0]
+        final fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
+    final val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.serverUrl|{}serverUrl[0]
+        final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+    final val state // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.state|{}state[0]
+        final fun <get-state>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.state.<get-state>|<get-state>(){}[0]
+    final val type // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.type|{}type[0]
+        final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.type.<get-type>|<get-type>(){}[0]
 
-    final fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.abortLogin|abortLogin(){}[0]
-    final fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.back|back(){}[0]
-    final fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.resumeLogin|resumeLogin(kotlin.String){}[0]
-    final fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2LoginViewModel.startLogin|startLogin(){}[0]
+    final fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.abortLogin|abortLogin(){}[0]
+    final fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.back|back(){}[0]
+    final fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.resumeLogin|resumeLogin(kotlin.String){}[0]
+    final fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewOAuth2AuthorizationCodeLoginViewModel.startLogin|startLogin(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewPasswordLoginViewModel : de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel { // de.connect2x.trixnity.messenger.viewmodel.connecting/PreviewPasswordLoginViewModel|null[0]
@@ -12891,37 +12966,63 @@ final class de.connect2x.trixnity.messenger.viewmodel/RootRouter { // de.connect
             }
         }
 
-        final class OAuth2Login : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login|null[0]
-            constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State? = ...) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State?){}[0]
+        final class OAuth2AuthorizationCodeLogin : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin|null[0]
+            constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = ...) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?){}[0]
 
-            final val initialState // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.initialState|{}initialState[0]
-                final fun <get-initialState>(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State? // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.initialState.<get-initialState>|<get-initialState>(){}[0]
-            final val serverUrl // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.serverUrl|{}serverUrl[0]
-                final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
-            final val type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.type|{}type[0]
-                final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.type.<get-type>|<get-type>(){}[0]
+            final val initialState // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.initialState|{}initialState[0]
+                final fun <get-initialState>(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.initialState.<get-initialState>|<get-initialState>(){}[0]
+            final val serverUrl // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.serverUrl|{}serverUrl[0]
+                final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+            final val type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.type|{}type[0]
+                final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.type.<get-type>|<get-type>(){}[0]
 
-            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.component1|component1(){}[0]
-            final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.component2|component2(){}[0]
-            final fun component3(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State? // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.component3|component3(){}[0]
-            final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type = ..., de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State? = ...): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State?){}[0]
-            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.equals|equals(kotlin.Any?){}[0]
-            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.hashCode|hashCode(){}[0]
-            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.toString|toString(){}[0]
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.component1|component1(){}[0]
+            final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.component2|component2(){}[0]
+            final fun component3(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.component3|component3(){}[0]
+            final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type = ..., de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = ...): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.toString|toString(){}[0]
 
-            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login> { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer|null[0]
-                final val descriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer.descriptor|{}descriptor[0]
-                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin> { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer|null[0]
+                final val descriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer.descriptor|{}descriptor[0]
+                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
 
-                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer.childSerializers|childSerializers(){}[0]
-                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
-                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config.OAuth2Login){}[0]
+                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer.childSerializers|childSerializers(){}[0]
+                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config.OAuth2AuthorizationCodeLogin){}[0]
             }
 
-            final object Companion { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.Companion|null[0]
-                final val $childSerializers // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.Companion.$childSerializers|{}$childSerializers[0]
+            final object Companion { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.Companion|null[0]
+                final val $childSerializers // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.Companion.$childSerializers|{}$childSerializers[0]
 
-                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2Login.Companion.serializer|serializer(){}[0]
+                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2AuthorizationCodeLogin.Companion.serializer|serializer(){}[0]
+            }
+        }
+
+        final class OAuth2DeviceAuthorizationLogin : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin|null[0]
+            constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.<init>|<init>(kotlin.String){}[0]
+
+            final val serverUrl // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.serverUrl|{}serverUrl[0]
+                final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+
+            final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.component1|component1(){}[0]
+            final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.copy|copy(kotlin.String){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.toString|toString(){}[0]
+
+            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin> { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer|null[0]
+                final val descriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer.descriptor|{}descriptor[0]
+                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer.childSerializers|childSerializers(){}[0]
+                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.viewmodel.RootRouter.Config.OAuth2DeviceAuthorizationLogin){}[0]
+            }
+
+            final object Companion { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.Companion|null[0]
+                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin> // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Config.OAuth2DeviceAuthorizationLogin.Companion.serializer|serializer(){}[0]
             }
         }
 
@@ -13105,11 +13206,18 @@ final class de.connect2x.trixnity.messenger.viewmodel/RootRouter { // de.connect
                 final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationFailureViewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.MatrixClientInitializationFailure.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
         }
 
-        final class OAuth2Login : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2Login|null[0]
-            constructor <init>(de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2Login.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel){}[0]
+        final class OAuth2AuthorizationCodeLogin : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2AuthorizationCodeLogin|null[0]
+            constructor <init>(de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2AuthorizationCodeLogin.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel){}[0]
 
-            final val viewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2Login.viewModel|{}viewModel[0]
-                final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2Login.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
+            final val viewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2AuthorizationCodeLogin.viewModel|{}viewModel[0]
+                final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2AuthorizationCodeLogin.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
+        }
+
+        final class OAuth2DeviceAuthorizationLogin : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2DeviceAuthorizationLogin|null[0]
+            constructor <init>(de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel) // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2DeviceAuthorizationLogin.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2DeviceAuthorizationLoginViewModel){}[0]
+
+            final val viewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2DeviceAuthorizationLogin.viewModel|{}viewModel[0]
+                final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.OAuth2DeviceAuthorizationLogin.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
         }
 
         final class PasswordLogin : de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel/RootRouter.Wrapper.PasswordLogin|null[0]
@@ -13600,19 +13708,19 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase : de.con
     final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.toString|toString(){}[0]
 
     final class OAuth2LoginState { // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState|null[0]
-        constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State) // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State){}[0]
+        constructor <init>(kotlin/String, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State) // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.<init>|<init>(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State){}[0]
 
         final val serverUrl // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.serverUrl|{}serverUrl[0]
             final fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
         final val state // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.state|{}state[0]
-            final fun <get-state>(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.state.<get-state>|<get-state>(){}[0]
+            final fun <get-state>(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.state.<get-state>|<get-state>(){}[0]
         final val type // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.type|{}type[0]
-            final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.type.<get-type>|<get-type>(){}[0]
+            final fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.type.<get-type>|<get-type>(){}[0]
 
         final fun component1(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.component1|component1(){}[0]
-        final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.component2|component2(){}[0]
-        final fun component3(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.component3|component3(){}[0]
-        final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type = ..., de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State = ...): de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State){}[0]
+        final fun component2(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.component2|component2(){}[0]
+        final fun component3(): de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.component3|component3(){}[0]
+        final fun copy(kotlin/String = ..., de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type = ..., de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State = ...): de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.copy|copy(kotlin.String;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerSettingsBase.OAuth2LoginState.toString|toString(){}[0]
@@ -14236,47 +14344,84 @@ open class de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInit
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.connecting/MatrixClientInitializationViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
 }
 
-open class de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl|null[0]
-    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type, kotlin/String, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2LoginFlow.AuthRequestData.State?, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel.Type;kotlin.String;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow.AuthRequestData.State?;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+open class de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type, kotlin/String, de.connect2x.trixnity.clientserverapi.client.oauth2/OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel.Type;kotlin.String;de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
-    final val backCallback // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.backCallback|{}backCallback[0]
-        final fun <get-backCallback>(): de.connect2x.trixnity.messenger.util/BackCallback // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.backCallback.<get-backCallback>|<get-backCallback>(){}[0]
-    open val backHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.backHandler|{}backHandler[0]
-        open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
-    open val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.componentContextFactory|{}componentContextFactory[0]
-        open fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
-    open val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.coroutineScope|{}coroutineScope[0]
-        open fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
-    open val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.instanceKeeper|{}instanceKeeper[0]
-        open fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
-    open val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.isFirstMatrixClient|{}isFirstMatrixClient[0]
-        open fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
-    open val lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.lifecycle|{}lifecycle[0]
-        open fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
-    open val log // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.log|{}log[0]
-        open fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.log.<get-log>|<get-log>(){}[0]
-    open val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.serverUrl|{}serverUrl[0]
-        open fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
-    open val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.state|{}state[0]
-        open fun <get-state>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.state.<get-state>|<get-state>(){}[0]
-    open val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.stateKeeper|{}stateKeeper[0]
-        open fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
-    open val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
-        open fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
-    open val type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.type|{}type[0]
-        open fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.type.<get-type>|<get-type>(){}[0]
+    final val backCallback // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.backCallback|{}backCallback[0]
+        final fun <get-backCallback>(): de.connect2x.trixnity.messenger.util/BackCallback // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.backCallback.<get-backCallback>|<get-backCallback>(){}[0]
+    open val backHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.backHandler|{}backHandler[0]
+        open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    open val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        open fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    open val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.coroutineScope|{}coroutineScope[0]
+        open fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    open val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        open fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    open val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.isFirstMatrixClient|{}isFirstMatrixClient[0]
+        open fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
+    open val lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.lifecycle|{}lifecycle[0]
+        open fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    open val log // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.log|{}log[0]
+        open fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    open val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.serverUrl|{}serverUrl[0]
+        open fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+    open val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.state|{}state[0]
+        open fun <get-state>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.state.<get-state>|<get-state>(){}[0]
+    open val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.stateKeeper|{}stateKeeper[0]
+        open fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    open val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        open fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    open val type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.type|{}type[0]
+        open fun <get-type>(): de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModel.Type // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.type.<get-type>|<get-type>(){}[0]
 
-    open fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.abortLogin|abortLogin(){}[0]
-    open fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.back|back(){}[0]
-    open fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.childContext|childContext(kotlin.String){}[0]
-    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
-    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
-    open fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
-    open fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
-    open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.getKoin|getKoin(){}[0]
-    open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
-    open fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.resumeLogin|resumeLogin(kotlin.String){}[0]
-    open fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2LoginViewModelImpl.startLogin|startLogin(){}[0]
+    open fun abortLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.abortLogin|abortLogin(){}[0]
+    open fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.back|back(){}[0]
+    open fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.getKoin|getKoin(){}[0]
+    open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    open fun resumeLogin(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.resumeLogin|resumeLogin(kotlin.String){}[0]
+    open fun startLogin() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2AuthorizationCodeLoginViewModelImpl.startLogin|startLogin(){}[0]
+}
+
+open class de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/ViewModelContext, kotlin/String, kotlin/Function0<kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.ViewModelContext;kotlin.String;kotlin.Function0<kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    open val backHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.backHandler|{}backHandler[0]
+        open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    open val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        open fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    open val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.coroutineScope|{}coroutineScope[0]
+        open fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    open val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        open fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    open val isFirstMatrixClient // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.isFirstMatrixClient|{}isFirstMatrixClient[0]
+        open fun <get-isFirstMatrixClient>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.isFirstMatrixClient.<get-isFirstMatrixClient>|<get-isFirstMatrixClient>(){}[0]
+    open val lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.lifecycle|{}lifecycle[0]
+        open fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    open val log // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.log|{}log[0]
+        open fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    open val serverUrl // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.serverUrl|{}serverUrl[0]
+        open fun <get-serverUrl>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.serverUrl.<get-serverUrl>|<get-serverUrl>(){}[0]
+    open val state // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.state|{}state[0]
+        open fun <get-state>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModel.State> // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.state.<get-state>|<get-state>(){}[0]
+    open val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.stateKeeper|{}stateKeeper[0]
+        open fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    open val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        open fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+
+    open fun back() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.back|back(){}[0]
+    open fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/ViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.getKoin|getKoin(){}[0]
+    open fun openLoginPage() // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.openLoginPage|openLoginPage(){}[0]
+    open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.connecting/OAuth2DeviceAuthorizationLoginViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
 }
 
 open class de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModel, de.connect2x.trixnity.messenger.viewmodel/ViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.connecting/PasswordLoginViewModelImpl|null[0]
@@ -15265,8 +15410,12 @@ open class de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSin
         final fun <get-account>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.account.<get-account>|<get-account>(){}[0]
     open val backHandler // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.backHandler|{}backHandler[0]
         open fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    open val blockInvites // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.blockInvites|{}blockInvites[0]
+        open fun <get-blockInvites>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.blockInvites.<get-blockInvites>|<get-blockInvites>(){}[0]
     open val blockedContactsCount // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.blockedContactsCount|{}blockedContactsCount[0]
         open fun <get-blockedContactsCount>(): kotlinx.coroutines.flow/StateFlow<kotlin/Int> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.blockedContactsCount.<get-blockedContactsCount>|<get-blockedContactsCount>(){}[0]
+    open val canBlockInvites // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.canBlockInvites|{}canBlockInvites[0]
+        open fun <get-canBlockInvites>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.canBlockInvites.<get-canBlockInvites>|<get-canBlockInvites>(){}[0]
     open val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.componentContextFactory|{}componentContextFactory[0]
         open fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
     open val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.coroutineScope|{}coroutineScope[0]
@@ -15308,6 +15457,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSin
     open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.getKoin|getKoin(){}[0]
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
     open fun showBlockedContactsSettings() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.showBlockedContactsSettings|showBlockedContactsSettings(){}[0]
+    open fun toggleBlockInvites() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.toggleBlockInvites|toggleBlockInvites(){}[0]
     open fun togglePresenceIsPublic() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.togglePresenceIsPublic|togglePresenceIsPublic(){}[0]
     open fun toggleReadMarkerIsPublic() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.toggleReadMarkerIsPublic|toggleReadMarkerIsPublic(){}[0]
     open fun toggleRedactionWarningIsEnabled() // de.connect2x.trixnity.messenger.viewmodel.settings/PrivacySettingsSingleAccountViewModelImpl.toggleRedactionWarningIsEnabled|toggleRedactionWarningIsEnabled(){}[0]
@@ -16038,8 +16188,8 @@ final val de.connect2x.trixnity.messenger.util/graphCount // de.connect2x.trixni
     final fun (kotlin/String).<get-graphCount>(): kotlin/Int // de.connect2x.trixnity.messenger.util/graphCount.<get-graphCount>|<get-graphCount>@kotlin.String(){}[0]
 final val de.connect2x.trixnity.messenger.util/isKnock // de.connect2x.trixnity.messenger.util/isKnock|@de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule{}isKnock[0]
     final fun (de.connect2x.trixnity.core.model.events.m.room/JoinRulesEventContent.JoinRule).<get-isKnock>(): kotlin/Boolean // de.connect2x.trixnity.messenger.util/isKnock.<get-isKnock>|<get-isKnock>@de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule(){}[0]
-final val de.connect2x.trixnity.messenger.viewmodel.connecting/platformApplicationType // de.connect2x.trixnity.messenger.viewmodel.connecting/platformApplicationType|{}platformApplicationType[0]
-    final fun <get-platformApplicationType>(): de.connect2x.trixnity.clientserverapi.client.oauth2/ApplicationType // de.connect2x.trixnity.messenger.viewmodel.connecting/platformApplicationType.<get-platformApplicationType>|<get-platformApplicationType>(){}[0]
+final val de.connect2x.trixnity.messenger.viewmodel.connecting/platformOAuth2LoginApplicationType // de.connect2x.trixnity.messenger.viewmodel.connecting/platformOAuth2LoginApplicationType|{}platformOAuth2LoginApplicationType[0]
+    final fun <get-platformOAuth2LoginApplicationType>(): de.connect2x.trixnity.clientserverapi.client.oauth2/ApplicationType // de.connect2x.trixnity.messenger.viewmodel.connecting/platformOAuth2LoginApplicationType.<get-platformOAuth2LoginApplicationType>|<get-platformOAuth2LoginApplicationType>(){}[0]
 final val de.connect2x.trixnity.messenger.viewmodel.util/isVerified // de.connect2x.trixnity.messenger.viewmodel.util/isVerified|@de.connect2x.trixnity.crypto.key.DeviceTrustLevel{}isVerified[0]
     final fun (de.connect2x.trixnity.crypto.key/DeviceTrustLevel).<get-isVerified>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/isVerified.<get-isVerified>|<get-isVerified>@de.connect2x.trixnity.crypto.key.DeviceTrustLevel(){}[0]
 final val de.connect2x.trixnity.messenger.viewmodel.verification/emojisWithTranslation // de.connect2x.trixnity.messenger.viewmodel.verification/emojisWithTranslation|{}emojisWithTranslation[0]

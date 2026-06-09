@@ -106,6 +106,7 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
     val i18n = DI.get<I18nView>()
     val formattedMessage = element.message.collectAsState().value
     val redactedAt = element.redactedAt.collectAsState().value
+    val reason = element.reason.collectAsState().value
     Row(Modifier.padding(10.dp)) {
         Icon(
             Icons.Outlined.Delete,
@@ -114,7 +115,7 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            "$formattedMessage${redactedAt.let { " ($it)" }}",
+            "$formattedMessage${redactedAt?.let { " ($it)" }?:""}${reason?.let { ": $it" }?:""}",
             Modifier.alignByBaseline(),
             style = MaterialTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,

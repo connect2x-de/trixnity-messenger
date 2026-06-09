@@ -242,6 +242,8 @@ private fun wizardStepPrivacy(
             val publicTyping = privacySettingsViewModel.typingIsPublic.collectAsState().value
             val publicRead = privacySettingsViewModel.readMarkerIsPublic.collectAsState().value
             val redactWarningEnabled = privacySettingsViewModel.redactionWarningIsEnabled.collectAsState().value
+            val canBlockInvites = privacySettingsViewModel.canBlockInvites.collectAsState().value
+            val blockInvites = privacySettingsViewModel.blockInvites.collectAsState().value
             Column {
                 ThemedListItemSwitch(
                     style = MaterialTheme.components.settingsItem,
@@ -273,6 +275,14 @@ private fun wizardStepPrivacy(
                     selected = redactWarningEnabled,
                     onChange = { privacySettingsViewModel.toggleRedactionWarningIsEnabled() },
                 )
+                if (canBlockInvites)
+                    ThemedListItemSwitch(
+                        style = MaterialTheme.components.settingsItem,
+                        headlineContent = { Text(i18n.blockInvitesSettingTitle()) },
+                        supportingContent = { Text(i18n.blockInvitesSettingDescription()) },
+                        selected = blockInvites,
+                        onChange = { privacySettingsViewModel.toggleBlockInvites() },
+                    )
             }
         },
     )

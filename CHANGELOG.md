@@ -9,7 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- SDK (**breaking change**): Added `TimelineViewModel.onProcessedScrollTo`, which should be called, when the UI fully finished processing `TimelineViewModel.scrollTo`
+- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- UI: Timeline-jump issues related to replied elements
+
+### Security
+
+## v4.6.0
+
+### Added
+
+- SDK (**breaking change**): Added `TimelineViewModel.onProcessedScrollTo`, which should be called, when the UI fully
+  finished processing `TimelineViewModel.scrollTo`
 - UI,SDK,WEB: Play audio on web (enabled by default, can be disabled with existing feature toggle `media player`)
 - UI: Add proper rendering for "All accounts" avatar
 - SDK: Ability for rovingFocusContainer to scroll to an item before focusing it
@@ -19,21 +38,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: Add delete avatar functionality
 - SDK: Sending audio files now sets `info.duration` if possible
 - UI,SDK,ANDROID: Drafts for voice messages
-- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
+- SDK,UI: Support Matrix 1.18
 
 ### Changed
 
-- SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
+- SDK: (**breaking change**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
-- DEPENDENCY: (**breaking**) update Lognity to 2.1.0
+- DEPENDENCY: (**breaking change**) update Lognity to 2.1.0
+- DEPENDENCY: update Trixnity to 5.6.0
 - INTERNAL: Add categories for demo app on macOS and Linux
 - INTERNAL: Update to Gradle 9.4.1
 - INTERNAL: Use shared Compose desktop configuration from conventions for demo app
 - CI: Use shell runner for linux (two different runners depending on workload)
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -41,21 +57,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Multiple timeline-jump issues
 - UI: Some containers not being focusable, when selected item was out of view
 - UI: Draft not showing in roomlist when room empty
-- SDK: Slow compilation times
+- INTERNAL: Slow compilation times
 - UI,A11y: Some containers not being focusable, when selected item was out of view
 - SDK: Add error handling for player on iOS and Android
 - UI: Flickering in timeline when sending a reply
-- UI,SDK: It is no longer possible to create encrypted public rooms
-- UI,SDK: It is now possible to create unencrypted private rooms
+- SDK: It is not possible to create encrypted public rooms
 - SDK: Failure on first login under Windows
 - SDK: Shortly wait for decrypting before show wait message
 - UI,SDK: Wrong text when receiving member state events with no change
 - SDK: Voice messages are saved with correct file extension
 - UI: Dehydrated device icon not visible and removed supported content
-- SDK: Fixed broken application name and icon on some Linux distributions because of [CMP-3308](https://youtrack.jetbrains.com/issue/CMP-3308)
+- SDK: Fixed broken application name and icon on some Linux distributions because
+  of [CMP-3308](https://youtrack.jetbrains.com/issue/CMP-3308)
 - SDK: Removed app icon creation script from app resources
-
-### Security
 
 ## 4.5.2
 

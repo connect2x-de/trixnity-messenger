@@ -115,7 +115,7 @@ class ReportMessageViewModelTest {
         every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
         every { onMessageReportFinished.invoke() } returns Unit
 
-        everySuspend { roomsApiClientMock.reportEvent(any(), any(), any(), any()) } returns Result.success(Unit)
+        everySuspend { roomsApiClientMock.reportEvent(any(), any(), any()) } returns Result.success(Unit)
     }
 
     @BeforeTest

@@ -16,7 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import io.ktor.http.Url
+import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,11 +38,9 @@ interface RegisterMatrixAccountViewModelFactory {
     companion object : RegisterMatrixAccountViewModelFactory
 }
 
-interface RegisterMatrixAccountViewModel {
-    val isFirstMatrixClient: StateFlow<Boolean?>
+interface RegisterMatrixAccountViewModel : LoginViewModel {
 
     val error: StateFlow<String?>
-    val serverUrl: String
 
     val username: TextFieldViewModel
     val password: TextFieldViewModel
