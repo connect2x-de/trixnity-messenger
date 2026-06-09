@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK,UI: Fixed Timeline not loading when closing room settings
+
 ### Security
 
 ## v4.6.0
