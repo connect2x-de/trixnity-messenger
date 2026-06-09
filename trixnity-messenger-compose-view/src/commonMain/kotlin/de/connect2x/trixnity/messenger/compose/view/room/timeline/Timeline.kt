@@ -124,8 +124,6 @@ class TimelineViewImpl : TimelineView {
         val initialFirstVisibleItemIndex =
             getInitialFirstVisibleItemIndex(timelineViewModel, timelineViewElements.value, showTypingIndicator)
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
-            println("isTimelineLoading: $isTimelineLoading")
-            println("initialFirstVisibleItemIndex: $initialFirstVisibleItemIndex")
             if (isTimelineLoading || initialFirstVisibleItemIndex == null) {
                 Box(Modifier.fillMaxSize()) { LoadingSpinner(Modifier.align(Alignment.Center)) }
             } else {
