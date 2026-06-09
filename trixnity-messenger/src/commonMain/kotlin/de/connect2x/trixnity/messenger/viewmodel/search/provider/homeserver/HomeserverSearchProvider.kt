@@ -9,7 +9,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.UserSearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
@@ -36,11 +36,11 @@ open class HomeserverSearchProvider(
     override val priority: Int = 100
     override val disabledByDefault: Boolean = false
 
-    override val supportedFilters: List<SearchFilterValue.Key<*>> = emptyList()
+    override val supportedFilters: List<SearchFilter.Key<*>> = emptyList()
 
     override suspend fun search(
         searchTerm: String,
-        filters: List<SearchFilterValue>,
+        filters: List<SearchFilter>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): UserSearchProviderResult {

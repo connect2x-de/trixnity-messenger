@@ -42,16 +42,16 @@ interface SearchProvider<T : SearchProviderResult> {
     val disabledByDefault: Boolean
 
     /**
-     * A list of [SearchFilterValue.Key]s the [SearchProvider] supports. Filters are used in addition to the search term
-     * and the core search framework's UI implementation displays filters in addition to the search term text field.
+     * A list of [SearchFilter.Key]s the [SearchProvider] supports. Filters are used in addition to the search term and
+     * the core search framework's UI implementation displays filters in addition to the search term text field.
      *
-     * It is possible to share the same [SearchFilterValue.Key] between different [SearchProvider]s. The core search
+     * It is possible to share the same [SearchFilter.Key] between different [SearchProvider]s. The core search
      * framework merges those values and presents them as one filter that influences all declaring [SearchProvider]s.
      *
      * When a setting has a value that is not blank, all providers that do not have the setting are automatically
      * disabled (as searching and filtering for the setting does not make sense in this provider).
      */
-    val supportedFilters: List<SearchFilterValue.Key<*>>
+    val supportedFilters: List<SearchFilter.Key<*>>
 
     /**
      * Do the actual search in the search provider. The provider is responsible to retrieve any [filters] it might have
@@ -71,7 +71,7 @@ interface SearchProvider<T : SearchProviderResult> {
      */
     suspend fun search(
         searchTerm: String,
-        filters: List<SearchFilterValue>,
+        filters: List<SearchFilter>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): T

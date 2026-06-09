@@ -4,7 +4,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilterValue
+import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderResult
 import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProviderSorter
@@ -53,18 +53,18 @@ interface UserSearchViewModel {
     val searchProviders: List<SearchProvider<*>>
 
     /**
-     * Accumulated (and possibly merged by the same [SearchFilterValue.Key]) list of all [SearchFilterValue]s supported
-     * by all [SearchProvider]s.
+     * Accumulated (and possibly merged by the same [SearchFilter.Key]) list of all [SearchFilter]s supported by all
+     * [SearchProvider]s.
      */
-    val availableFilters: StateFlow<List<SearchFilter>>
+    val availableFilters: StateFlow<List<GroupedSearchFilter>>
 
     /**
-     * The current list of set [SearchFilterValue]s. UI elements for filters can query this list and filter for a
-     * potentially set value (`searchFilterValues.filterIsInstance<MySearchFilterValue>() ?: MySearchFilterValue("")`).
+     * The current list of set [SearchFilter]s. UI elements for filters can query this list and filter for a potentially
+     * set value (`searchFilters.filterIsInstance<MySearchFilter>() ?: MySearchFilter("")`).
      *
-     * In order to manipulate the values, use [setSearchFilterValue].
+     * In order to manipulate the values, use [setSearchFilter].
      */
-    val searchFilterValues: StateFlow<List<SearchFilterValue>>
+    val searchFilters: StateFlow<List<SearchFilter>>
 
     /**
      * A combined list of search results from different search providers. The list is sorted by relevance by the used
@@ -97,16 +97,15 @@ interface UserSearchViewModel {
     fun filterNotUserSearchResult(userSearchResult: UserSearchResult)
 
     /**
-     * Manipulate the filters of all [SearchProvider]s. If [SearchFilterValue.isActive], the filter is removed from the
-     * list.
+     * Manipulate the filters of all [SearchProvider]s. If [SearchFilter.isActive], the filter is removed from the list.
      */
-    fun setSearchFilterValue(searchFilterValue: SearchFilterValue)
+    fun setSearchFilter(searchFilter: SearchFilter)
 
     /**
-     * [SearchProvider]s that support [SearchFilterValue]s have to remove a set value by its [SearchFilterValue.Key] if
-     * the value is empty (i.e., an empty String or similar).
+     * [SearchProvider]s that support [SearchFilter]s have to remove a set value by its [SearchFilter.Key] if the value
+     * is empty (i.e., an empty String or similar).
      */
-    fun removeFilterValue(key: SearchFilterValue.Key<*>)
+    fun removeFilterValue(key: SearchFilter.Key<*>)
 }
 
 class UserSearchViewModelImpl(
@@ -115,20 +114,20 @@ class UserSearchViewModelImpl(
 ) : UserSearchViewModel, MatrixClientViewModelContext by matrixClientViewModelContext {
     override val searchProviders: List<SearchProvider<*>> =
         get<SearchProviderSorter>().sort(getKoin().getAll<SearchProvider<*>>())
-    override val searchFilterValues: MutableStateFlow<List<SearchFilterValue>> = MutableStateFlow(emptyList())
+    override val searchFilters: MutableStateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
 
     private val _searchProviderEnabled = MutableStateFlow(searchProviders.map { it.disabledByDefault.not() })
     override val searchProviderCanBeEnabled: StateFlow<List<Boolean>> =
-        searchFilterValues
-            .map { searchFilterValues ->
-                if (searchFilterValues.isEmpty()) {
+        searchFilters
+            .map { searchFilters ->
+                if (searchFilters.isEmpty()) {
                     searchProviders.map { true }
                 } else {
-                    searchFilterValues
-                        .fold(searchProviders.map { false }) { acc, searchFilterValue ->
+                    searchFilters
+                        .fold(searchProviders.map { false }) { acc, searchFilter ->
                             val inActive = searchProviders.map { searchProvider ->
-                                searchProvider.supportedFilters.none { it == searchFilterValue.key }
+                                searchProvider.supportedFilters.none { it == searchFilter.key }
                             }
                             acc.zip(inActive).map { (v1, v2) -> v1 || v2 }
                         }
@@ -143,49 +142,46 @@ class UserSearchViewModelImpl(
             }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), _searchProviderEnabled.value)
 
-    override val availableFilters: StateFlow<List<SearchFilter>> =
+    override val availableFilters: StateFlow<List<GroupedSearchFilter>> =
         searchProviderEnabled
             .map { enabled ->
                 searchProviders
                     .flatMapIndexed { index, searchProvider ->
                         searchProvider.supportedFilters.map { Triple(it, searchProvider, enabled[index]) }
                     }
-                    .fold(emptyList<SearchFilter>()) { acc, (key, provider, enabled) ->
-                        val existingKey = acc.find { it.searchFilterValueKeys.contains(key) }
+                    .fold(emptyList<GroupedSearchFilter>()) { acc, (key, provider, enabled) ->
+                        val existingKey = acc.find { it.searchFilterKeys.contains(key) }
                         if (existingKey != null) { // the search filter is already present
                             val withoutCurrentKey =
-                                existingKey.copy(
-                                    searchFilterValueKeys = existingKey.searchFilterValueKeys.filter { it != key }
-                                )
+                                existingKey.copy(searchFilterKeys = existingKey.searchFilterKeys.filter { it != key })
                             val alreadyCombined = acc.find { it.sources == existingKey.sources + provider }
                             // we already combined with another provider -> we need to
                             if (alreadyCombined != null) {
                                 acc - existingKey + withoutCurrentKey - alreadyCombined +
                                     alreadyCombined.copy(
                                         sources = alreadyCombined.sources,
-                                        searchFilterValueKeys = alreadyCombined.searchFilterValueKeys + key,
+                                        searchFilterKeys = alreadyCombined.searchFilterKeys + key,
                                         isEnabled = alreadyCombined.isEnabled || enabled,
                                     )
                             } else { // no need to split, just add to the list of sources
                                 acc - existingKey +
                                     withoutCurrentKey +
-                                    SearchFilter(
+                                    GroupedSearchFilter(
                                         sources = existingKey.sources + provider,
-                                        searchFilterValueKeys = listOf(key),
+                                        searchFilterKeys = listOf(key),
                                         isEnabled = existingKey.isEnabled || enabled,
                                     )
                             }
                         } else {
                             val existing = acc.find { it.sources.size == 1 && it.sources.first() == provider }
                             if (existing != null) { // the search provider already has registered a filter
-                                acc - existing +
-                                    existing.copy(searchFilterValueKeys = existing.searchFilterValueKeys + key)
+                                acc - existing + existing.copy(searchFilterKeys = existing.searchFilterKeys + key)
                             } else {
                                 // completely new filter
                                 acc +
-                                    SearchFilter(
+                                    GroupedSearchFilter(
                                         sources = listOf(provider),
-                                        searchFilterValueKeys = listOf(key),
+                                        searchFilterKeys = listOf(key),
                                         isEnabled = enabled,
                                     )
                             }
@@ -285,21 +281,21 @@ class UserSearchViewModelImpl(
             .flatMapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
-    override fun setSearchFilterValue(searchFilterValue: SearchFilterValue) {
-        if (searchFilterValue.isActive) {
-            removeFilterValue(searchFilterValue.key)
+    override fun setSearchFilter(searchFilter: SearchFilter) {
+        if (searchFilter.isActive) {
+            removeFilterValue(searchFilter.key)
         } else {
-            val existing = searchFilterValues.value.find { it.key == searchFilterValue.key }
+            val existing = searchFilters.value.find { it.key == searchFilter.key }
             if (existing != null) {
-                searchFilterValues.value = searchFilterValues.value - existing + searchFilterValue
+                searchFilters.value = searchFilters.value - existing + searchFilter
             } else {
-                searchFilterValues.value += searchFilterValue
+                searchFilters.value += searchFilter
             }
         }
     }
 
-    override fun removeFilterValue(key: SearchFilterValue.Key<*>) {
-        searchFilterValues.value = searchFilterValues.value.filter { it.key != key }
+    override fun removeFilterValue(key: SearchFilter.Key<*>) {
+        searchFilters.value = searchFilters.value.filter { it.key != key }
     }
 
     init {
@@ -311,7 +307,7 @@ class UserSearchViewModelImpl(
     private suspend fun search() {
         combine(
                 triggerSearch,
-                searchFilterValues
+                searchFilters
                     .onEach { log.trace { "filtering for value **** (redacted for privacy)" } }
                     .debounce(debounceDuration),
                 searchTerm
@@ -434,13 +430,13 @@ internal data class SearchResult(
 class PreviewUserSearchViewModel : UserSearchViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
     override val searchProviders: List<SearchProvider<*>> = emptyList()
-    override val availableFilters: StateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
+    override val availableFilters: StateFlow<List<GroupedSearchFilter>> = MutableStateFlow(emptyList())
     override val searchResultList: MutableStateFlow<List<UserSearchResult>> = MutableStateFlow(emptyList())
     override val searchProviderEnabled: MutableStateFlow<List<Boolean>> = MutableStateFlow(emptyList())
     override val isSearching: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val noResultsFound: StateFlow<Boolean?> = MutableStateFlow(null)
     override val searchProviderCanBeEnabled: StateFlow<List<Boolean>> = MutableStateFlow(emptyList())
-    override val searchFilterValues: StateFlow<List<SearchFilterValue>> = MutableStateFlow(emptyList())
+    override val searchFilters: StateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
 
     override fun setProvider(providerId: SearchProvider.Key<*>, enabled: Boolean) {}
 
@@ -448,7 +444,7 @@ class PreviewUserSearchViewModel : UserSearchViewModel {
 
     override fun filterNotUserSearchResult(userSearchResult: UserSearchResult) {}
 
-    override fun setSearchFilterValue(searchFilterValue: SearchFilterValue) {}
+    override fun setSearchFilter(searchFilter: SearchFilter) {}
 
-    override fun removeFilterValue(key: SearchFilterValue.Key<*>) {}
+    override fun removeFilterValue(key: SearchFilter.Key<*>) {}
 }

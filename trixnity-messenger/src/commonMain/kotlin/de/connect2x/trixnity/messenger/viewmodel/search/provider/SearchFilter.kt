@@ -5,29 +5,29 @@ package de.connect2x.trixnity.messenger.viewmodel.search.provider
  * provider to perform the search. The search provider itself has to decide whether the filter value is relevant for its
  * search or not.
  */
-interface SearchFilterValue {
+interface SearchFilter {
     /**
      * The unique key of the filter. Implementations should use something like
      *
      * ```kotlin
-     * class MySearchFilterValue(val value: String): SearchFilterValue {
+     * class MySearchFilter(val value: String): SearchFilter {
      *   override val key = Key
-     *   companion object Key: SearchFilterValue.Key<MySearchFilterValue>
+     *   companion object Key: SearchFilterValue.Key<MySearchFilter>
      *  // ...
      * }
      * ```
      */
     val key: Key<*>
 
-    /** A key to identify different [SearchFilterValue]s. */
-    interface Key<T : SearchFilterValue>
+    /** A key to identify different [SearchFilter]s. */
+    interface Key<T : SearchFilter>
 
     /**
      * Signifies that this filter is active and should be considered for the search. A filter should be considered
      * inactive if it is empty in case of a String.
      *
      * If it is active, it could lead to search providers being disabled when they do not support the
-     * [SearchFilterValue.Key].
+     * [SearchFilter.Key].
      */
     val isActive: Boolean
 

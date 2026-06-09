@@ -52,7 +52,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
     val i18n = DI.get<I18nView>()
 
     val availableFilters by userSearchViewModel.availableFilters.collectAsState()
-    val searchFilterValues by userSearchViewModel.searchFilterValues.collectAsState()
+    val searchFilters by userSearchViewModel.searchFilters.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
     val rotateState by animateFloatAsState(targetValue = if (showFilters) 180F else 0F)
@@ -78,7 +78,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
             ) {
                 Icon(Icons.Default.FilterList, i18n.userSearchFilter())
                 Spacer(Modifier.size(10.dp))
-                val showChips = searchFilterValues.isNotEmpty() && showFilters.not()
+                val showChips = searchFilters.isNotEmpty() && showFilters.not()
                 AnimatedVisibility(showChips.not()) {
                     Text(text = i18n.userSearchFilterOptions(), style = MaterialTheme.typography.titleSmall)
                 }
@@ -88,12 +88,12 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                         horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
                         verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterVertically),
                     ) {
-                        searchFilterValues.forEach { searchFilterValue ->
+                        searchFilters.forEach { searchFilter ->
                             ThemedInputChip(
                                 selected = true,
-                                onClick = { userSearchViewModel.removeFilterValue(searchFilterValue.key) },
+                                onClick = { userSearchViewModel.removeFilterValue(searchFilter.key) },
                                 label = {
-                                    Text(searchFilterValue.displayValue, style = MaterialTheme.typography.bodySmall)
+                                    Text(searchFilter.displayValue, style = MaterialTheme.typography.bodySmall)
                                 },
                                 trailingIcon = { Icon(Icons.Default.Close, "") },
                                 modifier = Modifier.buttonPointerModifier(),
@@ -119,7 +119,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                                 style = MaterialTheme.typography.bodyMediumEmphasized,
                             )
                             VerySmallSpacer()
-                            searchFilter.searchFilterValueKeys.forEach { key ->
+                            searchFilter.searchFilterKeys.forEach { key ->
                                 SearchFilterInputSelector(userSearchViewModel, key)
                             }
                             SmallSpacer()

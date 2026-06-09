@@ -511,9 +511,9 @@ In case your search provider does not support a full-fledged full-text search or
 
 Example:
 ```kotlin
-data class MySearchFilterValue(val value: String): SearchFilterValue {
+data class MySearchFilter(val value: String): SearchFilter {
     override val key = Key
-    companion object Key: SearchFilterValue.Key<MySearchFilterValue>
+    companion object Key: SearchFilter.Key<MySearchFilter>
     override fun isEmpty() = value.isBlank()
     override fun displayValue() = value
 }
@@ -522,16 +522,16 @@ class MySearchProvider(
     // args that can be provided by the DI
 ): SearchProvider<UserSearchProviderResult> {
     // ...
-    override val supportedFilters: List<SearchFilterValue.Key<*>> = listOf(MySearchFilterValue.Key) 
+    override val supportedFilters: List<SearchFilter.Key<*>> = listOf(MySearchFilter.Key) 
     // ...
     override suspend fun search(
         searchTerm: String,
-        filters: List<SearchFilterValue>,
+        filters: List<SearchFilter>,
         activeAccount: UserId,
         coroutineScope: CoroutineScope,
     ): SearchProviderResult {
-        val mySearchFilterValue = filters.filterIsInstance<MySearchFilterValue>().firstOrNull() ?: MySearchFilterValue("")
-        // do something with mySearchFilterValue
+        val mySearchFilter = filters.filterIsInstance<MySearchFilter>().firstOrNull() ?: MySearchFilter("")
+        // do something with mySearchFilter
     }
 }
 ```
@@ -595,14 +595,14 @@ module {
 
 In case one of the registered `SearchProvider`s defines any `supportedFilters`, a minimizable filter card is shown which includes all UI elements for `FilterValue`s.
 ```kotlin
-class MySearchFilterInputView : SearchFilterInputView<SearchFilterValue.Key<*>> {
-    override val supports: KClass<out SearchFilterValue.Key<*>> = MySearchFilterValue.Key::class
+class MySearchFilterInputView : SearchFilterInputView<SearchFilter.Key<*>> {
+    override val supports: KClass<out SearchFilter.Key<*>> = MySearchFilter.Key::class
 
     @Composable
-    override fun create(userSearchViewModel: UserSearchViewModel, searchFilterValueKey: SearchFilterValue.Key<*>) {
+    override fun create(userSearchViewModel: UserSearchViewModel, searchFilterKey: SearchFilter.Key<*>) {
         // get the current value from the view model
-        val searchFilter by userSearchViewModel.searchFilterValues.collectAsState()
-        val value = searchFilter.filterIsInstance<MySearchFilterValue>().firstOrNull() ?: MySearchFilterValue("")
+        val searchFilters by userSearchViewModel.searchFilters.collectAsState()
+        val value = searchFilters.filterIsInstance<MySearchFilter>().firstOrNull() ?: MySearchFilter("")
         // your UI, e.g., a TextField
     }
 }
