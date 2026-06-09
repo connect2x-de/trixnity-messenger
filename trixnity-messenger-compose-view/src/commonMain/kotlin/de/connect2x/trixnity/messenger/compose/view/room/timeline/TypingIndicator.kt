@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -44,25 +46,26 @@ class TypingIndicatorViewImpl : TypingIndicatorView {
     @Composable
     override fun create(timelineViewModel: TimelineViewModel) {
         val typing = timelineViewModel.roomHeaderViewModel.usersTyping.collectAsState().value != null
-        AnimatedVisibility(
-            visible = typing,
-            enter = fadeIn(animationSpec = tween(150)) + expandVertically(expandFrom = Alignment.Bottom),
-            exit = fadeOut(animationSpec = tween(150)) + shrinkVertically(shrinkTowards = Alignment.Bottom),
-        ) {
-            MessageBubble(
-                holder = NoopHolder,
-                needsMaxWidth = false,
-                isPreview = true, // removes the action menu
-                index = -1,
-                isFocusable = false,
+        Box(Modifier.focusProperties { canFocus = false }) {
+            AnimatedVisibility(
+                visible = typing,
+                enter = fadeIn(animationSpec = tween(150)) + expandVertically(expandFrom = Alignment.Bottom),
+                exit = fadeOut(animationSpec = tween(150)) + shrinkVertically(shrinkTowards = Alignment.Bottom),
             ) {
-                val style = MaterialTheme.typography.titleLarge
-                TypingIndicator(
-                    "",
-                    Modifier.padding(start = 10.dp).minSizeOfText("...", style),
-                    style,
-                    cycleDuration = 1_500,
-                )
+                MessageBubble(
+                    holder = NoopHolder,
+                    needsMaxWidth = false,
+                    isPreview = true, // removes the action menu
+                    index = -1,
+                ) {
+                    val style = MaterialTheme.typography.titleLarge
+                    TypingIndicator(
+                        "",
+                        Modifier.padding(start = 10.dp).minSizeOfText("...", style),
+                        style,
+                        cycleDuration = 1_500,
+                    )
+                }
             }
         }
     }

@@ -30,7 +30,6 @@ interface MessageBubbleView {
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
         index: Int,
-        isFocusable: Boolean = true,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
 }
@@ -42,11 +41,9 @@ fun MessageBubble(
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     isPreview: Boolean,
     index: Int,
-    isFocusable: Boolean = true,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    DI.get<MessageBubbleView>()
-        .create(holder, needsMaxWidth, additionalContextActions, isPreview, index, isFocusable, content)
+    DI.get<MessageBubbleView>().create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -57,7 +54,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
         index: Int,
-        isFocusable: Boolean,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val timelineElementHolder = holder.asTimelineElementHolder()
@@ -90,7 +86,6 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         interactionSource = interactionSource,
                         index = index,
                         onRedact = { timelineElementHolder?.redact() },
-                        isFocusable = isFocusable,
                         content = content,
                     )
                 }
