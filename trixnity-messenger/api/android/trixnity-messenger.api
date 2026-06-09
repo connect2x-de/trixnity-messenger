@@ -7571,7 +7571,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Previ
 	public fun getInputAreaViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;
 	public fun getReportMessageStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getRoomHeaderViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;
-	public fun getScrollTo ()Lkotlinx/coroutines/flow/Flow;
+	public fun getScrollTo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSendAttachmentStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getUnreadCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getViewState ()Lkotlinx/coroutines/flow/MutableStateFlow;
@@ -7884,7 +7884,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getInputAreaViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;
 	public abstract fun getReportMessageStack ()Lcom/arkivanov/decompose/value/Value;
 	public abstract fun getRoomHeaderViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;
-	public abstract fun getScrollTo ()Lkotlinx/coroutines/flow/Flow;
+	public abstract fun getScrollTo ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSendAttachmentStack ()Lcom/arkivanov/decompose/value/Value;
 	public abstract fun getUnreadCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getViewState ()Lkotlinx/coroutines/flow/MutableStateFlow;
@@ -7996,7 +7996,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Timel
 	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getReportMessageStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getRoomHeaderViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/RoomHeaderViewModel;
-	public fun getScrollTo ()Lkotlinx/coroutines/flow/Flow;
+	public fun getScrollTo ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSendAttachmentStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
