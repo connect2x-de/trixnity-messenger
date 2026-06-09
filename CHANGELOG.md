@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Timeline-jump issues related to replied elements
 - SDK,UI: Fixed Timeline not loading when closing room settings
 
 ### Security

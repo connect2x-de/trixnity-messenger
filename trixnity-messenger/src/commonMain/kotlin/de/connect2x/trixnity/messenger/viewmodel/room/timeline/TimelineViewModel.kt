@@ -842,6 +842,8 @@ class TimelineViewModelImpl(
             .distinctUntilChanged()
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+    private val jumpMutex = Mutex()
+
     /**
      * Update the timeline elements and scroll to the bottom if a new event has been added and we were at the bottom of
      * the timeline
@@ -915,45 +917,52 @@ class TimelineViewModelImpl(
                         // We don't sroll/mark as read when the UI has changed the visible elements during the
                         // calculation
                         if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
-                            log.trace { "finished load more timeline events after" }
+                            // This mutex ensures, that this and jumpTo don't conflict. When calling jumpTo we have to
+                            // wait for it to finish completely, before executing this code, as wasAtEndOfTimeline is
+                            // dependant on _scrollTo
+                            jumpMutex.withLock {
+                                log.trace { "finished load more timeline events after" }
 
-                            val previousLastElement = timelineStateChange.elementsBeforeChange.last()
-                            val addedElementsAtEnd =
-                                timelineStateChange.addedElements.isNotEmpty() &&
-                                    timelineStateChange.elementsAfterChange.any { it.key == previousLastElement.key } &&
-                                    previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
+                                val previousLastElement = timelineStateChange.elementsBeforeChange.last()
+                                val addedElementsAtEnd =
+                                    timelineStateChange.addedElements.isNotEmpty() &&
+                                        timelineStateChange.elementsAfterChange.any {
+                                            it.key == previousLastElement.key
+                                        } &&
+                                        previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
 
-                            val wasAtEndOfTimeline =
-                                timelineStateChange.elementsBeforeChange.last().key ==
-                                    (_scrollTo.value ?: lastVisibleTimelineElement?.key) &&
-                                    lastVisibleTimelineElement != null
+                                val wasAtEndOfTimeline =
+                                    timelineStateChange.elementsBeforeChange.last().key ==
+                                        (_scrollTo.value ?: lastVisibleTimelineElement?.key) &&
+                                        lastVisibleTimelineElement != null
 
-                            val outboxIsEmpty = (elements.lastOrNull() as? OutboxElementHolderViewModel) == null
+                                val outboxIsEmpty = (elements.lastOrNull() as? OutboxElementHolderViewModel) == null
 
-                            if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
-                                val newLastEvent = timelineStateChange.addedElements.last().key
+                                if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
+                                    val newLastEvent = timelineStateChange.addedElements.last().key
 
-                                val currentReadEvent = readEvent.value
-                                log.trace {
-                                    "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent"
+                                    val currentReadEvent = readEvent.value
+                                    log.trace {
+                                        "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent"
+                                    }
+                                    log.debug {
+                                        "new timeline events has been added at the end of timeline -> mark as fully read"
+                                    }
+                                    // wait for new element be part of the StateFlows (used by markAsRead)
+                                    this@TimelineViewModelImpl.elements.first { holder ->
+                                        holder.any { it.key == newLastEvent }
+                                    }
+                                    markAsRead(newLastEvent)
+
+                                    log.debug {
+                                        "new timeline events has been added at the end of timeline, scroll to end of timeline"
+                                    }
+                                    // This should not be jumpToEndOfTimelineSuspending as it could cause a reinit of
+                                    // the
+                                    // timeline
+                                    jumpToKey(newLastEvent)
                                 }
-                                log.debug {
-                                    "new timeline events has been added at the end of timeline -> mark as fully read"
-                                }
-                                // wait for new element be part of the StateFlows (used by markAsRead)
-                                this@TimelineViewModelImpl.elements.first { holder ->
-                                    holder.any { it.key == newLastEvent }
-                                }
-                                markAsRead(newLastEvent)
-
-                                log.debug {
-                                    "new timeline events has been added at the end of timeline, scroll to end of timeline"
-                                }
-                                // This should not be jumpToEndOfTimelineSuspending as it could cause a reinit of the
-                                // timeline
-                                jumpToKey(newLastEvent)
                             }
-
                             if (visibleTimelineSize > timelineMaxSize && !isInBufferBefore) {
                                 log.debug { "drop timeline events before" }
                                 val dropBeforeElement = timelineElements[config.timelineBuffer]
@@ -968,8 +977,6 @@ class TimelineViewModelImpl(
                 .collect()
         }
     }
-
-    private val jumpMutex = Mutex()
 
     private suspend fun jumpToEndOfTimelineSuspending() {
         // This is needed here, so that jumpTo and this cannot be called concurrently causing init issues
