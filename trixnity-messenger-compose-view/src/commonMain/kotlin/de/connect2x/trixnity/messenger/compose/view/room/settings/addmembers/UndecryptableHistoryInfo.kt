@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.MiddleSpacer
@@ -24,7 +25,10 @@ fun UndecryptableHistoryInfo(addMembersViewModel: AddMembersViewModel) {
     val undecryptableHistoryInfo = addMembersViewModel.undecryptableHistoryInfo.collectAsState().value
 
     if (undecryptableHistoryInfo != null) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(all = 15.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(all = 15.dp).focusProperties { canFocus = false },
+        ) {
             Icon(Icons.Default.Info, i18n.commonInformation())
             MiddleSpacer()
             Text(undecryptableHistoryInfo)

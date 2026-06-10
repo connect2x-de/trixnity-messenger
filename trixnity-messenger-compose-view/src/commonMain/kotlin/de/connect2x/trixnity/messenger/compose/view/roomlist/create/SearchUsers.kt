@@ -11,6 +11,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -27,7 +28,7 @@ fun SearchUsers(createNewChatViewModel: CreateNewChatNewSearchViewModel) {
     val noResultsFound by createNewChatViewModel.userSearchViewModel.noResultsFound.collectAsState()
 
     Box(Modifier.fillMaxSize()) {
-        LazyColumn(state = listState) {
+        LazyColumn(state = listState) { // FIXME should this be a roving focus container?
             item(key = "AddOrSearchGroup") {
                 AddOrSearchGroup(createNewChatViewModel)
                 HorizontalDivider(Modifier.fillMaxWidth().width(1.dp))
@@ -38,6 +39,7 @@ fun SearchUsers(createNewChatViewModel: CreateNewChatNewSearchViewModel) {
                 onUserClick = createNewChatViewModel::onUserClick,
                 searchResultList = searchResultList,
                 noResultsFound = noResultsFound,
+                focusedItem = mutableStateOf(null), // FIXME
             )
         }
         VerticalScrollbar(
