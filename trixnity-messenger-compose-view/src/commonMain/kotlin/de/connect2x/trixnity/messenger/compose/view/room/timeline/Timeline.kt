@@ -185,7 +185,11 @@ class TimelineViewImpl : TimelineView {
                             LazyColumn(
                                 modifier =
                                     Modifier.fillMaxSize()
-                                        .rovingFocusContainer(listState = listState, focusedItem = focusedItem)
+                                        .rovingFocusContainer(
+                                            listState = listState,
+                                            focusedItem = focusedItem,
+                                            ignoredKeys = listOf("typing"),
+                                        )
                                         .semantics {
                                             collectionInfo = CollectionInfo(1, timelineViewElements.value.size)
                                             liveRegion = LiveRegionMode.Polite
