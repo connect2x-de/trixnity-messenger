@@ -115,7 +115,7 @@ internal fun RedactedMessageElement(element: RedactedTimelineElementViewModel) {
         )
         Spacer(Modifier.width(10.dp))
         Text(
-            "$formattedMessage${redactedAt?.let { " ($it)" }?:""}${reason?.let { ": $it" }?:""}",
+            "${formattedMessage?:""}${redactedAt?.let { " ($it)" }?:""}${reason?.let { ": $it" }?:""}",
             Modifier.alignByBaseline(),
             style = MaterialTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,
