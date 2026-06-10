@@ -2244,8 +2244,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Co
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$TypingIndicatorKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/timeline/ComposableSingletons$TypingIndicatorKt;
 	public fun <init> ()V
-	public final fun getLambda$579106320$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
-	public final fun getLambda$906660331$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$-1026281270$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$741326181$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/FileReplyView {

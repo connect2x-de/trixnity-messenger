@@ -19,9 +19,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- UI: Timeline-jump issues related to replied elements
-
 ### Security
+
+## v4.6.1
+
+### Fixed
+
+- UI: Made typing indicator in timeline not focusable using keyboard navigation
+- UI: Timeline-jump issues related to replied elements
+- SDK: Fix rendering of "null" in redactions
+- SDK,UI: Fixed Timeline not loading when closing room settings
 
 ## v4.6.0
 
