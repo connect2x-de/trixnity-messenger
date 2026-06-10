@@ -115,8 +115,8 @@ check:vulnerable-dependencies:
   script:
     - ./gradlew dependenciesForAll --write-locks > dependencies.txt
     - trivy repo ./ --exit-code 0 --ignorefile .trivyignore.yaml
-    - trivy repo ./ --exit-code 0 -ignorefile .trivyignore.yaml --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
-    - trivy repo ./ --exit-code 1 -ignorefile .trivyignore.yaml --severity CRITICAL
+    - trivy repo ./ --exit-code 0 --ignorefile .trivyignore.yaml --format template --template "@/usr/local/share/trivy/templates/gitlab.tpl" --output report.json
+    - trivy repo ./ --exit-code 1 --ignorefile .trivyignore.yaml --severity CRITICAL
 
 check:changelog:
   stage: check
