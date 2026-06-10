@@ -47,7 +47,7 @@ private data class CitySearchFilter(val value: String) : SearchFilter {
 
     companion object Key : SearchFilter.Key<CitySearchFilter>
 
-    override val isEnabled: Boolean = value.isBlank()
+    override val isDisabled: Boolean = value.isBlank()
 
     override val displayValue: String = value
 }
@@ -57,7 +57,7 @@ private data class AddressSearchFilter(val value: String) : SearchFilter {
 
     companion object Key : SearchFilter.Key<AddressSearchFilter>
 
-    override val isEnabled: Boolean = value.isBlank()
+    override val isDisabled: Boolean = value.isBlank()
 
     override val displayValue: String = value
 }
@@ -67,7 +67,7 @@ private data class OptionsSearchFilter(val value: String) : SearchFilter {
 
     companion object Key : SearchFilter.Key<OptionsSearchFilter>
 
-    override val isEnabled: Boolean = value.isBlank()
+    override val isDisabled: Boolean = value.isBlank()
 
     override val displayValue: String = value
 }
@@ -77,7 +77,7 @@ private data class ColorSearchFilter(val value: Color?) : SearchFilter {
 
     companion object Key : SearchFilter.Key<ColorSearchFilter>
 
-    override val isEnabled: Boolean = value == null
+    override val isDisabled: Boolean = value == null
 
     override val displayValue: String = value?.value ?: ""
 }
@@ -87,7 +87,7 @@ private data class DifferentSearchFilter(val value: String) : SearchFilter {
 
     companion object Key : SearchFilter.Key<DifferentSearchFilter>
 
-    override val isEnabled: Boolean = value.isBlank()
+    override val isDisabled: Boolean = value.isBlank()
 
     override val displayValue: String = value
 }

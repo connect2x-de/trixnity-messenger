@@ -60,12 +60,12 @@ interface SearchProvider<SR : SearchResult, SC : SearchContext> {
      * ```kotlin
      * override suspend fun search(
      *   searchTerm: String,
-     *   filters: List<SearchFilterValue>,
-     *   activeAccount: UserId,
+     *   filters: List<SearchFilter>,
+     *   searchContext: UserSearchContext,
      *   coroutineScope: CoroutineScope,
-     * ): SearchProviderResult {
-     * val myFilterValue = filters.filterIsInstance<MySearchFilterValue>().firstOrNull() ?: MySearchFilterValue("")
-     *   // do something with myFilterValue
+     * ): SearchProviderResult<UserSearchResult> {
+     * val myFilter = filters.filterIsInstance<MySearchFilter>().firstOrNull() ?: MySearchFilter("")
+     *   // do something with myFilter
      * }
      * ```
      */

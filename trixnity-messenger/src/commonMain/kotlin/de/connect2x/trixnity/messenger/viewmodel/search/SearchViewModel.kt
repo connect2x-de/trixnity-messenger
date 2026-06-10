@@ -99,7 +99,7 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
     fun setProvider(providerId: SearchProvider.Key<*>, enabled: Boolean)
 
     /**
-     * Manipulate the filters of all [SearchProvider]s. If [SearchFilter.isEnabled], the filter is removed from the
+     * Manipulate the filters of all [SearchProvider]s. If [SearchFilter.isDisabled], the filter is removed from the
      * list.
      */
     fun setSearchFilter(searchFilter: SearchFilter)
@@ -114,15 +114,6 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
 
     fun unfilterNotSearchResult(searchResult: SR)
 }
-
-// used in this class and in the tests where we do not want randomness of results
-internal data class InternalSearchResult<SR : SearchResult>(
-    val id: SearchProvider.Key<*>,
-    val enabled: Boolean,
-    val providerDisplayName: String,
-    val providerSearchResult: SearchProviderResult<SR>?,
-    val isSearching: Boolean,
-)
 
 class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
     matrixClientViewModelContext: MatrixClientViewModelContext,
@@ -170,7 +161,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
     private val searchProvidersLoading = searchProviders.map { MutableStateFlow(false) }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    internal val searchResult: StateFlow<List<InternalSearchResult<SR>>?> =
+    internal val searchResult: StateFlow<List<ProviderSearchResult<SR>>?> =
         combine(combine(searchProvidersResult) { it }, searchProviderEnabled, combine(searchProvidersLoading) { it }) {
                 results,
                 enabled,
@@ -179,7 +170,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
                     "searchResult=${results.joinToString { it?.toString() ?: "<none>" }}, enabled=$enabled, loading=${loading.contentToString()}}"
                 }
                 results.mapIndexed { index, result ->
-                    InternalSearchResult(
+                    ProviderSearchResult(
                         id = searchProviders[index].key,
                         enabled = enabled[searchProviders[index].key] == true,
                         providerDisplayName = searchProviders[index].displayName,
@@ -251,7 +242,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override fun setSearchFilter(searchFilter: SearchFilter) {
-        if (searchFilter.isEnabled) {
+        if (searchFilter.isDisabled) {
             removeSearchFilter(searchFilter.key)
         } else {
             val existing = searchFilters.value.find { it.key == searchFilter.key }
@@ -320,7 +311,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
             }
     }
 
-    internal fun randomSequence(results: List<InternalSearchResult<SR>>, filteredSearchResults: List<SR>): List<SR> {
+    internal fun randomSequence(results: List<ProviderSearchResult<SR>>, filteredSearchResults: List<SR>): List<SR> {
         // without query
         val random = Random(results.hashCode())
 
@@ -383,3 +374,12 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
         return zip(*searchResults.toTypedArray()).flatten().flatten()
     }
 }
+
+// only used here
+internal data class ProviderSearchResult<SR : SearchResult>(
+    val id: SearchProvider.Key<*>,
+    val enabled: Boolean,
+    val providerDisplayName: String,
+    val providerSearchResult: SearchProviderResult<SR>?,
+    val isSearching: Boolean,
+)

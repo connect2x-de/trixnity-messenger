@@ -29,7 +29,7 @@ interface SearchFilter {
      * If it is enabled, it could lead to search providers being disabled when they do not support the
      * [SearchFilter.Key].
      */
-    val isEnabled: Boolean
+    val isDisabled: Boolean
 
     /** The value to display in the UI. If the filter wraps a complex object, this can be more elaborate. */
     val displayValue: String
