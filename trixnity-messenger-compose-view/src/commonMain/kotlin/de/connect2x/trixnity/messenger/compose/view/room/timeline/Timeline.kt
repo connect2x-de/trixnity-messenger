@@ -383,6 +383,12 @@ fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?>
     }
 }
 
+private sealed interface InitialScrollTo {
+    data object Loading : InitialScrollTo
+
+    data class ScrollTo(val key: String?) : InitialScrollTo
+}
+
 @Composable
 fun getInitialFirstVisibleItemIndex(
     timelineViewModel: TimelineViewModel,
@@ -390,19 +396,22 @@ fun getInitialFirstVisibleItemIndex(
     showTypingIndicator: Boolean,
 ): Int? {
     var initialFirstVisibleItemIndex by remember { mutableStateOf<Int?>(null) }
-    var initialScrollTo by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) { initialScrollTo = timelineViewModel.scrollTo.first() }
+
+    val (initialScrollTo, setInitialScrollTo) = remember { mutableStateOf<InitialScrollTo>(InitialScrollTo.Loading) }
+    LaunchedEffect(Unit) { setInitialScrollTo(InitialScrollTo.ScrollTo(timelineViewModel.scrollTo.first())) }
     LaunchedEffect(initialScrollTo, timelineViewElements, showTypingIndicator) {
-        if (initialFirstVisibleItemIndex != null || initialScrollTo == null) return@LaunchedEffect
+        if (initialFirstVisibleItemIndex != null || initialScrollTo !is InitialScrollTo.ScrollTo) return@LaunchedEffect
         initialFirstVisibleItemIndex =
             timelineViewElements
                 .indexOfLast { element ->
-                    element is TimelineViewElement.Element && element.viewModel.key == initialScrollTo
+                    element is TimelineViewElement.Element && element.viewModel.key == initialScrollTo.key
                 }
-                .takeIf { it >= 0 }
-                ?.let { index ->
+                .coerceAtLeast(0)
+                .let { index ->
                     when {
                         index == 0 && showTypingIndicator -> 0
+                        index < 0 && showTypingIndicator -> 1
+                        index < 0 && !showTypingIndicator -> 0
                         showTypingIndicator -> index + 1
                         else -> index
                     }

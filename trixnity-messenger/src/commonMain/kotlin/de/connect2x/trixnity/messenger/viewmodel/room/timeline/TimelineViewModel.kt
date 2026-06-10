@@ -90,6 +90,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -109,6 +110,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -158,7 +160,7 @@ interface TimelineViewModel {
     val canLoadAfter: StateFlow<Boolean?>
 
     /** Emits a unique String each time the view should scroll to the given key. String is the key from [elements]. */
-    val scrollTo: Flow<String>
+    val scrollTo: StateFlow<String?>
     val isDirect: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -315,10 +317,11 @@ class TimelineViewModelImpl(
                 log.debug { "finished compute timeline elements" }
                 timelineElements
             }
+            .onEach { println(it.size) }
             .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     private val _scrollTo = MutableStateFlow<String?>(null)
-    override val scrollTo: Flow<String> = _scrollTo.filterNotNull()
+    override val scrollTo = _scrollTo.asStateFlow()
 
     override fun onProcessedScrollTo(key: String) {
         _scrollTo.update { if (it == key) null else it }
@@ -1194,7 +1197,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
     override val canLoadBefore: StateFlow<Boolean?> = MutableStateFlow(null)
     override val canLoadAfter: StateFlow<Boolean?> = MutableStateFlow(null)
-    override val scrollTo: Flow<String> = MutableSharedFlow()
+    override val scrollTo: StateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()
