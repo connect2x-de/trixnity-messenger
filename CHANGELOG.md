@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Made typing indicator in timeline not focusable using keyboard navigation
 - UI: Timeline-jump issues related to replied elements
+- SDK: Fix rendering of "null" in redactions
 
 ### Security
 
