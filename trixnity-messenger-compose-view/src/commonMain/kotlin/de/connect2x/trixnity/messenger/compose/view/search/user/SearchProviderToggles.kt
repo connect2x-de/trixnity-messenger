@@ -26,15 +26,18 @@ fun SearchProviderToggles(userSearchViewModel: UserSearchViewModel) {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalArrangement = Arrangement.spacedBy(0.dp), // FilterChips have a minimum height
         ) {
-            userSearchViewModel.searchProviders.forEachIndexed { index, searchUserProvider ->
-                Tooltip(i18n.searchUserProviderDeactivated(), enabled = providerSearchCanBeEnabled[index].not()) {
-                    Box(Modifier.buttonPointerModifier(enabled = providerSearchEnabled[index])) {
+            userSearchViewModel.searchProviders.forEach { searchUserProvider ->
+                val providerSearchCanBeEnabled = providerSearchCanBeEnabled[searchUserProvider.key] == true
+                val providerSearchEnabled = providerSearchEnabled[searchUserProvider.key] == true
+
+                Tooltip(i18n.searchUserProviderDeactivated(), enabled = providerSearchCanBeEnabled.not()) {
+                    Box(Modifier.buttonPointerModifier(enabled = providerSearchEnabled)) {
                         SearchProviderToggleSelector(
                             searchUserProvider,
-                            providerSearchCanBeEnabled[index],
-                            providerSearchEnabled[index],
+                            providerSearchCanBeEnabled,
+                            providerSearchEnabled,
                         ) {
-                            userSearchViewModel.setProvider(searchUserProvider.key, providerSearchEnabled[index].not())
+                            userSearchViewModel.setProvider(searchUserProvider.key, providerSearchEnabled.not())
                         }
                     }
                 }

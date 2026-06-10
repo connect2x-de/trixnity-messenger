@@ -1,5 +1,8 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,19 +58,21 @@ class UserSearchFieldNewSearchViewImpl : UserSearchFieldNewSearchView {
             onValueChange = { userSearchTerm = it },
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             leadingIcon = {
-                if (isSearching) {
+                AnimatedVisibility(isSearching, enter = fadeIn(), exit = fadeOut()) {
                     ThemedProgressIndicator(Modifier, MaterialTheme.components.smallCircularProgressIndicator)
-                } else {
+                }
+                AnimatedVisibility(isSearching.not(), enter = fadeIn(), exit = fadeOut()) {
                     Icon(Icons.Default.Search, i18n.userSearchSearchPeople())
                 }
             },
             trailingIcon = {
-                if (userSearchTerm.text.isNotBlank())
+                AnimatedVisibility(userSearchTerm.text.isNotBlank(), enter = fadeIn(), exit = fadeOut()) {
                     Icon(
                         Icons.Default.Clear,
                         i18n.commonDelete(),
                         Modifier.clickable { userSearchTerm = TextFieldValue("") }.buttonPointerModifier(),
                     )
+                }
             },
             label = { Text(i18n.userSearchNameOrMatrixId()) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search, autoCorrectEnabled = false),

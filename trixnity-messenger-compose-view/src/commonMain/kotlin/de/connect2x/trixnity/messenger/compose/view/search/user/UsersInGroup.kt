@@ -34,8 +34,8 @@ import de.connect2x.trixnity.messenger.compose.view.isMobile
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedIconButton
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
+import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverUserSearchResult
 import kotlinx.coroutines.flow.StateFlow
 
 @Composable

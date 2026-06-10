@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +47,7 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun removeUserFromList(user: UserSearchResult) {
         _groupUsersNewSearch.value += user
-        userSearchViewModel.filterUserSearchResult(user)
+        userSearchViewModel.filterNotSearchResult(user)
     }
 
     override fun removeUserFromGroup(user: UserSearchResult) {
@@ -56,6 +56,6 @@ class CreateNewGroupNewSearchViewModelImpl(
 
     override fun addUserToList(user: UserSearchResult) {
         _groupUsersNewSearch.value -= user
-        userSearchViewModel.filterNotUserSearchResult(user)
+        userSearchViewModel.unfilterNotSearchResult(user)
     }
 }

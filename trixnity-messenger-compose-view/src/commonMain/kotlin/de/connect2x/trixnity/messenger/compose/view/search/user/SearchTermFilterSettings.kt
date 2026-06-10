@@ -91,10 +91,8 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                         searchFilters.forEach { searchFilter ->
                             ThemedInputChip(
                                 selected = true,
-                                onClick = { userSearchViewModel.removeFilterValue(searchFilter.key) },
-                                label = {
-                                    Text(searchFilter.displayValue, style = MaterialTheme.typography.bodySmall)
-                                },
+                                onClick = { userSearchViewModel.removeSearchFilter(searchFilter.key) },
+                                label = { Text(searchFilter.displayValue, style = MaterialTheme.typography.bodySmall) },
                                 trailingIcon = { Icon(Icons.Default.Close, "") },
                                 modifier = Modifier.buttonPointerModifier(),
                             )

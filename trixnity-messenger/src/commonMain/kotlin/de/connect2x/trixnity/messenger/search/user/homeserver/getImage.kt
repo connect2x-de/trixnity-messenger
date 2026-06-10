@@ -1,4 +1,4 @@
-package de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver
+package de.connect2x.trixnity.messenger.search.user.homeserver
 
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media

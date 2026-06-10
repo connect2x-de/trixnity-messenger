@@ -1,8 +1,8 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.runtime.Composable
+import de.connect2x.trixnity.messenger.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import kotlin.reflect.KClass
 
 interface SearchFilterInputView<S : SearchFilter.Key<*>> {

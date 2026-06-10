@@ -5,8 +5,8 @@ import androidx.compose.runtime.remember
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
+import de.connect2x.trixnity.messenger.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchFilter
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -24,10 +24,7 @@ interface SearchFilterInputSelector {
 }
 
 @Composable
-fun SearchFilterInputSelector(
-    userSearchViewModel: UserSearchViewModel,
-    searchFilterKey: SearchFilter.Key<*>,
-) {
+fun SearchFilterInputSelector(userSearchViewModel: UserSearchViewModel, searchFilterKey: SearchFilter.Key<*>) {
     with(DI.get<SearchFilterInputSelector>()) { create(userSearchViewModel, searchFilterKey) }
 }
 

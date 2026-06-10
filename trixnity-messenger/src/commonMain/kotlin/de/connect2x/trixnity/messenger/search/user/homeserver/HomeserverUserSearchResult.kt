@@ -1,8 +1,8 @@
-package de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver
+package de.connect2x.trixnity.messenger.search.user.homeserver
 
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.Presence
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import kotlinx.coroutines.flow.StateFlow
 
 data class HomeserverUserSearchResult(

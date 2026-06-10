@@ -1,6 +1,6 @@
-package de.connect2x.trixnity.messenger.viewmodel.search.provider
+package de.connect2x.trixnity.messenger.search.provider
 
-import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.search.SearchResult
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -18,8 +18,8 @@ import kotlinx.coroutines.CoroutineScope
  *
  * Other places could be an LDAP or central registry for users.
  */
-interface SearchProvider<T : SearchProviderResult> {
-    interface Key<T : SearchProvider<*>>
+interface SearchProvider<SR : SearchResult, SC : SearchContext> {
+    interface Key<T : SearchProvider<*, *>>
 
     /** A unique identifier for the provider. */
     val key: Key<*>
@@ -72,7 +72,7 @@ interface SearchProvider<T : SearchProviderResult> {
     suspend fun search(
         searchTerm: String,
         filters: List<SearchFilter>,
-        activeAccount: UserId,
+        searchContext: SC,
         coroutineScope: CoroutineScope,
-    ): T
+    ): SearchProviderResult<SR>
 }

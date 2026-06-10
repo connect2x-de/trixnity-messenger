@@ -10,8 +10,8 @@ import de.connect2x.trixnity.core.model.events.InitialStateEvent
 import de.connect2x.trixnity.core.model.events.m.room.EncryptionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

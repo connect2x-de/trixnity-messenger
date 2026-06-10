@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update

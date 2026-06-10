@@ -11,11 +11,11 @@ import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 
 fun LazyListScope.searchResults(
-    searchProviders: List<SearchProvider<*>>,
+    searchProviders: List<SearchProvider<*, *>>,
     onUserClick: (UserSearchResult) -> Unit,
     searchResultList: List<UserSearchResult>,
     noResultsFound: Boolean?,

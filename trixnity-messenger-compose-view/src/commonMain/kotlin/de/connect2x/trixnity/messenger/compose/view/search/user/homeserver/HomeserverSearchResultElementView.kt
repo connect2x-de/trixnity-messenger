@@ -25,7 +25,7 @@ import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderIcon
 import de.connect2x.trixnity.messenger.compose.view.theme.components.AvatarPresenceBadge
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedUserAvatar
-import de.connect2x.trixnity.messenger.viewmodel.search.provider.homeserver.HomeserverUserSearchResult
+import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverUserSearchResult
 
 interface HomeserverSearchResultElementView {
     @Composable

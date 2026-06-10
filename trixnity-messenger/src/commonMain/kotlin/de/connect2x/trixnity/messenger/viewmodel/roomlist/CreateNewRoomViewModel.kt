@@ -2,12 +2,15 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.search.user.UserSearchContext
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
 import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
 import de.connect2x.trixnity.messenger.util.UserSearchHandler
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.search.PreviewUserSearchViewModel
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +42,14 @@ open class CreateNewRoomViewModelImpl(
 ) : CreateNewRoomViewModel, MatrixClientViewModelContext by viewModelContext {
     override val searchHandler: UserSearchHandler =
         DefaultUserSearchHandler(coroutineScope, get<Search>(), matrixClient)
-    override val userSearchViewModel: UserSearchViewModel = get<UserSearchViewModelFactory>().create(viewModelContext)
+    override val userSearchViewModel: UserSearchViewModel =
+        get<UserSearchViewModelFactory>()
+            .create(
+                viewModelContext,
+                get<SearchViewModelFactory>().create<UserSearchResult, UserSearchContext>(viewModelContext) {
+                    UserSearchContext(matrixClient.userId)
+                },
+            )
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val errorDetails: MutableStateFlow<String?> = MutableStateFlow(null)

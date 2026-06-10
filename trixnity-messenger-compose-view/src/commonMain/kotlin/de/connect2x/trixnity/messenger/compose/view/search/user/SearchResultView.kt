@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
 import androidx.compose.runtime.Composable
-import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchResult
+import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import kotlin.reflect.KClass
 
 interface SearchResultView<V : UserSearchResult> {
