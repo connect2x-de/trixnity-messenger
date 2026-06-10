@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -73,6 +74,10 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                     }
                 append(roomType)
             }
+            val focusedItem =
+                remember(searchResultList) {
+                    mutableStateOf(searchResultList.firstOrNull()?.id)
+                }
 
             Box(Modifier.fillMaxSize()) {
                 Column(
@@ -91,7 +96,22 @@ class CreateNewGroupNewSearchViewImpl : CreateNewGroupView {
                     }
                     Box(Modifier.fillMaxSize()) {
                         val listState = rememberLazyListState()
-                        LazyColumn(Modifier.fillMaxSize().rovingFocusContainer(), listState) { // FIXME
+                        LazyColumn(
+                            Modifier.fillMaxSize()
+                                .rovingFocusContainer(
+                                    focusedItem = focusedItem,
+                                    listState = listState,
+                                    ignoredKeys =
+                                        listOf(
+                                            "MoreOptions",
+                                            "RoomNameInput",
+                                            "RoomTopic",
+                                            "UsersInGroup",
+                                            "searchTerm",
+                                        ),
+                                ),
+                            listState,
+                        ) {
                             item(key = "MoreOptions") {
                                 val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
                                 val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }

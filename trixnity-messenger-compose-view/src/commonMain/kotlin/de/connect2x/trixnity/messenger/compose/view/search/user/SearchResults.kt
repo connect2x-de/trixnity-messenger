@@ -36,11 +36,14 @@ fun LazyListScope.searchResults(
         }
     } else {
         searchResultList.forEachIndexed { index, searchResult ->
-            val key = "${searchResult.id}-${index}"
+            val key = searchResult.id
             item(key) { // FIXME figure out why this has two things two focus inside the focus group
                 Box(
                     Modifier.padding(horizontal = 10.dp)
-                        .rovingFocusItem({ focusedItem.value == key }, { focusedItem.value = key })
+                        .rovingFocusItem(
+                            isFocused = { focusedItem.value == key },
+                            onFocus = { focusedItem.value = key },
+                        )
                         .focusHighlighting()
                 ) {
                     SearchResultSelector(
