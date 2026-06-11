@@ -64,15 +64,20 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
         }
     ) {
         Card(
-            modifier =
-                Modifier.clickable(interactionSource, indication = null, onClick = { showFilters = showFilters.not() })
-                    .focusHighlighting(interactionSource)
-                    .buttonPointerModifier(),
+            modifier = Modifier.focusHighlighting(interactionSource),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp).buttonPointerModifier(),
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .padding(16.dp)
+                        .buttonPointerModifier()
+                        .clickable(
+                            interactionSource,
+                            indication = null,
+                            onClick = { showFilters = showFilters.not() },
+                        ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

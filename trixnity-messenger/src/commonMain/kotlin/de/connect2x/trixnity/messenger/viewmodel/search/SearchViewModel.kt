@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -179,7 +178,6 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
                     )
                 }
             }
-            .mapLatest { it }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val filteredSearchResults = MutableStateFlow<List<SR>>(emptyList())
