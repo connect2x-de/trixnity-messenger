@@ -34,7 +34,7 @@ class UserSearchViewModelImpl(
 
 class PreviewUserSearchViewModel : UserSearchViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
-    override val searchProviders: List<SearchProvider<*, *>> = emptyList()
+    override val searchProviders: List<SearchProvider<UserSearchResult, UserSearchContext>> = emptyList()
     override val availableFilters: StateFlow<List<GroupedSearchFilter>> = MutableStateFlow(emptyList())
     override val searchResultList: MutableStateFlow<List<UserSearchResult>> = MutableStateFlow(emptyList())
     override val searchProviderEnabled: MutableStateFlow<Map<SearchProvider.Key<*>, Boolean>> =

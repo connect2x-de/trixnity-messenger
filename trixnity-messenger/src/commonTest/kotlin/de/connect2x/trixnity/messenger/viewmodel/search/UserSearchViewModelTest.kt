@@ -480,11 +480,11 @@ class UserSearchViewModelTest {
     }
 
     private fun TestScope.searchUserViewModel(): UserSearchViewModelImpl =
-        searchUserViewModel<SearchProvider<*, *>>(null)
+        searchUserViewModel<SearchProvider<HomeserverUserSearchResult, UserSearchContext>>(null)
 
-    private inline fun <reified T : SearchProvider<*, *>> TestScope.searchUserViewModel(
-        additionalSearchUserProviders: List<T>? = null
-    ): UserSearchViewModelImpl {
+    private inline fun <reified T : SearchProvider<HomeserverUserSearchResult, UserSearchContext>> TestScope
+        .searchUserViewModel(additionalSearchUserProviders: List<T>? = null): UserSearchViewModelImpl {
+
         val matrixClientViewModelContext =
             MatrixClientViewModelContextImpl(
                 di =

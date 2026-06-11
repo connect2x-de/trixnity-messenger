@@ -56,7 +56,7 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
     val searchTerm: TextFieldViewModel
 
     /** A list of all [SearchProvider]s. Obtained from the DI. */
-    val searchProviders: List<SearchProvider<*, *>>
+    val searchProviders: List<SearchProvider<SR, SC>>
 
     /**
      * Accumulated (and possibly merged by the same [SearchFilter.Key]) list of all [SearchFilter]s supported by all
