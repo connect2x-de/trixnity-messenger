@@ -374,6 +374,7 @@ private fun newSearchViewModels() = module {
     single<SearchViewModelFactory> { SearchViewModelFactory }
     single<UserSearchViewModelFactory> { UserSearchViewModelFactory }
     single<CreateNewChatViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
         object : CreateNewChatViewModelFactory {
             override fun create(
                 viewModelContext: MatrixClientViewModelContext,
@@ -382,7 +383,7 @@ private fun newSearchViewModels() = module {
                 onSearchGroup: (UserId) -> Unit,
                 onCancel: () -> Unit,
             ): CreateNewChatViewModel {
-                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                return if (config.features.enableNewSearch) {
                     CreateNewChatNewSearchViewModelImpl(
                             viewModelContext = viewModelContext,
                             createNewChatViewModel =
@@ -409,13 +410,14 @@ private fun newSearchViewModels() = module {
         }
     }
     single<CreateNewGroupViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
         object : CreateNewGroupViewModelFactory {
             override fun create(
                 viewModelContext: MatrixClientViewModelContext,
                 createNewRoomViewModel: CreateNewRoomViewModel,
                 onBack: () -> Unit,
             ): CreateNewGroupViewModel {
-                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                return if (config.features.enableNewSearch) {
                     CreateNewGroupNewSearchViewModelImpl(
                             viewModelContext = viewModelContext,
                             createNewGroupViewModel =
@@ -438,6 +440,7 @@ private fun newSearchViewModels() = module {
         }
     }
     single<AddMembersViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
         object : AddMembersViewModelFactory {
             override fun create(
                 viewModelContext: MatrixClientViewModelContext,
@@ -445,7 +448,7 @@ private fun newSearchViewModels() = module {
                 potentialMembersViewModel: PotentialMembersViewModel,
                 onBack: () -> Unit,
             ): AddMembersViewModel {
-                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                return if (config.features.enableNewSearch) {
                     AddMembersNewSearchViewModelImpl(
                             viewModelContext = viewModelContext,
                             addMembersViewModel =
@@ -475,12 +478,13 @@ private fun newSearchViewModels() = module {
         }
     }
     single<PotentialMembersViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
         object : PotentialMembersViewModelFactory {
             override fun create(
                 viewModelContext: MatrixClientViewModelContext,
                 roomId: RoomId,
             ): PotentialMembersViewModel {
-                return if (get<MatrixMessengerConfiguration>().features.enableNewSearch) {
+                return if (config.features.enableNewSearch) {
                     PotentialMembersNewSearchViewModelImpl(
                             viewModelContext = viewModelContext,
                             potentialMembersViewModel =
