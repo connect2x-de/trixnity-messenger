@@ -13,6 +13,8 @@ import de.connect2x.trixnity.messenger.compose.view.common.ErrorDialog
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchUsers
+import de.connect2x.trixnity.messenger.compose.view.search.user.UsersInGroup
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 
@@ -31,7 +33,12 @@ class AddMembersToRoomNewSearchViewImpl : AddMembersToRoomView {
             Box(Modifier.fillMaxSize()) {
                 Column {
                     Header(addMembersViewModel::back, i18n.addMembers())
-                    SearchUsers(addMembersViewModel) { UndecryptableHistoryInfo(addMembersViewModel) }
+                    SearchUsers(addMembersViewModel.userSearchViewModel, { addMembersViewModel.onUserClick(it) }) {
+                        UndecryptableHistoryInfo(addMembersViewModel)
+                        UsersInGroup(addMembersViewModel.groupUsersNewSearch) {
+                            addMembersViewModel.removeUserFromGroup(it)
+                        }
+                    }
                 }
                 AddMembersFloatingButton(addMembersViewModel)
                 ErrorDialog(error, errorCause, onDismiss = { addMembersViewModel.errorDismiss() })

@@ -1,11 +1,14 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,7 +28,7 @@ fun LazyListScope.searchResults(
     focusedItem: MutableState<String?>,
 ) {
     if (noResultsFound == true) {
-        item(key = "NoResultsFound") {
+        item(key = "noResultsFound") {
             Box(
                 Modifier.padding(horizontal = 10.dp, vertical = 20.dp).fillMaxWidth(),
                 contentAlignment = Alignment.Center,
@@ -35,23 +38,23 @@ fun LazyListScope.searchResults(
             }
         }
     } else {
-        searchResultList.forEachIndexed { index, searchResult ->
-            val key = searchResult.id
-            item(key) { // FIXME figure out why this has two things two focus inside the focus group
-                Box(
-                    Modifier.padding(horizontal = 10.dp)
-                        .rovingFocusItem(
-                            isFocused = { focusedItem.value == key },
-                            onFocus = { focusedItem.value = key },
-                        )
-                        .focusHighlighting()
-                ) {
-                    SearchResultSelector(
-                        userSearchResult = searchResult,
-                        showOrigin = searchProviders.size > 1,
-                        onClick = { onUserClick(it) },
+        itemsIndexed(searchResultList, { _, element -> element.id }) { index, userSearchResult ->
+            val interactionSource = remember { MutableInteractionSource() }
+            Box(
+                Modifier.padding(horizontal = 10.dp)
+                    .rovingFocusItem(
+                        isFocused = { focusedItem.value == userSearchResult.id },
+                        onFocus = { focusedItem.value = userSearchResult.id },
                     )
-                }
+                    .focusHighlighting(interactionSource)
+            ) {
+                SearchResultSelector(
+                    userSearchResult = userSearchResult,
+                    showOrigin = searchProviders.size > 1,
+                    index = index,
+                    interactionSource = interactionSource,
+                    onClick = onUserClick,
+                )
             }
         }
     }

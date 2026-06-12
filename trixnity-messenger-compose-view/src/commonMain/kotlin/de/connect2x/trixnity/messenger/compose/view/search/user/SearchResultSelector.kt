@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -10,14 +11,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 
 @Composable
-fun SearchResultSelector(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) {
-    with(DI.get<SearchResultViewSelector>()) { create(userSearchResult, showOrigin, onClick) }
+fun SearchResultSelector(
+    userSearchResult: UserSearchResult,
+    showOrigin: Boolean,
+    index: Int,
+    interactionSource: MutableInteractionSource,
+    onClick: (UserSearchResult) -> Unit,
+) {
+    with(DI.get<SearchResultViewSelector>()) { create(userSearchResult, showOrigin, index, interactionSource, onClick) }
 }
 
 interface SearchResultViewSelector : SearchResultViewFactorySelector<SearchResultView<UserSearchResult>> {
     @Composable
-    fun create(userSearchResult: UserSearchResult, showOrigin: Boolean, onClick: (UserSearchResult) -> Unit) =
-        rememberFactory(userSearchResult).create(userSearchResult, showOrigin, onClick)
+    fun create(
+        userSearchResult: UserSearchResult,
+        showOrigin: Boolean,
+        index: Int,
+        interactionSource: MutableInteractionSource,
+        onClick: (UserSearchResult) -> Unit,
+    ) = rememberFactory(userSearchResult).create(userSearchResult, showOrigin, index, interactionSource, onClick)
 }
 
 class SearchResultViewSelectorImpl(private val factories: List<SearchResultView<*>>) : SearchResultViewSelector {

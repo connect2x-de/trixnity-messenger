@@ -73,11 +73,7 @@ fun SearchTermFilterSettings(userSearchViewModel: UserSearchViewModel) {
                     Modifier.fillMaxWidth()
                         .padding(16.dp)
                         .buttonPointerModifier()
-                        .clickable(
-                            interactionSource,
-                            indication = null,
-                            onClick = { showFilters = showFilters.not() },
-                        ),
+                        .clickable(interactionSource, indication = null, onClick = { showFilters = showFilters.not() }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

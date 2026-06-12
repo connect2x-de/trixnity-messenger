@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user.homeserver
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultView
 import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverUserSearchResult
@@ -12,8 +13,10 @@ class HomeserverSearchResultView : SearchResultView<HomeserverUserSearchResult> 
     override fun create(
         userSearchResult: HomeserverUserSearchResult,
         showOrigin: Boolean,
+        index: Int,
+        interactionSource: MutableInteractionSource,
         onClick: (HomeserverUserSearchResult) -> Unit,
     ) {
-        HomeserverSearchResultElement(userSearchResult, showOrigin, onClick)
+        HomeserverSearchResultElement(userSearchResult, showOrigin, index, interactionSource, onClick)
     }
 }

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user.homeserver
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.CollectionItemInfo
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.collectionItemInfo
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
@@ -32,6 +38,8 @@ interface HomeserverSearchResultElementView {
     fun create(
         userSearchResult: HomeserverUserSearchResult,
         showOrigin: Boolean,
+        index: Int,
+        interactionSource: MutableInteractionSource,
         onClick: (HomeserverUserSearchResult) -> Unit,
     )
 }
@@ -40,9 +48,11 @@ interface HomeserverSearchResultElementView {
 fun HomeserverSearchResultElement(
     userSearchResult: HomeserverUserSearchResult,
     showOrigin: Boolean,
+    index: Int,
+    interactionSource: MutableInteractionSource,
     onClick: (HomeserverUserSearchResult) -> Unit,
 ) {
-    DI.get<HomeserverSearchResultElementView>().create(userSearchResult, showOrigin, onClick)
+    DI.get<HomeserverSearchResultElementView>().create(userSearchResult, showOrigin, index, interactionSource, onClick)
 }
 
 class HomeserverSearchResultElementViewImpl : HomeserverSearchResultElementView {
@@ -50,12 +60,23 @@ class HomeserverSearchResultElementViewImpl : HomeserverSearchResultElementView 
     override fun create(
         userSearchResult: HomeserverUserSearchResult,
         showOrigin: Boolean,
+        index: Int,
+        interactionSource: MutableInteractionSource,
         onClick: (HomeserverUserSearchResult) -> Unit,
     ) {
         val image by userSearchResult.image.collectAsState()
         val presence by userSearchResult.presence.collectAsState()
 
-        Box(Modifier.fillMaxWidth().clickable(onClick = { onClick(userSearchResult) }).buttonPointerModifier()) {
+        Box(
+            Modifier.fillMaxWidth()
+                .clickable(interactionSource = interactionSource, onClick = { onClick(userSearchResult) })
+                .buttonPointerModifier()
+                .semantics {
+                    role = Role.Button
+                    collectionItemInfo =
+                        CollectionItemInfo(rowIndex = index, rowSpan = 1, columnIndex = 0, columnSpan = 1)
+                }
+        ) {
             Row(
                 Modifier.padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,

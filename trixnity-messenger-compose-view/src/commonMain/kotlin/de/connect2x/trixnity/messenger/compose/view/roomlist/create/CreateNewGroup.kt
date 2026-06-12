@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,7 +21,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -36,7 +33,6 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.VerticalScrollbar
 import de.connect2x.trixnity.messenger.compose.view.collectAsTextFieldValueState
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorDialog
-import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.common.Header
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusContainer
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -68,31 +64,12 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
         val i18n = DI.get<I18nView>()
         val error = createNewGroupViewModel.error.collectAsState().value
         val errorDetails = createNewGroupViewModel.errorDetails.collectAsState().value
-        val isPrivate by createNewGroupViewModel.isPrivate.collectAsState()
-        val isEncrypted by createNewGroupViewModel.isEncrypted.collectAsState()
         val isCreating by createNewGroupViewModel.isCreating.collectAsState()
         val optionalRoomName = createNewGroupViewModel.optionalRoomName.collectAsTextFieldValueState()
         val optionalRoomTopic = createNewGroupViewModel.optionalGroupTopic.collectAsTextFieldValueState()
         val userSearchView = DI.get<SearchUsersView>()
         val userSearchResultView = DI.get<UserSearchResultListView>()
         val userSearchResults = collectUserSearchResult(createNewGroupViewModel.createNewRoomViewModel.searchHandler)
-
-        val roomOptionsString = buildString {
-            append(i18n.roomType())
-
-            val roomType =
-                when {
-                    isPrivate && isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeEncrypted()}"
-                    isPrivate && !isEncrypted -> "${i18n.roomTypePrivate()} & ${i18n.roomTypeUnencrypted()}"
-                    !isPrivate && isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeEncrypted()}"
-                    !isPrivate && !isEncrypted -> "${i18n.roomTypePublic()} & ${i18n.roomTypeUnencrypted()}"
-                    else -> {
-                        log.error { "Boolean logic has failed. This should never happen!" }
-                        ""
-                    }
-                }
-            append(roomType)
-        }
 
         Box(Modifier.fillMaxSize()) {
             Column(verticalArrangement = Arrangement.SpaceBetween, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -121,22 +98,7 @@ class CreateNewGroupViewImpl : CreateNewGroupView {
                         Modifier.fillMaxSize().rovingFocusContainer(listState = listState, focusedItem = focusedItem),
                         listState,
                     ) {
-                        item(key = "MoreOptions") {
-                            val expanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
-                            val historyExpanded = rememberSaveable("MoreOptions") { mutableStateOf(false) }
-
-                            Column {
-                                ExpandableSection(
-                                    roomOptionsString,
-                                    expanded,
-                                    modifier = Modifier.padding(horizontal = 10.dp),
-                                    icon = Icons.Default.Settings,
-                                ) {
-                                    CreateGroupOptions(createNewGroupViewModel, historyExpanded)
-                                }
-                                Spacer(Modifier.height(15.dp))
-                            }
-                        }
+                        item(key = "MoreOptions") { CreateNewGroupOptions(createNewGroupViewModel) }
                         item(key = "RoomNameInput") {
                             OptionalRoomNameInput(optionalRoomName)
                             Spacer(Modifier.height(15.dp))

@@ -204,12 +204,12 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerVi
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListViewImpl
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsView
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupOptionsView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupOptionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatarView
@@ -492,7 +492,7 @@ fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?)
         single<CreateNewGroupView> { CreateNewGroupViewImpl() }
     }
     single<UsersInGroupView> { UsersInGroupViewImpl() }
-    single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
+    single<CreateNewGroupOptionsView> { CreateNewGroupOptionsViewImpl() }
 }
 
 fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
