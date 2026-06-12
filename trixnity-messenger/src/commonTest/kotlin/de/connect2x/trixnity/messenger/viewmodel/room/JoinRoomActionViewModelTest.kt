@@ -20,6 +20,7 @@ import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.continually
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
+import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.testDispatcher
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
@@ -28,7 +29,6 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
-import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -311,7 +311,7 @@ class JoinRoomActionViewModelTest {
         allowRooms: Set<RoomId>? = null,
         additionalMocks: () -> Unit = {},
         onOpenRoom: (RoomId) -> Unit = {},
-        expectedResult: suspend (JoinRoomActionViewModel) -> Unit,
+        expectedResult: suspend TestScope.(JoinRoomActionViewModel) -> Unit,
     ) {
         every { roomServiceMock.getById(room) } returns
             (membership?.map { Room(room, membership = it) } ?: flowOf(null))
