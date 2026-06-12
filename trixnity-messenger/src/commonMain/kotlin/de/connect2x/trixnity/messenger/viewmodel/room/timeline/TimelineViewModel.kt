@@ -1,10 +1,7 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline
 
 import com.arkivanov.decompose.Child
-import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
-import com.arkivanov.decompose.router.stack.StackNavigation
-import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
@@ -43,8 +40,6 @@ import de.connect2x.trixnity.messenger.util.DragAndDropHandler
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.util.getOrNull
-import de.connect2x.trixnity.messenger.util.launchPopWhile
-import de.connect2x.trixnity.messenger.util.launchPush
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel.Config
@@ -90,6 +85,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -109,6 +105,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -158,7 +155,7 @@ interface TimelineViewModel {
     val canLoadAfter: StateFlow<Boolean?>
 
     /** Emits a unique String each time the view should scroll to the given key. String is the key from [elements]. */
-    val scrollTo: Flow<String>
+    val scrollTo: StateFlow<String?>
     val isDirect: StateFlow<Boolean>
     val error: StateFlow<String?>
 
@@ -315,10 +312,11 @@ class TimelineViewModelImpl(
                 log.debug { "finished compute timeline elements" }
                 timelineElements
             }
+            .onEach { println(it.size) }
             .stateIn(coroutineScope, WhileSubscribed(), listOf())
 
     private val _scrollTo = MutableStateFlow<String?>(null)
-    override val scrollTo: Flow<String> = _scrollTo.filterNotNull()
+    override val scrollTo = _scrollTo.asStateFlow()
 
     override fun onProcessedScrollTo(key: String) {
         _scrollTo.update { if (it == key) null else it }
@@ -378,32 +376,12 @@ class TimelineViewModelImpl(
 
     override val reportMessageStack = reportMessageRouter.stack
 
-    // TODO should be router
-    private val sendAttachmentNavigation = StackNavigation<Config>()
-    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> =
-        childStack(
-            source = sendAttachmentNavigation,
-            serializer = null,
-            initialConfiguration = Config.None,
-            handleBackButton = true,
-            childFactory = ::createChild,
-            key = "sendAttachmentRouter",
+    private val sendAttachmentRouter =
+        SendAttachmentRouterImpl(
+            viewModelContext = viewModelContext.childContext("SendAttachmentRouter"),
+            roomId = roomId,
         )
-
-    private fun createChild(config: Config, componentContext: ComponentContext): Wrapper =
-        when (config) {
-            is Config.None -> Wrapper.None
-            is Config.SendAttachmentView ->
-                Wrapper.View(
-                    get<SendAttachmentViewModelFactory>()
-                        .create(
-                            viewModelContext = childContext("SendAttachmentView", componentContext),
-                            file = config.file,
-                            selectedRoomId = roomId,
-                            onCloseAttachmentSendView = ::closeAttachmentSendView,
-                        )
-                )
-        }
+    override val sendAttachmentStack: Value<ChildStack<Config, Wrapper>> = sendAttachmentRouter.stack
 
     init {
         outerScope.removeMarkAsUnread()
@@ -746,17 +724,12 @@ class TimelineViewModelImpl(
     }
 
     private fun onShowAttachmentSendView(file: FileDescriptor) {
-        sendAttachmentNavigation.launchPush(coroutineScope, Config.SendAttachmentView(file))
+        coroutineScope.launch { sendAttachmentRouter.showAttachmentSendView(file) }
     }
 
     private fun onShowReportMessageModal(roomId: RoomId, eventId: EventId) = coroutineScope.launch {
         log.debug { "report to message $eventId" }
         reportMessageRouter.showReportMessage(roomId, eventId)
-    }
-
-    private fun closeAttachmentSendView() {
-        sendAttachmentNavigation.launchPopWhile(coroutineScope) { it !is Config.None }
-        jumpToEndOfTimeline()
     }
 
     private fun onMessageReplace(roomId: RoomId, eventId: EventId) {
@@ -839,6 +812,8 @@ class TimelineViewModelImpl(
             .distinctUntilChanged()
             .shareIn(coroutineScope, WhileSubscribed(), replay = 1)
 
+    private val jumpMutex = Mutex()
+
     /**
      * Update the timeline elements and scroll to the bottom if a new event has been added and we were at the bottom of
      * the timeline
@@ -912,45 +887,52 @@ class TimelineViewModelImpl(
                         // We don't sroll/mark as read when the UI has changed the visible elements during the
                         // calculation
                         if (timelineStateChange != null && visibleElements.first() == currentVisibleElements) {
-                            log.trace { "finished load more timeline events after" }
+                            // This mutex ensures, that this and jumpTo don't conflict. When calling jumpTo we have to
+                            // wait for it to finish completely, before executing this code, as wasAtEndOfTimeline is
+                            // dependant on _scrollTo
+                            jumpMutex.withLock {
+                                log.trace { "finished load more timeline events after" }
 
-                            val previousLastElement = timelineStateChange.elementsBeforeChange.last()
-                            val addedElementsAtEnd =
-                                timelineStateChange.addedElements.isNotEmpty() &&
-                                    timelineStateChange.elementsAfterChange.any { it.key == previousLastElement.key } &&
-                                    previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
+                                val previousLastElement = timelineStateChange.elementsBeforeChange.last()
+                                val addedElementsAtEnd =
+                                    timelineStateChange.addedElements.isNotEmpty() &&
+                                        timelineStateChange.elementsAfterChange.any {
+                                            it.key == previousLastElement.key
+                                        } &&
+                                        previousLastElement.key != timelineStateChange.elementsAfterChange.last().key
 
-                            val wasAtEndOfTimeline =
-                                timelineStateChange.elementsBeforeChange.last().key ==
-                                    (_scrollTo.value ?: lastVisibleTimelineElement?.key) &&
-                                    lastVisibleTimelineElement != null
+                                val wasAtEndOfTimeline =
+                                    timelineStateChange.elementsBeforeChange.last().key ==
+                                        (_scrollTo.value ?: lastVisibleTimelineElement?.key) &&
+                                        lastVisibleTimelineElement != null
 
-                            val outboxIsEmpty = (elements.lastOrNull() as? OutboxElementHolderViewModel) == null
+                                val outboxIsEmpty = (elements.lastOrNull() as? OutboxElementHolderViewModel) == null
 
-                            if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
-                                val newLastEvent = timelineStateChange.addedElements.last().key
+                                if (addedElementsAtEnd && wasAtEndOfTimeline && outboxIsEmpty) {
+                                    val newLastEvent = timelineStateChange.addedElements.last().key
 
-                                val currentReadEvent = readEvent.value
-                                log.trace {
-                                    "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent"
+                                    val currentReadEvent = readEvent.value
+                                    log.trace {
+                                        "lastVisibleTimelineEvent=${lastVisibleTimelineElement.key} currentReadEvent=$currentReadEvent newLastEvent=$newLastEvent"
+                                    }
+                                    log.debug {
+                                        "new timeline events has been added at the end of timeline -> mark as fully read"
+                                    }
+                                    // wait for new element be part of the StateFlows (used by markAsRead)
+                                    this@TimelineViewModelImpl.elements.first { holder ->
+                                        holder.any { it.key == newLastEvent }
+                                    }
+                                    markAsRead(newLastEvent)
+
+                                    log.debug {
+                                        "new timeline events has been added at the end of timeline, scroll to end of timeline"
+                                    }
+                                    // This should not be jumpToEndOfTimelineSuspending as it could cause a reinit of
+                                    // the
+                                    // timeline
+                                    jumpToKey(newLastEvent)
                                 }
-                                log.debug {
-                                    "new timeline events has been added at the end of timeline -> mark as fully read"
-                                }
-                                // wait for new element be part of the StateFlows (used by markAsRead)
-                                this@TimelineViewModelImpl.elements.first { holder ->
-                                    holder.any { it.key == newLastEvent }
-                                }
-                                markAsRead(newLastEvent)
-
-                                log.debug {
-                                    "new timeline events has been added at the end of timeline, scroll to end of timeline"
-                                }
-                                // This should not be jumpToEndOfTimelineSuspending as it could cause a reinit of the
-                                // timeline
-                                jumpToKey(newLastEvent)
                             }
-
                             if (visibleTimelineSize > timelineMaxSize && !isInBufferBefore) {
                                 log.debug { "drop timeline events before" }
                                 val dropBeforeElement = timelineElements[config.timelineBuffer]
@@ -965,8 +947,6 @@ class TimelineViewModelImpl(
                 .collect()
         }
     }
-
-    private val jumpMutex = Mutex()
 
     private suspend fun jumpToEndOfTimelineSuspending() {
         // This is needed here, so that jumpTo and this cannot be called concurrently causing init issues
@@ -1187,7 +1167,7 @@ class PreviewTimelineViewModel : TimelineViewModel {
     override val viewState: MutableStateFlow<TimelineViewModel.ViewState?> = MutableStateFlow(null)
     override val canLoadBefore: StateFlow<Boolean?> = MutableStateFlow(null)
     override val canLoadAfter: StateFlow<Boolean?> = MutableStateFlow(null)
-    override val scrollTo: Flow<String> = MutableSharedFlow()
+    override val scrollTo: StateFlow<String?> = MutableStateFlow(null)
     override val isDirect: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val roomHeaderViewModel: RoomHeaderViewModel = PreviewRoomHeaderViewModel()

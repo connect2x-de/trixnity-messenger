@@ -13,13 +13,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI,INTERNAL: Provide WithProfileSelection via koin
+- SDK,INTERNAL: Separate Uia logic from UiaRouter
+- SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
 
+- UI: Don't show verification twice on account setup
+- SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
+
 ### Security
+
+## v4.6.1
+
+### Fixed
+
+- UI: Made typing indicator in timeline not focusable using keyboard navigation
+- UI: Timeline-jump issues related to replied elements
+- SDK: Fix rendering of "null" in redactions
+- SDK,UI: Fixed Timeline not loading when closing room settings
 
 ## v4.6.0
 

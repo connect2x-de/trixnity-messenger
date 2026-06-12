@@ -24,9 +24,58 @@ import de.connect2x.trixnity.messenger.viewmodel.RootViewModel
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelectionKt")
 
+interface WithProfileSelectionView {
+    @Composable
+    fun create(
+        matrixMultiMessenger: MatrixMultiMessenger,
+        componentContext: ComponentContext,
+        activeMessengerOnce: (MatrixMessenger, RootViewModel) -> Unit,
+        activeMessenger: @Composable (MatrixMessenger, RootViewModel) -> Unit,
+        nonActiveMessenger: @Composable (Map<String, MatrixMultiMessengerProfileSettings>) -> Unit,
+    )
+}
+
+@Composable
+fun WithProfileSelection(
+    matrixMultiMessenger: MatrixMultiMessenger,
+    componentContext: ComponentContext,
+    activeMessengerOnce: (MatrixMessenger, RootViewModel) -> Unit,
+    activeMessenger: @Composable (MatrixMessenger, RootViewModel) -> Unit,
+    nonActiveMessenger: @Composable (Map<String, MatrixMultiMessengerProfileSettings>) -> Unit,
+) {
+    matrixMultiMessenger.di
+        .get<WithProfileSelectionView>()
+        .create(
+            matrixMultiMessenger = matrixMultiMessenger,
+            componentContext = componentContext,
+            activeMessengerOnce = activeMessengerOnce,
+            activeMessenger = activeMessenger,
+            nonActiveMessenger = nonActiveMessenger,
+        )
+}
+
+class WithProfileSelectionViewImpl : WithProfileSelectionView {
+    @Composable
+    override fun create(
+        matrixMultiMessenger: MatrixMultiMessenger,
+        componentContext: ComponentContext,
+        activeMessengerOnce: (MatrixMessenger, RootViewModel) -> Unit,
+        activeMessenger: @Composable (MatrixMessenger, RootViewModel) -> Unit,
+        nonActiveMessenger: @Composable (Map<String, MatrixMultiMessengerProfileSettings>) -> Unit,
+    ) {
+        WithProfileSelectionContent(
+            matrixMultiMessenger = matrixMultiMessenger,
+            componentContext = componentContext,
+            activeMessengerOnce = activeMessengerOnce,
+            activeMessenger = activeMessenger,
+            nonActiveMessenger = nonActiveMessenger,
+        )
+    }
+}
+
 @OptIn(InternalDecomposeApi::class)
 @Composable
-internal fun rememberRootViewModel(
+private fun rememberRootViewModel(
     matrixMessenger: MatrixMessenger?,
     deviceLifecycle: Lifecycle,
     backHandler: BackHandler? = null,
@@ -46,7 +95,7 @@ internal fun rememberRootViewModel(
 }
 
 @Composable
-fun WithProfileSelection(
+private fun WithProfileSelectionContent(
     matrixMultiMessenger: MatrixMultiMessenger,
     componentContext: ComponentContext,
     activeMessengerOnce: (MatrixMessenger, RootViewModel) -> Unit,

@@ -40,108 +40,128 @@ import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationViewMo
 fun BoxScope.DeviceVerificationWizardStepSwitch(viewModel: VerificationViewModel) {
     val i18n = DI.get<I18nView>()
     val selectedVerificationMethod = remember { mutableStateOf<VerificationMethod?>(null) }
-    val childState = viewModel.stack.subscribeAsState()
-    val step =
-        WizardStep(
-            id = "DEVICE_VERIFICATION_WIZARD",
-            title = { i18n.deviceVerification() },
-            content = {
-                when (val child = childState.value.active.instance) {
-                    is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
-                    is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
-                    is Wrapper.SelectVerificationMethod ->
-                        DeviceVerificationWizardSelectVerificationMethod(child.viewModel, selectedVerificationMethod)
+    val wizardSteps =
+        remember(viewModel, i18n, selectedVerificationMethod) {
+            listOf(
+                WizardStep(
+                    id = "DEVICE_VERIFICATION_WIZARD",
+                    title = { i18n.deviceVerification() },
+                    content = {
+                        val childState = viewModel.stack.subscribeAsState()
 
-                    is Wrapper.AcceptSasStart -> DeviceVerificationWizardAcceptSasStart()
-                    is Wrapper.CompareEmojisOrNumbers -> DeviceVerificationWizardCompareEmojisOrNumbers(child.viewModel)
-                    is Wrapper.Success -> DeviceVerificationWizardSuccess()
+                        when (val child = childState.value.active.instance) {
+                            is Wrapper.Request -> DeviceVerificationWizardRequest(child.viewModel)
+                            is Wrapper.Wait -> DeviceVerificationWizardWaitForOther()
+                            is Wrapper.SelectVerificationMethod ->
+                                DeviceVerificationWizardSelectVerificationMethod(
+                                    child.viewModel,
+                                    selectedVerificationMethod,
+                                )
 
-                    is Wrapper.Rejected -> DeviceVerificationWizardRejected()
-                    is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
-                    is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
-                    // not applicable for device verifications
-                    is Wrapper.AcceptedByOtherClient -> Unit
-                    is Wrapper.None -> Unit
-                }
-            },
-            nextButton = {
-                Custom {
-                    when (val child = childState.value.active.instance) {
-                        is Wrapper.Request ->
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                onClick = child.viewModel::next,
-                            ) {
-                                Text(i18n.commonNext().capitalize(Locale.current))
-                            }
+                            is Wrapper.AcceptSasStart -> DeviceVerificationWizardAcceptSasStart()
+                            is Wrapper.CompareEmojisOrNumbers ->
+                                DeviceVerificationWizardCompareEmojisOrNumbers(child.viewModel)
+                            is Wrapper.Success -> DeviceVerificationWizardSuccess()
 
-                        is Wrapper.CompareEmojisOrNumbers ->
-                            ThemedButton(
-                                style = MaterialTheme.components.primaryButton,
-                                onClick = child.viewModel::accept,
-                                modifier = Modifier.weight(1.0f, fill = false),
-                            ) {
-                                Text(i18n.verificationMatch())
-                            }
-
-                        else -> {}
-                    }
-                }
-            },
-            additionalButton = {
-                when (val child = childState.value.active.instance) {
-                    is Wrapper.Wait ->
-                        ThemedButton(style = MaterialTheme.components.primaryButton, onClick = { viewModel.cancel() }) {
-                            Text(i18n.commonCancel())
+                            is Wrapper.Rejected -> DeviceVerificationWizardRejected()
+                            is Wrapper.Timeout -> DeviceVerificationWizardTimeout()
+                            is Wrapper.Cancelled -> DeviceVerificationWizardCancelled()
+                            // not applicable for device verifications
+                            is Wrapper.AcceptedByOtherClient -> Unit
+                            is Wrapper.None -> Unit
                         }
+                    },
+                    nextButton = {
+                        Custom {
+                            val childState = viewModel.stack.subscribeAsState()
 
-                    is Wrapper.SelectVerificationMethod -> {
-                        OkButton {
-                            selectedVerificationMethod.value?.let { child.viewModel.acceptVerificationMethod(it) }
+                            when (val child = childState.value.active.instance) {
+                                is Wrapper.Request ->
+                                    ThemedButton(
+                                        style = MaterialTheme.components.primaryButton,
+                                        onClick = child.viewModel::next,
+                                    ) {
+                                        Text(i18n.commonNext().capitalize(Locale.current))
+                                    }
+
+                                is Wrapper.CompareEmojisOrNumbers ->
+                                    ThemedButton(
+                                        style = MaterialTheme.components.primaryButton,
+                                        onClick = child.viewModel::accept,
+                                        modifier = Modifier.weight(1.0f, fill = false),
+                                    ) {
+                                        Text(i18n.verificationMatch())
+                                    }
+
+                                else -> {}
+                            }
                         }
-                    }
+                    },
+                    additionalButton = {
+                        val childState = viewModel.stack.subscribeAsState()
 
-                    is Wrapper.AcceptSasStart -> {
-                        OkButton(child.viewModel::accept)
-                    }
+                        when (val child = childState.value.active.instance) {
+                            is Wrapper.Wait ->
+                                ThemedButton(
+                                    style = MaterialTheme.components.primaryButton,
+                                    onClick = { viewModel.cancel() },
+                                ) {
+                                    Text(i18n.commonCancel())
+                                }
 
-                    is Wrapper.Success -> {
-                        OkButton(child.viewModel::ok)
-                    }
-
-                    is Wrapper.Rejected -> {
-                        OkButton(child.viewModel::ok)
-                    }
-
-                    is Wrapper.Timeout -> {
-                        OkButton(child.viewModel::ok)
-                    }
-
-                    is Wrapper.Cancelled -> {
-                        OkButton(child.viewModel::ok)
-                    }
-
-                    else -> Unit
-                }
-            },
-            backButton = {
-                Custom {
-                    when (val child = childState.value.active.instance) {
-                        is Wrapper.CompareEmojisOrNumbers ->
-                            ThemedButton(
-                                style = MaterialTheme.components.destructiveButton,
-                                onClick = child.viewModel::decline,
-                                modifier = Modifier.weight(1.0f, fill = false),
-                            ) {
-                                Text(i18n.verificationNotMatch())
+                            is Wrapper.SelectVerificationMethod -> {
+                                OkButton {
+                                    selectedVerificationMethod.value?.let {
+                                        child.viewModel.acceptVerificationMethod(it)
+                                    }
+                                }
                             }
 
-                        else -> Unit
-                    }
-                }
-            },
-        )
-    Wizard(listOf(step), wizardId = "DeviceVerificationWizardStep")
+                            is Wrapper.AcceptSasStart -> {
+                                OkButton(child.viewModel::accept)
+                            }
+
+                            is Wrapper.Success -> {
+                                OkButton(child.viewModel::ok)
+                            }
+
+                            is Wrapper.Rejected -> {
+                                OkButton(child.viewModel::ok)
+                            }
+
+                            is Wrapper.Timeout -> {
+                                OkButton(child.viewModel::ok)
+                            }
+
+                            is Wrapper.Cancelled -> {
+                                OkButton(child.viewModel::ok)
+                            }
+
+                            else -> Unit
+                        }
+                    },
+                    backButton = {
+                        Custom {
+                            val childState = viewModel.stack.subscribeAsState()
+
+                            when (val child = childState.value.active.instance) {
+                                is Wrapper.CompareEmojisOrNumbers ->
+                                    ThemedButton(
+                                        style = MaterialTheme.components.destructiveButton,
+                                        onClick = child.viewModel::decline,
+                                        modifier = Modifier.weight(1.0f, fill = false),
+                                    ) {
+                                        Text(i18n.verificationNotMatch())
+                                    }
+
+                                else -> Unit
+                            }
+                        }
+                    },
+                )
+            )
+        }
+    Wizard(wizardSteps = wizardSteps, wizardId = "DeviceVerificationWizardStep")
 }
 
 @Composable
