@@ -22,6 +22,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -1002,6 +1003,139 @@ class InputAreaViewModelTest {
         delay(300.milliseconds)
 
         verify { audioRecorder.complete() }
+    }
+
+    @Test
+    fun `room mention » should add entry in list of potential mentions if power level is matched`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("@", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
+                listOf("@room")
+        }
+
+        cut.textField.update("@roo", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
+                listOf("@room")
+        }
+    }
+
+    @Test
+    fun `room mention » should not be shown in list of potential mentions if power level too low`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("@", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
+                emptyList()
+        }
+
+        cut.textField.update("@roo", 5..5)
+
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
+                emptyList()
+        }
+    }
+
+    @Test
+    fun `room mention » set room mention property to true`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("@room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+
+        // mentions.room property should be set to true
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+    }
+
+    @Test
+    fun `room mention » should not set room mention property if incorrect format`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("living@room.mail.com", 20..20)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+
+        cut.textField.update("@room123", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+
+        cut.textField.update("bath@room hello", 9..9)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+    }
+
+    @Test
+    fun `room mention » should not set room mention property to true when power level too low`() = runTest {
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+
+        cut.textField.update("@room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
     }
 
     private fun roomUser(userId: UserId, name: String) =

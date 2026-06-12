@@ -10,6 +10,7 @@ import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
+import de.connect2x.trixnity.core.model.events.m.Mentions
 import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -126,9 +127,38 @@ class RoomMessageTimelineElementViewModelTest {
         cut.mentionsInBody[7..23]?.value shouldBe TimelineElementMention.Room(roomInfoElement)
     }
 
+    @Test
+    fun `mentions » isCurrentUserMentioned should be true if the user was directly mentioned`() = runTest {
+        val mentions = Mentions(setOf(meUserId))
+        val cut = roomMessageTimelineElementViewModel(body = "Yo, how is it going $meUserId", mentions = mentions)
+        delay(300.milliseconds)
+        cut.isCurrentUserMentioned shouldBe true
+    }
+
+    @Test
+    fun `mentions » isCurrentUserMentioned should be true if the user was mentioned through a room mention`() =
+        runTest {
+            val mentions = Mentions(room = true)
+            val cut =
+                roomMessageTimelineElementViewModel(
+                    body = "@room Listen up, I have an important announcement to make!",
+                    mentions = mentions,
+                )
+            delay(300.milliseconds)
+            cut.isCurrentUserMentioned shouldBe true
+        }
+
+    @Test
+    fun `mention » isCurrentUserMentioned should be false if the user was not mentioned`() = runTest {
+        val cut = roomMessageTimelineElementViewModel(body = "Is anybody here?")
+        delay(300.milliseconds)
+        cut.isCurrentUserMentioned shouldBe false
+    }
+
     private fun TestScope.roomMessageTimelineElementViewModel(
         body: String = "Amazing Message!",
         formattedBody: String? = null,
+        mentions: Mentions? = null,
     ): RoomMessageTimelineElementViewModel<*> {
         return TextRoomMessageTimelineElementViewModelImpl(
             viewModelContext =
@@ -140,7 +170,7 @@ class RoomMessageTimelineElementViewModelTest {
                             .koin,
                     userId = meUserId,
                 ),
-            content = RoomMessageEventContent.TextBased.Text(body, formattedBody = formattedBody),
+            content = RoomMessageEventContent.TextBased.Text(body, formattedBody = formattedBody, mentions = mentions),
             roomId = roomId,
             onOpenMention = { _, _ -> },
         )
