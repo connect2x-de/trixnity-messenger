@@ -13,6 +13,7 @@ import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
@@ -24,6 +25,7 @@ import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -122,6 +124,21 @@ class InputAreaViewModelTest {
 
     var draftMessage: MutableStateFlow<RoomOutboxMessage<*>?> = MutableStateFlow(null)
 
+    val powerLevel = flowOf(PowerLevel.User(0L))
+    var step = 1L
+    val powerLevelEventContent =
+        MutableStateFlow(
+            StateEvent(
+                content = PowerLevelsEventContent(),
+                id = EventId("eventId"),
+                sender = aliceUserId,
+                roomId = roomId,
+                originTimestamp = step * 100,
+                unsigned = null,
+                stateKey = "",
+            )
+        )
+
     init {
         resetMocks(
             matrixClientMock,
@@ -179,6 +196,7 @@ class InputAreaViewModelTest {
         every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
         every { userServiceMock.getById(roomId, alvinUserId) } returns MutableStateFlow(alvinRoomUser)
         every { userServiceMock.getById(roomId, alvin2UserId) } returns MutableStateFlow(alvin2RoomUser)
+        every { userServiceMock.getPowerLevel(any(), any()) } returns powerLevel
         every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
         every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
@@ -204,6 +222,7 @@ class InputAreaViewModelTest {
                 "0"
             }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
+        every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns powerLevelEventContent
 
         every { audioRecordingAreaViewModelFactory.create(any(), any(), any(), any(), any()) } returns
             audioRecordingArea
@@ -457,12 +476,16 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Al", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
@@ -478,7 +501,8 @@ class InputAreaViewModelTest {
             cut.textField.update("Hello! @al", IntRange(10, 10))
 
             eventually(300.milliseconds) {
-                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+                cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                    listOf(aliceUserId, alvinUserId)
             }
         }
 
@@ -499,7 +523,10 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello!\n\nThis is great.\n@Zoo", IntRange(30, 30))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -510,12 +537,14 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @", IntRange(8, 8))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId, alvinUserId, zoopUserId)
         }
         cut.textField.update("Hello! \n\n@", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId, alvinUserId, zoopUserId)
         }
     }
 
@@ -526,11 +555,17 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
+        }
 
         cut.textField.update("Hello! @another", IntRange(15, 15))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -540,11 +575,17 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @ce and @Zoop", IntRange(10, 10)) // search in name
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) // search in userId
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -558,21 +599,31 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(11, 11))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello!\n @Ali it goes on...", IntRange(12, 12))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello!\n @Ali @Zoo it goes on...", IntRange(17, 17))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -598,7 +649,8 @@ class InputAreaViewModelTest {
 
         eventually(300.milliseconds) {
             cut.listOfMentionsLoading.value shouldBe false
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
+                listOf(zoopUserId)
         }
     }
 
@@ -611,25 +663,25 @@ class InputAreaViewModelTest {
         cut.textField.update("@Ali", IntRange(4, 4))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe aliceUserId.full
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello! ${aliceUserId.full}"
 
         cut.textField.update("Hello! @Ali something more", IntRange(11, 11))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello! ${aliceUserId.full} something more"
 
         cut.textField.update("Hello!\n\nHola.\n@Ali something more", IntRange(18, 18))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello!\n\nHola.\n${aliceUserId.full} something more"
     }
 
@@ -641,14 +693,14 @@ class InputAreaViewModelTest {
         cut.textField.update("@Ali @Zo @Alv", IntRange(8, 8))
 
         delay(50.milliseconds)
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali ${zoopUserId.full} @Alv" }
 
         cut.textField.update("@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv", IntRange(20, 20))
 
         delay(50.milliseconds)
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) {
             cut.textField.textValue shouldBe "@Ali\n @Ali\n @Ali ${zoopUserId.full} @Alv\n @Alv"
@@ -662,7 +714,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("@Ali Zo Alv", IntRange(7, 7))
 
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali Zo Alv" }
     }
@@ -855,7 +907,8 @@ class InputAreaViewModelTest {
         cut.textField.update("@", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldContainOnly
+                listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("@", 0..0)
@@ -871,7 +924,8 @@ class InputAreaViewModelTest {
         cut.textField.update("Allu @", 6..6)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldContainOnly
+                listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("Allu @", 5..5)
