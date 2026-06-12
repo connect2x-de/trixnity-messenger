@@ -136,10 +136,9 @@ class JoinRoomActionViewModelImpl(
                                 if (allowConditionsRooms?.isNotEmpty() ?: false) {
                                     val allowConditionRoomsAliases =
                                         allowConditionsRooms
-                                            .map {
+                                            .mapNotNull {
                                                 matrixClient.api.room.getSummary(it).getOrNull()?.canonicalAlias
                                             }
-                                            .filterNotNull()
                                             .toSet()
                                     log.debug {
                                         "Room $roomId is restricted, showing rooms $allowConditionRoomsAliases as precondition"
