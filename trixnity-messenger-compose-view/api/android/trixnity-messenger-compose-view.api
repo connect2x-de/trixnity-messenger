@@ -1295,6 +1295,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun joinRoomActionKnockSuccess ()Ljava/lang/String;
 	public fun joinRoomActionNotFound ()Ljava/lang/String;
 	public fun joinRoomActionRestricted (Ljava/util/Set;)Ljava/lang/String;
+	public fun joinRoomActionRestrictedNoRoomInfoAvailable ()Ljava/lang/String;
 	public fun joinRuleInvited ()Ljava/lang/String;
 	public fun joinRuleInvitedExplanation ()Ljava/lang/String;
 	public fun joinRuleKnock ()Ljava/lang/String;

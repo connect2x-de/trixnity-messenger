@@ -5123,7 +5123,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/J
 	public abstract fun isLoading ()Lkotlinx/coroutines/flow/StateFlow;
 }
 
-public abstract class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$AcceptInvitation : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
@@ -13218,6 +13218,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/RoomTopic$Defa
 public class de/connect2x/trixnity/messenger/viewmodel/util/RoomTopicImpl : de/connect2x/trixnity/messenger/viewmodel/util/RoomTopic {
 	public fun <init> ()V
 	public fun getRoomTopic-RNkTX0s (Ljava/lang/String;Lde/connect2x/trixnity/client/MatrixClient;Z)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/SyncStateUtilsKt {
+	public static final fun hasConnection (Lde/connect2x/trixnity/clientserverapi/client/SyncState;)Z
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/TypingInfoKt {
