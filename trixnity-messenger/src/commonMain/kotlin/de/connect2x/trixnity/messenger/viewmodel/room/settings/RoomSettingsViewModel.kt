@@ -12,6 +12,7 @@ import de.connect2x.trixnity.messenger.util.LeaveRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import de.connect2x.trixnity.messenger.viewmodel.util.hasConnection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -233,7 +234,7 @@ class RoomSettingsViewModelImpl(
 
     override fun forgetRoom() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value != SyncState.RUNNING) {
+            if (!matrixClient.syncState.value.hasConnection()) {
                 error.value = i18n.forgetRoomErrorOffline()
                 return@launch
             }

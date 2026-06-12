@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.room
 
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.clientserverapi.client.SyncState
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
@@ -15,6 +15,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.Jo
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.JoinRoomAction.NotFound
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.JoinRoomAction.Private
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel.JoinRoomAction.Restricted
+import de.connect2x.trixnity.messenger.viewmodel.util.hasConnection
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -45,18 +46,18 @@ interface JoinRoomActionViewModel {
     val onDismiss: () -> Unit
     val isLoading: StateFlow<Boolean>
 
-    sealed class JoinRoomAction {
-        data class Join(val onJoinRoom: () -> Unit) : JoinRoomAction()
+    sealed interface JoinRoomAction {
+        data class Join(val onJoinRoom: () -> Unit) : JoinRoomAction
 
-        data class Knock(val onKnock: () -> Unit, val hasKnocked: StateFlow<Boolean?>) : JoinRoomAction()
+        data class Knock(val onKnock: () -> Unit, val hasKnocked: StateFlow<Boolean?>) : JoinRoomAction
 
-        data class Restricted(val requiredRooms: Set<RoomId>) : JoinRoomAction()
+        data class Restricted(val requiredRooms: Set<RoomAliasId>) : JoinRoomAction
 
-        data class AcceptInvitation(val onAcceptInvite: () -> Unit) : JoinRoomAction()
+        data class AcceptInvitation(val onAcceptInvite: () -> Unit) : JoinRoomAction
 
-        data object Private : JoinRoomAction()
+        data object Private : JoinRoomAction
 
-        data object NotFound : JoinRoomAction()
+        data object NotFound : JoinRoomAction
     }
 }
 
@@ -96,7 +97,9 @@ class JoinRoomActionViewModelImpl(
                                 ?.map { it.roomId }
                                 ?.toSet()
                     } else {
-                        matrixClient.api.room.getSummary(roomId).getOrNull()?.let { it.joinRule to it.allowedRoomIds }
+                        matrixClient.api.room.getSummary(roomId, via).getOrNull()?.let {
+                            it.joinRule to it.allowedRoomIds
+                        }
                     }
                 },
             ) { membership, joinRule ->
@@ -131,10 +134,17 @@ class JoinRoomActionViewModelImpl(
                             JoinRulesEventContent.JoinRule.Restricted -> {
                                 val allowConditionsRooms = joinRule.second
                                 if (allowConditionsRooms?.isNotEmpty() ?: false) {
+                                    val allowConditionRoomsAliases =
+                                        allowConditionsRooms
+                                            .map {
+                                                matrixClient.api.room.getSummary(it).getOrNull()?.canonicalAlias
+                                            }
+                                            .filterNotNull()
+                                            .toSet()
                                     log.debug {
-                                        "Room $roomId is restricted, showing rooms $allowConditionsRooms as precondition"
+                                        "Room $roomId is restricted, showing rooms $allowConditionRoomsAliases as precondition"
                                     }
-                                    Restricted(allowConditionsRooms)
+                                    Restricted(allowConditionRoomsAliases)
                                 } else {
                                     log.debug {
                                         "Room $roomId is restricted, but there are no rooms as conditions, showing private action"
@@ -176,7 +186,7 @@ class JoinRoomActionViewModelImpl(
         coroutineScope.launch {
             joinActionMutex.withLock {
                 _isLoading.value = true
-                if (matrixClient.syncState.value != SyncState.RUNNING) {
+                if (!matrixClient.syncState.value.hasConnection()) {
                     log.debug { "try to join room while not connected" }
                     _error.value = i18n.joinRoomConfirmJoinOffline()
                 } else {
@@ -200,7 +210,7 @@ class JoinRoomActionViewModelImpl(
         coroutineScope.launch {
             joinActionMutex.withLock {
                 _isLoading.value = true
-                if (matrixClient.syncState.value != SyncState.RUNNING) {
+                if (!matrixClient.syncState.value.hasConnection()) {
                     log.debug { "try to knock on room while not connected" }
                     _error.value = i18n.joinRoomConfirmJoinOffline()
                 } else {

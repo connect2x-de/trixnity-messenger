@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
-import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -3673,11 +3673,16 @@ open class I18nView(
             "Die Beitrittsanfrage war erfolgreich. Der Raum wird geöffnet, sobald die Anfrage akzeptiert wurde. Andernfalls können Sie das Öffnen später erneut versuchen. "
     }
 
-    open fun joinRoomActionRestricted(requiredRooms: Set<RoomId>) = translate {
+    open fun joinRoomActionRestricted(requiredRooms: Set<RoomAliasId>) = translate {
         EN -
-            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}"
+            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}."
         DE -
-            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()} "
+            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()}."
+    }
+
+    open fun joinRoomActionRestrictedNoRoomInfoAvailable() = translate {
+        EN - "Without an invitation you need to be a member of another room."
+        DE - "Um ohne eine Einladung beizutreten, müssen Sie bereits Mitglied eines anderen Raumes sein."
     }
 
     open fun joinRoomActionAcceptInvite() = translate {

@@ -10,6 +10,7 @@ import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
 import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.model.room.GetSummary
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent
@@ -165,11 +166,33 @@ class JoinRoomActionViewModelTest {
             JoinRule.Restricted,
             getJoinRuleViaSummary = true,
             allowRooms = setOf(restrictedRoom1, restrictedRoom2),
+            additionalMocks = {
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom1) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias1"),
+                        )
+                    )
+                everySuspend { roomApiClientMock.getSummary(restrictedRoom2) } returns
+                    Result.success(
+                        GetSummary.Response(
+                            roomId = restrictedRoom1,
+                            guestCanJoin = false,
+                            joinedMembersCount = 1,
+                            worldReadable = false,
+                            canonicalAlias = RoomAliasId("NeedToJoinAlias2"),
+                        )
+                    )
+            },
         ) {
             eventually(2.seconds) {
                 val value = it.actionNecessary.value
                 value.shouldBeInstanceOf<JoinRoomActionViewModel.JoinRoomAction.Restricted>()
-                value.requiredRooms shouldBe setOf(restrictedRoom1, restrictedRoom2)
+                value.requiredRooms shouldBe setOf(RoomAliasId("NeedToJoinAlias1"), RoomAliasId("NeedToJoinAlias2"))
             }
         }
     }
@@ -290,7 +313,7 @@ class JoinRoomActionViewModelTest {
         onOpenRoom: (RoomId) -> Unit = {},
         expectedResult: suspend (JoinRoomActionViewModel) -> Unit,
     ) {
-        every { roomServiceMock.getById(any()) } returns
+        every { roomServiceMock.getById(room) } returns
             (membership?.map { Room(room, membership = it) } ?: flowOf(null))
         every { roomServiceMock.getState<JoinRulesEventContent>(room, any(), any()) } returns
             if (joinRule != null && !getJoinRuleViaSummary) {
@@ -317,7 +340,7 @@ class JoinRoomActionViewModelTest {
                 flowOf(null)
             }
         if (getJoinRuleViaSummary) {
-            everySuspend { roomApiClientMock.getSummary(any<RoomId>(), any()) } returns
+            everySuspend { roomApiClientMock.getSummary(room, any()) } returns
                 if (joinRule != null) {
                     Result.success(
                         GetSummary.Response(

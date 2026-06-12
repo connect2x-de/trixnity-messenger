@@ -80,7 +80,8 @@ class JoinRoomActionViewImpl : JoinRoomActionView {
 
                     is JoinRoomActionViewModel.JoinRoomAction.Restricted ->
                         JoinRoomActionOverview(
-                            i18n.joinRoomActionRestricted(action.requiredRooms),
+                            if (action.requiredRooms.isNotEmpty()) i18n.joinRoomActionRestricted(action.requiredRooms)
+                            else i18n.joinRoomActionRestrictedNoRoomInfoAvailable(),
                             error,
                             isLoading,
                             onDismiss = viewModel.onDismiss,

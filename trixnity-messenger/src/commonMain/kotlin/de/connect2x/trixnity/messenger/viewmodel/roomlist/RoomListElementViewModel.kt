@@ -43,6 +43,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.RoomPresence
 import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTimestamp
+import de.connect2x.trixnity.messenger.viewmodel.util.hasConnection
 import de.connect2x.trixnity.messenger.viewmodel.util.previewImageByteArray
 import de.connect2x.trixnity.messenger.viewmodel.util.typingInfo
 import kotlin.time.Clock
@@ -326,7 +327,7 @@ open class RoomListElementViewModelImpl(
 
     override fun unknock() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value != SyncState.RUNNING) {
+            if (!matrixClient.syncState.value.hasConnection()) {
                 log.debug { "try to reject room invitation while not connected" }
                 error.value = i18n.roomListKnockOffline()
                 return@launch
@@ -343,7 +344,7 @@ open class RoomListElementViewModelImpl(
 
     override fun acceptInvitation() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value == SyncState.ERROR) {
+            if (!matrixClient.syncState.value.hasConnection()) {
                 log.debug { "try to join room while not connected" }
                 error.value = i18n.roomListInvitationOffline()
             } else {
@@ -399,7 +400,7 @@ open class RoomListElementViewModelImpl(
 
     override fun forgetRoom() {
         coroutineScope.launch {
-            if (matrixClient.syncState.value != SyncState.RUNNING) {
+            if (!matrixClient.syncState.value.hasConnection()) {
                 error.value = i18n.forgetRoomErrorOffline()
                 return@launch
             }
