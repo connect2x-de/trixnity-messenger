@@ -1,7 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
+import com.arkivanov.essenty.lifecycle.Lifecycle
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.clientserverapi.model.server.profileFields
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.multi.ProfileManager
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.FileDescriptor
@@ -9,8 +13,8 @@ import de.connect2x.trixnity.messenger.util.getOrNull
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.matrixClients
-import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -19,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
@@ -103,19 +108,15 @@ class AccountsViewModelImpl(
     init {
         registerBackCallback(backCallback)
         accountSingleViewModels =
-            matrixClients
-                .scopedMapLatest { matrixClients ->
-                    matrixClients.map { (userId, _) ->
-                        this@AccountsViewModelImpl.get<AccountSingleViewModelFactory>()
-                            .create(
-                                viewModelContext.childContext("account-settings-${userId.full}", userId),
-                                userId,
-                                error,
-                                showAccountSetup = { onShowAccountSetup(userId) },
-                                removeAccount = { onRemoveAccount(userId) },
-                            )
-                    }
-                }
+            AccountSingleViewModels(
+                    parentContext = viewModelContext.childContext("AccountSingleViewModels"),
+                    matrixClients = matrixClients,
+                    error = error,
+                    accountSingleViewModelFactory = get(),
+                    showAccountSetup = onShowAccountSetup,
+                    removeAccount = onRemoveAccount,
+                )
+                .viewModels()
                 .stateIn(coroutineScope, WhileSubscribed(), emptyList())
 
         openAvatarCutter =
@@ -156,5 +157,57 @@ class AccountsViewModelImpl(
 
     override fun setMultiProfileEnabled(enabled: Boolean) {
         coroutineScope.launch { profileManager?.setMultiProfileEnabled(enabled) }
+    }
+}
+
+private class AccountSingleViewModels(
+    private val parentContext: ViewModelContext,
+    private val matrixClients: MatrixClients,
+    private val error: MutableStateFlow<String?>,
+    private val accountSingleViewModelFactory: AccountSingleViewModelFactory,
+    private val showAccountSetup: (UserId) -> Unit,
+    private val removeAccount: (UserId) -> Unit,
+) {
+
+    fun viewModels(): Flow<List<AccountSingleViewModel>> {
+        return matrixClients
+            .map { clients -> clients.keys }
+            .scan(emptyMap<UserId, Entry>()) { entries, userIds -> entries.reconcileWith(userIds) }
+            .map { entries -> entries.values.map(Entry::viewModel) }
+    }
+
+    private fun Map<UserId, Entry>.reconcileWith(currentUserIds: Set<UserId>): Map<UserId, Entry> {
+        val removedUserIds = keys - currentUserIds
+
+        removedUserIds.forEach { userId -> getValue(userId).destroy() }
+
+        return currentUserIds.associateWith { userId -> this[userId] ?: createEntry(userId) }
+    }
+
+    private fun createEntry(userId: UserId): Entry {
+        val lifecycle = LifecycleRegistry(initialState = Lifecycle.State.STARTED)
+
+        return Entry(lifecycle = lifecycle, viewModel = createViewModel(userId = userId, lifecycle = lifecycle))
+    }
+
+    private fun createViewModel(userId: UserId, lifecycle: Lifecycle): AccountSingleViewModel {
+        return accountSingleViewModelFactory.create(
+            viewModelContext =
+                parentContext.childContextWithOwnLifecycle(
+                    name = "account-settings-${userId.full}",
+                    lifecycle = lifecycle,
+                    userId = userId,
+                ),
+            userId = userId,
+            error = error,
+            showAccountSetup = { showAccountSetup(userId) },
+            removeAccount = { removeAccount(userId) },
+        )
+    }
+
+    private data class Entry(val lifecycle: LifecycleRegistry, val viewModel: AccountSingleViewModel) {
+        fun destroy() {
+            lifecycle.destroy()
+        }
     }
 }

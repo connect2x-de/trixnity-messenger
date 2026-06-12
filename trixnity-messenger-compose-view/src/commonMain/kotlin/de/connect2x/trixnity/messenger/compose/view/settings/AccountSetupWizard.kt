@@ -101,7 +101,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
     val additionalAccountSetupWizardStep = DI.get<AdditionalAccountSetupWizardStep>()
     val setupSteps = DI.get<AccountSetupWizardStepList>().steps
     val wizardSteps =
-        remember(viewModel, setupSteps, i18n) {
+        remember(viewModel, additionalAccountSetupWizardStep, setupSteps, i18n) {
             setupSteps.map {
                 when (it) {
                     is AccountSetupWizardStep.ExplanationStep -> wizardStepExplanation(viewModel, it, i18n)
@@ -120,7 +120,7 @@ fun AccountSetupWizard(showAccountBootstrapWrapper: Wrapper.ShowAccountSetup) {
                 }
             }
         }
-    Wizard(wizardSteps, useDefaultBackHandler = true, wizardId = "AccountSetupWizard")
+    Wizard(wizardSteps = wizardSteps, useDefaultBackHandler = true, wizardId = "AccountSetupWizard")
 }
 
 private fun wizardStepExplanation(

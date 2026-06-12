@@ -11,11 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- UI,INTERNAL: Provide WithProfileSelection via koin
+- SDK,INTERNAL: Separate Uia logic from UiaRouter
+- SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
+
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- UI: Don't show verification twice on account setup
+- SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
 
 ### Security
 
