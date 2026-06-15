@@ -466,7 +466,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! at")
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -477,20 +477,22 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Al", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId, alvinUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
         }
 
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -502,8 +504,9 @@ class InputAreaViewModelTest {
             cut.textField.update("Hello! @al", IntRange(10, 10))
 
             eventually(300.milliseconds) {
-                cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                    listOf(aliceUserId, alvinUserId)
+                cut.suggestedMentions.value
+                    ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                    ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
             }
         }
 
@@ -514,7 +517,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -525,8 +528,9 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello!\n\nThis is great.\n@Zoo", IntRange(30, 30))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -538,14 +542,16 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @", IntRange(8, 8))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
         }
         cut.textField.update("Hello! \n\n@", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
         }
     }
 
@@ -557,15 +563,17 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
 
         cut.textField.update("Hello! @another", IntRange(15, 15))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -577,15 +585,17 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @ce and @Zoop", IntRange(10, 10)) // search in name
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
         }
 
         cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) // search in userId
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -596,34 +606,38 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Ali it goes on...")
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(11, 11))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
         }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId, alvinUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello!\n @Ali it goes on...", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(aliceUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
         }
 
         cut.textField.update("Hello!\n @Ali @Zoo it goes on...", IntRange(17, 17))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -642,16 +656,17 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
         eventually(300.milliseconds) {
-            cut.listOfMentionsLoading.value shouldBe true
-            cut.listOfMentions.value shouldBe null
+            cut.suggestedMentionsLoading.value shouldBe true
+            cut.suggestedMentions.value shouldBe null
         }
 
         roomUsers.emit(mapOf(zoopUserId to flowOf(zoopRoomUser)))
 
         eventually(300.milliseconds) {
-            cut.listOfMentionsLoading.value shouldBe false
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldBe
-                listOf(zoopUserId)
+            cut.suggestedMentionsLoading.value shouldBe false
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -908,13 +923,14 @@ class InputAreaViewModelTest {
         cut.textField.update("@", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldContainOnly
-                listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("@", 0..0)
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -925,13 +941,14 @@ class InputAreaViewModelTest {
         cut.textField.update("Allu @", 6..6)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { (it as MentionElement.User).user }?.map { it.userId } shouldContainOnly
-                listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("Allu @", 5..5)
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -1016,15 +1033,17 @@ class InputAreaViewModelTest {
         cut.textField.update("@", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
-                listOf("@room")
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe listOf("@room")
         }
 
         cut.textField.update("@roo", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
-                listOf("@room")
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe listOf("@room")
         }
     }
 
@@ -1036,20 +1055,22 @@ class InputAreaViewModelTest {
         cut.textField.update("@", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
-                emptyList()
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe emptyList()
         }
 
         cut.textField.update("@roo", 5..5)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.filterIsInstance<MentionElement.AllRoomMembers>()?.map { it.id } shouldBe
-                emptyList()
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe emptyList()
         }
     }
 
     @Test
-    fun `room mention » set room mention property to true`() = runTest {
+    fun `room mention » set room mention property to true if format is correct`() = runTest {
         val powerLevel = PowerLevel.User(50L)
         every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
 
@@ -1070,8 +1091,24 @@ class InputAreaViewModelTest {
         cut.textField.update("@room", 6..6)
         delay(300.milliseconds)
         cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
 
-        // mentions.room property should be set to true
+        cut.textField.update("Hi everyone @room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+
+        cut.textField.update("@room I greet you all", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+
+        cut.textField.update("Hello @room I hope you all have a great day!", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
         delay(300.milliseconds)
         capturedContent?.mentions?.room shouldBe true
     }
@@ -1186,6 +1223,6 @@ class InputAreaViewModelTest {
         launch { cut.showAttachmentSelectDialog.collect() }
         launch { cut.isReplace.collect() }
         launch { cut.isReply.collect() }
-        launch { cut.listOfMentions.collect() }
+        launch { cut.suggestedMentions.collect() }
     }
 }
