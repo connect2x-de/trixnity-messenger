@@ -92,7 +92,6 @@ import de.connect2x.trixnity.messenger.compose.view.theme.messengerIcons
 import de.connect2x.trixnity.messenger.compose.view.util.inputFocusNavigation
 import de.connect2x.trixnity.messenger.media.AudioRecorder
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.InputAreaViewModel
-import de.connect2x.trixnity.messenger.viewmodel.room.timeline.MentionElement
 import kotlin.math.abs
 import okio.FileSystem
 
@@ -216,8 +215,8 @@ class InputAreaViewImpl : InputAreaView {
 
 @Composable
 fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRequester) {
-    val loading = inputAreaViewModel.listOfMentionsLoading.collectAsState().value
-    val listOfMentions = inputAreaViewModel.listOfMentions.collectAsState().value
+    val loading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
+    val listOfMentions = inputAreaViewModel.suggestedMentions.collectAsState().value
     val scrollState = rememberScrollState()
     val i18n = DI.get<I18nView>()
     val onMentionClicked: (String) -> Unit = { id ->
@@ -233,10 +232,10 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
                 Column(Modifier.verticalScroll(scrollState).fillMaxWidth()) {
                     listOfMentions.orEmpty().forEach { mentionElement ->
                         when (mentionElement) {
-                            is MentionElement.User ->
+                            is InputAreaViewModel.SuggestedMention.User ->
                                 UserSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
 
-                            is MentionElement.AllRoomMembers ->
+                            is InputAreaViewModel.SuggestedMention.AllRoomMembers ->
                                 RoomSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
                         }
                     }
@@ -248,8 +247,8 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
 }
 
 @Composable
-fun UserSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I18nView) {
-    val userInfoElement = (mentionElement as MentionElement.User).user
+fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+    val userInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.User).user
     val avatar = userInfoElement.image?.collectAsState(null)?.value
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -258,13 +257,13 @@ fun UserSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I
         ThemedUserAvatar(userInfoElement.initials, avatar)
         Spacer(Modifier.size(5.dp))
         Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
-        Text(" (${mentionElement.id})", style = MaterialTheme.typography.bodyMedium)
+        Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
-fun RoomSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I18nView) {
-    val roomInfoElement = (mentionElement as MentionElement.AllRoomMembers).room
+fun RoomSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+    val roomInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.AllRoomMembers).room
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
@@ -272,7 +271,7 @@ fun RoomSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I
         ThemedUserAvatar(roomInfoElement.roomImageInitials, roomInfoElement.roomImage)
         Spacer(Modifier.size(5.dp))
         Text(i18n.allRoomMembers(), style = MaterialTheme.typography.bodyLarge)
-        Text(" (${mentionElement.id})", style = MaterialTheme.typography.bodyMedium)
+        Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
     }
 }
 

@@ -245,7 +245,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                 mapOf()
                             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                                 MutableStateFlow(mapOf())
-                            override val isCurrentUserMentioned: Boolean = false
+                            override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
                         }
@@ -261,7 +261,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                 mapOf()
                             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                                 MutableStateFlow(mapOf())
-                            override val isCurrentUserMentioned: Boolean = false
+                            override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
                         }
@@ -277,7 +277,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                 mapOf()
                             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                                 MutableStateFlow(mapOf())
-                            override val isCurrentUserMentioned: Boolean = false
+                            override val isMentioned: Boolean = false
 
                             override fun openMention(mention: TimelineElementMention) {}
                         }
@@ -296,7 +296,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                         override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                         override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                             MutableStateFlow(mapOf())
-                        override val isCurrentUserMentioned: Boolean = false
+                        override val isMentioned: Boolean = false
 
                         override fun openMention(mention: TimelineElementMention) {}
                     }

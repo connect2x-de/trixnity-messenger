@@ -56,7 +56,7 @@ class TypingIndicatorViewImpl : TypingIndicatorView {
                     holder = NoopHolder,
                     needsMaxWidth = false,
                     isPreview = true, // removes the action menu
-                    isCurrentUserMentioned = false,
+                    isMentioned = false,
                     index = -1,
                 ) {
                     val style = MaterialTheme.typography.titleLarge

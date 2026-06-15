@@ -118,4 +118,6 @@ class RedactedTimelineElementViewModelImpl(
 
     override val reason: StateFlow<String?> =
         flow { emit(redactionData.await()?.reason) }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val isMentioned: Boolean = false
 }

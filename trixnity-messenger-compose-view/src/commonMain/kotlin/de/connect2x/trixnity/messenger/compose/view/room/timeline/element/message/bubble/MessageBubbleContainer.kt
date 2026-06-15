@@ -50,7 +50,7 @@ fun MessageBubbleContainer(
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     isPreview: Boolean,
-    isCurrentUserMentioned: Boolean,
+    isMentioned: Boolean,
     interactionSource: MutableInteractionSource,
     index: Int,
     onRedact: () -> Unit,
@@ -74,7 +74,7 @@ fun MessageBubbleContainer(
             else -> MaterialTheme.components.messageBubbleOther
         }
     val messageBorder =
-        if (!holder.isByMe && isCurrentUserMentioned) {
+        if (!holder.isByMe && isMentioned) {
             Modifier.border(
                     2.dp,
                     lerp(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary, 0.4f),

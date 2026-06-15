@@ -50,6 +50,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.utils.concurrentMutableMap
+import kotlin.collections.filterIsInstance
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -156,18 +157,6 @@ interface InputAreaViewModelFactory {
     companion object : InputAreaViewModelFactory
 }
 
-sealed interface MentionElement {
-    val id: String
-
-    data class User(val user: UserInfoElement) : MentionElement {
-        override val id: String = user.userId.full
-    }
-
-    data class AllRoomMembers(val room: RoomInfoElement) : MentionElement {
-        override val id = "@room"
-    }
-}
-
 interface InputAreaViewModel {
     val isAllowedToSendMessages: StateFlow<Boolean>
     val textField: TextFieldViewModel
@@ -177,10 +166,16 @@ interface InputAreaViewModel {
     val isReplace: StateFlow<Boolean>
     val isReply: StateFlow<Boolean>
     val repliedElement: StateFlow<TimelineElementHolderViewModel?>
-    val listOfMentions: StateFlow<List<MentionElement>?>
+    @Deprecated("use suggestedMentions instead", ReplaceWith("suggestedMentions"))
+    val listOfMentions: StateFlow<List<UserInfoElement>?>
+    val suggestedMentions: StateFlow<List<SuggestedMention>?>
+    @Deprecated("use suggestedMentionsLoading instead", ReplaceWith("suggestedMentionsLoading"))
     val listOfMentionsLoading: StateFlow<Boolean>
+    val suggestedMentionsLoading: StateFlow<Boolean>
     val useMarkdown: StateFlow<Boolean>
     val audio: AudioRecordingAreaViewModel
+
+    @Deprecated("use selectionMention with id instead") fun selectMention(userId: UserId) {}
 
     fun selectMention(id: String)
 
@@ -199,9 +194,21 @@ interface InputAreaViewModel {
     fun replyMessage(roomId: RoomId, eventId: EventId)
 
     fun cancelReply()
+
+    sealed interface SuggestedMention {
+        val id: String
+
+        data class User(val user: UserInfoElement) : SuggestedMention {
+            override val id: String = user.userId.full
+        }
+
+        data class AllRoomMembers(val room: RoomInfoElement) : SuggestedMention {
+            override val id = "@room"
+        }
+    }
 }
 
-const val roomMentionPattern = "(?<!\\S)@room(?!\\S)"
+private val roomMentionRegex = "(?<!\\S)@room(?!\\S)".toRegex()
 
 @OptIn(FlowPreview::class)
 open class InputAreaViewModelImpl(
@@ -245,6 +252,8 @@ open class InputAreaViewModelImpl(
         currentReply.map { it != null }.stateIn(coroutineScope, WhileSubscribed(), false)
     private val _listOfMentionsLoading = MutableStateFlow(false)
     override val listOfMentionsLoading: StateFlow<Boolean> = _listOfMentionsLoading.asStateFlow()
+    private val _suggestedMentionsLoading = MutableStateFlow(false)
+    override val suggestedMentionsLoading: StateFlow<Boolean> = _suggestedMentionsLoading.asStateFlow()
 
     private val draftMessage: Flow<RoomOutboxMessage<*>?> = matrixClient.room.getDraftMessage(roomId)
     private val draftMutex: Mutex = Mutex()
@@ -332,19 +341,30 @@ open class InputAreaViewModelImpl(
         override fun printHtml(html: CharSequence): CharSequence = html
     }
 
-    override val listOfMentions: StateFlow<List<MentionElement>?> =
+    override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> =
         textField
             .map { textFieldValue ->
                 val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
                 if (idLocalPartBeforeCursor != null) {
-                    _listOfMentionsLoading.value = true
-                    val listOfMentions = mutableListOf<MentionElement>()
-                    val listOfUsers = listOfUsers(idLocalPartBeforeCursor)
-                    listOfMentions.addAll(listOfUsers)
-                    getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { listOfMentions.add(it) }
-                    _listOfMentionsLoading.value = false
+                    _suggestedMentionsLoading.value = true
+                    val listOfMentions = buildList {
+                        addAll(listOfUsers(idLocalPartBeforeCursor))
+                        getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
+                    }
+                    _suggestedMentionsLoading.value = false
                     listOfMentions
                 } else null
+            }
+            .stateIn(coroutineScope, WhileSubscribed(), null)
+
+    override val listOfMentions: StateFlow<List<UserInfoElement>?> =
+        suggestedMentions
+            .map { mentions ->
+                _listOfMentionsLoading.value = true
+                val listOfMentions =
+                    mentions?.filterIsInstance<InputAreaViewModel.SuggestedMention.User>()?.map { it.user }
+                _listOfMentionsLoading.value = false
+                listOfMentions
             }
             .stateIn(coroutineScope, WhileSubscribed(), null)
 
@@ -429,7 +449,7 @@ open class InputAreaViewModelImpl(
     private suspend fun getTextMessageBuilder(text: String): (suspend MessageBuilder.() -> Unit) {
         val references = TrixnityReference.findReferences(text)
         val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
-        val hasRoomMention = roomMentionPattern.toRegex().containsMatchIn(text)
+        val hasRoomMention = roomMentionRegex.containsMatchIn(text)
         val roomMentionEnabled = canRoomMention.value == true && hasRoomMention
         val formattedReferences =
             references
@@ -493,7 +513,7 @@ open class InputAreaViewModelImpl(
     }
 
     override fun selectMention(id: String) {
-        if (listOfMentions.value?.any { it.id == id } != true) return
+        if (suggestedMentions.value?.any { it.id == id } != true) return
         val textFieldValue = textField.value
         val (text, selection) = textFieldValue
         val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
@@ -671,7 +691,7 @@ open class InputAreaViewModelImpl(
 
     private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
-    private suspend fun listOfUsers(search: String): List<MentionElement.User> {
+    private suspend fun listOfUsers(search: String): List<InputAreaViewModel.SuggestedMention.User> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
         return allUsers.entries
             .asFlow()
@@ -688,7 +708,7 @@ open class InputAreaViewModelImpl(
             .map { roomUser ->
                 roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxMediaSizeInMemory)
             }
-            .map { userInfoElement -> MentionElement.User(userInfoElement) }
+            .map { userInfoElement -> InputAreaViewModel.SuggestedMention.User(userInfoElement) }
             .toList()
     }
 
@@ -719,7 +739,7 @@ open class InputAreaViewModelImpl(
     private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
     private val defaultRoomNotificationPowerLevel = 50L
     private val requiredRoomMentionPowerLevel =
-        matrixClient.room.getState(roomId, PowerLevelsEventContent::class).filterNotNull().map { powerLevelEvent ->
+        matrixClient.room.getState<PowerLevelsEventContent>(roomId).filterNotNull().map { powerLevelEvent ->
             powerLevelEvent.content.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
         }
 
@@ -730,15 +750,14 @@ open class InputAreaViewModelImpl(
                     is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
                 }
             }
-            .stateIn(coroutineScope, SharingStarted.Lazily, null)
+            .stateIn(coroutineScope, Eagerly, null)
 
-    private suspend fun getRoomMentionIfAllowed(search: String): MentionElement.AllRoomMembers? {
-        val isAllowed = canRoomMention.filterNotNull().first()
+    private suspend fun getRoomMentionIfAllowed(search: String): InputAreaViewModel.SuggestedMention.AllRoomMembers? {
         if (canRoomMention.value == false) return null
 
         val roomInfo = roomInfoElement.filterNotNull().first()
         return roomInfoElement.value
-            ?.let { MentionElement.AllRoomMembers(it) }
+            ?.let { InputAreaViewModel.SuggestedMention.AllRoomMembers(it) }
             ?.takeIf { it.id.contains(search, ignoreCase = true) }
     }
 
@@ -786,8 +805,11 @@ class PreviewInputAreaViewModel : InputAreaViewModel {
     override val isReplace: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val repliedElement: StateFlow<TimelineElementHolderViewModel?> = MutableStateFlow(null)
     override val isReply: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val listOfMentions: MutableStateFlow<List<MentionElement>?> = MutableStateFlow(null)
-    override val listOfMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val listOfMentions: MutableStateFlow<List<UserInfoElement>> = MutableStateFlow(emptyList())
+    override val suggestedMentions: MutableStateFlow<List<InputAreaViewModel.SuggestedMention>?> =
+        MutableStateFlow(null)
+    override val listOfMentionsLoading: StateFlow<Boolean> = MutableStateFlow(false)
+    override val suggestedMentionsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val useMarkdown: StateFlow<Boolean> = MutableStateFlow(true)
     override val audio: AudioRecordingAreaViewModel = PreviewAudioRecordingAreaViewModel()
 

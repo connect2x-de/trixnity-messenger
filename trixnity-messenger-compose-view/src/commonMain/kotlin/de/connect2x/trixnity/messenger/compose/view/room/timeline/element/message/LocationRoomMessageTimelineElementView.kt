@@ -85,7 +85,7 @@ fun LocationMessageElement(
         holder,
         needsMaxWidth = false,
         isPreview = isPreview,
-        isCurrentUserMentioned = false,
+        isMentioned = false,
         index = index,
     ) { showMenuAction ->
         // on Desktop and Web, it makes sense to select text and copy it;

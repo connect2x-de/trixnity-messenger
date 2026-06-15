@@ -10,6 +10,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -62,4 +63,6 @@ class VerificationCancelTimelineElementViewModelImpl(
             Code.MismatchedSas -> i18n.userVerificationNoMatch()
             else -> i18n.commonCancelled().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }
+
+    override val isMentioned: Boolean = content.isUserMentioned(userId)
 }

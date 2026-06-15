@@ -53,7 +53,7 @@ fun TextMessageBubblePreview() {
             override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(mapOf())
-            override val isCurrentUserMentioned = false
+            override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
         }
@@ -114,7 +114,7 @@ fun ImageMessageBubblePreview() {
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(emptyMap())
-            override val isCurrentUserMentioned = false
+            override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
         }
@@ -168,7 +168,7 @@ fun FileMessageBubblePreview() {
             override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention?>> = emptyMap()
             override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                 MutableStateFlow(emptyMap())
-            override val isCurrentUserMentioned = false
+            override val isMentioned = false
 
             override fun openMention(mention: TimelineElementMention) {}
         }

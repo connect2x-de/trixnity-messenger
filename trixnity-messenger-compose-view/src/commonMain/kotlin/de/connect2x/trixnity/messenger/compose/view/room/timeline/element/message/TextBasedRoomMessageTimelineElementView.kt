@@ -50,7 +50,7 @@ fun TextBasedRoomMessageTimelineElementView(
         holder,
         needsMaxWidth = false,
         isPreview = isPreview,
-        isCurrentUserMentioned = element.isCurrentUserMentioned,
+        isMentioned = element.isMentioned,
         index = index,
     ) { showActionMenu ->
         TextRoomMessageTimelineElementView(holder, element, showActionMenu)

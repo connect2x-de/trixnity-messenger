@@ -128,31 +128,30 @@ class RoomMessageTimelineElementViewModelTest {
     }
 
     @Test
-    fun `mentions » isCurrentUserMentioned should be true if the user was directly mentioned`() = runTest {
+    fun `mentions » isMentioned should be true if the user was directly mentioned`() = runTest {
         val mentions = Mentions(setOf(meUserId))
         val cut = roomMessageTimelineElementViewModel(body = "Yo, how is it going $meUserId", mentions = mentions)
         delay(300.milliseconds)
-        cut.isCurrentUserMentioned shouldBe true
+        cut.isMentioned shouldBe true
     }
 
     @Test
-    fun `mentions » isCurrentUserMentioned should be true if the user was mentioned through a room mention`() =
-        runTest {
-            val mentions = Mentions(room = true)
-            val cut =
-                roomMessageTimelineElementViewModel(
-                    body = "@room Listen up, I have an important announcement to make!",
-                    mentions = mentions,
-                )
-            delay(300.milliseconds)
-            cut.isCurrentUserMentioned shouldBe true
-        }
+    fun `mentions » isMentioned should be true if the user was mentioned through a room mention`() = runTest {
+        val mentions = Mentions(room = true)
+        val cut =
+            roomMessageTimelineElementViewModel(
+                body = "@room Listen up, I have an important announcement to make!",
+                mentions = mentions,
+            )
+        delay(300.milliseconds)
+        cut.isMentioned shouldBe true
+    }
 
     @Test
-    fun `mention » isCurrentUserMentioned should be false if the user was not mentioned`() = runTest {
+    fun `mention » isMentioned should be false if the user was not mentioned`() = runTest {
         val cut = roomMessageTimelineElementViewModel(body = "Is anybody here?")
         delay(300.milliseconds)
-        cut.isCurrentUserMentioned shouldBe false
+        cut.isMentioned shouldBe false
     }
 
     private fun TestScope.roomMessageTimelineElementViewModel(

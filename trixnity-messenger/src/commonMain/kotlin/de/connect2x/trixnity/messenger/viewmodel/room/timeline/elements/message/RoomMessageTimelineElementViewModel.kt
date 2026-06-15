@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -48,9 +49,6 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
 
     /** Users, Events and Room mentioned in the event's formatted body */
     val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>>
-
-    /** Indicates if the current user is mentioned in the message via ID or a room mention */
-    val isCurrentUserMentioned: Boolean
 
     /** Open the mention in the UI */
     fun openMention(mention: TimelineElementMention)
@@ -169,8 +167,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
     val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
-    val isCurrentUserMentioned: Boolean =
-        content.mentions?.let { mentions -> mentions.users?.contains(userId) == true || mentions.room == true } ?: false
+    val isMentioned: Boolean = content.isUserMentioned(userId)
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

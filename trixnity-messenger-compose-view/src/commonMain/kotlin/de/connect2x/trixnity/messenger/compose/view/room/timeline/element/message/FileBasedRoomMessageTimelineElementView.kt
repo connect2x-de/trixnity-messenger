@@ -134,7 +134,7 @@ fun FileBasedRoomMessageTimelineElementMessageBubble(
             }
         },
         isPreview = isPreview,
-        isCurrentUserMentioned = false,
+        isMentioned = false,
         index = index,
     ) { showActionMenu ->
         Column {
