@@ -170,9 +170,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
 
     val isCurrentUserMentioned: Boolean =
-        content.mentions?.let { mentions ->
-            mentions.users?.contains(userId) == true || mentions.room == true
-        } ?: false
+        content.mentions?.let { mentions -> mentions.users?.contains(userId) == true || mentions.room == true } ?: false
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

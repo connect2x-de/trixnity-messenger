@@ -248,11 +248,7 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
 }
 
 @Composable
-fun UserSelectorRow(
-    mentionElement: MentionElement,
-    onClick: () -> Unit,
-    i18n: I18nView,
-) {
+fun UserSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I18nView) {
     val userInfoElement = (mentionElement as MentionElement.User).user
     val avatar = userInfoElement.image?.collectAsState(null)?.value
     Row(
@@ -262,28 +258,18 @@ fun UserSelectorRow(
         ThemedUserAvatar(userInfoElement.initials, avatar)
         Spacer(Modifier.size(5.dp))
         Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
-        Text(
-            " (${mentionElement.id})",
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        Text(" (${mentionElement.id})", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
-fun RoomSelectorRow(
-    mentionElement: MentionElement,
-    onClick: () -> Unit,
-    i18n: I18nView,
-) {
+fun RoomSelectorRow(mentionElement: MentionElement, onClick: () -> Unit, i18n: I18nView) {
     val roomInfoElement = (mentionElement as MentionElement.AllRoomMembers).room
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
     ) {
-        ThemedUserAvatar(
-            roomInfoElement.roomImageInitials,
-            roomInfoElement.roomImage,
-        )
+        ThemedUserAvatar(roomInfoElement.roomImageInitials, roomInfoElement.roomImage)
         Spacer(Modifier.size(5.dp))
         Text(i18n.allRoomMembers(), style = MaterialTheme.typography.bodyLarge)
         Text(" (${mentionElement.id})", style = MaterialTheme.typography.bodyMedium)
