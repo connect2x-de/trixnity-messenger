@@ -2537,7 +2537,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Input
     abstract val isSendEnabled // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.isSendEnabled|{}isSendEnabled[0]
         abstract fun <get-isSendEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.isSendEnabled.<get-isSendEnabled>|<get-isSendEnabled>(){}[0]
     abstract val listOfMentions // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.listOfMentions|{}listOfMentions[0]
-        abstract fun <get-listOfMentions>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/UserInfoElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
+        abstract fun <get-listOfMentions>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
     abstract val listOfMentionsLoading // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.listOfMentionsLoading|{}listOfMentionsLoading[0]
         abstract fun <get-listOfMentionsLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.listOfMentionsLoading.<get-listOfMentionsLoading>|<get-listOfMentionsLoading>(){}[0]
     abstract val repliedElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.repliedElement|{}repliedElement[0]
@@ -2556,7 +2556,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Input
     abstract fun replaceMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.replaceMessage|replaceMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     abstract fun replyMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.replyMessage|replyMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     abstract fun selectAttachment() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.selectAttachment|selectAttachment(){}[0]
-    abstract fun selectMention(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.selectMention|selectMention(de.connect2x.trixnity.core.model.UserId){}[0]
+    abstract fun selectMention(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.selectMention|selectMention(kotlin.String){}[0]
     abstract fun sendMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModel.sendMessage|sendMessage(){}[0]
 }
 
@@ -4810,6 +4810,8 @@ sealed interface <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessage
         abstract fun <get-formattedBody>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.formattedBody.<get-formattedBody>|<get-formattedBody>(){}[0]
     abstract val formattedBodyContent // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.formattedBodyContent|{}formattedBodyContent[0]
         abstract fun <get-formattedBodyContent>(): de.connect2x.trixnity.messenger.util.html/HtmlNode.HtmlElement? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.formattedBodyContent.<get-formattedBodyContent>|<get-formattedBodyContent>(){}[0]
+    abstract val isCurrentUserMentioned // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.isCurrentUserMentioned|{}isCurrentUserMentioned[0]
+        abstract fun <get-isCurrentUserMentioned>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.isCurrentUserMentioned.<get-isCurrentUserMentioned>|<get-isCurrentUserMentioned>(){}[0]
     abstract val mentionsInBody // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.mentionsInBody|{}mentionsInBody[0]
         abstract fun <get-mentionsInBody>(): kotlin.collections/Map<kotlin.ranges/IntRange, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention?>> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.mentionsInBody.<get-mentionsInBody>|<get-mentionsInBody>(){}[0]
     abstract val mentionsInFormattedBody // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModel.mentionsInFormattedBody|{}mentionsInFormattedBody[0]
@@ -5482,6 +5484,41 @@ sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline.element
     }
 }
 
+sealed interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement|null[0]
+    abstract val id // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.id.<get-id>|<get-id>(){}[0]
+
+    final class AllRoomMembers : de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers|null[0]
+        constructor <init>(de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement){}[0]
+
+        final val id // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.id|{}id[0]
+            final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.id.<get-id>|<get-id>(){}[0]
+        final val room // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.room|{}room[0]
+            final fun <get-room>(): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.room.<get-room>|<get-room>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.component1|component1(){}[0]
+        final fun copy(de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement = ...): de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.copy|copy(de.connect2x.trixnity.messenger.viewmodel.RoomInfoElement){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.AllRoomMembers.toString|toString(){}[0]
+    }
+
+    final class User : de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement { // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User|null[0]
+        constructor <init>(de.connect2x.trixnity.messenger.viewmodel/UserInfoElement) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.UserInfoElement){}[0]
+
+        final val id // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.id|{}id[0]
+            final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.id.<get-id>|<get-id>(){}[0]
+        final val user // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.user|{}user[0]
+            final fun <get-user>(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.user.<get-user>|<get-user>(){}[0]
+
+        final fun component1(): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.component1|component1(){}[0]
+        final fun copy(de.connect2x.trixnity.messenger.viewmodel/UserInfoElement = ...): de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.copy|copy(de.connect2x.trixnity.messenger.viewmodel.UserInfoElement){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement.User.toString|toString(){}[0]
+    }
+}
+
 sealed interface de.connect2x.trixnity.messenger/MatrixClientInitializationException { // de.connect2x.trixnity.messenger/MatrixClientInitializationException|null[0]
     final class DatabaseAccessException : de.connect2x.trixnity.messenger/MatrixClientInitializationException, kotlin/RuntimeException { // de.connect2x.trixnity.messenger/MatrixClientInitializationException.DatabaseAccessException|null[0]
         constructor <init>(kotlin/String? = ...) // de.connect2x.trixnity.messenger/MatrixClientInitializationException.DatabaseAccessException.<init>|<init>(kotlin.String?){}[0]
@@ -5611,6 +5648,8 @@ abstract class <#A: de.connect2x.trixnity.core.model.events.m.room/RoomMessageEv
         final fun <get-formattedBody>(): kotlin/String? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.formattedBody.<get-formattedBody>|<get-formattedBody>(){}[0]
     final val formattedBodyContent // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.formattedBodyContent|{}formattedBodyContent[0]
         final fun <get-formattedBodyContent>(): de.connect2x.trixnity.messenger.util.html/HtmlNode.HtmlElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.formattedBodyContent.<get-formattedBodyContent>|<get-formattedBodyContent>(){}[0]
+    final val isCurrentUserMentioned // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.isCurrentUserMentioned|{}isCurrentUserMentioned[0]
+        final fun <get-isCurrentUserMentioned>(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.isCurrentUserMentioned.<get-isCurrentUserMentioned>|<get-isCurrentUserMentioned>(){}[0]
     final val mentionsInBody // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.mentionsInBody|{}mentionsInBody[0]
         final fun <get-mentionsInBody>(): kotlin.collections/Map<kotlin.ranges/IntRange, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention?>> // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.mentionsInBody.<get-mentionsInBody>|<get-mentionsInBody>(){}[0]
     final val mentionsInFormattedBody // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message/RoomMessageTimelineElementViewModelImpl.mentionsInFormattedBody|{}mentionsInFormattedBody[0]
@@ -9321,7 +9360,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInput
     final val isSendEnabled // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.isSendEnabled|{}isSendEnabled[0]
         final fun <get-isSendEnabled>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.isSendEnabled.<get-isSendEnabled>|<get-isSendEnabled>(){}[0]
     final val listOfMentions // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.listOfMentions|{}listOfMentions[0]
-        final fun <get-listOfMentions>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/UserInfoElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
+        final fun <get-listOfMentions>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
     final val listOfMentionsLoading // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.listOfMentionsLoading|{}listOfMentionsLoading[0]
         final fun <get-listOfMentionsLoading>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.listOfMentionsLoading.<get-listOfMentionsLoading>|<get-listOfMentionsLoading>(){}[0]
     final val repliedElement // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.repliedElement|{}repliedElement[0]
@@ -9340,7 +9379,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInput
     final fun replaceMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.replaceMessage|replaceMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     final fun replyMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.replyMessage|replyMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     final fun selectAttachment() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.selectAttachment|selectAttachment(){}[0]
-    final fun selectMention(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.selectMention|selectMention(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun selectMention(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.selectMention|selectMention(kotlin.String){}[0]
     final fun sendMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/PreviewInputAreaViewModel.sendMessage|sendMessage(){}[0]
 }
 
@@ -14410,7 +14449,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaView
     open val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.lifecycle|{}lifecycle[0]
         open fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
     open val listOfMentions // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.listOfMentions|{}listOfMentions[0]
-        open fun <get-listOfMentions>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/UserInfoElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
+        open fun <get-listOfMentions>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel.room.timeline/MentionElement>?> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.listOfMentions.<get-listOfMentions>|<get-listOfMentions>(){}[0]
     open val listOfMentionsLoading // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.listOfMentionsLoading|{}listOfMentionsLoading[0]
         open fun <get-listOfMentionsLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.listOfMentionsLoading.<get-listOfMentionsLoading>|<get-listOfMentionsLoading>(){}[0]
     open val log // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.log|{}log[0]
@@ -14447,7 +14486,7 @@ open class de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaView
     open fun replaceMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.replaceMessage|replaceMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     open fun replyMessage(de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.core.model/EventId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.replyMessage|replyMessage(de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.core.model.EventId){}[0]
     open fun selectAttachment() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.selectAttachment|selectAttachment(){}[0]
-    open fun selectMention(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.selectMention|selectMention(de.connect2x.trixnity.core.model.UserId){}[0]
+    open fun selectMention(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.selectMention|selectMention(kotlin.String){}[0]
     open fun sendMessage() // de.connect2x.trixnity.messenger.viewmodel.room.timeline/InputAreaViewModelImpl.sendMessage|sendMessage(){}[0]
 }
 
@@ -15794,6 +15833,9 @@ final object de.connect2x.trixnity.messenger.viewmodel.util/RoomInviterImpl : de
 final object de.connect2x.trixnity.messenger.viewmodel.util/RoomPresenceImpl : de.connect2x.trixnity.messenger.viewmodel.util/RoomPresence { // de.connect2x.trixnity.messenger.viewmodel.util/RoomPresenceImpl|null[0]
     final fun invoke(de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.core.model.events.m/Presence?> // de.connect2x.trixnity.messenger.viewmodel.util/RoomPresenceImpl.invoke|invoke(de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId){}[0]
 }
+
+final const val de.connect2x.trixnity.messenger.viewmodel.room.timeline/roomMentionPattern // de.connect2x.trixnity.messenger.viewmodel.room.timeline/roomMentionPattern|{}roomMentionPattern[0]
+    final fun <get-roomMentionPattern>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room.timeline/roomMentionPattern.<get-roomMentionPattern>|<get-roomMentionPattern>(){}[0]
 
 final val de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons // de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons|{}DefaultCopyMultiMessengerSingletons[0]
     final fun <get-DefaultCopyMultiMessengerSingletons>(): de.connect2x.trixnity.messenger.multi/CopyMultiMessengerSingletons // de.connect2x.trixnity.messenger.multi/DefaultCopyMultiMessengerSingletons.<get-DefaultCopyMultiMessengerSingletons>|<get-DefaultCopyMultiMessengerSingletons>(){}[0]
