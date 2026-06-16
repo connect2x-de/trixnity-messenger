@@ -57,7 +57,7 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
         val userList by blockedContactsSettingsViewModel.blockedContactsList.collectAsState()
         val i18n = DI.get<I18nView>()
         val state = rememberLazyListState()
-        val focusedItem = remember(userList) { mutableStateOf(userList.firstOrNull()?.userId) }
+        val focusedItem = remember(userList) { mutableStateOf(userList.firstOrNull()?.userId?.full) }
 
         Column {
             Header(blockedContactsSettingsViewModel::back, i18n.blockedContactsHeader())
@@ -108,17 +108,17 @@ class BlockedContactsSettingsViewImpl : BlockedContactsSettingsView {
                                 },
                             )
                         }
-                        items(userList, key = { value -> value.userId }) { user ->
+                        items(userList, key = { value -> value.userId.full }) { user ->
                             IgnoredUserListElement(
                                 user = user,
                                 i18n = i18n,
-                                isFocused = { focusedItem.value == user.userId },
-                                onFocus = { focusedItem.value = user.userId },
+                                isFocused = { focusedItem.value == user.userId.full },
+                                onFocus = { focusedItem.value = user.userId.full },
                             ) {
                                 val userListWithoutThisOne = userList.filter { it.userId != user.userId }
                                 blockedContactsSettingsViewModel.unblockContact(user.userId)
                                 if (userListWithoutThisOne.isEmpty()) return@IgnoredUserListElement
-                                focusedItem.value = userListWithoutThisOne[0].userId
+                                focusedItem.value = userListWithoutThisOne[0].userId.full
                             }
                         }
                     }
