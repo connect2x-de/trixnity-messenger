@@ -38,13 +38,7 @@ class EncryptedErrorTimelineElementViewImpl : EncryptedErrorTimelineElementView 
         element: EncryptedErrorTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = false,
-            isMentioned = false,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, isMentioned = false, index = index) { _ ->
             EncryptedMessageErrorElement()
         }
     }

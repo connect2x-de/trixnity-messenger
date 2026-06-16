@@ -46,13 +46,7 @@ class EncryptedWaitTimelineElementViewImpl : EncryptedWaitTimelineElementView {
         element: EncryptedWaitTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(
-            holder,
-            needsMaxWidth = false,
-            isPreview = false,
-            isMentioned = false,
-            index = index,
-        ) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, isMentioned = false, index = index) { _ ->
             EncryptedMessageWaitElement()
         }
     }

@@ -717,13 +717,7 @@ open class InputAreaViewModelImpl(
             .filterNotNull()
             .map { room ->
                 val roomName = room.name?.explicitName.orEmpty()
-                room.toRoomInfoElement(
-                    coroutineScope,
-                    initials,
-                    matrixClient,
-                    roomName,
-                    maxMediaSizeInMemory,
-                )
+                room.toRoomInfoElement(coroutineScope, initials, matrixClient, roomName, maxMediaSizeInMemory)
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
 
