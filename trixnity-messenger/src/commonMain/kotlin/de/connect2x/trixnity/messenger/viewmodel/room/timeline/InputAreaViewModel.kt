@@ -6,7 +6,6 @@ import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.arkivanov.essenty.lifecycle.start
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
@@ -43,9 +42,9 @@ import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.toRoomInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.toUserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
-import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
@@ -718,23 +717,15 @@ open class InputAreaViewModelImpl(
             .filterNotNull()
             .map { room ->
                 val roomName = room.name?.explicitName.orEmpty()
-                RoomInfoElement(
+                room.toRoomInfoElement(
+                    coroutineScope,
+                    initials,
+                    matrixClient,
                     roomName,
-                    roomId,
-                    initials.compute(roomName),
-                    room.avatarUrl?.let { fetchRoomThumbnail(it) },
+                    maxMediaSizeInMemory,
                 )
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
-
-    private suspend fun fetchRoomThumbnail(avatarUrl: String): ByteArray? {
-        val size = avatarSize().toLong()
-        return matrixClient.media
-            .getThumbnail(avatarUrl, size, size)
-            .onFailure { log.error(it) { "Cannot load room avatar." } }
-            .getOrNull()
-            ?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
-    }
 
     private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
     private val defaultRoomNotificationPowerLevel = 50L

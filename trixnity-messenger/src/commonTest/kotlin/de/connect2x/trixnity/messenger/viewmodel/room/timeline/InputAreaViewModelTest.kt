@@ -1053,6 +1053,7 @@ class InputAreaViewModelTest {
     fun `room mention » should not be shown in list of potential mentions if power level too low`() = runTest {
         val cut = inputAreaViewModel()
         subscribe(cut)
+        delay(300.milliseconds)
 
         cut.textField.update("@", 1..1)
 
@@ -1089,6 +1090,7 @@ class InputAreaViewModelTest {
 
         val cut = inputAreaViewModel()
         subscribe(cut)
+        delay(300.milliseconds)
 
         cut.textField.update("@room", 6..6)
         delay(300.milliseconds)
@@ -1133,6 +1135,7 @@ class InputAreaViewModelTest {
 
         val cut = inputAreaViewModel()
         subscribe(cut)
+        delay(300.milliseconds)
 
         cut.textField.update("living@room.mail.com", 20..20)
         delay(300.milliseconds)
@@ -1168,6 +1171,7 @@ class InputAreaViewModelTest {
 
         val cut = inputAreaViewModel()
         subscribe(cut)
+        delay(300.milliseconds)
 
         cut.textField.update("@room", 6..6)
         delay(300.milliseconds)
