@@ -450,7 +450,7 @@ open class InputAreaViewModelImpl(
         val references = TrixnityReference.findReferences(text)
         val userReferences = references.values.filterIsInstance<TrixnityReference.User>().map { it.userId }.toSet()
         val hasRoomMention = roomMentionRegex.containsMatchIn(text)
-        val roomMentionEnabled = canRoomMention.value == true && hasRoomMention
+        val roomMentionEnabled = canRoomMention.value && hasRoomMention
         val formattedReferences =
             references
                 .filterValues { it !is TrixnityReference.Link }
@@ -743,17 +743,17 @@ open class InputAreaViewModelImpl(
             powerLevelEvent.content.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
         }
 
-    private val canRoomMention: StateFlow<Boolean?> =
+    private val canRoomMention: StateFlow<Boolean> =
         combine(userPowerLevel, requiredRoomMentionPowerLevel) { userPowerLevel, requiredPowerLevel ->
                 when (userPowerLevel) {
                     is PowerLevel.Creator -> true
                     is PowerLevel.User -> userPowerLevel.level >= requiredPowerLevel
                 }
             }
-            .stateIn(coroutineScope, Eagerly, null)
+            .stateIn(coroutineScope, Eagerly, false)
 
     private suspend fun getRoomMentionIfAllowed(search: String): InputAreaViewModel.SuggestedMention.AllRoomMembers? {
-        if (canRoomMention.value == false) return null
+        if (!canRoomMention.value) return null
 
         val roomInfo = roomInfoElement.filterNotNull().first()
         return roomInfoElement.value

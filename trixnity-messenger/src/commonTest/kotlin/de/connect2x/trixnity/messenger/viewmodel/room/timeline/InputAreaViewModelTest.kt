@@ -7,6 +7,7 @@ import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.Room
@@ -223,7 +224,7 @@ class InputAreaViewModelTest {
                 "0"
             }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
-        every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, "") } returns powerLevelEventContent
+        every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, any()) } returns powerLevelEventContent
 
         every { audioRecordingAreaViewModelFactory.create(any(), any(), any(), any(), any()) } returns
             audioRecordingArea
@@ -1029,6 +1030,7 @@ class InputAreaViewModelTest {
 
         val cut = inputAreaViewModel()
         subscribe(cut)
+        delay(300.milliseconds)
 
         cut.textField.update("@", 1..1)
 
