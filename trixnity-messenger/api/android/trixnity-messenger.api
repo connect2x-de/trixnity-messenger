@@ -7538,6 +7538,8 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getListOfMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getRepliedElement ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getShowAttachmentSelectDialog ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSuggestedMentions ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getSuggestedMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getTextField ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public abstract fun getUseMarkdown ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun isAllowedToSendMessages ()Lkotlinx/coroutines/flow/StateFlow;
@@ -7549,7 +7551,40 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun replyMessage-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)V
 	public abstract fun selectAttachment ()V
 	public abstract fun selectMention (Ljava/lang/String;)V
+	public fun selectMention-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun sendMessage ()V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$DefaultImpls {
+	public static fun selectMention-dxpKhU0 (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Ljava/lang/String;)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention {
+	public abstract fun getId ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$AllRoomMembers : de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
+	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$AllRoomMembers;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$AllRoomMembers;Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$AllRoomMembers;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getId ()Ljava/lang/String;
+	public final fun getRoom ()Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$User : de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$User;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$User;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention$User;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getId ()Ljava/lang/String;
+	public final fun getUser ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModelFactory {
@@ -7594,6 +7629,8 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaVi
 	public fun getShowAttachmentSelectDialog ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getShowAttachmentSelectDialog ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getSuggestedMentions ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSuggestedMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public synthetic fun getTextField ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public fun getTextField ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModelImpl;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
@@ -7610,39 +7647,8 @@ public class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaVi
 	public fun replyMessage-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)V
 	public fun selectAttachment ()V
 	public fun selectMention (Ljava/lang/String;)V
+	public fun selectMention-dxpKhU0 (Ljava/lang/String;)V
 	public fun sendMessage ()V
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModelKt {
-	public static final field roomMentionPattern Ljava/lang/String;
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement {
-	public abstract fun getId ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$AllRoomMembers : de/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;)V
-	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
-	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$AllRoomMembers;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$AllRoomMembers;Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$AllRoomMembers;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getId ()Ljava/lang/String;
-	public final fun getRoom ()Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$User : de/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;)V
-	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
-	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$User;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$User;Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement$User;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getId ()Ljava/lang/String;
-	public final fun getUser ()Lde/connect2x/trixnity/messenger/viewmodel/UserInfoElement;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/OpenMediaType : java/lang/Enum {
@@ -7675,11 +7681,14 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Previ
 	public synthetic fun getHasShownAttachmentSelectDialog ()Lkotlinx/coroutines/flow/SharedFlow;
 	public fun getListOfMentions ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getListOfMentions ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getListOfMentionsLoading ()Lkotlinx/coroutines/flow/MutableStateFlow;
-	public synthetic fun getListOfMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getListOfMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getRepliedElement ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getShowAttachmentSelectDialog ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getShowAttachmentSelectDialog ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSuggestedMentions ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getSuggestedMentions ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSuggestedMentionsLoading ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getSuggestedMentionsLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public synthetic fun getTextField ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public fun getTextField ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModelImpl;
 	public fun getUseMarkdown ()Lkotlinx/coroutines/flow/StateFlow;
@@ -7696,6 +7705,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/Previ
 	public fun replyMessage-fAcV-K8 (Ljava/lang/String;Ljava/lang/String;)V
 	public fun selectAttachment ()V
 	public fun selectMention (Ljava/lang/String;)V
+	public fun selectMention-dxpKhU0 (Ljava/lang/String;)V
 	public fun sendMessage ()V
 }
 
@@ -8534,6 +8544,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
@@ -8779,6 +8790,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$Message : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel {
+	public abstract fun isMentioned ()Z
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel$State : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModel {
@@ -8809,6 +8821,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactorySelectorImpl$Companion {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelKt {
+	public static final fun isUserMentioned-f0dHyF0 (Lde/connect2x/trixnity/core/model/events/MessageEventContent;Ljava/lang/String;)Z
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/AudioRoomMessageTimelineElementViewModelFactory : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementViewModelFactory {
@@ -8896,6 +8912,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
@@ -8936,6 +8953,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
@@ -9063,7 +9081,6 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getFormattedBodyContent ()Lde/connect2x/trixnity/messenger/util/html/HtmlNode$HtmlElement;
 	public abstract fun getMentionsInBody ()Ljava/util/Map;
 	public abstract fun getMentionsInFormattedBody ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun isCurrentUserMentioned ()Z
 	public abstract fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 }
 
@@ -9169,7 +9186,7 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/el
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
-	public final fun isCurrentUserMentioned ()Z
+	public final fun isMentioned ()Z
 	public final fun openMention (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
@@ -9265,6 +9282,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun getVerificationStartedBy ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isMentioned ()Z
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }
 
@@ -9315,6 +9333,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun getVerificationStartedBy ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun isMentioned ()Z
 	public fun isOwn ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
 }

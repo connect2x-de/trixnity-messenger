@@ -2325,9 +2325,9 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/In
 	public static final fun InputArea (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun InputAreaTextField (Landroidx/compose/foundation/layout/RowScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/ui/focus/FocusRequester;Lde/connect2x/trixnity/messenger/compose/view/theme/components/InputAreaStyle;ZLandroidx/compose/runtime/Composer;II)V
 	public static final fun MentionSelector (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/ui/focus/FocusRequester;Landroidx/compose/runtime/Composer;I)V
-	public static final fun RoomSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/runtime/Composer;I)V
+	public static final fun RoomSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/runtime/Composer;I)V
 	public static final fun SendButton (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun UserSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/MentionElement;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/runtime/Composer;I)V
+	public static final fun UserSelectorRow (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/InputAreaViewModel$SuggestedMention;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/InputAreaView {
