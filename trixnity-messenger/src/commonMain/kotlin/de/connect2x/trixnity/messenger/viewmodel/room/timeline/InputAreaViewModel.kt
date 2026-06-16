@@ -48,6 +48,7 @@ import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.byEventId
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
+import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import de.connect2x.trixnity.utils.concurrentMutableMap
 import kotlin.collections.filterIsInstance
 import kotlin.time.Duration.Companion.seconds
@@ -734,9 +735,9 @@ open class InputAreaViewModelImpl(
         matrixClient.room
             .getById(roomId)
             .filterNotNull()
-            .map { room ->
+            .scopedMapLatest { room ->
                 val roomName = room.name?.explicitName.orEmpty()
-                room.toRoomInfoElement(coroutineScope, initials, matrixClient, roomName, maxMediaSizeInMemory)
+                room.toRoomInfoElement(this, initials, matrixClient, roomName, maxMediaSizeInMemory)
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
 
