@@ -81,7 +81,7 @@ open class I18n(
     }
 
     open fun roomNameKnockFor(roomId: String) = translate {
-        EN - "Mebership request for $roomId"
+        EN - "Membership request for $roomId"
         DE - "Beitrittsanfrage für $roomId"
     }
 
@@ -442,7 +442,7 @@ open class I18n(
 
     open fun roomListInvitationError() = translate {
         EN - "There has been an error. Please try again later."
-        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später erneut."
     }
 
     open fun roomListKnockOffline() = translate {
@@ -452,7 +452,7 @@ open class I18n(
 
     open fun roomListKnockError() = translate {
         EN - "There has been an error. Please try again later."
-        DE - "Es gab einen Fehler. Bitte versuchen Sie es später."
+        DE - "Es gab einen Fehler. Bitte versuchen Sie es später erneut."
     }
 
     open fun roomListContentImage() = translate {
@@ -1728,6 +1728,11 @@ open class I18n(
     open fun audioRecordingManuallyGiveMicrophonePermissionPrompt() = translate {
         EN - "Go to Permissions and allow Microphone"
         DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
+    }
+
+    open fun joinRoomConfirmJoinOffline() = translate {
+        EN - "You can't join the room without an internet connection, please try again later."
+        DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
     }
 }
 

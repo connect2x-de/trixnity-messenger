@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- UI, SDK: Add options to join room when clicking on room mention of a not joined room
+
 ### Changed
 
 - UI,INTERNAL: Provide WithProfileSelection via koin

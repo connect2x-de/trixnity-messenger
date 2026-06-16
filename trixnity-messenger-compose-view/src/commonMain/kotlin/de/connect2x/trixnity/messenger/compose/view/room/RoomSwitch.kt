@@ -14,6 +14,7 @@ fun RoomSwitch(stack: Value<ChildStack<*, RoomRouter.Wrapper>>) {
     Children(stack = stack, animation = stackAnimation(fade())) {
         when (val child = it.instance) {
             is RoomRouter.Wrapper.View -> Room(child.viewModel)
+            is RoomRouter.Wrapper.JoinRoomAction -> JoinRoomAction(child.viewModel)
             is RoomRouter.Wrapper.None -> Box {} // TODO: Would be nice to show a placeholder here.
         }.let {}
     }

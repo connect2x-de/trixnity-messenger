@@ -2818,15 +2818,135 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.timeline/Timel
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel|null[0]
+    abstract val actionNecessary // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.actionNecessary|{}actionNecessary[0]
+        abstract fun <get-actionNecessary>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.actionNecessary.<get-actionNecessary>|<get-actionNecessary>(){}[0]
+    abstract val error // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.error|{}error[0]
+        abstract fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.error.<get-error>|<get-error>(){}[0]
+    abstract val isLoading // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.isLoading|{}isLoading[0]
+        abstract fun <get-isLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.isLoading.<get-isLoading>|<get-isLoading>(){}[0]
+    abstract val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.onDismiss|{}onDismiss[0]
+        abstract fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
+
+    sealed interface JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction|null[0]
+        final class AcceptInvitation : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation|null[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
+
+            final val onAcceptInvite // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onAcceptInvite|{}onAcceptInvite[0]
+                final fun <get-onAcceptInvite>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.onAcceptInvite.<get-onAcceptInvite>|<get-onAcceptInvite>(){}[0]
+
+            final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.component1|component1(){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.AcceptInvitation.toString|toString(){}[0]
+        }
+
+        final class Join : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join|null[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.<init>|<init>(kotlin.Function0<kotlin.Unit>){}[0]
+
+            final val onJoinRoom // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onJoinRoom|{}onJoinRoom[0]
+                final fun <get-onJoinRoom>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.onJoinRoom.<get-onJoinRoom>|<get-onJoinRoom>(){}[0]
+
+            final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.component1|component1(){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.copy|copy(kotlin.Function0<kotlin.Unit>){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Join.toString|toString(){}[0]
+        }
+
+        final class Knock : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock|null[0]
+            constructor <init>(kotlin/Function0<kotlin/Unit>, kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.<init>|<init>(kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.flow.StateFlow<kotlin.Boolean?>){}[0]
+
+            final val hasKnocked // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hasKnocked|{}hasKnocked[0]
+                final fun <get-hasKnocked>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hasKnocked.<get-hasKnocked>|<get-hasKnocked>(){}[0]
+            final val onKnock // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onKnock|{}onKnock[0]
+                final fun <get-onKnock>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.onKnock.<get-onKnock>|<get-onKnock>(){}[0]
+
+            final fun component1(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.component1|component1(){}[0]
+            final fun component2(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.component2|component2(){}[0]
+            final fun copy(kotlin/Function0<kotlin/Unit> = ..., kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.copy|copy(kotlin.Function0<kotlin.Unit>;kotlinx.coroutines.flow.StateFlow<kotlin.Boolean?>){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Knock.toString|toString(){}[0]
+        }
+
+        final class Restricted : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted|null[0]
+            constructor <init>(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomAliasId>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.<init>|<init>(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomAliasId>){}[0]
+
+            final val requiredRooms // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms|{}requiredRooms[0]
+                final fun <get-requiredRooms>(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomAliasId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.requiredRooms.<get-requiredRooms>|<get-requiredRooms>(){}[0]
+
+            final fun component1(): kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomAliasId> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.component1|component1(){}[0]
+            final fun copy(kotlin.collections/Set<de.connect2x.trixnity.core.model/RoomAliasId> = ...): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.copy|copy(kotlin.collections.Set<de.connect2x.trixnity.core.model.RoomAliasId>){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Restricted.toString|toString(){}[0]
+        }
+
+        final object NotFound : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.NotFound.toString|toString(){}[0]
+        }
+
+        final object Private : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private|null[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction.Private.toString|toString(){}[0]
+        }
+    }
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>?, kotlin/Function1<de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?;kotlin.Function1<de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelFactory.Companion|null[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter|null[0]
     abstract val stack // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.stack|{}stack[0]
         abstract fun <get-stack>(): com.arkivanov.decompose.value/Value<com.arkivanov.decompose.router.stack/ChildStack<de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config, de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper>> // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.stack.<get-stack>|<get-stack>(){}[0]
 
     abstract fun isShown(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.isShown|isShown(){}[0]
     abstract suspend fun closeRoom() // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.closeRoom|closeRoom(){}[0]
-    abstract suspend fun openRoom(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.openRoom|openRoom(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    abstract suspend fun openRoom(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>? = ...) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.openRoom|openRoom(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?){}[0]
 
     sealed class Config { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config|null[0]
+        final class JoinRoomAction : de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction|null[0]
+            constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin.collections/Set<kotlin/String>?) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.collections.Set<kotlin.String>?){}[0]
+
+            final val roomId // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.roomId|{}roomId[0]
+                final fun <get-roomId>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.roomId.<get-roomId>|<get-roomId>(){}[0]
+            final val userId // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.userId|{}userId[0]
+                final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.userId.<get-userId>|<get-userId>(){}[0]
+            final val via // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.via|{}via[0]
+                final fun <get-via>(): kotlin.collections/Set<kotlin/String>? // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.via.<get-via>|<get-via>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.component1|component1(){}[0]
+            final fun component2(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.component2|component2(){}[0]
+            final fun component3(): kotlin.collections/Set<kotlin/String>? // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.component3|component3(){}[0]
+            final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String = ..., kotlin.collections/Set<kotlin/String>? = ...): de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.collections.Set<kotlin.String>?){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.toString|toString(){}[0]
+
+            final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction> { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer|null[0]
+                final val descriptor // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer.descriptor|{}descriptor[0]
+                    final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+                final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer.childSerializers|childSerializers(){}[0]
+                final fun deserialize(kotlinx.serialization.encoding/Decoder): de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+                final fun serialize(kotlinx.serialization.encoding/Encoder, de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config.JoinRoomAction){}[0]
+            }
+
+            final object Companion { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.Companion|null[0]
+                final val $childSerializers // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.Companion.$childSerializers|{}$childSerializers[0]
+
+                final fun serializer(): kotlinx.serialization/KSerializer<de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction> // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.JoinRoomAction.Companion.serializer|serializer(){}[0]
+            }
+        }
+
         final class View : de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.View|null[0]
             constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Config.View.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String){}[0]
 
@@ -2871,6 +2991,19 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter { /
     }
 
     sealed class Wrapper { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper|null[0]
+        final class JoinRoomAction : de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction|null[0]
+            constructor <init>(de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel){}[0]
+
+            final val viewModel // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.viewModel|{}viewModel[0]
+                final fun <get-viewModel>(): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.viewModel.<get-viewModel>|<get-viewModel>(){}[0]
+
+            final fun component1(): de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.component1|component1(){}[0]
+            final fun copy(de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel = ...): de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.copy|copy(de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModel){}[0]
+            final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.equals|equals(kotlin.Any?){}[0]
+            final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.hashCode|hashCode(){}[0]
+            final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.JoinRoomAction.toString|toString(){}[0]
+        }
+
         final class View : de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper { // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.View|null[0]
             constructor <init>(de.connect2x.trixnity.messenger.viewmodel.room/RoomViewModel) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouter.Wrapper.View.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModel){}[0]
 
@@ -4371,7 +4504,7 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel/MainViewModel { // 
     abstract fun closeDetailsAndShowList() // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.closeDetailsAndShowList|closeDetailsAndShowList(){}[0]
     abstract fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
     abstract fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
-    abstract fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    abstract fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>? = ...) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?){}[0]
     abstract fun openMention(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.openMention|openMention(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention){}[0]
     abstract fun openSelfVerification(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.openSelfVerification|openSelfVerification(de.connect2x.trixnity.core.model.UserId){}[0]
     abstract fun start() // de.connect2x.trixnity.messenger.viewmodel/MainViewModel.start|start(){}[0]
@@ -9485,6 +9618,48 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineView
     final suspend fun markAsRead(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.room.timeline/TimelineViewModelImpl.markAsRead|markAsRead(kotlin.String){}[0]
 }
 
+final class de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>?, kotlin/Function1<de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?;kotlin.Function1<de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
+
+    final val actionNecessary // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.actionNecessary|{}actionNecessary[0]
+        final fun <get-actionNecessary>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModel.JoinRoomAction?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.actionNecessary.<get-actionNecessary>|<get-actionNecessary>(){}[0]
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val error // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.error|{}error[0]
+        final fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.error.<get-error>|<get-error>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isLoading // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.isLoading|{}isLoading[0]
+        final fun <get-isLoading>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.isLoading.<get-isLoading>|<get-isLoading>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val onDismiss // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.onDismiss|{}onDismiss[0]
+        final fun <get-onDismiss>(): kotlin/Function0<kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.onDismiss.<get-onDismiss>|<get-onDismiss>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.getKoin|getKoin(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room/JoinRoomActionViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.viewmodel.room/MentionHelper { // de.connect2x.trixnity.messenger.viewmodel.room/MentionHelper|null[0]
     constructor <init>(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.messenger.viewmodel.util/RoomName, kotlin/Long) // de.connect2x.trixnity.messenger.viewmodel.room/MentionHelper.<init>|<init>(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.messenger.viewmodel.util.RoomName;kotlin.Long){}[0]
 
@@ -9527,7 +9702,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl : de.c
 
     final fun isShown(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.isShown|isShown(){}[0]
     final suspend fun closeRoom() // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.closeRoom|closeRoom(){}[0]
-    final suspend fun openRoom(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.openRoom|openRoom(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    final suspend fun openRoom(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>?) // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.openRoom|openRoom(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?){}[0]
 
     final object Companion // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.Companion|null[0]
 }
@@ -12368,14 +12543,14 @@ final class de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel : de.
     final fun closeDetailsAndShowList() // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.closeDetailsAndShowList|closeDetailsAndShowList(){}[0]
     final fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
     final fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
-    final fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    final fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>?) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?){}[0]
     final fun openMention(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.openMention|openMention(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention){}[0]
     final fun openSelfVerification(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.openSelfVerification|openSelfVerification(de.connect2x.trixnity.core.model.UserId){}[0]
     final fun start() // de.connect2x.trixnity.messenger.viewmodel/PreviewMainViewModel.start|start(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement { // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement|null[0]
-    constructor <init>(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/ByteArray?) // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.<init>|<init>(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.ByteArray?){}[0]
+    constructor <init>(kotlin/String, de.connect2x.trixnity.core.model/RoomId, kotlin/String, kotlin/ByteArray?, kotlin.collections/Set<kotlin/String>? = ...) // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.<init>|<init>(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.ByteArray?;kotlin.collections.Set<kotlin.String>?){}[0]
 
     final val name // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.name|{}name[0]
         final fun <get-name>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.name.<get-name>|<get-name>(){}[0]
@@ -12383,6 +12558,8 @@ final class de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement { // de.co
         final fun <get-roomImage>(): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.roomImage.<get-roomImage>|<get-roomImage>(){}[0]
     final val roomImageInitials // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.roomImageInitials|{}roomImageInitials[0]
         final fun <get-roomImageInitials>(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.roomImageInitials.<get-roomImageInitials>|<get-roomImageInitials>(){}[0]
+    final val via // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.via|{}via[0]
+        final fun <get-via>(): kotlin.collections/Set<kotlin/String>? // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.via.<get-via>|<get-via>(){}[0]
 
     final var roomId // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.roomId|{}roomId[0]
         final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.roomId.<get-roomId>|<get-roomId>(){}[0]
@@ -12392,7 +12569,8 @@ final class de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement { // de.co
     final fun component2(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.component2|component2(){}[0]
     final fun component3(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.component3|component3(){}[0]
     final fun component4(): kotlin/ByteArray? // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.component4|component4(){}[0]
-    final fun copy(kotlin/String = ..., de.connect2x.trixnity.core.model/RoomId = ..., kotlin/String = ..., kotlin/ByteArray? = ...): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.copy|copy(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.ByteArray?){}[0]
+    final fun component5(): kotlin.collections/Set<kotlin/String>? // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.component5|component5(){}[0]
+    final fun copy(kotlin/String = ..., de.connect2x.trixnity.core.model/RoomId = ..., kotlin/String = ..., kotlin/ByteArray? = ..., kotlin.collections/Set<kotlin/String>? = ...): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.copy|copy(kotlin.String;de.connect2x.trixnity.core.model.RoomId;kotlin.String;kotlin.ByteArray?;kotlin.collections.Set<kotlin.String>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement.toString|toString(){}[0]
@@ -13470,6 +13648,7 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun historyVisibiltyInvite(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.historyVisibiltyInvite|historyVisibiltyInvite(){}[0]
     open fun initialSyncNotificationDescription(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.initialSyncNotificationDescription|initialSyncNotificationDescription(){}[0]
     open fun initialSyncNotificationTitle(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.initialSyncNotificationTitle|initialSyncNotificationTitle(){}[0]
+    open fun joinRoomConfirmJoinOffline(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.joinRoomConfirmJoinOffline|joinRoomConfirmJoinOffline(){}[0]
     open fun logoutFailure(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.logoutFailure|logoutFailure(){}[0]
     open fun matrixClientInitLoading(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.matrixClientInitLoading|matrixClientInitLoading(){}[0]
     open fun matrixClientInitSuccess(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.matrixClientInitSuccess|matrixClientInitSuccess(){}[0]
@@ -15485,7 +15664,7 @@ open class de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl : de.conn
     open fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.getKoin|getKoin(){}[0]
     open fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
     open fun onOpenAvatarCutter(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.util/FileDescriptor) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.onOpenAvatarCutter|onOpenAvatarCutter(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.util.FileDescriptor){}[0]
-    open fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId){}[0]
+    open fun onRoomSelected(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin.collections/Set<kotlin/String>?) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.onRoomSelected|onRoomSelected(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.core.model.RoomId;kotlin.collections.Set<kotlin.String>?){}[0]
     open fun openMention(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.openMention|openMention(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention){}[0]
     open fun openSelfVerification(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.openSelfVerification|openSelfVerification(de.connect2x.trixnity.core.model.UserId){}[0]
     open fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel/MainViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
@@ -15648,6 +15827,7 @@ final val de.connect2x.trixnity.messenger.viewmodel/matrixClients // de.connect2
 final fun (de.connect2x.trixnity.client.store/RoomOutboxMessage.SendError).de.connect2x.trixnity.messenger.i18n/getErrorMessage(de.connect2x.trixnity.messenger.i18n/I18n): kotlin/String? // de.connect2x.trixnity.messenger.i18n/getErrorMessage|getErrorMessage@de.connect2x.trixnity.client.store.RoomOutboxMessage.SendError(de.connect2x.trixnity.messenger.i18n.I18n){}[0]
 final fun (de.connect2x.trixnity.client.store/RoomUser).de.connect2x.trixnity.messenger.viewmodel/toUserInfoElement(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.messenger.viewmodel.util/Initials, kotlin/Long): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel/toUserInfoElement|toUserInfoElement@de.connect2x.trixnity.client.store.RoomUser(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.messenger.viewmodel.util.Initials;kotlin.Long){}[0]
 final fun (de.connect2x.trixnity.client.store/RoomUser?).de.connect2x.trixnity.messenger.viewmodel/toUserInfoElement(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.client/MatrixClient, de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.core.model/UserId, kotlin/Long): de.connect2x.trixnity.messenger.viewmodel/UserInfoElement // de.connect2x.trixnity.messenger.viewmodel/toUserInfoElement|toUserInfoElement@de.connect2x.trixnity.client.store.RoomUser?(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.client.MatrixClient;de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.core.model.UserId;kotlin.Long){}[0]
+final fun (de.connect2x.trixnity.clientserverapi.client/SyncState).de.connect2x.trixnity.messenger.viewmodel.util/hasConnection(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/hasConnection|hasConnection@de.connect2x.trixnity.clientserverapi.client.SyncState(){}[0]
 final fun (de.connect2x.trixnity.core.model/UserId).de.connect2x.trixnity.messenger.viewmodel.util/isValid(): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.util/isValid|isValid@de.connect2x.trixnity.core.model.UserId(){}[0]
 final fun (de.connect2x.trixnity.core.util/Reference).de.connect2x.trixnity.messenger.util.html/toLink(): kotlin/String // de.connect2x.trixnity.messenger.util.html/toLink|toLink@de.connect2x.trixnity.core.util.Reference(){}[0]
 final fun (de.connect2x.trixnity.messenger.viewmodel/ViewModelContext).de.connect2x.trixnity.messenger.viewmodel/getMatrixClient(de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel/getMatrixClient|getMatrixClient@de.connect2x.trixnity.messenger.viewmodel.ViewModelContext(de.connect2x.trixnity.core.model.UserId){}[0]
@@ -15738,7 +15918,7 @@ final inline fun <#A: kotlin/Any?> (kotlin.collections/Iterable<#A>).de.connect2
 final inline fun <#A: kotlin/Any?> (kotlin.collections/List<#A>).de.connect2x.trixnity.messenger.viewmodel.util/takeLastWhileInclusive(kotlin/Function1<#A, kotlin/Boolean>): kotlin.collections/List<#A> // de.connect2x.trixnity.messenger.viewmodel.util/takeLastWhileInclusive|takeLastWhileInclusive@kotlin.collections.List<0:0>(kotlin.Function1<0:0,kotlin.Boolean>){0§<kotlin.Any?>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory<*>> (org.koin.core.module/Module).de.connect2x.trixnity.messenger/timelineElementViewModelFactory(noinline kotlin/Function2<org.koin.core.scope/Scope, org.koin.core.parameter/ParametersHolder, #A>): org.koin.core.definition/KoinDefinition<out de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory<*>> // de.connect2x.trixnity.messenger/timelineElementViewModelFactory|timelineElementViewModelFactory@org.koin.core.module.Module(kotlin.Function2<org.koin.core.scope.Scope,org.koin.core.parameter.ParametersHolder,0:0>){0§<de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory<*>>}[0]
 final inline fun <#A: reified kotlin/Any> (org.koin.core.component/KoinComponent).de.connect2x.trixnity.messenger.util/getOrNull(org.koin.core.qualifier/Qualifier? = ..., noinline kotlin/Function0<org.koin.core.parameter/ParametersHolder>? = ...): #A? // de.connect2x.trixnity.messenger.util/getOrNull|getOrNull@org.koin.core.component.KoinComponent(org.koin.core.qualifier.Qualifier?;kotlin.Function0<org.koin.core.parameter.ParametersHolder>?){0§<kotlin.Any>}[0]
-final suspend fun (de.connect2x.trixnity.client.store/Room).de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.client/MatrixClient, kotlin/String, kotlin/Long): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement|toRoomInfoElement@de.connect2x.trixnity.client.store.Room(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.client.MatrixClient;kotlin.String;kotlin.Long){}[0]
+final suspend fun (de.connect2x.trixnity.client.store/Room).de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.client/MatrixClient, kotlin/String, kotlin/Long, kotlin.collections/Set<kotlin/String>? = ...): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement|toRoomInfoElement@de.connect2x.trixnity.client.store.Room(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.client.MatrixClient;kotlin.String;kotlin.Long;kotlin.collections.Set<kotlin.String>?){}[0]
 final suspend fun (de.connect2x.trixnity.messenger.multi/MatrixMultiMessenger).de.connect2x.trixnity.messenger.multi/singleMode(kotlin.coroutines/SuspendFunction1<de.connect2x.trixnity.messenger/MatrixMessenger, kotlin/Unit>) // de.connect2x.trixnity.messenger.multi/singleMode|singleMode@de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger(kotlin.coroutines.SuspendFunction1<de.connect2x.trixnity.messenger.MatrixMessenger,kotlin.Unit>){}[0]
 final suspend fun (de.connect2x.trixnity.messenger.multi/MatrixMultiMessenger.Companion).de.connect2x.trixnity.messenger.multi/create(kotlin.coroutines/CoroutineContext = ..., kotlin/Function1<de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfiguration, kotlin/Unit> = ...): de.connect2x.trixnity.messenger.multi/MatrixMultiMessenger // de.connect2x.trixnity.messenger.multi/create|create@de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger.Companion(kotlin.coroutines.CoroutineContext;kotlin.Function1<de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration,kotlin.Unit>){}[0]
 final suspend fun (de.connect2x.trixnity.messenger.multi/ProfileManager).de.connect2x.trixnity.messenger.multi/singleModeMatrixMessenger(): kotlinx.coroutines.flow/Flow<de.connect2x.trixnity.messenger/MatrixMessenger> // de.connect2x.trixnity.messenger.multi/singleModeMatrixMessenger|singleModeMatrixMessenger@de.connect2x.trixnity.messenger.multi.ProfileManager(){}[0]

@@ -45,6 +45,8 @@ import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesView
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelectionView
 import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelectionViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionView
+import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.RoomView
 import de.connect2x.trixnity.messenger.compose.view.room.RoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomView
@@ -442,6 +444,7 @@ fun roomListViewModule() = module {
     single<KnockRoomListElement> { KnockRoomListElementImpl() }
     single<JoinedRoomListView> { JoinedRoomListViewImpl() }
     single<RoomView> { RoomViewImpl() }
+    single<JoinRoomActionView> { JoinRoomActionViewImpl() }
     single<CreateNewChatOrGroupFloatingActionButton> { CreateNewChatOrGroupFloatingActionButtonImpl() }
 }
 
