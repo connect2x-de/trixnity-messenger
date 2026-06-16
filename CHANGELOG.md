@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: Don't show verification twice on account setup
 - SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
 - UI: Opening 'privacy & security' no longer crashes the app
+- UI: Notification counts are no longer cut off after the first digit
 
 ### Security
 
