@@ -340,17 +340,36 @@ open class InputAreaViewModelImpl(
         override fun printHtml(html: CharSequence): CharSequence = html
     }
 
+    private var lastEmptySearch: String? = null
+
     override val suggestedMentions: StateFlow<List<InputAreaViewModel.SuggestedMention>?> =
         textField
             .map { textFieldValue ->
                 val idLocalPartBeforeCursor = textFieldValue.mentionBeforeCursor()
                 if (idLocalPartBeforeCursor != null) {
+                    lastEmptySearch?.let {
+                        if (idLocalPartBeforeCursor.startsWith(it)) {
+                            return@map emptyList()
+                        }
+                    }
+
                     _suggestedMentionsLoading.value = true
                     val listOfMentions = buildList {
                         addAll(listOfUsers(idLocalPartBeforeCursor))
                         getRoomMentionIfAllowed(idLocalPartBeforeCursor)?.let { add(it) }
                     }
                     _suggestedMentionsLoading.value = false
+
+                    val currentEmptySearch = lastEmptySearch
+                    lastEmptySearch =
+                        when {
+                            listOfMentions.isNotEmpty() -> null
+                            currentEmptySearch == null || currentEmptySearch.startsWith(idLocalPartBeforeCursor) ->
+                                idLocalPartBeforeCursor
+                            !idLocalPartBeforeCursor.startsWith(currentEmptySearch) -> null
+                            else -> currentEmptySearch
+                        }
+
                     listOfMentions
                 } else null
             }
