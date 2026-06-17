@@ -75,7 +75,7 @@ interface MainViewModel {
 
     fun closeDetailsAndShowList()
 
-    fun onRoomSelected(userId: UserId, id: RoomId)
+    fun onRoomSelected(userId: UserId, id: RoomId, via: Set<String>? = null)
 
     fun onOpenAvatarCutter(userId: UserId, file: FileDescriptor)
 
@@ -362,10 +362,10 @@ open class MainViewModelImpl(
         coroutineScope.launch { roomRouter.closeRoom() }
     }
 
-    override fun onRoomSelected(userId: UserId, id: RoomId) {
+    override fun onRoomSelected(userId: UserId, id: RoomId, via: Set<String>?) {
         coroutineScope.launch {
             log.debug { "onRoomSelected: $id" }
-            selectRoom(userId, id)
+            selectRoom(userId, id, via)
         }
     }
 
@@ -377,8 +377,8 @@ open class MainViewModelImpl(
         }
     }
 
-    private suspend fun selectRoom(userId: UserId, id: RoomId) {
-        roomRouter.openRoom(userId, id)
+    private suspend fun selectRoom(userId: UserId, id: RoomId, via: Set<String>? = null) {
+        roomRouter.openRoom(userId, id, via)
         // TODO: What hack exactly? Comment might be outdated!
         // Hack for iOS: Since the observe mechanism of line 236ff does not work.
         selectedRoomId.value = id
@@ -419,14 +419,14 @@ open class MainViewModelImpl(
             is TimelineElementMention.Room -> {
                 log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
                 val roomId = timelineElementMention.room.roomId
-                onRoomSelected(userId, roomId)
+                onRoomSelected(userId, roomId, timelineElementMention.room.via)
             }
 
             is TimelineElementMention.Event -> {
                 log.debug { "Opening Room ${timelineElementMention.room.roomId}" }
                 val roomId = timelineElementMention.room.roomId
                 val eventId = timelineElementMention.event.eventId
-                onRoomSelected(userId, roomId)
+                onRoomSelected(userId, roomId, null)
                 // TODO: implement and open event view
                 log.warn { "EventView to display $eventId not implemented yet" }
             }
@@ -437,6 +437,7 @@ open class MainViewModelImpl(
         when (this) {
             is RoomRouter.Config.None -> null
             is RoomRouter.Config.View -> RoomId(roomId)
+            is RoomRouter.Config.JoinRoomAction -> RoomId(roomId)
         }
 
     private fun onSendLogs() {
@@ -543,7 +544,7 @@ class PreviewMainViewModel : MainViewModel {
             )
         )
 
-    override fun onRoomSelected(userId: UserId, id: RoomId) {
+    override fun onRoomSelected(userId: UserId, id: RoomId, via: Set<String>?) {
         selectedRoomId.value = id
     }
 

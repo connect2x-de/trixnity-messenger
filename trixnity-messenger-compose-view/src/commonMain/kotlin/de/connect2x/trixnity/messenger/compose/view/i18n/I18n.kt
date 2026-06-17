@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -3647,6 +3648,55 @@ open class I18nView(
     open fun unreadMessageCount(count: String) = translate {
         EN - "$count unread messages"
         DE - "$count ungelesene Nachrichten"
+    }
+
+    open fun joinRoomActionImpossible() = translate {
+        EN - "This room is private, please request an invitation to join."
+        DE - "Dieser Raum ist privat, bitte fordern Sie eine Einladung an, um beizutreten."
+    }
+
+    open fun joinRoomActionJoin() = translate {
+        EN - "You need to join the room to access its content. Please confirm you want to join."
+        DE - "Sie müssen dem Raum beitreten, um die Inhalte anzeigen zu können. Bitte bestätigen Sie den Beitritt."
+    }
+
+    open fun joinRoomActionKnock() = translate {
+        EN - "Without an invitation you need to knock on the room and be let in. Please confirm you want to knock."
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie eine Beitrittsanfrage stellen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+    }
+
+    open fun joinRoomActionKnockSuccess() = translate {
+        EN -
+            "Successfully knocked, you will be redirected to the room once the request is accepted. Alternatively you can check back later."
+        DE -
+            "Die Beitrittsanfrage war erfolgreich. Der Raum wird geöffnet, sobald die Anfrage akzeptiert wurde. Andernfalls können Sie das Öffnen später erneut versuchen. "
+    }
+
+    open fun joinRoomActionRestricted(requiredRooms: Set<RoomAliasId>) = translate {
+        EN -
+            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}."
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()}."
+    }
+
+    open fun joinRoomActionRestrictedNoRoomInfoAvailable() = translate {
+        EN - "Without an invitation you need to be a member of another room."
+        DE - "Um ohne eine Einladung beizutreten, müssen Sie bereits Mitglied eines anderen Raumes sein."
+    }
+
+    open fun joinRoomActionAcceptInvite() = translate {
+        EN -
+            "You need to accept your outstanding invitation to join this room. Please confirm you want to accept the invite."
+        DE -
+            "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, dass Sie die Einladung annehmen möchten."
+    }
+
+    open fun joinRoomActionNotFound() = translate {
+        EN -
+            "Couldn't find the mentioned room. Either the id isn't valid or the homeserver doesn't allow checking the join rules of rooms. Please request an invitation to the room instead."
+        DE -
+            "Der Raum konnte nicht gefunden werden. Das liegt daran, dass die id des Raumes ungültig ist oder die Beitrittsregeln des Raumes nicht öffentlich sind. Bitte fordern Sie stattdessen eine Einladung in den Raum an."
     }
 
     open fun userSearchFilter() = translate {

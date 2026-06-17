@@ -23,7 +23,7 @@ fun NotificationAndUnreadMarker(
     size: Dp = MaterialTheme.typography.labelSmall.dp,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier.size(size)) {
+    Box(modifier.defaultMinSize(size)) {
         when {
             count != null -> {
                 Surface(

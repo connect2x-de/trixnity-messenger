@@ -12,6 +12,7 @@ data class RoomInfoElement(
     var roomId: RoomId,
     val roomImageInitials: String,
     val roomImage: ByteArray?,
+    val via: Set<String>? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -45,6 +46,7 @@ suspend fun Room.toRoomInfoElement(
     matrixClient: MatrixClient,
     name: String,
     maxMediaSizeInMemory: Long,
+    via: Set<String>? = null,
 ): RoomInfoElement {
     return RoomInfoElement(
         name = name,
@@ -54,5 +56,6 @@ suspend fun Room.toRoomInfoElement(
             this.avatarUrl?.let {
                 matrixClient.media.getMedia(it).getOrNull()?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
             },
+        via = via,
     )
 }

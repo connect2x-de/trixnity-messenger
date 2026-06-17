@@ -12,6 +12,7 @@ import de.connect2x.trixnity.client.key.KeyTrustService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.TimelineStateChange
 import de.connect2x.trixnity.client.store.Room
+import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod
@@ -23,11 +24,15 @@ import de.connect2x.trixnity.clientserverapi.model.user.Profile
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.ClientEvent
 import de.connect2x.trixnity.core.model.events.m.DirectEventContent
 import de.connect2x.trixnity.core.model.events.m.FullyReadEventContent
 import de.connect2x.trixnity.core.model.events.m.MarkedUnreadEventContent
 import de.connect2x.trixnity.core.model.events.m.Presence
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
+import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent
+import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.secretstorage.SecretKeyEventContent
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
@@ -104,6 +109,7 @@ class MainViewModelTest {
     private val backHandler = BackHandlerImpl()
     private val myUserId = UserId("user1", "localhost")
     private val testUserId = UserId("test", "server")
+    private val testRoomId = RoomId("!Room:localhost")
     private val myDeviceId = "deviceId"
     private val roomsFlow = MutableStateFlow(emptyMap<RoomId, StateFlow<Room?>>())
 
@@ -211,6 +217,27 @@ class MainViewModelTest {
         every { matrixClientMock2.initialSyncDone } returns MutableStateFlow(true)
         every { roomServiceMock.getAccountData(any(), MarkedUnreadEventContent::class, any()) } returns
             flowOf(MarkedUnreadEventContent(false))
+        every { roomServiceMock.getState(any(), JoinRulesEventContent::class, any()) } returns
+            MutableStateFlow(
+                ClientEvent.StrippedStateEvent(
+                    JoinRulesEventContent(JoinRulesEventContent.JoinRule.Invite),
+                    sender = testUserId,
+                    stateKey = "",
+                )
+            )
+        every { userServiceMock.getById(any(), testUserId) } returns
+            MutableStateFlow(
+                RoomUser(
+                    testRoomId,
+                    testUserId,
+                    "",
+                    ClientEvent.StrippedStateEvent(
+                        MemberEventContent(membership = Membership.JOIN),
+                        sender = testUserId,
+                        stateKey = "",
+                    ),
+                )
+            )
     }
 
     @BeforeTest
@@ -233,15 +260,16 @@ class MainViewModelTest {
         assertSoftly {
             cut.selectedRoomId.value shouldBe null
             cut shouldShowListOfType RoomListRouter.Wrapper.List::class
-            cut shouldShowRoom false
+            cut shouldShowRoomType RoomViewTypes.NONE
             cut shouldShowList true
         }
     }
 
     @Test
     fun `show room when room is selected`() = runTest {
-        val roomId = RoomId("!Room:localhost")
+        val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { roomServiceMock.getById(roomId) } returns flowOf(Room(roomId, membership = Membership.JOIN))
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
@@ -249,31 +277,32 @@ class MainViewModelTest {
 
         assertSoftly {
             cut.selectedRoomId.value shouldBe roomId
-            cut shouldShowRoom true
+            cut shouldShowRoomType RoomViewTypes.ROOM
         }
     }
 
     @Test
     fun `show room list when the room view is closed`() = runTest {
-        val roomId = RoomId("!Room:localhost")
+        val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { roomServiceMock.getById(roomId) } returns flowOf(Room(roomId, membership = Membership.JOIN))
 
         val cut = mainViewModel()
         cut.onRoomSelected(testUserId, roomId)
-        cut shouldShowRoom true
+        cut shouldShowRoomType RoomViewTypes.ROOM
         cut.closeDetailsAndShowList()
         delay(100)
 
         assertSoftly {
             cut.selectedRoomId.value shouldBe null
-            cut shouldShowRoom false
+            cut shouldShowRoomType RoomViewTypes.NONE
             cut shouldShowList true
         }
     }
 
     @Test
     fun `show room list when the room view is left with the back button`() = runTest {
-        val roomId = RoomId("!Room:localhost")
+        val roomId = testRoomId
         every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
 
         val cut = mainViewModel()
@@ -286,7 +315,7 @@ class MainViewModelTest {
         assertSoftly {
             cut.selectedRoomId.value shouldBe null
             cut shouldShowListOfType RoomListRouter.Wrapper.List::class
-            cut shouldShowRoom false
+            cut shouldShowRoomType RoomViewTypes.NONE
         }
     }
 
@@ -606,11 +635,40 @@ class MainViewModelTest {
                 )
         }
 
-    private suspend infix fun MainViewModel.shouldShowRoom(isShown: Boolean) {
+    @Test
+    fun `show room join action when trying to open a non joined room`() = runTest {
+        val roomId = testRoomId
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        every { userServiceMock.getById(any(), testUserId) } returns MutableStateFlow(null)
+
+        val cut = mainViewModel()
+        cut.onRoomSelected(testUserId, roomId)
+        delay(100.milliseconds)
+
+        assertSoftly {
+            cut.selectedRoomId.value shouldBe testRoomId
+            cut shouldShowListOfType RoomListRouter.Wrapper.List::class
+            cut shouldShowRoomType RoomViewTypes.JOIN_ACTION
+        }
+    }
+
+    private enum class RoomViewTypes {
+        NONE,
+        ROOM,
+        JOIN_ACTION,
+    }
+
+    private suspend inline infix fun MainViewModel.shouldShowRoomType(type: RoomViewTypes) {
         delay(10.milliseconds)
         assertSoftly {
-            if (isShown) this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
-            else this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+            when (type) {
+                RoomViewTypes.NONE ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.None>()
+                RoomViewTypes.ROOM ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.View>()
+                RoomViewTypes.JOIN_ACTION ->
+                    this.roomRouterStack.value.active.instance should beOfType<RoomRouter.Wrapper.JoinRoomAction>()
+            }
         }
     }
 

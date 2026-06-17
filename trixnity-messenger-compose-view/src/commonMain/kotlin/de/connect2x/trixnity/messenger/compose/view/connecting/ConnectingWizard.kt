@@ -42,7 +42,7 @@ class AdditionalConnectingWizardStepImpl : AdditionalConnectingWizardStep {
 fun <T : Any> ConnectingWizard(viewModel: T) {
     val i18n = DI.get<I18nView>()
     val additionalConnectingWizardStep = DI.get<AdditionalConnectingWizardStep>()
-    val wizardStep =
+    val wizardSteps =
         remember(viewModel, i18n, additionalConnectingWizardStep) {
             listOf(
                 when (viewModel) {
@@ -63,7 +63,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             )
         }
 
-    return Wizard(wizardStep, wizardId = "ConnectingWizard")
+    Wizard(wizardSteps = wizardSteps, wizardId = "ConnectingWizard")
 }
 
 fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {

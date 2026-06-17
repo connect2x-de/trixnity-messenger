@@ -354,6 +354,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/Horizonta
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/common/HorizontalScrollableMeasurePolicy$ScrollbarLayoutId;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/common/LoadingButtonKt {
+	public static final fun ThemedLoadingButton (Lkotlin/jvm/functions/Function0;ZLandroidx/compose/ui/Modifier;ZLde/connect2x/trixnity/messenger/compose/view/theme/components/ButtonStyle;Landroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/common/LoadingIndicatorsKt {
 	public static final fun LoadingSpinner (Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;II)V
 }
@@ -1255,6 +1259,14 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun invitationBlock ()Ljava/lang/String;
 	public fun invitationReject ()Ljava/lang/String;
 	public fun invitationRejectHeader ()Ljava/lang/String;
+	public fun joinRoomActionAcceptInvite ()Ljava/lang/String;
+	public fun joinRoomActionImpossible ()Ljava/lang/String;
+	public fun joinRoomActionJoin ()Ljava/lang/String;
+	public fun joinRoomActionKnock ()Ljava/lang/String;
+	public fun joinRoomActionKnockSuccess ()Ljava/lang/String;
+	public fun joinRoomActionNotFound ()Ljava/lang/String;
+	public fun joinRoomActionRestricted (Ljava/util/Set;)Ljava/lang/String;
+	public fun joinRoomActionRestrictedNoRoomInfoAvailable ()Ljava/lang/String;
 	public fun joinRuleInvited ()Ljava/lang/String;
 	public fun joinRuleInvitedExplanation ()Ljava/lang/String;
 	public fun joinRuleKnock ()Ljava/lang/String;
@@ -1759,6 +1771,16 @@ public final class de/connect2x/trixnity/messenger/compose/view/profiles/WithPro
 	public static final fun WithProfileSelection (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionViewImpl : de/connect2x/trixnity/messenger/compose/view/profiles/WithProfileSelectionView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/multi/MatrixMultiMessenger;Lcom/arkivanov/decompose/ComponentContext;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function4;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/richtext/ComposableSingletons$BlockContentKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/richtext/ComposableSingletons$BlockContentKt;
 	public fun <init> ()V
@@ -1809,6 +1831,20 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/ComposableS
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/room/ComposableSingletons$RoomSwitchKt;
 	public fun <init> ()V
 	public final fun getLambda$-1190857861$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionKt {
+	public static final fun JoinRoomAction (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionViewImpl : de/connect2x/trixnity/messenger/compose/view/room/JoinRoomActionView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/RoomKt {
@@ -6391,7 +6427,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/util/RoomMessage
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt {
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$CrossSigningBootstrapWizardKt;
 	public fun <init> ()V
-	public final fun getLambda$672162611$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+	public final fun getLambda$902009801$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/verification/ComposableSingletons$SelfVerificationWizardKt {

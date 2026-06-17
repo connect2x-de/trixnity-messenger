@@ -1245,6 +1245,7 @@ public class de/connect2x/trixnity/messenger/i18n/I18n : de/connect2x/trixnity/m
 	public fun historyVisibiltyInvite ()Ljava/lang/String;
 	public fun initialSyncNotificationDescription ()Ljava/lang/String;
 	public fun initialSyncNotificationTitle ()Ljava/lang/String;
+	public fun joinRoomConfirmJoinOffline ()Ljava/lang/String;
 	public fun logoutFailure ()Ljava/lang/String;
 	public fun matrixClientInitLoading ()Ljava/lang/String;
 	public fun matrixClientInitSuccess ()Ljava/lang/String;
@@ -3590,10 +3591,15 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/MainVi
 	public abstract fun getSharingStack ()Lcom/arkivanov/decompose/value/Value;
 	public abstract fun onOpenAvatarCutter-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
 	public abstract fun onOpenAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
-	public abstract fun onRoomSelected-v-LioYY (Ljava/lang/String;Ljava/lang/String;)V
+	public abstract fun onRoomSelected-brnpz1w (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;)V
+	public static synthetic fun onRoomSelected-brnpz1w$default (Lde/connect2x/trixnity/messenger/viewmodel/MainViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)V
 	public abstract fun openMention-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public abstract fun openSelfVerification-dxpKhU0 (Ljava/lang/String;)V
 	public abstract fun start ()V
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/MainViewModel$DefaultImpls {
+	public static synthetic fun onRoomSelected-brnpz1w$default (Lde/connect2x/trixnity/messenger/viewmodel/MainViewModel;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/MainViewModelFactory {
@@ -3637,7 +3643,7 @@ public class de/connect2x/trixnity/messenger/viewmodel/MainViewModelImpl : de/co
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun onOpenAvatarCutter-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
 	public fun onOpenAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
-	public fun onRoomSelected-v-LioYY (Ljava/lang/String;Ljava/lang/String;)V
+	public fun onRoomSelected-brnpz1w (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;)V
 	public fun openMention-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public fun openSelfVerification-dxpKhU0 (Ljava/lang/String;)V
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
@@ -3705,29 +3711,33 @@ public final class de/connect2x/trixnity/messenger/viewmodel/PreviewMainViewMode
 	public fun getSharingStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun onOpenAvatarCutter-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
 	public fun onOpenAvatarCutter-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/util/FileDescriptor;)V
-	public fun onRoomSelected-v-LioYY (Ljava/lang/String;Ljava/lang/String;)V
+	public fun onRoomSelected-brnpz1w (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;)V
 	public fun openMention-bx7bNhU (Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/TimelineElementMention;)V
 	public fun openSelfVerification-dxpKhU0 (Ljava/lang/String;)V
 	public fun start ()V
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/RoomElementKt {
-	public static final fun toRoomInfoElement (Lde/connect2x/trixnity/client/store/Room;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final fun toRoomInfoElement (Lde/connect2x/trixnity/client/store/Room;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;JLjava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun toRoomInfoElement$default (Lde/connect2x/trixnity/client/store/Room;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;JLjava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/RoomInfoElement {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLjava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLjava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2-7hZGZBE ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()[B
-	public final fun copy-R_GNm0M (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[B)Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
-	public static synthetic fun copy-R_GNm0M$default (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun copy-RxWrHTc (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLjava/util/Set;)Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
+	public static synthetic fun copy-RxWrHTc$default (Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[BLjava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/RoomInfoElement;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRoomId-7hZGZBE ()Ljava/lang/String;
 	public final fun getRoomImage ()[B
 	public final fun getRoomImageInitials ()Ljava/lang/String;
+	public final fun getVia ()Ljava/util/Set;
 	public fun hashCode ()I
 	public final fun setRoomId-sZMse74 (Ljava/lang/String;)V
 	public fun toString ()Ljava/lang/String;
@@ -5261,6 +5271,117 @@ public final class de/connect2x/trixnity/messenger/viewmodel/media/MediaPlayerVi
 	public fun seekTo-LRDsOJo (J)V
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel {
+	public abstract fun getActionNecessary ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getOnDismiss ()Lkotlin/jvm/functions/Function0;
+	public abstract fun isLoading ()Lkotlinx/coroutines/flow/StateFlow;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$AcceptInvitation : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function0;
+	public final fun copy (Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$AcceptInvitation;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$AcceptInvitation;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$AcceptInvitation;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOnAcceptInvite ()Lkotlin/jvm/functions/Function0;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Join : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function0;
+	public final fun copy (Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Join;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Join;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Join;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getOnJoinRoom ()Lkotlin/jvm/functions/Function0;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Knock : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/flow/StateFlow;)V
+	public final fun component1 ()Lkotlin/jvm/functions/Function0;
+	public final fun component2 ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun copy (Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/flow/StateFlow;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Knock;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Knock;Lkotlin/jvm/functions/Function0;Lkotlinx/coroutines/flow/StateFlow;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Knock;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHasKnocked ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun getOnKnock ()Lkotlin/jvm/functions/Function0;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$NotFound : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$NotFound;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Private : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Private;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Restricted : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction {
+	public fun <init> (Ljava/util/Set;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Restricted;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Restricted;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel$JoinRoomAction$Restricted;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRequiredRooms ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory$Companion;
+	public fun create-RxWrHTc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelImpl;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory {
+	public fun create-RxWrHTc (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelImpl;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory$DefaultImpls {
+	public static fun create-RxWrHTc (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelImpl;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel {
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun getActionNecessary ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
+	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
+	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getError ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
+	public fun getKoin ()Lorg/koin/core/Koin;
+	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
+	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
+	public fun getOnDismiss ()Lkotlin/jvm/functions/Function0;
+	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
+	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public fun isLoading ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+}
+
 public final class de/connect2x/trixnity/messenger/viewmodel/room/MentionHelper {
 	public synthetic fun <init> (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Ljava/lang/String;Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/messenger/viewmodel/util/RoomName;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
@@ -5287,7 +5408,8 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/R
 	public abstract fun closeRoom (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getStack ()Lcom/arkivanov/decompose/value/Value;
 	public abstract fun isShown ()Z
-	public abstract fun openRoom-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun openRoom-v4adHRE (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun openRoom-v4adHRE$default (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public abstract class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config {
@@ -5297,6 +5419,37 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction : de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config {
+	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-hu1aZbM ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/Set;
+	public final fun copy-pFTbHVM (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;)Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction;
+	public static synthetic fun copy-pFTbHVM$default (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRoomId ()Ljava/lang/String;
+	public final fun getUserId-hu1aZbM ()Ljava/lang/String;
+	public final fun getVia ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Config$JoinRoomAction$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -5337,7 +5490,22 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Con
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$DefaultImpls {
+	public static synthetic fun openRoom-v4adHRE$default (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
 public abstract class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper {
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper$JoinRoomAction : de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;)V
+	public final fun component1 ()Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;
+	public final fun copy (Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;)Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper$JoinRoomAction;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper$JoinRoomAction;Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper$JoinRoomAction;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/room/JoinRoomActionViewModel;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper$None : de/connect2x/trixnity/messenger/viewmodel/room/RoomRouter$Wrapper {
@@ -5364,7 +5532,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouterImpl
 	public fun closeRoom (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getStack ()Lcom/arkivanov/decompose/value/Value;
 	public fun isShown ()Z
-	public fun openRoom-brnpz1w (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun openRoom-v4adHRE (Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/RoomRouterImpl$Companion {
@@ -13548,6 +13716,10 @@ public final class de/connect2x/trixnity/messenger/viewmodel/util/RoomTopic$Defa
 public class de/connect2x/trixnity/messenger/viewmodel/util/RoomTopicImpl : de/connect2x/trixnity/messenger/viewmodel/util/RoomTopic {
 	public fun <init> ()V
 	public fun getRoomTopic-RNkTX0s (Ljava/lang/String;Lde/connect2x/trixnity/client/MatrixClient;Z)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class de/connect2x/trixnity/messenger/viewmodel/util/SyncStateUtilsKt {
+	public static final fun hasConnection (Lde/connect2x/trixnity/clientserverapi/client/SyncState;)Z
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/util/TypingInfoKt {

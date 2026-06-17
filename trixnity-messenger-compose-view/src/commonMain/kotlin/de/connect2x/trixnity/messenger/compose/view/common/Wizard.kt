@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -110,7 +111,7 @@ data class WizardStep(
 
 @Composable
 fun Wizard(wizardSteps: List<WizardStep>, useDefaultBackHandler: Boolean = false, wizardId: String = "Wizard") {
-    val currentStepId = remember(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
+    val currentStepId = rememberSaveable(wizardSteps) { mutableStateOf(wizardSteps.getOrNull(0)?.id ?: "unknown") }
     val savableStateHolder = rememberSaveableStateHolder()
 
     val wizardStep = wizardSteps.find { it.id == currentStepId.value }

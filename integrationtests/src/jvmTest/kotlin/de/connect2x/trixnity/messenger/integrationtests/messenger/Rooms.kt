@@ -42,7 +42,7 @@ suspend fun MatrixMessengerWithRoot.acceptInvitationToRoom(roomId: RoomId) =
             val roomListElementViewModel = findRoomWithId(roomId)
             roomListElementViewModel.isInvite.first { it == true }
             roomListElementViewModel.acceptInvitation()
-            val roomName = roomListElementViewModel.roomName.first { it?.startsWith("invitation")?.not() == true }
+            val roomName = roomListElementViewModel.roomName.first { it?.startsWith("invitation", true)?.not() == true }
             log.info { "accepted invitation to room $roomId -> check whether room is open" }
             val timelineViewModel =
                 stack
