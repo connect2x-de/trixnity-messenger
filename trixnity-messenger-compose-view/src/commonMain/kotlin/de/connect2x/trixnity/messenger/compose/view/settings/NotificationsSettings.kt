@@ -84,9 +84,7 @@ fun NotificationSettingsSingleAccount(viewModel: NotificationSettingsSingleAccou
 }
 
 @Composable
-internal expect fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
-)
+expect fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel)
 
 @Composable
 fun ColumnScope.DeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
