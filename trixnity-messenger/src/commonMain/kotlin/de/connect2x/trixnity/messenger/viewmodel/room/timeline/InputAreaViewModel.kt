@@ -750,8 +750,8 @@ open class InputAreaViewModelImpl(
     private val userPowerLevel = matrixClient.user.getPowerLevel(roomId, userId)
     private val defaultRoomNotificationPowerLevel = 50L
     private val requiredRoomMentionPowerLevel =
-        matrixClient.room.getState<PowerLevelsEventContent>(roomId).filterNotNull().map { powerLevelEvent ->
-            powerLevelEvent.content.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
+        matrixClient.room.getState<PowerLevelsEventContent>(roomId).map { powerLevelEvent ->
+            powerLevelEvent?.content?.notifications?.get("room") ?: defaultRoomNotificationPowerLevel
         }
 
     private val canRoomMention: StateFlow<Boolean> =
