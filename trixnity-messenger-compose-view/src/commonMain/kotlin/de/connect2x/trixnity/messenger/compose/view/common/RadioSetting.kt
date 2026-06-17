@@ -25,7 +25,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.modifier.rovingFocusI
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemRadioButton
 
-internal data class RadioSettingOption(
+data class RadioSettingOption(
     val text: String,
     val explanation: String? = null,
     val enabled: Boolean = true,
@@ -33,7 +33,7 @@ internal data class RadioSettingOption(
 )
 
 @Composable
-internal fun <T : Any> ColumnScope.RadioSetting(
+fun <T : Any> ColumnScope.RadioSetting(
     text: String,
     explanation: String? = null,
     options: Map<T, RadioSettingOption>,
@@ -58,7 +58,7 @@ internal fun <T : Any> ColumnScope.RadioSetting(
 }
 
 @Composable
-internal fun <T : Any> ColumnScope.RadioSetting(
+fun <T : Any> ColumnScope.RadioSetting(
     title: @Composable () -> Unit,
     options: Map<T, RadioSettingOption>,
     value: T,

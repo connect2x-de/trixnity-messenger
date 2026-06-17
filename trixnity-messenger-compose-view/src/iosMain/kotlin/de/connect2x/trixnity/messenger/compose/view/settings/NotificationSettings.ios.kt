@@ -19,9 +19,7 @@ import platform.UIKit.UIApplicationOpenSettingsURLString
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.settings.NotificationSettingsKt")
 
 @Composable
-internal actual fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
-) {
+actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
     val i18n = DI.get<I18nView>()
     val enabled = viewModel.enabledForThisDevice.collectAsState().value
     ThemedButton(
