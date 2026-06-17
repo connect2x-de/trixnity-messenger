@@ -14,6 +14,7 @@ import de.connect2x.trixnity.client.room.message.replace
 import de.connect2x.trixnity.client.room.message.reply
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
+import de.connect2x.trixnity.client.store.membership
 import de.connect2x.trixnity.client.store.originTimestamp
 import de.connect2x.trixnity.client.store.sender
 import de.connect2x.trixnity.client.user
@@ -24,6 +25,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.room.CanonicalAliasEventContent
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent.TextBased
@@ -722,6 +724,7 @@ open class InputAreaViewModelImpl(
             .filter { roomUser ->
                 val userId = roomUser.userId
                 userId != matrixClient.userId &&
+                    roomUser.membership == Membership.JOIN &&
                     (roomUser.name.contains(search, ignoreCase = true) ||
                         userId.localpart.contains(search, ignoreCase = true) ||
                         userId.domain.contains(search, ignoreCase = true))
