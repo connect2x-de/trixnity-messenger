@@ -2657,10 +2657,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/Ti
 	public static final fun ListDateHeader (Landroidx/compose/runtime/State;Landroidx/compose/runtime/State;ZLandroidx/compose/runtime/Composer;I)V
 	public static final fun ReportMessageSwitch (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun Timeline (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun getInitialFirstVisibleItemIndex (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Ljava/util/List;ZLandroidx/compose/runtime/Composer;I)Ljava/lang/Integer;
+	public static final fun getInitialFirstVisibleItemIndex (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/State;Landroidx/compose/runtime/State;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
 	public static final fun rememberTimelineViewElements (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
 	public static final fun rememberVisibleItems (Landroidx/compose/foundation/lazy/LazyListState;Landroidx/compose/runtime/Composer;I)Landroidx/compose/runtime/State;
-	public static final fun updateVisibleItems (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/State;Landroidx/compose/runtime/State;Landroidx/compose/runtime/Composer;I)V
+	public static final fun updateVisibleItems (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/TimelineViewModel;Landroidx/compose/runtime/State;Landroidx/compose/runtime/State;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/timeline/TimelineView {

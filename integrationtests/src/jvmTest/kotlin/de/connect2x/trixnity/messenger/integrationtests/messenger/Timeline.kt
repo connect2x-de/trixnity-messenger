@@ -225,14 +225,14 @@ private suspend inline fun <
 }
 
 private fun initViewState(timelineViewModel: TimelineViewModel, vms: List<BaseTimelineElementHolderViewModel>) {
-    if (timelineViewModel.viewState.value == null) {
-        timelineViewModel.viewState.value =
-            TimelineViewModel.ViewState(
-                firstVisibleElement = vms.first().key,
-                lastVisibleElement = vms.last().key,
-                firstLoadedElement = vms.first().key,
-                lastLoadedElement = vms.last().key,
-                timelineIsFocused = true,
-            )
-    }
+    timelineViewModel.setViewState(
+        TimelineViewModel.ViewState(
+            firstVisibleElement = vms.first().key,
+            lastVisibleElement = vms.last().key,
+            firstLoadedElement = vms.first().key,
+            lastLoadedElement = vms.last().key,
+            timelineIsFocused = true,
+            finishedScrollTo = vms.last().key,
+        )
+    )
 }

@@ -378,7 +378,7 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow
                     .transformLatest {
                         if (it.content == null) {
-                            delay(100.milliseconds)
+                            delay(500.milliseconds)
                         }
                         emit(it)
                     }

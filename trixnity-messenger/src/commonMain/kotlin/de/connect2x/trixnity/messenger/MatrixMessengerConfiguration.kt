@@ -3,9 +3,8 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.HttpClient
-import io.ktor.client.HttpClientConfig
-import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.*
+import io.ktor.client.engine.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -42,13 +41,18 @@ data class MatrixMessengerConfiguration(
         ),
 
     /** The number of elements that should be loaded before and after the viewport. */
-    var timelineBuffer: Int = 20,
+    var timelineBuffer: Int = 25,
     /** The number of elements that should be fetched from the server when not locally available. */
-    var timelineFetchSize: Int = 100,
+    var timelineFetchSize: Int = 50,
     /** The number of elements that should be loaded initially. */
     var timelineInitialSize: Int = 20,
     /** The maximum number of elements that should be kept in the timeline list (plus 2 * [timelineBuffer]) */
-    var timelineMaxSize: Int = 160,
+    var timelineMaxSize: Int = 150,
+    /**
+     * This can be disabled to manually control the
+     * [de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel].
+     */
+    var timelineViewStateSupported: Boolean = true,
 
     /** The maximum amount of time until message are seperated by extra space */
     var showBigGapBeforeThreshold: Duration = 1.hours,
