@@ -509,6 +509,7 @@ open class RoomListElementViewModelImpl(
             }
             .onFailure {
                 log.error(it) { "Failed to reject invitation" }
+                error.value = i18n.roomListInvitationError()
                 onFailure(it)
             }
     }

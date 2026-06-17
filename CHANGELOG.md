@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
 - UI: Opening 'privacy & security' no longer crashes the app
 - UI: Notification counts are no longer cut off after the first digit
+- SDK: Room invitations are no longer forgotten if an error occurred during the rejection
 
 ### Security
 
