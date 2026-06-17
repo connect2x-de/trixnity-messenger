@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
@@ -16,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.IntrinsicMeasurable
 import androidx.compose.ui.layout.IntrinsicMeasureScope
 import androidx.compose.ui.layout.Layout
@@ -89,6 +89,7 @@ private object MessageBubbleMeasurePolicy : MeasurePolicy {
 fun MessageBubbleContent(
     holder: BaseTimelineElementHolderViewModel,
     needsMaxWidth: Boolean,
+    isMentioned: Boolean,
     showActionMenu: () -> Unit,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
@@ -104,15 +105,19 @@ fun MessageBubbleContent(
             else -> MaterialTheme.components.messageBubbleOther
         }
 
+    val mentionBorder =
+        if (!holder.isByMe && isMentioned)
+            Modifier.border(width = 3.dp, color = Color.Red.copy(alpha = 0.7f), shape = messageBubbleStyle.shape)
+        else Modifier
     val highlighted =
         if (highlight)
-            Modifier.border(width = 3.dp, color = MaterialTheme.colorScheme.outline, shape = RoundedCornerShape(8.dp))
+            Modifier.border(width = 3.dp, color = MaterialTheme.colorScheme.outline, shape = messageBubbleStyle.shape)
         else Modifier
     Row {
         if (sendError != null) {
             Icon(Icons.Default.Warning, "send error", Modifier.padding(5.dp).align(Alignment.CenterVertically))
         }
-        Column(Modifier.padding(0.dp).then(highlighted)) {
+        Column(Modifier.padding(0.dp).then(highlighted).then(mentionBorder)) {
             if (showSender) {
                 Box(Modifier.padding(start = 10.dp, end = 10.dp, top = 5.dp)) {
                     val sender = holder.sender.collectAsState().value
