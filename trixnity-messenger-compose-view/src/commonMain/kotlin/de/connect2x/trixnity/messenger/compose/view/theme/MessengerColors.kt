@@ -28,6 +28,7 @@ data class MessengerColors(
     val link: Color,
     val linkByMe: Color,
     val userColors: List<Color>,
+    val mentionBorder: Color,
 ) {
     @Stable
     @Deprecated("use getUserColor(userId, backgroundColor) that guarantees a good contrast to the background color")

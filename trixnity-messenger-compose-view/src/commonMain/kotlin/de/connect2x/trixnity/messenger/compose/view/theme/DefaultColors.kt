@@ -61,6 +61,7 @@ internal val messenger_theme_light_users =
         Color(0xFF6E1390),
         Color(0xFF901355),
     )
+internal val messenger_theme_light_mention_border = Color(0xFFFF5252)
 
 // Dark theme template (mostly used for lightness/saturation)
 internal val md_theme_dark_onPrimary = Color(0xFF040404)
@@ -122,3 +123,4 @@ internal val messenger_theme_dark_users =
         Color(0xFFa424d4),
         Color(0xFFe61e87),
     )
+internal val messenger_theme_dark_mention_border = Color(0xFFA82020)

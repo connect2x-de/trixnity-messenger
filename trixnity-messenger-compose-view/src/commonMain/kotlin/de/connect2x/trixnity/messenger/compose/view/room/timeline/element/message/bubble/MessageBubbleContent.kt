@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.IntrinsicMeasurable
 import androidx.compose.ui.layout.IntrinsicMeasureScope
 import androidx.compose.ui.layout.Layout
@@ -107,7 +106,11 @@ fun MessageBubbleContent(
 
     val mentionBorder =
         if (!holder.isByMe && isMentioned)
-            Modifier.border(width = 3.dp, color = Color.Red.copy(alpha = 0.7f), shape = messageBubbleStyle.shape)
+            Modifier.border(
+                width = 3.dp,
+                color = MaterialTheme.messengerColors.mentionBorder,
+                shape = messageBubbleStyle.shape,
+            )
         else Modifier
     val highlighted =
         if (highlight)
