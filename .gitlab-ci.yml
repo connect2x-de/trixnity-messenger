@@ -64,7 +64,7 @@ compile:jvm-android-js:
       compileKotlin{Jvm,Js,WasmJs}
       compileTestKotlin{Jvm,Js,WasmJs}
       compile{Debug,Release}KotlinAndroid
-      compileDebugAndroidTestKotlinAndroid
+      compile{Debug,Release}UnitTestKotlinAndroid
       --stacktrace
 
 check:formatting:
@@ -150,9 +150,7 @@ test:sdk:unit:ios:
   script:
     - ./gradlew
       :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
-      :trixnity-messenger:testCoverage
       --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:sdk:unit:jvm:
   stage: test
@@ -186,9 +184,7 @@ test:sdk:unit:js:
   script:
     - ./gradlew
       :trixnity-messenger:{js,wasmJs}Test
-      :trixnity-messenger:testCoverage
       --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:sdk:integration:jvm:
   stage: test
@@ -259,30 +255,6 @@ test:ui:integration:js:
     - ./gradlew
       :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
       --stacktrace
-
-# TODO cannot be run on virtualized macOS
-#test:smoketest-ios:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "compile:ios" ]
-#  tags: [ "connect2x-mac" ]
-#  artifacts:
-#    when: always
-#    paths: [ "screenshots", "**/build/reports" ]
-#    reports:
-#      coverage_report:
-#        coverage_format: jacoco
-#        path: trixnity-messenger/build/reports/kover/reportJvm.xml
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./scripts/start_simulator.sh
-#    - ./gradlew
-#      :trixnity-messenger-compose-view:iosX64Test
-#      :trixnity-messenger-compose-view:testCoverage
-#      --stacktrace
-#  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 staging:android:
   stage: staging
