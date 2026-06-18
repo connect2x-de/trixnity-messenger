@@ -459,6 +459,8 @@ private fun newSearchViewModels() = module {
                                     potentialMembersViewModel = potentialMembersViewModel,
                                     onBack = onBack,
                                 ),
+                            roomId = roomId,
+                            onBack = onBack,
                             potentialMembersNewSearchViewModel =
                                 PotentialMembersNewSearchViewModelImpl(
                                     viewModelContext = viewModelContext,
