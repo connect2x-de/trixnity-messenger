@@ -4383,6 +4383,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun userVerificationStarted(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.userVerificationStarted|userVerificationStarted(kotlin.String){}[0]
     open fun userVerificationSuccess(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.userVerificationSuccess|userVerificationSuccess(){}[0]
     open fun userVerificationSuccessMessage(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.userVerificationSuccessMessage|userVerificationSuccessMessage(){}[0]
+    open fun userWasMentioned(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.userWasMentioned|userWasMentioned(){}[0]
     open fun verificationAlreadyRunning(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.verificationAlreadyRunning|verificationAlreadyRunning(){}[0]
     open fun verificationAlreadyRunningInAnotherRoom(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.verificationAlreadyRunningInAnotherRoom|verificationAlreadyRunningInAnotherRoom(){}[0]
     open fun verificationCancelled(kotlin/String): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.verificationCancelled|verificationCancelled(kotlin.String){}[0]

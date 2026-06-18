@@ -1727,6 +1727,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun userVerificationStarted (Ljava/lang/String;)Ljava/lang/String;
 	public fun userVerificationSuccess ()Ljava/lang/String;
 	public fun userVerificationSuccessMessage ()Ljava/lang/String;
+	public fun userWasMentioned ()Ljava/lang/String;
 	public fun verificationAlreadyRunning ()Ljava/lang/String;
 	public fun verificationAlreadyRunningInAnotherRoom ()Ljava/lang/String;
 	public fun verificationCancelled (Ljava/lang/String;)Ljava/lang/String;
