@@ -9,7 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI, SDK: Add options to join room when clicking on room mention of a not joined room
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## 4.7.0
+
+### Added
+
+- UI,SDK: Add options to join room when clicking on room mention of a not joined room
 
 ### Changed
 
@@ -18,19 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
 - UI: made several compose functions for notifications public instead of internal
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - UI: Don't show verification twice on account setup
 - SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
-- UI: Opening 'privacy & security' no longer crashes the app
+- UI: Opening blocked users in privacy settings no longer crashes the app
 - UI: Notification counts are no longer cut off after the first digit
 - SDK: Room invitations are no longer forgotten if an error occurred during the rejection
-
-### Security
 
 ## v4.6.1
 
