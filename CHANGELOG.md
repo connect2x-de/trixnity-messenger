@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI (**breaking change**): Sync `ViewState` between SDK and UI. This ensures predictable scroll and loading
   behavior of the timeline. If the UI does not support setting `ViewState`,
   `MatrixMessengerConfiguration.timelineViewStateSupported` must be set to false and
-  `TimelienViewModel.finishedScrollTo` additionally be used.
+  `TimelineViewModel.finishedScrollTo` additionally be used.
 - UI: made several compose functions for notifications public instead of internal
 
 ### Deprecated
