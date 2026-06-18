@@ -140,22 +140,51 @@ class LeaveRoomTest {
     }
 
     @Test
-    fun `should forget room when leaveRoom call failed with MatrixServerException`() = runTestWithCoroutineScope {
-        room.value = Room(roomId, membership = Membership.JOIN)
-        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
-        everySuspend { roomApiClient.leaveRoom(any()) } calls
-            {
-                room.value = Room(roomId, membership = Membership.LEAVE)
-                Result.failure(
-                    MatrixServerException(
-                        statusCode = HttpStatusCode.InternalServerError,
-                        errorResponse = ErrorResponse.Unknown("error"),
+    fun `should forget room when leaveRoom call failed with NotFound because room does not exist`() =
+        runTestWithCoroutineScope {
+            room.value = Room(roomId, membership = Membership.JOIN)
+            everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
+            everySuspend { roomApiClient.leaveRoom(any()) } calls
+                {
+                    room.value = Room(roomId, membership = Membership.LEAVE)
+                    Result.failure(
+                        MatrixServerException(
+                            statusCode = HttpStatusCode.NotFound,
+                            errorResponse = ErrorResponse.NotFound("error"),
+                        )
                     )
-                )
-            }
+                }
 
-        LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
-        verifySuspend { roomApiClient.forgetRoom(roomId) }
+            LeaveRoomImpl().invoke(matrixClient, roomId).getOrThrow()
+            verifySuspend { roomApiClient.forgetRoom(roomId) }
+        }
+
+    @Test
+    fun `should not forget room when leaveRoom call failed for server notice room`() = runTestWithCoroutineScope {
+        room.value = Room(roomId, membership = Membership.INVITE)
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
+        everySuspend { roomApiClient.leaveRoom(any()) } returns
+            Result.failure(
+                MatrixServerException(
+                    statusCode = HttpStatusCode.Forbidden,
+                    errorResponse = ErrorResponse.CannotLeaveServerNoticeRoom("error"),
+                )
+            )
+
+        LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
+        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(roomId, true) }
+    }
+
+    @Test
+    fun `should not forget room when leaveRoom call failed for any reason`() = runTestWithCoroutineScope {
+        room.value = Room(roomId, membership = Membership.INVITE)
+        everySuspend { roomApiClient.forgetRoom(any()) } returns Result.success(Unit)
+        everySuspend { roomApiClient.leaveRoom(any()) } returns Result.failure(IllegalArgumentException("error"))
+
+        LeaveRoomImpl().invoke(matrixClient, roomId).isSuccess shouldBe false
+        verifySuspend(VerifyMode.not) { roomApiClient.forgetRoom(roomId) }
+        verifySuspend(VerifyMode.not) { matrixClient.room.forgetRoom(roomId, true) }
     }
 
     @Test

@@ -11,7 +11,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedListItemSwitch
 
-internal data class OptionSettingOption(
+data class OptionSettingOption(
     val text: String,
     val explanation: String? = null,
     val value: Boolean,
@@ -19,35 +19,8 @@ internal data class OptionSettingOption(
     val enabled: Boolean = true,
 )
 
-// TODO delete?
 @Composable
-internal fun OptionSetting(
-    text: String,
-    explanation: String? = null,
-    enabled: Boolean = true,
-    options: List<OptionSettingOption>,
-) {
-    Text(text, style = MaterialTheme.typography.headlineSmall)
-    if (explanation != null) Text(text, style = MaterialTheme.typography.labelSmall)
-    for (option in options) {
-        val (optionText, optionExplanation, optionValue, optionToggle, optionEnabled) = option
-        ThemedListItemSwitch(
-            style = MaterialTheme.components.settingsItem,
-            headlineContent = { Text(optionText) },
-            supportingContent =
-                if (optionExplanation == null) null
-                else {
-                    { Text(optionExplanation) }
-                },
-            selected = optionValue,
-            enabled = enabled && optionEnabled,
-            onChange = optionToggle,
-        )
-    }
-}
-
-@Composable
-internal fun ColumnScope.CollapsableOptionSetting(
+fun ColumnScope.CollapsableOptionSetting(
     text: String,
     explanation: String? = null,
     enabled: Boolean = true,
