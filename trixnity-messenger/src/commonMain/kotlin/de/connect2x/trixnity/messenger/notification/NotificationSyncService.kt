@@ -111,32 +111,7 @@ class NotificationSyncService(
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
-        if (notificationsEnabled) {
-            log.debug { "listen for new notifications for ${matrixClient.userId}" }
-            matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
-                if (notificationSettings.showDetails) {
-                    notificationUpdate.send(
-                        playSound = notificationSettings.playSound,
-                        notificationHandler = notificationHandler,
-                        matrixClient = matrixClient,
-                    )
-                } else {
-                    try {
-                        notificationHandler.push(
-                            tag = "NO_DETAILS_PLACEHOLDER",
-                            notification =
-                                Notification(
-                                    title = i18n.newMessageTitle(),
-                                    description = i18n.newMessageDescription(),
-                                    playSound = notificationSettings.playSound,
-                                ),
-                        )
-                    } catch (e: Throwable) {
-                        log.error(e) { "failed to push placeholder notification" }
-                    }
-                }
-            }
-        } else {
+        if (!notificationsEnabled) {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
             try {
                 notificationHandler.clearAll()
@@ -144,65 +119,73 @@ class NotificationSyncService(
                 log.error(e) { "failed to clear all notifications" }
             }
             matrixClient.notification.getAllUpdates().collect() // black hole
+            return
+        }
+
+        log.debug { "listen for new notifications for ${matrixClient.userId}" }
+        matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
+            notificationUpdate.send(
+                settings = notificationSettings,
+                notificationHandler = notificationHandler,
+                matrixClient = matrixClient,
+            )
         }
     }
 
     private suspend fun NotificationUpdate.send(
-        playSound: Boolean,
+        settings: MatrixMessengerAccountNotificationSettings,
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
+        val tag = if (settings.showDetails) this.id else "NO_DETAILS_PLACEHOLDER"
         when (this) {
             is NotificationUpdate.New -> {
                 val notificationData = content.toNotificationData(matrixClient) ?: return
-                log.debug { "push new notification in system (tag=$id)" }
-                try {
-                    notificationHandler.push(
-                        tag = id,
-                        notification =
-                            Notification(
-                                title = notificationData.title,
-                                description = notificationData.description,
-                                icon = notificationData.icon,
-                                statusIcon = statusIcon,
-                                callbackData = notificationData.callbackData,
-                                playSound = playSound,
-                            ),
-                    )
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to push notification (tag=$id)" }
-                }
+                val notification = buildNotification(notificationData, settings)
+                executeAction("push", tag) { notificationHandler.push(notification, tag) }
             }
-
             is NotificationUpdate.Update -> {
                 val notificationData = content.toNotificationData(matrixClient) ?: return
-                log.debug { "update notification in system (tag=$id)" }
-                try {
-                    notificationHandler.update(
-                        tag = id,
-                        notification =
-                            Notification(
-                                title = notificationData.title,
-                                description = notificationData.description,
-                                icon = notificationData.icon,
-                                statusIcon = statusIcon,
-                                callbackData = notificationData.callbackData,
-                                playSound = false,
-                            ),
-                    )
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to update notification (tag=$id)" }
-                }
+                val notification = buildNotification(notificationData, settings, playSound = false)
+                executeAction("update", tag) { notificationHandler.update(tag, notification) }
             }
-
             is NotificationUpdate.Remove -> {
-                log.debug { "remove notification in system (tag=$id)" }
-                try {
-                    notificationHandler.pop(tag = id)
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to pop notification (tag=$id)" }
-                }
+                executeAction("remove", tag) { notificationHandler.pop(tag) }
             }
+        }
+    }
+
+    private fun buildNotification(
+        data: NotificationData,
+        settings: MatrixMessengerAccountNotificationSettings,
+        playSound: Boolean? = null,
+    ): Notification {
+        return if (settings.showDetails) {
+            Notification(
+                title = data.title,
+                description = data.description,
+                icon = data.icon,
+                statusIcon = statusIcon,
+                callbackData = data.callbackData,
+                playSound = playSound ?: settings.playSound,
+            )
+        } else {
+            Notification(
+                title = i18n.newMessageTitle(),
+                description = i18n.newMessageDescription(),
+                playSound = playSound ?: settings.playSound,
+                callbackData = data.callbackData,
+            )
+        }
+    }
+
+    private inline fun executeAction(action: String, tag: String, block: () -> Unit) {
+        log.debug { "$action notification in system (tag=$tag)" }
+
+        try {
+            block()
+        } catch (e: Throwable) {
+            log.error(e) { "failed to $action notification (tag=$tag)" }
         }
     }
 
