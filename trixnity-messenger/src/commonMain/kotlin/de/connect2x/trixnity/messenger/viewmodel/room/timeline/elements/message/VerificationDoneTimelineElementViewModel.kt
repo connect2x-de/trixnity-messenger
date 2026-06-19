@@ -11,6 +11,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -75,4 +76,6 @@ class VerificationDoneTimelineElementViewModelImpl(
 
     override val message: String
         get() = i18n.userVerificationSuccess()
+
+    override val isMentioned: Boolean = content.isUserMentioned(userId)
 }

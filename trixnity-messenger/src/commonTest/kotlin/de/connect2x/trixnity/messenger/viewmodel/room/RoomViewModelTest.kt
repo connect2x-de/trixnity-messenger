@@ -162,7 +162,7 @@ class RoomViewModelTest {
         every { roomServiceMock.usersTyping } returns MutableStateFlow(mapOf())
         every { roomServiceMock.getTimelineEvent(any(), any(), any()) } returns flowOf(null)
         every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
-        every { roomServiceMock.getState<HistoryVisibilityEventContent>(any(), any(), any()) } returns
+        every { roomServiceMock.getState(any(), HistoryVisibilityEventContent::class, any()) } returns
             flowOf(
                 ClientEvent.StrippedStateEvent(
                     HistoryVisibilityEventContent(HistoryVisibilityEventContent.HistoryVisibility.INVITED),
