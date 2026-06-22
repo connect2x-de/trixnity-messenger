@@ -4,9 +4,9 @@ trixnityMessenger = "4.5.3"
 
 minSdkVersion = "28"
 
-seskar = "4.60.0" # https://github.com/turansky/seskar
+seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.6.0-SNAPSHOT.LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
+trixnity = "5.6.1-SNAPSHOT.LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
 sysnotify = "2.6.3" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.7-SNAPSHOT.LOCAL" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
