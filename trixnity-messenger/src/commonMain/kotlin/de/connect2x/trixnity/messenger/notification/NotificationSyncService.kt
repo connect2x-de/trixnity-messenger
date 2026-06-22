@@ -51,6 +51,7 @@ class NotificationSyncService(
 ) : Worker {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationService")
+        internal const val noDetailsTag = "NO_DETAILS_PLACEHOLDER"
     }
 
     private val statusIcon: NotificationIcon? by lazy {
@@ -137,7 +138,7 @@ class NotificationSyncService(
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
-        val tag = if (settings.showDetails) this.id else "NO_DETAILS_PLACEHOLDER"
+        val tag = if (settings.showDetails) this.id else noDetailsTag
         when (this) {
             is NotificationUpdate.New -> {
                 val notificationData = content.toNotificationData(matrixClient) ?: return
@@ -173,8 +174,8 @@ class NotificationSyncService(
             Notification(
                 title = i18n.newMessageTitle(),
                 description = i18n.newMessageDescription(),
-                playSound = playSound ?: settings.playSound,
                 callbackData = data.callbackData,
+                playSound = playSound ?: settings.playSound,
             )
         }
     }
