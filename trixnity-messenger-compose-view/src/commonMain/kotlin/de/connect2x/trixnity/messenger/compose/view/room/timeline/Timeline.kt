@@ -28,7 +28,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,12 +71,11 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.Timeline
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -110,11 +108,10 @@ sealed interface TimelineViewElement {
 class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
-        val coroutineScope = rememberCoroutineScope()
-
         val i18n = DI.get<I18nView>()
 
         val timelineViewElements = rememberTimelineViewElements(timelineViewModel)
+        val initialScrollTo = remember { timelineViewModel.scrollTo.take(1) }.collectAsState(null)
         val isTimelineLoading = timelineViewElements.value.isEmpty()
         val error = timelineViewModel.error.collectAsState()
         val draggedFile = timelineViewModel.draggedFile.collectAsState()
@@ -128,7 +125,7 @@ class TimelineViewImpl : TimelineView {
         val finishedScrollTo = remember { mutableStateOf<String?>(null) }
         val initialFirstVisibleItemIndex =
             getInitialFirstVisibleItemIndex(
-                    timelineViewModel,
+                    initialScrollTo,
                     timelineViewElements,
                     showTypingIndicator,
                     finishedScrollTo,
@@ -139,29 +136,22 @@ class TimelineViewImpl : TimelineView {
                 Box(Modifier.fillMaxSize()) { LoadingSpinner(Modifier.align(Alignment.Center)) }
             } else {
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
-                LaunchedEffect(Unit) {
-                    coroutineScope.launch {
-                        combine(
-                                timelineViewModel.scrollTo,
-                                snapshotFlow { timelineViewElements.value },
-                                snapshotFlow { showTypingIndicator.value },
-                            ) { scrollToKey, timelineViewElements, showTypingIndicator ->
-                                if (scrollToKey != null) {
-                                    val index = timelineViewElements.indexOfFirst { it.key == scrollToKey }
-                                    if (index >= 0) {
-                                        log.debug { "scrolling to $scrollToKey (index=$index)" }
-                                        listState.animateScrollToItem(
-                                            when {
-                                                index == 0 && showTypingIndicator -> 0
-                                                showTypingIndicator -> index + 1
-                                                else -> index
-                                            }
-                                        )
-                                    }
-                                    finishedScrollTo.value = scrollToKey
+                val scrollTo = remember { timelineViewModel.scrollTo.drop(1) }.collectAsState(null)
+                LaunchedEffect(scrollTo.value, timelineViewElements.value) {
+                    if (scrollTo.value != null) {
+                        val currentShowTypingIndicator = showTypingIndicator.value
+                        val index = timelineViewElements.value.indexOfFirst { it.key == scrollTo.value }
+                        if (index >= 0) {
+                            log.debug { "scrolling to $scrollTo (index=$index)" }
+                            listState.animateScrollToItem(
+                                when {
+                                    index == 0 && currentShowTypingIndicator -> 0
+                                    currentShowTypingIndicator -> index + 1
+                                    else -> index
                                 }
-                            }
-                            .collect()
+                            )
+                        }
+                        finishedScrollTo.value = scrollTo.value
                     }
                 }
 
@@ -399,7 +389,7 @@ fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?>
 
 @Composable
 fun getInitialFirstVisibleItemIndex(
-    timelineViewModel: TimelineViewModel,
+    initialScrollTo: State<String?>,
     timelineViewElements: State<List<TimelineViewElement>>,
     showTypingIndicator: State<Boolean>,
     finishedScrollTo: MutableState<String?>,
@@ -407,8 +397,9 @@ fun getInitialFirstVisibleItemIndex(
     val initialFirstVisibleItemIndex = remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
-        val scrollTo = timelineViewModel.scrollTo.filterNotNull().first()
-        val currentTimelineViewElements = snapshotFlow { timelineViewElements.value }.filter { it.isNotEmpty() }.first()
+        val scrollTo = snapshotFlow { initialScrollTo.value }.filterNotNull().first()
+        if (initialScrollTo.value == null) return@LaunchedEffect
+        val currentTimelineViewElements = snapshotFlow { timelineViewElements.value }.first { it.isNotEmpty() }
         val currentShowTypingIndicator = showTypingIndicator.value
         initialFirstVisibleItemIndex.value =
             currentTimelineViewElements
@@ -417,13 +408,11 @@ fun getInitialFirstVisibleItemIndex(
                 .let { index ->
                     when {
                         index == 0 && currentShowTypingIndicator -> 0
-                        index < 0 && currentShowTypingIndicator -> 1
-                        index < 0 && !currentShowTypingIndicator -> 0
                         currentShowTypingIndicator -> index + 1
                         else -> index
                     }
                 }
-        finishedScrollTo.value = timelineViewModel.scrollTo.value
+        finishedScrollTo.value = scrollTo
     }
 
     return initialFirstVisibleItemIndex
