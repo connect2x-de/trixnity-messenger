@@ -12,7 +12,6 @@ import androidx.compose.ui.Connect2xComposeUiApi
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.PlatformContext
 import androidx.compose.ui.platform.PlatformContext.SemanticsOwnerListener
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
@@ -27,12 +26,12 @@ import androidx.compose.ui.window.ComposeViewportConfiguration
 import js.numbers.JsDouble
 import js.objects.unsafeJso
 import js.string.JsStrings.toKotlinString
+import js.undefined.undefinedOrNull
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
 import kotlin.js.JsString
 import kotlin.js.definedExternally
 import kotlin.js.js
-import kotlin.js.undefined
 import kotlin.js.unsafeCast
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -88,7 +87,7 @@ fun AccessibleComposeViewport(content: @Composable () -> Unit = {}) {
 }
 
 class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineScope: CoroutineScope = MainScope()) :
-    PlatformContext.SemanticsOwnerListener {
+    SemanticsOwnerListener {
     private val owners = mutableSetOf<SemanticsOwner>()
 
     private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
@@ -517,7 +516,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
         val clickable = node.config.getOrNull(SemanticsActions.OnClick) != null
         if (clickable) {
             if (el.clickListener == null) {
-                el.clickListener = EventHandler { doIf(SemanticsActions.OnClick) { it.action?.invoke() } }
+                el.clickListener = { doIf(SemanticsActions.OnClick) { it.action?.invoke() } }
             }
         } else {
             el.clickListener = null
@@ -535,7 +534,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
                 node.config.getOrNull(SemanticsActions.RequestFocus) != null
         if (focusable) {
             if (el.focusListener == null) {
-                val focusListener = EventHandler { doIf(SemanticsActions.RequestFocus) { it.action?.invoke() } }
+                val focusListener: (Event) -> Unit = { doIf(SemanticsActions.RequestFocus) { it.action?.invoke() } }
 
                 if (el is HTMLDivElement) el.setAttribute("tabindex", "-1")
 
@@ -597,42 +596,42 @@ fun onDomReady(block: () -> Unit) {
 }
 
 private external interface FocusListenerElement : JsAny {
-    var focusListener: AnyEventHandler?
+    var focusListener: ((Event) -> Unit)?
 }
 
-private var HTMLElement.focusListener: AnyEventHandler?
-    get() = unsafeCast<FocusListenerElement>().focusListener.takeIf { it != undefined }
+private var HTMLElement.focusListener: ((Event) -> Unit)?
+    get() = unsafeCast<FocusListenerElement>().focusListener.takeIf { it != undefinedOrNull }
     set(value) {
         val self = unsafeCast<FocusListenerElement>()
 
-        self.focusListener?.also {
-            self.focusListener = undefined
-            removeEventListener(EventType("focus"), it)
+        self.focusListener?.also { listener ->
+            self.focusListener = undefinedOrNull
+            removeEventListener(EventType("focus"), listener)
         }
 
-        value?.also {
-            self.focusListener = it
-            addEventListener(EventType("focus"), it)
+        value?.also { listener ->
+            self.focusListener = listener
+            addEventListener(EventType("focus"), listener)
         }
     }
 
 private external interface ClickListenerElement : JsAny {
-    var clickListener: AnyEventHandler?
+    var clickListener: ((Event) -> Unit)?
 }
 
-private var HTMLElement.clickListener: AnyEventHandler?
-    get() = unsafeCast<ClickListenerElement>().clickListener.takeIf { it != undefined }
+private var HTMLElement.clickListener: ((Event) -> Unit)?
+    get() = unsafeCast<ClickListenerElement>().clickListener.takeIf { it != undefinedOrNull }
     set(value) {
         val self = unsafeCast<ClickListenerElement>()
 
-        self.clickListener?.also {
-            self.clickListener = undefined
-            removeEventListener(EventType("click"), it)
+        self.clickListener?.also { listener ->
+            self.clickListener = undefinedOrNull
+            removeEventListener(EventType("click"), listener)
         }
 
-        value?.also {
-            self.clickListener = it
-            addEventListener(EventType("click"), it)
+        value?.also { listener ->
+            self.clickListener = listener
+            addEventListener(EventType("click"), listener)
         }
     }
 
@@ -707,14 +706,18 @@ private fun EventHandlerCaller(canvas: HTMLCanvasElement): EventHandlerCaller {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 private fun handleEventInListener(listener: AnyEventHandler): Boolean = js(""""handleEvent" in listener""")
 
+@Suppress("UNUSED_PARAMETER")
 private fun callHandleEvent(listener: AnyEventHandler, event: Event): Unit = js("""listener.handleEvent(event)""")
 
+@Suppress("UNUSED_PARAMETER")
 private fun call(listener: AnyEventHandler, event: Event): Unit = js("""listener(event)""")
 
 private fun isChrome(): Boolean = js("""typeof window.chrome !== "undefined"""")
 
+@Suppress("UNUSED_PARAMETER")
 private fun setEventTimestamp(event: Event, timeStamp: JsDouble) {
     js(
         """try {
@@ -738,6 +741,7 @@ private fun copyInputEvent(event: InputEvent): InputEvent =
         },
     )
 
+@Suppress("UNUSED_PARAMETER")
 private fun copyKeyboardEvent(event: KeyboardEvent): KeyboardEvent =
     js(
         """new KeyboardEvent(event.type, {
