@@ -81,7 +81,8 @@ fun LocationMessageElement(
     isPreview: Boolean,
     index: Int,
 ) {
-    MessageBubble(holder, needsMaxWidth = false, isPreview = isPreview, index = index) { showMenuAction ->
+    MessageBubble(holder, needsMaxWidth = false, isPreview = isPreview, isMentioned = false, index = index) {
+        showMenuAction ->
         // on Desktop and Web, it makes sense to select text and copy it;
         // on Android and iOS, this will consume long tap events, which we use for the context menu
         when (Platform.current) {

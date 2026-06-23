@@ -17,7 +17,8 @@ import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountState
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2DeviceAuthorizationLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
@@ -41,7 +42,7 @@ class AdditionalConnectingWizardStepImpl : AdditionalConnectingWizardStep {
 fun <T : Any> ConnectingWizard(viewModel: T) {
     val i18n = DI.get<I18nView>()
     val additionalConnectingWizardStep = DI.get<AdditionalConnectingWizardStep>()
-    val wizardStep =
+    val wizardSteps =
         remember(viewModel, i18n, additionalConnectingWizardStep) {
             listOf(
                 when (viewModel) {
@@ -49,7 +50,9 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
 
                     is PasswordLoginViewModel -> LoginWithPasswordStep(viewModel, i18n)
 
-                    is OAuth2LoginViewModel -> LoginWithOAuth2Step(viewModel, i18n)
+                    is OAuth2AuthorizationCodeLoginViewModel -> LoginWithOAuth2AuthenticationCodeStep(viewModel, i18n)
+                    is OAuth2DeviceAuthorizationLoginViewModel ->
+                        LoginWithOAuth2DeviceAuthenticationStep(viewModel, i18n)
 
                     is SSOLoginViewModel -> LoginWithSSOStep(viewModel, i18n)
 
@@ -60,7 +63,7 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             )
         }
 
-    return Wizard(wizardStep, wizardId = "ConnectingWizard")
+    Wizard(wizardSteps = wizardSteps, wizardId = "ConnectingWizard")
 }
 
 fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {
@@ -117,16 +120,19 @@ fun LoginWithPasswordStep(viewModel: PasswordLoginViewModel, i18n: I18nView): Wi
     )
 }
 
-fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): WizardStep {
+fun LoginWithOAuth2AuthenticationCodeStep(
+    viewModel: OAuth2AuthorizationCodeLoginViewModel,
+    i18n: I18nView,
+): WizardStep {
     return WizardStep(
         id = SSO_LOGIN,
         title = {
             when (viewModel.type) {
-                OAuth2LoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
-                OAuth2LoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
+                OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN -> i18n.loginWithOAuth2()
+                OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> i18n.registerWithOAuth2()
             }
         },
-        content = { OAuth2Login(viewModel) },
+        content = { OAuth2AuthorizationCodeLogin(viewModel) },
         additionalButton = {
             ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
                 Text(i18n.commonBack().capitalize(Locale.current))
@@ -135,7 +141,7 @@ fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): Wizard
         nextButton = {
             WizardNavigationButton.Custom {
                 val state = viewModel.state.collectAsState().value
-                val canLogin = state is OAuth2LoginViewModel.State.None
+                val canLogin = state is OAuth2AuthorizationCodeLoginViewModel.State.None
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     enabled = canLogin,
@@ -143,10 +149,39 @@ fun LoginWithOAuth2Step(viewModel: OAuth2LoginViewModel, i18n: I18nView): Wizard
                 ) {
                     val text =
                         when (viewModel.type) {
-                            OAuth2LoginViewModel.Type.LOGIN -> i18n.login()
-                            OAuth2LoginViewModel.Type.REGISTER -> i18n.register()
+                            OAuth2AuthorizationCodeLoginViewModel.Type.LOGIN -> i18n.login()
+                            OAuth2AuthorizationCodeLoginViewModel.Type.REGISTER -> i18n.register()
                         }
                     Text(text)
+                }
+            }
+        },
+    )
+}
+
+fun LoginWithOAuth2DeviceAuthenticationStep(
+    viewModel: OAuth2DeviceAuthorizationLoginViewModel,
+    i18n: I18nView,
+): WizardStep {
+    return WizardStep(
+        id = SSO_LOGIN,
+        title = { i18n.loginWithOAuth2Device() },
+        content = { OAuth2DeviceAuthorizationLogin(viewModel) },
+        additionalButton = {
+            ThemedButton(style = MaterialTheme.components.commonButton, onClick = viewModel::back) {
+                Text(i18n.commonBack().capitalize(Locale.current))
+            }
+        },
+        nextButton = {
+            WizardNavigationButton.Custom {
+                val state = viewModel.state.collectAsState().value
+                val canOpen = state is OAuth2DeviceAuthorizationLoginViewModel.State.CheckCode
+                ThemedButton(
+                    style = MaterialTheme.components.primaryButton,
+                    enabled = canOpen,
+                    onClick = { viewModel.openLoginPage() },
+                ) {
+                    Text(i18n.openLoginPage())
                 }
             }
         },

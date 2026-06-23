@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import kotlinx.coroutines.CoroutineScope
 
 data class RoomInfoElement(
@@ -12,6 +13,7 @@ data class RoomInfoElement(
     var roomId: RoomId,
     val roomImageInitials: String,
     val roomImage: ByteArray?,
+    val via: Set<String>? = null,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -45,14 +47,20 @@ suspend fun Room.toRoomInfoElement(
     matrixClient: MatrixClient,
     name: String,
     maxMediaSizeInMemory: Long,
+    via: Set<String>? = null,
 ): RoomInfoElement {
+    val size = avatarSize().toLong()
     return RoomInfoElement(
         name = name,
         roomId = roomId,
         roomImageInitials = initials.compute(name),
         roomImage =
             this.avatarUrl?.let {
-                matrixClient.media.getMedia(it).getOrNull()?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+                matrixClient.media
+                    .getThumbnail(it, size, size)
+                    .getOrNull()
+                    ?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
             },
+        via = via,
     )
 }

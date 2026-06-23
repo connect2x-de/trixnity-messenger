@@ -18,8 +18,10 @@ import de.connect2x.trixnity.messenger.compose.view.connecting.MatrixClientIniti
 import de.connect2x.trixnity.messenger.compose.view.connecting.MatrixClientInitializationFailureViewImpl
 import de.connect2x.trixnity.messenger.compose.view.connecting.MatrixClientInitializationView
 import de.connect2x.trixnity.messenger.compose.view.connecting.MatrixClientInitializationViewImpl
-import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2LoginView
-import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2LoginViewImpl
+import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2AuthorizationCodeLoginView
+import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2AuthorizationCodeLoginViewImpl
+import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2DeviceAuthorizationLoginView
+import de.connect2x.trixnity.messenger.compose.view.connecting.OAuth2DeviceAuthorizationLoginViewImpl
 import de.connect2x.trixnity.messenger.compose.view.connecting.PasswordLoginView
 import de.connect2x.trixnity.messenger.compose.view.connecting.PasswordLoginViewImpl
 import de.connect2x.trixnity.messenger.compose.view.connecting.RegisterNewAccountView
@@ -41,6 +43,10 @@ import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileSelectionVie
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfileSelectionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesView
 import de.connect2x.trixnity.messenger.compose.view.profiles.ProfilesViewImpl
+import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelectionView
+import de.connect2x.trixnity.messenger.compose.view.profiles.WithProfileSelectionViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionView
+import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.RoomView
 import de.connect2x.trixnity.messenger.compose.view.room.RoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomView
@@ -405,7 +411,8 @@ fun connectingViewModule() = module {
     single<RemoveMatrixAccountView> { RemoveMatrixAccountViewImpl() }
     single<PasswordLoginView> { PasswordLoginViewImpl() }
     single<RegisterNewAccountView> { RegisterNewAccountViewImpl() }
-    single<OAuth2LoginView> { OAuth2LoginViewImpl() }
+    single<OAuth2AuthorizationCodeLoginView> { OAuth2AuthorizationCodeLoginViewImpl() }
+    single<OAuth2DeviceAuthorizationLoginView> { OAuth2DeviceAuthorizationLoginViewImpl() }
     single<SSOLoginView> { SSOLoginViewImpl() }
     single<MatrixClientInitializationFailureView> { MatrixClientInitializationFailureViewImpl() }
     single<AdditionalConnectingWizardStep> { AdditionalConnectingWizardStepImpl() }
@@ -424,6 +431,7 @@ fun profileViewModule() = module {
     single<ProfilesView> { ProfilesViewImpl() }
     single<ProfileCreationView> { ProfileCreationViewImpl() }
     single<ProfileSelectionView> { ProfileSelectionViewImpl() }
+    single<WithProfileSelectionView> { WithProfileSelectionViewImpl() }
 }
 
 fun roomListViewModule() = module {
@@ -436,6 +444,7 @@ fun roomListViewModule() = module {
     single<KnockRoomListElement> { KnockRoomListElementImpl() }
     single<JoinedRoomListView> { JoinedRoomListViewImpl() }
     single<RoomView> { RoomViewImpl() }
+    single<JoinRoomActionView> { JoinRoomActionViewImpl() }
     single<CreateNewChatOrGroupFloatingActionButton> { CreateNewChatOrGroupFloatingActionButtonImpl() }
 }
 

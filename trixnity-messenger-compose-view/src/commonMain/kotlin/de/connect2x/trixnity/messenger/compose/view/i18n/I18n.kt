@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.compose.view.i18n
 
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
+import de.connect2x.trixnity.core.model.RoomAliasId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages.DE
@@ -676,6 +677,11 @@ open class I18nView(
         DE - "Anmelden"
     }
 
+    open fun openLoginPage() = translate {
+        EN - "Open link"
+        DE - "Link öffnen"
+    }
+
     open fun register() = translate {
         EN - "Register"
         DE - "Registrieren"
@@ -702,8 +708,13 @@ open class I18nView(
     }
 
     open fun loginWithOAuth2() = translate {
-        EN - "Login on Matrix server"
-        DE - "Anmelden am Matrix Server"
+        EN - "Login in Browser"
+        DE - "Anmelden im Browser"
+    }
+
+    open fun loginWithOAuth2Device() = translate {
+        EN - "Login with other device"
+        DE - "Anmelden mit anderem Gerät"
     }
 
     open fun loginWithOAuth2Description(serverUrl: String) = translate {
@@ -711,14 +722,26 @@ open class I18nView(
         DE - "Sie werden im nächsten Schritt weitergeleitet, um sich auf $serverUrl anzumelden."
     }
 
+    open fun loginWithOAuth2DeviceDescription(serverUrl: String) = translate {
+        EN -
+            "To login into $serverUrl, open the following link on any device and enter the code. You will be logged in here automatically when successful."
+        DE -
+            "Um sich auf $serverUrl anzumelden, öffnen sie folgenden link auf einem beliebigen Gerät und geben sie den Code ein. Sie werden bei Erfolg hier automatisch angemeldet."
+    }
+
     open fun loginWithOAuth2Waiting(serverUrl: String) = translate {
         EN - "You have been redirected to log in on $serverUrl. Please follow the instructions there."
         DE - "Sie wurden weitergeleitet, um sich auf $serverUrl anzumelden. Bitte folgen Sie dort den Anweisungen."
     }
 
+    open fun loginWithOAuth2DeviceWaiting(serverUrl: String) = translate {
+        EN - "Try to obtain a login code."
+        DE - "Es wird versucht, einen Login Code zu erhalten."
+    }
+
     open fun registerWithOAuth2() = translate {
-        EN - "Register on Matrix server"
-        DE - "Registrieren am Matrix Server"
+        EN - "Register in Browser"
+        DE - "Registrieren im Browser"
     }
 
     open fun registerWithOAuth2Description(serverUrl: String) = translate {
@@ -1377,6 +1400,11 @@ open class I18nView(
     open fun messageBubbleSent() = translate {
         EN - "sent"
         DE - "gesendet"
+    }
+
+    open fun userWasMentioned() = translate {
+        EN - "You were mentioned."
+        DE - "Sie wurden erwähnt."
     }
 
     open fun messageContentWaitForKeys() = translate {
@@ -3177,6 +3205,11 @@ open class I18nView(
         DE - "Warum möchtest du beitreten? (Optional)"
     }
 
+    open fun allRoomMembers() = translate {
+        EN - "All members in room"
+        DE - "Alle Mitglieder im Raum"
+    }
+
     open fun mentionEventInRoom(roomName: String) = translate {
         EN - "Message in $roomName"
         DE - "Nachricht in $roomName"
@@ -3602,6 +3635,16 @@ open class I18nView(
         DE - "Zeige vor dem Löschen von Nachrichten eine Warnung an."
     }
 
+    open fun blockInvitesSettingTitle() = translate {
+        EN - "Block invites"
+        DE - "Einladungen ablehnen"
+    }
+
+    open fun blockInvitesSettingDescription() = translate {
+        EN - "Invites are automatically rejected."
+        DE - "Einladungen werden automatisch abgelehnt."
+    }
+
     open fun markRoomAsUnread() = translate {
         EN - "Mark room as unread"
         DE - "Raum als ungelesen markieren"
@@ -3615,6 +3658,55 @@ open class I18nView(
     open fun unreadMessageCount(count: String) = translate {
         EN - "$count unread messages"
         DE - "$count ungelesene Nachrichten"
+    }
+
+    open fun joinRoomActionImpossible() = translate {
+        EN - "This room is private, please request an invitation to join."
+        DE - "Dieser Raum ist privat, bitte fordern Sie eine Einladung an, um beizutreten."
+    }
+
+    open fun joinRoomActionJoin() = translate {
+        EN - "You need to join the room to access its content. Please confirm you want to join."
+        DE - "Sie müssen dem Raum beitreten, um die Inhalte anzeigen zu können. Bitte bestätigen Sie den Beitritt."
+    }
+
+    open fun joinRoomActionKnock() = translate {
+        EN - "Without an invitation you need to knock on the room and be let in. Please confirm you want to knock."
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie eine Beitrittsanfrage stellen und hereingelassen werden. Bitte bestätigen Sie das Anklopfen."
+    }
+
+    open fun joinRoomActionKnockSuccess() = translate {
+        EN -
+            "Successfully knocked, you will be redirected to the room once the request is accepted. Alternatively you can check back later."
+        DE -
+            "Die Beitrittsanfrage war erfolgreich. Der Raum wird geöffnet, sobald die Anfrage akzeptiert wurde. Andernfalls können Sie das Öffnen später erneut versuchen. "
+    }
+
+    open fun joinRoomActionRestricted(requiredRooms: Set<RoomAliasId>) = translate {
+        EN -
+            "Without an invitation you need to be a member of at least one of the following rooms to join: ${requiredRooms.joinToString()}."
+        DE -
+            "Um ohne eine Einladung beizutreten, müssen Sie Mitglied in mindestens einem der folgenden Räume sei: ${requiredRooms.joinToString()}."
+    }
+
+    open fun joinRoomActionRestrictedNoRoomInfoAvailable() = translate {
+        EN - "Without an invitation you need to be a member of another room."
+        DE - "Um ohne eine Einladung beizutreten, müssen Sie bereits Mitglied eines anderen Raumes sein."
+    }
+
+    open fun joinRoomActionAcceptInvite() = translate {
+        EN -
+            "You need to accept your outstanding invitation to join this room. Please confirm you want to accept the invite."
+        DE -
+            "Um beizutreten müssen Sie ihre Einladung in den Raum annehmen. Bitte bestätigen Sie, dass Sie die Einladung annehmen möchten."
+    }
+
+    open fun joinRoomActionNotFound() = translate {
+        EN -
+            "Couldn't find the mentioned room. Either the id isn't valid or the homeserver doesn't allow checking the join rules of rooms. Please request an invitation to the room instead."
+        DE -
+            "Der Raum konnte nicht gefunden werden. Das liegt daran, dass die id des Raumes ungültig ist oder die Beitrittsregeln des Raumes nicht öffentlich sind. Bitte fordern Sie stattdessen eine Einladung in den Raum an."
     }
 
     fun actionCancel() = commonCancel().capitalize(Locale.current)

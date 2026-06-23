@@ -67,16 +67,25 @@ class MentionHelper(
                     .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Reference.Room ->
-                parseRoom(reference.roomId, matrixClient, initials)
+                parseRoom(
+                        reference.roomId,
+                        matrixClient,
+                        initials,
+                        via = reference.parameters["via"]?.split(",")?.toSet(),
+                    )
                     .map { info -> TimelineElementMention.Room(info) }
                     .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 
             is Reference.RoomAlias ->
                 flow {
                         emitAll(
-                            parseRoom(reference.roomAliasId, matrixClient, initials).map { info ->
-                                info?.let { TimelineElementMention.Room(info) }
-                            }
+                            parseRoom(
+                                    reference.roomAliasId,
+                                    matrixClient,
+                                    initials,
+                                    via = reference.parameters["via"]?.split(",")?.toSet(),
+                                )
+                                .map { info -> info?.let { TimelineElementMention.Room(info) } }
                         )
                     }
                     .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -94,6 +103,7 @@ class MentionHelper(
         matrixClient: MatrixClient,
         initials: Initials,
         forceAlias: RoomAliasId? = null,
+        via: Set<String>? = null,
     ): Flow<RoomInfoElement> =
         combine(
             matrixClient.room.getById(roomId),
@@ -106,6 +116,7 @@ class MentionHelper(
                 matrixClient,
                 forceAlias?.full ?: roomName,
                 maxMediaSizeInMemory,
+                via,
             )
                 ?: forceAlias?.let { alias ->
                     RoomInfoElement(
@@ -113,9 +124,10 @@ class MentionHelper(
                         roomId = roomId,
                         roomImageInitials = initials.compute(forceAlias.full),
                         roomImage = null,
+                        via = via,
                     )
                 }
-                ?: RoomInfoElement(roomName, roomId, initials.compute(roomName), null)
+                ?: RoomInfoElement(roomName, roomId, initials.compute(roomName), null, via = via)
         }
 
     private suspend fun findRoomAlias(roomAliasId: RoomAliasId): RoomId? =
@@ -134,8 +146,9 @@ class MentionHelper(
         roomAliasId: RoomAliasId,
         matrixClient: MatrixClient,
         initials: Initials,
+        via: Set<String>? = null,
     ): Flow<RoomInfoElement?> {
         val roomId = findRoomAlias(roomAliasId) ?: lookupRoomAlias(roomAliasId) ?: return flowOf(null)
-        return parseRoom(roomId, matrixClient, initials, roomAliasId)
+        return parseRoom(roomId, matrixClient, initials, roomAliasId, via = via)
     }
 }

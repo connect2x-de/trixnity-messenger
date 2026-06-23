@@ -20,6 +20,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.MentionHelper
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel.Message
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.isUserMentioned
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.RoomName
 import de.connect2x.trixnity.messenger.viewmodel.verification.VerificationRouter
@@ -165,6 +166,8 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
 
     val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
         mentionHelper.processMentions(formattedBodyContent).stateIn(coroutineScope, SharingStarted.Eagerly, emptyMap())
+
+    val isMentioned: Boolean = content.isUserMentioned(userId)
 
     fun openMention(mention: TimelineElementMention) {
         onOpenMention(userId, mention)

@@ -6,22 +6,26 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.messenger.util.bringToFrontSuspending
 import de.connect2x.trixnity.messenger.util.popWhileSuspending
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
+import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Config
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomRouter.Wrapper
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.OpenAvatarCutterCallback
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.Serializable
 import org.koin.core.component.get
 
 interface RoomRouter {
     val stack: Value<ChildStack<Config, Wrapper>>
 
-    suspend fun openRoom(userId: UserId, roomId: RoomId)
+    suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>? = null)
 
     suspend fun closeRoom()
 
@@ -32,10 +36,15 @@ interface RoomRouter {
         @Serializable data object None : Config()
 
         @Serializable data class View(val userId: UserId, val roomId: String) : Config()
+
+        @Serializable
+        data class JoinRoomAction(val userId: UserId, val roomId: String, val via: Set<String>?) : Config()
     }
 
     sealed class Wrapper {
         data class View(val viewModel: RoomViewModel) : Wrapper()
+
+        data class JoinRoomAction(val viewModel: JoinRoomActionViewModel) : Wrapper()
 
         data object None : Wrapper()
     }
@@ -80,11 +89,41 @@ class RoomRouterImpl(
                         )
                         .also { log.debug { "::: created viewModel for ${roomConfig.userId}" } }
                 )
+
+            is Config.JoinRoomAction ->
+                Wrapper.JoinRoomAction(
+                    viewModelContext
+                        .get<JoinRoomActionViewModelFactory>()
+                        .create(
+                            viewModelContext.childContext("RoomJoinAction", componentContext, roomConfig.userId),
+                            roomId = RoomId(roomConfig.roomId),
+                            via = roomConfig.via,
+                            onOpenRoom = { onOpenRoom(roomConfig.userId, it) },
+                            onDismiss = onCloseRoom,
+                        )
+                        .also {
+                            log.debug {
+                                "::: created viewModel for ${roomConfig.userId} room join confirm (room ${roomConfig.roomId}"
+                            }
+                        }
+                )
         }
 
-    override suspend fun openRoom(userId: UserId, roomId: RoomId) {
-        log.debug { "show room: $roomId" }
-        roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
+    override suspend fun openRoom(userId: UserId, roomId: RoomId, via: Set<String>?) {
+        val matrixClient = viewModelContext.getMatrixClient(userId)
+        val memberState = matrixClient.room.getById(roomId).firstOrNull()?.membership
+        when {
+            memberState == Membership.JOIN -> {
+                log.debug { "show room: $roomId" }
+                roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
+            }
+
+            // TODO show preview of timeline when room is world_readable
+
+            else -> {
+                roomNavigation.bringToFrontSuspending(Config.JoinRoomAction(userId, roomId.full, via))
+            }
+        }
     }
 
     override suspend fun closeRoom() {
@@ -95,5 +134,6 @@ class RoomRouterImpl(
         when (stack.value.active.configuration) {
             is Config.View -> true
             is Config.None -> false
+            is Config.JoinRoomAction -> true
         }
 }

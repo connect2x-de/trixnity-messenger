@@ -35,4 +35,5 @@ class EncryptedErrorTimelineElementViewModelImpl(viewModelContext: MatrixClientV
             TimelineEventContentError.NoContent -> i18n.timelineElementDecryptionErrorNoContent()
             else -> i18n.timelineElementDecryptionErrorGeneric(error.message)
         }
+    override val isMentioned: Boolean = false
 }

@@ -5,7 +5,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow
-import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
 import de.connect2x.trixnity.messenger.MatrixClients
@@ -27,8 +26,10 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitiali
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationViewModelFactory
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModel
-import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2LoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2AuthorizationCodeLoginViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2DeviceAuthorizationLoginViewModel
+import de.connect2x.trixnity.messenger.viewmodel.connecting.OAuth2DeviceAuthorizationLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.PasswordLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.RegisterMatrixAccountViewModel
@@ -38,7 +39,7 @@ import de.connect2x.trixnity.messenger.viewmodel.connecting.RemoveMatrixAccountV
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModel
 import de.connect2x.trixnity.messenger.viewmodel.connecting.SSOLoginViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.util.toFlow
-import io.ktor.http.Url
+import io.ktor.http.*
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -94,15 +95,32 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
                         )
                 )
 
-            is Config.OAuth2Login ->
-                Wrapper.OAuth2Login(
+            is Config.OAuth2AuthorizationCodeLogin ->
+                Wrapper.OAuth2AuthorizationCodeLogin(
                     viewModelContext
-                        .get<OAuth2LoginViewModelFactory>()
+                        .get<OAuth2AuthorizationCodeLoginViewModelFactory>()
                         .create(
-                            viewModelContext = viewModelContext.childContext("OAuth2Login", componentContext),
+                            viewModelContext =
+                                viewModelContext.childContext(
+                                    "OAuth2AuthorizationCodeLogin-${config.type.name}",
+                                    componentContext,
+                                ),
                             type = config.type,
                             serverUrl = config.serverUrl,
                             initialState = config.initialState,
+                            onLogin = ::showMainOnLogin,
+                            onBack = ::backToAddMatrixAccount,
+                        )
+                )
+
+            is Config.OAuth2DeviceAuthorizationLogin ->
+                Wrapper.OAuth2DeviceAuthorizationLogin(
+                    viewModelContext
+                        .get<OAuth2DeviceAuthorizationLoginViewModelFactory>()
+                        .create(
+                            viewModelContext =
+                                viewModelContext.childContext("OAuth2DeviceAuthorizationLogin", componentContext),
+                            serverUrl = config.serverUrl,
                             onLogin = ::showMainOnLogin,
                             onBack = ::backToAddMatrixAccount,
                         )
@@ -259,10 +277,16 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
     private fun showAddMatrixAccountMethod(addMatrixAccountMethod: AddMatrixAccountMethod) {
         log.debug { "showAddMatrixAccountMethod: $addMatrixAccountMethod" }
         when (addMatrixAccountMethod) {
-            is AddMatrixAccountMethod.OAuth2 ->
+            is AddMatrixAccountMethod.OAuth2AuthorizationCode ->
                 navigation.launchPush(
                     viewModelContext.coroutineScope,
-                    Config.OAuth2Login(addMatrixAccountMethod.serverUrl, addMatrixAccountMethod.type),
+                    Config.OAuth2AuthorizationCodeLogin(addMatrixAccountMethod.serverUrl, addMatrixAccountMethod.type),
+                )
+
+            is AddMatrixAccountMethod.OAuth2DeviceAuthorization ->
+                navigation.launchPush(
+                    viewModelContext.coroutineScope,
+                    Config.OAuth2DeviceAuthorizationLogin(addMatrixAccountMethod.serverUrl),
                 )
 
             is AddMatrixAccountMethod.Password ->
@@ -341,14 +365,16 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
             }
             log.info { "resume oAuth2 login" }
             val instance = stack.value.active.instance
-            if (instance is Wrapper.OAuth2Login) {
+            if (instance is Wrapper.OAuth2AuthorizationCodeLogin) {
                 instance.viewModel.resumeLogin(redirectUri)
             } else {
                 navigation.replaceAllSuspending(
                     Config.AddMatrixAccount,
-                    Config.OAuth2Login(state.serverUrl, state.type, state.state),
+                    Config.OAuth2AuthorizationCodeLogin(state.serverUrl, state.type, state.state),
                 )
-                (stack.value.active.instance as? Wrapper.OAuth2Login)?.viewModel?.resumeLogin(redirectUri)
+                (stack.value.active.instance as? Wrapper.OAuth2AuthorizationCodeLogin)
+                    ?.viewModel
+                    ?.resumeLogin(redirectUri)
             }
         } else {
             log.warn { "cannot resume sso login (no state saved)" }
@@ -379,7 +405,9 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
 
         class AddMatrixAccount(val viewModel: AddMatrixAccountViewModel) : Wrapper()
 
-        class OAuth2Login(val viewModel: OAuth2LoginViewModel) : Wrapper()
+        class OAuth2AuthorizationCodeLogin(val viewModel: OAuth2AuthorizationCodeLoginViewModel) : Wrapper()
+
+        class OAuth2DeviceAuthorizationLogin(val viewModel: OAuth2DeviceAuthorizationLoginViewModel) : Wrapper()
 
         class RegisterMatrixAccount(val viewModel: RegisterMatrixAccountViewModel) : Wrapper()
 
@@ -403,11 +431,13 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
         @Serializable data object AddMatrixAccount : Config()
 
         @Serializable
-        data class OAuth2Login(
+        data class OAuth2AuthorizationCodeLogin(
             val serverUrl: String,
-            val type: OAuth2LoginViewModel.Type,
+            val type: OAuth2AuthorizationCodeLoginViewModel.Type,
             val initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = null,
         ) : Config()
+
+        @Serializable data class OAuth2DeviceAuthorizationLogin(val serverUrl: String) : Config()
 
         @Serializable data class PasswordLogin(val serverUrl: String) : Config()
 

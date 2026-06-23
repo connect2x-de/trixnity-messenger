@@ -1,7 +1,11 @@
 package de.connect2x.trixnity.messenger.viewmodel.settings
 
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.user
+import de.connect2x.trixnity.client.user.getAccountData
 import de.connect2x.trixnity.core.model.UserId
+import de.connect2x.trixnity.core.model.events.m.InvitePermissionConfigEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.i18n.I18n
@@ -14,12 +18,15 @@ import de.connect2x.trixnity.messenger.viewmodel.util.UserBlocking
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.get
 
 interface PrivacySettingsSingleAccountViewModelFactory {
@@ -39,6 +46,8 @@ interface PrivacySettingsSingleAccountViewModel {
     val readMarkerIsPublic: StateFlow<Boolean>
     val typingIsPublic: StateFlow<Boolean>
     val redactionWarningIsEnabled: StateFlow<Boolean>
+    val canBlockInvites: StateFlow<Boolean>
+    val blockInvites: StateFlow<Boolean>
 
     fun togglePresenceIsPublic()
 
@@ -47,6 +56,8 @@ interface PrivacySettingsSingleAccountViewModel {
     fun toggleTypingIsPublic()
 
     fun toggleRedactionWarningIsEnabled()
+
+    fun toggleBlockInvites()
 
     val blockedContactsCount: StateFlow<Int>
 
@@ -93,6 +104,20 @@ open class PrivacySettingsSingleAccountViewModelImpl(
             .map { it.base.redactionWarningIsEnabled }
             .stateIn(coroutineScope, WhileSubscribed(), true)
 
+    override val canBlockInvites: StateFlow<Boolean> =
+        matrixClient.serverData
+            .map { it?.versions }
+            .map {
+                if (it == null) false
+                else it.versions.contains("v1.18") || it.unstableFeatures["org.matrix.msc4380.stable"] == true
+            }
+            .stateIn(coroutineScope, Eagerly, false)
+    override val blockInvites: StateFlow<Boolean> =
+        matrixClient.user
+            .getAccountData<InvitePermissionConfigEventContent>()
+            .map { it?.defaultAction == InvitePermissionConfigEventContent.DefaultAction.BLOCK }
+            .stateIn(coroutineScope, Eagerly, true)
+
     override fun togglePresenceIsPublic() {
         coroutineScope.launch {
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
@@ -121,6 +146,30 @@ open class PrivacySettingsSingleAccountViewModelImpl(
         coroutineScope.launch {
             messengerSettings.update<MatrixMessengerAccountSettingsBase>(account) {
                 it.copy(typingIsPublic = !it.typingIsPublic)
+            }
+        }
+    }
+
+    private val toggleBlockInvitesMutex = Mutex()
+
+    override fun toggleBlockInvites() {
+        coroutineScope.launch {
+            if (canBlockInvites.value) {
+                toggleBlockInvitesMutex.withLock {
+                    matrixClient.api.user
+                        .setAccountData(
+                            content =
+                                InvitePermissionConfigEventContent(
+                                    defaultAction =
+                                        if (blockInvites.value) null
+                                        else InvitePermissionConfigEventContent.DefaultAction.BLOCK
+                                ),
+                            userId = userId,
+                        )
+                        .onFailure { log.warn(it) {} }
+                }
+            } else {
+                log.warn { "Block invites is not supported on the homeserver" }
             }
         }
     }

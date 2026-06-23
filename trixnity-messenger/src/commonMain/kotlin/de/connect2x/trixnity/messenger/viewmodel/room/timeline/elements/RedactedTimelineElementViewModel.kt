@@ -1,15 +1,16 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.client.room
-import de.connect2x.trixnity.client.store.unsigned
 import de.connect2x.trixnity.client.user
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.originTimestampOrNull
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.i18n
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isRedactionFor
 import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import kotlin.reflect.KClass
@@ -62,13 +63,36 @@ class RedactedTimelineElementViewModelImpl(
 ) : RedactedTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
     private val timeZone = get<TimeZone>()
 
-    private val timelineEvent = coroutineScope.async {
-        matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first()
+    private data class RedactionData(val sender: UserId, val timestamp: Instant?, val reason: String?)
+
+    private val redactionData = coroutineScope.async {
+        val timelineEvent = matrixClient.room.getTimelineEvent(roomId, eventId).filterNotNull().first().event
+        if (timelineEvent.content is RedactedEventContent) {
+            val redactedBecause = timelineEvent.unsigned?.redactedBecause ?: return@async null
+            RedactionData(
+                sender = redactedBecause.sender,
+                timestamp = redactedBecause.originTimestampOrNull?.let { Instant.fromEpochMilliseconds(it) },
+                reason = (redactedBecause.content as? RedactionEventContent)?.reason,
+            )
+        } else {
+            val outboxRedaction =
+                matrixClient.room
+                    .getOutbox(roomId)
+                    .first()
+                    .find { it.first()?.isRedactionFor(roomId, eventId) == true }
+                    ?.first()
+            if (outboxRedaction == null) return@async null
+            RedactionData(
+                sender = matrixClient.userId,
+                timestamp = outboxRedaction.sentAt,
+                reason = (outboxRedaction.content as? RedactionEventContent)?.reason,
+            )
+        }
     }
 
     override val message =
         flow {
-                when (val redactedBy = timelineEvent.await().unsigned?.redactedBecause?.sender) {
+                when (val redactedBy = redactionData.await()?.sender) {
                     null -> emit(i18n.eventMessageRedactedByUnknown())
                     matrixClient.userId -> emit(i18n.eventMessageRedactedByMe())
                     else ->
@@ -84,8 +108,8 @@ class RedactedTimelineElementViewModelImpl(
     override val redactedAt: StateFlow<String?> =
         flow {
                 emit(
-                    timelineEvent.await().unsigned?.redactedBecause?.originTimestampOrNull?.let {
-                        val localDateTime = Instant.fromEpochMilliseconds(it).toLocalDateTime(timeZone)
+                    redactionData.await()?.timestamp?.let {
+                        val localDateTime = it.toLocalDateTime(timeZone)
                         "${formatDate(localDateTime)}, ${formatTime(localDateTime)}"
                     }
                 )
@@ -93,6 +117,7 @@ class RedactedTimelineElementViewModelImpl(
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     override val reason: StateFlow<String?> =
-        flow { emit((timelineEvent.await().unsigned?.redactedBecause?.content as? RedactionEventContent)?.reason) }
-            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+        flow { emit(redactionData.await()?.reason) }.stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
+
+    override val isMentioned: Boolean = false
 }

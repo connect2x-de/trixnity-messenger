@@ -2,17 +2,12 @@ package de.connect2x.trixnity.messenger.compose.view.room.timeline.element.messa
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoDelete
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -22,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
-import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.RedactionWarning
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.MessageReactions
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.util.asTimelineElementHolder
@@ -35,6 +29,7 @@ interface MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
+        isMentioned: Boolean,
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
@@ -46,10 +41,12 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     isPreview: Boolean,
+    isMentioned: Boolean,
     index: Int,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    DI.get<MessageBubbleView>().create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
+    DI.get<MessageBubbleView>()
+        .create(holder, needsMaxWidth, additionalContextActions, isPreview, isMentioned, index, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -59,11 +56,11 @@ class MessageBubbleViewImpl : MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
+        isMentioned: Boolean,
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
         val timelineElementHolder = holder.asTimelineElementHolder()
-        val redactionInProgress = timelineElementHolder?.redactionInProgress?.collectAsState()?.value == true
         val showBigGap = holder.showBigGapBefore.collectAsState().value == true
         val topPadding = if (showBigGap) 10.dp else 3.dp
         val showRedactionWarning = timelineElementHolder?.showRedactionWarning?.collectAsState()?.value == true
@@ -73,7 +70,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         val interactionSource = remember { MutableInteractionSource() }
 
         BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val padding = (if (maxWidth < 400.dp) 20.dp else 80.dp) - (if (redactionInProgress) 16.dp else 0.dp)
+            val padding = (if (maxWidth < 400.dp) 20.dp else 80.dp)
             Column(
                 modifier =
                     Modifier.run {
@@ -84,18 +81,13 @@ class MessageBubbleViewImpl : MessageBubbleView {
                 horizontalAlignment = if (holder.isByMe) Alignment.End else Alignment.Start,
             ) {
                 Row {
-                    if (redactionInProgress) {
-                        val i18n = DI.get<I18nView>()
-                        Box(Modifier.size(16.dp).padding(2.dp)) {
-                            Icon(Icons.Default.AutoDelete, i18n.messageBubbleBeingDeleted())
-                        }
-                    }
                     MessageBubbleContainer(
                         holder = holder,
                         needsMaxWidth = needsMaxWidth,
                         reactionsOpen = reactionsOpen,
                         additionalContextActions = additionalContextActions,
                         isPreview = isPreview,
+                        isMentioned = isMentioned,
                         interactionSource = interactionSource,
                         index = index,
                         onRedact = { timelineElementHolder?.redact() },

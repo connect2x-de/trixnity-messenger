@@ -20,6 +20,8 @@ import de.connect2x.trixnity.clientserverapi.client.SyncState
 import de.connect2x.trixnity.clientserverapi.client.UserApiClient
 import de.connect2x.trixnity.clientserverapi.model.user.Profile
 import de.connect2x.trixnity.clientserverapi.model.user.ProfileField
+import de.connect2x.trixnity.core.ErrorResponse
+import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
@@ -56,9 +58,11 @@ import dev.mokkery.every
 import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
+import dev.mokkery.verify.VerifyMode
 import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpStatusCode
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -627,6 +631,52 @@ class RoomListElementViewModelTest {
         delay(10.seconds)
         cut.rejectInvitationInProgress.value shouldBe false
     }
+
+    @Test
+    fun `reject invitation should show error and not forget server locally`() = runTest {
+        everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } returns
+            Result.failure(IllegalArgumentException("error"))
+        everySuspend { roomsApiClientMock.forgetRoom(any()) } returns Result.success(Unit)
+
+        val cut = roomListElementViewModel(roomId)
+
+        cut.rejectInvitation()
+        yield()
+
+        cut.rejectInvitationInProgress.value shouldBe false
+        cut.error.value.shouldNotBeNull()
+
+        delay(11.seconds)
+
+        verifySuspend(VerifyMode.not) { roomsApiClientMock.forgetRoom(roomId) }
+        verifySuspend(VerifyMode.not) { roomServiceMock.forgetRoom(roomId, true) }
+    }
+
+    @Test
+    fun `reject invitation should show error and not forget server notice room locally if it is CannotLeaveServerNoticeRoom`() =
+        runTest {
+            everySuspend { roomsApiClientMock.leaveRoom(any(), any()) } returns
+                Result.failure(
+                    MatrixServerException(
+                        statusCode = HttpStatusCode.Forbidden,
+                        errorResponse = ErrorResponse.CannotLeaveServerNoticeRoom("error"),
+                    )
+                )
+            everySuspend { roomsApiClientMock.forgetRoom(any()) } returns Result.success(Unit)
+
+            val cut = roomListElementViewModel(roomId)
+
+            cut.rejectInvitation()
+            yield()
+
+            cut.rejectInvitationInProgress.value shouldBe false
+            cut.error.value.shouldNotBeNull()
+
+            delay(11.seconds)
+
+            verifySuspend(VerifyMode.not) { roomsApiClientMock.forgetRoom(roomId) }
+            verifySuspend(VerifyMode.not) { roomServiceMock.forgetRoom(roomId, true) }
+        }
 
     @Test
     fun `knocking - should unknock successfully`() = runTest {

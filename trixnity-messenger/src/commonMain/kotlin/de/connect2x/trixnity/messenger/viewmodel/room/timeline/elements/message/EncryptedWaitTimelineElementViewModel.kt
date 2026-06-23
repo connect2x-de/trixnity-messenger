@@ -15,4 +15,6 @@ interface EncryptedWaitTimelineElementViewModelFactory {
 }
 
 class EncryptedWaitTimelineElementViewModelImpl(viewModelContext: MatrixClientViewModelContext) :
-    EncryptedWaitTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext
+    EncryptedWaitTimelineElementViewModel, MatrixClientViewModelContext by viewModelContext {
+    override val isMentioned: Boolean = false
+}

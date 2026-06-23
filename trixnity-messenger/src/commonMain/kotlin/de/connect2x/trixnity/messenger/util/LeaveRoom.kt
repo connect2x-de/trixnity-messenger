@@ -5,6 +5,7 @@ import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.client.room.getState
+import de.connect2x.trixnity.core.ErrorResponse
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.events.m.room.CreateEventContent
@@ -52,7 +53,8 @@ class LeaveRoomImpl : LeaveRoom {
                     val leaveResult = client.api.room.leaveRoom(roomId)
                     val leaveException = leaveResult.exceptionOrNull()
 
-                    if (leaveException != null && leaveException !is MatrixServerException) {
+                    // if the room does not exist we want to forget it locally
+                    if (leaveException != null && !isRoomNotFoundException(leaveException)) {
                         log.warn(leaveException) {
                             "skip forget room $roomId, because something went wrong (e. g. network error)"
                         }
@@ -81,4 +83,8 @@ class LeaveRoomImpl : LeaveRoom {
             }
         }
     }
+}
+
+private fun isRoomNotFoundException(exception: Throwable): Boolean {
+    return exception is MatrixServerException && exception.errorResponse is ErrorResponse.NotFound
 }

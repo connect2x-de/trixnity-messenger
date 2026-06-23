@@ -211,6 +211,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }
@@ -233,6 +234,7 @@ private class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel 
     override val sendError: StateFlow<String?> = MutableStateFlow(null)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    @Deprecated("when supported by the homeserver, redactions are applied immediately")
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
@@ -282,6 +284,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }
@@ -304,6 +307,7 @@ private class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel 
     override val isReply: MutableStateFlow<Boolean?> = MutableStateFlow(false)
     override val canBeEdited: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val canBeRedacted: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    @Deprecated("when supported by the homeserver, redactions are applied immediately")
     override val redactionInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val redactionError: MutableStateFlow<String?> = MutableStateFlow(null)
     override val showRedactionWarning: StateFlow<Boolean> = MutableStateFlow(true)
