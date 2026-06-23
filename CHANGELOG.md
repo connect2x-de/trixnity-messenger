@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- SDK: Drop support for X64 Apple targets
+
 ### Fixed
 
 - SDK: former or banned members are shown in the mention list
