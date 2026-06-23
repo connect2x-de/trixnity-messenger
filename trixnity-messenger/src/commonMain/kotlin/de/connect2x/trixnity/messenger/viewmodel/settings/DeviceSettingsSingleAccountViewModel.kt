@@ -8,7 +8,6 @@ import de.connect2x.trixnity.client.verification
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.OAuth2AccountManagementAction
 import de.connect2x.trixnity.clientserverapi.model.device.Device
 import de.connect2x.trixnity.core.MSC3814
-import de.connect2x.trixnity.core.MSC4191
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.crypto.key.DeviceTrustLevel
 import de.connect2x.trixnity.messenger.util.UriCaller
@@ -17,7 +16,7 @@ import de.connect2x.trixnity.messenger.viewmodel.getMatrixClient
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
-import io.ktor.http.URLBuilder
+import io.ktor.http.*
 import kotlin.time.Instant
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -175,14 +174,13 @@ open class DeviceSettingsSingleAccountViewModelImpl(viewModelContext: MatrixClie
         coroutineScope.launch {
             _error.value = null
             val authServerMetadata = matrixClient.serverData.value?.auth
-            @OptIn(MSC4191::class)
             if (authServerMetadata != null) {
                 val accountManagementUri = authServerMetadata.accountManagementUri
                 val accountManagementActionsSupported = authServerMetadata.accountManagementActionsSupported
                 if (
                     accountManagementUri == null ||
                         accountManagementActionsSupported == null ||
-                        accountManagementActionsSupported.contains(OAuth2AccountManagementAction.EndSession).not()
+                        accountManagementActionsSupported.contains(OAuth2AccountManagementAction.DeleteDevice).not()
                 ) {
                     log.warn { "account management uri or actions are not supported by the auth server" }
                     _error.value = i18n.settingsDevicesRemoveError()
@@ -190,7 +188,7 @@ open class DeviceSettingsSingleAccountViewModelImpl(viewModelContext: MatrixClie
                     uriCaller(
                         URLBuilder(accountManagementUri)
                             .apply {
-                                parameters.append("action", OAuth2AccountManagementAction.EndSession.value)
+                                parameters.append("action", OAuth2AccountManagementAction.DeleteDevice.value)
                                 parameters.append("device_id", deviceId)
                             }
                             .build()

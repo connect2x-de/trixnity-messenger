@@ -22,9 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- DEPENDENCY: update Kotlin to 2.3.21
+- DEPENDENCY: (**breaking**) update Lognity to 2.2.0
+- DEPENDENCY: update Trixnity to 5.7.0-SNAPSHOT.CI-20260623.160101
+- DEPENDENCY: update SQLitenity to 0.0.7-SNAPSHOT.CI-20260623.161442
+- DEPENDENCY: update SysNotify to 2.7.0
 - SDK: (**breaking**) moved `FileKitFileDescriptor` from `de.connect2x.trixnity.messenger.compose.view.files` to
   `de.connect2x.trixnity.messenger.util`
-- DEPENDENCY: (**breaking**) update Lognity to 2.1.0
 - INTERNAL: Add categories for demo app on macOS and Linux
 - INTERNAL: Update to Gradle 9.4.1
 - INTERNAL: Use shared Compose desktop configuration from conventions for demo app

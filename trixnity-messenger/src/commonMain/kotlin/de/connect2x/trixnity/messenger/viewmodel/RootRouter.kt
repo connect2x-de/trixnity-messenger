@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.MatrixClientInitializationException
@@ -405,7 +406,7 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
         data class OAuth2Login(
             val serverUrl: String,
             val type: OAuth2LoginViewModel.Type,
-            val initialState: OAuth2LoginFlow.AuthRequestData.State? = null,
+            val initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State? = null,
         ) : Config()
 
         @Serializable data class PasswordLogin(val serverUrl: String) : Config()

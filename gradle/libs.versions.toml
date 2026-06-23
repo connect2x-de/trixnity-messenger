@@ -6,9 +6,9 @@ minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.6.1-SNAPSHOT.LOCAL" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.6.3" # https://gitlab.com/connect2x/sysnotify/-/packages
-sqlitenity = "0.0.7-SNAPSHOT.LOCAL" # https://gitlab.com/connect2x/sqlitenity/-/releases
+trixnity = "5.7.0-SNAPSHOT.CI-20260623.160101" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.7.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.7-SNAPSHOT.CI-20260623.161442" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog

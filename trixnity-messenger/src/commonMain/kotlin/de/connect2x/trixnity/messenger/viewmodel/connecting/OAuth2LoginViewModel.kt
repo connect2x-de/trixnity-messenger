@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientAuthProviderData
 import de.connect2x.trixnity.clientserverapi.client.oauth2.ApplicationType
 import de.connect2x.trixnity.clientserverapi.client.oauth2.LocalizedField
+import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCodeLoginFlow
 import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2LoginFlow
 import de.connect2x.trixnity.clientserverapi.client.oauth2.oAuth2Login
 import de.connect2x.trixnity.clientserverapi.model.authentication.oauth2.PromptValue
@@ -40,7 +41,7 @@ interface OAuth2LoginViewModelFactory {
         viewModelContext: ViewModelContext,
         type: OAuth2LoginViewModel.Type,
         serverUrl: String,
-        initialState: OAuth2LoginFlow.AuthRequestData.State?,
+        initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?,
         onLogin: () -> Unit,
         onBack: () -> Unit,
     ): OAuth2LoginViewModel {
@@ -99,7 +100,7 @@ open class OAuth2LoginViewModelImpl(
     viewModelContext: ViewModelContext,
     override val type: OAuth2LoginViewModel.Type,
     override val serverUrl: String,
-    private val initialState: OAuth2LoginFlow.AuthRequestData.State?,
+    private val initialState: OAuth2AuthorizationCodeLoginFlow.AuthRequestData.State?,
     private val onLogin: () -> Unit,
     private val onBack: () -> Unit,
 ) : ViewModelContext by viewModelContext, OAuth2LoginViewModel {
@@ -109,7 +110,7 @@ open class OAuth2LoginViewModelImpl(
     private val config = get<MatrixMessengerConfiguration>()
     private val getDefaultDeviceDisplayName by inject<GetDefaultDeviceDisplayName>()
 
-    private val flow: MutableStateFlow<OAuth2LoginFlow> = MutableStateFlow(makeLoginFlow())
+    private val flow: MutableStateFlow<OAuth2AuthorizationCodeLoginFlow> = MutableStateFlow(makeLoginFlow())
 
     private fun makeLoginFlow(loginHint: String? = null, promptValue: PromptValue? = null) =
         MatrixClientAuthProviderData.oAuth2Login(
