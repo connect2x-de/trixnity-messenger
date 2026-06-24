@@ -72,10 +72,8 @@ import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -111,7 +109,6 @@ class TimelineViewImpl : TimelineView {
         val i18n = DI.get<I18nView>()
 
         val timelineViewElements = rememberTimelineViewElements(timelineViewModel)
-        val initialScrollTo = remember { timelineViewModel.scrollTo.take(1) }.collectAsState(null)
         val isTimelineLoading = timelineViewElements.value.isEmpty()
         val error = timelineViewModel.error.collectAsState()
         val draggedFile = timelineViewModel.draggedFile.collectAsState()
@@ -125,7 +122,7 @@ class TimelineViewImpl : TimelineView {
         val finishedScrollTo = remember { mutableStateOf<String?>(null) }
         val initialFirstVisibleItemIndex =
             getInitialFirstVisibleItemIndex(
-                    initialScrollTo,
+                    timelineViewModel,
                     timelineViewElements,
                     showTypingIndicator,
                     finishedScrollTo,
@@ -389,7 +386,7 @@ fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?>
 
 @Composable
 fun getInitialFirstVisibleItemIndex(
-    initialScrollTo: State<String?>,
+    timelineViewModel: TimelineViewModel,
     timelineViewElements: State<List<TimelineViewElement>>,
     showTypingIndicator: State<Boolean>,
     finishedScrollTo: MutableState<String?>,
@@ -397,8 +394,7 @@ fun getInitialFirstVisibleItemIndex(
     val initialFirstVisibleItemIndex = remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
-        val scrollTo = snapshotFlow { initialScrollTo.value }.filterNotNull().first()
-        if (initialScrollTo.value == null) return@LaunchedEffect
+        val scrollTo = timelineViewModel.scrollTo.first()
         val currentTimelineViewElements = snapshotFlow { timelineViewElements.value }.first { it.isNotEmpty() }
         val currentShowTypingIndicator = showTypingIndicator.value
         initialFirstVisibleItemIndex.value =
