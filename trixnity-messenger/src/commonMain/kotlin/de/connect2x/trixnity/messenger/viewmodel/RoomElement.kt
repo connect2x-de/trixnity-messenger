@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.media
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
+import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import kotlinx.coroutines.CoroutineScope
 
 data class RoomInfoElement(
@@ -48,13 +49,17 @@ suspend fun Room.toRoomInfoElement(
     maxMediaSizeInMemory: Long,
     via: Set<String>? = null,
 ): RoomInfoElement {
+    val size = avatarSize().toLong()
     return RoomInfoElement(
         name = name,
         roomId = roomId,
         roomImageInitials = initials.compute(name),
         roomImage =
             this.avatarUrl?.let {
-                matrixClient.media.getMedia(it).getOrNull()?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
+                matrixClient.media
+                    .getThumbnail(it, size, size)
+                    .getOrNull()
+                    ?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
             },
         via = via,
     )

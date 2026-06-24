@@ -1402,6 +1402,11 @@ open class I18nView(
         DE - "gesendet"
     }
 
+    open fun userWasMentioned() = translate {
+        EN - "You were mentioned."
+        DE - "Sie wurden erwähnt."
+    }
+
     open fun messageContentWaitForKeys() = translate {
         EN - "waiting for decryption keys"
         DE - "Warten auf Schlüssel zur Entschlüsselung"
@@ -3198,6 +3203,11 @@ open class I18nView(
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
+    }
+
+    open fun allRoomMembers() = translate {
+        EN - "All members in room"
+        DE - "Alle Mitglieder im Raum"
     }
 
     open fun mentionEventInRoom(roomName: String) = translate {

@@ -30,6 +30,7 @@ class ThemeLightMessengerColorsImpl : ThemeLightMessengerColors {
             link = messenger_theme_light_link_other.deriveFromHue(accentHue),
             linkByMe = messenger_theme_light_link_own.deriveFromHue(accentHue),
             userColors = messenger_theme_light_users,
+            mentionBorder = messenger_theme_light_mention_border,
         )
     }
 }

@@ -7,12 +7,14 @@ import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
+import de.connect2x.trixnity.client.user.PowerLevel
 import de.connect2x.trixnity.client.user.UserService
 import de.connect2x.trixnity.clientserverapi.client.MatrixClientServerApiClient
 import de.connect2x.trixnity.clientserverapi.client.RoomApiClient
@@ -21,9 +23,11 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.MessageEvent
 import de.connect2x.trixnity.core.model.events.ClientEvent.RoomEvent.StateEvent
+import de.connect2x.trixnity.core.model.events.MessageEventContent
 import de.connect2x.trixnity.core.model.events.RoomEventContent
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.PowerLevelsEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountSettingsBase
 import de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder
@@ -122,6 +126,21 @@ class InputAreaViewModelTest {
 
     var draftMessage: MutableStateFlow<RoomOutboxMessage<*>?> = MutableStateFlow(null)
 
+    val powerLevel = flowOf(PowerLevel.User(0L))
+    var step = 1L
+    val powerLevelEventContent =
+        MutableStateFlow(
+            StateEvent(
+                content = PowerLevelsEventContent(),
+                id = EventId("eventId"),
+                sender = aliceUserId,
+                roomId = roomId,
+                originTimestamp = step * 100,
+                unsigned = null,
+                stateKey = "",
+            )
+        )
+
     init {
         resetMocks(
             matrixClientMock,
@@ -179,6 +198,7 @@ class InputAreaViewModelTest {
         every { userServiceMock.getById(roomId, aliceUserId) } returns MutableStateFlow(aliceRoomUser)
         every { userServiceMock.getById(roomId, alvinUserId) } returns MutableStateFlow(alvinRoomUser)
         every { userServiceMock.getById(roomId, alvin2UserId) } returns MutableStateFlow(alvin2RoomUser)
+        every { userServiceMock.getPowerLevel(any(), any()) } returns powerLevel
         every { onMessageEditFinishedMock.invoke(any(), any()) } returns Unit
         every { onMessageReplToFinishedMock.invoke(any(), any()) } returns Unit
 
@@ -204,6 +224,7 @@ class InputAreaViewModelTest {
                 "0"
             }
         everySuspend { roomServiceMock.deleteDraftMessage(any()) } calls { draftMessage.value = null }
+        every { roomServiceMock.getState(roomId, PowerLevelsEventContent::class, any()) } returns powerLevelEventContent
 
         every { audioRecordingAreaViewModelFactory.create(any(), any(), any(), any(), any()) } returns
             audioRecordingArea
@@ -446,7 +467,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! at")
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -457,16 +478,22 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @Al", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @Alin", IntRange(12, 12))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -478,7 +505,9 @@ class InputAreaViewModelTest {
             cut.textField.update("Hello! @al", IntRange(10, 10))
 
             eventually(300.milliseconds) {
-                cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+                cut.suggestedMentions.value
+                    ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                    ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
             }
         }
 
@@ -489,7 +518,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Bo", IntRange(10, 10))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe emptyList() }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe emptyList() }
     }
 
     @Test
@@ -499,7 +528,11 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello!\n\nThis is great.\n@Zoo", IntRange(30, 30))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -510,12 +543,16 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @", IntRange(8, 8))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
         }
         cut.textField.update("Hello! \n\n@", IntRange(12, 12))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId, zoopUserId)
         }
     }
 
@@ -526,11 +563,19 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
+        }
 
         cut.textField.update("Hello! @another", IntRange(15, 15))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -540,11 +585,19 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @ce and @Zoop", IntRange(10, 10)) // search in name
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @pla and @Zoop", IntRange(11, 11)) // search in userId
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -554,25 +607,39 @@ class InputAreaViewModelTest {
 
         cut.textField.update("Hello! @Ali it goes on...")
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(11, 11))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello! @Ali it goes on...", IntRange(10, 10))
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId, alvinUserId)
         }
 
         cut.textField.update("Hello!\n @Ali it goes on...", IntRange(12, 12))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(aliceUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(aliceUserId)
+        }
 
         cut.textField.update("Hello!\n @Ali @Zoo it goes on...", IntRange(17, 17))
 
-        eventually(300.milliseconds) { cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId) }
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
+        }
     }
 
     @Test
@@ -590,15 +657,17 @@ class InputAreaViewModelTest {
         cut.textField.update("Hello! @compl", IntRange(13, 13))
 
         eventually(300.milliseconds) {
-            cut.listOfMentionsLoading.value shouldBe true
-            cut.listOfMentions.value shouldBe null
+            cut.suggestedMentionsLoading.value shouldBe true
+            cut.suggestedMentions.value shouldBe null
         }
 
         roomUsers.emit(mapOf(zoopUserId to flowOf(zoopRoomUser)))
 
         eventually(300.milliseconds) {
-            cut.listOfMentionsLoading.value shouldBe false
-            cut.listOfMentions.value?.map { it.userId } shouldBe listOf(zoopUserId)
+            cut.suggestedMentionsLoading.value shouldBe false
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldBe listOf(zoopUserId)
         }
     }
 
@@ -611,25 +680,25 @@ class InputAreaViewModelTest {
         cut.textField.update("@Ali", IntRange(4, 4))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe aliceUserId.full
 
         cut.textField.update("Hello! @Ali", IntRange(11, 11))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello! ${aliceUserId.full}"
 
         cut.textField.update("Hello! @Ali something more", IntRange(11, 11))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello! ${aliceUserId.full} something more"
 
         cut.textField.update("Hello!\n\nHola.\n@Ali something more", IntRange(18, 18))
         settle()
 
-        cut.selectMention(aliceUserId)
+        cut.selectMention(aliceUserId.full)
         cut.textField.textValue shouldBe "Hello!\n\nHola.\n${aliceUserId.full} something more"
     }
 
@@ -641,14 +710,14 @@ class InputAreaViewModelTest {
         cut.textField.update("@Ali @Zo @Alv", IntRange(8, 8))
 
         delay(50.milliseconds)
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali ${zoopUserId.full} @Alv" }
 
         cut.textField.update("@Ali\n @Ali\n @Ali @Zo @Alv\n @Alv", IntRange(20, 20))
 
         delay(50.milliseconds)
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) {
             cut.textField.textValue shouldBe "@Ali\n @Ali\n @Ali ${zoopUserId.full} @Alv\n @Alv"
@@ -662,7 +731,7 @@ class InputAreaViewModelTest {
 
         cut.textField.update("@Ali Zo Alv", IntRange(7, 7))
 
-        cut.selectMention(zoopUserId)
+        cut.selectMention(zoopUserId.full)
 
         eventually(300.milliseconds) { cut.textField.textValue shouldBe "@Ali Zo Alv" }
     }
@@ -855,12 +924,14 @@ class InputAreaViewModelTest {
         cut.textField.update("@", 1..1)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("@", 0..0)
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -871,12 +942,14 @@ class InputAreaViewModelTest {
         cut.textField.update("Allu @", 6..6)
 
         eventually(300.milliseconds) {
-            cut.listOfMentions.value?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
+            cut.suggestedMentions.value
+                ?.map { (it as InputAreaViewModel.SuggestedMention.User).user }
+                ?.map { it.userId } shouldContainOnly listOf(aliceUserId, alvinUserId, zoopUserId)
         }
 
         cut.textField.update("Allu @", 5..5)
 
-        eventually(300.milliseconds) { cut.listOfMentions.value shouldBe null }
+        eventually(300.milliseconds) { cut.suggestedMentions.value shouldBe null }
     }
 
     @Test
@@ -950,6 +1023,164 @@ class InputAreaViewModelTest {
         verify { audioRecorder.complete() }
     }
 
+    @Test
+    fun `room mention » should add entry in list of potential mentions if power level is matched`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("@", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe listOf("@room")
+        }
+
+        cut.textField.update("@roo", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe listOf("@room")
+        }
+    }
+
+    @Test
+    fun `room mention » should not be shown in list of potential mentions if power level too low`() = runTest {
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("@", 1..1)
+
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe emptyList()
+        }
+
+        cut.textField.update("@roo", 5..5)
+
+        eventually(300.milliseconds) {
+            cut.suggestedMentions.value?.filterIsInstance<InputAreaViewModel.SuggestedMention.AllRoomMembers>()?.map {
+                it.id
+            } shouldBe emptyList()
+        }
+    }
+
+    @Test
+    fun `room mention » set room mention property to true if format is correct`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("@room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+
+        cut.textField.update("Hi everyone @room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+
+        cut.textField.update("@room I greet you all", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+
+        cut.textField.update("Hello @room I hope you all have a great day!", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe true
+    }
+
+    @Test
+    fun `room mention » should not set room mention property if incorrect format`() = runTest {
+        val powerLevel = PowerLevel.User(50L)
+        every { userServiceMock.getPowerLevel(roomId, any()) } returns flowOf(powerLevel)
+
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("living@room.mail.com", 20..20)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+
+        cut.textField.update("@room123", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+
+        cut.textField.update("bath@room hello", 9..9)
+        delay(300.milliseconds)
+        cut.sendMessage()
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+    }
+
+    @Test
+    fun `room mention » should not set room mention property to true when power level too low`() = runTest {
+        var capturedContent: MessageEventContent? = null
+
+        everySuspend { roomServiceMock.setDraftMessage(any(), any(), any()) } calls
+            {
+                val (_, _, builderArg) = it.args
+                val builder = builderArg as (suspend MessageBuilder.() -> Unit)
+                val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, ourUserId).build(builder)
+                capturedContent = content
+                ""
+            }
+
+        val cut = inputAreaViewModel()
+        subscribe(cut)
+        delay(300.milliseconds)
+
+        cut.textField.update("@room", 6..6)
+        delay(300.milliseconds)
+        cut.sendMessage()
+
+        delay(300.milliseconds)
+        capturedContent?.mentions?.room shouldBe false
+    }
+
     private fun roomUser(userId: UserId, name: String) =
         RoomUser(
             roomId,
@@ -998,6 +1229,6 @@ class InputAreaViewModelTest {
         launch { cut.showAttachmentSelectDialog.collect() }
         launch { cut.isReplace.collect() }
         launch { cut.isReply.collect() }
-        launch { cut.listOfMentions.collect() }
+        launch { cut.suggestedMentions.collect() }
     }
 }

@@ -30,6 +30,7 @@ class ThemeDarkMessengerColorsImpl : ThemeDarkMessengerColors {
             link = messenger_theme_dark_link_other.deriveFromHue(accentHue),
             linkByMe = messenger_theme_dark_link_own.deriveFromHue(accentHue),
             userColors = messenger_theme_dark_users,
+            mentionBorder = messenger_theme_dark_mention_border,
         )
     }
 }

@@ -9,7 +9,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI, SDK: Add options to join room when clicking on room mention of a not joined room
+- SDK,UI: room mention support
+- SDK,UI: (**breaking change**) added `isMentioned` parameter to `TimelineElementViewModel.Message` and `MessageBubble`
+  interfaces and classes for highlighting messages when the user is mentioned in text
+
+### Changed
+
+### Deprecated
+
+- SDK: `listOfMentions` and `listOfMentionsLoading` in `InputAreaViewModel` -> use `suggestedMentions` and
+  `suggestedMentionsLoading` instead, which contain the room mention element
+
+### Removed
+
+### Fixed
+
+- SDK: former or banned members are shown in the mention list
+- SDK: empty mention list flickering after entering @
+
+### Security
+
+## 4.7.0
+
+### Added
+
+- UI,SDK: Add options to join room when clicking on room mention of a not joined room
 
 ### Changed
 
@@ -22,19 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `TimelineViewModel.finishedScrollTo` additionally be used.
 - UI: made several compose functions for notifications public instead of internal
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - UI: Don't show verification twice on account setup
 - SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
-- UI: Opening 'privacy & security' no longer crashes the app
+- UI: Opening blocked users in privacy settings no longer crashes the app
 - UI: Notification counts are no longer cut off after the first digit
 - SDK: Room invitations are no longer forgotten if an error occurred during the rejection
-
-### Security
+- CI: Fix CI jobs running wrong gradle tasks
 
 ## v4.6.1
 

@@ -27,7 +27,7 @@ import androidx.compose.ui.semantics.CollectionItemInfo
 import androidx.compose.ui.semantics.collectionItemInfo
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.text
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.get
@@ -48,6 +48,7 @@ fun MessageBubbleContainer(
     reactionsOpen: MutableState<Boolean>,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
     isPreview: Boolean,
+    isMentioned: Boolean,
     interactionSource: MutableInteractionSource,
     index: Int,
     onRedact: () -> Unit,
@@ -96,6 +97,17 @@ fun MessageBubbleContainer(
         val hoverInteractionSource = remember { MutableInteractionSource() }
         val actionMenuFocusState = remember { MutableInteractionSource() }
         val hasFocus = interactionSource.collectIsFocusedAsState().value
+        val a11yLabel = buildAnnotatedString {
+            if (!holder.isByMe && isMentioned) {
+                append("${i18n.userWasMentioned()} ")
+            }
+
+            val senderName = sender?.name ?: i18n.commonUnknown()
+            append(senderName)
+            append(" (${holder.formattedTime}): ")
+
+            element?.let { append(timelineElementViewSelector.a11yLabel(it, i18n)) }
+        }
         ThemedSurface(
             style = messageBubbleStyle,
             focused = hasFocus,
@@ -112,11 +124,7 @@ fun MessageBubbleContainer(
                     .hoverable(hoverInteractionSource)
                     .semantics {
                         collectionItemInfo = CollectionItemInfo(index, 1, 0, 1)
-                        this.text =
-                            AnnotatedString(
-                                "${sender?.name ?: i18n.commonUnknown()} (${holder.formattedTime}): " +
-                                    (element?.let { timelineElementViewSelector.a11yLabel(it, i18n) } ?: "")
-                            )
+                        this.text = a11yLabel
                     },
         ) {
             if (!isPreview) {
@@ -137,6 +145,7 @@ fun MessageBubbleContainer(
             MessageBubbleContent(
                 holder,
                 needsMaxWidth,
+                isMentioned,
                 { showActionMenu.value = ThemedActionMenuState.Anchored },
                 content,
             )
