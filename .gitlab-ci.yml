@@ -90,7 +90,7 @@ check:abi:
   rules:
     - *if-merge-request
   script:
-    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew internalDumpKotlinAbi --stacktrace
     - ./gradlew checkLegacyAbi --stacktrace
 
 check:vulnerable-dependencies:
