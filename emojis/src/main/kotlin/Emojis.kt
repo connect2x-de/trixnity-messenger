@@ -1,6 +1,7 @@
+package de.connect2x.trixnity.messenger.emojis
+
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 @Serializable

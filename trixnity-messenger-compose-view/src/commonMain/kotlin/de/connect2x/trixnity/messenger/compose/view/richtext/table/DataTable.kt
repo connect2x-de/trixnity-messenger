@@ -81,8 +81,8 @@ internal fun DataTable(
         val contentPlaceables = subcompose("content", content = contentComposable)
 
         // Measure to determine the column widths
-        val columnWidths = IntArray(headers.size) { 0 }
-        val rowHeights = IntArray(rows.size + 1) { 0 }
+        val columnWidths = IntArray(headers.size)
+        val rowHeights = IntArray(rows.size + 1)
         contentPlaceables.chunked(headers.size).forEachIndexed { rowIndex, row ->
             row.mapIndexed { columnIndex, placeable ->
                 placeable.measure(constraints).also { measured ->
