@@ -1,6 +1,6 @@
 [versions]
 
-trixnityMessenger = "4.7.1"
+trixnityMessenger = "4.8.0"
 
 minSdkVersion = "28"
 
