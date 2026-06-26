@@ -1664,6 +1664,7 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun uiaDummyTitle ()Ljava/lang/String;
 	public fun uiaEmailTitle ()Ljava/lang/String;
 	public fun uiaFallbackButtonRedirect ()Ljava/lang/String;
+	public fun uiaFallbackDescription ()Ljava/lang/String;
 	public fun uiaFallbackTitle ()Ljava/lang/String;
 	public fun uiaMsisdnTitle ()Ljava/lang/String;
 	public fun uiaPasswordButtonSubmit ()Ljava/lang/String;
