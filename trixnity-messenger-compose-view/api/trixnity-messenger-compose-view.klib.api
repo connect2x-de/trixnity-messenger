@@ -4320,6 +4320,7 @@ open class de.connect2x.trixnity.messenger.compose.view.i18n/I18nView : de.conne
     open fun uiaDummyTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaDummyTitle|uiaDummyTitle(){}[0]
     open fun uiaEmailTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaEmailTitle|uiaEmailTitle(){}[0]
     open fun uiaFallbackButtonRedirect(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaFallbackButtonRedirect|uiaFallbackButtonRedirect(){}[0]
+    open fun uiaFallbackDescription(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaFallbackDescription|uiaFallbackDescription(){}[0]
     open fun uiaFallbackTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaFallbackTitle|uiaFallbackTitle(){}[0]
     open fun uiaMsisdnTitle(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaMsisdnTitle|uiaMsisdnTitle(){}[0]
     open fun uiaPasswordButtonSubmit(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.i18n/I18nView.uiaPasswordButtonSubmit|uiaPasswordButtonSubmit(){}[0]

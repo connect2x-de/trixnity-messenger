@@ -775,13 +775,18 @@ open class I18nView(
     }
 
     open fun uiaFallbackTitle() = translate {
-        EN - "3rd Party Authorization"
-        DE - "Drittanbieter Autorisierung"
+        EN - "Authorization via Browser"
+        DE - "Autorisierung mittels Browser"
+    }
+
+    open fun uiaFallbackDescription() = translate {
+        EN - "You will now need to confirm the desired action in your browser."
+        DE - "Im folgenden müssen Sie im Browser die gewünschte Aktion bestätigen."
     }
 
     open fun uiaFallbackButtonRedirect() = translate {
-        EN - "Redirect"
-        DE - "Umleiten"
+        EN - "Open"
+        DE - "Öffnen"
     }
 
     open fun uiaRegistrationTokenTitle() = translate {
