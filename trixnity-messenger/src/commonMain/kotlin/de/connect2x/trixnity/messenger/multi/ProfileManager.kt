@@ -153,7 +153,7 @@ class ProfileManagerImpl(
     }
 
     override suspend fun setMultiProfileEnabled(enabled: Boolean) {
-        if (profiles.value.size > 1) {
+        if (!enabled && profiles.value.size > 1) {
             log.warn { "disable multi profiles not possible when more than one profile is created" }
             return
         }
