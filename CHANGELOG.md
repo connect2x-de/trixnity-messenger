@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Improved UIA fallback UX
 - SDK: Prefer known UIA flows
+- SDK: Programmatically prevent disabling multi-profile when more than one profile is created
 
 ### Deprecated
 
