@@ -114,11 +114,13 @@ class NotificationSyncService(
     ) {
         if (!notificationsEnabled) {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
+            /* FIXME discuss if this call is necessary and fix when notificationHandler.clearAll() is fixed for all platforms
             try {
                 notificationHandler.clearAll()
             } catch (e: Throwable) {
                 log.error(e) { "failed to clear all notifications" }
             }
+            */
             matrixClient.notification.getAllUpdates().collect() // black hole
             return
         }
