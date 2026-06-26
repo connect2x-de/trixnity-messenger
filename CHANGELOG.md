@@ -11,10 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- UI: Improved UIA fallback UX
-- SDK: Prefer known UIA flows
-- SDK: Programmatically prevent disabling multi-profile when more than one profile is created
-
 ### Deprecated
 
 ### Removed
@@ -22,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+## 4.8.1
+
+### Changed
+
+- UI: Improved UIA fallback UX
+- SDK: Prefer known UIA flows
+- SDK: Programmatically prevent disabling multi-profile when more than one profile is created
 
 ## 4.8.0
 
