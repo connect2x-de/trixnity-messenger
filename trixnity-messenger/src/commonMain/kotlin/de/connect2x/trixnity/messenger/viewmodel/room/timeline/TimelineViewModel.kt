@@ -928,12 +928,6 @@ class TimelineViewModelImpl(
                         """
                             .trimIndent()
                     }
-                    println("")
-                    println("+++++++++++++++++++++")
-                    println("timelineSize        = $timelineSize")
-                    println("visibleTimelineSize = $visibleTimelineSize")
-                    println("+++++++++++++++++++++")
-                    println("")
 
                     if (isInBufferBefore) {
                         log.debug { "load timeline events before" }
