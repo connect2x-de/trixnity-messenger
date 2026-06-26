@@ -40,7 +40,6 @@ class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
         val i18n = DI.get<I18nView>()
         val error = uiaStepFallbackViewModel.error.collectAsState().value
         val isAwaiting = uiaStepFallbackViewModel.waitForResult.collectAsState().value
-        val authenticationType = uiaStepFallbackViewModel.authenticationTypeString
         UiaModalBox {
             Column(Modifier.fillMaxWidth().padding(20.dp)) {
                 UiaHeading(i18n.uiaFallbackTitle())
@@ -48,7 +47,7 @@ class UiaFallbackFlowViewImpl : UiaFallbackFlowView {
                     ErrorView(error)
                 }
                 MiddleSpacer()
-                Text(authenticationType, Modifier.align(Alignment.CenterHorizontally))
+                Text(i18n.uiaFallbackDescription(), Modifier.align(Alignment.CenterHorizontally))
                 MiddleSpacer()
                 if (isAwaiting) LoadingSpinner()
                 LargeSpacer()
