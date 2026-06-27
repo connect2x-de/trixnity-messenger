@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.viewmodel.util
 
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.TimelineEventRelation
@@ -23,6 +24,7 @@ import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.util.testGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -30,6 +32,7 @@ import dev.mokkery.mock
 import io.kotest.matchers.shouldBe
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -77,6 +80,7 @@ class GetEventReactionsTest {
             MutableStateFlow(RoomUser(roomId, user2, "user 2", memberEvent()))
         every { userServiceMock.getById(roomId, user3) } returns
             MutableStateFlow(RoomUser(roomId, user3, "user 3", memberEvent()))
+        every { roomServiceMock.getOutbox(any()) } returns MutableStateFlow(listOf())
     }
 
     @Test
@@ -112,7 +116,7 @@ class GetEventReactionsTest {
                         EventReaction(
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
-                            eventId = reaction1,
+                            eventOrTransactionId = EventIdOrTransactionId(reaction1),
                             isByMe = false,
                         )
                     )
@@ -144,23 +148,148 @@ class GetEventReactionsTest {
                         EventReaction(
                             value = "🎉",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
-                            eventId = reaction1,
+                            eventOrTransactionId = EventIdOrTransactionId(reaction1),
                             isByMe = false,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user2, name = "user 2", initials = "U2"),
-                            eventId = reaction2,
+                            eventOrTransactionId = EventIdOrTransactionId(reaction2),
                             isByMe = false,
                         ),
                         EventReaction(
                             value = "🙈",
                             sender = UserInfoElement(userId = user3, name = "user 3", initials = "U3"),
-                            eventId = reaction3,
+                            eventOrTransactionId = EventIdOrTransactionId(reaction3),
                             isByMe = false,
                         ),
                     )
             )
+    }
+
+    @Test
+    fun `should return reactions in outbox`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(123, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    )
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        getEventReactions() shouldBe
+            EventReactions(
+                all =
+                    setOf(
+                        EventReaction(
+                            value = "🎉",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("123"),
+                            isByMe = true,
+                        )
+                    )
+            )
+    }
+
+    @Test
+    fun `should return newest reactions in outbox per per key`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "1",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(1, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    ),
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "2",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(2, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    ),
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "3",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "👺")),
+                            createdAt = Instant.fromEpochSeconds(2, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    ),
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        getEventReactions() shouldBe
+            EventReactions(
+                all =
+                    setOf(
+                        EventReaction(
+                            value = "🎉",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("2"),
+                            isByMe = true,
+                        ),
+                        EventReaction(
+                            value = "👺",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("3"),
+                            isByMe = true,
+                        ),
+                    )
+            )
+    }
+
+    @Test
+    fun `should not return reactions in outbox with send error`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(123, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = RoomOutboxMessage.SendError.NoEventPermission,
+                        )
+                    )
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns MutableStateFlow(emptyMap())
+        getEventReactions() shouldBe EventReactions(all = setOf())
     }
 
     private suspend fun getEventReactions(): EventReactions =
