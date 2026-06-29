@@ -137,7 +137,13 @@ class GetEventReactionsImpl : GetEventReactions {
                         }
 
                     combine(timelineReactions, outboxReactions) { timelineEventReaction, outboxEventReaction ->
-                        EventReactions(timelineEventReaction + outboxEventReaction)
+                        EventReactions(
+                            outboxEventReaction +
+                                timelineEventReaction.filter { timelineMessage ->
+                                    !timelineMessage.isByMe &&
+                                        outboxEventReaction.none { timelineMessage.value == it.value }
+                                }
+                        )
                     }
                 }
             }

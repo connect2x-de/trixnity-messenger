@@ -292,6 +292,53 @@ class GetEventReactionsTest {
         getEventReactions() shouldBe EventReactions(all = setOf())
     }
 
+    @Test
+    fun `should only return reactions from outbox and not also from timeline`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getTimelineEvent(any(), reaction1) } returns
+            MutableStateFlow(
+                timelineEvent(
+                    user1,
+                    reaction1,
+                    ReactionEventContent(relatesTo = RelatesTo.Annotation(eventId, key = "🎉")),
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
+
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = ReactionEventContent(RelatesTo.Annotation(eventId, "🎉")),
+                            createdAt = Instant.fromEpochSeconds(123, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    )
+                )
+            )
+
+        getEventReactions() shouldBe
+            EventReactions(
+                all =
+                    setOf(
+                        EventReaction(
+                            value = "🎉",
+                            sender = UserInfoElement(userId = user1, name = "user 1", initials = "U1"),
+                            eventOrTransactionId = EventIdOrTransactionId("123"),
+                            isByMe = true,
+                        )
+                    )
+            )
+    }
+
     private suspend fun getEventReactions(): EventReactions =
         GetEventReactionsImpl()
             .invoke(
