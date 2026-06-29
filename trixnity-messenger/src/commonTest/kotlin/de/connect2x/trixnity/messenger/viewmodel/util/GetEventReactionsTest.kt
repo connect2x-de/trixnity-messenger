@@ -204,7 +204,7 @@ class GetEventReactionsTest {
     }
 
     @Test
-    fun `should return newest reactions in outbox per per key`() = runTest {
+    fun `should return newest reactions in outbox per key`() = runTest {
         every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
             MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
         every { roomServiceMock.getOutbox(any()) } returns

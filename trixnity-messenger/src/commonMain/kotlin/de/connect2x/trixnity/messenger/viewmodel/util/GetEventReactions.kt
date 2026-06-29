@@ -10,6 +10,7 @@ import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
+import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
@@ -100,7 +101,8 @@ class GetEventReactionsImpl : GetEventReactions {
                                                     val relatesTo = outboxMessage.content.relatesTo
                                                     if (
                                                         relatesTo is RelatesTo.Annotation &&
-                                                            relatesTo.eventId == eventId
+                                                            relatesTo.eventId == eventId &&
+                                                            outboxMessage.content is ReactionEventContent
                                                     ) {
                                                         relatesTo.key?.let { it to outboxMessage }
                                                     } else {
@@ -112,7 +114,7 @@ class GetEventReactionsImpl : GetEventReactions {
                                             }
                                             .groupBy { (reaction, _) -> reaction }
                                             .mapValues { (_, keyToEvents) ->
-                                                keyToEvents.map { (_, event) -> event }.maxBy { it.createdAt }
+                                                keyToEvents.map { (_, event) -> event }.last()
                                             }
                                             .map {
                                                 EventReaction(
