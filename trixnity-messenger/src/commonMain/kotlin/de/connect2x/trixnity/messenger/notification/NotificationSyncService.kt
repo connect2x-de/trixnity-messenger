@@ -30,8 +30,10 @@ import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.utils.toByteArray
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -125,61 +127,87 @@ class NotificationSyncService(
             return
         }
 
-        log.debug { "listen for new notifications for ${matrixClient.userId}" }
-        matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
-            notificationUpdate.send(
-                settings = notificationSettings,
-                notificationHandler = notificationHandler,
-                matrixClient = matrixClient,
-            )
+        coroutineScope {
+            launch {
+                matrixClient.notification.getCount().distinctUntilChanged().collect { count ->
+                    if (!notificationSettings.showDetails && count == 0) {
+                        executeAction("remove", noDetailsTag) { notificationHandler.pop(noDetailsTag) }
+                    }
+                }
+            }
+
+            log.debug { "listen for new notifications for ${matrixClient.userId}" }
+            matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
+                notificationUpdate.send(
+                    showDetails = notificationSettings.showDetails,
+                    playSound = notificationSettings.playSound,
+                    notificationHandler = notificationHandler,
+                    matrixClient = matrixClient,
+                )
+            }
         }
     }
 
     private suspend fun NotificationUpdate.send(
-        settings: MatrixMessengerAccountNotificationSettings,
+        showDetails: Boolean,
+        playSound: Boolean,
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
-        val tag = if (settings.showDetails) this.id else noDetailsTag
+        val tag = if (showDetails) id else noDetailsTag
+
+        suspend fun resolveNotification(
+            playSound: Boolean,
+            extractData: suspend () -> NotificationData?,
+        ): Notification? {
+            return if (showDetails) {
+                val data = extractData() ?: return null
+                buildDetailedNotification(data, playSound)
+            } else {
+                buildAnonymousNotification(playSound)
+            }
+        }
+
         when (this) {
             is NotificationUpdate.New -> {
-                val notificationData = content.toNotificationData(matrixClient) ?: return
-                val notification = buildNotification(notificationData, settings)
+                val notification = resolveNotification(playSound) { content.toNotificationData(matrixClient) } ?: return
                 executeAction("push", tag) { notificationHandler.push(notification, tag) }
             }
             is NotificationUpdate.Update -> {
-                val notificationData = content.toNotificationData(matrixClient) ?: return
-                val notification = buildNotification(notificationData, settings, playSound = false)
-                executeAction("update", tag) { notificationHandler.update(tag, notification) }
+                if (showDetails) {
+                    val notification = resolveNotification(false) { content.toNotificationData(matrixClient) } ?: return
+                    executeAction("update", tag) { notificationHandler.update(tag, notification) }
+                } else {
+                    val notification =
+                        resolveNotification(playSound) { content.toNotificationData(matrixClient) } ?: return
+                    executeAction("push", tag) { notificationHandler.push(notification, tag) }
+                }
             }
             is NotificationUpdate.Remove -> {
+                if (!showDetails) return // handled by coroutine scope
                 executeAction("remove", tag) { notificationHandler.pop(tag) }
             }
         }
     }
 
-    private fun buildNotification(
-        data: NotificationData,
-        settings: MatrixMessengerAccountNotificationSettings,
-        playSound: Boolean? = null,
-    ): Notification {
-        return if (settings.showDetails) {
-            Notification(
-                title = data.title,
-                description = data.description,
-                icon = data.icon,
-                statusIcon = statusIcon,
-                callbackData = data.callbackData,
-                playSound = playSound ?: settings.playSound,
-            )
-        } else {
-            Notification(
-                title = i18n.newMessageTitle(),
-                description = i18n.newMessageDescription(),
-                callbackData = data.callbackData,
-                playSound = playSound ?: settings.playSound,
-            )
-        }
+    private fun buildDetailedNotification(data: NotificationData, playSound: Boolean): Notification {
+        return Notification(
+            title = data.title,
+            description = data.description,
+            icon = data.icon,
+            statusIcon = statusIcon,
+            callbackData = data.callbackData,
+            playSound = playSound,
+        )
+    }
+
+    private fun buildAnonymousNotification(playSound: Boolean): Notification {
+        return Notification(
+            title = i18n.newMessageTitle(),
+            description = i18n.newMessageDescription(),
+            callbackData = getCallback(),
+            playSound = playSound,
+        )
     }
 
     private inline fun executeAction(action: String, tag: String, block: () -> Unit) {
@@ -258,13 +286,14 @@ class NotificationSyncService(
                     }
                 }
                 ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
-        val callbackData =
-            if (roomId != null)
-                buildString {
-                    append("${config.appUri}/matrix:roomid/") // TODO does this need to be changed in JS?
-                    append(roomId.full.trimStart(RoomId.sigilCharacter))
-                }
-            else null
+        val callbackData = if (roomId != null) getCallback(roomId) else null
         return NotificationData(title = title, description = description, icon = icon, callbackData = callbackData)
+    }
+
+    private fun getCallback(roomId: RoomId? = null): String {
+        return buildString { // TODO does this need to be changed in JS?
+            append("${config.appUri}/")
+            roomId?.let { append("matrix:roomid/${roomId.full.trimStart(RoomId.sigilCharacter)}") }
+        }
     }
 }

@@ -48,6 +48,7 @@ import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlinx.coroutines.flow.flowOf
@@ -277,7 +278,7 @@ class NotificationSyncServiceTest {
     }
 
     @Test
-    fun `details disabled » push new notification`() = runTest {
+    fun `details disabled » push new single-no-details-notification`() = runTest {
         val content = createNotificationUpdateContent(messageEvent)
         val notificationNew = createNotificationNew("some tag", content)
         every { notificationServiceMock.getAllUpdates() } returns flowOf(notificationNew)
@@ -292,13 +293,14 @@ class NotificationSyncServiceTest {
             description shouldContain "new messages"
             icon shouldBe null
             statusIcon shouldBe null
-            callbackData shouldContain roomId.full.substring(1)
+            callbackData shouldContain config.appUri
+            callbackData shouldNotContain roomId.full.substring(1)
             playSound shouldBe true
         }
     }
 
     @Test
-    fun `details disabled » update existing notification`() = runTest {
+    fun `details disabled » replace existing single-no-details-notification`() = runTest {
         val content = createNotificationUpdateContent(messageEvent)
         val notificationUpdate = createNotificationUpdate("some other tag", content)
         every { notificationServiceMock.getAllUpdates() } returns flowOf(notificationUpdate)
@@ -321,23 +323,40 @@ class NotificationSyncServiceTest {
             description shouldContain "new messages"
             icon shouldBe null
             statusIcon shouldBe null
-            callbackData shouldContain roomId.full.substring(1)
-            playSound shouldBe false
+            callbackData shouldContain config.appUri
+            callbackData shouldNotContain roomId.full.substring(1)
+            playSound shouldBe true
         }
     }
 
     @Test
-    fun `details disabled » remove existing notification`() = runTest {
+    fun `details disabled » remove single-no-details-notification if last notification`() = runTest {
         val notificationRemove = createNotificationRemove("placeholder")
         every { notificationServiceMock.getAllUpdates() } returns flowOf(notificationRemove)
         notificationHandler.initialize(mapOf(NotificationSyncService.noDetailsTag to Notification()))
         notificationHandler.notifications shouldHaveSize 1
+        every { notificationServiceMock.getCount() } returns flowOf(0)
 
         val cut = notificationSyncService(showDetails = mapOf(user to false))
         backgroundScope.launch { cut.doWork() }
 
         settle()
         notificationHandler.notifications shouldHaveSize 0
+    }
+
+    @Test
+    fun `details disabled » don't remove single-no-details-notification if there are more`() = runTest {
+        val notificationRemove = createNotificationRemove("placeholder")
+        every { notificationServiceMock.getAllUpdates() } returns flowOf(notificationRemove)
+        notificationHandler.initialize(mapOf(NotificationSyncService.noDetailsTag to Notification()))
+        notificationHandler.notifications shouldHaveSize 1
+        every { notificationServiceMock.getCount() } returns flowOf(2)
+
+        val cut = notificationSyncService(showDetails = mapOf(user to false))
+        backgroundScope.launch { cut.doWork() }
+
+        settle()
+        notificationHandler.notifications shouldHaveSize 1
     }
 
     /* FIXME uncomment if clearAll() is fixed for all platforms
@@ -479,6 +498,7 @@ class NotificationSyncServiceTest {
             mediaService.getThumbnail(any(), avatarSize().toLong(), avatarSize().toLong(), any(), any(), any())
         } returns Result.success(avatar)
         every { notificationService.getAllUpdates() } returns flowOf()
+        every { notificationService.getCount() } returns flowOf(1)
         return matrixClientMock
     }
 
