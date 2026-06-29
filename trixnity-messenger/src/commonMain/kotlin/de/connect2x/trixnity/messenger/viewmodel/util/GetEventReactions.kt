@@ -12,6 +12,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.RedactedEventContent
 import de.connect2x.trixnity.core.model.events.m.ReactionEventContent
 import de.connect2x.trixnity.core.model.events.m.RelatesTo
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
@@ -88,6 +89,26 @@ class GetEventReactionsImpl : GetEventReactions {
                                 }
                             }
                         }
+                    val outboxRedactions =
+                        matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
+                            if (it.isEmpty()) {
+                                (flowOf(emptySet()))
+                            } else {
+                                combine(it) { outboxMessages ->
+                                    outboxMessages
+                                        .mapNotNull { outboxMessage ->
+                                            val content = outboxMessage?.content
+                                            if (content is RedactionEventContent) {
+                                                content.redacts
+                                            } else {
+                                                null
+                                            }
+                                        }
+                                        .toSet()
+                                }
+                            }
+                        }
+
                     val outboxReactions =
                         matrixClient.user.getById(roomId, matrixClient.userId).filterNotNull().flatMapLatest { user ->
                             matrixClient.room.getOutbox(roomId).scopedFlatMapLatest {
@@ -138,12 +159,21 @@ class GetEventReactionsImpl : GetEventReactions {
                             }
                         }
 
-                    combine(timelineReactions, outboxReactions) { timelineEventReaction, outboxEventReaction ->
+                    combine(timelineReactions, outboxReactions, outboxRedactions) {
+                        timelineEventReaction,
+                        outboxEventReaction,
+                        outboxRedactions ->
                         EventReactions(
                             outboxEventReaction +
                                 timelineEventReaction.filter { timelineMessage ->
-                                    !timelineMessage.isByMe &&
-                                        outboxEventReaction.none { timelineMessage.value == it.value }
+                                    val hasNewerReactionInOutbox =
+                                        timelineMessage.isByMe &&
+                                            outboxEventReaction.any { it.value == timelineMessage.value }
+
+                                    val isPendingRedaction = outboxRedactions.any {
+                                        it == timelineMessage.eventOrTransactionId.eventIdOrNull()
+                                    }
+                                    !(hasNewerReactionInOutbox || isPendingRedaction)
                                 }
                         )
                     }

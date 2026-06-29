@@ -19,6 +19,7 @@ import de.connect2x.trixnity.core.model.events.m.RelatesTo
 import de.connect2x.trixnity.core.model.events.m.RelationType
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
+import de.connect2x.trixnity.core.model.events.m.room.RedactionEventContent
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.resetMocks
@@ -337,6 +338,42 @@ class GetEventReactionsTest {
                         )
                     )
             )
+    }
+
+    @Test
+    fun `should not return reactions from timeline if redaction in outbox`() = runTest {
+        every { roomServiceMock.getTimelineEvent(any(), eventId) } returns
+            MutableStateFlow(timelineEvent(user1, eventId, RoomMessageEventContent.TextBased.Text("Hello")))
+        every { roomServiceMock.getTimelineEvent(any(), reaction1) } returns
+            MutableStateFlow(
+                timelineEvent(
+                    user1,
+                    reaction1,
+                    ReactionEventContent(relatesTo = RelatesTo.Annotation(eventId, key = "🎉")),
+                )
+            )
+
+        every { roomServiceMock.getTimelineEventRelations(any(), any(), any()) } returns
+            MutableStateFlow(mapOf(reaction1 to MutableStateFlow(timelineEventRelation(reaction1))))
+
+        every { roomServiceMock.getOutbox(any()) } returns
+            MutableStateFlow(
+                listOf(
+                    MutableStateFlow(
+                        RoomOutboxMessage(
+                            roomId = roomId,
+                            transactionId = "123",
+                            content = RedactionEventContent(reaction1),
+                            createdAt = Instant.fromEpochSeconds(123, 0),
+                            sentAt = null,
+                            eventId = null,
+                            sendError = null,
+                        )
+                    )
+                )
+            )
+
+        getEventReactions() shouldBe EventReactions(all = setOf())
     }
 
     private suspend fun getEventReactions(): EventReactions =
