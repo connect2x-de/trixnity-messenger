@@ -359,7 +359,7 @@ class NotificationSyncServiceTest {
         notificationHandler.notifications shouldHaveSize 1
     }
 
-    /* FIXME uncomment if clearAll() is fixed for all platforms
+    /* FIXME uncomment if clearAll() is fixed for all platforms. https://gitlab.com/connect2x/sysnotify/-/work_items/50
 
     @Test
     fun `notifications disabled » clear all notifications for user`() = runTest {

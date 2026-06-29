@@ -34,6 +34,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -116,7 +117,7 @@ class NotificationSyncService(
     ) {
         if (!notificationsEnabled) {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
-            /* FIXME discuss if this call is necessary and fix when notificationHandler.clearAll() is fixed for all platforms
+            /* FIXME discuss if this call is necessary and fix when notificationHandler.clearAll() is fixed for all platforms. https://gitlab.com/connect2x/sysnotify/-/work_items/50
             try {
                 notificationHandler.clearAll()
             } catch (e: Throwable) {
@@ -128,11 +129,13 @@ class NotificationSyncService(
         }
 
         coroutineScope {
-            launch {
-                matrixClient.notification.getCount().distinctUntilChanged().collect { count ->
-                    if (!notificationSettings.showDetails && count == 0) {
-                        executeAction("remove", noDetailsTag) { notificationHandler.pop(noDetailsTag) }
-                    }
+            if (!notificationSettings.showDetails) {
+                launch {
+                    matrixClient.notification
+                        .getCount()
+                        .distinctUntilChanged()
+                        .filter { it == 0 }
+                        .collect { executeAction("remove", noDetailsTag) { notificationHandler.pop(noDetailsTag) } }
                 }
             }
 
@@ -286,7 +289,7 @@ class NotificationSyncService(
                     }
                 }
                 ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
-        val callbackData = if (roomId != null) getCallback(roomId) else null
+        val callbackData = getCallback(roomId)
         return NotificationData(title = title, description = description, icon = icon, callbackData = callbackData)
     }
 
