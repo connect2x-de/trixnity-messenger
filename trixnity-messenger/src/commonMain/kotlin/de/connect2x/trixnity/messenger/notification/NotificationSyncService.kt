@@ -30,8 +30,11 @@ import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
 import de.connect2x.trixnity.utils.toByteArray
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -51,6 +54,7 @@ class NotificationSyncService(
 ) : Worker {
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.notification.NotificationService")
+        internal const val noDetailsTag = "NO_DETAILS_PLACEHOLDER"
     }
 
     private val statusIcon: NotificationIcon? by lazy {
@@ -111,98 +115,111 @@ class NotificationSyncService(
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
-        if (notificationsEnabled) {
-            log.debug { "listen for new notifications for ${matrixClient.userId}" }
-            matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
-                if (notificationSettings.showDetails) {
-                    notificationUpdate.send(
-                        playSound = notificationSettings.playSound,
-                        notificationHandler = notificationHandler,
-                        matrixClient = matrixClient,
-                    )
-                } else {
-                    try {
-                        notificationHandler.push(
-                            tag = "NO_DETAILS_PLACEHOLDER",
-                            notification =
-                                Notification(
-                                    title = i18n.newMessageTitle(),
-                                    description = i18n.newMessageDescription(),
-                                    playSound = notificationSettings.playSound,
-                                ),
-                        )
-                    } catch (e: Throwable) {
-                        log.error(e) { "failed to push placeholder notification" }
-                    }
-                }
-            }
-        } else {
+        if (!notificationsEnabled) {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
+            /* FIXME discuss if this call is necessary and fix when notificationHandler.clearAll() is fixed for all platforms. https://gitlab.com/connect2x/sysnotify/-/work_items/50
             try {
                 notificationHandler.clearAll()
             } catch (e: Throwable) {
                 log.error(e) { "failed to clear all notifications" }
             }
+            */
             matrixClient.notification.getAllUpdates().collect() // black hole
+            return
+        }
+
+        coroutineScope {
+            if (!notificationSettings.showDetails) {
+                launch {
+                    matrixClient.notification
+                        .getCount()
+                        .distinctUntilChanged()
+                        .filter { it == 0 }
+                        .collect { executeAction("remove", noDetailsTag) { notificationHandler.pop(noDetailsTag) } }
+                }
+            }
+
+            log.debug { "listen for new notifications for ${matrixClient.userId}" }
+            matrixClient.notification.getAllUpdates().collect { notificationUpdate ->
+                notificationUpdate.send(
+                    showDetails = notificationSettings.showDetails,
+                    playSound = notificationSettings.playSound,
+                    notificationHandler = notificationHandler,
+                    matrixClient = matrixClient,
+                )
+            }
         }
     }
 
     private suspend fun NotificationUpdate.send(
+        showDetails: Boolean,
         playSound: Boolean,
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
     ) {
+        val tag = if (showDetails) id else noDetailsTag
+
+        suspend fun resolveNotification(
+            playSound: Boolean,
+            extractData: suspend () -> NotificationData?,
+        ): Notification? {
+            return if (showDetails) {
+                val data = extractData() ?: return null
+                buildDetailedNotification(data, playSound)
+            } else {
+                buildAnonymousNotification(playSound)
+            }
+        }
+
         when (this) {
             is NotificationUpdate.New -> {
-                val notificationData = content.toNotificationData(matrixClient) ?: return
-                log.debug { "push new notification in system (tag=$id)" }
-                try {
-                    notificationHandler.push(
-                        tag = id,
-                        notification =
-                            Notification(
-                                title = notificationData.title,
-                                description = notificationData.description,
-                                icon = notificationData.icon,
-                                statusIcon = statusIcon,
-                                callbackData = notificationData.callbackData,
-                                playSound = playSound,
-                            ),
-                    )
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to push notification (tag=$id)" }
-                }
+                val notification = resolveNotification(playSound) { content.toNotificationData(matrixClient) } ?: return
+                executeAction("push", tag) { notificationHandler.push(notification, tag) }
             }
-
             is NotificationUpdate.Update -> {
-                val notificationData = content.toNotificationData(matrixClient) ?: return
-                log.debug { "update notification in system (tag=$id)" }
-                try {
-                    notificationHandler.update(
-                        tag = id,
-                        notification =
-                            Notification(
-                                title = notificationData.title,
-                                description = notificationData.description,
-                                icon = notificationData.icon,
-                                statusIcon = statusIcon,
-                                callbackData = notificationData.callbackData,
-                                playSound = false,
-                            ),
-                    )
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to update notification (tag=$id)" }
+                if (showDetails) {
+                    val notification = resolveNotification(false) { content.toNotificationData(matrixClient) } ?: return
+                    executeAction("update", tag) { notificationHandler.update(tag, notification) }
+                } else {
+                    val notification =
+                        resolveNotification(playSound) { content.toNotificationData(matrixClient) } ?: return
+                    executeAction("push", tag) { notificationHandler.push(notification, tag) }
                 }
             }
-
             is NotificationUpdate.Remove -> {
-                log.debug { "remove notification in system (tag=$id)" }
-                try {
-                    notificationHandler.pop(tag = id)
-                } catch (e: Throwable) {
-                    log.error(e) { "failed to pop notification (tag=$id)" }
-                }
+                if (!showDetails) return // handled by coroutine scope
+                executeAction("remove", tag) { notificationHandler.pop(tag) }
             }
+        }
+    }
+
+    private fun buildDetailedNotification(data: NotificationData, playSound: Boolean): Notification {
+        return Notification(
+            title = data.title,
+            description = data.description,
+            icon = data.icon,
+            statusIcon = statusIcon,
+            callbackData = data.callbackData,
+            playSound = playSound,
+        )
+    }
+
+    private fun buildAnonymousNotification(playSound: Boolean): Notification {
+        return Notification(
+            title = i18n.newMessageTitle(),
+            description = i18n.newMessageDescription(),
+            callbackData = getCallback(),
+            playSound = playSound,
+        )
+    }
+
+    private inline fun executeAction(action: String, tag: String, block: () -> Unit) {
+        log.debug { "$action notification in system (tag=$tag)" }
+
+        try {
+            block()
+        } catch (e: Throwable) {
+            log.error(e) { "failed to $action notification (tag=$tag)" }
         }
     }
 
@@ -272,13 +289,14 @@ class NotificationSyncService(
                     }
                 }
                 ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
-        val callbackData =
-            if (roomId != null)
-                buildString {
-                    append("${config.appUri}/matrix:roomid/") // TODO does this need to be changed in JS?
-                    append(roomId.full.trimStart(RoomId.sigilCharacter))
-                }
-            else null
+        val callbackData = getCallback(roomId)
         return NotificationData(title = title, description = description, icon = icon, callbackData = callbackData)
+    }
+
+    private fun getCallback(roomId: RoomId? = null): String {
+        return buildString { // TODO does this need to be changed in JS?
+            append("${config.appUri}/")
+            roomId?.let { append("matrix:roomid/${roomId.full.trimStart(RoomId.sigilCharacter)}") }
+        }
     }
 }
