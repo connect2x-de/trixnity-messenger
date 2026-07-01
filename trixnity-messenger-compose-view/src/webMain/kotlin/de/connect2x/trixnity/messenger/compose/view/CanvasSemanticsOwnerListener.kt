@@ -581,7 +581,11 @@ private fun <T : Node> NodeList<T>.asSequence(): Sequence<T> =
             object : Iterator<T> {
                 var index = 0
 
-                override fun next(): T = checkNotNull(item(index)).unsafeCast<T>().also { index++ }
+                override fun next(): T {
+                    val it = item(index) ?: throw NoSuchElementException()
+                    index++
+                    return it
+                }
 
                 override fun hasNext(): Boolean = index < length
             }

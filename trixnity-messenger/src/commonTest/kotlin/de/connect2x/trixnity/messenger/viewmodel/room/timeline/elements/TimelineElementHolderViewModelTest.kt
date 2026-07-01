@@ -629,7 +629,7 @@ class TimelineElementHolderViewModelTest {
         val eventHolder = cut(timelineEvent = event.value, timelineEventFlow = event)
         backgroundScope.launch { eventHolder.element.collect() }
         val eventElement = eventHolder.element
-        delay(99.milliseconds)
+        delay(499.milliseconds)
         eventElement.value shouldBe null
         delay(2.milliseconds)
         eventElement.value.shouldBeInstanceOf<EncryptedWaitTimelineElementViewModel>()

@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- SDK,UI: room mention support
-- SDK,UI: (**breaking change**) added `isMentioned` parameter to `TimelineElementViewModel.Message` and `MessageBubble`
-  interfaces and classes for highlighting messages when the user is mentioned in text
-
 ### Changed
 
 - DEPENDENCY: update Kotlin to 2.3.21
@@ -23,19 +19,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- SDK: `listOfMentions` and `listOfMentionsLoading` in `InputAreaViewModel` -> use `suggestedMentions` and
-  `suggestedMentionsLoading` instead, which contain the room mention element
-
 ### Removed
 
 - SDK: Drop support for X64 Apple targets
 
 ### Fixed
 
-- SDK: former or banned members are shown in the mention list
-- SDK: empty mention list flickering after entering @
+- SDK: callback for notifications when `showDetails` is disabled
 
 ### Security
+
+## 4.8.1
+
+### Changed
+
+- UI: Improved UIA fallback UX
+- SDK: Prefer known UIA flows
+- SDK: Programmatically prevent disabling multi-profile when more than one profile is created
+
+## 4.8.0
+
+### Added
+
+- SDK,UI: room mention support
+- SDK,UI: (**breaking change**) added `isMentioned` parameter to `TimelineElementViewModel.Message` and `MessageBubble`
+  interfaces and classes for highlighting messages when the user is mentioned in text
+- CI, INTERNAL: Add and enforce detekt lints
+
+### Deprecated
+
+- SDK: `listOfMentions` and `listOfMentionsLoading` in `InputAreaViewModel` -> use `suggestedMentions` and
+  `suggestedMentionsLoading` instead, which contain the room mention element
+
+### Fixed
+
+- SDK: former or banned members are shown in the mention list
+- SDK: empty mention list flickering after entering @
 
 ## 4.7.0
 
@@ -48,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI,INTERNAL: Provide WithProfileSelection via koin
 - SDK,INTERNAL: Separate Uia logic from UiaRouter
 - SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
+- SDK,UI (**breaking change**): Sync `ViewState` between SDK and UI. This ensures predictable scroll and loading
+  behavior of the timeline. If the UI does not support setting `ViewState`,
+  `MatrixMessengerConfiguration.timelineViewStateSupported` must be set to false and
+  `TimelineViewModel.finishedScrollTo` additionally be used.
 - UI: made several compose functions for notifications public instead of internal
 
 ### Fixed

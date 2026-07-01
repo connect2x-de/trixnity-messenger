@@ -297,11 +297,11 @@ private fun NextButtonImpl(
 
 @Composable
 private fun RowScope.BackButton(wizardStep: WizardStep, currentStep: MutableState<StepId>, previousStep: StepId?) {
-    return when (val backButton = wizardStep.backButton()) {
+    when (val backButton = wizardStep.backButton()) {
         is WizardNavigationButton.Standard -> {
             if (previousStep != null) {
                 BackButtonImpl(currentStep, previousStep, backButton)
-            } else {}
+            }
         }
 
         is WizardNavigationButton.None -> {}

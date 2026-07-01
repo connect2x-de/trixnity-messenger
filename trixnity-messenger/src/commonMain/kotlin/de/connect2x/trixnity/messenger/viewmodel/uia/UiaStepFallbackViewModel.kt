@@ -40,6 +40,7 @@ interface UiaStepFallbackViewModel {
     val fallbackUrl: String
     val waitForResult: StateFlow<Boolean>
     val error: StateFlow<String?>
+    @Deprecated("this will be removed in future because it is not helpful for the user")
     val authenticationTypeString: String
 
     fun openFallbackUrl()
@@ -66,7 +67,7 @@ class UiaStepFallbackViewModelImpl(
 
     private val uriCaller = get<UriCaller>()
     override val fallbackUrl: String = uiaStep.getFallbackUrl(authenticationType).toString()
-    override val authenticationTypeString: String = authenticationType.toString()
+    override val authenticationTypeString: String = authenticationType.name
 
     override fun openFallbackUrl() {
         uriCaller(fallbackUrl, true)

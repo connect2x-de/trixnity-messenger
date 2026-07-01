@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger.internal.logic
 
 import de.connect2x.trixnity.clientserverapi.client.UIA
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
+import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
@@ -99,14 +100,16 @@ internal class UiaLogic(
     private fun nextStepAuthenticationType(uia: UIA<*>): AuthenticationType? {
         val nextFlows: List<AuthenticationType>
         val completed: List<AuthenticationType>
+        fun Set<UIAState.FlowInformation>.getPreferredFlow() =
+            firstOrNull { it.stages.none { it is AuthenticationType.Unknown } }?.stages ?: firstOrNull()?.stages
         when (uia) {
             is UIA.Step<*> -> {
-                nextFlows = uia.state.flows.firstOrNull()?.stages.orEmpty()
+                nextFlows = uia.state.flows.getPreferredFlow().orEmpty()
                 completed = uia.state.completed
             }
 
             is UIA.Error<*> -> {
-                nextFlows = uia.state.flows.firstOrNull()?.stages.orEmpty()
+                nextFlows = uia.state.flows.getPreferredFlow().orEmpty()
                 completed = uia.state.completed
             }
 

@@ -1,6 +1,6 @@
 [versions]
 
-trixnityMessenger = "4.8.0"
+trixnityMessenger = "4.8.2"
 
 minSdkVersion = "28"
 
@@ -24,9 +24,10 @@ testContainers = "2.0.5" # https://github.com/testcontainers/testcontainers-java
 ksoup = "0.2.6" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
-pako = "2.1.0" # https://github.com/nodeca/pako
-filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: Update this if we compile against Java 21
+pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
+filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: 0.13.0 cannot be used, since it is compiled with Java 21...
 androidxMedia3 = "1.10.1" # https://github.com/androidx/media/releases
+detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
 
 [libraries]
 
@@ -71,3 +72,4 @@ testcontainers = ["testcontainers", "testcontainers-junit-jupiter"]
 [plugins]
 
 seskar = { id = "io.github.turansky.seskar", version.ref = "seskar" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
