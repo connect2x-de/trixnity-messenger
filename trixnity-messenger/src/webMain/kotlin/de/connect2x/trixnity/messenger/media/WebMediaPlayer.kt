@@ -55,17 +55,16 @@ class WebMediaPlayer(
     private val coroutineScope: CoroutineScope
 ) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
+    private val removeAudioContextErrorHandler: () -> Unit = audioContext.addEventHandler(
+            type = Event.ERROR,
+            handler = EventHandler { log.error { "Unexpected media player error" } },
+        )
     internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
 
     init {
-        audioContext.addEventHandler(
-            type = Event.ERROR,
-            handler = EventHandler { log.error { "Unexpected media player error" } },
-        )
-
         handleMediaSessionActions()
     }
 
@@ -125,8 +124,8 @@ class WebMediaPlayer(
     }
 
     override fun close() {
-        audioContext.closeAsync()
         removeMediaSessionActionHandlers()
+        removeAudioContextErrorHandler()
     }
 
     private suspend fun initAudio(tempFile: PlatformMedia.TemporaryFile): Audio {

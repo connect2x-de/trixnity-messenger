@@ -32,19 +32,19 @@ import web.mediarecorder.DATA_AVAILABLE
 import web.mediarecorder.MediaRecorder
 import web.navigator.navigator
 
-class WebAudioRecorder(private val clock: Clock) : PlatformAudioRecorder {
+class WebAudioRecorder(
+    private val audioContext: AudioContext,
+    private val clock: Clock
+) : PlatformAudioRecorder {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebAudioRecorder")
-    private var audioContext: AudioContext? = null
 
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun start(): AudioRecorderImpl.State.Recording? {
-        val newAudioContext = AudioContext()
-        audioContext = newAudioContext
         val audioStream =
             navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
 
-        val track = newAudioContext.createMediaStreamSource(audioStream)
-        val analyser = AnalyserNode(newAudioContext)
+        val track = audioContext.createMediaStreamSource(audioStream)
+        val analyser = AnalyserNode(audioContext)
         track.connect(analyser)
 
         val recorder = MediaRecorder(audioStream)
@@ -133,8 +133,6 @@ class WebAudioRecorder(private val clock: Clock) : PlatformAudioRecorder {
     }
 
     override fun close() {
-        if (audioContext?.state != AudioContextState.closed) {
-            audioContext?.closeAsync()
-        }
+
     }
 }
