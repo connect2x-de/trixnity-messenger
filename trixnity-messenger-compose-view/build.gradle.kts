@@ -251,6 +251,7 @@ val exportIosScreenshots by
 
 val buildConfigTask =
     tasks.register("generateTestConfig") {
+        inputs.property("port", synapsePort)
         group = "build config"
         val generatedSrc = layout.buildDirectory.dir("generatedSrc/commonTest/kotlin")
         doLast {
