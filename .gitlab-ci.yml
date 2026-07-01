@@ -49,8 +49,8 @@ compile:ios:
     - *if-merge-request
   script:
     - ./gradlew
-      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
-      compileTestKotlin{IosSimulatorArm64,IosX64}
+      compileKotlin{IosArm64,IosSimulatorArm64}
+      compileTestKotlinIosSimulatorArm64
       --stacktrace
 
 compile:jvm-android-js:
@@ -90,7 +90,7 @@ check:abi:
   rules:
     - *if-merge-request
   script:
-    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew internalDumpKotlinAbi --stacktrace
     - ./gradlew checkLegacyAbi --stacktrace
 
 check:vulnerable-dependencies:
@@ -155,14 +155,12 @@ test:sdk:unit:ios:
   needs:
     - job: "compile:ios"
       artifacts: false
-  tags: [ "connect2x-mac" ]
+  tags: [ "saas-macos-medium-m1" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
   script:
-    - ./gradlew
-      :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
-      --stacktrace
+    - ./gradlew :trixnity-messenger:iosSimulatorArm64Test --stacktrace
 
 test:sdk:unit:jvm:
   stage: test
@@ -314,7 +312,7 @@ publish:mac-dev:
     - *if-dev-release
   script:
     - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
+      publish{IosArm64,IosSimulatorArm64}PublicationToGitlabRepository
       --stacktrace
 
 publish:linux-dev:

@@ -4,29 +4,29 @@ trixnityMessenger = "4.8.2"
 
 minSdkVersion = "28"
 
-seskar = "4.34.0" # https://github.com/JetBrains/kotlin-wrappers/blob/master/gradle.properties
+seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.6.0" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.6.3" # https://gitlab.com/connect2x/sysnotify/-/packages
-sqlitenity = "0.0.6" # https://gitlab.com/connect2x/sqlitenity/-/releases
+trixnity = "5.7.0-SNAPSHOT.CI-20260623.160101" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.7.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.7-SNAPSHOT.CI-20260623.161442" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
-unifiedPush = "3.3.2" # https://codeberg.org/UnifiedPush/android-connector/releases
+unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog
 jsJoda = "2.22.0" # https://www.npmjs.com/package/@js-joda/timezone
 zipjs = "2.7.72" # https://www.npmjs.com/package/@zip.js/zip.js
 kim = "0.26.2" # https://github.com/Ashampoo/kim/releases
-markdown = "0.7.3" # https://github.com/JetBrains/markdown
+markdown = "0.7.5" # https://github.com/JetBrains/markdown
 pdfjs = "5.3.31" # https://www.npmjs.com/package/pdfjs-dist
 pdfbox = "3.0.7" # https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox
-icu4j = "78.2" # https://github.com/unicode-org/icu/releases
-tika = "3.2.3" # https://tika.apache.org/
-testContainers = "2.0.3" # https://github.com/testcontainers/testcontainers-java/releases
+icu4j = "78.3" # https://github.com/unicode-org/icu/releases
+tika = "3.3.1" # https://tika.apache.org/
+testContainers = "2.0.5" # https://github.com/testcontainers/testcontainers-java/releases
 ksoup = "0.2.6" # https://github.com/fleeksoft/ksoup/releases
 highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
-filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases   # 0.13.0 cannot be used, since it is compiled with Java 21...
-androidxMedia3 = "1.9.3" # https://github.com/androidx/media/releases
+filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: 0.13.0 cannot be used, since it is compiled with Java 21...
+androidxMedia3 = "1.10.1" # https://github.com/androidx/media/releases
 detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
 
 [libraries]

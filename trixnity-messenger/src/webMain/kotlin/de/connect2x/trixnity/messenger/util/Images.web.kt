@@ -6,7 +6,6 @@ import de.connect2x.trixnity.utils.toByteArray
 import io.ktor.http.*
 import js.promise.Promise
 import js.promise.await
-import js.promise.invoke
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import web.events.EventHandler

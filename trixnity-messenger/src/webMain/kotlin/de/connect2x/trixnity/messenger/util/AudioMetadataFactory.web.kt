@@ -4,7 +4,6 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.debug
 import js.promise.Promise
 import js.promise.await
-import js.promise.invoke
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.milliseconds
 import org.koin.core.module.Module
