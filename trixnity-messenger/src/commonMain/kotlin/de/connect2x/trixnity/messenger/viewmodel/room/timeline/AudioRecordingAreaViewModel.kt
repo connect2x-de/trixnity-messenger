@@ -104,7 +104,6 @@ class AudioRecordingAreaViewModelImpl(
                             val newPlayer = create(state)
                             lifecycle.doOnDestroy {
                                 newPlayer?.close()
-                                log.error { "Destroyed" }
                             }
                             newPlayer
                         }
