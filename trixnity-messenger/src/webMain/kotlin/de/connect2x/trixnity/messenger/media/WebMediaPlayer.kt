@@ -38,20 +38,25 @@ import web.html.Preload
 import web.html.metadata
 import web.mediasession.MediaSessionAction
 import web.mediasession.MediaSessionActionDetails
+import web.mediasession.nexttrack
 import web.mediasession.pause
 import web.mediasession.play
+import web.mediasession.previoustrack
 import web.mediasession.seekbackward
 import web.mediasession.seekforward
 import web.mediasession.seekto
+import web.mediasession.skipad
+import web.mediasession.stop
 import web.navigator.navigator
 import web.url.URL
 
-class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
+class WebMediaPlayer(
+    private val audioContext: AudioContext,
+    private val coroutineScope: CoroutineScope
+) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
     internal val currentItemPlaying: MutableStateFlow<AbstractMediaItem?> = MutableStateFlow(null)
     internal val playerMutex: Mutex = Mutex()
-
-    private val audioContext: AudioContext = AudioContext()
 
     override val playingItem: StateFlow<MediaPlayer.Item?> = currentItemPlaying.asStateFlow()
 
@@ -121,6 +126,7 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
 
     override fun close() {
         audioContext.closeAsync()
+        removeMediaSessionActionHandlers()
     }
 
     private suspend fun initAudio(tempFile: PlatformMedia.TemporaryFile): Audio {
@@ -203,5 +209,25 @@ class WebMediaPlayer(private val coroutineScope: CoroutineScope) : MediaPlayer {
                 }
             }
             .launchIn(coroutineScope)
+    }
+
+    private fun removeMediaSessionActionHandlers() {
+        val allMediaSessionActions = listOf(
+            MediaSessionAction.nexttrack,
+            MediaSessionAction.pause,
+            MediaSessionAction.play,
+            MediaSessionAction.previoustrack,
+            MediaSessionAction.seekbackward,
+            MediaSessionAction.seekforward,
+            MediaSessionAction.seekto,
+            MediaSessionAction.skipad,
+            MediaSessionAction.stop,
+        )
+        allMediaSessionActions.forEach { mediaSessionAction ->
+            navigator.mediaSession.setActionHandler(
+                action = mediaSessionAction,
+                handler = null,
+            )
+        }
     }
 }
