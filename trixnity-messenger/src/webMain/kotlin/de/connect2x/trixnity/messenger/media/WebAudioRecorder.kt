@@ -18,6 +18,8 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
+import web.audio.AudioContextState
+import web.audio.closed
 import web.blob.Blob
 import web.events.ERROR
 import web.events.Event
@@ -131,6 +133,8 @@ class WebAudioRecorder(private val clock: Clock) : PlatformAudioRecorder {
     }
 
     override fun close() {
-        audioContext?.closeAsync()
+        if (audioContext?.state != AudioContextState.closed) {
+            audioContext?.closeAsync()
+        }
     }
 }
