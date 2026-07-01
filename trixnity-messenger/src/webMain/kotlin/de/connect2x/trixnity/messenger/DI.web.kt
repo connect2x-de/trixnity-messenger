@@ -15,5 +15,5 @@ actual fun platformModule(): Module = module {
     single<AppLanguageUpdater> { AppLanguageUpdaterImpl(get(), get()) }.apply { bind<Worker>() }
     single<AudioContext> { AudioContext() }
     single<MediaPlayer> { WebMediaPlayer(get(), get()) }.apply { bind<AutoCloseable>() }
-    single<PlatformAudioRecorder> { WebAudioRecorder(get(), get()) }
+    single<PlatformAudioRecorder> { WebAudioRecorder(get(), get()) }.apply { bind<AutoCloseable>() }
 }
