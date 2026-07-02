@@ -6,11 +6,13 @@ import io.ktor.http.*
 import js.buffer.ArrayBuffer
 import js.numbers.JsNumbers.toKotlinFloat
 import js.objects.unsafeJso
+import js.promise.catch
 import js.reflect.unsafeCast
 import js.typedarrays.Float32Array
 import kotlin.coroutines.resume
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.toJsArray
+import kotlin.js.toList
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -30,6 +32,7 @@ import web.mediadevices.getUserMedia
 import web.mediarecorder.BlobEvent
 import web.mediarecorder.DATA_AVAILABLE
 import web.mediarecorder.MediaRecorder
+import web.mediastreams.MediaStream
 import web.navigator.navigator
 
 class WebAudioRecorder(
@@ -91,6 +94,7 @@ class WebAudioRecorder(
                                         Event.STOP to
                                             {
                                                 removeDataAvailableHandler()
+                                                closeInputs(audioStream)
                                                 cont.resume(
                                                     Blob(
                                                         chunks.toJsArray(),
@@ -101,6 +105,7 @@ class WebAudioRecorder(
                                         Event.ERROR to
                                             {
                                                 removeDataAvailableHandler()
+                                                closeInputs(audioStream)
                                                 cont.resume(null)
                                             },
                                     ),
@@ -133,6 +138,11 @@ class WebAudioRecorder(
     }
 
     override fun close() {
+        // nothing to close
+    }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
+    private fun closeInputs(stream: MediaStream) {
+        stream.getTracks().toList().forEach { track -> track.stop()}
     }
 }
