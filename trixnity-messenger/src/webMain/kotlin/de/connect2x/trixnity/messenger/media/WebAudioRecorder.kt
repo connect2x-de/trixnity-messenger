@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import io.ktor.http.*
 import js.buffer.ArrayBuffer
@@ -40,14 +41,27 @@ class WebAudioRecorder(
 
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun start(): AudioRecorderImpl.State.Recording? {
-        val microphone =
-            navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
-        val recorder = startRecorder(microphone)
-        return AudioRecorderImpl.State.Recording(
-            start = clock.now(),
-            loudness = loudness(microphone),
-            complete = complete(recorder, microphone),
-        )
+        return try {
+            val microphone =
+                // timeout if user neither denies nor allows microphone permission
+                withTimeoutOrNull(15.seconds) {
+                    navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
+                }
+            if (microphone != null) {
+                val recorder = startRecorder(microphone)
+                AudioRecorderImpl.State.Recording(
+                    start = clock.now(),
+                    loudness = loudness(microphone),
+                    complete = complete(recorder, microphone),
+                )
+            } else {
+                log.info { "Microphone permission request timed out." }
+                null
+            }
+        } catch (e: Exception) {
+            log.error(e) { "Could not start recording" }
+            null
+        }
     }
 
     private fun startRecorder(microphone: MediaStream): MediaRecorder {
