@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import io.ktor.http.*
+import js.array.asList
 import js.buffer.ArrayBuffer
 import js.numbers.JsNumbers.toKotlinFloat
 import js.objects.unsafeJso
@@ -138,18 +139,32 @@ class WebAudioRecorder(
     }
 
     private fun loudness(microphone: MediaStream): () -> Float? {
-        val microphoneNode = audioContext.createMediaStreamSource(microphone)
-        val analyser = AnalyserNode(audioContext)
-        microphoneNode.connect(analyser)
+        val analyser = analyserOf(microphone)
         return {
-            val pcmSamplesJs = Float32Array<ArrayBuffer>(analyser.frequencyBinCount)
-            analyser.getFloatTimeDomainData(pcmSamplesJs)
-
-            val pcmSamples = mutableListOf<Float>()
-            pcmSamplesJs.forEach { pcmSamples.add(it.toKotlinFloat()) }
-            val loudnessSamples = pcmSamples.map { it.absoluteValue }
-            loudnessSamples.average().toFloat()
+            loudnessSamples(analyser).average().toFloat()
         }
+    }
+
+    private fun loudnessSamples(analyser: AnalyserNode): List<Float> {
+        return pcmSamples(analyser).map { it.absoluteValue }
+    }
+
+    /**
+     * PCM can be negative because it models a full audio wave
+     */
+    private fun pcmSamples(analyser: AnalyserNode): List<Float> {
+        val samples = Float32Array<ArrayBuffer>(analyser.frequencyBinCount)
+        analyser.getFloatTimeDomainData(samples)
+        return samples
+            .asList()
+            .map { it.toKotlinFloat() }
+    }
+
+    private fun analyserOf(mediaStream: MediaStream): AnalyserNode {
+        val input = audioContext.createMediaStreamSource(mediaStream)
+        val analyser = AnalyserNode(audioContext)
+        input.connect(analyser)
+        return analyser
     }
 
     override suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed {
