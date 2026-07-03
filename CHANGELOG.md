@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Minor UI fix for editing messages
 - SDK: callback for notifications when `showDetails` is disabled
 
 ### Security

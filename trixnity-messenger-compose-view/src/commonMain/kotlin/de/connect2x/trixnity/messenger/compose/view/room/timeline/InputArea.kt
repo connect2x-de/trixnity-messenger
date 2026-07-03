@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,6 +43,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -53,6 +56,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.TextFieldValue
@@ -135,7 +139,11 @@ class InputAreaViewImpl : InputAreaView {
 
             @Composable
             fun StartAudioRecordingButton() {
-                AnimatedVisibility(canRecordAudio && isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
+                AnimatedVisibility(
+                    canRecordAudio && isSendEnabled.not() && isEdit.not(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
+                ) {
                     Tooltip(i18n.inputAreaStartAudioRecording()) {
                         ThemedIconButton(
                             style = MaterialTheme.components.primaryIconButton,
@@ -293,6 +301,8 @@ fun RowScope.InputAreaTextField(
 
     val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
+    val endPadding = style.contentPadding.calculateEndPadding(LocalLayoutDirection.current)
+
     Box(Modifier.fillMaxWidth().weight(1.0f, fill = true)) {
         if (showUploadError.value != null) {
             ThemedModalDialog({ showUploadError.value = null }) {
@@ -377,10 +387,18 @@ fun RowScope.InputAreaTextField(
                 },
                 colors = style.colors,
                 contentPadding = style.contentPadding,
-                suffix = {
-                    if (canRecordAudio) AttachmentButton(inputAreaViewModel, insideTextInputField = true) else Unit
-                },
             )
+        }
+        if (canRecordAudio) {
+            Box(
+                modifier =
+                    Modifier.heightIn(min = 24.dp)
+                        .wrapContentHeight()
+                        .padding(start = 2.dp, end = endPadding)
+                        .align(CenterEnd)
+            ) {
+                AttachmentButton(inputAreaViewModel, insideTextInputField = true)
+            }
         }
     }
 }
@@ -402,11 +420,13 @@ fun EditButton(inputAreaViewModel: InputAreaViewModel) {
 fun SendButton(inputAreaViewModel: InputAreaViewModel) {
     val i18n = DI.get<I18nView>()
     val enabled = inputAreaViewModel.isSendEnabled.collectAsState().value
-    AnimatedVisibility(enabled, enter = fadeIn(), exit = fadeOut()) {
+    val isEdit = inputAreaViewModel.isReplace.collectAsState().value
+    AnimatedVisibility(isEdit || enabled, enter = fadeIn(), exit = fadeOut()) {
         Tooltip({ Text(i18n.inputAreaSend()) }) {
             ThemedIconButton(
                 style = MaterialTheme.components.primaryIconButton,
                 onClick = { inputAreaViewModel.sendMessage() },
+                enabled = !isEdit || enabled,
             ) {
                 Icon(Icons.AutoMirrored.Filled.Send, i18n.inputAreaSend())
             }
@@ -434,6 +454,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel, insideTextInputFiel
     val i18n = DI.get<I18nView>()
     val showAttachmentDialog = inputAreaViewModel.showAttachmentSelectDialog.collectAsState().value
     val isSendEnabled = inputAreaViewModel.isSendEnabled.collectAsState().value
+    val isReplace = inputAreaViewModel.isReplace.collectAsState().value
     if (showAttachmentDialog)
         LoadFileDialog(
             filterFilePickerOptionsByAvailability(
@@ -446,7 +467,7 @@ fun AttachmentButton(inputAreaViewModel: InputAreaViewModel, insideTextInputFiel
             inputAreaViewModel::closeAttachmentDialog,
         )
     val style = MaterialTheme.components.commonIconButton
-    AnimatedVisibility(isSendEnabled.not(), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(isSendEnabled.not() && isReplace.not(), enter = fadeIn(), exit = fadeOut()) {
         Tooltip({ Text(i18n.inputAreaSelectAttachment()) }) {
             ThemedIconButton(
                 modifier = Modifier.expandable(showAttachmentDialog),
