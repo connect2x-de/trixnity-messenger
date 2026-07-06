@@ -60,11 +60,14 @@ class InitialSyncWorker(context: Context, params: WorkerParameters) : CoroutineW
         withMatrixMessengerFromService(applicationContext) { matrixMessenger ->
             val i18n = matrixMessenger.di.get<I18n>()
             val config = matrixMessenger.di.get<MatrixMessengerConfiguration>()
+
             // Load app icon for persistent notification if present
             val icon =
-                config.appIcon?.let(applicationContext.assets::open)?.use { stream ->
-                    NotificationIcon.fromBitmap(BitmapFactory.decodeStream(stream))
-                }
+                config.icon?.createNotificationIcon()
+                    ?: config.appIcon?.let(applicationContext.assets::open)?.use { stream ->
+                        NotificationIcon.fromBitmap(BitmapFactory.decodeStream(stream))
+                    }
+
             matrixMessenger.di
                 .get<NotificationHandlers>()
                 .global
@@ -126,6 +129,11 @@ fun initialSyncModule() = module {
             }
         }
     }
+}
+
+private suspend fun AppIcon.createNotificationIcon(): NotificationIcon {
+    val bytes = readBytes()
+    return NotificationIcon.fromBitmap(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
 }
 
 internal fun NotificationHandle.toForegroundInfo(): ForegroundInfo {

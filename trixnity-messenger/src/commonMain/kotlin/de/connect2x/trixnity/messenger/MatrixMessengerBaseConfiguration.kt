@@ -8,7 +8,14 @@ interface MatrixMessengerBaseConfiguration {
     var appName: String
     var appId: String
     var appVersion: String?
-    var appIcon: String?
+    @Deprecated("use MatrixMultiMessengerConfiguration.icon instead") var appIcon: String?
+
+    /**
+     * The icon of the application.
+     *
+     * @see [ByteArrayAppIcon]
+     */
+    var icon: AppIcon?
 
     /**
      * The app uri used for callbacks and deep linking. Must be of form `app:` or `https://app.example.com`.
@@ -42,6 +49,7 @@ interface MatrixMessengerBaseConfiguration {
         other.appName = appName
         other.appId = appId
         other.appIcon = appIcon
+        other.icon = icon
         other.appUri = appUri
         other.oAuth2ClientUrl = oAuth2ClientUrl
         other.sendLogsEmailAddress = sendLogsEmailAddress

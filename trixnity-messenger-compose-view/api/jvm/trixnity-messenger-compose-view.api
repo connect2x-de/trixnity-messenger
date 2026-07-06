@@ -26,6 +26,11 @@ public final class de/connect2x/messenger/compose/view/room/timeline/element/mes
 	public fun waitFor (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/message/RoomMessageTimelineElementViewModel$FileBased$Audio;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/AppIconKt {
+	public static final fun appIconPainterModule ()Lorg/koin/core/module/Module;
+	public static final fun getAppIconPainter (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/ClientKt {
 	public static final field ROOM_LIST_WEIGHT F
 	public static final field ROOM_WEIGHT F
@@ -93,6 +98,47 @@ public final class de/connect2x/trixnity/messenger/compose/view/DragAndDrop : ja
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/DragAndDrop$Companion {
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/DrawableResourceAppIcon : de/connect2x/trixnity/messenger/AppIcon {
+	public static final field $stable I
+	public fun <init> (Lorg/jetbrains/compose/resources/DrawableResource;)V
+	public final fun component1 ()Lorg/jetbrains/compose/resources/DrawableResource;
+	public final fun copy (Lorg/jetbrains/compose/resources/DrawableResource;)Lde/connect2x/trixnity/messenger/compose/view/DrawableResourceAppIcon;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/compose/view/DrawableResourceAppIcon;Lorg/jetbrains/compose/resources/DrawableResource;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/compose/view/DrawableResourceAppIcon;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getResource ()Lorg/jetbrains/compose/resources/DrawableResource;
+	public fun hashCode ()I
+	public fun readBytes (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/GetAppIconPainter {
+	public abstract fun getPainter (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getPainterOrNull (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public abstract fun getType ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/GetAppIconPainter$DefaultImpls {
+	public static fun getPainterOrNull (Lde/connect2x/trixnity/messenger/compose/view/GetAppIconPainter;Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/GetByteArrayResourceAppIconPainter : de/connect2x/trixnity/messenger/compose/view/GetAppIconPainter {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/GetByteArrayResourceAppIconPainter;
+	public synthetic fun getPainter (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getPainter (Lde/connect2x/trixnity/messenger/ByteArrayAppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getPainterOrNull (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getType ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/GetDrawableResourceAppIconPainter : de/connect2x/trixnity/messenger/compose/view/GetAppIconPainter {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/GetDrawableResourceAppIconPainter;
+	public synthetic fun getPainter (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getPainter (Lde/connect2x/trixnity/messenger/compose/view/DrawableResourceAppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getPainterOrNull (Lde/connect2x/trixnity/messenger/AppIcon;Landroidx/compose/runtime/Composer;I)Landroidx/compose/ui/graphics/painter/Painter;
+	public fun getType ()Lkotlin/reflect/KClass;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/MessengerAppKt {

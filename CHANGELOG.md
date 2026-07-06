@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
+
 ### Changed
 
 - DEPENDENCY: update Kotlin to 2.3.21
@@ -18,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DEPENDENCY: update SysNotify to 2.7.0
 
 ### Deprecated
+
+- `MatrixMessengerBaseConfiguration.appIcon` in favor of `MatrixMessengerBaseConfiguration.icon`
 
 ### Removed
 

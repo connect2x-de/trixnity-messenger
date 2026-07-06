@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.multi
 
 import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.messenger.AppIcon
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.TrixnityMessengerDsl
@@ -12,7 +13,8 @@ data class MatrixMultiMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
-    override var appIcon: String? = null,
+    @Deprecated("use MatrixMultiMessengerConfiguration.icon instead") override var appIcon: String? = null,
+    override var icon: AppIcon? = null,
     override var appUri: String = "$appId:",
     override var oAuth2ClientUrl: String = "https://messenger.trixnity.connect2x.de",
     override var sendLogsEmailAddress: String? = null,
