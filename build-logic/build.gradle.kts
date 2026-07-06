@@ -9,11 +9,6 @@ plugins {
 
 applyKtfmt()
 
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
-
 gradlePlugin {
     plugins {
         register("uitestInfra") {

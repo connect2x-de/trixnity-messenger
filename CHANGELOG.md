@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DEPENDENCY: update Trixnity to 5.7.0-SNAPSHOT.CI-20260623.160101
 - DEPENDENCY: update SQLitenity to 0.0.7-SNAPSHOT.CI-20260623.161442
 - DEPENDENCY: update SysNotify to 2.7.0
+- INTERNAL: update c2x-conventions to 20260706.081921
 
 ### Deprecated
 
