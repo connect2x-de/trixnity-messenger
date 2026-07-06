@@ -5689,7 +5689,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/s
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel, de/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel {
-	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/PotentialMembersNewSearchViewModel;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addMembers ()V
 	public fun addUserToList (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)V
 	public fun addUserToList (Lde/connect2x/trixnity/messenger/util/Search$SearchUserElement;)V
@@ -10341,17 +10341,20 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/roomli
 	public abstract fun removeUserFromList (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)V
 }
 
-public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/ViewModelContext, de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel {
+public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupNewSearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupNewSearchViewModel, de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel {
 	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;)V
 	public fun addUserToList (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)V
 	public fun addUserToList (Lde/connect2x/trixnity/messenger/util/Search$SearchUserElement;)V
 	public fun back ()V
 	public fun changeEncryptionStatus (Z)V
 	public fun changeOptionalHistoryVisibility (Lde/connect2x/trixnity/core/model/events/m/room/HistoryVisibilityEventContent$HistoryVisibility;)V
-	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
-	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
+	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public synthetic fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
+	public fun childContextWithOwnLifecycle (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun createNewGroup ()V
 	public fun errorDismiss ()V
@@ -10370,11 +10373,13 @@ public final class de/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewG
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
+	public fun getMatrixClient ()Lde/connect2x/trixnity/client/MatrixClient;
 	public fun getOptionalGroupTopic ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public fun getOptionalRoomHistoryVisibility ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public fun getOptionalRoomName ()Lde/connect2x/trixnity/messenger/viewmodel/TextFieldViewModel;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
+	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun getUserSearchViewModel ()Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;
 	public fun historyVisibilityCanBeChangedTo (Lde/connect2x/trixnity/core/model/events/m/room/HistoryVisibilityEventContent$HistoryVisibility;)Z
 	public fun isCreating ()Lkotlinx/coroutines/flow/StateFlow;

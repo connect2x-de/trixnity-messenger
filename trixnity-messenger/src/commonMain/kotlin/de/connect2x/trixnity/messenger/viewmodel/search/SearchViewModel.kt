@@ -339,21 +339,20 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
             return zip(*lists, transform = { a -> a.mapNotNull { it } })
         }
 
-        fun <T> List<T>.splitIntoRandomChunks() =
-            sequence {
-                    var index = 0
-                    while (index < size) {
-                        val chunkSize = random.nextInt(3, 10)
-                        val endIndex = minOf(index + chunkSize, size)
+        fun <T> List<T>.splitIntoRandomChunks() = sequence {
+            var index = 0
+            while (index < size) {
+                val chunkSize = random.nextInt(3, 10)
+                val endIndex = minOf(index + chunkSize, size)
 
-                        if (chunkSize > 0) {
-                            yield(subList(index, endIndex))
-                        }
-
-                        index = endIndex
-                    }
+                if (chunkSize > 0) {
+                    yield(subList(index, endIndex))
                 }
-                .toList()
+
+                index = endIndex
+            }
+        }
+            .toList()
 
         val searchResults = results.map { searchResult ->
             if (searchResult.enabled) {
@@ -369,6 +368,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
             } else emptyList()
         }
 
+        @Suppress("SpreadOperator")
         return zip(*searchResults.toTypedArray()).flatten().flatten()
     }
 }

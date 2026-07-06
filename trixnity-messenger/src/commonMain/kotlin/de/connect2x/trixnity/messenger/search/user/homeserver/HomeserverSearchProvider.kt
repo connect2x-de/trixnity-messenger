@@ -87,16 +87,17 @@ open class HomeserverSearchProvider(
         )
     }
 
-    private suspend fun CoroutineScope.searchUser(
+    private suspend fun searchUser(
         matrixClient: MatrixClient,
         searchTerm: String,
         coroutineScope: CoroutineScope,
         maxMediaSizeInMemory: Long,
-    ): SearchProviderResult<HomeserverUserSearchResult> =
+    ): SearchProviderResult<HomeserverUserSearchResult> = coroutineScope {
         // TODO this does not search for matrix IDs, see https://github.com/matrix-org/synapse/issues/7588
         matrixClient.api.user
             .searchUsers(searchTerm, i18n.currentLang.code, 100) // FIXME set limit?
-            .fold( // TODO get correct language
+            .fold(
+                // TODO get correct language
                 onSuccess = { response ->
                     log.trace { "got users $searchTerm" }
                     SearchProviderResult.Success(
@@ -130,4 +131,5 @@ open class HomeserverSearchProvider(
                     SearchProviderResult.Failure("Error fetching users.")
                 },
             )
+    }
 }
