@@ -15,7 +15,8 @@ data class MatrixMessengerConfiguration(
     override var appName: String = "Trixnity Messenger",
     override var appId: String = "de.connect2x.trixnity.messenger",
     override var appVersion: String? = null,
-    override var appIcon: String? = null,
+    @Deprecated("use MatrixMultiMessengerConfiguration.icon instead") override var appIcon: String? = null,
+    override var icon: AppIcon? = null,
     override var appUri: String = "$appId:",
     var appUriSsoRedirect: String = "sso",
     var appUriOAuth2Redirect: String = "oAuth2",
@@ -42,13 +43,18 @@ data class MatrixMessengerConfiguration(
         ),
 
     /** The number of elements that should be loaded before and after the viewport. */
-    var timelineBuffer: Int = 20,
+    var timelineBuffer: Int = 25,
     /** The number of elements that should be fetched from the server when not locally available. */
-    var timelineFetchSize: Int = 100,
+    var timelineFetchSize: Int = 50,
     /** The number of elements that should be loaded initially. */
     var timelineInitialSize: Int = 20,
     /** The maximum number of elements that should be kept in the timeline list (plus 2 * [timelineBuffer]) */
-    var timelineMaxSize: Int = 160,
+    var timelineMaxSize: Int = 150,
+    /**
+     * This can be disabled to manually control the
+     * [de.connect2x.trixnity.messenger.viewmodel.room.timeline.TimelineViewModel].
+     */
+    var timelineViewStateSupported: Boolean = true,
 
     /** The maximum amount of time until message are seperated by extra space */
     var showBigGapBeforeThreshold: Duration = 1.hours,

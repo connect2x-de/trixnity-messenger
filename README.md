@@ -160,6 +160,55 @@ Configurations are available when creating an instance of `MatrixMultiMessenger`
 This configuration allows configuring the `MatrixMultiMessenger` itself.
 Use `messengerConfiguration` to configure the `MatrixMessengerConfiguration`.
 
+#### AppIcon
+
+Trixnity Messenger supports platform-specific app icons. `AppIcon` is a simple interface that provides the raw bytes of the icon:
+
+```kotlin
+interface AppIcon {
+    suspend fun readBytes(): ByteArray
+}
+```
+
+To render an `AppIcon` in the UI (Compose), a `Painter` is required. This is handled by the `GetAppIconPainter` interface, which should be registered in the DI container:
+
+```kotlin
+interface GetAppIconPainter<I : AppIcon> {
+    val type: KClass<I>
+
+    @Composable fun getPainter(icon: I): Painter
+}
+```
+
+This allows defining icons in a platform-independent way (e.g., in ViewModels) while leaving the actual rendering logic (e.g., from resources or bitmaps) to the UI layer.
+
+##### Example: Custom AppIcon
+
+1. Define your platform-independent `AppIcon` implementation:
+   ```kotlin
+   data class MyCustomAppIcon(val resourceName: String) : AppIcon {
+       override suspend fun readBytes(): ByteArray = ... // Load bytes if needed
+   }
+   ```
+
+2. Implement the corresponding `GetAppIconPainter` in your UI module:
+   ```kotlin
+   object GetMyCustomAppIconPainter : GetAppIconPainter<MyCustomAppIcon> {
+       override val type = MyCustomAppIcon::class
+
+       @Composable override fun getPainter(icon: MyCustomAppIcon): Painter {
+           return painterResource(...) // Load actual painter
+       }
+   }
+   ```
+
+3. Register it in your Koin module using the `appIconPainter` extension:
+   ```kotlin
+   val myModule = module {
+       appIconPainter { GetMyCustomAppIconPainter }
+   }
+   ```
+
 ### MatrixMessengerConfiguration
 
 This configuration allows configuring the `MatrixMessenger` itself.

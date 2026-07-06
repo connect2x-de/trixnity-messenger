@@ -392,6 +392,7 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         timelineViewModule(messengerConfiguration),
         userSearchViewModule(),
         settingsViewModule(),
+        appIconPainterModule(),
         verificationViewModule(),
         uiaViewModule(),
         getPlatformNotificationIconModule(),

@@ -6,4 +6,5 @@
 !runConfigurations/**
 !runConfigurations.xml
 !ktfmt.xml
+!detekt.xml
 !externalDependencies.xml

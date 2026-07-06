@@ -46,7 +46,13 @@ fun TextBasedRoomMessageTimelineElementView(
     isPreview: Boolean,
     index: Int,
 ) {
-    MessageBubble(holder, needsMaxWidth = false, isPreview = isPreview, index = index) { showActionMenu ->
+    MessageBubble(
+        holder,
+        needsMaxWidth = false,
+        isPreview = isPreview,
+        isMentioned = element.isMentioned,
+        index = index,
+    ) { showActionMenu ->
         TextRoomMessageTimelineElementView(holder, element, showActionMenu)
     }
 }

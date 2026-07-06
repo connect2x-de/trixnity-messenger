@@ -48,7 +48,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
         element: RedactedTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(holder, needsMaxWidth = false, isPreview = false, index = index) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = false, isMentioned = false, index = index) { _ ->
             RedactedMessageElement(element)
         }
     }
@@ -59,7 +59,7 @@ class RedactedTimelineElementViewImpl : RedactedTimelineElementView {
         element: RedactedTimelineElementViewModel,
         index: Int,
     ) {
-        MessageBubble(holder, needsMaxWidth = false, isPreview = true, index = index) { _ ->
+        MessageBubble(holder, needsMaxWidth = false, isPreview = true, isMentioned = false, index = index) { _ ->
             RedactedMessageElement(element)
         }
     }

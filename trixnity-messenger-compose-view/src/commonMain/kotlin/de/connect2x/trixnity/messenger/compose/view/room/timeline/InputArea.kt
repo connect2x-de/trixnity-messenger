@@ -180,7 +180,7 @@ class InputAreaViewImpl : InputAreaView {
                     }
                 }
 
-                UserSelector(inputAreaViewModel, focusRequester)
+                MentionSelector(inputAreaViewModel, focusRequester)
                 Row(
                     Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -214,10 +214,15 @@ class InputAreaViewImpl : InputAreaView {
 }
 
 @Composable
-fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRequester) {
-    val loading = inputAreaViewModel.listOfMentionsLoading.collectAsState().value
-    val listOfMentions = inputAreaViewModel.listOfMentions.collectAsState().value
+fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRequester) {
+    val loading = inputAreaViewModel.suggestedMentionsLoading.collectAsState().value
+    val listOfMentions = inputAreaViewModel.suggestedMentions.collectAsState().value
     val scrollState = rememberScrollState()
+    val i18n = DI.get<I18nView>()
+    val onMentionClicked: (String) -> Unit = { id ->
+        inputAreaViewModel.selectMention(id)
+        focusRequester.requestFocus()
+    }
 
     if (listOfMentions?.isNotEmpty() == true || loading) {
         Box(Modifier.padding(vertical = 10.dp, horizontal = 20.dp).heightIn(max = 150.dp)) {
@@ -225,28 +230,48 @@ fun UserSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: FocusRe
                 LoadingSpinner(modifier = Modifier.heightIn(min = 150.dp))
             } else {
                 Column(Modifier.verticalScroll(scrollState).fillMaxWidth()) {
-                    listOfMentions.orEmpty().map { userInfoElement ->
-                        val avatar = userInfoElement.image?.collectAsState(null)?.value
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier =
-                                Modifier.clickable {
-                                        inputAreaViewModel.selectMention(userInfoElement.userId)
-                                        focusRequester.requestFocus()
-                                    }
-                                    .buttonPointerModifier()
-                                    .padding(vertical = 5.dp),
-                        ) {
-                            ThemedUserAvatar(userInfoElement.initials, avatar)
-                            Spacer(Modifier.size(5.dp))
-                            Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
-                            Text(" (${userInfoElement.userId.full})", style = MaterialTheme.typography.bodyMedium)
+                    listOfMentions.orEmpty().forEach { mentionElement ->
+                        when (mentionElement) {
+                            is InputAreaViewModel.SuggestedMention.User ->
+                                UserSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
+
+                            is InputAreaViewModel.SuggestedMention.AllRoomMembers ->
+                                RoomSelectorRow(mentionElement, { onMentionClicked(mentionElement.id) }, i18n)
                         }
                     }
                 }
                 VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
             }
         }
+    }
+}
+
+@Composable
+fun UserSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+    val userInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.User).user
+    val avatar = userInfoElement.image?.collectAsState(null)?.value
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
+    ) {
+        ThemedUserAvatar(userInfoElement.initials, avatar)
+        Spacer(Modifier.size(5.dp))
+        Text(userInfoElement.name, style = MaterialTheme.typography.bodyLarge)
+        Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+fun RoomSelectorRow(suggestedMention: InputAreaViewModel.SuggestedMention, onClick: () -> Unit, i18n: I18nView) {
+    val roomInfoElement = (suggestedMention as InputAreaViewModel.SuggestedMention.AllRoomMembers).room
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable(onClick = onClick).buttonPointerModifier().padding(vertical = 5.dp),
+    ) {
+        ThemedUserAvatar(roomInfoElement.roomImageInitials, roomInfoElement.roomImage)
+        Spacer(Modifier.size(5.dp))
+        Text(i18n.allRoomMembers(), style = MaterialTheme.typography.bodyLarge)
+        Text(" (${suggestedMention.id})", style = MaterialTheme.typography.bodyMedium)
     }
 }
 

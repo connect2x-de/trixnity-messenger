@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.app
 
+import de.connect2x.trixnity.messenger.compose.view.DrawableResourceAppIcon
 import de.connect2x.trixnity.messenger.compose.view.composeViewModule
 import de.connect2x.trixnity.messenger.compose.view.typography.nunito.addNunitoThemeTypography
 import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
@@ -8,6 +9,8 @@ import de.connect2x.trixnity.messenger.i18n.Languages
 import de.connect2x.trixnity.messenger.i18n.platformGetSystemLangModule
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.platformMatrixMessengerSettingsHolderModule
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_app.generated.resources.Res
+import de.connect2x.trixnity.messenger.trixnity_messenger_compose_app.generated.resources.status_icon
 import de.connect2x.trixnity.messenger.util.RootPath
 import kotlinx.datetime.TimeZone
 import org.koin.dsl.module
@@ -16,7 +19,7 @@ fun MatrixMultiMessengerConfiguration.configure() {
     appName = BuildConfig.appName
     appId = BuildConfig.appId
     appVersion = BuildConfig.version
-    appIcon = "status_icon.png"
+    icon = DrawableResourceAppIcon(Res.drawable.status_icon)
     privacyInfo = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     imprint = "https://gitlab.com/connect2x/trixnity-messenger/trixnity-messenger"
     licenses = BuildConfig.licenses

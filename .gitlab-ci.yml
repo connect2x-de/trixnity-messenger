@@ -49,8 +49,8 @@ compile:ios:
     - *if-merge-request
   script:
     - ./gradlew
-      compileKotlin{IosArm64,IosSimulatorArm64,IosX64}
-      compileTestKotlin{IosSimulatorArm64,IosX64}
+      compileKotlin{IosArm64,IosSimulatorArm64}
+      compileTestKotlinIosSimulatorArm64
       --stacktrace
 
 compile:jvm-android-js:
@@ -64,7 +64,7 @@ compile:jvm-android-js:
       compileKotlin{Jvm,Js,WasmJs}
       compileTestKotlin{Jvm,Js,WasmJs}
       compile{Debug,Release}KotlinAndroid
-      compileDebugAndroidTestKotlinAndroid
+      compile{Debug,Release}UnitTestKotlinAndroid
       --stacktrace
 
 check:formatting:
@@ -90,7 +90,7 @@ check:abi:
   rules:
     - *if-merge-request
   script:
-    - ./gradlew dumpLegacyAbi --stacktrace
+    - ./gradlew internalDumpKotlinAbi --stacktrace
     - ./gradlew checkLegacyAbi --stacktrace
 
 check:vulnerable-dependencies:
@@ -136,6 +136,18 @@ check:changelog:
         exit 1
       fi
 
+check:detekt:
+  stage: check
+  interruptible: true
+  tags: [ "connect2x-linux-shell-small" ]
+  needs:
+    - job: "compile:jvm-android-js"
+      artifacts: false
+  rules:
+    - *if-merge-request
+  script:
+    - ./gradlew detektAll --stacktrace
+
 test:sdk:unit:ios:
   stage: test
   interruptible: true
@@ -143,16 +155,12 @@ test:sdk:unit:ios:
   needs:
     - job: "compile:ios"
       artifacts: false
-  tags: [ "connect2x-mac" ]
+  tags: [ "saas-macos-medium-m1" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
   script:
-    - ./gradlew
-      :trixnity-messenger:{iosSimulatorArm64,iosX64}Test
-      :trixnity-messenger:testCoverage
-      --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
+    - ./gradlew :trixnity-messenger:iosSimulatorArm64Test --stacktrace
 
 test:sdk:unit:jvm:
   stage: test
@@ -186,9 +194,7 @@ test:sdk:unit:js:
   script:
     - ./gradlew
       :trixnity-messenger:{js,wasmJs}Test
-      :trixnity-messenger:testCoverage
       --stacktrace
-  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
 
 test:sdk:integration:jvm:
   stage: test
@@ -260,30 +266,6 @@ test:ui:integration:js:
       :trixnity-messenger-compose-view:{jsBrowser,wasmJsBrowser}Test
       --stacktrace
 
-# TODO cannot be run on virtualized macOS
-#test:smoketest-ios:
-#  stage: test
-#  interruptible: true
-#  timeout: 1h
-#  needs: [ "compile:ios" ]
-#  tags: [ "connect2x-mac" ]
-#  artifacts:
-#    when: always
-#    paths: [ "screenshots", "**/build/reports" ]
-#    reports:
-#      coverage_report:
-#        coverage_format: jacoco
-#        path: trixnity-messenger/build/reports/kover/reportJvm.xml
-#  rules:
-#    - *if-merge-request
-#  script:
-#    - ./scripts/start_simulator.sh
-#    - ./gradlew
-#      :trixnity-messenger-compose-view:iosX64Test
-#      :trixnity-messenger-compose-view:testCoverage
-#      --stacktrace
-#  coverage: '/Total test coverage.+ ([0-9]{1,3}%)/'
-
 staging:android:
   stage: staging
   interruptible: true
@@ -330,7 +312,7 @@ publish:mac-dev:
     - *if-dev-release
   script:
     - ./gradlew
-      publish{IosArm64,IosSimulatorArm64,IosX64}PublicationToGitlabRepository
+      publish{IosArm64,IosSimulatorArm64}PublicationToGitlabRepository
       --stacktrace
 
 publish:linux-dev:

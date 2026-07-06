@@ -22,13 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,12 +70,12 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.ReportMe
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.util.throttleFirst
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.room.timeline.TimelineKt")
 
@@ -107,8 +107,6 @@ class TimelineViewImpl : TimelineView {
     @Composable
     override fun ColumnScope.create(timelineViewModel: TimelineViewModel) {
         val i18n = DI.get<I18nView>()
-        var scrollTo by remember { mutableStateOf<String?>(null) }
-        LaunchedEffect(Unit) { timelineViewModel.scrollTo.collect { scrollTo = it } }
 
         val timelineViewElements = rememberTimelineViewElements(timelineViewModel)
         val isTimelineLoading = timelineViewElements.value.isEmpty()
@@ -118,41 +116,44 @@ class TimelineViewImpl : TimelineView {
         val focusManager = LocalFocusManager.current
 
         val showTypingIndicator =
-            remember { timelineViewModel.canLoadAfter.throttleFirst(300.milliseconds) }.collectAsState(false).value ==
-                false
+            remember { timelineViewModel.canLoadAfter.throttleFirst(300.milliseconds).map { it == false } }
+                .collectAsState(false)
 
+        val finishedScrollTo = remember { mutableStateOf<String?>(null) }
         val initialFirstVisibleItemIndex =
-            getInitialFirstVisibleItemIndex(timelineViewModel, timelineViewElements.value, showTypingIndicator)
+            getInitialFirstVisibleItemIndex(
+                    timelineViewModel,
+                    timelineViewElements,
+                    showTypingIndicator,
+                    finishedScrollTo,
+                )
+                .value
         Box(modifier = Modifier.weight(1.0f, fill = true)) {
             if (isTimelineLoading || initialFirstVisibleItemIndex == null) {
                 Box(Modifier.fillMaxSize()) { LoadingSpinner(Modifier.align(Alignment.Center)) }
             } else {
                 val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialFirstVisibleItemIndex)
-
-                LaunchedEffect(scrollTo, timelineViewElements.value, showTypingIndicator) {
-                    val scrollToKey = scrollTo
-                    if (scrollToKey != null) {
-                        val index =
-                            withTimeoutOrNull(5.seconds) {
-                                timelineViewElements.value.indexOfFirst { it.key == scrollToKey }
-                            } ?: -1
+                val scrollTo = remember { timelineViewModel.scrollTo.drop(1) }.collectAsState(null)
+                LaunchedEffect(scrollTo.value, timelineViewElements.value) {
+                    if (scrollTo.value != null) {
+                        val currentShowTypingIndicator = showTypingIndicator.value
+                        val index = timelineViewElements.value.indexOfFirst { it.key == scrollTo.value }
                         if (index >= 0) {
-                            log.debug { "scrolling to $scrollToKey (index=$index)" }
+                            log.debug { "scrolling to $scrollTo (index=$index)" }
                             listState.animateScrollToItem(
                                 when {
-                                    index == 0 && showTypingIndicator -> 0
-                                    showTypingIndicator -> index + 1
+                                    index == 0 && currentShowTypingIndicator -> 0
+                                    currentShowTypingIndicator -> index + 1
                                     else -> index
                                 }
                             )
-                            timelineViewModel.onProcessedScrollTo(scrollToKey)
-                            scrollTo = null
                         }
+                        finishedScrollTo.value = scrollTo.value
                     }
                 }
 
                 val visibleItems = rememberVisibleItems(listState)
-                updateVisibleItems(timelineViewModel, visibleItems, timelineViewElements)
+                updateVisibleItems(timelineViewModel, visibleItems, timelineViewElements, finishedScrollTo)
 
                 BoxWithConstraints(
                     // On touchscreen devices, tapping the timeline will close the keyboard.
@@ -214,7 +215,7 @@ class TimelineViewImpl : TimelineView {
                                 verticalArrangement = Arrangement.Bottom,
                             ) {
                                 log.trace { "rendering timeline elements" }
-                                if (showTypingIndicator) {
+                                if (showTypingIndicator.value) {
                                     item(key = "typing", contentType = "typing") { TypingIndicator(timelineViewModel) }
                                 }
                                 itemsIndexed(
@@ -383,40 +384,33 @@ fun rememberVisibleItems(listState: LazyListState): State<Pair<String, String>?>
     }
 }
 
-private sealed interface InitialScrollTo {
-    data object Loading : InitialScrollTo
-
-    data class ScrollTo(val key: String?) : InitialScrollTo
-}
-
 @Composable
 fun getInitialFirstVisibleItemIndex(
     timelineViewModel: TimelineViewModel,
-    timelineViewElements: List<TimelineViewElement>,
-    showTypingIndicator: Boolean,
-): Int? {
-    var initialFirstVisibleItemIndex by remember { mutableStateOf<Int?>(null) }
+    timelineViewElements: State<List<TimelineViewElement>>,
+    showTypingIndicator: State<Boolean>,
+    finishedScrollTo: MutableState<String?>,
+): State<Int?> {
+    val initialFirstVisibleItemIndex = remember { mutableStateOf<Int?>(null) }
 
-    val (initialScrollTo, setInitialScrollTo) = remember { mutableStateOf<InitialScrollTo>(InitialScrollTo.Loading) }
-    LaunchedEffect(Unit) { setInitialScrollTo(InitialScrollTo.ScrollTo(timelineViewModel.scrollTo.first())) }
-    LaunchedEffect(initialScrollTo, timelineViewElements, showTypingIndicator) {
-        if (initialFirstVisibleItemIndex != null || initialScrollTo !is InitialScrollTo.ScrollTo) return@LaunchedEffect
-        initialFirstVisibleItemIndex =
-            timelineViewElements
-                .indexOfLast { element ->
-                    element is TimelineViewElement.Element && element.viewModel.key == initialScrollTo.key
-                }
+    LaunchedEffect(Unit) {
+        val scrollTo = timelineViewModel.scrollTo.first()
+        val currentTimelineViewElements = snapshotFlow { timelineViewElements.value }.first { it.isNotEmpty() }
+        val currentShowTypingIndicator = showTypingIndicator.value
+        initialFirstVisibleItemIndex.value =
+            currentTimelineViewElements
+                .indexOfLast { element -> element is TimelineViewElement.Element && element.viewModel.key == scrollTo }
                 .coerceAtLeast(0)
                 .let { index ->
                     when {
-                        index == 0 && showTypingIndicator -> 0
-                        index < 0 && showTypingIndicator -> 1
-                        index < 0 && !showTypingIndicator -> 0
-                        showTypingIndicator -> index + 1
+                        index == 0 && currentShowTypingIndicator -> 0
+                        currentShowTypingIndicator -> index + 1
                         else -> index
                     }
                 }
+        finishedScrollTo.value = scrollTo
     }
+
     return initialFirstVisibleItemIndex
 }
 
@@ -425,26 +419,29 @@ fun updateVisibleItems(
     timelineViewModel: TimelineViewModel,
     visibleItems: State<Pair<String, String>?>,
     timelineViewElements: State<List<TimelineViewElement>>,
+    finishedScrollTo: MutableState<String?>,
 ) {
     val lifecycleState = LocalLifecycleOwner.current.lifecycle.currentStateAsState()
     val viewState = remember {
         derivedStateOf {
             val timelineViewElementsWithoutDate =
                 timelineViewElements.value.filterIsInstance<TimelineViewElement.Element>()
-            visibleItems.value?.let {
+            visibleItems.value?.let { visibleItemsValue ->
                 TimelineViewModel.ViewState(
-                    firstVisibleElement = it.first,
-                    lastVisibleElement = it.second,
+                    firstVisibleElement = visibleItemsValue.first,
+                    lastVisibleElement = visibleItemsValue.second,
                     firstLoadedElement = timelineViewElementsWithoutDate.last().viewModel.key,
                     lastLoadedElement = timelineViewElementsWithoutDate.first().viewModel.key,
                     timelineIsFocused = lifecycleState.value.isAtLeast(Lifecycle.State.RESUMED),
+                    finishedScrollTo = finishedScrollTo.value,
                 )
             }
         }
     }
     LaunchedEffect(viewState.value) {
         log.trace { "viewState: ${viewState.value}" }
-        timelineViewModel.viewState.value = viewState.value
+        viewState.value?.let { timelineViewModel.setViewState(it) }
+        finishedScrollTo.value = null
     }
 }
 

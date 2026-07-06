@@ -29,6 +29,7 @@ interface MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
+        isMentioned: Boolean,
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     )
@@ -40,10 +41,12 @@ fun MessageBubble(
     needsMaxWidth: Boolean,
     additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit = {},
     isPreview: Boolean,
+    isMentioned: Boolean,
     index: Int,
     content: @Composable (showActionMenu: () -> Unit) -> Unit,
 ) {
-    DI.get<MessageBubbleView>().create(holder, needsMaxWidth, additionalContextActions, isPreview, index, content)
+    DI.get<MessageBubbleView>()
+        .create(holder, needsMaxWidth, additionalContextActions, isPreview, isMentioned, index, content)
 }
 
 class MessageBubbleViewImpl : MessageBubbleView {
@@ -53,6 +56,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
         needsMaxWidth: Boolean,
         additionalContextActions: @Composable ColumnScope.(onClose: () -> Unit) -> Unit,
         isPreview: Boolean,
+        isMentioned: Boolean,
         index: Int,
         content: @Composable (showActionMenu: () -> Unit) -> Unit,
     ) {
@@ -83,6 +87,7 @@ class MessageBubbleViewImpl : MessageBubbleView {
                         reactionsOpen = reactionsOpen,
                         additionalContextActions = additionalContextActions,
                         isPreview = isPreview,
+                        isMentioned = isMentioned,
                         interactionSource = interactionSource,
                         index = index,
                         onRedact = { timelineElementHolder?.redact() },

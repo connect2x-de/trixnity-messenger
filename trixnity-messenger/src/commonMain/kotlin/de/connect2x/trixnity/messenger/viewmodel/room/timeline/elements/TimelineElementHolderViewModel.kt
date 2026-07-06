@@ -378,7 +378,7 @@ class TimelineElementHolderViewModelImpl(
                 timelineEventFlow
                     .transformLatest {
                         if (it.content == null) {
-                            delay(100.milliseconds)
+                            delay(500.milliseconds)
                         }
                         emit(it)
                     }
@@ -741,6 +741,7 @@ class PreviewTimelineElementViewModel1 : TimelineElementHolderViewModel {
                 override val mentionsInBody: Map<IntRange, MutableStateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }
@@ -813,6 +814,7 @@ class PreviewTimelineElementViewModel2 : TimelineElementHolderViewModel {
                 override val mentionsInBody: Map<IntRange, StateFlow<TimelineElementMention>> = mapOf()
                 override val mentionsInFormattedBody: StateFlow<Map<String, TimelineElementMention?>> =
                     MutableStateFlow(mapOf())
+                override val isMentioned: Boolean = false
 
                 override fun openMention(mention: TimelineElementMention) {}
             }

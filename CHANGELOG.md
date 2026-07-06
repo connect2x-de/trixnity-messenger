@@ -9,28 +9,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- UI, SDK: Add options to join room when clicking on room mention of a not joined room
-- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
+- Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
+- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI- SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
+
+### Changed
+
+- DEPENDENCY: update Kotlin to 2.3.21
+- DEPENDENCY: update Lognity to 2.2.0
+- DEPENDENCY: update Trixnity to 5.7.0-SNAPSHOT.CI-20260623.160101
+- DEPENDENCY: update SQLitenity to 0.0.7-SNAPSHOT.CI-20260623.161442
+- DEPENDENCY: update SysNotify to 2.7.0
+- INTERNAL: update c2x-conventions to 20260706.081921
+
+### Deprecated
+
+- `MatrixMessengerBaseConfiguration.appIcon` in favor of `MatrixMessengerBaseConfiguration.icon`
+
+### Removed
+
+- SDK: Drop support for X64 Apple targets
+
+### Fixed
+
+- SDK: callback for notifications when `showDetails` is disabled
+
+### Security
+
+## 4.8.1
+
+### Changed
+
+- UI: Improved UIA fallback UX
+- SDK: Prefer known UIA flows
+- SDK: Programmatically prevent disabling multi-profile when more than one profile is created
+
+## 4.8.0
+
+### Added
+
+- SDK,UI: room mention support
+- SDK,UI: (**breaking change**) added `isMentioned` parameter to `TimelineElementViewModel.Message` and `MessageBubble`
+  interfaces and classes for highlighting messages when the user is mentioned in text
+- CI, INTERNAL: Add and enforce detekt lints
+
+### Deprecated
+
+- SDK: `listOfMentions` and `listOfMentionsLoading` in `InputAreaViewModel` -> use `suggestedMentions` and
+  `suggestedMentionsLoading` instead, which contain the room mention element
+
+### Fixed
+
+- SDK: former or banned members are shown in the mention list
+- SDK: empty mention list flickering after entering @
+
+## 4.7.0
+
+### Added
+
+- UI,SDK: Add options to join room when clicking on room mention of a not joined room
 
 ### Changed
 
 - UI,INTERNAL: Provide WithProfileSelection via koin
 - SDK,INTERNAL: Separate Uia logic from UiaRouter
 - SDK,INTERNAL: Separate SendAttachmentRouter from TimelineViewModel
-
-### Deprecated
-
-### Removed
+- SDK,UI (**breaking change**): Sync `ViewState` between SDK and UI. This ensures predictable scroll and loading
+  behavior of the timeline. If the UI does not support setting `ViewState`,
+  `MatrixMessengerConfiguration.timelineViewStateSupported` must be set to false and
+  `TimelineViewModel.finishedScrollTo` additionally be used.
+- UI: made several compose functions for notifications public instead of internal
 
 ### Fixed
 
 - UI: Don't show verification twice on account setup
 - SDK,INTERNAL: Handle decompose lifecycle for AccountSingleViewModels
-- UI: Opening 'privacy & security' no longer crashes the app
+- UI: Opening blocked users in privacy settings no longer crashes the app
 - UI: Notification counts are no longer cut off after the first digit
 - SDK: Room invitations are no longer forgotten if an error occurred during the rejection
-
-### Security
+- CI: Fix CI jobs running wrong gradle tasks
 
 ## v4.6.1
 

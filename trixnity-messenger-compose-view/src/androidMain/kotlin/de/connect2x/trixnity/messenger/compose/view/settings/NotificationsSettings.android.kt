@@ -18,9 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.settings.NotificationSettingsSi
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-internal actual fun ColumnScope.PlatformDeviceNotificationSettings(
-    viewModel: NotificationSettingsSingleAccountViewModel
-) {
+actual fun ColumnScope.PlatformDeviceNotificationSettings(viewModel: NotificationSettingsSingleAccountViewModel) {
     val i18n = DI.get<I18nView>()
     val context = LocalContext.current
     val enabled = viewModel.enabledForThisDevice.collectAsState().value

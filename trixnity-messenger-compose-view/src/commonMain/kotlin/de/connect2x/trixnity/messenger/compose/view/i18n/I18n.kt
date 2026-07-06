@@ -775,13 +775,18 @@ open class I18nView(
     }
 
     open fun uiaFallbackTitle() = translate {
-        EN - "3rd Party Authorization"
-        DE - "Drittanbieter Autorisierung"
+        EN - "Authorization via Browser"
+        DE - "Autorisierung mittels Browser"
+    }
+
+    open fun uiaFallbackDescription() = translate {
+        EN - "You will now need to confirm the desired action in your browser."
+        DE - "Im folgenden müssen Sie im Browser die gewünschte Aktion bestätigen."
     }
 
     open fun uiaFallbackButtonRedirect() = translate {
-        EN - "Redirect"
-        DE - "Umleiten"
+        EN - "Open"
+        DE - "Öffnen"
     }
 
     open fun uiaRegistrationTokenTitle() = translate {
@@ -1400,6 +1405,11 @@ open class I18nView(
     open fun messageBubbleSent() = translate {
         EN - "sent"
         DE - "gesendet"
+    }
+
+    open fun userWasMentioned() = translate {
+        EN - "You were mentioned."
+        DE - "Sie wurden erwähnt."
     }
 
     open fun messageContentWaitForKeys() = translate {
@@ -3198,6 +3208,11 @@ open class I18nView(
     open fun knockLabel() = translate {
         EN - "Why do you wish to join? (Optional)"
         DE - "Warum möchtest du beitreten? (Optional)"
+    }
+
+    open fun allRoomMembers() = translate {
+        EN - "All members in room"
+        DE - "Alle Mitglieder im Raum"
     }
 
     open fun mentionEventInRoom(roomName: String) = translate {
