@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
+
 ### Changed
 
 ### Deprecated
+
+- `MatrixMessengerBaseConfiguration.appIcon` in favor of `MatrixMessengerBaseConfiguration.icon`
 
 ### Removed
 

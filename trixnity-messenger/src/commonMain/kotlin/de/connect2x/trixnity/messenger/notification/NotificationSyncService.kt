@@ -18,6 +18,7 @@ import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.MemberEventContent
 import de.connect2x.trixnity.core.model.events.m.room.Membership
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.AppIcon
 import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.MatrixMessengerAccountNotificationSettings
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
@@ -75,6 +76,8 @@ class NotificationSyncService(
             val notificationsEnabled: Boolean,
             val notificationSettings: MatrixMessengerAccountNotificationSettings,
         )
+
+        val icon = config.icon?.createNotificationIcon() ?: statusIcon
         matrixClients
             .flatMapLatest { matrixClients ->
                 combine(
@@ -103,6 +106,7 @@ class NotificationSyncService(
                             notificationHandler = notificationHandlers[syncNotificationsForAccount.account],
                             matrixClient = syncNotificationsForAccount.matrixClient,
                             notificationsEnabled = syncNotificationsForAccount.notificationsEnabled,
+                            icon = icon,
                         )
                     }
                 }
@@ -114,6 +118,7 @@ class NotificationSyncService(
         notificationSettings: MatrixMessengerAccountNotificationSettings,
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
+        icon: NotificationIcon?,
     ) {
         if (!notificationsEnabled) {
             log.debug { "clear all notifications for ${matrixClient.userId}, because notifications disabled" }
@@ -146,6 +151,7 @@ class NotificationSyncService(
                     playSound = notificationSettings.playSound,
                     notificationHandler = notificationHandler,
                     matrixClient = matrixClient,
+                    icon = icon,
                 )
             }
         }
@@ -156,6 +162,7 @@ class NotificationSyncService(
         playSound: Boolean,
         notificationHandler: NotificationHandler,
         matrixClient: MatrixClient,
+        icon: NotificationIcon?,
     ) {
         val tag = if (showDetails) id else noDetailsTag
 
@@ -165,7 +172,7 @@ class NotificationSyncService(
         ): Notification? {
             return if (showDetails) {
                 val data = extractData() ?: return null
-                buildDetailedNotification(data, playSound)
+                buildDetailedNotification(data, playSound, icon)
             } else {
                 buildAnonymousNotification(playSound)
             }
@@ -193,12 +200,16 @@ class NotificationSyncService(
         }
     }
 
-    private fun buildDetailedNotification(data: NotificationData, playSound: Boolean): Notification {
+    private fun buildDetailedNotification(
+        data: NotificationData,
+        playSound: Boolean,
+        icon: NotificationIcon?,
+    ): Notification {
         return Notification(
             title = data.title,
             description = data.description,
             icon = data.icon,
-            statusIcon = statusIcon,
+            statusIcon = icon,
             callbackData = data.callbackData,
             playSound = playSound,
         )
@@ -291,6 +302,11 @@ class NotificationSyncService(
                 ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }
         val callbackData = getCallback(roomId)
         return NotificationData(title = title, description = description, icon = icon, callbackData = callbackData)
+    }
+
+    private suspend fun AppIcon.createNotificationIcon(): NotificationIcon? {
+        val bytes = readBytes()
+        return getNotificationIcon?.fromBytes(bytes, avatarSize(), avatarSize())
     }
 
     private fun getCallback(roomId: RoomId? = null): String {
