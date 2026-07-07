@@ -495,7 +495,16 @@ class NotificationSyncServiceTest {
         every { userService.getById(any(), any()) } returns flowOf(roomUser)
         val avatar = InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow())
         everySuspend {
-            mediaService.getThumbnail(any(), avatarSize().toLong(), avatarSize().toLong(), any(), any(), any())
+            mediaService.getThumbnail(
+                any(),
+                avatarSize().toLong(),
+                avatarSize().toLong(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
         } returns Result.success(avatar)
         every { notificationService.getAllUpdates() } returns flowOf()
         every { notificationService.getCount() } returns flowOf(1)

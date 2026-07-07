@@ -57,7 +57,7 @@ suspend fun Room.toRoomInfoElement(
         roomImage =
             this.avatarUrl?.let {
                 matrixClient.media
-                    .getThumbnail(it, size, size)
+                    .getThumbnail(it, size, size, maxMediaSizeInMemory)
                     .getOrNull()
                     ?.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory)
             },

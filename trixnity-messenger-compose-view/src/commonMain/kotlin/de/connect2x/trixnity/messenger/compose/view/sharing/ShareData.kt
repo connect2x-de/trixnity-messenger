@@ -79,7 +79,7 @@ class ShareDataViewImpl : ShareDataView {
         val selectedRoomId by viewModel.selectedRoomId.collectAsState()
         val sending by viewModel.sending.collectAsState()
         val enabled = selectedRoomId != null && !sending
-        val maxMediaSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+        val maxMediaSize = DI.get<MatrixMessengerConfiguration>().loadLimits.media
 
         LaunchedEffect(initialSyncFinished) { state.scrollToItem(0) }
         LaunchedEffect(allRooms) {

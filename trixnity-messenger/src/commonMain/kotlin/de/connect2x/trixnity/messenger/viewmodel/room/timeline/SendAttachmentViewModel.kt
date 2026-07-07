@@ -23,7 +23,7 @@ import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.byteArrayFlowFromSource
 import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
-import io.ktor.http.ContentType.Image
+import io.ktor.http.ContentType.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -86,13 +86,14 @@ class SendAttachmentViewModelImpl(
     private val _fileContent = MutableStateFlow<ByteArrayFlow?>(null)
     private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxMediaSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxImageSize = get<MatrixMessengerConfiguration>().loadLimits.image
     private val fileSize = MutableStateFlow(file.fileSize)
     private val previewFileSize = file.fileSize
     override val previewFileContent: StateFlow<ByteArray?> =
         fileContent
-            .filter { previewFileSize == null || previewFileSize <= maxMediaSizeInMemory }
-            .map { it?.toByteArray(maxMediaSizeInMemory) }
+            .filter { previewFileSize == null || previewFileSize <= maxMediaSize }
+            .map { it?.toByteArray(maxMediaSize) }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback { cancel() }
@@ -107,7 +108,7 @@ class SendAttachmentViewModelImpl(
 
             _fileContent.value =
                 if (isImage == true) {
-                    val imageByteArray = file.content.toByteArray(maxMediaSizeInMemory)
+                    val imageByteArray = file.content.toByteArray(maxImageSize)
                     if (imageByteArray != null) {
                         this@SendAttachmentViewModelImpl.get<ProcessImageUpload>()
                             .invoke(
@@ -137,9 +138,9 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) =
-                                if (size == null || size <= maxMediaSizeInMemory)
+                                if (size == null || size <= maxImageSize)
                                     this@SendAttachmentViewModelImpl.get<GetImageDimensions>()
-                                        .invoke(byteArrayFlow, maxMediaSizeInMemory, file.mimeType)
+                                        .invoke(byteArrayFlow, maxImageSize, file.mimeType)
                                 else Pair(null, null)
                             image(
                                 body = file.fileName,

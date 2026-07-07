@@ -77,6 +77,7 @@ interface ExportRoom {
         decryptionTimeout: Duration = 5.seconds,
         buffer: Int = 50,
         timeZone: TimeZone,
+        maxMediaSize: Long,
     ): ExportRoomResult
 }
 
@@ -97,6 +98,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
         decryptionTimeout: Duration,
         buffer: Int,
         timeZone: TimeZone,
+        maxMediaSize: Long,
     ): ExportRoomResult {
         log.info { "export of $roomId started" }
         progress.value = ExportRoomProgress()
@@ -180,10 +182,14 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
                             val media =
                                 when {
                                         mediaUrl != null && includeMedia ->
-                                            matrixClient.media.getMedia(mediaUrl, saveToCache = false)
+                                            matrixClient.media.getMedia(mediaUrl, maxMediaSize, saveToCache = false)
 
                                         mediaFile != null && includeMedia ->
-                                            matrixClient.media.getEncryptedMedia(mediaFile, saveToCache = false)
+                                            matrixClient.media.getEncryptedMedia(
+                                                mediaFile,
+                                                maxMediaSize,
+                                                saveToCache = false,
+                                            )
 
                                         else -> null
                                     }

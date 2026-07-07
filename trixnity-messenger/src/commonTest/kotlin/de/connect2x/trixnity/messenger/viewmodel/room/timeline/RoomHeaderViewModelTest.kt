@@ -168,7 +168,7 @@ class RoomHeaderViewModelTest {
         room.value = Room(roomId, avatarUrl = "mxc://localhost/123456")
         every { roomServiceMock.getById(roomId) } returns room
         everySuspend {
-            mediaServiceMock.getThumbnail("mxc://localhost/123456", any(), any(), any(), any(), any())
+            mediaServiceMock.getThumbnail("mxc://localhost/123456", any(), any(), any(), any(), any(), any(), any())
         } returns Result.success(InMemoryPlatformMedia("image".encodeToByteArray().toByteArrayFlow()))
         every { roomPresenceMock.invoke(any(), roomId) } returns flowOf(Presence.ONLINE)
 

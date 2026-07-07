@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.util.Search.SearchUserElement
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.avatarSize
 import de.connect2x.trixnity.messenger.viewmodel.util.isValid
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -79,7 +79,7 @@ class SearchImpl(
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.SearchImpl")
     }
 
-    private val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
+    private val maxThumbnailSize = matrixMessengerConfiguration.loadLimits.thumbnail
 
     override suspend fun searchUsers(
         coroutineScope: CoroutineScope,
@@ -97,9 +97,9 @@ class SearchImpl(
             val image =
                 profile?.avatarUrl?.let { url ->
                     matrixClient.media
-                        .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                        .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
                         .fold(
-                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                             onFailure = { null },
                         )
                 }
@@ -182,11 +182,8 @@ class SearchImpl(
     ): ByteArray? {
         return searchUser.avatarUrl?.let { url ->
             matrixClient.media
-                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
-                .fold(
-                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                    onFailure = { null },
-                )
+                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
+                .fold(onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) }, onFailure = { null })
         }
     }
 

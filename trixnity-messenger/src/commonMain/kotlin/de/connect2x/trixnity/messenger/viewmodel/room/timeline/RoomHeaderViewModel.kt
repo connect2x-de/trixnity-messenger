@@ -152,7 +152,7 @@ open class RoomHeaderViewModelImpl(
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -175,9 +175,9 @@ open class RoomHeaderViewModelImpl(
                 val roomImage =
                     room?.avatarUrl?.let { avatarUrl ->
                         matrixClient.media
-                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                            .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
                             .fold(
-                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                                 onFailure = { exc ->
                                     if (exc !is CancellationException) {
                                         log.error(exc) { "Cannot load avatar image for room '${roomNameElement}'." }

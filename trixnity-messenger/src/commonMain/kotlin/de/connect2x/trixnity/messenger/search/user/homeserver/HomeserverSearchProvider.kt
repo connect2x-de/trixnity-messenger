@@ -47,13 +47,13 @@ open class HomeserverSearchProvider(
         coroutineScope: CoroutineScope,
     ): SearchProviderResult<HomeserverUserSearchResult> {
         return matrixClients.value[searchContext.activeAccount]?.let { matrixClient ->
-            val maxMediaSizeInMemory = matrixMessengerConfiguration.maxMediaSizeInMemory
+            val maxThumbnailSize = matrixMessengerConfiguration.loadLimits.thumbnail
             coroutineScope {
                 val userId = UserId(searchTerm)
                 if (userId.isValid()) {
-                    searchMxId(matrixClient, userId, coroutineScope, maxMediaSizeInMemory)
+                    searchMxId(matrixClient, userId, coroutineScope, maxThumbnailSize)
                 } else {
-                    searchUser(matrixClient, searchTerm, coroutineScope, maxMediaSizeInMemory)
+                    searchUser(matrixClient, searchTerm, coroutineScope, maxThumbnailSize)
                 }
             }
         }

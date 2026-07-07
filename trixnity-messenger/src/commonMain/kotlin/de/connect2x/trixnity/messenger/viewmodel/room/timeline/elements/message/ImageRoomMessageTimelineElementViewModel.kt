@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
@@ -59,9 +59,10 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxSize = get<MatrixMessengerConfiguration>().loadLimits.maximum
 
-    private val _thumbnailLoading = MutableStateFlow(true)
+    private val _thumbnailLoading = MutableStateFlow(false)
 
     override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
 
@@ -69,19 +70,18 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     override val thumbnailHeight = content.info?.thumbnailInfo?.height
 
     override val thumbnail: StateFlow<ByteArray?> =
-        flow {
-                emit(
-                    // TODO needs some sort of retry!
-                    thumbnails
-                        .loadThumbnail(
-                            coroutineScope,
-                            matrixClient,
-                            content,
-                            thumbnailProgressFlow,
-                            maxMediaSizeInMemory,
-                        )
-                        .also { _thumbnailLoading.value = false }
-                )
+        combine(loadMediaResultBytes, downloadMediaResult) {
+                _thumbnailLoading.value = true
+                thumbnails
+                    .loadThumbnail(
+                        coroutineScope,
+                        matrixClient,
+                        content,
+                        thumbnailProgressFlow,
+                        maxSize,
+                        maxThumbnailSize,
+                    )
+                    .also { _thumbnailLoading.value = false }
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 

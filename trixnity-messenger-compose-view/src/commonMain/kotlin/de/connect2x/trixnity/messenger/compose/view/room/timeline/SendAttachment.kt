@@ -78,7 +78,7 @@ class SendAttachmentViewImpl : SendAttachmentView {
                         .align(Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    val maxPreviewSize = messengerConfiguration.maxMediaSizeInMemory
+                    val maxPreviewSize = messengerConfiguration.loadLimits.media
                     when {
                         isImage ?: false -> {
                             if (fileContent != null) {

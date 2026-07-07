@@ -52,7 +52,6 @@ import de.connect2x.trixnity.messenger.viewmodel.util.formatDate
 import de.connect2x.trixnity.messenger.viewmodel.util.formatTime
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedMapLatest
 import de.connect2x.trixnity.utils.concurrentMutableMap
-import kotlin.collections.filterIsInstance
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -417,8 +416,7 @@ open class InputAreaViewModelImpl(
 
     private suspend fun loadDraftIntoTextArea() {
         val draftMessage = draftMessage.first()
-        val content = draftMessage?.content
-        when (content) {
+        when (val content = draftMessage?.content) {
             is TextBased.Text -> {
                 when (val relatesTo = content.relatesTo) {
                     is RelatesTo.Reply -> {
@@ -713,7 +711,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
 
     private suspend fun listOfUsers(search: String): List<InputAreaViewModel.SuggestedMention.User> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load
@@ -730,9 +728,7 @@ open class InputAreaViewModelImpl(
                         userId.domain.contains(search, ignoreCase = true))
             }
             .take(10)
-            .map { roomUser ->
-                roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxMediaSizeInMemory)
-            }
+            .map { roomUser -> roomUser.toUserInfoElement(coroutineScope, matrixClient, initials, maxThumbnailSize) }
             .map { userInfoElement -> InputAreaViewModel.SuggestedMention.User(userInfoElement) }
             .toList()
     }
@@ -743,7 +739,7 @@ open class InputAreaViewModelImpl(
             .filterNotNull()
             .scopedMapLatest { room ->
                 val roomName = room.name?.explicitName.orEmpty()
-                room.toRoomInfoElement(this, initials, matrixClient, roomName, maxMediaSizeInMemory)
+                room.toRoomInfoElement(this, initials, matrixClient, roomName, maxThumbnailSize)
             }
             .stateIn(coroutineScope, SharingStarted.Lazily, null)
 

@@ -248,7 +248,7 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
                         }
                     }
                 }
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+                VerticalScrollbar(Modifier.align(CenterEnd), scrollState)
             }
         }
     }
@@ -299,7 +299,7 @@ fun RowScope.InputAreaTextField(
     val hasFocus = interactionSource.collectIsFocusedAsState().value
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().loadLimits.media
 
     val endPadding = style.contentPadding.calculateEndPadding(LocalLayoutDirection.current)
 

@@ -7,7 +7,6 @@ import com.arkivanov.essenty.lifecycle.destroy
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
-import de.connect2x.trixnity.client.room.getState
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.text
 import de.connect2x.trixnity.client.store.Room
@@ -50,7 +49,7 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
-import io.ktor.utils.io.core.toByteArray
+import io.ktor.utils.io.core.*
 import kotlin.reflect.KClass
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -259,7 +258,7 @@ class InputAreaViewModelTest {
                 "0"
             }
 
-        everySuspend { mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any()) } returns
+        everySuspend { mediaServiceMock.getThumbnail(any(), any(), any(), any(), any(), any(), any(), any()) } returns
             Result.success(InMemoryPlatformMedia("image".toByteArray().toByteArrayFlow()))
 
         everySuspend { roomsApiClientMock.setTyping(any(), any(), any(), any()) } returns Result.success(Unit)

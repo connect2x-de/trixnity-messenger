@@ -151,6 +151,7 @@ class ExportRoomViewModelImpl(
                                 matrixClient = matrixClient,
                                 progress = progress,
                                 timeZone = timeZone,
+                                maxMediaSize = messengerConfiguration.loadLimits.media,
                             )
                         when (result) {
                             ExportRoomResult.RoomNotFound -> {

@@ -2,6 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.messenger.util.kb
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -72,7 +73,30 @@ data class MatrixMessengerConfiguration(
     var showBigGapBeforeThreshold: Duration = 1.hours,
 
     /** The maximum size of files that can be loaded into memory in *Bytes* */
-    var maxMediaSizeInMemory: Long = 50.mb(),
+    @Deprecated("Use loadLimits instead") var maxMediaSizeInMemory: Long = 50.mb(),
+
+    /** Downloading and loading into memory limits defined for different media types */
+    val loadLimits: MediaLoadLimits =
+        MediaLoadLimits(
+            maximum = 50.mb(),
+            media = 50.mb(),
+            image = 5.mb(),
+            thumbnail = 500.kb(),
+            video = 50.mb(),
+            audio = 5.mb(),
+            pdf = 20.mb(),
+        ),
+
+    /**
+     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new
+     * accounts.
+     *
+     * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel] and others
+     * can be used to manually guide the user through the setup process.
+     *
+     * Default is `true`.
+     */
+    var useAccountSetupWizard: Boolean = true,
     override var sendLogsEmailAddress: String? = null,
 
     /** The privacy info of the application in a Markdown format */
@@ -139,4 +163,15 @@ data class MatrixMessengerConfiguration(
         LIBOLM,
         VODOZEMAC,
     }
+
+    /** A list of load and download limits for various media types */
+    data class MediaLoadLimits(
+        val maximum: Long,
+        var media: Long,
+        var image: Long,
+        var thumbnail: Long,
+        var video: Long,
+        var audio: Long,
+        var pdf: Long,
+    )
 }

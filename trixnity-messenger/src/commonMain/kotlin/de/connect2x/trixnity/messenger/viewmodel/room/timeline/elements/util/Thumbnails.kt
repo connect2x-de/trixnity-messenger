@@ -4,6 +4,7 @@ import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.clientserverapi.model.media.ThumbnailResizingMethod
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
@@ -18,6 +19,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
 interface Thumbnails { // TODO this as part of the DI just adds complexity
+    @Deprecated(
+        "Use loadThumbnail with separate download size limit instead",
+        ReplaceWith(
+            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+        ),
+    )
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
@@ -28,6 +35,23 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         loadThumbnail(
             coroutineScope,
             matrixClient,
+            content,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxMediaSizeInMemory,
+        )
+
+    suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        content: RoomMessageEventContent.FileBased.File,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
             content.info?.thumbnailFile,
             content.info?.thumbnailUrl,
             content.info?.thumbnailInfo,
@@ -37,8 +61,15 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
             maxMediaSizeInMemory,
+            maxDownloadSize,
         )
 
+    @Deprecated(
+        "Use loadThumbnail with separate download size limit instead",
+        ReplaceWith(
+            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+        ),
+    )
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
@@ -49,23 +80,19 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         loadThumbnail(
             coroutineScope,
             matrixClient,
-            content.info?.thumbnailFile,
-            content.info?.thumbnailUrl,
-            content.info?.thumbnailInfo,
-            content.file,
-            content.url,
-            content.info,
-            content.info?.size ?: Long.MAX_VALUE,
+            content,
             thumbnailProgressFlow,
+            maxMediaSizeInMemory,
             maxMediaSizeInMemory,
         )
 
     suspend fun loadThumbnail(
         coroutineScope: CoroutineScope,
         matrixClient: MatrixClient,
-        content: RoomMessageEventContent.FileBased.Video,
+        content: RoomMessageEventContent.FileBased.Image,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
         maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
     ): ByteArray? =
         loadThumbnail(
             coroutineScope,
@@ -78,6 +105,99 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
             content.info,
             content.info?.size ?: Long.MAX_VALUE,
             thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxDownloadSize,
+        )
+
+    @Deprecated(
+        "Use loadThumbnail with separate download size limit instead",
+        ReplaceWith(
+            "loadThumbnail(coroutineScope, matrixClient, content, thumbnailProgressFlow, maxMediaSizeInMemory, maxDownloadSize)"
+        ),
+    )
+    suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        content: RoomMessageEventContent.FileBased.Video,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
+            content,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxMediaSizeInMemory,
+        )
+
+    suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        content: RoomMessageEventContent.FileBased.Video,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
+            content.info?.thumbnailFile,
+            content.info?.thumbnailUrl,
+            content.info?.thumbnailInfo,
+            content.file,
+            content.url,
+            content.info,
+            content.info?.size ?: Long.MAX_VALUE,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
+            maxDownloadSize,
+        )
+
+    @Deprecated(
+        "Use loadThumbnail with separate download size limit instead",
+        ReplaceWith(
+            "loadThumbnail(" +
+                "coroutineScope, " +
+                "matrixClient, " +
+                "thumbnailFile, " +
+                "thumbnailUrl, " +
+                "thumbnailInfo, " +
+                "file, " +
+                "fileUrl, " +
+                "fileInfo, " +
+                "sizeInBytes, " +
+                "thumbnailProgressFlow, " +
+                "maxMediaSizeInMemory, " +
+                "maxDownloadSize" +
+                ")"
+        ),
+    )
+    suspend fun loadThumbnail(
+        coroutineScope: CoroutineScope,
+        matrixClient: MatrixClient,
+        thumbnailFile: EncryptedFile?,
+        thumbnailUrl: String?,
+        thumbnailInfo: ThumbnailInfo?,
+        file: EncryptedFile?,
+        fileUrl: String?,
+        fileInfo: FileBasedInfo?,
+        sizeInBytes: Long,
+        thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
+        maxMediaSizeInMemory: Long,
+    ): ByteArray? =
+        loadThumbnail(
+            coroutineScope,
+            matrixClient,
+            thumbnailFile,
+            thumbnailUrl,
+            thumbnailInfo,
+            file,
+            fileUrl,
+            fileInfo,
+            sizeInBytes,
+            thumbnailProgressFlow,
+            maxMediaSizeInMemory,
             maxMediaSizeInMemory,
         )
 
@@ -93,6 +213,7 @@ interface Thumbnails { // TODO this as part of the DI just adds complexity
         sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
         maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
     ): ByteArray?
 
     fun mapProgressToProgressElement(
@@ -118,6 +239,7 @@ class ThumbnailsImpl : Thumbnails {
         sizeInBytes: Long,
         thumbnailProgressFlow: MutableStateFlow<FileTransferProgress?>,
         maxMediaSizeInMemory: Long,
+        maxDownloadSize: Long,
     ): ByteArray? {
         log.debug {
             "thumbnail encrypted: ${thumbnailFile?.url}, unencrypted: $thumbnailUrl, encrypted file: ${file?.url}, unencrypted file: $fileUrl"
@@ -125,7 +247,7 @@ class ThumbnailsImpl : Thumbnails {
         val thumbnail =
             (thumbnailFile?.let { // encrypted thumbnail
                 matrixClient.media
-                    .getEncryptedMedia(thumbnailFile, thumbnailProgressFlow)
+                    .getEncryptedMedia(thumbnailFile, maxDownloadSize, thumbnailProgressFlow)
                     .fold(
                         onSuccess = {
                             it.toByteArray(
@@ -138,7 +260,7 @@ class ThumbnailsImpl : Thumbnails {
                             thumbnailProgressFlow.emit(null)
                             if (file != null && sizeInBytes <= maxMediaSizeInMemory) {
                                 matrixClient.media
-                                    .getEncryptedMedia(file, thumbnailProgressFlow)
+                                    .getEncryptedMedia(file, maxDownloadSize, thumbnailProgressFlow)
                                     .fold(
                                         onSuccess = {
                                             it.toByteArray(
@@ -148,7 +270,13 @@ class ThumbnailsImpl : Thumbnails {
                                             )
                                         },
                                         onFailure = {
-                                            log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
+                                            if (it is DownloadLimitExceededException) {
+                                                log.info {
+                                                    "File skipped because it exceeds auto download limit '$thumbnailFile'"
+                                                }
+                                            } else {
+                                                log.error(it) { "Cannot load thumbnail for image '$thumbnailFile'." }
+                                            }
                                             thumbnailProgressFlow.emit(null)
                                             null
                                         },
@@ -165,6 +293,7 @@ class ThumbnailsImpl : Thumbnails {
                             thumbnailUrl,
                             400L,
                             300L,
+                            maxDownloadSize,
                             ThumbnailResizingMethod.SCALE,
                             progress = thumbnailProgressFlow,
                         )
@@ -180,7 +309,7 @@ class ThumbnailsImpl : Thumbnails {
                                 thumbnailProgressFlow.emit(null)
                                 if (fileUrl != null && sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, thumbnailProgressFlow)
+                                        .getMedia(fileUrl, maxDownloadSize, thumbnailProgressFlow)
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(
@@ -190,7 +319,13 @@ class ThumbnailsImpl : Thumbnails {
                                                 )
                                             },
                                             onFailure = {
-                                                log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
+                                                if (it is DownloadLimitExceededException) {
+                                                    log.info {
+                                                        "File skipped because it exceeds auto download limit '$thumbnailUrl'"
+                                                    }
+                                                } else {
+                                                    log.error(it) { "Cannot load thumbnail for image '$thumbnailUrl'." }
+                                                }
                                                 thumbnailProgressFlow.emit(null)
                                                 null
                                             },
@@ -204,7 +339,7 @@ class ThumbnailsImpl : Thumbnails {
                 ?: file?.let { // encrypted file
                     if (sizeInBytes <= maxMediaSizeInMemory) {
                         matrixClient.media
-                            .getEncryptedMedia(file, thumbnailProgressFlow)
+                            .getEncryptedMedia(file, maxDownloadSize, thumbnailProgressFlow)
                             .fold(
                                 onSuccess = {
                                     it.toByteArray(
@@ -214,7 +349,11 @@ class ThumbnailsImpl : Thumbnails {
                                     )
                                 },
                                 onFailure = {
-                                    log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
+                                    if (it is DownloadLimitExceededException) {
+                                        log.info { "File skipped because it exceeds auto download limit '${file.url}'" }
+                                    } else {
+                                        log.error(it) { "Cannot load thumbnail for image '${file.url}'." }
+                                    }
                                     thumbnailProgressFlow.emit(null)
                                     null
                                 },
@@ -234,6 +373,7 @@ class ThumbnailsImpl : Thumbnails {
                             fileUrl,
                             400L,
                             300L,
+                            maxDownloadSize,
                             ThumbnailResizingMethod.SCALE,
                             progress = thumbnailProgressFlow,
                         )
@@ -244,7 +384,7 @@ class ThumbnailsImpl : Thumbnails {
                                 // otherwise, see if the image itself is ok
                                 if (sizeInBytes <= maxMediaSizeInMemory) {
                                     matrixClient.media
-                                        .getMedia(fileUrl, thumbnailProgressFlow)
+                                        .getMedia(fileUrl, maxDownloadSize, thumbnailProgressFlow)
                                         .fold(
                                             onSuccess = {
                                                 it.toByteArray(
@@ -254,7 +394,13 @@ class ThumbnailsImpl : Thumbnails {
                                                 )
                                             },
                                             onFailure = {
-                                                log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
+                                                if (it is DownloadLimitExceededException) {
+                                                    log.info {
+                                                        "File skipped because it exceeds auto download limit '$fileUrl'"
+                                                    }
+                                                } else {
+                                                    log.error(it) { "Cannot load thumbnail for image '$fileUrl'." }
+                                                }
                                                 thumbnailProgressFlow.emit(null)
                                                 null
                                             },

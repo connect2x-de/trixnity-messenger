@@ -41,6 +41,7 @@ class ExportRoomTest {
     val roomId = RoomId("!room1")
     val roomIdWithErrors = RoomId("!roomWithErrors")
     val alice = UserId("alice", "localhost")
+    val maxMediaSize = Long.MAX_VALUE
     val fakeProperties = object : ExportRoomSinkProperties {}
     val timeline = (0..9).map { timelineEvent(it.toLong()) } + (10..19).map { timelineEventWithMedia(it.toLong()) }
     val timelineWithErrors =
@@ -71,11 +72,11 @@ class ExportRoomTest {
         }
     val mediaServiceMock =
         mock<MediaService> {
-            everySuspend { getMedia(any(), any(), any()) } returns
+            everySuspend { getMedia(any(), any(), any(), any()) } returns
                 Result.success(InMemoryPlatformMedia(flowOf(ByteArray(0))))
-            everySuspend { getMedia("mxc://localhost/20", any(), any()) } returns
+            everySuspend { getMedia("mxc://localhost/20", any(), any(), any()) } returns
                 Result.failure(IllegalStateException("download error"))
-            everySuspend { getMedia("mxc://localhost/21", any(), any()) } returns
+            everySuspend { getMedia("mxc://localhost/21", any(), any(), any()) } returns
                 Result.failure(IllegalStateException("download error"))
         }
 
@@ -111,8 +112,14 @@ class ExportRoomTest {
     fun `export timeline`() = runTest {
         val cut = cut()
 
-        cut(roomId, fakeProperties, matrixClientMock, includeMedia = true, timeZone = TimeZone.of("CET")) shouldBe
-            ExportRoomResult.Success()
+        cut(
+            roomId,
+            fakeProperties,
+            matrixClientMock,
+            includeMedia = true,
+            timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
+        ) shouldBe ExportRoomResult.Success()
 
         val timelineEvents = (0..9).map { timelineEvent(it.toLong()).first() }
         val timelineEventsWithMedia = (10..19).map { timelineEventWithMedia(it.toLong()).first() }
@@ -131,7 +138,7 @@ class ExportRoomTest {
 
             index = 0
             while (index < timelineEventsWithMedia.size) {
-                mediaServiceMock.getMedia(any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }
@@ -150,6 +157,7 @@ class ExportRoomTest {
             buffer = 15,
             includeMedia = true,
             timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
         ) shouldBe ExportRoomResult.Success()
 
         val timelineEvents = (0..9).map { timelineEvent(it.toLong()).first() }
@@ -169,7 +177,7 @@ class ExportRoomTest {
 
             index = 0
             while (index < timelineEventsWithMedia.size) {
-                mediaServiceMock.getMedia(any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }
@@ -188,6 +196,7 @@ class ExportRoomTest {
             buffer = 15,
             includeMedia = false,
             timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
         ) shouldBe ExportRoomResult.Success()
 
         verifySuspend(VerifyMode.not) { mediaServiceMock.getMedia(any(), any(), false) }
@@ -205,6 +214,7 @@ class ExportRoomTest {
             progress = progress,
             includeMedia = true,
             timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
         ) shouldBe ExportRoomResult.Success()
 
         progress.value shouldBe ExportRoomProgress(20, 20)
@@ -222,6 +232,7 @@ class ExportRoomTest {
             rangeStartCondition = { it.eventId == EventId("5") },
             rangeEndCondition = { it.eventId == EventId("15") },
             timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
         ) shouldBe ExportRoomResult.Success()
 
         val timelineEvents = (6..9).map { timelineEvent(it.toLong()).first() }
@@ -244,7 +255,7 @@ class ExportRoomTest {
             index = 0
             while (index < timelineEventsWithMedia.size) {
                 matrixClientMock.di
-                mediaServiceMock.getMedia(any(), any(), false)
+                mediaServiceMock.getMedia(any(), any(), any(), false)
                 sinkMock.processTimelineEvent(timelineEventsWithMedia[index], notNull())
                 index += 1
             }
@@ -262,6 +273,7 @@ class ExportRoomTest {
             matrixClientMock,
             includeMedia = true,
             timeZone = TimeZone.of("CET"),
+            maxMediaSize = maxMediaSize,
         ) shouldBe
             ExportRoomResult.Success(
                 missingMedia =

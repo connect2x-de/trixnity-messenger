@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
@@ -68,6 +68,7 @@ class AudioRecordingAreaViewModelImpl(
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
     private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
+    private val maxAudioSize = get<MatrixMessengerConfiguration>().loadLimits.audio
 
     override val recorder: AudioRecorderViewModel? = run {
         val recorderHolder = getOrNull<AudioRecorderHolder>()
@@ -215,6 +216,7 @@ class AudioRecordingAreaViewModelImpl(
                         content,
                         content.fileName ?: content.body,
                         MutableStateFlow(null),
+                        maxAudioSize,
                     )
 
                 data

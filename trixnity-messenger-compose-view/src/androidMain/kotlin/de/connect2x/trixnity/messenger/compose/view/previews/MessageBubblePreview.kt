@@ -104,6 +104,8 @@ fun ImageMessageBubblePreview() {
 
             override fun loadMedia() {}
 
+            override fun loadMedia(maxSize: Long) {}
+
             override fun cancelLoadMedia() {}
 
             override val downloadMediaResult: StateFlow<PlatformMedia?> =
@@ -156,6 +158,8 @@ fun FileMessageBubblePreview() {
             override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
 
             override fun loadMedia() {}
+
+            override fun loadMedia(maxSize: Long) {}
 
             override fun cancelLoadMedia() {}
 

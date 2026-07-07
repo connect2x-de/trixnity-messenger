@@ -505,7 +505,7 @@ class TimelineElementHolderViewModelImpl(
                     matrixClient,
                     initials,
                     senderUserId,
-                    config.maxMediaSizeInMemory,
+                    config.loadLimits.thumbnail,
                 )
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -567,7 +567,7 @@ class TimelineElementHolderViewModelImpl(
                     sender = senderUserId,
                     getReceipts = getReceipts,
                     initials = initials,
-                    maxMediaSizeInMemory = config.maxMediaSizeInMemory,
+                    maxMediaSizeInMemory = config.loadLimits.thumbnail,
                 )
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
@@ -579,7 +579,7 @@ class TimelineElementHolderViewModelImpl(
                 roomId = roomId,
                 eventId = eventId,
                 initials = initials,
-                maxMediaSizeInMemory = config.maxMediaSizeInMemory,
+                maxMediaSizeInMemory = config.loadLimits.thumbnail,
             )
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 

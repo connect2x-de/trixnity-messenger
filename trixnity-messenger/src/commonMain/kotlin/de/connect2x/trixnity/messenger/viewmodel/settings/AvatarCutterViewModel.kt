@@ -15,9 +15,7 @@ import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.ktor.http.*
-import io.ktor.http.ContentType
 import io.ktor.http.ContentType.*
-import io.ktor.http.ContentType.Image
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -86,15 +84,15 @@ open class AvatarCutterViewModelImpl(
 
     private val backCallback = BackCallback { cancel() }
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
-    override val maxAvatarSize: Long = maxMediaSizeInMemory
+    private val maxImageSize = get<MatrixMessengerConfiguration>().loadLimits.image
+    override val maxAvatarSize: Long = maxImageSize
 
     override val mimeType = MutableStateFlow<ContentType?>(file.mimeType)
     override val imageData = MutableStateFlow<ByteArrayFlow?>(file.content)
     override val avatarImage: StateFlow<ByteArray?> =
         imageData
             .map {
-                it?.toByteArray(maxSize = maxMediaSizeInMemory)?.let {
+                it?.toByteArray(maxSize = maxImageSize)?.let {
                     error.value = null
                     get<ProcessImageUpload>()
                         .invoke(

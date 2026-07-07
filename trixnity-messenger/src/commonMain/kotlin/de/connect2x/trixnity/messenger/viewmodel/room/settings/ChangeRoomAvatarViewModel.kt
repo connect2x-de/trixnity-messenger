@@ -59,16 +59,16 @@ class ChangeAvatarViewModelImpl(
             .canSendEvent<AvatarEventContent>(selectedRoomId)
             .stateIn(coroutineScope, Eagerly, false) // Needs to be Eagerly for some use cases.
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
     override val avatar =
         matrixClient.room
             .getById(selectedRoomId)
             .map { room ->
                 room?.avatarUrl?.let { avatar ->
                     matrixClient.media
-                        .getThumbnail(avatar, avatarSize().toLong(), avatarSize().toLong())
+                        .getThumbnail(avatar, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
                         .fold(
-                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                             onFailure = {
                                 log.error(it) { "Cannot load user avatar." }
                                 null
