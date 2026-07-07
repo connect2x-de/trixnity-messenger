@@ -3,7 +3,9 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
+import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.messenger.MatrixClients
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import io.ktor.http.*
 import kotlin.time.Clock
@@ -30,7 +32,7 @@ import kotlinx.coroutines.launch
 interface AudioRecorder : AutoCloseable {
     val state: StateFlow<State>
 
-    suspend fun startSuspending()
+    suspend fun startSuspending(matrixClient: MatrixClient)
 
     suspend fun complete()
 
@@ -66,10 +68,10 @@ class AudioRecorderImpl(
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    override suspend fun startSuspending() {
+    override suspend fun startSuspending(matrixClient: MatrixClient) {
         close()
 
-        val initialRecordingState = platformAudioRecorder.start()
+        val initialRecordingState = platformAudioRecorder.start(matrixClient)
         if (initialRecordingState != null) {
             stateImpl.value = withCatchCallbacks(initialRecordingState)
         }

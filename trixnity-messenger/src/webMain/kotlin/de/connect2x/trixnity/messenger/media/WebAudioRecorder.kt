@@ -2,6 +2,9 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media
+import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.messenger.util.handleFirst
 import io.ktor.http.*
 import js.array.asList
@@ -12,19 +15,25 @@ import js.reflect.unsafeCast
 import js.typedarrays.Float32Array
 import kotlin.coroutines.resume
 import kotlin.js.ExperimentalWasmJsInterop
-import kotlin.js.toJsArray
 import kotlin.js.toList
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
-import web.blob.Blob
+import web.blob.byteArray
 import web.events.ERROR
 import web.events.Event
-import web.events.EventHandler
 import web.events.STOP
 import web.events.addEventHandler
 import web.mediadevices.getUserMedia
@@ -36,12 +45,13 @@ import web.navigator.navigator
 
 class WebAudioRecorder(
     private val audioContext: AudioContext,
-    private val clock: Clock
+    private val clock: Clock,
+    private val coroutineScope: CoroutineScope,
 ) : PlatformAudioRecorder {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebAudioRecorder")
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    override suspend fun start(): AudioRecorderImpl.State.Recording? {
+    override suspend fun start(matrixClient: MatrixClient): AudioRecorderImpl.State.Recording? {
         return try {
             val microphone =
                 // timeout if user neither denies nor allows microphone permission
@@ -53,7 +63,7 @@ class WebAudioRecorder(
                 AudioRecorderImpl.State.Recording(
                     start = clock.now(),
                     loudness = loudness(microphone),
-                    complete = complete(recorder, microphone),
+                    complete = complete(recorder, microphone, matrixClient),
                 )
             } else {
                 log.info { "Microphone permission request timed out." }
@@ -78,24 +88,52 @@ class WebAudioRecorder(
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    private fun complete(
+    private suspend fun complete(
         recorder: MediaRecorder,
-        microphone: MediaStream
+        microphone: MediaStream,
+        matrixClient: MatrixClient,
     ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
-        val chunks = mutableListOf<Blob>()
-        val removeDataAvailableHandler =
-            recorder.addEventHandler(
-                type = BlobEvent.DATA_AVAILABLE,
-                handler =
-                    EventHandler { event ->
-                        chunks += event.data
-                    },
+        var recordingSizeBytes = 0.0
+        val chunks = callbackFlow {
+            val handlerRemovers = listOf(
+                recorder.addEventHandler(
+                    type = BlobEvent.DATA_AVAILABLE,
+                    handler =
+                        { event ->
+                            recordingSizeBytes += event.data.size
+                            trySend(event.data)
+                        },
+                ),
+                recorder.addEventHandler(
+                    type = Event.ERROR,
+                    handler =
+                        { event ->
+                            log.error { "Unexpected error while recording audio" }
+                            close(IllegalStateException("Unexpected error while recording audio"))
+                        },
+                ),
+                recorder.addEventHandler(
+                    type = Event.STOP,
+                    handler =
+                        { event ->
+                            close()
+                        },
+                )
             )
+            awaitClose {
+                handlerRemovers.forEach { it() }
+            }
+        }.buffer(UNLIMITED)
+            .map { it.byteArray()}
+
+        val fileDeferred = coroutineScope.async {
+            matrixClient.media.prepareUploadEncryptedMedia(chunks)
+        }
 
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         return { recordingState: AudioRecorderImpl.State.Recording ->
             recorder.stop()
-            val recording =
+            val recordingSuccessful =
                 withTimeoutOrNull(30.seconds) {
                     suspendCancellableCoroutine { cont ->
                         handleFirst(
@@ -104,33 +142,43 @@ class WebAudioRecorder(
                                 mapOf(
                                     Event.STOP to
                                         {
-                                            removeDataAvailableHandler()
                                             closeInputs(microphone)
                                             cont.resume(
-                                                Blob(
-                                                    chunks.toJsArray(),
-                                                    unsafeJso { type = opusContentType.toString() },
-                                                ),
+                                                Unit
                                             )
                                         },
                                     Event.ERROR to
                                         {
-                                            removeDataAvailableHandler()
                                             closeInputs(microphone)
+                                            log.error { "Unexpected error while recording audio" }
                                             cont.resume(null)
                                         },
                                 ),
                         )
                     }
                 }
-            if (recording != null) {
-                AudioRecorderImpl.State.Completed(
-                    ReadOnlyBlobPlatformMedia(recording),
-                    clock.now() - recordingState.start,
-                    recording.size.toLong(),
-                    opusContentType,
-                ) {
-                    // let garbage collector delete it
+            if (recordingSuccessful != null) {
+                val file = fileDeferred.await()
+                val recording = matrixClient.media.getEncryptedMedia(file).fold(
+                    onSuccess = { recording ->
+                        recording
+                    },
+                    onFailure = { exception ->
+                        log.error(exception) { "Error while loading recorded audio from media store" }
+                        null
+                    }
+                )
+                if (recording != null) {
+                    AudioRecorderImpl.State.Completed(
+                        recording,
+                        clock.now() - recordingState.start,
+                        recordingSizeBytes.toLong(),
+                        opusContentType,
+                    ) {
+                        // Automatically deleted by media store
+                    }
+                } else {
+                    null
                 }
             } else {
                 null

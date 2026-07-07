@@ -6,6 +6,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
+import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
@@ -30,7 +31,7 @@ internal class AndroidAudioRecorder(
     var registeredRequestPermission: ActivityResultLauncher<String>? = null
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
-    override suspend fun start(): AudioRecorderImpl.State.Recording? {
+    override suspend fun start(matrixClient: MatrixClient): AudioRecorderImpl.State.Recording? {
         fun requestPermission() {
             registeredRequestPermission?.unregister()
             registeredRequestPermission =

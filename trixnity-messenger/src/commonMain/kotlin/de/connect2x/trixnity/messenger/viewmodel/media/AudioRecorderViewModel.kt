@@ -31,7 +31,7 @@ class AudioRecorderViewModelImpl(viewModelContext: MatrixClientViewModelContext,
     }
 
     override fun start() {
-        coroutineScope.launch { startSuspending() }
+        coroutineScope.launch { startSuspending(matrixClient) }
     }
 
     override fun completeNonSuspending() {
