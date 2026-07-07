@@ -129,7 +129,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/GetDrawableResou
 	public fun getType ()Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/MatrixMultiMessengerActivity : androidx/appcompat/app/AppCompatActivity {
+public final class de/connect2x/trixnity/messenger/compose/view/MatrixMultiMessengerActivity : androidx/activity/ComponentActivity {
 	public static final field $stable I
 	public fun <init> ()V
 }

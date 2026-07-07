@@ -2,7 +2,6 @@ package de.connect2x.trixnity.messenger
 
 import android.content.Context
 import android.graphics.BitmapFactory
-import androidx.lifecycle.asFlow
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.Data
@@ -30,7 +29,6 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.RunInitialSyncImpl
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.job
@@ -108,11 +106,9 @@ fun initialSyncModule() = module {
                 }
                 val result = async {
                     WorkManager.getInstance(context)
-                        .getWorkInfosForUniqueWorkLiveData("$UNIQUE_WORK_NAME-$account")
-                        .asFlow()
+                        .getWorkInfosForUniqueWorkFlow("$UNIQUE_WORK_NAME-$account")
                         .mapNotNull { it.firstOrNull() }
-                        .filter { it.state.isFinished }
-                        .first()
+                        .first { it.state.isFinished }
                 }
 
                 InitialSyncWorker.enqueueUniqueWork(context = context, account = account)

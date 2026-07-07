@@ -90,8 +90,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
     SemanticsOwnerListener {
     private val owners = mutableSetOf<SemanticsOwner>()
 
-    private val canvas = a11yContainer.previousElementSibling?.previousElementSibling as? HTMLCanvasElement
-    private val backingDomDiv = a11yContainer.previousElementSibling as? HTMLDivElement
+    private val canvas = a11yContainer.parentElement?.querySelector("canvas") as? HTMLCanvasElement
 
     private val syncFlow =
         MutableSharedFlow<Unit>(replay = 1, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -108,7 +107,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
         a11yContainer.removeAttribute("aria-live")
         a11yContainer.setAttribute("role", "application")
 
-        backingDomDiv?.addEventListener(
+        a11yContainer.parentElement?.addEventListener(
             EventType("keydown"),
             EventHandler { event ->
                 if (event is KeyboardEvent) {
@@ -132,7 +131,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
                 )
                     event.preventDefault()
 
-                val backingInputField = backingDomDiv?.querySelector("input, textarea") as? HTMLElement
+                val backingInputField = findBackingInputField()
                 // If the backingInputField exists and we send keydown events to the canvas,
                 // they might get processed in the wrong order, because the canvas's EventHandler does not care about
                 // event.timeStamp
@@ -164,7 +163,7 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
         a11yContainer.addEventListener(
             EventType("keyup"),
             EventHandler { event ->
-                val backingInputField = backingDomDiv?.querySelector("input, textarea") as? HTMLElement
+                val backingInputField = findBackingInputField()
                 if (backingInputField == null) {
                     eventHandlerCaller?.callWithEvent(event)
                 } else {
@@ -203,9 +202,8 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
                     // Redispatching beforeinput events works despite the new event being not trusted,
                     // because we are only interested in triggering the custom Event Handler in
                     // androidx.compose.ui.platform.DomInputStrategy
-                    (backingDomDiv?.querySelector("input, textarea") as? HTMLElement)?.dispatchEvent(
-                        copyInputEvent(event).also { setEventTimestamp(it, event.timeStamp) }
-                    )
+                    findBackingInputField()
+                        ?.dispatchEvent(copyInputEvent(event).also { setEventTimestamp(it, event.timeStamp) })
                 }
             },
             unsafeJso { capture = true },
@@ -572,6 +570,10 @@ class CanvasSemanticsOwnerListener(val a11yContainer: HTMLDivElement, coroutineS
             el.setAttribute("title", title)
             if (title == "tooltip") el.setAttribute("role", "tooltip")
         }
+    }
+
+    private fun findBackingInputField(): HTMLElement? {
+        return a11yContainer.parentElement?.querySelector(":scope > input, :scope > textarea") as? HTMLElement
     }
 }
 

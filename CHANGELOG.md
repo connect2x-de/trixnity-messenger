@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - INTERNAL: pinned the ktfmt IntelliJ plugin to 1.3.0.63
 - UI, SDK: Display and redact reactions still in the outbox
 - SDK: (**breaking change**) Changed `GetEventReactions.EventReaction` to use `EventIdOrTransactionId` instead of `EventId` in order to support reactions in outbox
+- DEPENDENCY: update compose to 1.11.1
 
 ### Deprecated
 

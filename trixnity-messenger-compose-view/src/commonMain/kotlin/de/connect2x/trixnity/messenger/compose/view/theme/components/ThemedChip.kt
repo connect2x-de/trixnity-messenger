@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.theme.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ChipColors
 import androidx.compose.material3.ChipElevation
 import androidx.compose.material3.FilterChip
@@ -454,6 +455,8 @@ fun ThemedAssistChip(
         style.colors.forChip(),
         style.elevation?.forChip(),
         style.border(enabled, hasFocus = hasFocus.value),
+        AssistChipDefaults.horizontalArrangement(),
+        AssistChipDefaults.ContentPadding,
         interactionSource,
     )
 }
@@ -480,6 +483,8 @@ fun ThemedSuggestionChip(
         style.colors.forChip(),
         style.elevation?.forChip(),
         style.border(enabled, hasFocus = hasFocus.value),
+        AssistChipDefaults.horizontalArrangement(),
+        AssistChipDefaults.ContentPadding,
         interactionSource,
     )
 }
@@ -518,6 +523,8 @@ fun ThemedFilterChip(
         style.colors.forSelectableChip(),
         style.elevation?.forSelectableChip(),
         style.border(enabled, selected, hasFocus.value),
+        AssistChipDefaults.horizontalArrangement(),
+        AssistChipDefaults.ContentPadding,
         interactionSource,
     )
 }
@@ -550,6 +557,8 @@ fun ThemedInputChip(
         style.colors.forSelectableChip(),
         style.elevation?.forSelectableChip(),
         style.border(enabled, selected, hasFocus.value),
+        AssistChipDefaults.horizontalArrangement(),
+        AssistChipDefaults.ContentPadding,
         interactionSource,
     )
 }
