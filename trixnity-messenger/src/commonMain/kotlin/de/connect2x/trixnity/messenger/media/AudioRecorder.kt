@@ -128,7 +128,7 @@ class AudioRecorderImpl(
     }
 
     companion object {
-        private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.CommonAudioRecorder")
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AudioRecorder")
 
         private suspend fun complete(stateImpl: State): State {
             return when (stateImpl) {
