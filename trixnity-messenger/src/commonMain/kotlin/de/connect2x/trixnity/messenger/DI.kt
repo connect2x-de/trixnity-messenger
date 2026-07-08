@@ -1,6 +1,9 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.client.ModuleFactory
+import de.connect2x.trixnity.core.model.RoomId
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToString
 import de.connect2x.trixnity.messenger.export.TimelineEventContentToStringImpl
 import de.connect2x.trixnity.messenger.export.exportModule
@@ -13,6 +16,10 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
+import de.connect2x.trixnity.messenger.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.provider.SearchProviderSorter
+import de.connect2x.trixnity.messenger.search.provider.SearchProviderSorterImpl
+import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverSearchProvider
 import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
@@ -46,6 +53,7 @@ import de.connect2x.trixnity.messenger.util.platformStringsModule
 import de.connect2x.trixnity.messenger.util.platformUriCallerModule
 import de.connect2x.trixnity.messenger.util.platformUriHandlerModule
 import de.connect2x.trixnity.messenger.viewmodel.MainViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.RootViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.AddMatrixAccountViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.connecting.MatrixClientInitializationFailureViewModelFactory
@@ -62,13 +70,19 @@ import de.connect2x.trixnity.messenger.viewmodel.initialsync.SyncViewModelFactor
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.JoinRoomActionViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.RoomViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangePowerLevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ChangeRoomAvatarViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.ExportRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.MemberListViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.PowerlevelViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomDevInfoViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.room.settings.RoomSettingsAliasViewModelFactory
@@ -120,12 +134,21 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.state.To
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.Thumbnails
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.ThumbnailsImpl
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.AccountViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupNewSearchViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModelImpl
+import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListElementViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.RoomListViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.roomlist.SearchGroupViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.SearchViewModelFactory
+import de.connect2x.trixnity.messenger.viewmodel.search.UserSearchViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSetupViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountSingleViewModelFactory
 import de.connect2x.trixnity.messenger.viewmodel.settings.AccountsViewModelFactory
@@ -196,6 +219,8 @@ import org.koin.core.qualifier.named
 import org.koin.core.scope.Scope
 import org.koin.dsl.bind
 import org.koin.dsl.module
+
+private val log = Logger("de.connect2x.trixnity.messenger.createTrixnityMessengerDefaultModuleFactories")
 
 fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
     listOf(
@@ -284,6 +309,8 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
         ::mediaViewModels,
         ::exportModule,
         ::notificationModule,
+        // include last as they override some other already registered view models
+        ::newSearchViewModels,
 
         // Platform-specific implementations:
         ::platformModule,
@@ -311,7 +338,7 @@ fun createTrixnityMessengerDefaultModuleFactories(): List<ModuleFactory> =
 
 /*
  * Factories for view models: Provide your own factory to
- * change or enhance behaviours of existing view models.
+ * change or enhance behaviors of existing view models.
  */
 
 private fun connectingViewModels() = module {
@@ -336,6 +363,145 @@ private fun roomListViewModels() = module {
     single<SearchGroupViewModelFactory> { SearchGroupViewModelFactory }
     single<RoomListElementViewModelFactory> { RoomListElementViewModelFactory }
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
+}
+
+inline fun <reified F : SearchProvider<*, *>> Module.searchProvider(
+    noinline definition: Scope.(ParametersHolder) -> SearchProvider<*, *>
+) = single<SearchProvider<*, *>>(named<F>(), definition = definition)
+
+private fun newSearchViewModels() = module {
+    searchProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
+    single<SearchProviderSorter> { SearchProviderSorterImpl() }
+    single<SearchViewModelFactory> { SearchViewModelFactory }
+    single<UserSearchViewModelFactory> { UserSearchViewModelFactory }
+    single<CreateNewChatViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
+        object : CreateNewChatViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                createNewRoomViewModel: CreateNewRoomViewModel,
+                onCreateGroup: (UserId) -> Unit,
+                onSearchGroup: (UserId) -> Unit,
+                onCancel: () -> Unit,
+            ): CreateNewChatViewModel {
+                return if (config.features.enableNewSearch) {
+                    CreateNewChatNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewChatViewModel =
+                                CreateNewChatViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    createNewRoomViewModel = createNewRoomViewModel,
+                                    onCreateGroup = onCreateGroup,
+                                    onSearchGroup = onSearchGroup,
+                                    onCancel = onCancel,
+                                ),
+                        )
+                        .also { log.debug { "CreateNewChatViewModel -> CreateNewChatNewSearchViewModel" } }
+                } else {
+                    CreateNewChatViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewRoomViewModel = createNewRoomViewModel,
+                            onCreateGroup = onCreateGroup,
+                            onSearchGroup = onSearchGroup,
+                            onCancel = onCancel,
+                        )
+                        .also { log.debug { "CreateNewChatViewModel" } }
+                }
+            }
+        }
+    }
+    single<CreateNewGroupViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
+        object : CreateNewGroupViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                createNewRoomViewModel: CreateNewRoomViewModel,
+                onBack: () -> Unit,
+            ): CreateNewGroupViewModel {
+                return if (config.features.enableNewSearch) {
+                    CreateNewGroupNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewGroupViewModel =
+                                CreateNewGroupViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    createNewRoomViewModel = createNewRoomViewModel,
+                                    onBack = onBack,
+                                ),
+                        )
+                        .also { log.debug { "CreateNewGroupViewModel -> CreateNewGroupNewSearchViewModelImpl" } }
+                } else {
+                    CreateNewGroupViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            createNewRoomViewModel = createNewRoomViewModel,
+                            onBack = onBack,
+                        )
+                        .also { log.debug { "CreateNewGroupViewModel" } }
+                }
+            }
+        }
+    }
+    single<AddMembersViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
+        object : AddMembersViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                roomId: RoomId,
+                potentialMembersViewModel: PotentialMembersViewModel,
+                onBack: () -> Unit,
+            ): AddMembersViewModel {
+                return if (config.features.enableNewSearch) {
+                    AddMembersNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            addMembersViewModel =
+                                AddMembersViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    roomId = roomId,
+                                    potentialMembersViewModel = potentialMembersViewModel,
+                                    onBack = onBack,
+                                ),
+                            roomId = roomId,
+                            onBack = onBack,
+                            potentialMembersNewSearchViewModel =
+                                PotentialMembersNewSearchViewModelImpl(
+                                    viewModelContext = viewModelContext,
+                                    potentialMembersViewModel = potentialMembersViewModel,
+                                ),
+                        )
+                        .also { log.debug { "AddMembersViewModel -> AddMembersNewSearchViewModelImpl" } }
+                } else {
+                    AddMembersViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            roomId = roomId,
+                            potentialMembersViewModel = potentialMembersViewModel,
+                            onBack = onBack,
+                        )
+                        .also { log.debug { "AddMembersViewModel" } }
+                }
+            }
+        }
+    }
+    single<PotentialMembersViewModelFactory> {
+        val config = get<MatrixMessengerConfiguration>()
+        object : PotentialMembersViewModelFactory {
+            override fun create(
+                viewModelContext: MatrixClientViewModelContext,
+                roomId: RoomId,
+            ): PotentialMembersViewModel {
+                return if (config.features.enableNewSearch) {
+                    PotentialMembersNewSearchViewModelImpl(
+                            viewModelContext = viewModelContext,
+                            potentialMembersViewModel =
+                                PotentialMembersViewModelImpl(viewModelContext = viewModelContext, roomId = roomId),
+                        )
+                        .also { log.debug { "PotentialMembersViewModel -> PotentialMembersNewSearchViewModelImpl" } }
+                } else {
+                    PotentialMembersViewModelImpl(viewModelContext = viewModelContext, roomId = roomId).also {
+                        log.debug { "PotentialMembersViewModel" }
+                    }
+                }
+            }
+        }
+    }
 }
 
 private fun settingsViewModels() = module {

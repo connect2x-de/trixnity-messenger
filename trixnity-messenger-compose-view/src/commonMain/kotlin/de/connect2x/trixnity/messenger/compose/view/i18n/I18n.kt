@@ -3714,6 +3714,36 @@ open class I18nView(
             "Der Raum konnte nicht gefunden werden. Das liegt daran, dass die id des Raumes ungültig ist oder die Beitrittsregeln des Raumes nicht öffentlich sind. Bitte fordern Sie stattdessen eine Einladung in den Raum an."
     }
 
+    open fun userSearchFilter() = translate {
+        EN - "filter"
+        DE - "Filter"
+    }
+
+    open fun userSearchFilterOptions() = translate {
+        EN - "filter options"
+        DE - "Filteroptionen"
+    }
+
+    open fun userSearchSelectFilter() = translate {
+        EN - "select filter"
+        DE - "Filter auswählen"
+    }
+
+    open fun searchUserProviderDeactivated() = translate {
+        EN - "deactivated, since a filter of another search is used"
+        DE - "deaktiviert, da ein Filter einer anderen Suche verwendet wird"
+    }
+
+    open fun searchUserDisabledFilter() = translate {
+        EN - "disabled since search is not active"
+        DE - "deaktiviert, da Suche nicht aktiv"
+    }
+
+    open fun searchUserNoResultsFound() = translate {
+        EN - "no search results found"
+        DE - "keine Suchergebnisse gefunden"
+    }
+
     fun actionCancel() = commonCancel().capitalize(Locale.current)
 
     fun actionMore() = commonMore().capitalize(Locale.current)

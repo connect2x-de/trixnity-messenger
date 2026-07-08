@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -327,7 +328,10 @@ fun ColumnScope.ModalDialogContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ModalDialogFooter(style: DialogStyle = MaterialTheme.components.modalDialog, content: @Composable () -> Unit) {
+fun ModalDialogFooter(
+    style: DialogStyle = MaterialTheme.components.modalDialog,
+    content: @Composable RowScope.() -> Unit,
+) {
     ThemedSurface(modifier = Modifier.fillMaxWidth(), style = style.footer) {
         FlowRow(
             modifier = Modifier.align(Alignment.CenterEnd),

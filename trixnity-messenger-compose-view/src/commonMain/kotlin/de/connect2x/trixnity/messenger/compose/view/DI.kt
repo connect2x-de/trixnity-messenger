@@ -49,8 +49,6 @@ import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionView
 import de.connect2x.trixnity.messenger.compose.view.room.JoinRoomActionViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.RoomView
 import de.connect2x.trixnity.messenger.compose.view.room.RoomViewImpl
-import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomView
-import de.connect2x.trixnity.messenger.compose.view.room.settings.AddMembersToRoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangePowerLevelView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangePowerLevelViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.ChangeRoomAvatarView
@@ -92,6 +90,9 @@ import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElemen
 import de.connect2x.trixnity.messenger.compose.view.room.settings.TimelineElementMetadataViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileView
 import de.connect2x.trixnity.messenger.compose.view.room.settings.UserProfileViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomView
+import de.connect2x.trixnity.messenger.compose.view.room.settings.addmembers.AddMembersToRoomViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaView
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioRecordingAreaViewImpl
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.AudioReplyView
@@ -207,14 +208,14 @@ import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerVi
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListContainerViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.RoomListViewImpl
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsView
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateGroupOptionsViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatNewSearchViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewChatViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupOptionsView
+import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupOptionsViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.create.CreateNewGroupViewImpl
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroupView
-import de.connect2x.trixnity.messenger.compose.view.roomlist.create.UsersInGroupViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatarView
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountAvatarViewImpl
 import de.connect2x.trixnity.messenger.compose.view.roomlist.header.AccountDataView
@@ -253,6 +254,23 @@ import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchFieldViewImpl
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListView
 import de.connect2x.trixnity.messenger.compose.view.search.UserSearchResultListViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupView
+import de.connect2x.trixnity.messenger.compose.view.search.UsersInGroupViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchFilterInputView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleViewSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchProviderToggleViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultView
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultViewSelector
+import de.connect2x.trixnity.messenger.compose.view.search.user.SearchResultViewSelectorImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.UserSearchFieldNewSearchView
+import de.connect2x.trixnity.messenger.compose.view.search.user.UserSearchFieldNewSearchViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchProviderToggleView
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultElementView
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultElementViewImpl
+import de.connect2x.trixnity.messenger.compose.view.search.user.homeserver.HomeserverSearchResultView
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepList
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizardStepListImpl
 import de.connect2x.trixnity.messenger.compose.view.settings.AccountSingleSettingsView
@@ -366,7 +384,8 @@ fun composeViewModule(messengerConfiguration: MatrixMessengerConfiguration?): Mo
         profileViewModule(),
         roomListViewModule(),
         roomListHeaderViewModule(),
-        createRoomsViewModule(),
+        createRoomsViewModule(messengerConfiguration),
+        createRoomsNewSearchViewModule(messengerConfiguration),
         searchViewModule(),
         roomViewModule(),
         roomSettingsViewModule(messengerConfiguration?.features),
@@ -457,16 +476,47 @@ fun roomListHeaderViewModule() = module {
     single<AccountOptionsView> { AccountOptionsViewImpl() }
 }
 
-fun createRoomsViewModule() = module {
-    single<CreateNewChatView> { CreateNewChatViewImpl() }
-    single<CreateNewGroupView> { CreateNewGroupViewImpl() }
+inline fun <reified F : SearchResultView<*>> Module.searchResultView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchResultView<*>>(named<F>(), definition = definition)
+
+inline fun <reified F : SearchProviderToggleView<*>> Module.searchProviderToggleView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchProviderToggleView<*>>(named<F>(), definition = definition)
+
+inline fun <reified F : SearchFilterInputView<*>> Module.searchFilterInputView(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchFilterInputView<*>>(named<F>(), definition = definition)
+
+fun createRoomsViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    // We have to do it here reliably as the order in which modules in a list of Koin modules is evaluated is an
+    // implementation detail (current impl reverses the list, but that could change in the future)
+    if (messengerConfiguration?.features?.enableNewSearch == true) {
+        single<CreateNewChatView> { CreateNewChatNewSearchViewImpl() }
+        single<CreateNewGroupView> { CreateNewGroupNewSearchViewImpl() }
+    } else {
+        single<CreateNewChatView> { CreateNewChatViewImpl() }
+        single<CreateNewGroupView> { CreateNewGroupViewImpl() }
+    }
     single<UsersInGroupView> { UsersInGroupViewImpl() }
-    single<CreateGroupOptionsView> { CreateGroupOptionsViewImpl() }
+    single<CreateNewGroupOptionsView> { CreateNewGroupOptionsViewImpl() }
+}
+
+fun createRoomsNewSearchViewModule(messengerConfiguration: MatrixMessengerConfiguration?) = module {
+    if (messengerConfiguration?.features?.enableNewSearch == true) {
+        searchProviderToggleView<HomeserverSearchProviderToggleView> { HomeserverSearchProviderToggleView() }
+        searchResultView<HomeserverSearchResultView> { HomeserverSearchResultView() }
+        single<HomeserverSearchResultElementView> { HomeserverSearchResultElementViewImpl() }
+        single<SearchResultViewSelector> { SearchResultViewSelectorImpl(getAll()) }
+        single<SearchProviderToggleViewSelector> { SearchProviderToggleViewSelectorImpl(getAll()) }
+        single<UserSearchFieldNewSearchView> { UserSearchFieldNewSearchViewImpl() }
+    }
 }
 
 fun searchViewModule() = module {
     single<SearchGroupView> { SearchGroupViewImpl() }
     single<SearchUsersView> { SearchUsersViewImpl() }
+    single<SearchFilterInputSelector> { SearchFilterInputSelectorImpl(getAll()) }
 }
 
 fun roomViewModule() = module {
@@ -492,7 +542,6 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<RoomSettingsHistoryVisibilityView> { RoomSettingsHistoryVisibilityViewImpl() }
     single<RoomSettingsJoinRulesView> { RoomSettingsJoinRulesViewImpl() }
     single<ExportRoomView> { ExportRoomViewImpl() }
-    single<AddMembersToRoomView> { AddMembersToRoomViewImpl() }
     single<ChangePowerLevelView> { ChangePowerLevelViewImpl() }
     single<EventContentSerializerMappings> { EventContentSerializerMappings.default }
     single<UserProfileView> { UserProfileViewImpl() }
@@ -500,6 +549,14 @@ fun roomSettingsViewModule(features: MatrixMessengerConfiguration.Features? = nu
     single<RoomSettingsPowerlevelView> {
         if (features?.enablePowerlevelEventConfigurationInRoomSettings == true) RoomSettingsPowerlevelViewImpl()
         else RoomSettingsPowerlevelViewImplEmpty()
+    }
+
+    single<AddMembersToRoomView> {
+        if (features?.enableNewSearch == true) {
+            AddMembersToRoomNewSearchViewImpl()
+        } else {
+            AddMembersToRoomViewImpl()
+        }
     }
 }
 

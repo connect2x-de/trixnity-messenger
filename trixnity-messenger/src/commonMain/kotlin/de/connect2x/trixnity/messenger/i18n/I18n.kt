@@ -1734,6 +1734,11 @@ open class I18n(
         EN - "You can't join the room without an internet connection, please try again later."
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."
     }
+
+    open fun userSearchHomeserver() = translate {
+        EN - "Homeserver"
+        DE - "Homeserver"
+    }
 }
 
 internal fun getLang(

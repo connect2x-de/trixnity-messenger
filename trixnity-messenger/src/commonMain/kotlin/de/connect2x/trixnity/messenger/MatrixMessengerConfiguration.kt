@@ -39,6 +39,7 @@ data class MatrixMessengerConfiguration(
             enableMessageDrafts = true,
             enableAudioRecorder = true,
             enableMediaPlayer = true,
+            enableNewSearch = true,
         ),
 
     /** The number of elements that should be loaded before and after the viewport. */
@@ -126,6 +127,12 @@ data class MatrixMessengerConfiguration(
         /** Transitively enables voice messages */
         var enableAudioRecorder: Boolean = true,
         var enableMediaPlayer: Boolean = true,
+        /**
+         * Mainly can be used by extensions such as TI-Messenger to provide more search providers.
+         *
+         * @see [de.connect2x.trixnity.messenger.search.provider.SearchProvider].
+         */
+        var enableNewSearch: Boolean = true,
     )
 
     enum class CryptoDriver {

@@ -537,6 +537,153 @@ It is possible to define a completely custom `RoomExportSink` to export a room t
 a REST endpoint. For this, a `ExportRoomSinkFactory` needs to be defined and put into the DI
 (e.g. via `singleOf(::CustomFactory).bind<ExportRoomSinkFactory>()`).
 
+## User Search
+
+Currently, 2 searches are supported: the original search and the "new search" which is found in some class names of classes that had to be altered to support the new search. To de-activate the new search, inside a `MatrixMessengerConfiguration`:
+```kotlin
+features.apply {
+    enableNewSearch = false
+}
+```
+
+**Hint**: all customization options discussed here are for the new search.
+
+The new search has a core search framework which can be extended to search for users in other places than the homeserver. 
+
+### SDK
+
+Searching users is done via the [UserSearchViewModel](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel.kt). Set a `searchTerm` and a search is triggered. On its own, the `UserSearchViewModel` does not perform a search anywhere. You have to register [SearchProviders](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/search/provider/SearchProvider.kt) first. A default is already registered: [HomeserverSearchProvider](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/viewmodel/search/provider/homeserver/HomeserverSearchProvider.kt), which uses the `POST /_matrix/client/v3/user_directory/search` API on the homeserver.
+
+`SearchProvider`s define how a search is executed, e.g., searching in an LDAP or a custom search API. The returned results have to conform to the interface [UserSearchResult](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/search/user/UserSearchResult.kt) which can be enriched with other data (see [HomeserverUserSearchResult](./trixnity-messenger/src/commonMain/kotlin/de/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult.kt)).
+
+In case your search provider does not support a full-fledged full-text search or allows granular searches, you might also want to define some ability to filter the search results with self-defined filters. Every `SearchProvider` can define those `supportedFilters`. Different `SearchProvider`s can also share the same filter - the `UserSearchViewModel` merges them and presents them as one to the UI (`providedFilters`).
+
+Example:
+```kotlin
+data class MySearchFilter(val value: String): SearchFilter {
+    override val key = Key
+    companion object Key: SearchFilter.Key<MySearchFilter>
+    override val isDisabled = value.isBlank()
+    override val displayValue = value
+}
+
+class MySearchProvider(
+    // args that can be provided by the DI
+): SearchProvider<MyUserSearchResult, UserSearchContext> {
+    // ...
+    override val supportedFilters: List<SearchFilter.Key<*>> = listOf(MySearchFilter) 
+    // ...
+    override suspend fun search(
+        searchTerm: String,
+        filters: List<SearchFilter>,
+        searchContext: UserSearchContext,
+        coroutineScope: CoroutineScope,
+    ): SearchProviderResult<MyUserSearchResult> {
+        val mySearchFilter = filters.filterIsInstance<MySearchFilter>().firstOrNull() ?: MySearchFilter("")
+        // do something with mySearchFilter
+    }
+}
+```
+
+To register the custom `SearchProvider` (inside the DI):
+```kotlin
+module {
+    searchUserProvider { MySearchProvider(get()) }
+}
+```
+
+For more details, consult the KDoc of `SearchViewModel`, `SearchProvider` and other interfaces linked to those.
+
+### UI
+
+The UI for the search is defined like this:
+
+```
+*************************************************
+* [TextField: searchTerm                      ] *
+*                                               *
+* (Homeserver ✔)  (MySearchProvider ✔︎)          *
+*                                               *
+* <Filters                                  ▼ > *
+*  [TextField: MySearchFilter                ]  *
+*  [TextField/Selection/Switch: more filters ]  *
+*                                               *
+* --------------------------------------------- *
+*                                               *
+* {HomeserverResult1                          } *
+* {HomeserverResult2                          } *
+* {HomeserverResult3                          } *
+* {MySearchProviderResult1                    } *
+* {HomeserverResult4                          } *
+*************************************************
+```
+
+Most of the UI elements are hidden if there is only 1 `SearchProvider`, which is the default.
+
+In case more `SearchProvider`s are registered, the UI allows the user to enable or disable certain search providers (Chips below the search term text field). To register your toggle, use:
+```kotlin
+class MySearchProviderToggleView : SearchProviderToggleView<MySearchProvider> {
+    override val supports: KClass<out MySearchProvider> = MySearchProvider::class
+
+    @Composable
+    override fun create(
+        searchProvider: SearchProvider<*, *>,
+        providerSearchCanBeEnabled: Boolean,
+        enabled: Boolean,
+        setEnabled: () -> Unit,
+    ) {
+        // your UI (should be ThemedFilterChip)
+    }
+}
+
+// registration via DI
+module {
+    searchProviderToggleView { MySearchProviderToggleView() }
+}
+```
+
+In case one of the registered `SearchProvider`s defines any `supportedFilters`, a minimizable filter card is shown which includes all UI elements for filter values.
+```kotlin
+class MySearchFilterInputView : SearchFilterInputView<SearchFilter.Key<*>> {
+    override val supports: KClass<out SearchFilter.Key<*>> = MySearchFilter.Key::class
+
+    @Composable
+    override fun create(userSearchViewModel: UserSearchViewModel, searchFilterKey: SearchFilter.Key<*>) {
+        // get the current value from the view model
+        val searchFilters by userSearchViewModel.searchFilters.collectAsState()
+        val value = searchFilters.filterIsInstance<MySearchFilter>().firstOrNull() ?: MySearchFilter("")
+        // your UI, e.g., a TextField
+    }
+}
+
+// registration via DI
+module {
+    searchFilterInputView { MySearchFilterInputView() }
+}
+```
+
+Beneath, the found results are displayed. The results of different providers are mixed by the framework and can have their own UI representation.
+```kotlin
+class MySearchResultView : SearchResultView<MyUserSearchResult> {
+    override val supports: KClass<out MyUserSearchResult> = MyUserSearchResult::class
+
+    @Composable
+    override fun create(
+        userSearchResult: MyUserSearchResult,
+        showOrigin: Boolean,
+        onClick: (MyUserSearchResult) -> Unit,
+    ) {
+        // your UI
+    }
+}
+
+// register via DI
+module {
+    searchResultView { MySearchResultView() }
+}
+```
+
+
 ## Worker
 
 Doing work while the messenger is running can be a common use case. To do that, you can implement the
@@ -617,18 +764,20 @@ These helpers allow for the following code to work in SwiftUI:
 struct RootView: View {
     @StateValue
     private var stack: ChildStack<RootRouter.Config, RootRouter.Wrapper>
-    private var activeStack: RootRouter.Wrapper { stack.active.instance }
-    
+    private var activeStack: RootRouter.Wrapper {
+        stack.active.instance
+    }
+
     init(_ viewModel: RootViewModel) {
         _stack = StateValue(viewModel.stack)
     }
-    
+
     var body: some View {
         Group {
             switch activeStack {
             case let addMatrixAccount as RootRouter.WrapperAddMatrixAccount:
                 AddMatrixAccountView(addMatrixAccount.viewModel)
-            // more cases ...
+                    // more cases ...
             }
         }
     }

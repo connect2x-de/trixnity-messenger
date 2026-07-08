@@ -66,7 +66,8 @@ public final class de/connect2x/trixnity/messenger/compose/view/DIKt {
 	public static final fun commonViewModule ()Lorg/koin/core/module/Module;
 	public static final fun composeViewModule (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)Lorg/koin/core/module/Module;
 	public static final fun connectingViewModule ()Lorg/koin/core/module/Module;
-	public static final fun createRoomsViewModule ()Lorg/koin/core/module/Module;
+	public static final fun createRoomsNewSearchViewModule (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)Lorg/koin/core/module/Module;
+	public static final fun createRoomsViewModule (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)Lorg/koin/core/module/Module;
 	public static final fun filesViewModule ()Lorg/koin/core/module/Module;
 	public static final fun mediaViewModule ()Lorg/koin/core/module/Module;
 	public static final fun profileViewModule ()Lorg/koin/core/module/Module;
@@ -299,6 +300,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/common/EmojiKt {
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/EmojiPopupKt {
 	public static final fun EmojiPopup (ZLkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Landroidx/compose/ui/Modifier;ZLandroidx/compose/runtime/Composer;II)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/common/ErrorDialogKt {
+	public static final fun ErrorDialog (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/common/ErrorViewKt {
@@ -1606,6 +1611,9 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun searchGroupNotFound ()Ljava/lang/String;
 	public fun searchGroupSearch ()Ljava/lang/String;
 	public fun searchGroupTitle ()Ljava/lang/String;
+	public fun searchUserDisabledFilter ()Ljava/lang/String;
+	public fun searchUserNoResultsFound ()Ljava/lang/String;
+	public fun searchUserProviderDeactivated ()Ljava/lang/String;
 	public fun security ()Ljava/lang/String;
 	public fun selectDirectory ()Ljava/lang/String;
 	public fun selectProfileCreateInstead ()Ljava/lang/String;
@@ -1721,10 +1729,13 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun userProfileRoomOptions ()Ljava/lang/String;
 	public fun userProfileUserOptions ()Ljava/lang/String;
 	public fun userProfileVerification ()Ljava/lang/String;
+	public fun userSearchFilter ()Ljava/lang/String;
+	public fun userSearchFilterOptions ()Ljava/lang/String;
 	public fun userSearchNameOrMatrixId ()Ljava/lang/String;
 	public fun userSearchNotFound ()Ljava/lang/String;
 	public fun userSearchOffline ()Ljava/lang/String;
 	public fun userSearchSearchPeople ()Ljava/lang/String;
+	public fun userSearchSelectFilter ()Ljava/lang/String;
 	public fun userSearchUserDoesNotExist ()Ljava/lang/String;
 	public fun userTrustInsecureBlocked ()Ljava/lang/String;
 	public fun userTrustInsecureInvalid ()Ljava/lang/String;
@@ -1927,21 +1938,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/RoomViewImp
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/RoomViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/AddMembersToRoomKt {
-	public static final fun AddMembersContainer (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
-	public static final fun AddMembersToRoom (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/AddMembersToRoomView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/room/settings/AddMembersToRoomViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/AddMembersToRoomView {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/settings/ChangePowerLevelKt {
@@ -2287,6 +2283,35 @@ public final class de/connect2x/trixnity/messenger/compose/view/room/settings/Us
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/UserProfileViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersFloatingButtonKt {
+	public static final fun AddMembersFloatingButton (Landroidx/compose/foundation/layout/BoxScope;Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomKt {
+	public static final fun AddMembersContainer (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun AddMembersToRoom (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomNewSearchViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomViewImpl : de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/AddMembersToRoomView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/room/settings/addmembers/UndecryptableHistoryInfoKt {
+	public static final fun UndecryptableHistoryInfo (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/AddMembersViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/room/timeline/AudioRecordingAreaKt {
@@ -3765,19 +3790,15 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/
 	public final fun getLambda$442470053$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
 }
 
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateGroupOptionsView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateGroupOptionsViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateGroupOptionsView {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
-}
-
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewChatKt {
 	public static final fun AddOrSearchGroup (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewChatViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun CreateNewChat (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewChatViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewChatNewSearchViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewChatView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewChatViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewChatView {
@@ -3790,10 +3811,38 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewChatViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupButtonKt {
+	public static final fun CreateNewGroupButton (Landroidx/compose/foundation/layout/BoxScope;Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupKt {
 	public static final fun CreateNewGroup (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
 	public static final fun OptionalRoomNameInput (Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
 	public static final fun OptionalRoomTopicInput (Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupNewSearchViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupOptionsKt {
+	public static final fun CreateNewGroupOptions (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;II)V
+	public static final fun GroupDirectoryVisibility (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun GroupEncryption (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun GroupHistoryVisibility (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun GroupIsPrivate (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupOptionsView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupOptionsViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupOptionsView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/create/CreateNewGroupView {
@@ -3804,25 +3853,6 @@ public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/GroupOptionsKt {
-	public static final fun CreateGroupOptions (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/MutableState;Landroidx/compose/runtime/Composer;II)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/UsersInGroupKt {
-	public static final fun UsersInGroup (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
-	public static final fun UsersInGroup (Lde/connect2x/trixnity/messenger/viewmodel/roomlist/CreateNewGroupViewModel;Landroidx/compose/runtime/Composer;I)V
-}
-
-public abstract interface class de/connect2x/trixnity/messenger/compose/view/roomlist/create/UsersInGroupView {
-	public abstract fun create (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
-}
-
-public final class de/connect2x/trixnity/messenger/compose/view/roomlist/create/UsersInGroupViewImpl : de/connect2x/trixnity/messenger/compose/view/roomlist/create/UsersInGroupView {
-	public static final field $stable I
-	public fun <init> ()V
-	public fun create (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/roomlist/header/AccountAvatarKt {
@@ -4240,6 +4270,229 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/UserSearc
 	public static final field $stable I
 	public fun <init> ()V
 	public fun create (Landroidx/compose/foundation/lazy/LazyListScope;Lde/connect2x/trixnity/messenger/compose/view/search/SearchResultState;Landroidx/compose/runtime/MutableState;Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/UsersInGroupKt {
+	public static final fun UsersInGroup (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/UsersInGroupView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/UsersInGroupViewImpl : de/connect2x/trixnity/messenger/compose/view/search/UsersInGroupView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/util/UserSearchHandler;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$SearchResultsKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$SearchResultsKt;
+	public fun <init> ()V
+	public final fun getLambda$935526551$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$SearchTermFilterSettingsKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$SearchTermFilterSettingsKt;
+	public fun <init> ()V
+	public final fun getLambda$-1312371741$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$UserSearchFieldNewSearchKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/ComposableSingletons$UserSearchFieldNewSearchKt;
+	public fun <init> ()V
+	public final fun getLambda$793056447$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchFilterInputView : de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputView {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchFilterInputView;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchProviderToggleView : de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleView {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchProviderToggleView;
+	public fun create (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchResultView : de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView {
+	public static final field $stable I
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchResultView;
+	public fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector {
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun selectFactory (Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputView;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector;Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelectorImpl : de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;)V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+	public fun selectFactory (Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputView;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelectorKt {
+	public static final fun SearchFilterInputSelector (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderIconKt {
+	public static final fun SearchProviderIcon (Landroidx/compose/foundation/layout/BoxScope;Landroidx/compose/ui/Modifier;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelector {
+	public fun create (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun selectFactory (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleView;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelector$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelector;Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelectorImpl : de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelector {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;)V
+	public fun create (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public fun selectFactory (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleView;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleViewSelectorKt {
+	public static final fun SearchProviderToggleSelector (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderTogglesKt {
+	public static final fun SearchProviderToggles (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultSelectorKt {
+	public static final fun SearchResultSelector (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public abstract fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewFactorySelector {
+	public fun rememberFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;Landroidx/compose/runtime/Composer;I)Ljava/lang/Object;
+	public abstract fun selectFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewFactorySelector$DefaultImpls {
+	public static fun rememberFactory (Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewFactorySelector;Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;Landroidx/compose/runtime/Composer;I)Ljava/lang/Object;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelector : de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewFactorySelector {
+	public fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelector$DefaultImpls {
+	public static fun create (Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelector;Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public static fun rememberFactory (Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelector;Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;Landroidx/compose/runtime/Composer;I)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelectorImpl : de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultViewSelector {
+	public static final field $stable I
+	public fun <init> (Ljava/util/List;)V
+	public fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public fun rememberFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;Landroidx/compose/runtime/Composer;I)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView;
+	public synthetic fun rememberFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;Landroidx/compose/runtime/Composer;I)Ljava/lang/Object;
+	public fun selectFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView;
+	public synthetic fun selectFactory (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultsKt {
+	public static final fun searchResults (Landroidx/compose/foundation/lazy/LazyListScope;Ljava/util/List;Lkotlin/jvm/functions/Function1;Ljava/util/List;Ljava/lang/Boolean;Landroidx/compose/runtime/MutableState;)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchTermFilterSettingsKt {
+	public static final fun SearchTermFilterSettings (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchTermKt {
+	public static final fun SearchTerm (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchUsersKt {
+	public static final fun SearchUsers (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/UserSearchFieldNewSearchKt {
+	public static final fun UserSearchFieldNewSearch (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/UserSearchFieldNewSearchView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/UserSearchFieldNewSearchViewImpl : de/connect2x/trixnity/messenger/compose/view/search/user/UserSearchFieldNewSearchView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/UsersInGroupKt {
+	public static final fun UsersInGroup (Lkotlinx/coroutines/flow/StateFlow;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/ComposableSingletons$HomeserverSearchProviderToggleViewKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/homeserver/ComposableSingletons$HomeserverSearchProviderToggleViewKt;
+	public fun <init> ()V
+	public final fun getLambda$-869283810$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/ComposableSingletons$HomeserverSearchResultElementViewKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/homeserver/ComposableSingletons$HomeserverSearchResultElementViewKt;
+	public fun <init> ()V
+	public final fun getLambda$737756359$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function2;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchProviderToggleView : de/connect2x/trixnity/messenger/compose/view/search/user/SearchProviderToggleView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;ZZLkotlin/jvm/functions/Function0;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchResultElementView {
+	public abstract fun create (Lde/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchResultElementViewImpl : de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchResultElementView {
+	public static final field $stable I
+	public fun <init> ()V
+	public fun create (Lde/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchResultElementViewKt {
+	public static final fun HomeserverSearchResultElement (Lde/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/homeserver/HomeserverSearchResultView : de/connect2x/trixnity/messenger/compose/view/search/user/SearchResultView {
+	public static final field $stable I
+	public fun <init> ()V
+	public synthetic fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public fun create (Lde/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
+	public fun getSupports ()Lkotlin/reflect/KClass;
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/settings/AccountSetupWizardKt {
@@ -5978,7 +6231,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 	public static final fun AdaptiveDialogScrollContent (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Landroidx/compose/foundation/lazy/LazyListState;ZLkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun AdaptiveDialogWrapper (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ModalDialogContent (Landroidx/compose/foundation/layout/ColumnScope;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
-	public static final fun ModalDialogFooter (Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function2;Landroidx/compose/runtime/Composer;II)V
+	public static final fun ModalDialogFooter (Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ModalDialogHeader (Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ThemedAdaptiveDialog (Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ThemedModalDialog (Lkotlin/jvm/functions/Function0;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/DialogStyle;Lkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
@@ -6058,6 +6311,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/theme/components
 public final class de/connect2x/trixnity/messenger/compose/view/theme/components/ThemedSurfaceKt {
 	public static final fun ThemedSurface (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZLkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
 	public static final fun ThemedSurface (Lkotlin/jvm/functions/Function0;Landroidx/compose/foundation/interaction/MutableInteractionSource;Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZLkotlin/jvm/functions/Function3;Landroidx/compose/runtime/Composer;II)V
+	public static final fun getLocalSurfaceStyle ()Landroidx/compose/runtime/ProvidableCompositionLocal;
 	public static final fun themedSurface (Landroidx/compose/ui/Modifier;Lde/connect2x/trixnity/messenger/compose/view/theme/components/SurfaceStyle;ZLandroidx/compose/runtime/Composer;II)Landroidx/compose/ui/Modifier;
 }
 

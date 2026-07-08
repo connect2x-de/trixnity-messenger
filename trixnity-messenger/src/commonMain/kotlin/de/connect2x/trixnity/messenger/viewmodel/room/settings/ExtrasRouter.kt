@@ -228,7 +228,7 @@ class ExtrasRouterImpl(
                             viewModelContext = viewModelContext.childContext("AddMembers", componentContext),
                             onBack = ::onBack,
                             roomId = config.roomId,
-                            addMembersToRoomViewModel =
+                            potentialMembersViewModel =
                                 viewModelContext
                                     .get<PotentialMembersViewModelFactory>()
                                     .create(

@@ -223,6 +223,50 @@ abstract interface <#A: de.connect2x.trixnity.core.model.events/RoomEventContent
     abstract fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, #A, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/EventIdOrTransactionId, kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementMention, kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModel<#A>? // de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;1:0;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId;kotlin.Function2<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention,kotlin.Unit>){}[0]
 }
 
+abstract interface <#A: de.connect2x.trixnity.messenger.search/SearchResult, #B: de.connect2x.trixnity.messenger.search.provider/SearchContext> de.connect2x.trixnity.messenger.search.provider/SearchProvider { // de.connect2x.trixnity.messenger.search.provider/SearchProvider|null[0]
+    abstract val disabledByDefault // de.connect2x.trixnity.messenger.search.provider/SearchProvider.disabledByDefault|{}disabledByDefault[0]
+        abstract fun <get-disabledByDefault>(): kotlin/Boolean // de.connect2x.trixnity.messenger.search.provider/SearchProvider.disabledByDefault.<get-disabledByDefault>|<get-disabledByDefault>(){}[0]
+    abstract val displayName // de.connect2x.trixnity.messenger.search.provider/SearchProvider.displayName|{}displayName[0]
+        abstract fun <get-displayName>(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchProvider.displayName.<get-displayName>|<get-displayName>(){}[0]
+    abstract val key // de.connect2x.trixnity.messenger.search.provider/SearchProvider.key|{}key[0]
+        abstract fun <get-key>(): de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*> // de.connect2x.trixnity.messenger.search.provider/SearchProvider.key.<get-key>|<get-key>(){}[0]
+    abstract val priority // de.connect2x.trixnity.messenger.search.provider/SearchProvider.priority|{}priority[0]
+        abstract fun <get-priority>(): kotlin/Int // de.connect2x.trixnity.messenger.search.provider/SearchProvider.priority.<get-priority>|<get-priority>(){}[0]
+    abstract val supportedFilters // de.connect2x.trixnity.messenger.search.provider/SearchProvider.supportedFilters|{}supportedFilters[0]
+        abstract fun <get-supportedFilters>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>> // de.connect2x.trixnity.messenger.search.provider/SearchProvider.supportedFilters.<get-supportedFilters>|<get-supportedFilters>(){}[0]
+
+    abstract suspend fun search(kotlin/String, kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>, #B, kotlinx.coroutines/CoroutineScope): de.connect2x.trixnity.messenger.search.provider/SearchProviderResult<#A> // de.connect2x.trixnity.messenger.search.provider/SearchProvider.search|search(kotlin.String;kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchFilter>;1:1;kotlinx.coroutines.CoroutineScope){}[0]
+
+    abstract interface <#A1: de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> Key // de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key|null[0]
+}
+
+abstract interface <#A: de.connect2x.trixnity.messenger.search/SearchResult, #B: de.connect2x.trixnity.messenger.search.provider/SearchContext> de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel { // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel|null[0]
+    abstract val availableFilters // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.availableFilters|{}availableFilters[0]
+        abstract fun <get-availableFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search/GroupedSearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.availableFilters.<get-availableFilters>|<get-availableFilters>(){}[0]
+    abstract val isSearching // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.isSearching|{}isSearching[0]
+        abstract fun <get-isSearching>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.isSearching.<get-isSearching>|<get-isSearching>(){}[0]
+    abstract val noResultsFound // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.noResultsFound|{}noResultsFound[0]
+        abstract fun <get-noResultsFound>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.noResultsFound.<get-noResultsFound>|<get-noResultsFound>(){}[0]
+    abstract val searchFilters // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchFilters|{}searchFilters[0]
+        abstract fun <get-searchFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchFilters.<get-searchFilters>|<get-searchFilters>(){}[0]
+    abstract val searchProviderCanBeEnabled // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviderCanBeEnabled|{}searchProviderCanBeEnabled[0]
+        abstract fun <get-searchProviderCanBeEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviderCanBeEnabled.<get-searchProviderCanBeEnabled>|<get-searchProviderCanBeEnabled>(){}[0]
+    abstract val searchProviderEnabled // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviderEnabled|{}searchProviderEnabled[0]
+        abstract fun <get-searchProviderEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviderEnabled.<get-searchProviderEnabled>|<get-searchProviderEnabled>(){}[0]
+    abstract val searchProviders // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviders|{}searchProviders[0]
+        abstract fun <get-searchProviders>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A, #B>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchProviders.<get-searchProviders>|<get-searchProviders>(){}[0]
+    abstract val searchResultList // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchResultList|{}searchResultList[0]
+        abstract fun <get-searchResultList>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<#A>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchResultList.<get-searchResultList>|<get-searchResultList>(){}[0]
+    abstract val searchTerm // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchTerm|{}searchTerm[0]
+        abstract fun <get-searchTerm>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
+
+    abstract fun filterNotSearchResult(#A) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.filterNotSearchResult|filterNotSearchResult(1:0){}[0]
+    abstract fun removeSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.removeSearchFilter|removeSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>){}[0]
+    abstract fun setProvider(de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.setProvider|setProvider(de.connect2x.trixnity.messenger.search.provider.SearchProvider.Key<*>;kotlin.Boolean){}[0]
+    abstract fun setSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.setSearchFilter|setSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter){}[0]
+    abstract fun unfilterNotSearchResult(#A) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel.unfilterNotSearchResult|unfilterNotSearchResult(1:0){}[0]
+}
+
 abstract interface <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>> de.connect2x.trixnity.messenger.settings/MutableSettings : kotlin.collections/MutableMap<kotlin/String, kotlinx.serialization.json/JsonElement> // de.connect2x.trixnity.messenger.settings/MutableSettings|null[0]
 
 abstract interface <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>> de.connect2x.trixnity.messenger.settings/Settings : kotlin.collections/Map<kotlin/String, kotlinx.serialization.json/JsonElement> // de.connect2x.trixnity.messenger.settings/Settings|null[0]
@@ -415,6 +459,41 @@ abstract interface de.connect2x.trixnity.messenger.notification/NotificationProv
     abstract fun isEnabled(de.connect2x.trixnity.core.model/UserId): kotlinx.coroutines.flow/Flow<kotlin/Boolean> // de.connect2x.trixnity.messenger.notification/NotificationProvider.isEnabled|isEnabled(de.connect2x.trixnity.core.model.UserId){}[0]
     abstract suspend fun disable(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.notification/NotificationProvider.disable|disable(de.connect2x.trixnity.core.model.UserId){}[0]
     abstract suspend fun enable(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.notification/NotificationProvider.enable|enable(de.connect2x.trixnity.core.model.UserId){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.search.provider/SearchContext // de.connect2x.trixnity.messenger.search.provider/SearchContext|null[0]
+
+abstract interface de.connect2x.trixnity.messenger.search.provider/SearchFilter { // de.connect2x.trixnity.messenger.search.provider/SearchFilter|null[0]
+    abstract val displayValue // de.connect2x.trixnity.messenger.search.provider/SearchFilter.displayValue|{}displayValue[0]
+        abstract fun <get-displayValue>(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchFilter.displayValue.<get-displayValue>|<get-displayValue>(){}[0]
+    abstract val isDisabled // de.connect2x.trixnity.messenger.search.provider/SearchFilter.isDisabled|{}isDisabled[0]
+        abstract fun <get-isDisabled>(): kotlin/Boolean // de.connect2x.trixnity.messenger.search.provider/SearchFilter.isDisabled.<get-isDisabled>|<get-isDisabled>(){}[0]
+    abstract val key // de.connect2x.trixnity.messenger.search.provider/SearchFilter.key|{}key[0]
+        abstract fun <get-key>(): de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*> // de.connect2x.trixnity.messenger.search.provider/SearchFilter.key.<get-key>|<get-key>(){}[0]
+
+    abstract interface <#A1: de.connect2x.trixnity.messenger.search.provider/SearchFilter> Key // de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.search.provider/SearchProviderSorter { // de.connect2x.trixnity.messenger.search.provider/SearchProviderSorter|null[0]
+    abstract fun <#A1: de.connect2x.trixnity.messenger.search/SearchResult, #B1: de.connect2x.trixnity.messenger.search.provider/SearchContext> sort(kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A1, #B1>>): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A1, #B1>> // de.connect2x.trixnity.messenger.search.provider/SearchProviderSorter.sort|sort(kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchProvider<0:0,0:1>>){0§<de.connect2x.trixnity.messenger.search.SearchResult>;1§<de.connect2x.trixnity.messenger.search.provider.SearchContext>}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.search.user/UserSearchResult : de.connect2x.trixnity.messenger.search/SearchResult { // de.connect2x.trixnity.messenger.search.user/UserSearchResult|null[0]
+    abstract val displayName // de.connect2x.trixnity.messenger.search.user/UserSearchResult.displayName|{}displayName[0]
+        abstract fun <get-displayName>(): kotlin/String? // de.connect2x.trixnity.messenger.search.user/UserSearchResult.displayName.<get-displayName>|<get-displayName>(){}[0]
+    abstract val id // de.connect2x.trixnity.messenger.search.user/UserSearchResult.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.search.user/UserSearchResult.id.<get-id>|<get-id>(){}[0]
+    abstract val image // de.connect2x.trixnity.messenger.search.user/UserSearchResult.image|{}image[0]
+        abstract fun <get-image>(): kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.search.user/UserSearchResult.image.<get-image>|<get-image>(){}[0]
+    abstract val initials // de.connect2x.trixnity.messenger.search.user/UserSearchResult.initials|{}initials[0]
+        abstract fun <get-initials>(): kotlin/String // de.connect2x.trixnity.messenger.search.user/UserSearchResult.initials.<get-initials>|<get-initials>(){}[0]
+    abstract val userId // de.connect2x.trixnity.messenger.search.user/UserSearchResult.userId|{}userId[0]
+        abstract fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.search.user/UserSearchResult.userId.<get-userId>|<get-userId>(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.search/SearchResult { // de.connect2x.trixnity.messenger.search/SearchResult|null[0]
+    abstract val id // de.connect2x.trixnity.messenger.search/SearchResult.id|{}id[0]
+        abstract fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.search/SearchResult.id.<get-id>|<get-id>(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.secrets/SecretByteArrayKeyProvider { // de.connect2x.trixnity.messenger.secrets/SecretByteArrayKeyProvider|null[0]
@@ -1035,6 +1114,16 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerVi
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel|null[0]
+    abstract val groupUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.groupUsersNewSearch|{}groupUsersNewSearch[0]
+        abstract fun <get-groupUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.groupUsersNewSearch.<get-groupUsersNewSearch>|<get-groupUsersNewSearch>(){}[0]
+
+    abstract fun addUserToList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.addUserToList|addUserToList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun removeUserFromGroup(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun removeUserFromList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel|null[0]
     abstract val canAddMembers // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel.canAddMembers|{}canAddMembers[0]
         abstract fun <get-canAddMembers>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel.canAddMembers.<get-canAddMembers>|<get-canAddMembers>(){}[0]
@@ -1634,6 +1723,13 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/Notif
         abstract fun <get-key>(): de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevels // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevel.key.<get-key>|<get-key>(){}[0]
     abstract val name // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevel.name|{}name[0]
         abstract fun <get-name>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevel.name.<get-name>|<get-name>(){}[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel|null[0]
+    abstract val selectedUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel.selectedUsersNewSearch|{}selectedUsersNewSearch[0]
+        abstract fun <get-selectedUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel.selectedUsersNewSearch.<get-selectedUsersNewSearch>|<get-selectedUsersNewSearch>(){}[0]
+    abstract val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel.userSearchViewModel|{}userSearchViewModel[0]
+        abstract fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel|null[0]
@@ -3109,6 +3205,13 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountVie
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/AccountViewModelFactory.Companion|null[0]
 }
 
+abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel|null[0]
+    abstract val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel.userSearchViewModel|{}userSearchViewModel[0]
+        abstract fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    abstract fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+}
+
 abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel|null[0]
     abstract val availableRoomHistoryVisibilities // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel.availableRoomHistoryVisibilities|{}availableRoomHistoryVisibilities[0]
         abstract fun <get-availableRoomHistoryVisibilities>(): kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel.availableRoomHistoryVisibilities.<get-availableRoomHistoryVisibilities>|<get-availableRoomHistoryVisibilities>(){}[0]
@@ -3134,6 +3237,18 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewC
     open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/UserId, kotlin/Unit>, kotlin/Function0<kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewRoomViewModel;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.UserId,kotlin.Unit>;kotlin.Function0<kotlin.Unit>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel|null[0]
+    abstract val groupUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.groupUsersNewSearch|{}groupUsersNewSearch[0]
+        abstract fun <get-groupUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.groupUsersNewSearch.<get-groupUsersNewSearch>|<get-groupUsersNewSearch>(){}[0]
+    abstract val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.userSearchViewModel|{}userSearchViewModel[0]
+        abstract fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    abstract fun addUserToList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.addUserToList|addUserToList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun removeUserFromGroup(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    abstract fun removeUserFromList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupViewModel|null[0]
@@ -3195,6 +3310,8 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewR
         abstract fun <get-onRoomCreated>(): kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel.onRoomCreated.<get-onRoomCreated>|<get-onRoomCreated>(){}[0]
     abstract val searchHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel.searchHandler|{}searchHandler[0]
         abstract fun <get-searchHandler>(): de.connect2x.trixnity.messenger.util/UserSearchHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel.searchHandler.<get-searchHandler>|<get-searchHandler>(){}[0]
+    abstract val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel.userSearchViewModel|{}userSearchViewModel[0]
+        abstract fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelFactory|null[0]
@@ -3383,6 +3500,20 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGrou
     open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function0<kotlin/Unit>, kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>, kotlin/Function1<de.connect2x.trixnity.core.model/RoomId, kotlin/Unit>): de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function0<kotlin.Unit>;kotlin.Function2<de.connect2x.trixnity.core.model.UserId,de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>;kotlin.Function1<de.connect2x.trixnity.core.model.RoomId,kotlin.Unit>){}[0]
 
     final object Companion : de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelFactory|null[0]
+    open fun <#A1: de.connect2x.trixnity.messenger.search/SearchResult, #B1: de.connect2x.trixnity.messenger.search.provider/SearchContext> create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function0<#B1>): de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<#A1, #B1> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function0<0:1>){0§<de.connect2x.trixnity.messenger.search.SearchResult>;1§<de.connect2x.trixnity.messenger.search.provider.SearchContext>}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelFactory.Companion|null[0]
+}
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel|null[0]
+
+abstract interface de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelFactory|null[0]
+    open fun create(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext>): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelFactory.create|create(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.search.SearchViewModel<de.connect2x.trixnity.messenger.search.user.UserSearchResult,de.connect2x.trixnity.messenger.search.user.UserSearchContext>){}[0]
+
+    final object Companion : de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelFactory // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelFactory.Companion|null[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.settings/AccountSetupViewModel { // de.connect2x.trixnity.messenger.viewmodel.settings/AccountSetupViewModel|null[0]
@@ -4980,6 +5111,34 @@ sealed interface <#A: de.connect2x.trixnity.core.model.events/RoomEventContent> 
     }
 }
 
+sealed interface <#A: de.connect2x.trixnity.messenger.search/SearchResult> de.connect2x.trixnity.messenger.search.provider/SearchProviderResult { // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult|null[0]
+    final class <#A1: de.connect2x.trixnity.messenger.search/SearchResult> Failure : de.connect2x.trixnity.messenger.search.provider/SearchProviderResult<#A1> { // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure|null[0]
+        constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.<init>|<init>(kotlin.String){}[0]
+
+        final val error // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.error|{}error[0]
+            final fun <get-error>(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.error.<get-error>|<get-error>(){}[0]
+
+        final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure<#A1> // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Failure.toString|toString(){}[0]
+    }
+
+    final class <#A1: de.connect2x.trixnity.messenger.search/SearchResult> Success : de.connect2x.trixnity.messenger.search.provider/SearchProviderResult<#A1> { // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success|null[0]
+        constructor <init>(kotlin.collections/List<#A1>) // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.<init>|<init>(kotlin.collections.List<1:0>){}[0]
+
+        final val result // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.result|{}result[0]
+            final fun <get-result>(): kotlin.collections/List<#A1> // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.result.<get-result>|<get-result>(){}[0]
+
+        final fun component1(): kotlin.collections/List<#A1> // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.component1|component1(){}[0]
+        final fun copy(kotlin.collections/List<#A1> = ...): de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success<#A1> // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.copy|copy(kotlin.collections.List<1:0>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/SearchProviderResult.Success.toString|toString(){}[0]
+    }
+}
+
 sealed interface <#A: kotlin/Any?> de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaResult { // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaResult|null[0]
     final class <#A1: kotlin/Any?> CancelledByUser : de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaResult<#A1> { // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaResult.CancelledByUser|null[0]
         constructor <init>(kotlin/String) // de.connect2x.trixnity.messenger.viewmodel.uia/AuthorizeUiaResult.CancelledByUser.<init>|<init>(kotlin.String){}[0]
@@ -5878,6 +6037,63 @@ abstract class de.connect2x.trixnity.messenger.notification/PushNotificationProv
     final object Companion // de.connect2x.trixnity.messenger.notification/PushNotificationProvider.Companion|null[0]
 }
 
+final class <#A: de.connect2x.trixnity.messenger.search/SearchResult, #B: de.connect2x.trixnity.messenger.search.provider/SearchContext> de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<#A, #B>, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, kotlin/Function0<#B>, kotlin.time/Duration = ...) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;kotlin.Function0<1:1>;kotlin.time.Duration){}[0]
+
+    final val availableFilters // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.availableFilters|{}availableFilters[0]
+        final fun <get-availableFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search/GroupedSearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.availableFilters.<get-availableFilters>|<get-availableFilters>(){}[0]
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isSearching // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.isSearching|{}isSearching[0]
+        final fun <get-isSearching>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.isSearching.<get-isSearching>|<get-isSearching>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val noResultsFound // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.noResultsFound|{}noResultsFound[0]
+        final fun <get-noResultsFound>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.noResultsFound.<get-noResultsFound>|<get-noResultsFound>(){}[0]
+    final val searchFilters // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchFilters|{}searchFilters[0]
+        final fun <get-searchFilters>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchFilters.<get-searchFilters>|<get-searchFilters>(){}[0]
+    final val searchProviderCanBeEnabled // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviderCanBeEnabled|{}searchProviderCanBeEnabled[0]
+        final fun <get-searchProviderCanBeEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviderCanBeEnabled.<get-searchProviderCanBeEnabled>|<get-searchProviderCanBeEnabled>(){}[0]
+    final val searchProviderEnabled // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviderEnabled|{}searchProviderEnabled[0]
+        final fun <get-searchProviderEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviderEnabled.<get-searchProviderEnabled>|<get-searchProviderEnabled>(){}[0]
+    final val searchProviders // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviders|{}searchProviders[0]
+        final fun <get-searchProviders>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A, #B>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchProviders.<get-searchProviders>|<get-searchProviders>(){}[0]
+    final val searchResultList // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchResultList|{}searchResultList[0]
+        final fun <get-searchResultList>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<#A>> // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchResultList.<get-searchResultList>|<get-searchResultList>(){}[0]
+    final val searchTerm // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchTerm|{}searchTerm[0]
+        final fun <get-searchTerm>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModelImpl // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun filterNotSearchResult(#A) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.filterNotSearchResult|filterNotSearchResult(1:0){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun removeSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.removeSearchFilter|removeSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>){}[0]
+    final fun setProvider(de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.setProvider|setProvider(de.connect2x.trixnity.messenger.search.provider.SearchProvider.Key<*>;kotlin.Boolean){}[0]
+    final fun setSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.setSearchFilter|setSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter){}[0]
+    final fun unfilterNotSearchResult(#A) // de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModelImpl.unfilterNotSearchResult|unfilterNotSearchResult(1:0){}[0]
+}
+
 final class <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>, #B: de.connect2x.trixnity.messenger.settings/SettingsView<#A>> de.connect2x.trixnity.messenger.settings/SettingsViewDelegate { // de.connect2x.trixnity.messenger.settings/SettingsViewDelegate|null[0]
     constructor <init>(kotlinx.serialization/KSerializer<#B>) // de.connect2x.trixnity.messenger.settings/SettingsViewDelegate.<init>|<init>(kotlinx.serialization.KSerializer<1:1>){}[0]
 
@@ -6526,6 +6742,71 @@ final class de.connect2x.trixnity.messenger.notification/NotificationSyncService
     final object Companion // de.connect2x.trixnity.messenger.notification/NotificationSyncService.Companion|null[0]
 }
 
+final class de.connect2x.trixnity.messenger.search.provider/SearchProviderSorterImpl : de.connect2x.trixnity.messenger.search.provider/SearchProviderSorter { // de.connect2x.trixnity.messenger.search.provider/SearchProviderSorterImpl|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.search.provider/SearchProviderSorterImpl.<init>|<init>(){}[0]
+
+    final fun <#A1: de.connect2x.trixnity.messenger.search/SearchResult, #B1: de.connect2x.trixnity.messenger.search.provider/SearchContext> sort(kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A1, #B1>>): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<#A1, #B1>> // de.connect2x.trixnity.messenger.search.provider/SearchProviderSorterImpl.sort|sort(kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchProvider<0:0,0:1>>){0§<de.connect2x.trixnity.messenger.search.SearchResult>;1§<de.connect2x.trixnity.messenger.search.provider.SearchContext>}[0]
+}
+
+final class de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult : de.connect2x.trixnity.messenger.search.user/UserSearchResult { // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId, kotlin/String, kotlin/String, kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?>, kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m/Presence?>) // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.<init>|<init>(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.String;kotlinx.coroutines.flow.StateFlow<kotlin.ByteArray?>;kotlinx.coroutines.flow.StateFlow<de.connect2x.trixnity.core.model.events.m.Presence?>){}[0]
+
+    final val displayName // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.displayName|{}displayName[0]
+        final fun <get-displayName>(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.displayName.<get-displayName>|<get-displayName>(){}[0]
+    final val id // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.id|{}id[0]
+        final fun <get-id>(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.id.<get-id>|<get-id>(){}[0]
+    final val image // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.image|{}image[0]
+        final fun <get-image>(): kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.image.<get-image>|<get-image>(){}[0]
+    final val initials // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.initials|{}initials[0]
+        final fun <get-initials>(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.initials.<get-initials>|<get-initials>(){}[0]
+    final val presence // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.presence|{}presence[0]
+        final fun <get-presence>(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m/Presence?> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.presence.<get-presence>|<get-presence>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.component1|component1(){}[0]
+    final fun component2(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.component2|component2(){}[0]
+    final fun component3(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.component3|component3(){}[0]
+    final fun component4(): kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.component4|component4(){}[0]
+    final fun component5(): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m/Presence?> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.component5|component5(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ..., kotlin/String = ..., kotlin/String = ..., kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?> = ..., kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m/Presence?> = ...): de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.copy|copy(de.connect2x.trixnity.core.model.UserId;kotlin.String;kotlin.String;kotlinx.coroutines.flow.StateFlow<kotlin.ByteArray?>;kotlinx.coroutines.flow.StateFlow<de.connect2x.trixnity.core.model.events.m.Presence?>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.search.user/UserSearchContext : de.connect2x.trixnity.messenger.search.provider/SearchContext { // de.connect2x.trixnity.messenger.search.user/UserSearchContext|null[0]
+    constructor <init>(de.connect2x.trixnity.core.model/UserId) // de.connect2x.trixnity.messenger.search.user/UserSearchContext.<init>|<init>(de.connect2x.trixnity.core.model.UserId){}[0]
+
+    final val activeAccount // de.connect2x.trixnity.messenger.search.user/UserSearchContext.activeAccount|{}activeAccount[0]
+        final fun <get-activeAccount>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.search.user/UserSearchContext.activeAccount.<get-activeAccount>|<get-activeAccount>(){}[0]
+
+    final fun component1(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.search.user/UserSearchContext.component1|component1(){}[0]
+    final fun copy(de.connect2x.trixnity.core.model/UserId = ...): de.connect2x.trixnity.messenger.search.user/UserSearchContext // de.connect2x.trixnity.messenger.search.user/UserSearchContext.copy|copy(de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search.user/UserSearchContext.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search.user/UserSearchContext.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search.user/UserSearchContext.toString|toString(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.search/GroupedSearchFilter { // de.connect2x.trixnity.messenger.search/GroupedSearchFilter|null[0]
+    constructor <init>(kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>>, kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>>, kotlin/Boolean) // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.<init>|<init>(kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchProvider<*,*>>;kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>>;kotlin.Boolean){}[0]
+
+    final val isEnabled // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.isEnabled|{}isEnabled[0]
+        final fun <get-isEnabled>(): kotlin/Boolean // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.isEnabled.<get-isEnabled>|<get-isEnabled>(){}[0]
+    final val searchFilterKeys // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.searchFilterKeys|{}searchFilterKeys[0]
+        final fun <get-searchFilterKeys>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>> // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.searchFilterKeys.<get-searchFilterKeys>|<get-searchFilterKeys>(){}[0]
+    final val sources // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.sources|{}sources[0]
+        final fun <get-sources>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.sources.<get-sources>|<get-sources>(){}[0]
+
+    final fun component1(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.component1|component1(){}[0]
+    final fun component2(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>> // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.component2|component2(){}[0]
+    final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.component3|component3(){}[0]
+    final fun copy(kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> = ..., kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>> = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger.search/GroupedSearchFilter // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.copy|copy(kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchProvider<*,*>>;kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>>;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search/GroupedSearchFilter.toString|toString(){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.secrets/SecretByteArrayException : kotlin/IllegalStateException { // de.connect2x.trixnity.messenger.secrets/SecretByteArrayException|null[0]
     constructor <init>(kotlin/String, kotlin/Throwable? = ...) // de.connect2x.trixnity.messenger.secrets/SecretByteArrayException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
@@ -7109,6 +7390,71 @@ final class de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModel
     final fun seekTo(kotlin.time/Duration) // de.connect2x.trixnity.messenger.viewmodel.media/MediaPlayerViewModelImpl.seekTo|seekTo(kotlin.time.Duration){}[0]
 }
 
+final class de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, kotlin/Function0<kotlin/Unit>, de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;kotlin.Function0<kotlin.Unit>;de.connect2x.trixnity.messenger.viewmodel.room.settings.AddMembersViewModel;de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersNewSearchViewModel){}[0]
+
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val canAddMembers // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.canAddMembers|{}canAddMembers[0]
+        final fun <get-canAddMembers>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.canAddMembers.<get-canAddMembers>|<get-canAddMembers>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val error // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.error|{}error[0]
+        final fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.error.<get-error>|<get-error>(){}[0]
+    final val errorCause // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.errorCause|{}errorCause[0]
+        final fun <get-errorCause>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.errorCause.<get-errorCause>|<get-errorCause>(){}[0]
+    final val groupUsers // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.groupUsers|{}groupUsers[0]
+        final fun <get-groupUsers>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.util/Search.SearchUserElement>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.groupUsers.<get-groupUsers>|<get-groupUsers>(){}[0]
+    final val groupUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.groupUsersNewSearch|{}groupUsersNewSearch[0]
+        final fun <get-groupUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.groupUsersNewSearch.<get-groupUsersNewSearch>|<get-groupUsersNewSearch>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isAddingMembers // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.isAddingMembers|{}isAddingMembers[0]
+        final fun <get-isAddingMembers>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.isAddingMembers.<get-isAddingMembers>|<get-isAddingMembers>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val potentialMembersViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.potentialMembersViewModel|{}potentialMembersViewModel[0]
+        final fun <get-potentialMembersViewModel>(): de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.potentialMembersViewModel.<get-potentialMembersViewModel>|<get-potentialMembersViewModel>(){}[0]
+    final val selectedUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.selectedUsersNewSearch|{}selectedUsersNewSearch[0]
+        final fun <get-selectedUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.selectedUsersNewSearch.<get-selectedUsersNewSearch>|<get-selectedUsersNewSearch>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val undecryptableHistoryInfo // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.undecryptableHistoryInfo|{}undecryptableHistoryInfo[0]
+        final fun <get-undecryptableHistoryInfo>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.undecryptableHistoryInfo.<get-undecryptableHistoryInfo>|<get-undecryptableHistoryInfo>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+    final val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.userSearchViewModel|{}userSearchViewModel[0]
+        final fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    final fun addMembers() // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.addMembers|addMembers(){}[0]
+    final fun addUserToList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.addUserToList|addUserToList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun addUserToList(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.addUserToList|addUserToList(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun back() // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.back|back(){}[0]
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.errorDismiss|errorDismiss(){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun removeUserFromGroup(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun removeUserFromGroup(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun removeUserFromList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun removeUserFromList(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersNewSearchViewModelImpl.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModelImpl|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.core.model/RoomId, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel, kotlin/Function0<kotlin/Unit>) // de.connect2x.trixnity.messenger.viewmodel.room.settings/AddMembersViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.core.model.RoomId;de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel;kotlin.Function0<kotlin.Unit>){}[0]
 
@@ -7348,6 +7694,52 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/Notification
         final fun <get-key>(): de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevels // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevelImpl.key.<get-key>|<get-key>(){}[0]
     final val name // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevelImpl.name|{}name[0]
         final fun <get-name>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String> // de.connect2x.trixnity.messenger.viewmodel.room.settings/NotificationLevelImpl.name.<get-name>|<get-name>(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersViewModel) // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.room.settings.PotentialMembersViewModel){}[0]
+
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val error // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.error|{}error[0]
+        final fun <get-error>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.error.<get-error>|<get-error>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val offline // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.offline|{}offline[0]
+        final fun <get-offline>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.offline.<get-offline>|<get-offline>(){}[0]
+    final val searchHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.searchHandler|{}searchHandler[0]
+        final fun <get-searchHandler>(): de.connect2x.trixnity.messenger.util/UserSearchHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.searchHandler.<get-searchHandler>|<get-searchHandler>(){}[0]
+    final val selectedUsers // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.selectedUsers|{}selectedUsers[0]
+        final fun <get-selectedUsers>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.util/Search.SearchUserElement>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.selectedUsers.<get-selectedUsers>|<get-selectedUsers>(){}[0]
+    final val selectedUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.selectedUsersNewSearch|{}selectedUsersNewSearch[0]
+        final fun <get-selectedUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.selectedUsersNewSearch.<get-selectedUsersNewSearch>|<get-selectedUsersNewSearch>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+    final val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.userSearchViewModel|{}userSearchViewModel[0]
+        final fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.settings/PotentialMembersNewSearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.room.settings/PowerlevelViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/PowerlevelViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/PowerlevelViewModelImpl|null[0]
@@ -9793,6 +10185,142 @@ final class de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl : de.c
     final object Companion // de.connect2x.trixnity.messenger.viewmodel.room/RoomRouterImpl.Companion|null[0]
 }
 
+final class de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewChatViewModel){}[0]
+
+    final val availableRoomHistoryVisibilities // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.availableRoomHistoryVisibilities|{}availableRoomHistoryVisibilities[0]
+        final fun <get-availableRoomHistoryVisibilities>(): kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.availableRoomHistoryVisibilities.<get-availableRoomHistoryVisibilities>|<get-availableRoomHistoryVisibilities>(){}[0]
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val createNewChatViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.createNewChatViewModel|{}createNewChatViewModel[0]
+        final fun <get-createNewChatViewModel>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.createNewChatViewModel.<get-createNewChatViewModel>|<get-createNewChatViewModel>(){}[0]
+    final val createNewRoomViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.createNewRoomViewModel|{}createNewRoomViewModel[0]
+        final fun <get-createNewRoomViewModel>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.createNewRoomViewModel.<get-createNewRoomViewModel>|<get-createNewRoomViewModel>(){}[0]
+    final val error // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.error|{}error[0]
+        final fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.error.<get-error>|<get-error>(){}[0]
+    final val errorDetails // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.errorDetails|{}errorDetails[0]
+        final fun <get-errorDetails>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.errorDetails.<get-errorDetails>|<get-errorDetails>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isCreating // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.isCreating|{}isCreating[0]
+        final fun <get-isCreating>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.isCreating.<get-isCreating>|<get-isCreating>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val optionalRoomHistoryVisibility // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.optionalRoomHistoryVisibility|{}optionalRoomHistoryVisibility[0]
+        final fun <get-optionalRoomHistoryVisibility>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.optionalRoomHistoryVisibility.<get-optionalRoomHistoryVisibility>|<get-optionalRoomHistoryVisibility>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+    final val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.userSearchViewModel|{}userSearchViewModel[0]
+        final fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    final fun cancel() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.cancel|cancel(){}[0]
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun createGroup() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.createGroup|createGroup(){}[0]
+    final fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.errorDismiss|errorDismiss(){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun searchGroup() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewChatNewSearchViewModelImpl.searchGroup|searchGroup(){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModel, de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupViewModel) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.roomlist.CreateNewGroupViewModel){}[0]
+
+    final val availableRoomHistoryVisibilities // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.availableRoomHistoryVisibilities|{}availableRoomHistoryVisibilities[0]
+        final fun <get-availableRoomHistoryVisibilities>(): kotlin.collections/List<de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.availableRoomHistoryVisibilities.<get-availableRoomHistoryVisibilities>|<get-availableRoomHistoryVisibilities>(){}[0]
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val canCreateNewGroup // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.canCreateNewGroup|{}canCreateNewGroup[0]
+        final fun <get-canCreateNewGroup>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.canCreateNewGroup.<get-canCreateNewGroup>|<get-canCreateNewGroup>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val createNewRoomViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.createNewRoomViewModel|{}createNewRoomViewModel[0]
+        final fun <get-createNewRoomViewModel>(): de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.createNewRoomViewModel.<get-createNewRoomViewModel>|<get-createNewRoomViewModel>(){}[0]
+    final val directoryVisibilityIsPublic // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.directoryVisibilityIsPublic|{}directoryVisibilityIsPublic[0]
+        final fun <get-directoryVisibilityIsPublic>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.directoryVisibilityIsPublic.<get-directoryVisibilityIsPublic>|<get-directoryVisibilityIsPublic>(){}[0]
+    final val error // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.error|{}error[0]
+        final fun <get-error>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.error.<get-error>|<get-error>(){}[0]
+    final val errorDetails // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.errorDetails|{}errorDetails[0]
+        final fun <get-errorDetails>(): kotlinx.coroutines.flow/StateFlow<kotlin/String?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.errorDetails.<get-errorDetails>|<get-errorDetails>(){}[0]
+    final val groupUsers // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.groupUsers|{}groupUsers[0]
+        final fun <get-groupUsers>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.util/Search.SearchUserElement>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.groupUsers.<get-groupUsers>|<get-groupUsers>(){}[0]
+    final val groupUsersNewSearch // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.groupUsersNewSearch|{}groupUsersNewSearch[0]
+        final fun <get-groupUsersNewSearch>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.groupUsersNewSearch.<get-groupUsersNewSearch>|<get-groupUsersNewSearch>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isCreating // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isCreating|{}isCreating[0]
+        final fun <get-isCreating>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isCreating.<get-isCreating>|<get-isCreating>(){}[0]
+    final val isEncrypted // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isEncrypted|{}isEncrypted[0]
+        final fun <get-isEncrypted>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isEncrypted.<get-isEncrypted>|<get-isEncrypted>(){}[0]
+    final val isPrivate // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isPrivate|{}isPrivate[0]
+        final fun <get-isPrivate>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.isPrivate.<get-isPrivate>|<get-isPrivate>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val optionalGroupTopic // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalGroupTopic|{}optionalGroupTopic[0]
+        final fun <get-optionalGroupTopic>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalGroupTopic.<get-optionalGroupTopic>|<get-optionalGroupTopic>(){}[0]
+    final val optionalRoomHistoryVisibility // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalRoomHistoryVisibility|{}optionalRoomHistoryVisibility[0]
+        final fun <get-optionalRoomHistoryVisibility>(): kotlinx.coroutines.flow/MutableStateFlow<de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility?> // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalRoomHistoryVisibility.<get-optionalRoomHistoryVisibility>|<get-optionalRoomHistoryVisibility>(){}[0]
+    final val optionalRoomName // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalRoomName|{}optionalRoomName[0]
+        final fun <get-optionalRoomName>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.optionalRoomName.<get-optionalRoomName>|<get-optionalRoomName>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+    final val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.userSearchViewModel|{}userSearchViewModel[0]
+        final fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
+
+    final fun addUserToList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.addUserToList|addUserToList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun addUserToList(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.addUserToList|addUserToList(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun back() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.back|back(){}[0]
+    final fun changeEncryptionStatus(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.changeEncryptionStatus|changeEncryptionStatus(kotlin.Boolean){}[0]
+    final fun changeOptionalHistoryVisibility(de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.changeOptionalHistoryVisibility|changeOptionalHistoryVisibility(de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent.HistoryVisibility){}[0]
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun createNewGroup() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.createNewGroup|createNewGroup(){}[0]
+    final fun errorDismiss() // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.errorDismiss|errorDismiss(){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun historyVisibilityCanBeChangedTo(de.connect2x.trixnity.core.model.events.m.room/HistoryVisibilityEventContent.HistoryVisibility): kotlin/Boolean // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.historyVisibilityCanBeChangedTo|historyVisibilityCanBeChangedTo(de.connect2x.trixnity.core.model.events.m.room.HistoryVisibilityEventContent.HistoryVisibility){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun onUserClick(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.onUserClick|onUserClick(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun removeUserFromGroup(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun removeUserFromGroup(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.removeUserFromGroup|removeUserFromGroup(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun removeUserFromList(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun removeUserFromList(de.connect2x.trixnity.messenger.util/Search.SearchUserElement) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.removeUserFromList|removeUserFromList(de.connect2x.trixnity.messenger.util.Search.SearchUserElement){}[0]
+    final fun setDirectoryVisibilityIsPublic(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.setDirectoryVisibilityIsPublic|setDirectoryVisibilityIsPublic(kotlin.Boolean){}[0]
+    final fun setIsPrivate(kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewGroupNewSearchViewModelImpl.setIsPrivate|setIsPrivate(kotlin.Boolean){}[0]
+}
+
 final class de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomErrorFormatter { // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomErrorFormatter|null[0]
     constructor <init>(de.connect2x.trixnity.messenger.i18n/I18n) // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomErrorFormatter.<init>|<init>(de.connect2x.trixnity.messenger.i18n.I18n){}[0]
 
@@ -9902,6 +10430,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewR
         final fun <get-onRoomCreated>(): kotlin/Function2<de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.core.model/RoomId, kotlin/Unit> // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewRoomViewModel.onRoomCreated.<get-onRoomCreated>|<get-onRoomCreated>(){}[0]
     final val searchHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewRoomViewModel.searchHandler|{}searchHandler[0]
         final fun <get-searchHandler>(): de.connect2x.trixnity.messenger.util/UserSearchHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewRoomViewModel.searchHandler.<get-searchHandler>|<get-searchHandler>(){}[0]
+    final val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewRoomViewModel.userSearchViewModel|{}userSearchViewModel[0]
+        final fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewCreateNewRoomViewModel.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1 : de.connect2x.trixnity.messenger.viewmodel.roomlist/RoomListElementViewModel { // de.connect2x.trixnity.messenger.viewmodel.roomlist/PreviewRoomListElementViewModel1|null[0]
@@ -10587,6 +11117,92 @@ final class de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewMo
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelImpl.getKoin|getKoin(){}[0]
     final fun joinGroup(de.connect2x.trixnity.core.model/RoomId) // de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelImpl.joinGroup|joinGroup(de.connect2x.trixnity.core.model.RoomId){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.roomlist/SearchGroupViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel : de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel { // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel|null[0]
+    constructor <init>() // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.<init>|<init>(){}[0]
+
+    final val availableFilters // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.availableFilters|{}availableFilters[0]
+        final fun <get-availableFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search/GroupedSearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.availableFilters.<get-availableFilters>|<get-availableFilters>(){}[0]
+    final val isSearching // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.isSearching|{}isSearching[0]
+        final fun <get-isSearching>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.isSearching.<get-isSearching>|<get-isSearching>(){}[0]
+    final val noResultsFound // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.noResultsFound|{}noResultsFound[0]
+        final fun <get-noResultsFound>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.noResultsFound.<get-noResultsFound>|<get-noResultsFound>(){}[0]
+    final val searchFilters // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchFilters|{}searchFilters[0]
+        final fun <get-searchFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchFilters.<get-searchFilters>|<get-searchFilters>(){}[0]
+    final val searchProviderCanBeEnabled // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviderCanBeEnabled|{}searchProviderCanBeEnabled[0]
+        final fun <get-searchProviderCanBeEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviderCanBeEnabled.<get-searchProviderCanBeEnabled>|<get-searchProviderCanBeEnabled>(){}[0]
+    final val searchProviderEnabled // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviderEnabled|{}searchProviderEnabled[0]
+        final fun <get-searchProviderEnabled>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviderEnabled.<get-searchProviderEnabled>|<get-searchProviderEnabled>(){}[0]
+    final val searchProviders // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviders|{}searchProviders[0]
+        final fun <get-searchProviders>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchProviders.<get-searchProviders>|<get-searchProviders>(){}[0]
+    final val searchResultList // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchResultList|{}searchResultList[0]
+        final fun <get-searchResultList>(): kotlinx.coroutines.flow/MutableStateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchResultList.<get-searchResultList>|<get-searchResultList>(){}[0]
+    final val searchTerm // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchTerm|{}searchTerm[0]
+        final fun <get-searchTerm>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
+
+    final fun filterNotSearchResult(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.filterNotSearchResult|filterNotSearchResult(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun removeSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>) // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.removeSearchFilter|removeSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>){}[0]
+    final fun setProvider(de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.setProvider|setProvider(de.connect2x.trixnity.messenger.search.provider.SearchProvider.Key<*>;kotlin.Boolean){}[0]
+    final fun setSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter) // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.setSearchFilter|setSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter){}[0]
+    final fun unfilterNotSearchResult(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.search/PreviewUserSearchViewModel.unfilterNotSearchResult|unfilterNotSearchResult(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+}
+
+final class de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext>, de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext, de.connect2x.trixnity.messenger.viewmodel.search/SearchViewModel<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext>) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext;de.connect2x.trixnity.messenger.viewmodel.search.SearchViewModel<de.connect2x.trixnity.messenger.search.user.UserSearchResult,de.connect2x.trixnity.messenger.search.user.UserSearchContext>){}[0]
+
+    final val availableFilters // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.availableFilters|{}availableFilters[0]
+        final fun <get-availableFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search/GroupedSearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.availableFilters.<get-availableFilters>|<get-availableFilters>(){}[0]
+    final val backHandler // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.backHandler|{}backHandler[0]
+        final fun <get-backHandler>(): com.arkivanov.essenty.backhandler/BackHandler // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.backHandler.<get-backHandler>|<get-backHandler>(){}[0]
+    final val componentContextFactory // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.componentContextFactory|{}componentContextFactory[0]
+        final fun <get-componentContextFactory>(): com.arkivanov.decompose/ComponentContextFactory<com.arkivanov.decompose/ComponentContext> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.componentContextFactory.<get-componentContextFactory>|<get-componentContextFactory>(){}[0]
+    final val coroutineScope // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.coroutineScope|{}coroutineScope[0]
+        final fun <get-coroutineScope>(): kotlinx.coroutines/CoroutineScope // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.coroutineScope.<get-coroutineScope>|<get-coroutineScope>(){}[0]
+    final val instanceKeeper // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.instanceKeeper|{}instanceKeeper[0]
+        final fun <get-instanceKeeper>(): com.arkivanov.essenty.instancekeeper/InstanceKeeper // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.instanceKeeper.<get-instanceKeeper>|<get-instanceKeeper>(){}[0]
+    final val isSearching // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.isSearching|{}isSearching[0]
+        final fun <get-isSearching>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.isSearching.<get-isSearching>|<get-isSearching>(){}[0]
+    final val lifecycle // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.lifecycle|{}lifecycle[0]
+        final fun <get-lifecycle>(): com.arkivanov.essenty.lifecycle/Lifecycle // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.lifecycle.<get-lifecycle>|<get-lifecycle>(){}[0]
+    final val log // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.log|{}log[0]
+        final fun <get-log>(): de.connect2x.lognity.api.logger/Logger // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.log.<get-log>|<get-log>(){}[0]
+    final val matrixClient // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.matrixClient|{}matrixClient[0]
+        final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
+    final val noResultsFound // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.noResultsFound|{}noResultsFound[0]
+        final fun <get-noResultsFound>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean?> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.noResultsFound.<get-noResultsFound>|<get-noResultsFound>(){}[0]
+    final val searchFilters // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchFilters|{}searchFilters[0]
+        final fun <get-searchFilters>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchFilters.<get-searchFilters>|<get-searchFilters>(){}[0]
+    final val searchProviderCanBeEnabled // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviderCanBeEnabled|{}searchProviderCanBeEnabled[0]
+        final fun <get-searchProviderCanBeEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviderCanBeEnabled.<get-searchProviderCanBeEnabled>|<get-searchProviderCanBeEnabled>(){}[0]
+    final val searchProviderEnabled // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviderEnabled|{}searchProviderEnabled[0]
+        final fun <get-searchProviderEnabled>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviderEnabled.<get-searchProviderEnabled>|<get-searchProviderEnabled>(){}[0]
+    final val searchProviders // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviders|{}searchProviders[0]
+        final fun <get-searchProviders>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<de.connect2x.trixnity.messenger.search.user/UserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchProviders.<get-searchProviders>|<get-searchProviders>(){}[0]
+    final val searchResultList // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchResultList|{}searchResultList[0]
+        final fun <get-searchResultList>(): kotlinx.coroutines.flow/StateFlow<kotlin.collections/List<de.connect2x.trixnity.messenger.search.user/UserSearchResult>> // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchResultList.<get-searchResultList>|<get-searchResultList>(){}[0]
+    final val searchTerm // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchTerm|{}searchTerm[0]
+        final fun <get-searchTerm>(): de.connect2x.trixnity.messenger.viewmodel/TextFieldViewModel // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.searchTerm.<get-searchTerm>|<get-searchTerm>(){}[0]
+    final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.stateKeeper|{}stateKeeper[0]
+        final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
+    final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
+        final fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
+    final val userId // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.userId|{}userId[0]
+        final fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+
+    final fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContext|childContext(kotlin.String){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
+    final fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContext(kotlin/String, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContext|childContext(kotlin.String;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle){}[0]
+    final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
+    final fun filterNotSearchResult(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.filterNotSearchResult|filterNotSearchResult(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
+    final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.getKoin|getKoin(){}[0]
+    final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun removeSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.removeSearchFilter|removeSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter.Key<*>){}[0]
+    final fun setProvider(de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.setProvider|setProvider(de.connect2x.trixnity.messenger.search.provider.SearchProvider.Key<*>;kotlin.Boolean){}[0]
+    final fun setSearchFilter(de.connect2x.trixnity.messenger.search.provider/SearchFilter) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.setSearchFilter|setSearchFilter(de.connect2x.trixnity.messenger.search.provider.SearchFilter){}[0]
+    final fun unfilterNotSearchResult(de.connect2x.trixnity.messenger.search.user/UserSearchResult) // de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModelImpl.unfilterNotSearchResult|unfilterNotSearchResult(de.connect2x.trixnity.messenger.search.user.UserSearchResult){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.settings/AccountNotificationSettings { // de.connect2x.trixnity.messenger.viewmodel.settings/AccountNotificationSettings|null[0]
@@ -13355,7 +13971,7 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
     }
 
     final class Features { // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features|null[0]
-        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        constructor <init>(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.<init>|<init>(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
 
         final var enableAudioRecorder // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder|{}enableAudioRecorder[0]
             final fun <get-enableAudioRecorder>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableAudioRecorder.<get-enableAudioRecorder>|<get-enableAudioRecorder>(){}[0]
@@ -13366,6 +13982,9 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final var enableMessageDrafts // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts|{}enableMessageDrafts[0]
             final fun <get-enableMessageDrafts>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<get-enableMessageDrafts>|<get-enableMessageDrafts>(){}[0]
             final fun <set-enableMessageDrafts>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableMessageDrafts.<set-enableMessageDrafts>|<set-enableMessageDrafts>(kotlin.Boolean){}[0]
+        final var enableNewSearch // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableNewSearch|{}enableNewSearch[0]
+            final fun <get-enableNewSearch>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableNewSearch.<get-enableNewSearch>|<get-enableNewSearch>(){}[0]
+            final fun <set-enableNewSearch>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enableNewSearch.<set-enableNewSearch>|<set-enableNewSearch>(kotlin.Boolean){}[0]
         final var enablePdfReader // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader|{}enablePdfReader[0]
             final fun <get-enablePdfReader>(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader.<get-enablePdfReader>|<get-enablePdfReader>(){}[0]
             final fun <set-enablePdfReader>(kotlin/Boolean) // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.enablePdfReader.<set-enablePdfReader>|<set-enablePdfReader>(kotlin.Boolean){}[0]
@@ -13378,7 +13997,8 @@ final class de.connect2x.trixnity.messenger/MatrixMessengerConfiguration : de.co
         final fun component3(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component3|component3(){}[0]
         final fun component4(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component4|component4(){}[0]
         final fun component5(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component5|component5(){}[0]
-        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
+        final fun component6(): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.component6|component6(){}[0]
+        final fun copy(kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.copy|copy(kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean;kotlin.Boolean){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // de.connect2x.trixnity.messenger/MatrixMessengerConfiguration.Features.toString|toString(){}[0]
@@ -13939,6 +14559,7 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun updateNotificationSettingsTimeoutError(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.updateNotificationSettingsTimeoutError|updateNotificationSettingsTimeoutError(){}[0]
     open fun uriCallFailure(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.uriCallFailure|uriCallFailure(){}[0]
     open fun userProfileMembershipChanging(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.userProfileMembershipChanging|userProfileMembershipChanging(){}[0]
+    open fun userSearchHomeserver(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.userSearchHomeserver|userSearchHomeserver(){}[0]
     open fun userVerificationNoMatch(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.userVerificationNoMatch|userVerificationNoMatch(){}[0]
     open fun userVerificationSuccess(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.userVerificationSuccess|userVerificationSuccess(){}[0]
     open fun userVerificationTimeout(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.userVerificationTimeout|userVerificationTimeout(){}[0]
@@ -13947,6 +14568,25 @@ open class de.connect2x.trixnity.messenger.i18n/I18n : de.connect2x.trixnity.mes
     open fun verificationMethodSasUser(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.verificationMethodSasUser|verificationMethodSasUser(){}[0]
     open fun yourNewProfileAvatar(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.yourNewProfileAvatar|yourNewProfileAvatar(){}[0]
     open fun yourNewRoomAvatar(): kotlin/String // de.connect2x.trixnity.messenger.i18n/I18n.yourNewRoomAvatar|yourNewRoomAvatar(){}[0]
+}
+
+open class de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider : de.connect2x.trixnity.messenger.search.provider/SearchProvider<de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult, de.connect2x.trixnity.messenger.search.user/UserSearchContext> { // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider|null[0]
+    constructor <init>(de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.messenger.i18n/I18n, de.connect2x.trixnity.messenger/MatrixClients, de.connect2x.trixnity.messenger/MatrixMessengerConfiguration) // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.<init>|<init>(de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.messenger.i18n.I18n;de.connect2x.trixnity.messenger.MatrixClients;de.connect2x.trixnity.messenger.MatrixMessengerConfiguration){}[0]
+
+    open val disabledByDefault // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.disabledByDefault|{}disabledByDefault[0]
+        open fun <get-disabledByDefault>(): kotlin/Boolean // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.disabledByDefault.<get-disabledByDefault>|<get-disabledByDefault>(){}[0]
+    open val displayName // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.displayName|{}displayName[0]
+        open fun <get-displayName>(): kotlin/String // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.displayName.<get-displayName>|<get-displayName>(){}[0]
+    open val key // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.key|{}key[0]
+        open fun <get-key>(): de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.Key // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.key.<get-key>|<get-key>(){}[0]
+    open val priority // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.priority|{}priority[0]
+        open fun <get-priority>(): kotlin/Int // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.priority.<get-priority>|<get-priority>(){}[0]
+    open val supportedFilters // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.supportedFilters|{}supportedFilters[0]
+        open fun <get-supportedFilters>(): kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter.Key<*>> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.supportedFilters.<get-supportedFilters>|<get-supportedFilters>(){}[0]
+
+    open suspend fun search(kotlin/String, kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchFilter>, de.connect2x.trixnity.messenger.search.user/UserSearchContext, kotlinx.coroutines/CoroutineScope): de.connect2x.trixnity.messenger.search.provider/SearchProviderResult<de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverUserSearchResult> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.search|search(kotlin.String;kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchFilter>;de.connect2x.trixnity.messenger.search.user.UserSearchContext;kotlinx.coroutines.CoroutineScope){}[0]
+
+    final object Key : de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider> // de.connect2x.trixnity.messenger.search.user.homeserver/HomeserverSearchProvider.Key|null[0]
 }
 
 open class de.connect2x.trixnity.messenger.util/DragAndDropHandlerBase : de.connect2x.trixnity.messenger.util/DragAndDropHandler { // de.connect2x.trixnity.messenger.util/DragAndDropHandlerBase|null[0]
@@ -14906,6 +15546,8 @@ open class de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewM
         open fun <get-trixnityMessengerBackHandler>(): de.connect2x.trixnity.messenger.util/BackHandler // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.trixnityMessengerBackHandler.<get-trixnityMessengerBackHandler>|<get-trixnityMessengerBackHandler>(){}[0]
     open val userId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.userId|{}userId[0]
         open fun <get-userId>(): de.connect2x.trixnity.core.model/UserId // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.userId.<get-userId>|<get-userId>(){}[0]
+    open val userSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.userSearchViewModel|{}userSearchViewModel[0]
+        open fun <get-userSearchViewModel>(): de.connect2x.trixnity.messenger.viewmodel.search/UserSearchViewModel // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.userSearchViewModel.<get-userSearchViewModel>|<get-userSearchViewModel>(){}[0]
 
     open fun childContext(kotlin/String): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.childContext|childContext(kotlin.String){}[0]
     open fun childContext(kotlin/String, com.arkivanov.decompose/ComponentContext): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.roomlist/CreateNewRoomViewModelImpl.childContext|childContext(kotlin.String;com.arkivanov.decompose.ComponentContext){}[0]
@@ -15864,6 +16506,12 @@ final object de.connect2x.trixnity.messenger.i18n/DefaultLanguages : de.connect2
     final fun langOf(kotlin/String): de.connect2x.trixnity.messenger.i18n/Language? // de.connect2x.trixnity.messenger.i18n/DefaultLanguages.langOf|langOf(kotlin.String){}[0]
 }
 
+final object de.connect2x.trixnity.messenger.search.provider/EmptySearchContext : de.connect2x.trixnity.messenger.search.provider/SearchContext { // de.connect2x.trixnity.messenger.search.provider/EmptySearchContext|null[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.search.provider/EmptySearchContext.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.search.provider/EmptySearchContext.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.search.provider/EmptySearchContext.toString|toString(){}[0]
+}
+
 final object de.connect2x.trixnity.messenger.util/PlatformGraphemeIterableProvider : de.connect2x.trixnity.messenger.util/GraphemeIterableProvider { // de.connect2x.trixnity.messenger.util/PlatformGraphemeIterableProvider|null[0]
     final fun invoke(kotlin/String): de.connect2x.trixnity.messenger.util/GraphemeIterable // de.connect2x.trixnity.messenger.util/PlatformGraphemeIterableProvider.invoke|invoke(kotlin.String){}[0]
 }
@@ -15946,6 +16594,7 @@ final fun (de.connect2x.trixnity.core.util/Reference).de.connect2x.trixnity.mess
 final fun (de.connect2x.trixnity.messenger.viewmodel/ViewModelContext).de.connect2x.trixnity.messenger.viewmodel/getMatrixClient(de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel/getMatrixClient|getMatrixClient@de.connect2x.trixnity.messenger.viewmodel.ViewModelContext(de.connect2x.trixnity.core.model.UserId){}[0]
 final fun (de.connect2x.trixnity.messenger/MatrixClients).de.connect2x.trixnity.messenger.viewmodel/toAccountInfo(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger/MatrixMessengerSettingsHolder, de.connect2x.trixnity.messenger.viewmodel.util/Initials, kotlin/Long): kotlinx.coroutines.flow/Flow<kotlin.collections/List<de.connect2x.trixnity.messenger.viewmodel/AccountInfo>> // de.connect2x.trixnity.messenger.viewmodel/toAccountInfo|toAccountInfo@de.connect2x.trixnity.messenger.MatrixClients(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.MatrixMessengerSettingsHolder;de.connect2x.trixnity.messenger.viewmodel.util.Initials;kotlin.Long){}[0]
 final fun (de.connect2x.trixnity.messenger/MatrixMessenger).de.connect2x.trixnity.messenger/createRoot(com.arkivanov.decompose/ComponentContext = ...): de.connect2x.trixnity.messenger.viewmodel/RootViewModel // de.connect2x.trixnity.messenger/createRoot|createRoot@de.connect2x.trixnity.messenger.MatrixMessenger(com.arkivanov.decompose.ComponentContext){}[0]
+final fun (kotlin.collections/List<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>>).de.connect2x.trixnity.messenger.search/getGroupedSearchFilters(kotlin.collections/Map<de.connect2x.trixnity.messenger.search.provider/SearchProvider.Key<*>, kotlin/Boolean>): kotlin.collections/List<de.connect2x.trixnity.messenger.search/GroupedSearchFilter> // de.connect2x.trixnity.messenger.search/getGroupedSearchFilters|getGroupedSearchFilters@kotlin.collections.List<de.connect2x.trixnity.messenger.search.provider.SearchProvider<*,*>>(kotlin.collections.Map<de.connect2x.trixnity.messenger.search.provider.SearchProvider.Key<*>,kotlin.Boolean>){}[0]
 final fun (kotlin/Float).de.connect2x.trixnity.messenger.viewmodel.util/format(kotlin/Int = ..., kotlin/Char = ...): kotlin/String // de.connect2x.trixnity.messenger.viewmodel.util/format|format@kotlin.Float(kotlin.Int;kotlin.Char){}[0]
 final fun (kotlin/Int).de.connect2x.trixnity.messenger.util/gb(): kotlin/Long // de.connect2x.trixnity.messenger.util/gb|gb@kotlin.Int(){}[0]
 final fun (kotlin/Int).de.connect2x.trixnity.messenger.util/kb(): kotlin/Long // de.connect2x.trixnity.messenger.util/kb|kb@kotlin.Int(){}[0]
@@ -15988,6 +16637,8 @@ final fun de.connect2x.trixnity.messenger.multi/matrixMessengerFactoryModule(): 
 final fun de.connect2x.trixnity.messenger.multi/platformMatrixMultiMessengerSettingsHolderModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.multi/platformMatrixMultiMessengerSettingsHolderModule|platformMatrixMultiMessengerSettingsHolderModule(){}[0]
 final fun de.connect2x.trixnity.messenger.notification/notificationModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.notification/notificationModule|notificationModule(){}[0]
 final fun de.connect2x.trixnity.messenger.notification/platformNotificationHandlersModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.notification/platformNotificationHandlersModule|platformNotificationHandlersModule(){}[0]
+final fun de.connect2x.trixnity.messenger.search.user.homeserver/getImage(kotlin/String?, de.connect2x.trixnity.client/MatrixClient, kotlin/Long, kotlinx.coroutines/CoroutineScope): kotlinx.coroutines.flow/StateFlow<kotlin/ByteArray?> // de.connect2x.trixnity.messenger.search.user.homeserver/getImage|getImage(kotlin.String?;de.connect2x.trixnity.client.MatrixClient;kotlin.Long;kotlinx.coroutines.CoroutineScope){}[0]
+final fun de.connect2x.trixnity.messenger.search.user.homeserver/getPresence(de.connect2x.trixnity.core.model/UserId, de.connect2x.trixnity.client/MatrixClient, kotlinx.coroutines/CoroutineScope): kotlinx.coroutines.flow/StateFlow<de.connect2x.trixnity.core.model.events.m/Presence?> // de.connect2x.trixnity.messenger.search.user.homeserver/getPresence|getPresence(de.connect2x.trixnity.core.model.UserId;de.connect2x.trixnity.client.MatrixClient;kotlinx.coroutines.CoroutineScope){}[0]
 final fun de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/platformSecretByteArrayKeyProviderModule|platformSecretByteArrayKeyProviderModule(){}[0]
 final fun de.connect2x.trixnity.messenger.secrets/secretsModule(): org.koin.core.module/Module // de.connect2x.trixnity.messenger.secrets/secretsModule|secretsModule(){}[0]
 final fun de.connect2x.trixnity.messenger.settings/jsonMerge(kotlinx.serialization.json/JsonObject, kotlinx.serialization.json/JsonObject, kotlin.collections/List<kotlin/String>? = ...): kotlinx.serialization.json/JsonObject // de.connect2x.trixnity.messenger.settings/jsonMerge|jsonMerge(kotlinx.serialization.json.JsonObject;kotlinx.serialization.json.JsonObject;kotlin.collections.List<kotlin.String>?){}[0]
@@ -16029,6 +16680,7 @@ final inline fun <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>, #B:
 final inline fun <#A: de.connect2x.trixnity.messenger.settings/Settings<#A>, #B: reified de.connect2x.trixnity.messenger.settings/SettingsView<#A>> de.connect2x.trixnity.messenger.settings/settingsView(): de.connect2x.trixnity.messenger.settings/SettingsViewDelegate<#A, #B> // de.connect2x.trixnity.messenger.settings/settingsView|settingsView(){0§<de.connect2x.trixnity.messenger.settings.Settings<0:0>>;1§<de.connect2x.trixnity.messenger.settings.SettingsView<0:0>>}[0]
 final inline fun <#A: kotlin/Any?> (kotlin.collections/Iterable<#A>).de.connect2x.trixnity.messenger.viewmodel.util/takeWhileInclusive(kotlin/Function1<#A, kotlin/Boolean>): kotlin.collections/List<#A> // de.connect2x.trixnity.messenger.viewmodel.util/takeWhileInclusive|takeWhileInclusive@kotlin.collections.Iterable<0:0>(kotlin.Function1<0:0,kotlin.Boolean>){0§<kotlin.Any?>}[0]
 final inline fun <#A: kotlin/Any?> (kotlin.collections/List<#A>).de.connect2x.trixnity.messenger.viewmodel.util/takeLastWhileInclusive(kotlin/Function1<#A, kotlin/Boolean>): kotlin.collections/List<#A> // de.connect2x.trixnity.messenger.viewmodel.util/takeLastWhileInclusive|takeLastWhileInclusive@kotlin.collections.List<0:0>(kotlin.Function1<0:0,kotlin.Boolean>){0§<kotlin.Any?>}[0]
+final inline fun <#A: reified de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> (org.koin.core.module/Module).de.connect2x.trixnity.messenger/searchProvider(noinline kotlin/Function2<org.koin.core.scope/Scope, org.koin.core.parameter/ParametersHolder, de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>>): org.koin.core.definition/KoinDefinition<de.connect2x.trixnity.messenger.search.provider/SearchProvider<*, *>> // de.connect2x.trixnity.messenger/searchProvider|searchProvider@org.koin.core.module.Module(kotlin.Function2<org.koin.core.scope.Scope,org.koin.core.parameter.ParametersHolder,de.connect2x.trixnity.messenger.search.provider.SearchProvider<*,*>>){0§<de.connect2x.trixnity.messenger.search.provider.SearchProvider<*,*>>}[0]
 final inline fun <#A: reified de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory<*>> (org.koin.core.module/Module).de.connect2x.trixnity.messenger/timelineElementViewModelFactory(noinline kotlin/Function2<org.koin.core.scope/Scope, org.koin.core.parameter/ParametersHolder, #A>): org.koin.core.definition/KoinDefinition<out de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements/TimelineElementViewModelFactory<*>> // de.connect2x.trixnity.messenger/timelineElementViewModelFactory|timelineElementViewModelFactory@org.koin.core.module.Module(kotlin.Function2<org.koin.core.scope.Scope,org.koin.core.parameter.ParametersHolder,0:0>){0§<de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementViewModelFactory<*>>}[0]
 final inline fun <#A: reified kotlin/Any> (org.koin.core.component/KoinComponent).de.connect2x.trixnity.messenger.util/getOrNull(org.koin.core.qualifier/Qualifier? = ..., noinline kotlin/Function0<org.koin.core.parameter/ParametersHolder>? = ...): #A? // de.connect2x.trixnity.messenger.util/getOrNull|getOrNull@org.koin.core.component.KoinComponent(org.koin.core.qualifier.Qualifier?;kotlin.Function0<org.koin.core.parameter.ParametersHolder>?){0§<kotlin.Any>}[0]
 final suspend fun (de.connect2x.trixnity.client.store/Room).de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement(kotlinx.coroutines/CoroutineScope, de.connect2x.trixnity.messenger.viewmodel.util/Initials, de.connect2x.trixnity.client/MatrixClient, kotlin/String, kotlin/Long, kotlin.collections/Set<kotlin/String>? = ...): de.connect2x.trixnity.messenger.viewmodel/RoomInfoElement // de.connect2x.trixnity.messenger.viewmodel/toRoomInfoElement|toRoomInfoElement@de.connect2x.trixnity.client.store.Room(kotlinx.coroutines.CoroutineScope;de.connect2x.trixnity.messenger.viewmodel.util.Initials;de.connect2x.trixnity.client.MatrixClient;kotlin.String;kotlin.Long;kotlin.collections.Set<kotlin.String>?){}[0]

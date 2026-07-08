@@ -23,10 +23,10 @@ interface AddMembersViewModelFactory {
     fun create(
         viewModelContext: MatrixClientViewModelContext,
         roomId: RoomId,
-        addMembersToRoomViewModel: PotentialMembersViewModel,
+        potentialMembersViewModel: PotentialMembersViewModel,
         onBack: () -> Unit,
     ): AddMembersViewModel {
-        return AddMembersViewModelImpl(viewModelContext, roomId, addMembersToRoomViewModel, onBack)
+        return AddMembersViewModelImpl(viewModelContext, roomId, potentialMembersViewModel, onBack)
     }
 
     companion object : AddMembersViewModelFactory
