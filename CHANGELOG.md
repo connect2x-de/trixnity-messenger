@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UI: Minor UI fix for editing messages
 - SDK: callback for notifications when `showDetails` is disabled
+- INTERNAL: Fixed c2x-conventions update requiring GitLab token
 
 ### Security
 
