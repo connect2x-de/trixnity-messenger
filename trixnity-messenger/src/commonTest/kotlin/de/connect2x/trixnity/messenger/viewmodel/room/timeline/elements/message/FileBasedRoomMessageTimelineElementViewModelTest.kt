@@ -7,6 +7,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -40,9 +41,19 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     val file = "download".encodeToByteArray()
 
+    val config = MatrixMessengerConfiguration()
+
     init {
         resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
-        every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
+        every { matrixClientMock.di } returns
+            koinApplication {
+                modules(
+                    module {
+                        single { mediaServiceMock }
+                    }
+                )
+            }
+                .koin
     }
 
     @BeforeTest
@@ -105,6 +116,31 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
     }
 
     @Test
+    fun `downloading » don't download if disabled in configs`() = runTest {
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
+            async {
+                delay(5.seconds)
+                Result.failure(RuntimeException("Oh no!"))
+            }
+
+        val cut = fileBasedMessageViewModel()
+        var downloadResult: ByteArray? = null
+        config.downloadsDisabled = false
+
+        var downloadCanceled = false
+
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, { downloadCanceled = true })
+
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            downloadCanceled shouldBe true
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
+        }
+    }
+
+    @Test
     fun `loading » load a file into memory`() = runTest {
         every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
             async { Result.success(InMemoryPlatformMedia(file)) }
@@ -133,14 +169,17 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         object :
             FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File>(
                 testMatrixClientViewModelContext(
-                    di =
-                        koinApplication {
-                                modules(
-                                    createTestDefaultTrixnityMessengerModules(
-                                        mapOf(UserId("test", "server") to matrixClientMock)
-                                    ) + module { single { downloadManagerMock } }
-                                )
-                            }
+                    di = koinApplication {
+                            modules(
+                                createTestDefaultTrixnityMessengerModules(
+                                    mapOf(UserId("test", "server") to matrixClientMock)
+                                ) +
+                                    module {
+                                        single { downloadManagerMock }
+                                        single { config }
+                                    }
+                            )
+                        }
                             .koin,
                     userId = UserId("test", "server"),
                 ),
