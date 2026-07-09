@@ -10,7 +10,6 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.AudioMetadataFactory
 import de.connect2x.trixnity.messenger.util.BackCallback
-import de.connect2x.trixnity.messenger.util.BasicFileDescriptor
 import de.connect2x.trixnity.messenger.util.FileDescriptor
 import de.connect2x.trixnity.messenger.util.GetImageDimensions
 import de.connect2x.trixnity.messenger.util.ProcessImageUpload
@@ -23,6 +22,7 @@ import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.byteArrayFlowFromSource
 import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
+import io.ktor.http.ContentType
 import io.ktor.http.ContentType.Image
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -165,12 +165,13 @@ class SendAttachmentViewModelImpl(
 
                         isAudio ?: false -> {
                             log.debug { "send an audio" }
-                            val audioMetadata =
-                                runCatching { audioMetadataFactory?.invoke(file) }
-                                    .getOrElse {
-                                        log.warn(it) { "could not extract audio metadata for ${file.fileName}" }
-                                        null
-                                    }
+                            val audioMetadata = runCatching {
+                                audioMetadataFactory?.invoke(file)
+                            }
+                                .getOrElse {
+                                    log.warn(it) { "could not extract audio metadata for ${file.fileName}" }
+                                    null
+                                }
                             audio(
                                 body = file.fileName,
                                 fileName = file.fileName,
@@ -208,12 +209,12 @@ class PreviewSendAttachmentViewModel : SendAttachmentViewModel {
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
     override val sendEnabled: MutableStateFlow<Boolean> = MutableStateFlow(true)
     override val file: FileDescriptor =
-        BasicFileDescriptor(
-            fileName = "",
-            fileSize = null,
-            mimeType = null,
-            content = byteArrayFlowFromSource { Buffer() },
-        )
+        object : FileDescriptor {
+            override val fileName: String = ""
+            override val fileSize: Long? = null
+            override val mimeType: ContentType? = null
+            override val content: ByteArrayFlow = byteArrayFlowFromSource { Buffer() }
+        }
     override val isImage: Boolean = true
     override val isVideo: Boolean = false
     override val isAudio: Boolean = false

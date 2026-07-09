@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.utils.ByteArrayFlow
-import io.ktor.http.*
+import io.ktor.http.ContentType
 
 interface FileDescriptor {
     val fileName: String
@@ -10,9 +10,17 @@ interface FileDescriptor {
     val content: ByteArrayFlow
 }
 
-data class BasicFileDescriptor(
-    override val fileName: String,
-    override val fileSize: Long?,
-    override val mimeType: ContentType?,
-    override val content: ByteArrayFlow,
-) : FileDescriptor
+expect class InMemoryFileDescriptor : FileDescriptor {
+    override val fileName: String
+    override val fileSize: Long?
+    override val mimeType: ContentType?
+    override val content: ByteArrayFlow
+}
+
+expect class FileBackedFileDescriptor : FileDescriptor {
+    override val fileName: String
+    val filePath: String
+    override val fileSize: Long?
+    override val mimeType: ContentType?
+    override val content: ByteArrayFlow
+}
