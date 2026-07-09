@@ -10,7 +10,7 @@ pluginManagement {
     }
 }
 
-plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20260708.000524" }
+plugins { id("de.connect2x.conventions.c2x-settings-plugin") version "20260709.103626" }
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 

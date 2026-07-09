@@ -115,27 +115,17 @@ kotlin {
         }
         jvmMain {
             dependencies {
-                // this is needed to create lock files working on all machines
-                if (System.getProperty("bundleAll") == "true") {
-                    implementation(sharedLibs.compose.desktop.linuxX64)
-                    implementation(sharedLibs.compose.desktop.linuxArm64)
-                    implementation(sharedLibs.compose.desktop.windowsX64)
-                    implementation(sharedLibs.compose.desktop.macosX64)
-                    implementation(sharedLibs.compose.desktop.macosArm64)
-                } else {
-                    implementation(compose.desktop.currentOs)
-                }
-                implementation(sharedLibs.kotlinx.coroutines.swing)
+                runtimeOnly(compose.desktop.currentOs)
+                runtimeOnly(sharedLibs.kotlinx.coroutines.swing)
             }
         }
         androidMain {
             dependencies {
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationFcm)
                 implementation(projects.trixnityMessenger.trixnityMessengerNotificationUnifiedpush)
-                implementation(sharedLibs.compose.uiTooling)
-                implementation(sharedLibs.androidx.appcompat)
-                implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.activity.compose)
+                implementation(sharedLibs.compose.uiToolingPreview)
+                implementation(sharedLibs.androidx.workRuntime)
+                implementation(sharedLibs.androidx.activityCompose)
             }
         }
         iosMain { dependencies { implementation(projects.trixnityMessenger.trixnityMessengerNotificationApns) } }

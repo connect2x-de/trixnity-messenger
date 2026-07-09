@@ -6,11 +6,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MatrixMultiMessengerActivity : AppCompatActivity() {
+class MatrixMultiMessengerActivity : ComponentActivity() {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.compose.view.MatrixMultiMessengerActivity")
     private val matrixMultiMessengerServiceConnection: MatrixMultiMessengerServiceConnection =
         MatrixMultiMessengerServiceConnection()
