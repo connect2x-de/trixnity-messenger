@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -30,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import org.koin.core.component.get
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -40,8 +42,6 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
     val mediaServiceMock = mock<MediaService>()
 
     val file = "download".encodeToByteArray()
-
-    val config = MatrixMessengerConfiguration()
 
     init {
         resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
@@ -109,15 +109,14 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » don't download if disabled in configs`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
-            async {
-                delay(5.seconds)
-                Result.failure(RuntimeException("Oh no!"))
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } calls
+            {
+                throw IllegalStateException("We should never be able to reach this")
             }
 
         val cut = fileBasedMessageViewModel()
         var downloadResult: ByteArray? = null
-        config.downloadsDisabled = false
+        cut.get<MatrixMessengerConfiguration>().downloadsDisabled = true
 
         var downloadCanceled = false
 
@@ -166,11 +165,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
                                 modules(
                                     createTestDefaultTrixnityMessengerModules(
                                         mapOf(UserId("test", "server") to matrixClientMock)
-                                    ) +
-                                        module {
-                                            single { downloadManagerMock }
-                                            single { config }
-                                        }
+                                    ) + module { single { downloadManagerMock } }
                                 )
                             }
                             .koin,
