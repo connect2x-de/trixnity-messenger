@@ -14,25 +14,19 @@ import okio.source
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriFileDescriptorKt")
 
-actual class InMemoryFileDescriptor(
-    actual override val fileName: String,
-    actual override val fileSize: Long?,
-    actual override val mimeType: ContentType?,
-    actual override val content: ByteArrayFlow,
-) : FileDescriptor
-
-actual class FileBackedFileDescriptor(private val context: Context, internal val fileUri: Uri, i18n: I18n) :
-    FileDescriptor {
+class UriFileDescriptor(private val context: Context, internal val fileUri: Uri, i18n: I18n) :
+    FileBackedFileDescriptor {
 
     private val computedFileInfo = getComputeFileInfo(fileUri)
 
-    actual override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
-    actual val filePath: String = requireNotNull(fileUri.path) { " File path for Uri ${fileUri.toString()} was null." }
-    actual override val fileSize: Long? = computedFileInfo?.fileSize
-    actual override val mimeType: ContentType? =
+    override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
+    override val filePath: String =
+        requireNotNull(fileUri.path) { " File path for Uri ${fileUri.toString()} was null." }
+    override val fileSize: Long? = computedFileInfo?.fileSize
+    override val mimeType: ContentType? =
         computedFileInfo?.mimeType?.let(ContentType.Companion::parse)
             ?: computedFileInfo?.fileName?.let(ContentType.Companion::fromFilePath)?.firstOrNull()
-    actual override val content: ByteArrayFlow = byteArrayFlowFromSource {
+    override val content: ByteArrayFlow = byteArrayFlowFromSource {
         log.debug { "File size is $fileSize" }
         context.contentResolver.openInputStream(fileUri)?.source() ?: Buffer()
     }
@@ -52,3 +46,5 @@ actual class FileBackedFileDescriptor(private val context: Context, internal val
     }
         .getOrNull()
 }
+
+data class ComputedFileInfo(val fileName: String, val fileSize: Long?, val mimeType: String?)

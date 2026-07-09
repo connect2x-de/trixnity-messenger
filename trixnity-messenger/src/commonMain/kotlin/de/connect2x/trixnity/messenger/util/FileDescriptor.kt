@@ -10,17 +10,24 @@ interface FileDescriptor {
     val content: ByteArrayFlow
 }
 
-expect class InMemoryFileDescriptor : FileDescriptor {
+interface InMemoryFileDescriptor : FileDescriptor {
     override val fileName: String
     override val fileSize: Long?
     override val mimeType: ContentType?
     override val content: ByteArrayFlow
 }
 
-expect class FileBackedFileDescriptor : FileDescriptor {
+interface FileBackedFileDescriptor : FileDescriptor {
     override val fileName: String
     val filePath: String
     override val fileSize: Long?
     override val mimeType: ContentType?
     override val content: ByteArrayFlow
 }
+
+class BasicFileDescriptor(
+    override val fileName: String,
+    override val fileSize: Long?,
+    override val mimeType: ContentType?,
+    override val content: ByteArrayFlow,
+) : InMemoryFileDescriptor

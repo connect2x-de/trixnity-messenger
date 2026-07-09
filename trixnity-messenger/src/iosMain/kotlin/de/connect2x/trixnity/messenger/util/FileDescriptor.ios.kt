@@ -16,22 +16,22 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.readByteArray
 
-actual class InMemoryFileDescriptor(private val path: Path, private val data: ByteArray) : FileDescriptor {
-    actual override val fileName: String = path.name
-    actual override val fileSize: Long? = data.size.toLong()
-    actual override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
-    actual override val content: ByteArrayFlow = data.toByteArrayFlow()
+class ByteArrayFileDescriptor(private val path: Path, private val data: ByteArray) : InMemoryFileDescriptor {
+    override val fileName: String = path.name
+    override val fileSize: Long? = data.size.toLong()
+    override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
+    override val content: ByteArrayFlow = data.toByteArrayFlow()
 }
 
-actual class FileBackedFileDescriptor(internal val file: PlatformFile) : FileDescriptor {
+class FileKitFileDescriptor(internal val file: PlatformFile) : FileBackedFileDescriptor {
 
-    actual override val fileName: String = file.path.toPath().name
-    actual val filePath: String = file.path
-    actual override val fileSize: Long? = file.size()
-    actual override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
+    override val fileName: String = file.path.toPath().name
+    override val filePath: String = file.path
+    override val fileSize: Long? = file.size()
+    override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
 
     @OptIn(InternalIoApi::class)
-    actual override val content: ByteArrayFlow = flow {
+    override val content: ByteArrayFlow = flow {
         file.source().buffered().use { source ->
             while (!source.exhausted()) {
                 emit(source.readByteArray(BYTE_ARRAY_FLOW_CHUNK_SIZE.coerceAtMost(source.buffer.size).toInt()))
