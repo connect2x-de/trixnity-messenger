@@ -45,15 +45,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     init {
         resetMocks(matrixClientMock, downloadManagerMock, mediaServiceMock)
-        every { matrixClientMock.di } returns
-            koinApplication {
-                modules(
-                    module {
-                        single { mediaServiceMock }
-                    }
-                )
-            }
-                .koin
+        every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
     }
 
     @BeforeTest
@@ -169,17 +161,18 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         object :
             FileBasedRoomMessageTimelineElementViewModel<RoomMessageEventContent.FileBased.File>(
                 testMatrixClientViewModelContext(
-                    di = koinApplication {
-                            modules(
-                                createTestDefaultTrixnityMessengerModules(
-                                    mapOf(UserId("test", "server") to matrixClientMock)
-                                ) +
-                                    module {
-                                        single { downloadManagerMock }
-                                        single { config }
-                                    }
-                            )
-                        }
+                    di =
+                        koinApplication {
+                                modules(
+                                    createTestDefaultTrixnityMessengerModules(
+                                        mapOf(UserId("test", "server") to matrixClientMock)
+                                    ) +
+                                        module {
+                                            single { downloadManagerMock }
+                                            single { config }
+                                        }
+                                )
+                            }
                             .koin,
                     userId = UserId("test", "server"),
                 ),

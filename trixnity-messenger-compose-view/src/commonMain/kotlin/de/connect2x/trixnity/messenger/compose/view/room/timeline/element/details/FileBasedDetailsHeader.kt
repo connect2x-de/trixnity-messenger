@@ -99,12 +99,7 @@ fun FileBasedDetailsHeader(
                 additionalButtons(this)
                 if (!configuration.downloadsDisabled) {
                     if (downloadProgress == null) {
-                        FileBasedDetailsHeaderButton(
-                            Icons.Outlined.Download,
-                            i18n.downloadMessage(),
-                            true,
-                            onSave,
-                        )
+                        FileBasedDetailsHeaderButton(Icons.Outlined.Download, i18n.downloadMessage(), true, onSave)
                     } else {
                         Box {
                             downloadProgress.percent?.let {
