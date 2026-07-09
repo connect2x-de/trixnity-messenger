@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements
 
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
+import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.client.store.RoomUser
 import de.connect2x.trixnity.client.store.ServerData
@@ -48,9 +50,14 @@ import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
 import de.connect2x.trixnity.messenger.eventually
 import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.update
+import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.EncryptedWaitTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.timeline
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReaction
+import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions
+import de.connect2x.trixnity.messenger.viewmodel.util.GetEventReactions
 import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -109,6 +116,7 @@ class TimelineElementHolderViewModelTest {
                 stateKey = usId.full,
             ),
         )
+    private val usUserElement = UserInfoElement(usId, name = "us", initials = "U1", image = null)
 
     private val alice =
         RoomUser(
@@ -144,7 +152,11 @@ class TimelineElementHolderViewModelTest {
     val roomServiceMock = mock<RoomService>()
     val userServiceMock = mock<UserService>()
     val matrixClientServerApiClientMock = mock<MatrixClientServerApiClient>()
+    val mediaServiceMock = mock<MediaService>()
     val roomApiClientMock = mock<RoomApiClient>()
+    val getEventReactionsMock = mock<GetEventReactions>()
+
+    val reactionsFlow = MutableStateFlow(EventReactions(setOf()))
 
     val timelineEvent =
         TimelineEvent(
@@ -169,7 +181,10 @@ class TimelineElementHolderViewModelTest {
     private val serverData = MutableStateFlow(ServerData(GetVersions.Response(), GetMediaConfig.Response(), null, null))
     private val di =
         koinApplication {
-                modules(scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings))
+                modules(
+                    scope.createTestDefaultTrixnityMessengerModules(mapOf(usId to matrixClientMock), settings) +
+                        listOf(module { single<GetEventReactions> { getEventReactionsMock } })
+                )
             }
             .koin
     private val config by lazy { di.get<MatrixMessengerConfiguration>() }
@@ -218,6 +233,16 @@ class TimelineElementHolderViewModelTest {
         every { matrixClientMock.api } returns matrixClientServerApiClientMock
         every { matrixClientServerApiClientMock.room } returns roomApiClientMock
         receipts.value = mapOf()
+
+        every {
+            getEventReactionsMock.invoke(
+                matrixClient = any(),
+                roomId = any(),
+                eventId = any(),
+                initials = any(),
+                maxMediaSizeInMemory = any(),
+            )
+        } calls { reactionsFlow }
     }
 
     @BeforeTest
@@ -863,6 +888,210 @@ class TimelineElementHolderViewModelTest {
             newRedactCalled shouldBe true
         }
     }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `removeReaction » reaction not present » should do nothing`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        var removedMessage: EventIdOrTransactionId? = null
+        everySuspend { roomServiceMock.cancelSendMessage(roomId, any()) } calls
+            {
+                removedMessage = EventIdOrTransactionId(it.args[1] as String)
+            }
+        everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } calls
+            {
+                val content =
+                    MessageBuilder(roomId, roomServiceMock, mediaServiceMock, aliceId)
+                        .build(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                removedMessage = (content as? RedactionEventContent)?.redacts?.let { EventIdOrTransactionId(it) }
+                "Not relevant"
+            }
+        everySuspend { roomApiClientMock.redactEvent(roomId, any(), any(), any()) } calls
+            {
+                val eventId = it.args[1] as EventId
+                removedMessage = EventIdOrTransactionId(eventId)
+                Result.success(eventId)
+            }
+
+        val cut = cut()
+        backgroundScope.launch { cut.reactions.collect() }
+
+        delay(100.milliseconds)
+
+        cut.removeReaction("🧌")
+
+        delay(100.milliseconds)
+
+        cut.removeReaction("🧌")
+        delay(100.milliseconds)
+        removedMessage shouldBe null
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `removeReaction » target TransactionId » should cancel sending message`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        reactionsFlow.value =
+            EventReactions(
+                setOf(
+                    EventReaction(
+                        value = "🧌",
+                        sender = usUserElement,
+                        eventOrTransactionId = EventIdOrTransactionId("123"),
+                        isByMe = true,
+                    )
+                )
+            )
+
+        var removedMessage: EventIdOrTransactionId? = null
+        var removedFromOutbox = false
+        everySuspend { roomServiceMock.cancelSendMessage(roomId, any()) } calls
+            {
+                removedMessage = EventIdOrTransactionId(it.args[1] as String)
+                removedFromOutbox = true
+            }
+        everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } calls
+            {
+                val content =
+                    MessageBuilder(roomId, roomServiceMock, mediaServiceMock, aliceId)
+                        .build(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                removedMessage = (content as? RedactionEventContent)?.redacts?.let { EventIdOrTransactionId(it) }
+                "Not relevant"
+            }
+        everySuspend { roomApiClientMock.redactEvent(roomId, any(), any(), any()) } calls
+            {
+                val eventId = it.args[1] as EventId
+                removedMessage = EventIdOrTransactionId(eventId)
+                Result.success(eventId)
+            }
+
+        val cut = cut()
+        backgroundScope.launch { cut.reactions.collect() }
+
+        delay(100.milliseconds)
+
+        cut.removeReaction("🧌")
+
+        delay(100.milliseconds)
+
+        removedMessage shouldBe EventIdOrTransactionId("123")
+        removedFromOutbox = true
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `removeReaction » target EventId and server version is old » should call legacy redactEvent`() = runTest {
+        every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+        timeline(roomServiceMock, roomId) { +timelineEvent }
+        reactionsFlow.value =
+            EventReactions(
+                setOf(
+                    EventReaction(
+                        value = "🧌",
+                        sender = usUserElement,
+                        eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
+                        isByMe = true,
+                    )
+                )
+            )
+
+        var removedMessage: EventIdOrTransactionId? = null
+        var removedOld = false
+        everySuspend { roomServiceMock.cancelSendMessage(roomId, any()) } calls
+            {
+                removedMessage = EventIdOrTransactionId(it.args[1] as String)
+            }
+        everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } calls
+            {
+                val content =
+                    MessageBuilder(roomId, roomServiceMock, mediaServiceMock, aliceId)
+                        .build(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                removedMessage = (content as? RedactionEventContent)?.redacts?.let { EventIdOrTransactionId(it) }
+                "Not relevant"
+            }
+        everySuspend { roomApiClientMock.redactEvent(roomId, any(), any(), any()) } calls
+            {
+                val eventId = it.args[1] as EventId
+                removedMessage = EventIdOrTransactionId(eventId)
+                removedOld = true
+                Result.success(eventId)
+            }
+
+        val cut = cut()
+        backgroundScope.launch { cut.reactions.collect() }
+
+        delay(100.milliseconds)
+
+        cut.removeReaction("🧌")
+
+        delay(100.milliseconds)
+
+        removedMessage shouldBe EventIdOrTransactionId(EventId("123"))
+        removedOld = true
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    @Test
+    fun `removeReaction » target EventId and server version supports v1 18 » should send outbox redaction message`() =
+        runTest {
+            every { roomServiceMock.getOutbox(roomId) } returns flowOf(listOf())
+            timeline(roomServiceMock, roomId) { +timelineEvent }
+            reactionsFlow.value =
+                EventReactions(
+                    setOf(
+                        EventReaction(
+                            value = "🧌",
+                            sender = usUserElement,
+                            eventOrTransactionId = EventIdOrTransactionId(EventId("123")),
+                            isByMe = true,
+                        )
+                    )
+                )
+            serverData.value =
+                ServerData(
+                    versions = GetVersions.Response(listOf("v1.18")),
+                    mediaConfig = GetMediaConfig.Response(),
+                    capabilities = null,
+                    auth = null,
+                )
+
+            var removedMessage: EventIdOrTransactionId? = null
+            var removedNew = false
+            everySuspend { roomServiceMock.cancelSendMessage(roomId, any()) } calls
+                {
+                    removedMessage = EventIdOrTransactionId(it.args[1] as String)
+                }
+            everySuspend { roomServiceMock.sendMessage(roomId, any(), any()) } calls
+                {
+                    println(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                    val content =
+                        MessageBuilder(roomId, roomServiceMock, mediaServiceMock, aliceId)
+                            .build(it.args[2] as (suspend MessageBuilder.() -> Unit))
+                    removedMessage = (content as? RedactionEventContent)?.redacts?.let { EventIdOrTransactionId(it) }
+                    removedNew = true
+                    "Not relevant"
+                }
+            everySuspend { roomApiClientMock.redactEvent(roomId, any(), any(), any()) } calls
+                {
+                    val eventId = it.args[1] as EventId
+                    removedMessage = EventIdOrTransactionId(eventId)
+                    Result.success(eventId)
+                }
+
+            val cut = cut()
+            backgroundScope.launch { cut.reactions.collect() }
+
+            delay(100.milliseconds)
+
+            cut.removeReaction("🧌")
+
+            delay(100.milliseconds)
+
+            removedMessage shouldBe EventIdOrTransactionId(EventId("123"))
+            removedNew = true
+        }
 
     private fun TestScope.cut(
         timelineEvent: TimelineEvent = this@TimelineElementHolderViewModelTest.timelineEvent,

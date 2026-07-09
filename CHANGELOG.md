@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DEPENDENCY: update SysNotify to 2.7.0
 - INTERNAL: update c2x-conventions to 20260706.081921
 - INTERNAL: pinned the ktfmt IntelliJ plugin to 1.3.0.63
+- UI, SDK: Display and redact reactions still in the outbox
+- SDK: (**breaking change**) Changed `GetEventReactions.EventReaction` to use `EventIdOrTransactionId` instead of `EventId` in order to support reactions in outbox
 
 ### Deprecated
 

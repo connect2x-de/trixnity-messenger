@@ -42,6 +42,7 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
 import de.connect2x.trixnity.messenger.viewmodel.i18n
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.TransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isRedactionFor
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.isReplacementFor
@@ -703,17 +704,24 @@ class TimelineElementHolderViewModelImpl(
 
     override fun removeReaction(reaction: String) {
         coroutineScope.launch {
-            val eventId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
-            if (eventId != null) {
-                if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
-                    matrixClient.room.sendMessage(roomId) { redact(eventId) }
-                } else {
-                    matrixClient.api.room.redactEvent(roomId, eventId, txnId = Uuid.random().toString()).onFailure {
-                        log.error(it) { "could not redact event $eventId" }
+            when (
+                val eventOrTransactionId = reactions.value?.byUser?.get(matrixClient.userId)?.reactions?.get(reaction)
+            ) {
+                null -> {
+                    log.warn { "could not remove reaction, because not present in loaded reactions" }
+                }
+                is TransactionId -> {
+                    matrixClient.room.cancelSendMessage(roomId, eventOrTransactionId.transactionId)
+                }
+                is EventIdOrTransactionId.EventId -> {
+                    if (matrixClient.serverData.value?.versions?.versions?.contains("v1.18") == true) {
+                        matrixClient.room.sendMessage(roomId) { redact(eventOrTransactionId.eventId) }
+                    } else {
+                        matrixClient.api.room
+                            .redactEvent(roomId, eventOrTransactionId.eventId, txnId = Uuid.random().toString())
+                            .onFailure { log.error(it) { "could not redact event ${eventOrTransactionId.eventId}" } }
                     }
                 }
-            } else {
-                log.warn { "could not remove reaction, because not present in loaded reactions" }
             }
         }
     }

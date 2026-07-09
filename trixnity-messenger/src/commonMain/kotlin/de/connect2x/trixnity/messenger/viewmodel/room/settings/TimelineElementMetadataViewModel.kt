@@ -16,6 +16,7 @@ import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementHolderViewModelFactory
@@ -318,7 +319,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                     initials = "M",
                                     image = MutableStateFlow(previewImageByteArray()),
                                 ),
-                                EventId("r1"),
+                                EventIdOrTransactionId(EventId("r1")),
                                 false,
                             ),
                             EventReaction(
@@ -329,7 +330,7 @@ class PreviewTimelineElementMetadataViewModel1 : TimelineElementMetadataViewMode
                                     initials = "M",
                                     image = MutableStateFlow(previewImageByteArray()),
                                 ),
-                                EventId("r2"),
+                                EventIdOrTransactionId(EventId("r2")),
                                 false,
                             ),
                         )
