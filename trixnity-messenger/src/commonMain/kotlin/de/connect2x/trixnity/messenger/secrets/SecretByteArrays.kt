@@ -30,9 +30,7 @@ interface SecretByteArrays {
         changedProviderId: String,
         changedProviderRotate:
             suspend (
-                oldExtra: JsonObject?,
-                getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?,
+                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult,
     )
 
@@ -139,9 +137,7 @@ class SecretByteArraysImpl(
         changedProviderId: String,
         changedProviderRotate:
             suspend (
-                oldExtra: JsonObject?,
-                getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?,
+                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult,
     ) {
         val oldKey = getKey(keySize)
@@ -172,9 +168,7 @@ class SecretByteArraysImpl(
         changedProviderId: String?,
         changedProviderRotate:
             (suspend (
-                oldExtra: JsonObject?,
-                getOldInputKey: GetKey?,
-                getNewInputKey: GetKey?,
+                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult)?,
     ): SecretByteArraySettings = rotateKeysLock.withLock {
         log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
