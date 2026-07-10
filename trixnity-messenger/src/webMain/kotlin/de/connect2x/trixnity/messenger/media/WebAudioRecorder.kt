@@ -2,10 +2,8 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.media
-import de.connect2x.trixnity.clientserverapi.model.media.FileTransferProgress
 import de.connect2x.trixnity.messenger.util.handleFirst
+import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
 import js.array.asList
 import js.buffer.ArrayBuffer
@@ -23,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
@@ -51,7 +48,9 @@ class WebAudioRecorder(
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebAudioRecorder")
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    override suspend fun start(matrixClient: MatrixClient): AudioRecorderImpl.State.Recording? {
+    override suspend fun start(
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
+    ): AudioRecorderImpl.State.Recording? {
         return try {
             val microphone =
                 // timeout if user neither denies nor allows microphone permission
@@ -63,7 +62,7 @@ class WebAudioRecorder(
                 AudioRecorderImpl.State.Recording(
                     start = clock.now(),
                     loudness = loudness(microphone),
-                    complete = complete(recorder, microphone, matrixClient),
+                    complete = complete(recorder, microphone, intoMediaStore),
                 )
             } else {
                 log.info { "Microphone permission request timed out." }
@@ -91,7 +90,7 @@ class WebAudioRecorder(
     private suspend fun complete(
         recorder: MediaRecorder,
         microphone: MediaStream,
-        matrixClient: MatrixClient,
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
     ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
         var recordingSizeBytes = 0.0
         val chunks = callbackFlow {
@@ -126,8 +125,8 @@ class WebAudioRecorder(
         }.buffer(UNLIMITED)
             .map { it.byteArray()}
 
-        val fileDeferred = coroutineScope.async {
-            matrixClient.media.prepareUploadEncryptedMedia(chunks)
+        val mediaDeferred = coroutineScope.async {
+            intoMediaStore(chunks)
         }
 
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
@@ -158,28 +157,15 @@ class WebAudioRecorder(
                     }
                 }
             if (recordingSuccessful != null) {
-                val file = fileDeferred.await()
-                val recording = matrixClient.media.getEncryptedMedia(file).fold(
-                    onSuccess = { recording ->
-                        recording
-                    },
-                    onFailure = { exception ->
-                        log.error(exception) { "Error while loading recorded audio from media store" }
-                        null
-                    }
-                )
-                if (recording != null) {
-                    AudioRecorderImpl.State.Completed(
-                        recording,
+                val media = mediaDeferred.await()
+                AudioRecorderImpl.State.Completed(
+                        media,
                         clock.now() - recordingState.start,
                         recordingSizeBytes.toLong(),
                         opusContentType,
                     ) {
                         // Automatically deleted by media store
                     }
-                } else {
-                    null
-                }
             } else {
                 null
             }
@@ -217,7 +203,7 @@ class WebAudioRecorder(
 
     override suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed {
         return AudioRecorderImpl.State.Completed(
-            capture = state.data,
+            capture = state.media,
             duration = state.duration,
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,

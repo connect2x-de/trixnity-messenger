@@ -3,10 +3,10 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
-import de.connect2x.trixnity.client.MatrixClient
-import de.connect2x.trixnity.client.media.PlatformMedia
-import de.connect2x.trixnity.messenger.MatrixClients
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed.MediaReference
+import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 interface AudioRecorder : AutoCloseable {
     val state: StateFlow<State>
 
-    suspend fun startSuspending(matrixClient: MatrixClient)
+    suspend fun startSuspending(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference)
 
     suspend fun complete()
 
@@ -44,12 +44,17 @@ interface AudioRecorder : AutoCloseable {
         data class Recording(val duration: Duration, val loudness: Float) : State
 
         data class Completed(
-            val data: PlatformMedia,
+            val media: MediaReference,
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
             val fileExtension: String,
-        ) : State
+        ) : State {
+            sealed interface MediaReference {
+                data class Unencrypted(val uri: String): MediaReference
+                data class Encrypted(val uriWithMetadata: EncryptedFile): MediaReference
+            }
+        }
     }
 }
 
@@ -68,10 +73,12 @@ class AudioRecorderImpl(
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    override suspend fun startSuspending(matrixClient: MatrixClient) {
+    override suspend fun startSuspending(
+        intoMediaStore: suspend (ByteArrayFlow) -> MediaReference
+    ) {
         close()
 
-        val initialRecordingState = platformAudioRecorder.start(matrixClient)
+        val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
         if (initialRecordingState != null) {
             stateImpl.value = withCatchCallbacks(initialRecordingState)
         }
@@ -92,8 +99,6 @@ class AudioRecorderImpl(
         parentScope.launch {
             stateImpl.value = close(stateImpl.value)
         }
-
-
     }
 
     /** Abstract effectful platform-specific actions by storing them here as function values */
@@ -104,7 +109,7 @@ class AudioRecorderImpl(
             State
 
         data class Completed(
-            val capture: PlatformMedia,
+            val capture: MediaReference,
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
