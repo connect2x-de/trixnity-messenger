@@ -49,6 +49,7 @@ public final class de/connect2x/trixnity/messenger/CreateMediaStore_jvmAndNative
 public abstract interface class de/connect2x/trixnity/messenger/CreateRepositoriesModule {
 	public abstract fun create-pFTbHVM (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun generateDatabaseKey (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun handleExceptions (Ljava/lang/Exception;)V
 	public abstract fun load-pFTbHVM (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -142,6 +143,64 @@ public final synthetic class de/connect2x/trixnity/messenger/MatrixClientInitial
 }
 
 public final class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseAccessException$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException : java/lang/RuntimeException, de/connect2x/trixnity/messenger/MatrixClientInitializationException {
+	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseCannotBeDecryptedException$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException : java/lang/RuntimeException, de/connect2x/trixnity/messenger/MatrixClientInitializationException {
+	public static final field Companion Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lde/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixClientInitializationException$DatabaseKeysManipulatedException$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
@@ -2428,7 +2487,6 @@ public final class de/connect2x/trixnity/messenger/search/user/homeserver/Homese
 }
 
 public final class de/connect2x/trixnity/messenger/secrets/DatabaseKeyKt {
-	public static final fun deleteDatabaseKey-2EL3Co0 (Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun getDatabaseKey-2EL3Co0 (Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun setDatabaseKey-PKisLvk (Lde/connect2x/trixnity/messenger/secrets/SecretByteArrays;Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -2512,6 +2570,11 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrayExcept
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
+public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrayIntegrityCheckException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrayKeyInfo {
 	public static final field Companion Lde/connect2x/trixnity/messenger/secrets/SecretByteArrayKeyInfo$Companion;
 	public fun <init> ()V
@@ -2568,9 +2631,12 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrayKeyPro
 
 public abstract interface class de/connect2x/trixnity/messenger/secrets/SecretByteArrays {
 	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun get-jMVdB_k (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getInputKeyAndExtra (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun removeSecretsForUser-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun rotateKeys (Ljava/lang/String;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun set (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun set-gc9KSug (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrays$GetInputKeyAndExtraResult {
@@ -2590,9 +2656,12 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl 
 	public static final field Companion Lde/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl$Companion;
 	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lkotlin/Lazy;)V
 	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun get-jMVdB_k (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getInputKeyAndExtra (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun removeSecretsForUser-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun rotateKeys (Ljava/lang/String;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun set (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun set-gc9KSug (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl$Companion {
@@ -2601,6 +2670,39 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl$
 public final class de/connect2x/trixnity/messenger/secrets/SecretByteArraysKt {
 	public static final fun SecretByteArraySettings (Ljava/util/Map;Ljava/util/Map;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun checkIntegrity (Lde/connect2x/trixnity/messenger/SecretByteArraySettings;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class de/connect2x/trixnity/messenger/secrets/SecretId {
+	public static final field Companion Lde/connect2x/trixnity/messenger/secrets/SecretId$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/secrets/SecretId;
+	public static fun constructor-impl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public static final fun getId-impl (Ljava/lang/String;)Ljava/lang/String;
+	public static final fun getUserId-DuKFSck (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getValue ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final synthetic class de/connect2x/trixnity/messenger/secrets/SecretId$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/secrets/SecretId$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun deserialize-jKDhgrk (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/String;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public final fun serialize-jJ4sX8w (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/String;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class de/connect2x/trixnity/messenger/secrets/SecretId$Companion {
+	public final fun getSecretIdAlphabet ()Lkotlin/text/Regex;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class de/connect2x/trixnity/messenger/secrets/SecretsModuleKt {
@@ -4444,8 +4546,10 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/connec
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationFailureViewModel {
 	public abstract fun closeApplication ()V
+	public abstract fun confirmDeletion ()V
 	public abstract fun delete ()V
 	public abstract fun getDeleteEnabled ()Z
+	public abstract fun getInitializationException ()Lde/connect2x/trixnity/messenger/MatrixClientInitializationException;
 	public abstract fun getUserId-hu1aZbM ()Ljava/lang/String;
 }
 
@@ -4470,20 +4574,26 @@ public class de/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientIn
 	public fun childContext-f0dHyF0 (Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun childContextWithOwnLifecycle-Gg2FYls (Ljava/lang/String;Lcom/arkivanov/essenty/lifecycle/Lifecycle;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public fun closeApplication ()V
+	public fun confirmDeletion ()V
 	public fun delete ()V
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
 	public fun getDeleteEnabled ()Z
+	public final fun getDeleteProfile ()Z
+	public fun getInitializationException ()Lde/connect2x/trixnity/messenger/MatrixClientInitializationException;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
 	public fun getLog ()Lde/connect2x/lognity/api/logger/Logger;
 	public final fun getMatrixClients ()Lde/connect2x/trixnity/messenger/MatrixClients;
+	public final fun getMessengerConfiguration ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
+	public final fun getProfileManager ()Lde/connect2x/trixnity/messenger/multi/ProfileManager;
 	public fun getStateKeeper ()Lcom/arkivanov/essenty/statekeeper/StateKeeper;
 	public fun getTrixnityMessengerBackHandler ()Lde/connect2x/trixnity/messenger/util/BackHandler;
 	public fun getUserId-hu1aZbM ()Ljava/lang/String;
 	public fun registerBackCallback (Lde/connect2x/trixnity/messenger/util/BackCallback;)V
+	public final fun setDeleteProfile (Z)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationViewModel {

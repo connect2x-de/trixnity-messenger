@@ -1016,6 +1016,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/connecting/Serve
 
 public final class de/connect2x/trixnity/messenger/compose/view/connecting/StoreFailureKt {
 	public static final fun MatrixClientInitializationFailure (Lde/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationFailureViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun StoreFailureCannotDecryptDatabase (Lde/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationFailureViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun StoreFailureKeysManipulation (Lde/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationFailureViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun StoreFailureShowError (Lde/connect2x/trixnity/messenger/viewmodel/connecting/MatrixClientInitializationFailureViewModel;Landroidx/compose/runtime/Composer;I)V
+	public static final fun StoreFailureWarning (Ljava/lang/String;Landroidx/compose/runtime/Composer;I)V
 }
 
 public final class de/connect2x/trixnity/messenger/compose/view/files/CameraDialogCapturingMode : java/lang/Enum {
@@ -1690,12 +1694,17 @@ public class de/connect2x/trixnity/messenger/compose/view/i18n/I18nView : de/con
 	public fun shareFilesTitle (I)Ljava/lang/String;
 	public fun showAliases ()Ljava/lang/String;
 	public fun storeFailureAlreadyOpen (Ljava/lang/String;)Ljava/lang/String;
+	public fun storeFailureCannotDecryptDatabaseExplanation ()Ljava/lang/String;
+	public fun storeFailureCannotDecryptDatabaseWarning (Ljava/lang/String;)Ljava/lang/String;
+	public fun storeFailureDeleteAccount ()Ljava/lang/String;
 	public fun storeFailureDeleteDb ()Ljava/lang/String;
 	public fun storeFailureDeleteLocalDb ()Ljava/lang/String;
 	public fun storeFailureDeleteLocalDbOtherDevice ()Ljava/lang/String;
 	public fun storeFailureDeleteLocalDbRecoveryKey ()Ljava/lang/String;
 	public fun storeFailureDeleteLocalDbSelect ()Ljava/lang/String;
 	public fun storeFailureDeleteLocalDbWarning ()Ljava/lang/String;
+	public fun storeFailureKeysManipulationExplanation ()Ljava/lang/String;
+	public fun storeFailureKeysManipulationWarning (Ljava/lang/String;)Ljava/lang/String;
 	public fun storeFailureLocalDbNotLoaded (Ljava/lang/String;)Ljava/lang/String;
 	public fun storeFailureLocalDbRestart (Ljava/lang/String;)Ljava/lang/String;
 	public fun storeFailureLocalDbSelect ()Ljava/lang/String;

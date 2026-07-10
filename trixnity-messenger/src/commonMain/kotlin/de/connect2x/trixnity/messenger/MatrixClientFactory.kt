@@ -16,7 +16,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder
 import de.connect2x.trixnity.core.serialization.events.default
-import de.connect2x.trixnity.messenger.secrets.SecretByteArrayManipulationException
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrayIntegrityCheckException
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
@@ -96,7 +96,7 @@ class MatrixClientFactoryImpl(
         val repositoriesModule =
             try {
                 createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
-            } catch (exc: SecretByteArrayManipulationException) {
+            } catch (exc: SecretByteArrayIntegrityCheckException) {
                 log.error(exc) { "The settings.json file seems to be manipulated." }
                 throw MatrixClientInitializationException.DatabaseKeysManipulatedException(exc.message)
             } catch (exc: Exception) {
@@ -112,7 +112,7 @@ class MatrixClientFactoryImpl(
         val repositoriesModule =
             try {
                 createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
-            } catch (exc: SecretByteArrayManipulationException) {
+            } catch (exc: SecretByteArrayIntegrityCheckException) {
                 log.error(exc) { "The settings.json file seems to be manipulated." }
                 throw MatrixClientInitializationException.DatabaseKeysManipulatedException(exc.message)
             } catch (exc: Exception) {

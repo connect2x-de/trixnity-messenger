@@ -84,7 +84,7 @@ class SecretByteArraysImpl(
     }
 
     @Deprecated("use set(SecretId, ByteArray?)")
-    override suspend fun set(id: String, raw: ByteArray?) = set(SecretId(null, id), raw)
+    override suspend fun set(id: String, raw: ByteArray?) = set(SecretId(id, null), raw)
 
     private suspend fun get(id: SecretId, raw: ByteArray, secretByteArrayKey: ByteArray?): SecretByteArray {
         val secretByteArray =
@@ -112,7 +112,7 @@ class SecretByteArraysImpl(
         }
     }
 
-    @Deprecated("use get(SecretId)") override suspend fun get(id: String): ByteArray? = get(SecretId(null, id))
+    @Deprecated("use get(SecretId)") override suspend fun get(id: String): ByteArray? = get(SecretId(id, null))
 
     private suspend fun get(id: SecretId, secretByteArray: SecretByteArray, secretByteArrayKey: ByteArray?): ByteArray {
         return when (secretByteArray) {
@@ -150,16 +150,12 @@ class SecretByteArraysImpl(
 
     override suspend fun removeSecretsForUser(userId: UserId) = setMutex.withLock {
         val secretByteArraysSettings = getSettingsOrInitialize()
-        val newSecrets = secretByteArraysSettings.secrets?.filter { (key, _) -> key.userId != userId }
+        val key = getKey(keySize)
         val newSettings =
-            secretByteArraysSettings.copy(
-                secrets = newSecrets,
-                mac =
-                    getMac(
-                        newSecrets.orEmpty(),
-                        secretByteArraysSettings.keyInfo.orEmpty(),
-                        getKey(keySize),
-                    ),
+            SecretByteArraySettings(
+                secrets = secretByteArraysSettings.secrets.orEmpty().filterKeys { key -> key.userId != userId },
+                keyInfo = secretByteArraysSettings.keyInfo.orEmpty(),
+                key = key,
             )
         settings.update<SecretByteArraySettings> { newSettings }
     }
@@ -301,7 +297,7 @@ suspend fun SecretByteArraySettings(
 suspend fun SecretByteArraySettings.checkIntegrity(key: ByteArray?) {
     val calculatedMac = getMac(secrets.orEmpty(), keyInfo.orEmpty(), key)
     if (!mac.contentEquals(calculatedMac))
-        throw SecretByteArrayManipulationException("SecretByteArray integrity check failed")
+        throw SecretByteArrayIntegrityCheckException("SecretByteArray integrity check failed")
 }
 
 private suspend fun getMac(

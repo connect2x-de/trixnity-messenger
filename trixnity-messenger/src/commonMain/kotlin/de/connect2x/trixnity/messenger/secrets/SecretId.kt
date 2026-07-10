@@ -12,8 +12,8 @@ value class SecretId private constructor(val value: String) {
     }
 
     constructor(
-        userId: UserId?,
         id: String,
+        userId: UserId?,
     ) : this(
         kotlin.run {
             require(id.matches(secretIdAlphabet))
