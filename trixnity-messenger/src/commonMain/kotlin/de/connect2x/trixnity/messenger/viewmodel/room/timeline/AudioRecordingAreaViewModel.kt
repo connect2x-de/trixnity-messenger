@@ -278,9 +278,11 @@ class AudioRecordingAreaViewModelImpl(
                     }
                 } else {
                     log.warn { "Failed to retrieve content type for audio message draft" }
+                    matrixClient.room.deleteDraftMessage(roomId)
                 }
             } else {
                 log.warn { "Failed loading audio message draft, because the duration was null" }
+                matrixClient.room.deleteDraftMessage(roomId)
             }
         }
     }
