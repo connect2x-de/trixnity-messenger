@@ -38,6 +38,8 @@ interface AudioRecorder : AutoCloseable {
 
     suspend fun loadSuspending(state: State.Completed)
 
+    suspend fun closeSuspending()
+
     sealed interface State {
         object Ready : State
 
@@ -76,7 +78,7 @@ class AudioRecorderImpl(
     override suspend fun startSuspending(
         intoMediaStore: suspend (ByteArrayFlow) -> MediaReference
     ) {
-        close()
+        closeSuspending()
 
         val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
         if (initialRecordingState != null) {
@@ -85,7 +87,7 @@ class AudioRecorderImpl(
     }
 
     override suspend fun loadSuspending(state: AudioRecorder.State.Completed) {
-        close()
+        closeSuspending()
 
         platformAudioRecorder.load(state)?.let { stateImpl.value = it }
     }
@@ -94,10 +96,14 @@ class AudioRecorderImpl(
         stateImpl.value = complete(stateImpl.value)
     }
 
-    override fun close() {
+    override suspend fun closeSuspending() {
+        stateImpl.value = close(stateImpl.value)
         platformAudioRecorder.close()
+    }
+
+    override fun close() {
         parentScope.launch {
-            stateImpl.value = close(stateImpl.value)
+            closeSuspending()
         }
     }
 
