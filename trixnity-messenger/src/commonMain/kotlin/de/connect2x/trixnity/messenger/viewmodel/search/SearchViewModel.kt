@@ -94,6 +94,9 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
     /** Indicates whether a provider can be activated. */
     val searchProviderCanBeEnabled: StateFlow<Map<SearchProvider.Key<*>, Boolean>>
 
+    /** A list of errors that occurred during the search. The key is the provider display name, the value the error. */
+    val errors: StateFlow<Map<String, String>>
+
     /** (Dis-)able a [SearchProvider] by its [SearchProvider.Key]. */
     fun setProvider(providerId: SearchProvider.Key<*>, enabled: Boolean)
 
@@ -255,6 +258,20 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
     override fun removeSearchFilter(key: SearchFilter.Key<*>) {
         searchFilters.value = searchFilters.value.filter { it.key != key }
     }
+
+    override val errors: StateFlow<Map<String, String>> =
+        searchResult
+            .map { providerSearchResults ->
+                providerSearchResults
+                    ?.mapNotNull { providerSearchResult ->
+                        when (val res = providerSearchResult.providerSearchResult) {
+                            is SearchProviderResult.Failure -> providerSearchResult.providerDisplayName to res.error
+                            else -> null
+                        }
+                    }
+                    ?.toMap() ?: emptyMap()
+            }
+            .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
     init {
         log.debug { "searchUserProviders: $searchProviders" }
