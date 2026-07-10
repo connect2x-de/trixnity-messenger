@@ -11442,10 +11442,16 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/PreviewUserS
 	public fun <init> ()V
 	public synthetic fun filterNotSearchResult (Lde/connect2x/trixnity/messenger/search/SearchResult;)V
 	public fun filterNotSearchResult (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;)V
-	public fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
-	public fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getAvailableFilters ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getErrors ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getErrors ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getNoResultsFound ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchFilters ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/MutableStateFlow;
 	public synthetic fun getSearchProviderEnabled ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getSearchProviders ()Ljava/util/List;
@@ -11464,6 +11470,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/PreviewUserS
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel {
 	public abstract fun filterNotSearchResult (Lde/connect2x/trixnity/messenger/search/SearchResult;)V
 	public abstract fun getAvailableFilters ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getErrors ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getNoResultsFound ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSearchFilters ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getSearchProviderCanBeEnabled ()Lkotlinx/coroutines/flow/StateFlow;
@@ -11507,6 +11514,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewMo
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getErrors ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
@@ -11564,6 +11572,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/search/UserSearchVi
 	public fun getBackHandler ()Lcom/arkivanov/essenty/backhandler/BackHandler;
 	public fun getComponentContextFactory ()Lcom/arkivanov/decompose/ComponentContextFactory;
 	public fun getCoroutineScope ()Lkotlinx/coroutines/CoroutineScope;
+	public fun getErrors ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getInstanceKeeper ()Lcom/arkivanov/essenty/instancekeeper/InstanceKeeper;
 	public fun getKoin ()Lorg/koin/core/Koin;
 	public fun getLifecycle ()Lcom/arkivanov/essenty/lifecycle/Lifecycle;
