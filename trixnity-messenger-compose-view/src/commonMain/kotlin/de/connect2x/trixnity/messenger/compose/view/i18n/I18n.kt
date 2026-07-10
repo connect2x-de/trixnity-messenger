@@ -874,6 +874,35 @@ open class I18nView(
         DE - "Ausloggen aus Account $accountName."
     }
 
+    open fun storeFailureKeysManipulationWarning(user: String) = translate {
+        EN - "The keys for the database of account '$user' have been tampered with."
+        DE - "Die Schlüssel für den Datenbankzugriff des Kontos '$user' wurden manipuliert."
+    }
+
+    open fun storeFailureKeysManipulationExplanation() = translate {
+        EN -
+            "This could be a hint that an unauthorized person has access to your device and tried to manipulate your keys."
+        DE -
+            "Dies kann ein Hinweis sein, dass sich eine unbefugte Person Zugriff auf das Gerät verschafft hat und versucht die Schlüssel zu manipulieren."
+    }
+
+    open fun storeFailureCannotDecryptDatabaseWarning(user: String) = translate {
+        EN - "The local database of account '$user' could not be decrypted."
+        DE - "Die lokale Datenbank des Kontos '$user' konnte nicht entschlüsselt werden."
+    }
+
+    open fun storeFailureCannotDecryptDatabaseExplanation() = translate {
+        EN -
+            "This could be a hint that an unauthorized person has access to your device and tried to manipulate your local database."
+        DE -
+            "Dies kann ein Hinweis sein, dass sich eine unbefugte Person Zugriff auf das Gerät verschafft und die lokale Datenbank manipuliert hat."
+    }
+
+    open fun storeFailureDeleteAccount() = translate {
+        EN - "You will be logged out and all local data will be deleted for security reasons."
+        DE - "Aus Sicherheitsgründen werden Sie nun ausgeloggt und alle lokale Daten gelöscht."
+    }
+
     open fun storeFailureAlreadyOpen(appName: String) = translate {
         EN - "$appName is already opened. This window will therefore be closed."
         DE - "$appName ist bereits geöffnet. Dieses Fenster wird nun geschlossen."

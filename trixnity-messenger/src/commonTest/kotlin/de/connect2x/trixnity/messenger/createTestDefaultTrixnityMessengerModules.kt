@@ -103,6 +103,8 @@ fun TestScope.createTestDefaultTrixnityMessengerModules(
                     override suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule = module
 
                     override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule = module
+
+                    override fun handleExceptions(exc: Exception) {}
                 }
             }
             single<CreateMediaStoreModule> {

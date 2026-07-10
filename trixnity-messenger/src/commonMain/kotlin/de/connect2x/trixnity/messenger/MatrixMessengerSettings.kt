@@ -7,6 +7,7 @@ import de.connect2x.trixnity.clientserverapi.client.oauth2.OAuth2AuthorizationCo
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.secrets.SecretByteArray
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrayKeyInfo
+import de.connect2x.trixnity.messenger.secrets.SecretId
 import de.connect2x.trixnity.messenger.settings.JsonDelegateSerializer
 import de.connect2x.trixnity.messenger.settings.MutableSettings
 import de.connect2x.trixnity.messenger.settings.MutableSettingsImpl
@@ -70,7 +71,7 @@ data class MatrixMessengerSettingsBase(
 @Serializable
 @NestedSettingsView("secretByteArrays")
 data class SecretByteArraySettings(
-    val secrets: Map<String, SecretByteArray>? = null,
+    val secrets: Map<SecretId, SecretByteArray>? = null,
     val keyInfo: Map<String, SecretByteArrayKeyInfo>? = null,
     val mac: @Serializable(with = ByteArrayBase64Serializer::class) ByteArray? = null,
 ) : SettingsView<MatrixMessengerSettings> {

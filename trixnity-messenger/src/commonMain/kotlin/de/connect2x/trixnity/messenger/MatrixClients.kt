@@ -13,7 +13,6 @@ import de.connect2x.trixnity.messenger.MatrixClients.CreateResult.Failure
 import de.connect2x.trixnity.messenger.MatrixClients.InitFromStoreResult
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
-import de.connect2x.trixnity.messenger.secrets.deleteDatabaseKey
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import io.ktor.client.plugins.*
 import kotlinx.coroutines.CancellationException
@@ -268,7 +267,7 @@ class MatrixClientsImpl(
 
                     settings.delete(userId)
                     matrixClients.update { it - userId }
-                    secretByteArrays.deleteDatabaseKey(userId)
+                    secretByteArrays.removeSecretsForUser(userId)
                     deleteAccountData(userId)
                     _initFromStoreResult.value = _initFromStoreResult.value?.remove(userId)
                 }
@@ -280,16 +279,41 @@ class MatrixClientsImpl(
     }
 }
 
+/**
+ * All errors that can occur when the [MatrixClient] is initialized.
+ *
+ * * [DatabaseAccessException]
+ * * [DatabaseLockedException]
+ * * [DatabaseKeysManipulatedException]
+ * * [DatabaseCannotBeDecryptedException]
+ * * [Unknown]
+ */
 @Serializable
 sealed interface MatrixClientInitializationException {
+    /** Generic db access error. */
     @Serializable
     data class DatabaseAccessException(override val message: String? = null) :
         MatrixClientInitializationException, RuntimeException(message)
 
+    /** Database is locked. */
     @Serializable
     data class DatabaseLockedException(override val message: String? = null) :
         MatrixClientInitializationException, RuntimeException(message)
 
+    /**
+     * Encrypted databases need a key to unlock. If the key is manipulated (default: stored in settings.json) this
+     * should be thrown.
+     */
+    @Serializable
+    data class DatabaseKeysManipulatedException(override val message: String? = null) :
+        MatrixClientInitializationException, RuntimeException(message)
+
+    /** The database is encrypted, but the key to unlock it does not match. */
+    @Serializable
+    data class DatabaseCannotBeDecryptedException(override val message: String? = null) :
+        MatrixClientInitializationException, RuntimeException(message)
+
+    /** All other cases that do not involve the database but still let the initialization fail. */
     @Serializable
     data class Unknown(override val message: String? = null) :
         MatrixClientInitializationException, RuntimeException(message)

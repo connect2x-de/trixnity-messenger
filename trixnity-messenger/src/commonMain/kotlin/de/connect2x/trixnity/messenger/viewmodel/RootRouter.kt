@@ -198,7 +198,7 @@ class RootRouter(private val viewModelContext: ViewModelContext) {
                             viewModelContext =
                                 viewModelContext.childContext("MatrixClientInitializationFailure", componentContext),
                             userId = config.userId,
-                            exception = config.exception,
+                            initializationException = config.exception,
                             onDeletionFinished = ::showInitialization,
                         )
                 )

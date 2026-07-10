@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger.secrets
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.serialization.canonicalJsonString
 import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
 import de.connect2x.trixnity.crypto.core.decryptAesHmacSha2
@@ -17,21 +18,30 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 interface SecretByteArrays {
-    suspend fun set(id: String, raw: ByteArray?)
+    @Deprecated("use set(SecretId, ByteArray?)") suspend fun set(id: String, raw: ByteArray?)
 
-    suspend fun get(id: String): ByteArray?
+    suspend fun set(secretId: SecretId, raw: ByteArray?)
+
+    @Deprecated("use get(SecretId)") suspend fun get(id: String): ByteArray?
+
+    suspend fun get(secretId: SecretId): ByteArray?
 
     suspend fun rotateKeys(
         changedProviderId: String,
         changedProviderRotate:
             suspend (
-                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
+                oldExtra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult,
     )
 
     data class GetInputKeyAndExtraResult(val getInputKey: GetKey?, val extra: JsonObject?)
 
     suspend fun getInputKeyAndExtra(providerId: String): GetInputKeyAndExtraResult
+
+    /** Remove all secrets for the given [userId]. */
+    suspend fun removeSecretsForUser(userId: UserId)
 }
 
 class SecretByteArraysImpl(
@@ -51,21 +61,21 @@ class SecretByteArraysImpl(
 
     private val setMutex = Mutex() // prevent concurrent settings update
 
-    override suspend fun set(id: String, raw: ByteArray?) = setMutex.withLock {
-        log.trace { "set SecretByteArray $id" }
+    override suspend fun set(secretId: SecretId, raw: ByteArray?) = setMutex.withLock {
+        log.trace { "set SecretByteArray $secretId" }
         val secretByteArraysSettings = getSettingsOrInitialize()
         val key = getKey(keySize)
         val newSettings =
             if (raw == null) {
                 SecretByteArraySettings(
-                    secrets = secretByteArraysSettings.secrets.orEmpty() - id,
+                    secrets = secretByteArraysSettings.secrets.orEmpty() - secretId,
                     keyInfo = secretByteArraysSettings.keyInfo.orEmpty(),
                     key = key,
                 )
             } else {
-                val secretByteArray = get(id, raw, key)
+                val secretByteArray = get(secretId, raw, key)
                 SecretByteArraySettings(
-                    secrets = secretByteArraysSettings.secrets.orEmpty() + (id to secretByteArray),
+                    secrets = secretByteArraysSettings.secrets.orEmpty() + (secretId to secretByteArray),
                     keyInfo = secretByteArraysSettings.keyInfo.orEmpty(),
                     key = key,
                 )
@@ -73,10 +83,13 @@ class SecretByteArraysImpl(
         settings.update<SecretByteArraySettings> { newSettings }
     }
 
-    private suspend fun get(id: String, raw: ByteArray, secretByteArrayKey: ByteArray?): SecretByteArray {
+    @Deprecated("use set(SecretId, ByteArray?)")
+    override suspend fun set(id: String, raw: ByteArray?) = set(SecretId(null, id), raw)
+
+    private suspend fun get(id: SecretId, raw: ByteArray, secretByteArrayKey: ByteArray?): SecretByteArray {
         val secretByteArray =
             if (secretByteArrayKey != null) {
-                val encryptedSecret = encryptAesHmacSha2(content = raw, key = secretByteArrayKey, name = id)
+                val encryptedSecret = encryptAesHmacSha2(content = raw, key = secretByteArrayKey, name = id.value)
                 SecretByteArray.AesHmacSha2(
                     iv = encryptedSecret.iv,
                     ciphertext = encryptedSecret.ciphertext,
@@ -88,18 +101,20 @@ class SecretByteArraysImpl(
         return secretByteArray
     }
 
-    override suspend fun get(id: String): ByteArray? {
-        log.trace { "get SecretByteArray $id" }
+    override suspend fun get(secretId: SecretId): ByteArray? {
+        log.trace { "get SecretByteArray $secretId" }
         val secretByteArraySettings = getSettingsOrInitialize()
-        val secretByteArray = secretByteArraySettings.secrets?.get(id)
-        return if (secretByteArray == null) return null
+        val secretByteArray = secretByteArraySettings.secrets?.get(secretId)
+        return if (secretByteArray == null) null
         else {
             val secretByteArrayKey = getKey(keySize)
-            get(id, secretByteArray, secretByteArrayKey)
+            get(secretId, secretByteArray, secretByteArrayKey)
         }
     }
 
-    private suspend fun get(id: String, secretByteArray: SecretByteArray, secretByteArrayKey: ByteArray?): ByteArray {
+    @Deprecated("use get(SecretId)") override suspend fun get(id: String): ByteArray? = get(SecretId(null, id))
+
+    private suspend fun get(id: SecretId, secretByteArray: SecretByteArray, secretByteArrayKey: ByteArray?): ByteArray {
         return when (secretByteArray) {
             is SecretByteArray.AesHmacSha2 -> {
                 decryptAesHmacSha2(
@@ -112,7 +127,7 @@ class SecretByteArraysImpl(
                     key =
                         secretByteArrayKey
                             ?: throw SecretByteArrayException("secret $id requires a key, but none was found"),
-                    name = id,
+                    name = id.value,
                 )
             }
 
@@ -124,11 +139,29 @@ class SecretByteArraysImpl(
         changedProviderId: String,
         changedProviderRotate:
             suspend (
-                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
+                oldExtra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult,
     ) {
         val oldKey = getKey(keySize)
         rotateKeys(oldKey, changedProviderId, changedProviderRotate)
+    }
+
+    override suspend fun removeSecretsForUser(userId: UserId) = setMutex.withLock {
+        val secretByteArraysSettings = getSettingsOrInitialize()
+        val newSecrets = secretByteArraysSettings.secrets?.filter { (key, _) -> key.userId != userId }
+        val newSettings =
+            secretByteArraysSettings.copy(
+                secrets = newSecrets,
+                mac =
+                    getMac(
+                        newSecrets.orEmpty(),
+                        secretByteArraysSettings.keyInfo.orEmpty(),
+                        getKey(keySize),
+                    ),
+            )
+        settings.update<SecretByteArraySettings> { newSettings }
     }
 
     private suspend fun getSettingsOrInitialize(): SecretByteArraySettings {
@@ -143,7 +176,9 @@ class SecretByteArraysImpl(
         changedProviderId: String?,
         changedProviderRotate:
             (suspend (
-                oldExtra: JsonObject?, getOldInputKey: GetKey?, getNewInputKey: GetKey?,
+                oldExtra: JsonObject?,
+                getOldInputKey: GetKey?,
+                getNewInputKey: GetKey?,
             ) -> SecretByteArrayKeyProvider.RotateResult)?,
     ): SecretByteArraySettings = rotateKeysLock.withLock {
         log.debug { "rotateKeys (changedProviderId=$changedProviderId)" }
@@ -258,18 +293,19 @@ class SecretByteArraysImpl(
 }
 
 suspend fun SecretByteArraySettings(
-    secrets: Map<String, SecretByteArray>,
+    secrets: Map<SecretId, SecretByteArray>,
     keyInfo: Map<String, SecretByteArrayKeyInfo>,
     key: ByteArray?,
 ) = SecretByteArraySettings(secrets = secrets, keyInfo = keyInfo, mac = getMac(secrets, keyInfo, key))
 
 suspend fun SecretByteArraySettings.checkIntegrity(key: ByteArray?) {
     val calculatedMac = getMac(secrets.orEmpty(), keyInfo.orEmpty(), key)
-    if (!mac.contentEquals(calculatedMac)) throw SecretByteArrayException("SecretByteArray integrity check failed")
+    if (!mac.contentEquals(calculatedMac))
+        throw SecretByteArrayManipulationException("SecretByteArray integrity check failed")
 }
 
 private suspend fun getMac(
-    secrets: Map<String, SecretByteArray>,
+    secrets: Map<SecretId, SecretByteArray>,
     keyInfo: Map<String, SecretByteArrayKeyInfo>,
     key: ByteArray?,
 ): ByteArray? {

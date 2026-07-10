@@ -1,5 +1,6 @@
 package de.connect2x.trixnity.messenger.secrets
 
+import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.crypto.core.AesHmacSha2EncryptedData
 import de.connect2x.trixnity.crypto.core.decryptAesHmacSha2
 import de.connect2x.trixnity.crypto.core.encryptAesHmacSha2
@@ -16,6 +17,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verifySuspend
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.maps.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -56,7 +58,7 @@ class SecretByteArraysTest {
 
     @Test
     fun `set - should initialized`() = runTest {
-        cut.set("secret", null)
+        cut.set(SecretId(null, "secret"), null)
         val settings = settings.value.secretByteArrays.shouldNotBeNull()
         settings.secrets shouldBe emptyMap()
         settings.keyInfo shouldBe emptyMap()
@@ -68,7 +70,7 @@ class SecretByteArraysTest {
         everySuspend { provider1.rotate(any(), any(), any()) } returns
             SecretByteArrayKeyProvider.RotateResult(null, null, null)
 
-        cut.set("secret", null)
+        cut.set(SecretId(null, "secret"), null)
         val settings = settings.value.secretByteArrays.shouldNotBeNull()
         settings.secrets shouldBe emptyMap()
         settings.keyInfo shouldBe emptyMap()
@@ -78,20 +80,20 @@ class SecretByteArraysTest {
     fun `set - should remove secret on null`() = runTest {
         settings.update<SecretByteArraySettings> {
             SecretByteArraySettings(
-                secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
+                secrets = mapOf(SecretId(null, "secret") to SecretByteArray.Unencrypted("***".encodeToByteArray())),
                 keyInfo = mapOf(),
                 mac = null,
             )
         }
-        cut.set("secret", null)
+        cut.set(SecretId(null, "secret"), null)
         settings.value.secretByteArrays.shouldNotBeNull().secrets shouldBe emptyMap()
     }
 
     @Test
     fun `set - should store secret unencrypted when no provider given`() = runTest {
         settings.update<SecretByteArraySettings> { SecretByteArraySettings(mapOf(), mapOf(), null) }
-        cut.set("secret", "***".encodeToByteArray())
-        settings.value.secretByteArrays.secrets?.get("secret") shouldBe
+        cut.set(SecretId(null, "secret"), "***".encodeToByteArray())
+        settings.value.secretByteArrays.secrets?.get(SecretId(null, "secret")) shouldBe
             SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
@@ -101,8 +103,8 @@ class SecretByteArraysTest {
         everySuspend { provider1.rotate(any(), any(), any()) } returns
             SecretByteArrayKeyProvider.RotateResult(null, null, null)
 
-        cut.set("secret", "***".encodeToByteArray())
-        settings.value.secretByteArrays.secrets?.get("secret") shouldBe
+        cut.set(SecretId(null, "secret"), "***".encodeToByteArray())
+        settings.value.secretByteArrays.secrets?.get(SecretId(null, "secret")) shouldBe
             SecretByteArray.Unencrypted("***".encodeToByteArray())
     }
 
@@ -116,36 +118,39 @@ class SecretByteArraysTest {
                 key = aesKey1.invoke(32),
             )
         settings.update<SecretByteArraySettings> { secretByteArraysSettings }
-        cut.set("my.secret", "***".encodeToByteArray())
+        cut.set(SecretId(null, "my.secret"), "***".encodeToByteArray())
         val secret =
-            settings.value.secretByteArrays.secrets?.get("my.secret").shouldBeInstanceOf<SecretByteArray.AesHmacSha2>()
+            settings.value.secretByteArrays.secrets
+                ?.get(SecretId(null, "my.secret"))
+                .shouldBeInstanceOf<SecretByteArray.AesHmacSha2>()
         decryptAesHmacSha2(
             content = AesHmacSha2EncryptedData(secret.iv, secret.ciphertext, secret.mac),
             key = aesKey1.invoke(32),
-            name = "my.secret",
+            name = SecretId(null, "my.secret").value,
         ) shouldBe "***".encodeToByteArray()
     }
 
     @Test
     fun `get - should initialized`() = runTest {
-        cut.get("secret")
+        cut.get(SecretId(null, "secret"))
         val settings = settings.value.secretByteArrays.shouldNotBeNull()
         settings.secrets shouldBe emptyMap()
         settings.keyInfo shouldBe emptyMap()
     }
 
-    @Test fun `get - should be null when there is no secret`() = runTest { cut.get("secret") shouldBe null }
+    @Test
+    fun `get - should be null when there is no secret`() = runTest { cut.get(SecretId(null, "secret")) shouldBe null }
 
     @Test
     fun `get - should get unencrypted secret`() = runTest {
         settings.update<SecretByteArraySettings> {
             SecretByteArraySettings(
-                mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())),
+                mapOf(SecretId(null, "secret") to SecretByteArray.Unencrypted("***".encodeToByteArray())),
                 mapOf(),
                 null,
             )
         }
-        cut.get("secret") shouldBe "***".encodeToByteArray()
+        cut.get(SecretId(null, "secret")) shouldBe "***".encodeToByteArray()
     }
 
     @Test
@@ -156,7 +161,7 @@ class SecretByteArraysTest {
             SecretByteArraySettings(
                 secrets =
                     mapOf(
-                        "secret" to
+                        SecretId(null, "secret") to
                             SecretByteArray.AesHmacSha2(
                                 encryptedSecret.iv,
                                 encryptedSecret.ciphertext,
@@ -168,7 +173,7 @@ class SecretByteArraysTest {
             )
         settings.update<SecretByteArraySettings> { secretByteArraysSettings }
 
-        cut.get("secret") shouldBe "***".encodeToByteArray()
+        cut.get(SecretId(null, "secret")) shouldBe "***".encodeToByteArray()
     }
 
     @Test
@@ -181,8 +186,8 @@ class SecretByteArraysTest {
                 key = aesKey1.invoke(32),
             )
         settings.update<SecretByteArraySettings> { secretByteArraysSettings }
-        cut.set("my.secret", "***".encodeToByteArray())
-        cut.get("my.secret") shouldBe "***".encodeToByteArray()
+        cut.set(SecretId(null, "my.secret"), "***".encodeToByteArray())
+        cut.get(SecretId(null, "my.secret")) shouldBe "***".encodeToByteArray()
     }
 
     @Test
@@ -200,8 +205,8 @@ class SecretByteArraysTest {
                 key = aesKey2.invoke(32),
             )
         settings.update<SecretByteArraySettings> { secretByteArraysSettings }
-        cut.set("my.secret", "***".encodeToByteArray())
-        cut.get("my.secret") shouldBe "***".encodeToByteArray()
+        cut.set(SecretId(null, "my.secret"), "***".encodeToByteArray())
+        cut.get(SecretId(null, "my.secret")) shouldBe "***".encodeToByteArray()
 
         verifySuspend {
             provider1.get(extra1, null)
@@ -218,7 +223,7 @@ class SecretByteArraysTest {
             SecretByteArraySettings(
                     secrets =
                         mapOf(
-                            "secret" to
+                            SecretId(null, "secret") to
                                 SecretByteArray.AesHmacSha2(
                                     encryptedSecret.iv,
                                     encryptedSecret.ciphertext,
@@ -231,10 +236,10 @@ class SecretByteArraysTest {
                 .let { manipulate(it) }
         settings.update<SecretByteArraySettings> { secretByteArraysSettings }
 
-        shouldThrow<SecretByteArrayException> { cut.set("secret", "***".encodeToByteArray()) }.message shouldBe
-            "SecretByteArray integrity check failed"
-        shouldThrow<SecretByteArrayException> { cut.get("secret") }.message shouldBe
-            "SecretByteArray integrity check failed"
+        shouldThrow<SecretByteArrayManipulationException> {
+            cut.set(SecretId(null, "secret"), "***".encodeToByteArray())
+        }
+        shouldThrow<SecretByteArrayManipulationException> { cut.get(SecretId(null, "secret")) }
     }
 
     @Test
@@ -250,7 +255,7 @@ class SecretByteArraysTest {
     @Test
     fun `getKey - should do integrity check with wrong data`() = runTest {
         `getKey - should do integrity check` {
-            it.copy(secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())))
+            it.copy(secrets = mapOf(SecretId(null, "secret") to SecretByteArray.Unencrypted("***".encodeToByteArray())))
         }
     }
 
@@ -326,15 +331,14 @@ class SecretByteArraysTest {
         everySuspend { provider1.rotate(any(), any(), any()) } returns
             SecretByteArrayKeyProvider.RotateResult(aesKey3, aesKey1, null)
 
-        shouldThrow<SecretByteArrayException> {
-                cut.rotateKeys("provider-2") { oldExtra, getOldInputKey, getNewInputKey ->
-                    oldExtra shouldBe null
-                    getOldInputKey shouldBe aesKey3
-                    getNewInputKey shouldBe aesKey1
-                    SecretByteArrayKeyProvider.RotateResult(null, aesKey2, extra2)
-                }
+        shouldThrow<SecretByteArrayManipulationException> {
+            cut.rotateKeys("provider-2") { oldExtra, getOldInputKey, getNewInputKey ->
+                oldExtra shouldBe null
+                getOldInputKey shouldBe aesKey3
+                getNewInputKey shouldBe aesKey1
+                SecretByteArrayKeyProvider.RotateResult(null, aesKey2, extra2)
             }
-            .message shouldBe "SecretByteArray integrity check failed"
+        }
     }
 
     @Test
@@ -350,7 +354,39 @@ class SecretByteArraysTest {
     @Test
     fun `rotateKeys - should do integrity check with wrong data`() = runTest {
         `rotateKeys - should do integrity check` {
-            it.copy(secrets = mapOf("secret" to SecretByteArray.Unencrypted("***".encodeToByteArray())))
+            it.copy(secrets = mapOf(SecretId(null, "secret") to SecretByteArray.Unencrypted("***".encodeToByteArray())))
         }
     }
+
+    @Test
+    fun `removeSecretsForUser should remove all secrets for the user and leave the settings integrity correctly`() =
+        runTest {
+            val unaffectedUser = UserId("notAffected", "localhost")
+            val myUser = UserId("myUser", "localhost")
+
+            secretByteArrayKeyProviders = listOf(provider1)
+            val secretByteArraysSettings =
+                SecretByteArraySettings(
+                    secrets = mapOf(),
+                    keyInfo = mapOf("provider-1" to SecretByteArrayKeyInfo()),
+                    key = aesKey1.invoke(32),
+                )
+            settings.update<SecretByteArraySettings> { secretByteArraysSettings }
+            cut.set(SecretId(unaffectedUser, "unaffected.secret"), "unaffected".encodeToByteArray())
+            cut.set(SecretId(myUser, "my.secret"), "secret".encodeToByteArray())
+            cut.set(SecretId(myUser, "my.secret2"), "secret2".encodeToByteArray())
+
+            cut.removeSecretsForUser(myUser)
+
+            settings.value.secretByteArrays.secrets shouldNotBeNull { shouldHaveSize(1) }
+            val secret =
+                settings.value.secretByteArrays.secrets
+                    ?.get(SecretId(unaffectedUser, "unaffected.secret"))
+                    .shouldBeInstanceOf<SecretByteArray.AesHmacSha2>()
+            decryptAesHmacSha2(
+                content = AesHmacSha2EncryptedData(secret.iv, secret.ciphertext, secret.mac),
+                key = aesKey1.invoke(32),
+                name = SecretId(unaffectedUser, "unaffected.secret").value,
+            ) shouldBe "unaffected".encodeToByteArray()
+        }
 }
