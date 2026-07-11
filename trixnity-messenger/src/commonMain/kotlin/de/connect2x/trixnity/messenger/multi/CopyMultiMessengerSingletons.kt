@@ -20,7 +20,8 @@ val DefaultCopyMultiMessengerSingletons = CopyMultiMessengerSingletons { from: S
     to.single<MatrixMultiMessengerConfiguration> { from.get() }
     to.single<MatrixMultiMessengerSettingsHolder> { from.get() }
     to.single<ProfileManager> { from.get() }
-    to.single<SendLogToDevs> { from.get() }
+    val sendLogToDevs = from.getOrNull<SendLogToDevs>()
+    if (sendLogToDevs != null) to.single<SendLogToDevs> { sendLogToDevs }
     to.single<BackHandler> { from.get() }
     val uriHandler = from.getOrNull<UriHandler>()
     if (uriHandler != null) to.single<UriHandler> { uriHandler }
