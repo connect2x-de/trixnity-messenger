@@ -313,19 +313,23 @@ private fun wizardStepVerification(
         content = { LaunchedEffect(Unit) { viewModel.startVerification() } },
         nextButton = {
             Custom {
-                val completedVerification = completedVerification.collectAsState().value
-                if (completedVerification == true) {
-                    viewModel.completedVerification.value = null
-                    nextStep?.let { currentStepId.value = it }
+                val completedVerification by completedVerification.collectAsState()
+                LaunchedEffect(completedVerification) {
+                    if (completedVerification == true) {
+                        viewModel.completedVerification.value = null
+                        nextStep?.let { currentStepId.value = it }
+                    }
                 }
             }
         },
         backButton = {
             Custom {
-                val completedVerification = completedVerification.collectAsState().value
-                if (completedVerification == false) {
-                    viewModel.completedVerification.value = null
-                    previousStep?.let { currentStepId.value = it }
+                val completedVerification by completedVerification.collectAsState()
+                LaunchedEffect(completedVerification) {
+                    if (completedVerification == false) {
+                        viewModel.completedVerification.value = null
+                        previousStep?.let { currentStepId.value = it }
+                    }
                 }
             }
         },
