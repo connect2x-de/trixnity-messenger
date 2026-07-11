@@ -1,13 +1,14 @@
 package de.connect2x.trixnity.messenger.internal.logic
 
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.clientserverapi.client.UIA
 import de.connect2x.trixnity.clientserverapi.model.uia.AuthenticationType
 import de.connect2x.trixnity.clientserverapi.model.uia.UIAState
 import de.connect2x.trixnity.core.MatrixServerException
 import de.connect2x.trixnity.messenger.i18n.I18n
-import de.connect2x.trixnity.messenger.viewmodel.ViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUia
 import de.connect2x.trixnity.messenger.viewmodel.uia.AuthorizeUiaResult
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -16,8 +17,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-internal class UiaLogic(
-    viewModelContext: ViewModelContext,
+private val log = Logger("de.connect2x.trixnity.messenger.internal.logic.UiaLogic")
+
+class UiaLogic(
+    private val coroutineScope: CoroutineScope,
     private val i18n: I18n,
     private val authFlow: AuthorizeUia,
     private val navigateConfirm: suspend (confirmationMessage: String?, action: suspend () -> Result<UIA<*>>) -> Unit,
@@ -28,12 +31,12 @@ internal class UiaLogic(
     private val navigateMsisdn: suspend (step: UIA.Step<*>) -> Unit,
     private val navigateFallback: suspend (step: UIA.Step<*>, authenticationType: AuthenticationType) -> Unit,
     private val navigateNone: suspend () -> Unit,
-) : ViewModelContext by viewModelContext {
+) {
 
     private val onResult = MutableSharedFlow<AuthorizeUiaResult<*>>()
 
     init {
-        viewModelContext.coroutineScope.launch {
+        coroutineScope.launch {
             authFlow.onRequestFlow.collectLatest { params ->
                 coroutineScope {
                     val result = async(start = CoroutineStart.UNDISPATCHED) { onResult.first() }

@@ -19,7 +19,7 @@ class UiaRouter(private val viewModelContext: ViewModelContext) {
     private val uiaLogic =
         with(navigation) {
             UiaLogic(
-                viewModelContext = viewModelContext.childContext("UiaLogic"),
+                coroutineScope = viewModelContext.coroutineScope,
                 i18n = viewModelContext.get(),
                 authFlow = viewModelContext.get(),
                 navigateConfirm = navigateTo(Config::UiaActionConfirmation),
