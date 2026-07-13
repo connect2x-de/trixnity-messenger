@@ -18,11 +18,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 interface SecretByteArrays {
-    @Deprecated("use set(SecretId, ByteArray?)") suspend fun set(id: String, raw: ByteArray?)
-
     suspend fun set(secretId: SecretId, raw: ByteArray?)
-
-    @Deprecated("use get(SecretId)") suspend fun get(id: String): ByteArray?
 
     suspend fun get(secretId: SecretId): ByteArray?
 
@@ -81,9 +77,6 @@ class SecretByteArraysImpl(
         settings.update<SecretByteArraySettings> { newSettings }
     }
 
-    @Deprecated("use set(SecretId, ByteArray?)")
-    override suspend fun set(id: String, raw: ByteArray?) = set(SecretId(id, null), raw)
-
     private suspend fun get(id: SecretId, raw: ByteArray, secretByteArrayKey: ByteArray?): SecretByteArray {
         val secretByteArray =
             if (secretByteArrayKey != null) {
@@ -109,8 +102,6 @@ class SecretByteArraysImpl(
             get(secretId, secretByteArray, secretByteArrayKey)
         }
     }
-
-    @Deprecated("use get(SecretId)") override suspend fun get(id: String): ByteArray? = get(SecretId(id, null))
 
     private suspend fun get(id: SecretId, secretByteArray: SecretByteArray, secretByteArrayKey: ByteArray?): ByteArray {
         return when (secretByteArray) {
