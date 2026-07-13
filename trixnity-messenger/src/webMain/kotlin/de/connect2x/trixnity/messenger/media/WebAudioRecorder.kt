@@ -5,7 +5,6 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
-import js.array.Tuple
 import js.array.asList
 import js.buffer.ArrayBuffer
 import js.numbers.JsNumbers.toKotlinFloat
@@ -138,6 +137,7 @@ class WebAudioRecorder(
         mediaSize: Double,
     ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
+        val opusFileExtension = "ogg"
         return { recordingState: AudioRecorderImpl.State.Recording ->
             recorder.stop()
             val recordingSuccessful =
@@ -167,11 +167,12 @@ class WebAudioRecorder(
             if (recordingSuccessful != null) {
                 val media = mediaDeferred.await()
                 AudioRecorderImpl.State.Completed(
-                        media,
-                        clock.now() - recordingState.start,
-                        mediaSize.toLong(),
-                        opusContentType,
-                    ) {
+                    media,
+                    clock.now() - recordingState.start,
+                    mediaSize.toLong(),
+                    opusContentType,
+                    opusFileExtension,
+                ) {
                         // Automatically deleted by media store
                     }
             } else {
@@ -215,6 +216,7 @@ class WebAudioRecorder(
             duration = state.duration,
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
+            fileExtension = state.fileExtension
         ) {}
     }
 

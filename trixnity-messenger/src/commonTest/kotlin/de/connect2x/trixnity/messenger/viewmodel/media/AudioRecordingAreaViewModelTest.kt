@@ -161,6 +161,7 @@ class AudioRecordingAreaViewModelTest {
             5.seconds,
             1000L,
             ContentType("audio", "ogg"),
+            "ogg",
         ))
         every { recorder.state } returns recorderState
         everySuspend { recorder.closeSuspending() } calls {
