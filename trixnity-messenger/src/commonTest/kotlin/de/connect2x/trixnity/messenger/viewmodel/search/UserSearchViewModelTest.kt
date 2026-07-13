@@ -10,11 +10,11 @@ import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.provider.SearchProviderFactory
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderResult
 import de.connect2x.trixnity.messenger.search.user.UserSearchContext
-import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverSearchProvider
+import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverSearchProviderFactory
 import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverUserSearchResult
-import de.connect2x.trixnity.messenger.searchProvider
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContextImpl
 import dev.mokkery.answering.returns
 import dev.mokkery.every
@@ -190,7 +190,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should search for term in displayname and userId`() = runTest {
-        val cut = searchUserViewModel(listOf(SearchProvider3(SearchProvider1())))
+        val cut = searchUserViewModel(listOf(SearchProvider3.Factory(SearchProvider1())))
         cut.searchTerm.update("st")
         delay(10.milliseconds)
 
@@ -298,7 +298,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should disable filter settings that are not compatible with current settings`() = runTest {
-        val cut = searchUserViewModel(listOf(SearchProvider5()))
+        val cut = searchUserViewModel(listOf(SearchProvider5.Factory()))
         delay(10.milliseconds)
         cut.availableFilters.value.map { it.searchFilterKeys to it.isEnabled } shouldContainAll
             listOf(
@@ -351,8 +351,9 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should show searching for provider when search is ongoing`() = runTest {
-        val searchProviderWithResumedSearch = SearchProviderWithResumedSearch()
-        val cut = searchUserViewModel(listOf(searchProviderWithResumedSearch))
+        val factory = SearchProviderWithResumedSearch.Factory()
+        val searchProviderWithResumedSearch = factory.create(UserId(""))
+        val cut = searchUserViewModel(listOf(factory))
         cut.searchTerm.update("onlyResumedReturnsUser1")
         delay(10.milliseconds)
         cut.isSearching.value shouldBe true
@@ -369,8 +370,9 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should indicate that no results have been found after a search is conducted`() = runTest {
-        val searchProviderWithResumedSearch = SearchProviderWithResumedSearch()
-        val cut = searchUserViewModel(listOf(searchProviderWithResumedSearch))
+        val factory = SearchProviderWithResumedSearch.Factory()
+        val searchProviderWithResumedSearch = factory.create(UserId(""))
+        val cut = searchUserViewModel(listOf(factory))
 
         delay(10.milliseconds)
         cut.noResultsFound.value shouldBe null // undetermined
@@ -409,7 +411,7 @@ class UserSearchViewModelTest {
     @Test
     fun `should set a not enabled by default search provider to disabled initially but can be activated afterwards`() =
         runTest {
-            val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1())))
+            val cut = searchUserViewModel(listOf(SearchProvider4.Factory(SearchProvider1())))
             delay(10.milliseconds)
             cut.searchProviders.map { it.key } shouldBe
                 listOf(TestHomeserverSearchProvider, SearchProvider1, SearchProvider2, SearchProvider4)
@@ -448,7 +450,7 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should enable combined setting when one search provider is enabled`() = runTest {
-        val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1())))
+        val cut = searchUserViewModel(listOf(SearchProvider4.Factory(SearchProvider1())))
         delay(10.milliseconds)
         cut.availableFilters.value.map {
             Triple(it.sources.map { it.key }, it.searchFilterKeys, it.isEnabled)
@@ -462,7 +464,10 @@ class UserSearchViewModelTest {
 
     @Test
     fun `should combine filters from different providers correctly`() = runTest {
-        val cut = searchUserViewModel(listOf(SearchProvider4(SearchProvider1()), SearchProvider5(), SearchProvider6()))
+        val cut =
+            searchUserViewModel(
+                listOf(SearchProvider4.Factory(SearchProvider1()), SearchProvider5.Factory(), SearchProvider6.Factory())
+            )
         delay(10.milliseconds)
         cut.availableFilters.value.map {
             Triple(it.sources.map { it.key }, it.searchFilterKeys, it.isEnabled)
@@ -480,10 +485,10 @@ class UserSearchViewModelTest {
     }
 
     private fun TestScope.searchUserViewModel(): UserSearchViewModelImpl =
-        searchUserViewModel<SearchProvider<HomeserverUserSearchResult, UserSearchContext>>(null)
+        searchUserViewModel<SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext>>(null)
 
-    private inline fun <reified T : SearchProvider<HomeserverUserSearchResult, UserSearchContext>> TestScope
-        .searchUserViewModel(additionalSearchUserProviders: List<T>? = null): UserSearchViewModelImpl {
+    private inline fun <reified T : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext>> TestScope
+        .searchUserViewModel(additionalSearchUserProviderFactories: List<T>? = null): UserSearchViewModelImpl {
 
         val matrixClientViewModelContext =
             MatrixClientViewModelContextImpl(
@@ -494,17 +499,19 @@ class UserSearchViewModelTest {
                                     mapOf(UserId("test", "server") to matrixClientMock)
                                 ) +
                                     module {
-                                        searchProvider<SearchProvider1> { SearchProvider1() }
-                                        searchProvider<SearchProvider2> { SearchProvider2() }
+                                        single<SearchProviderFactory<*, *>>(named("sp1")) { SearchProvider1.Factory() }
+                                        single<SearchProviderFactory<*, *>>(named("sp2")) { SearchProvider2.Factory() }
                                         // dummy implementation to avoid mocking the standard impl
-                                        single<SearchProvider<*, *>>(named<HomeserverSearchProvider>()) {
-                                            TestHomeserverSearchProvider()
+                                        single<SearchProviderFactory<*, *>>(named<HomeserverSearchProviderFactory>()) {
+                                            TestHomeserverSearchProvider.Factory()
                                         }
-                                        additionalSearchUserProviders?.forEach { additionalSearchUserProvider ->
-                                            single<SearchProvider<*, *>>(
-                                                named(additionalSearchUserProvider::class.simpleName ?: "")
+                                        additionalSearchUserProviderFactories?.forEachIndexed {
+                                            index,
+                                            searchUserProviderFactory ->
+                                            single<SearchProviderFactory<*, *>>(
+                                                named("${searchUserProviderFactory::class.simpleName}$index")
                                             ) {
-                                                additionalSearchUserProvider
+                                                searchUserProviderFactory
                                             }
                                         }
                                     }
@@ -523,7 +530,7 @@ class UserSearchViewModelTest {
                     SearchViewModelImpl(
                         matrixClientViewModelContext,
                         debounceDuration = 0.milliseconds,
-                        getSearchContext = { UserSearchContext(UserId("@me:local")) },
+                        searchContext = UserSearchContext(UserId("@me:local")),
                     ),
             )
         backgroundScope.launch { searchUserViewModelImpl.availableFilters.collect() }
@@ -553,6 +560,13 @@ class UserSearchViewModelTest {
         ): SearchProviderResult<HomeserverUserSearchResult> {
             log.debug { "homeserver search" }
             return SearchProviderResult.Success(listOf())
+        }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider<HomeserverUserSearchResult, UserSearchContext> =
+                TestHomeserverSearchProvider()
         }
     }
 
@@ -591,6 +605,13 @@ class UserSearchViewModelTest {
                 }
             }
         }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider1 = SearchProvider1()
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider1 = instance
+        }
     }
 
     class SearchProvider2 : SearchProvider<HomeserverUserSearchResult, UserSearchContext> {
@@ -617,6 +638,13 @@ class UserSearchViewModelTest {
                 SearchProviderResult.Success(listOf())
             }
         }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider2 = SearchProvider2()
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider2 = instance
+        }
     }
 
     class SearchProvider3(searchProvider: SearchProvider<HomeserverUserSearchResult, UserSearchContext>) :
@@ -632,6 +660,14 @@ class UserSearchViewModelTest {
             log.debug { "test-2' search" }
             return SearchProviderResult.Success(listOf(martin, alex, merlin))
         }
+
+        class Factory(searchProvider: SearchProvider<HomeserverUserSearchResult, UserSearchContext>) :
+            SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider3 = SearchProvider3(searchProvider)
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider3 = instance
+        }
     }
 
     class SearchProvider4(searchProvider: SearchProvider<HomeserverUserSearchResult, UserSearchContext>) :
@@ -642,6 +678,14 @@ class UserSearchViewModelTest {
         override val displayName: String = "Test 4"
         override val priority: Int = 1_000
         override val disabledByDefault: Boolean = true
+
+        class Factory(searchProvider: SearchProvider<HomeserverUserSearchResult, UserSearchContext>) :
+            SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider4 = SearchProvider4(searchProvider)
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider4 = instance
+        }
     }
 
     class SearchProvider5 : SearchProvider<HomeserverUserSearchResult, UserSearchContext> {
@@ -662,6 +706,13 @@ class UserSearchViewModelTest {
         ): SearchProviderResult<HomeserverUserSearchResult> {
             return SearchProviderResult.Success(listOf())
         }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider5 = SearchProvider5()
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider5 = instance
+        }
     }
 
     class SearchProvider6 : SearchProvider<HomeserverUserSearchResult, UserSearchContext> {
@@ -681,6 +732,13 @@ class UserSearchViewModelTest {
             coroutineScope: CoroutineScope,
         ): SearchProviderResult<HomeserverUserSearchResult> {
             return SearchProviderResult.Success(listOf())
+        }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProvider6 = SearchProvider6()
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProvider6 = instance
         }
     }
 
@@ -715,6 +773,13 @@ class UserSearchViewModelTest {
             } else {
                 SearchProviderResult.Success(listOf(user1))
             }
+        }
+
+        class Factory : SearchProviderFactory<HomeserverUserSearchResult, UserSearchContext> {
+            private val instance: SearchProviderWithResumedSearch = SearchProviderWithResumedSearch()
+            override val supports = UserSearchContext::class
+
+            override fun create(account: UserId): SearchProviderWithResumedSearch = instance
         }
     }
 }

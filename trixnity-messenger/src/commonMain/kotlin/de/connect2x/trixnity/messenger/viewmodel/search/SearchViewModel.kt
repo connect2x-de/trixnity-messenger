@@ -7,12 +7,14 @@ import de.connect2x.trixnity.messenger.search.getGroupedSearchFilters
 import de.connect2x.trixnity.messenger.search.provider.SearchContext
 import de.connect2x.trixnity.messenger.search.provider.SearchFilter
 import de.connect2x.trixnity.messenger.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.provider.SearchProviderFactory
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderResult
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderSorter
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.util.scopedCollectLatest
+import io.ktor.util.reflect.*
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -35,9 +37,9 @@ import org.koin.core.component.get
 interface SearchViewModelFactory {
     fun <SR : SearchResult, SC : SearchContext> create(
         matrixClientViewModelContext: MatrixClientViewModelContext,
-        getSearchContext: () -> SC,
+        searchContext: SC,
     ): SearchViewModel<SR, SC> {
-        return SearchViewModelImpl(matrixClientViewModelContext, getSearchContext)
+        return SearchViewModelImpl(matrixClientViewModelContext, searchContext)
     }
 
     companion object : SearchViewModelFactory
@@ -119,11 +121,20 @@ interface SearchViewModel<SR : SearchResult, SC : SearchContext> {
 
 class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
     matrixClientViewModelContext: MatrixClientViewModelContext,
-    private val getSearchContext: () -> SC,
+    private val searchContext: SC,
     private val debounceDuration: Duration = 300.milliseconds,
 ) : SearchViewModel<SR, SC>, MatrixClientViewModelContext by matrixClientViewModelContext {
+
     override val searchProviders: List<SearchProvider<SR, SC>> =
-        get<SearchProviderSorter>().sort(getKoin().getAll<SearchProvider<SR, SC>>())
+        get<SearchProviderSorter>()
+            .sort(
+                getKoin()
+                    .getAll<SearchProviderFactory<SR, SC>>()
+                    .onEach { log.trace { " search provider factory for: ${it.supports}" } }
+                    .filter { searchContext.instanceOf(it.supports) }
+                    .mapNotNull { it.create(matrixClientViewModelContext.userId) }
+                    .onEach { log.debug { " created search provider: ${it.displayName}" } }
+            )
     override val searchFilters: MutableStateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
 
@@ -310,7 +321,7 @@ class SearchViewModelImpl<SR : SearchResult, SC : SearchContext>(
                             searchProvidersLoading[index].value = true
                             launch {
                                 searchProvidersResult[index].value =
-                                    searchProvider.search(searchTerm, filters, getSearchContext(), this)
+                                    searchProvider.search(searchTerm, filters, searchContext, this)
                                 log.trace { " searchProvider ${searchProvider.key} finished search" }
                                 searchProvidersLoading[index].value = false
                             }
