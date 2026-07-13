@@ -18,8 +18,7 @@ private class AndroidAudioMetadataFactory(private val getContext: ContextGetter)
         val retriever = MediaMetadataRetriever()
         try {
             when (file) {
-                is UriFileDescriptor -> retriever.setDataSource(getContext(), file.fileUri)
-                is PathFileDescriptor -> retriever.setDataSource(file.path.toString())
+                is FileBackedFileDescriptor -> retriever.setDataSource(getContext(), file.filePath.uri)
                 else -> throw UnsupportedFileDescriptor()
             }
             return retriever

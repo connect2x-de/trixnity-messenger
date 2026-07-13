@@ -15,8 +15,9 @@ import kotlinx.io.InternalIoApi
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.readByteArray
+import platform.Foundation.NSURL
 
-class ByteArrayFileDescriptor(private val path: Path, private val data: ByteArray) : InMemoryFileDescriptor {
+class ByteArrayFileDescriptor(private val path: Path, private val data: ByteArray) : FileDescriptor {
     override val fileName: String = path.name
     override val fileSize: Long? = data.size.toLong()
     override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
@@ -26,7 +27,7 @@ class ByteArrayFileDescriptor(private val path: Path, private val data: ByteArra
 class FileKitFileDescriptor(internal val file: PlatformFile) : FileBackedFileDescriptor {
 
     override val fileName: String = file.path.toPath().name
-    override val filePath: String = file.path
+    override val filePath: FilePath = FilePath(file.nsUrl)
     override val fileSize: Long? = file.size()
     override val mimeType: ContentType? = ContentType.fromFilePath(fileName).firstOrNull()
 
@@ -39,3 +40,5 @@ class FileKitFileDescriptor(internal val file: PlatformFile) : FileBackedFileDes
         }
     }
 }
+
+actual class FilePath(val nsUri: NSURL)

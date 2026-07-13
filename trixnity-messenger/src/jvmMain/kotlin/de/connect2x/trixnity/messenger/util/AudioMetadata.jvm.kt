@@ -23,44 +23,40 @@ private class JvmAudioMetadataFactory : AudioMetadataFactory {
     private val parser = AutoDetectParser()
 
     override suspend fun invoke(file: FileDescriptor): AudioMetadata? {
-        if (file !is PathFileDescriptor) throw UnsupportedFileDescriptor()
+        if (file !is FileBackedFileDescriptor) throw UnsupportedFileDescriptor()
         return getTikaDuration(file) ?: getJavaSoundDuration(file)
     }
 
-    private fun getTikaDuration(file: PathFileDescriptor): AudioMetadata? =
-        runCatching {
-                val metadata = Metadata()
-                metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.fileName)
-                val stream = TikaInputStream.get(file.path.toNioPath(), metadata)
-                stream.use { input -> parser.parse(input, DefaultHandler(), metadata, ParseContext()) }
-                AudioMetadataImpl(duration = metadata.get(XMPDM.DURATION)?.toPositiveSecondsDuration())
-            }
-            .getOrElse {
-                log.warn(it) { "tika could not extract audio duration from ${file.fileName}" }
-                null
-            }
+    private fun getTikaDuration(file: FileBackedFileDescriptor): AudioMetadata? = runCatching {
+        val metadata = Metadata()
+        metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.fileName)
+        val stream = TikaInputStream.get(file.filePath.path.toNioPath(), metadata)
+        stream.use { input -> parser.parse(input, DefaultHandler(), metadata, ParseContext()) }
+        AudioMetadataImpl(duration = metadata.get(XMPDM.DURATION)?.toPositiveSecondsDuration())
+    }
+        .getOrElse {
+            log.warn(it) { "tika could not extract audio duration from ${file.fileName}" }
+            null
+        }
 
-    private fun getJavaSoundDuration(file: PathFileDescriptor): AudioMetadata? =
-        runCatching {
-                val audioFileFormat = AudioSystem.getAudioFileFormat(file.path.toNioPath().toFile())
-                val durationMicros = audioFileFormat.properties()["duration"] as? Long
-                if (durationMicros != null) {
-                    return@runCatching AudioMetadataImpl(
-                        duration = (durationMicros / 1_000_000.0).toPositiveSecondsDuration()
-                    )
-                }
-                val frameLength = audioFileFormat.frameLength
-                val frameRate = audioFileFormat.format.frameRate
-                if (frameLength <= 0 || frameRate <= 0) null
-                else {
-                    val duration = (frameLength / frameRate.toDouble()).toPositiveSecondsDuration()
-                    AudioMetadataImpl(duration = duration)
-                }
-            }
-            .getOrElse {
-                log.warn(it) { "javax could not extract audio duration from ${file.fileName}" }
-                null
-            }
+    private fun getJavaSoundDuration(file: FileBackedFileDescriptor): AudioMetadata? = runCatching {
+        val audioFileFormat = AudioSystem.getAudioFileFormat(file.filePath.path.toNioPath().toFile())
+        val durationMicros = audioFileFormat.properties()["duration"] as? Long
+        if (durationMicros != null) {
+            return@runCatching AudioMetadataImpl(duration = (durationMicros / 1_000_000.0).toPositiveSecondsDuration())
+        }
+        val frameLength = audioFileFormat.frameLength
+        val frameRate = audioFileFormat.format.frameRate
+        if (frameLength <= 0 || frameRate <= 0) null
+        else {
+            val duration = (frameLength / frameRate.toDouble()).toPositiveSecondsDuration()
+            AudioMetadataImpl(duration = duration)
+        }
+    }
+        .getOrElse {
+            log.warn(it) { "javax could not extract audio duration from ${file.fileName}" }
+            null
+        }
 }
 
 private fun String.toPositiveSecondsDuration(): Duration? = toDoubleOrNull()?.toPositiveSecondsDuration()

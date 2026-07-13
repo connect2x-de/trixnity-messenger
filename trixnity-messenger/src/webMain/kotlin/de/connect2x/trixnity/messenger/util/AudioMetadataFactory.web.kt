@@ -21,10 +21,10 @@ private val log = Logger("de.connect2x.trixnity.messenger.util.WebAudioMetadataF
 
 private class WebAudioMetadataFactory : AudioMetadataFactory {
     override suspend fun invoke(file: FileDescriptor): AudioMetadata? {
-        if (file !is JsFileDescriptor) throw UnsupportedFileDescriptor()
+        if (file !is FileBackedFileDescriptor) throw UnsupportedFileDescriptor()
         var objectUrl: String? = null
         return try {
-            objectUrl = URL.createObjectURL(file.file)
+            objectUrl = file.filePath.url
             val audio = document.createElement(HtmlTagName.audio)
             val metadataLoaded =
                 Promise(

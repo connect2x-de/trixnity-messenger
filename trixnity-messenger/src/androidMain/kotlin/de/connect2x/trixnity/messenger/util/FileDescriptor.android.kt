@@ -14,14 +14,12 @@ import okio.source
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UriFileDescriptorKt")
 
-class UriFileDescriptor(private val context: Context, internal val fileUri: Uri, i18n: I18n) :
-    FileBackedFileDescriptor {
+class UriFileDescriptor(private val context: Context, private val fileUri: Uri, i18n: I18n) : FileBackedFileDescriptor {
 
     private val computedFileInfo = getComputeFileInfo(fileUri)
 
     override val fileName: String = computedFileInfo?.fileName ?: i18n.commonUnknown()
-    override val filePath: String =
-        requireNotNull(fileUri.path) { " File path for Uri ${fileUri.toString()} was null." }
+    override val filePath: FilePath = FilePath(fileUri)
     override val fileSize: Long? = computedFileInfo?.fileSize
     override val mimeType: ContentType? =
         computedFileInfo?.mimeType?.let(ContentType.Companion::parse)
@@ -46,5 +44,7 @@ class UriFileDescriptor(private val context: Context, internal val fileUri: Uri,
     }
         .getOrNull()
 }
+
+actual class FilePath(val uri: Uri)
 
 data class ComputedFileInfo(val fileName: String, val fileSize: Long?, val mimeType: String?)
