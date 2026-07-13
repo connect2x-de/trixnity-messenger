@@ -26,7 +26,7 @@ kotlin {
         }
         androidMain {
             dependencies {
-                implementation(sharedLibs.androidx.work.runtime.ktx)
+                implementation(sharedLibs.androidx.workRuntime)
                 implementation(libs.unifiedpush.android.connector.get().toString()) {
                     exclude(group = "com.google.crypto.tink", module = "tink")
                 }

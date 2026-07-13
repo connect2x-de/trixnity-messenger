@@ -26,7 +26,7 @@ kotlin {
         }
         androidMain {
             dependencies {
-                implementation(sharedLibs.androidx.work.runtime.ktx)
+                implementation(sharedLibs.androidx.workRuntime)
                 implementation(sharedLibs.firebase.messaging)
             }
         }

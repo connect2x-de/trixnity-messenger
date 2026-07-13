@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import de.connect2x.lognity.api.backend.Backend
@@ -24,6 +25,7 @@ import de.connect2x.trixnity.messenger.multi.MatrixMultiMessengerConfiguration
 import de.connect2x.trixnity.messenger.update
 import kotlin.test.Test
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.Dispatchers
 
 @OptIn(ExperimentalTestApi::class)
 class MessengerClientTest {
@@ -39,9 +41,9 @@ class MessengerClientTest {
 
     @Test
     fun messengerClientComposableLoadsSuccessfully() = runComposeUiTest {
-        val matrixMultiMessenger = createTestMatrixMultiMessenger(backgroundScope.coroutineContext)
+        val matrixMultiMessenger = createTestMatrixMultiMessenger(Dispatchers.Default)
         val lifecycle = LifecycleRegistry()
-        composeUiTest.setContent {
+        setContent {
             WithProfileSelection(
                 matrixMultiMessenger = matrixMultiMessenger,
                 componentContext = DefaultComponentContext(lifecycle),
@@ -74,7 +76,7 @@ class MessengerClientTest {
             )
         }
 
-        composeUiTest.waitForIdle()
+        waitForIdle()
         matrixMultiMessenger.di.get<I18nView>()
         matrixMultiMessenger.di.get<MatrixMultiMessengerConfiguration>()
 
@@ -83,6 +85,6 @@ class MessengerClientTest {
         val password = Uuid.generateV4().toString()
 
         createUser(username, password)
-        composeUiTest.login(testName, username, password)
+        login(testName, username, password)
     }
 }

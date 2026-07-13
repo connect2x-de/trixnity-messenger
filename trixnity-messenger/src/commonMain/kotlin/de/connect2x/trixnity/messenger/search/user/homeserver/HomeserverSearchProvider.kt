@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.search.user.homeserver
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
+import de.connect2x.trixnity.client.serverDiscovery
 import de.connect2x.trixnity.clientserverapi.model.user.avatarUrl
 import de.connect2x.trixnity.clientserverapi.model.user.displayName
 import de.connect2x.trixnity.core.model.UserId
@@ -67,7 +68,16 @@ open class HomeserverSearchProvider(
         userId: UserId,
         coroutineScope: CoroutineScope,
         maxMediaSizeInMemory: Long,
-    ): SearchProviderResult.Success<HomeserverUserSearchResult> {
+    ): SearchProviderResult<HomeserverUserSearchResult> {
+        userId.domain
+            .serverDiscovery(
+                httpClientEngine = matrixMessengerConfiguration.httpClientEngine,
+                httpClientConfig = matrixMessengerConfiguration.httpClientConfig,
+            )
+            .onFailure {
+                return SearchProviderResult.Failure(i18n.searchUserIdHomeserverNotValid(userId.domain))
+            }
+
         val profile =
             matrixClient.api.user
                 .getProfile(userId)

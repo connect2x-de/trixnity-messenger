@@ -129,7 +129,7 @@ public final class de/connect2x/trixnity/messenger/compose/view/GetDrawableResou
 	public fun getType ()Lkotlin/reflect/KClass;
 }
 
-public final class de/connect2x/trixnity/messenger/compose/view/MatrixMultiMessengerActivity : androidx/appcompat/app/AppCompatActivity {
+public final class de/connect2x/trixnity/messenger/compose/view/MatrixMultiMessengerActivity : androidx/activity/ComponentActivity {
 	public static final field $stable I
 	public fun <init> ()V
 }
@@ -4518,6 +4518,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/user/Empt
 	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/search/user/EmptySearchResultView;
 	public fun create (Lde/connect2x/trixnity/messenger/search/user/UserSearchResult;ZILandroidx/compose/foundation/interaction/MutableInteractionSource;Lkotlin/jvm/functions/Function1;Landroidx/compose/runtime/Composer;I)V
 	public fun getSupports ()Lkotlin/reflect/KClass;
+}
+
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchErrorsKt {
+	public static final fun SearchErrors (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector {

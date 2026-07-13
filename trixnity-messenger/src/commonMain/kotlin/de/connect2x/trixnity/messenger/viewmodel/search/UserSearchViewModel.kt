@@ -9,7 +9,6 @@ import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModel
 import de.connect2x.trixnity.messenger.viewmodel.TextFieldViewModelImpl
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 interface UserSearchViewModelFactory {
     fun create(
@@ -35,15 +34,16 @@ class UserSearchViewModelImpl(
 class PreviewUserSearchViewModel : UserSearchViewModel {
     override val searchTerm: TextFieldViewModel = TextFieldViewModelImpl(255)
     override val searchProviders: List<SearchProvider<UserSearchResult, UserSearchContext>> = emptyList()
-    override val availableFilters: StateFlow<List<GroupedSearchFilter>> = MutableStateFlow(emptyList())
+    override val availableFilters: MutableStateFlow<List<GroupedSearchFilter>> = MutableStateFlow(emptyList())
     override val searchResultList: MutableStateFlow<List<UserSearchResult>> = MutableStateFlow(emptyList())
     override val searchProviderEnabled: MutableStateFlow<Map<SearchProvider.Key<*>, Boolean>> =
         MutableStateFlow(emptyMap())
     override val isSearching: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    override val noResultsFound: StateFlow<Boolean?> = MutableStateFlow(null)
-    override val searchProviderCanBeEnabled: StateFlow<Map<SearchProvider.Key<*>, Boolean>> =
+    override val noResultsFound: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    override val searchProviderCanBeEnabled: MutableStateFlow<Map<SearchProvider.Key<*>, Boolean>> =
         MutableStateFlow(emptyMap())
-    override val searchFilters: StateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
+    override val errors: MutableStateFlow<Map<String, String>> = MutableStateFlow(emptyMap())
+    override val searchFilters: MutableStateFlow<List<SearchFilter>> = MutableStateFlow(emptyList())
 
     override fun setProvider(providerId: SearchProvider.Key<*>, enabled: Boolean) {}
 
