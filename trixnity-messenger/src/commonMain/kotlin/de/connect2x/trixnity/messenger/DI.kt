@@ -371,7 +371,6 @@ inline fun <reified F : SearchProviderFactory<*, *>> Module.searchProviderFactor
 
 private fun newSearchViewModels() = module {
     searchProviderFactory { HomeserverSearchProviderFactory(get(), get(), get(), get()) }
-    //    searchProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
     single<SearchProviderSorter> { SearchProviderSorterImpl() }
     single<SearchViewModelFactory> { SearchViewModelFactory }
     single<UserSearchViewModelFactory> { UserSearchViewModelFactory }

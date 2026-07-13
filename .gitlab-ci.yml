@@ -155,7 +155,7 @@ test:sdk:unit:ios:
   needs:
     - job: "compile:ios"
       artifacts: false
-  tags: [ "saas-macos-medium-m1" ]
+  tags: [ "connect2x-mac-arm" ]
   artifacts: *artifact-reports
   rules:
     - *if-merge-request
