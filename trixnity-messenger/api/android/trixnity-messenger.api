@@ -2729,12 +2729,10 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrayKeyPro
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/secrets/SecretByteArrays {
-	public abstract fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun get-jMVdB_k (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getInputKeyAndExtra (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun removeSecretsForUser-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun rotateKeys (Ljava/lang/String;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun set (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun set-gc9KSug (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -2754,12 +2752,10 @@ public final class de/connect2x/trixnity/messenger/secrets/SecretByteArrays$GetI
 public final class de/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl : de/connect2x/trixnity/messenger/secrets/SecretByteArrays {
 	public static final field Companion Lde/connect2x/trixnity/messenger/secrets/SecretByteArraysImpl$Companion;
 	public fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerSettingsHolder;Lkotlin/Lazy;)V
-	public fun get (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun get-jMVdB_k (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getInputKeyAndExtra (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun removeSecretsForUser-bx7bNhU (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun rotateKeys (Ljava/lang/String;Lkotlin/jvm/functions/Function4;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun set (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun set-gc9KSug (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
