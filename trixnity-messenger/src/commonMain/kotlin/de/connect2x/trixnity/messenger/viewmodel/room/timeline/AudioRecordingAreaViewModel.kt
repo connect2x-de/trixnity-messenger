@@ -252,51 +252,52 @@ class AudioRecordingAreaViewModelImpl(
     }
 
     override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) {
-        coroutineScope.launch {
-            val duration = content.info?.duration
+        suspend fun deleteDraft() {
+            matrixClient.room.deleteDraftMessage(roomId)
+        }
 
-            if (duration != null) {
-                val contentType =
-                    content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) }
-                if (contentType != null) {
-                    val isEncryptedRoom = matrixClient.room.getById(roomId).first()?.encrypted == true
-                    val mediaReference =
-                        if (isEncryptedRoom) {
-                            content.file?.let { file ->
-                                AudioRecorder.State.Completed.MediaReference.Encrypted(file)
-                            }
-                        } else {
-                            content.url?.let { url ->
-                                AudioRecorder.State.Completed.MediaReference.Unencrypted(url)
-                            }
-                        }
-                    if (mediaReference != null) {
-                        val fileExtension =
-                            content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "")
-                        if (fileExtension != null) {
-                            recorder?.loadSuspending(
-                                AudioRecorder.State.Completed(
-                                    media = mediaReference,
-                                    duration = duration.milliseconds,
-                                    sizeBytes = content.info?.size,
-                                    contentType = contentType,
-                                    fileExtension = fileExtension,
-                                )
-                            )
-                        } else {
-                            log.warn { "Failed to retrieve file extension for audio message draft" }
-                        }
-                    } else {
-                        log.warn { "Failed loading audio message draft because the drafted media could not be retrieved" }
+        coroutineScope.launch {
+            val duration = content.info?.duration ?: run {
+                log.warn { "Failed loading audio message draft, because the duration was null" }
+                deleteDraft()
+                return@launch
+            }
+            val contentType =
+                content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) } ?: run {
+                    log.warn { "Failed to retrieve content type for audio message draft" }
+                    deleteDraft()
+                    return@launch
+                }
+            val isEncryptedRoom = matrixClient.room.getById(roomId).first()?.encrypted == true
+            val mediaReference =
+                if (isEncryptedRoom) {
+                    content.file?.let { file ->
+                        AudioRecorder.State.Completed.MediaReference.Encrypted(file)
                     }
                 } else {
-                    log.warn { "Failed to retrieve content type for audio message draft" }
-                    matrixClient.room.deleteDraftMessage(roomId)
+                    content.url?.let { url ->
+                        AudioRecorder.State.Completed.MediaReference.Unencrypted(url)
+                    }
+                } ?: run {
+                    log.warn { "Failed loading audio message draft because the drafted media could not be retrieved" }
+                    deleteDraft()
+                    return@launch
                 }
-            } else {
-                log.warn { "Failed loading audio message draft, because the duration was null" }
-                matrixClient.room.deleteDraftMessage(roomId)
-            }
+            val fileExtension =
+                content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "") ?: run {
+                    log.warn { "Failed to retrieve file extension for audio message draft" }
+                    deleteDraft()
+                    return@launch
+                }
+            recorder?.loadSuspending(
+                AudioRecorder.State.Completed(
+                    media = mediaReference,
+                    duration = duration.milliseconds,
+                    sizeBytes = content.info?.size,
+                    contentType = contentType,
+                    fileExtension = fileExtension,
+                )
+            )
         }
     }
 }
