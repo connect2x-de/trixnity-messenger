@@ -31,6 +31,8 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
+import dev.mokkery.verify.VerifyMode
+import dev.mokkery.verifySuspend
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.http.*
@@ -150,6 +152,51 @@ class AudioRecordingAreaViewModelTest {
         cut.sendAudioMessage()
 
         eventually(300.milliseconds) { sent shouldBe false }
+    }
+
+    @Test
+    fun `reset recorder - when opening another room which causes a new view model to initialize then close the previous recorder from the previous room`() = runTest {
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Completed(
+            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+            5.seconds,
+            1000L,
+            ContentType("audio", "ogg"),
+        ))
+        every { recorder.state } returns recorderState
+        everySuspend { recorder.closeSuspending() } calls {
+            recorderState.value = AudioRecorder.State.Ready
+        }
+
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
+
+        delay(1.seconds)
+
+        verifySuspend {
+            recorder.closeSuspending()
+        }
+    }
+
+    @Test
+    fun `init drafts - when opening another room which causes a new view model to initialize then do not save the audio from the previous room as a draft`() = runTest {
+        val recorderState: MutableStateFlow<AudioRecorder.State> = MutableStateFlow(AudioRecorder.State.Completed(
+            AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+            5.seconds,
+            1000L,
+            ContentType("audio", "ogg"),
+            "ogg",
+        ))
+        every { recorder.state } returns recorderState
+        everySuspend { recorder.closeSuspending() } calls {
+            recorderState.value = AudioRecorder.State.Ready
+        }
+
+        val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
+
+        delay(1.seconds)
+
+        verifySuspend(VerifyMode.not) {
+            roomServiceMock.setDraftMessage(any(), any(), any())
+        }
     }
 
     @Test

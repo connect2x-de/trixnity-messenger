@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFacto
 import io.ktor.http.ContentType
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -128,7 +129,19 @@ class AudioRecordingAreaViewModelImpl(
     }
 
     init {
+        audioDraftOnCompleted()
+    }
+
+    private fun audioDraftOnCompleted() {
+        suspend fun closeRecorder() {
+            val recorderClosed = coroutineScope.async {
+                recorder?.closeSuspending()
+            }
+            recorderClosed.await()
+        }
+
         coroutineScope.launch {
+            closeRecorder()
             if (enableMessageDrafts) {
                 recorder?.state?.collect { state ->
                     when (state) {
