@@ -5,6 +5,7 @@ import de.connect2x.trixnity.client.media.MediaService
 import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.room.message.MessageBuilder
 import de.connect2x.trixnity.client.room.message.audio
+import de.connect2x.trixnity.client.room.message.roomMessageBuilder
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.RoomOutboxMessage
 import de.connect2x.trixnity.core.model.EventId
@@ -87,6 +88,7 @@ class AudioRecordingAreaViewModelTest {
         every { player.pause() } returns Unit
 
         every { recorder.close() } returns Unit
+        everySuspend { recorder.closeSuspending() } returns Unit
 
         everySuspend { mediaServiceMock.prepareUploadMedia(any(), any()) } returns "testUrl"
 
@@ -170,7 +172,13 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
+            AudioRecorder.State.Completed(
+                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                5.seconds,
+                1000L,
+                ContentType("audio", "mp4"),
+                "m4a",
+            )
         delay(1.seconds)
         cut.capturePlayer.value shouldBe player
     }
@@ -185,7 +193,13 @@ class AudioRecordingAreaViewModelTest {
         draftMessage.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "mp4"), "m4a")
+            AudioRecorder.State.Completed(
+                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                5.seconds,
+                1000L,
+                ContentType("audio", "mp4"),
+                "m4a",
+            )
         delay(1.seconds)
         draftMessage.value?.content shouldBe
             RoomMessageEventContent.FileBased.Audio(
@@ -194,7 +208,7 @@ class AudioRecordingAreaViewModelTest {
                 formattedBody = null,
                 fileName = "voice_message.m4a",
                 info = AudioInfo(duration = 5000, mimeType = "audio/mp4", size = 1000),
-                url = "testUrl",
+                url = "unused",
                 file = null,
                 relatesTo = null,
                 mentions = Mentions(users = null, room = null),
@@ -210,7 +224,13 @@ class AudioRecordingAreaViewModelTest {
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
+            AudioRecorder.State.Completed(
+                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                5.seconds,
+                1000L,
+                ContentType("audio", "mp4"),
+                "m4a",
+            )
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Ready
         delay(1.seconds)
@@ -218,7 +238,13 @@ class AudioRecordingAreaViewModelTest {
         cut.capturePlayer.value shouldBe null
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
+            AudioRecorder.State.Completed(
+                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                5.seconds,
+                1000L,
+                ContentType("audio", "mp4"),
+                "m4a",
+            )
         delay(1.seconds)
         recorderState.value = AudioRecorder.State.Recording(5.seconds, 5F)
         delay(1.seconds)
@@ -255,7 +281,13 @@ class AudioRecordingAreaViewModelTest {
         eventually(300.milliseconds) { sent shouldBe false }
 
         recorderState.value =
-            AudioRecorder.State.Completed(PlatformMediaMock, 5.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
+            AudioRecorder.State.Completed(
+                AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                5.seconds,
+                1000L,
+                ContentType("audio", "mp4"),
+                "m4a",
+            )
         cut.sendAudioMessage()
         eventually(300.milliseconds) { sent shouldBe true }
     }
@@ -313,7 +345,7 @@ class AudioRecordingAreaViewModelTest {
     }
 
     @Test
-    fun `load - should not load draft into recorder if download failed`() = runTest {
+    fun `load - should not load draft into recorder if media retrieval failed`() = runTest {
         var wasLoaded = false
         everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
@@ -321,15 +353,30 @@ class AudioRecordingAreaViewModelTest {
         val body = "cool audio"
         val fileName = "cool_audio.m4a"
         val contentType = ContentType("audio", "mp4")
-        val platformMedia = PlatformMediaMock
 
         everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.failure(Exception())
 
-        val builder: (suspend MessageBuilder.() -> Unit) = {
-            audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 420)
+        val builderWithoutUrlNorFile: (suspend MessageBuilder.() -> Unit) = {
+            roomMessageBuilder(body, null, null) {
+                RoomMessageEventContent.FileBased.Audio(
+                    body = this.body,
+                    format = this.format,
+                    formattedBody = this.formattedBody,
+                    fileName = fileName,
+                    info = AudioInfo(
+                        duration = 420,
+                        mimeType = ContentType.Audio.OGG.toString(),
+                        size = 5,
+                    ),
+                    url = null,
+                    file = null,
+                    relatesTo = relatesTo,
+                    mentions = mentions,
+                )
+            }
         }
 
-        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builder)
+        val content = MessageBuilder(roomId, roomServiceMock, mediaServiceMock, userId).build(builderWithoutUrlNorFile)
 
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
