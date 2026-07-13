@@ -7,6 +7,7 @@ import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.configureTestLogging
 import de.connect2x.trixnity.messenger.createTestDefaultTrixnityMessengerModules
 import de.connect2x.trixnity.messenger.eventually
@@ -15,6 +16,7 @@ import de.connect2x.trixnity.messenger.testMatrixClientViewModelContext
 import de.connect2x.trixnity.messenger.util.DownloadManager
 import de.connect2x.trixnity.messenger.util.InMemoryPlatformMedia
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId
+import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.matcher.any
@@ -29,6 +31,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import org.koin.core.component.get
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -98,6 +101,30 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
         cut.cancelDownloadMedia()
         eventually(1.seconds) {
             downloadResult shouldBe null
+            cut.downloadMediaError.value shouldBe null
+            cut.downloadMediaResult.value shouldBe null
+            cut.downloadMediaProgress.value shouldBe null
+        }
+    }
+
+    @Test
+    fun `downloading » don't download if disabled in configs`() = runTest {
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } calls
+            {
+                throw IllegalStateException("We should never be able to reach this")
+            }
+
+        val cut = fileBasedMessageViewModel()
+        var downloadResult: ByteArray? = null
+        cut.get<MatrixMessengerConfiguration>().downloadsDisabled = true
+
+        var downloadCanceled = false
+
+        cut.downloadMedia({ download -> downloadResult = download.toByteArray() }, { downloadCanceled = true })
+
+        eventually(1.seconds) {
+            downloadResult shouldBe null
+            downloadCanceled shouldBe true
             cut.downloadMediaError.value shouldBe null
             cut.downloadMediaResult.value shouldBe null
             cut.downloadMediaProgress.value shouldBe null

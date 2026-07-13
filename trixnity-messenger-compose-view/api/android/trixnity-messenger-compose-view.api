@@ -4529,6 +4529,10 @@ public final class de/connect2x/trixnity/messenger/compose/view/search/user/Empt
 	public fun getSupports ()Lkotlin/reflect/KClass;
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/search/user/SearchErrorsKt {
+	public static final fun SearchErrors (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Landroidx/compose/runtime/Composer;I)V
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputSelector {
 	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/UserSearchViewModel;Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;Landroidx/compose/runtime/Composer;I)V
 	public abstract fun selectFactory (Lde/connect2x/trixnity/messenger/search/provider/SearchFilter$Key;)Lde/connect2x/trixnity/messenger/compose/view/search/user/SearchFilterInputView;
