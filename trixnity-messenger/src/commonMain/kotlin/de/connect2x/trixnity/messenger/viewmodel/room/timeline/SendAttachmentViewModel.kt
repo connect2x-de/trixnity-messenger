@@ -165,13 +165,12 @@ class SendAttachmentViewModelImpl(
 
                         isAudio ?: false -> {
                             log.debug { "send an audio" }
-                            val audioMetadata = runCatching {
-                                audioMetadataFactory?.invoke(file)
-                            }
-                                .getOrElse {
-                                    log.warn(it) { "could not extract audio metadata for ${file.fileName}" }
-                                    null
-                                }
+                            val audioMetadata =
+                                runCatching { audioMetadataFactory?.invoke(file) }
+                                    .getOrElse {
+                                        log.warn(it) { "could not extract audio metadata for ${file.fileName}" }
+                                        null
+                                    }
                             audio(
                                 body = file.fileName,
                                 fileName = file.fileName,
