@@ -18,11 +18,7 @@ class BasicFileDescriptor(
 ) : FileDescriptor
 
 interface FileBackedFileDescriptor : FileDescriptor {
-    override val fileName: String
     val filePath: FilePath
-    override val fileSize: Long?
-    override val mimeType: ContentType?
-    override val content: ByteArrayFlow
 }
 
 expect class FilePath

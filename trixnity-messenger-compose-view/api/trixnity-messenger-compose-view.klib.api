@@ -5977,20 +5977,6 @@ abstract fun interface de.connect2x.trixnity.messenger.compose.view/ViewControll
 }
 
 // Targets: [ios]
-final class de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor : de.connect2x.trixnity.messenger.util/FileDescriptor { // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor|null[0]
-    constructor <init>(kotlinx.io.files/Path, kotlin/ByteArray) // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.<init>|<init>(kotlinx.io.files.Path;kotlin.ByteArray){}[0]
-
-    final val content // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.content|{}content[0]
-        final fun <get-content>(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.content.<get-content>|<get-content>(){}[0]
-    final val fileName // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.fileName|{}fileName[0]
-        final fun <get-fileName>(): kotlin/String // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.fileName.<get-fileName>|<get-fileName>(){}[0]
-    final val fileSize // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.fileSize|{}fileSize[0]
-        final fun <get-fileSize>(): kotlin/Long // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.fileSize.<get-fileSize>|<get-fileSize>(){}[0]
-    final val mimeType // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.mimeType|{}mimeType[0]
-        final fun <get-mimeType>(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.compose.view.files/ByteArrayFileDescriptor.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
-}
-
-// Targets: [ios]
 final class de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/PlatformPDFReader : de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/PDFReader { // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/PlatformPDFReader|null[0]
     constructor <init>(de.connect2x.trixnity.client.media/PlatformMedia, kotlin/Function1<kotlin/String?, kotlin/Unit>) // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/PlatformPDFReader.<init>|<init>(de.connect2x.trixnity.client.media.PlatformMedia;kotlin.Function1<kotlin.String?,kotlin.Unit>){}[0]
 
@@ -6005,9 +5991,6 @@ final class de.connect2x.trixnity.messenger.compose.view.room.timeline.element.d
 }
 
 // Targets: [ios]
-final val de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop // de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop[0]
-
-// Targets: [ios]
 final val de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop[0]
 
 // Targets: [ios]
@@ -6015,9 +5998,6 @@ final fun (de.connect2x.trixnity.messenger.multi/MatrixMultiMessengerConfigurati
 
 // Targets: [ios]
 final fun (platform.UIKit/UIImage).de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/toByteArray(kotlin/Double = ...): kotlin/ByteArray? // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/toByteArray|toByteArray@platform.UIKit.UIImage(kotlin.Double){}[0]
-
-// Targets: [ios]
-final fun de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_files_ByteArrayFileDescriptor$stableprop_getter(){}[0]
 
 // Targets: [ios]
 final fun de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PlatformPDFReader$stableprop_getter(){}[0]
