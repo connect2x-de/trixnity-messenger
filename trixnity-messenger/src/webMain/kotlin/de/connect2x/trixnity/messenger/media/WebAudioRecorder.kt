@@ -5,6 +5,7 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
+import js.array.Tuple
 import js.array.asList
 import js.buffer.ArrayBuffer
 import js.numbers.JsNumbers.toKotlinFloat
@@ -18,6 +19,7 @@ import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.awaitClose
@@ -59,10 +61,11 @@ class WebAudioRecorder(
                 }
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
+                val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
                 AudioRecorderImpl.State.Recording(
                     start = clock.now(),
                     loudness = loudness(microphone),
-                    complete = complete(recorder, microphone, intoMediaStore),
+                    complete = complete(recorder, microphone, media, mediaSize),
                 )
             } else {
                 log.info { "Microphone permission request timed out." }
@@ -86,12 +89,10 @@ class WebAudioRecorder(
         return recorder
     }
 
-    @OptIn(ExperimentalWasmJsInterop::class)
-    private suspend fun complete(
+    private fun recordIntoMediaStore(
         recorder: MediaRecorder,
-        microphone: MediaStream,
-        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
-    ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
+    ): Pair<Deferred<AudioRecorder.State.Completed.MediaReference>, Double> {
         var recordingSizeBytes = 0.0
         val chunks = callbackFlow {
             val handlerRemovers = listOf(
@@ -117,18 +118,25 @@ class WebAudioRecorder(
                         { event ->
                             close()
                         },
-                )
+                ),
             )
             awaitClose {
                 handlerRemovers.forEach { it() }
             }
         }.buffer(UNLIMITED)
-            .map { it.byteArray()}
+            .map { it.byteArray() }
 
-        val mediaDeferred = coroutineScope.async {
-            intoMediaStore(chunks)
-        }
+        val media = coroutineScope.async { intoMediaStore(chunks) }
+        return Pair(media, recordingSizeBytes)
+    }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
+    private suspend fun complete(
+        recorder: MediaRecorder,
+        microphone: MediaStream,
+        mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
+        mediaSize: Double,
+    ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         return { recordingState: AudioRecorderImpl.State.Recording ->
             recorder.stop()
@@ -161,7 +169,7 @@ class WebAudioRecorder(
                 AudioRecorderImpl.State.Completed(
                         media,
                         clock.now() - recordingState.start,
-                        recordingSizeBytes.toLong(),
+                        mediaSize.toLong(),
                         opusContentType,
                     ) {
                         // Automatically deleted by media store
