@@ -57,7 +57,7 @@ open class MatrixClientInitializationFailureViewModelImpl(
     val matrixClients = get<MatrixClients>()
     val messengerConfiguration = get<MatrixMessengerConfiguration>()
     val profileManager = get<ProfileManager>()
-    var deleteProfile = false
+    var deleteProfile = initializationException is DatabaseKeysManipulatedException
 
     init {
         when (initializationException) {
@@ -65,7 +65,6 @@ open class MatrixClientInitializationFailureViewModelImpl(
                 log.error { "The keys for the database have been tampered with. Will delete the current profile." }
                 // we cannot delete the profile immediately as it instantly removes this view, so we defer it until a
                 // user interaction takes place [confirmDeletion].
-                deleteProfile = true
             }
 
             is DatabaseCannotBeDecryptedException -> {
