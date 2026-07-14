@@ -40,7 +40,7 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        maxSize: Long?,
+        maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>>
 }
 
@@ -74,7 +74,7 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-        maxSize: Long?,
+        maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>> {
         log.debug { "add $fileName to current downloads" }
         val download = Download(fileName, content.info?.size, progress)
@@ -105,8 +105,12 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                     downloadMutex.withLock(key) {
                         when {
                                 encryptedFile != null ->
-                                    matrixClient.media.getEncryptedMedia(encryptedFile, maxSize, trixnityProgress)
-                                url != null -> matrixClient.media.getMedia(url, maxSize, trixnityProgress)
+                                    matrixClient.media.getEncryptedMedia(
+                                        encryptedFile,
+                                        maxDownloadSize,
+                                        trixnityProgress,
+                                    )
+                                url != null -> matrixClient.media.getMedia(url, maxDownloadSize, trixnityProgress)
                                 else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
                             }
                             .onSuccess { log.debug { "successfully downloaded $fileName" } }

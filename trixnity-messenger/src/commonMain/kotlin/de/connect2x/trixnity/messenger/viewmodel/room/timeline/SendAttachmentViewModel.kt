@@ -86,14 +86,13 @@ class SendAttachmentViewModelImpl(
     private val _fileContent = MutableStateFlow<ByteArrayFlow?>(null)
     private val fileContent: StateFlow<ByteArrayFlow?> = _fileContent.asStateFlow()
 
-    private val maxMediaSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
-    private val maxImageSize = get<MatrixMessengerConfiguration>().loadLimits.image
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
     private val fileSize = MutableStateFlow(file.fileSize)
     private val previewFileSize = file.fileSize
     override val previewFileContent: StateFlow<ByteArray?> =
         fileContent
-            .filter { previewFileSize == null || previewFileSize <= maxMediaSize }
-            .map { it?.toByteArray(maxMediaSize) }
+            .filter { previewFileSize == null || previewFileSize <= maxMediaSizeInMemory }
+            .map { it?.toByteArray(maxMediaSizeInMemory) }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), null)
 
     private val backCallback = BackCallback { cancel() }
@@ -108,7 +107,7 @@ class SendAttachmentViewModelImpl(
 
             _fileContent.value =
                 if (isImage == true) {
-                    val imageByteArray = file.content.toByteArray(maxImageSize)
+                    val imageByteArray = file.content.toByteArray(maxMediaSizeInMemory)
                     if (imageByteArray != null) {
                         this@SendAttachmentViewModelImpl.get<ProcessImageUpload>()
                             .invoke(
@@ -138,9 +137,9 @@ class SendAttachmentViewModelImpl(
                             log.debug { "send an image" }
                             val size = fileSize.value
                             val (width, height) =
-                                if (size == null || size <= maxImageSize)
+                                if (size == null || size <= maxMediaSizeInMemory)
                                     this@SendAttachmentViewModelImpl.get<GetImageDimensions>()
-                                        .invoke(byteArrayFlow, maxImageSize, file.mimeType)
+                                        .invoke(byteArrayFlow, maxMediaSizeInMemory, file.mimeType)
                                 else Pair(null, null)
                             image(
                                 body = file.fileName,

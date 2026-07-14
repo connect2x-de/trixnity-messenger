@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: new search: errors of search providers are collected and displayed above search bar
 - SDK: search providers are registered with a factory, so that they can be disabled for certain accounts
 - SDK: Added check for downloadsDisabled before downloading file
-- SDK: granular down/load limits for syncing media files in `MatrixMessengerConfiguration`
+- SDK: granular download limits for syncing media files in `MatrixMessengerConfiguration`
 
 ### Changed
 

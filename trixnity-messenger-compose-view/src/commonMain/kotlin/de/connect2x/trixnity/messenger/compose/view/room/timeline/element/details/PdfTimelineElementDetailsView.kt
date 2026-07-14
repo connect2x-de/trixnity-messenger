@@ -233,7 +233,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
 
         LaunchedEffect(media) {
             if (media == null) { // if the pdf is opened a second time there's no need to re-download it
-                element.loadMedia()
+                element.loadMedia(null)
             }
         }
         LaunchedEffect(element.loadMediaError) {

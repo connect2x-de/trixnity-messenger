@@ -152,7 +152,7 @@ open class RoomHeaderViewModelImpl(
     private val roomTopic = get<RoomTopic>()
     private val initials = get<Initials>()
     private val userBlocking = get<UserBlocking>()
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)
 

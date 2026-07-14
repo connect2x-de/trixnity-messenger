@@ -61,6 +61,7 @@ interface ExportRoomViewModel {
             val message: String,
             val missingMedia: List<ExportRoomResult.Success.MissingMedia>? = null,
             val decryptionFailed: List<ExportRoomResult.Success.DecryptionFailed>? = null,
+            val mediaTooLarge: List<ExportRoomResult.Success.MediaTooLarge?>? = null,
         ) : State
     }
 
@@ -151,7 +152,7 @@ class ExportRoomViewModelImpl(
                                 matrixClient = matrixClient,
                                 progress = progress,
                                 timeZone = timeZone,
-                                maxMediaSize = messengerConfiguration.loadLimits.media,
+                                maxMediaSize = messengerConfiguration.downloadLimits.export,
                             )
                         when (result) {
                             ExportRoomResult.RoomNotFound -> {
@@ -173,7 +174,11 @@ class ExportRoomViewModelImpl(
 
                             is ExportRoomResult.Success -> {
                                 state.value =
-                                    if (result.missingMedia.isNotEmpty() || result.decryptionFailed.isNotEmpty()) {
+                                    if (
+                                        result.missingMedia.isNotEmpty() ||
+                                            result.decryptionFailed.isNotEmpty() ||
+                                            result.mediaTooLarge.isNotEmpty()
+                                    ) {
                                         log.warn { "export success with errors: $result" }
                                         with(result) {
                                             Error(
@@ -184,6 +189,7 @@ class ExportRoomViewModelImpl(
                                                     ),
                                                 missingMedia = missingMedia,
                                                 decryptionFailed = decryptionFailed,
+                                                mediaTooLarge = mediaTooLarge,
                                             )
                                         }
                                     } else {

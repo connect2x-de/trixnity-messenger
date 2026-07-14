@@ -6,6 +6,7 @@ import de.connect2x.trixnity.client.room.RoomService
 import de.connect2x.trixnity.client.store.Room
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -47,14 +48,14 @@ class ExportRoomTest {
     val timelineWithErrors =
         (0..7).map { timelineEvent(it.toLong()) } +
             (8..9).map { timelineEvent(it.toLong(), true) } +
-            (10..21).map { timelineEventWithMedia(it.toLong()) }
+            (10..22).map { timelineEventWithMedia(it.toLong()) }
 
     val roomServiceMock =
         mock<RoomService> {
             every { getById(roomId) } returns
                 MutableStateFlow(Room(isDirect = true, roomId = roomId, lastEventId = EventId("19")))
             every { getById(roomIdWithErrors) } returns
-                MutableStateFlow(Room(isDirect = true, roomId = roomIdWithErrors, lastEventId = EventId("21")))
+                MutableStateFlow(Room(isDirect = true, roomId = roomIdWithErrors, lastEventId = EventId("22")))
             every { getTimelineEvents(roomId, any(), GetEvents.Direction.BACKWARDS, any()) } returns
                 timeline.reversed().asFlow()
             every { getTimelineEvents(roomIdWithErrors, any(), GetEvents.Direction.BACKWARDS, any()) } returns
@@ -78,6 +79,13 @@ class ExportRoomTest {
                 Result.failure(IllegalStateException("download error"))
             everySuspend { getMedia("mxc://localhost/21", any(), any(), any()) } returns
                 Result.failure(IllegalStateException("download error"))
+            everySuspend { getMedia("mxc://localhost/22", any(), any(), any()) } returns
+                Result.failure(
+                    DownloadLimitExceededException(
+                        2_000L,
+                        "File could not be downloaded because it would exceed the limit of 2000 bytes",
+                    )
+                )
         }
 
     val matrixClientMock =
@@ -293,6 +301,14 @@ class ExportRoomTest {
                     listOf(
                         DecryptionFailed(eventId = EventId("8"), reason = "error while decrypting TimelineEvent"),
                         DecryptionFailed(eventId = EventId("9"), reason = "error while decrypting TimelineEvent"),
+                    ),
+                mediaTooLarge =
+                    listOf(
+                        ExportRoomResult.Success.MediaTooLarge(
+                            EventId("22"),
+                            "1970-01-01 01-00-00 US8noQQ9gT5lM2holoio_VSDCyQWodKViTrVzZfQwgQ= - 22",
+                            "File could not be downloaded because it would exceed the limit of 2000 bytes",
+                        )
                     ),
             )
     }

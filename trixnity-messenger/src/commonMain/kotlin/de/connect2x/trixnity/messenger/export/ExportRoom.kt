@@ -8,6 +8,7 @@ import de.connect2x.trixnity.client.room.firstWithContent
 import de.connect2x.trixnity.client.store.TimelineEvent
 import de.connect2x.trixnity.client.store.eventId
 import de.connect2x.trixnity.client.store.originTimestamp
+import de.connect2x.trixnity.clientserverapi.client.DownloadLimitExceededException
 import de.connect2x.trixnity.clientserverapi.model.room.GetEvents
 import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.RoomId
@@ -53,10 +54,13 @@ sealed interface ExportRoomResult {
     data class Success(
         val missingMedia: List<MissingMedia> = emptyList(),
         val decryptionFailed: List<DecryptionFailed> = emptyList(),
+        val mediaTooLarge: List<MediaTooLarge> = emptyList(),
     ) : ExportRoomResult {
         data class MissingMedia(val eventId: EventId, val fileName: String?, val reason: String?)
 
         data class DecryptionFailed(val eventId: EventId, val reason: String?)
+
+        data class MediaTooLarge(val eventId: EventId, val fileName: String?, val reason: String?)
     }
 }
 
@@ -130,6 +134,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
 
         val missingMedia = mutableListOf<MissingMedia>()
         val decryptionFailed = mutableListOf<DecryptionFailed>()
+        val mediaTooLarge = mutableListOf<ExportRoomResult.Success.MediaTooLarge>()
 
         try {
             coroutineScope {
@@ -193,8 +198,21 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
 
                                         else -> null
                                     }
-                                    ?.onFailure {
-                                        missingMedia.add(MissingMedia(timelineEvent.eventId, fileName, it.message))
+                                    ?.onFailure { error ->
+                                        when (error) {
+                                            is DownloadLimitExceededException ->
+                                                mediaTooLarge.add(
+                                                    ExportRoomResult.Success.MediaTooLarge(
+                                                        timelineEvent.eventId,
+                                                        fileName,
+                                                        error.message,
+                                                    )
+                                                )
+                                            else ->
+                                                missingMedia.add(
+                                                    MissingMedia(timelineEvent.eventId, fileName, error.message)
+                                                )
+                                        }
                                     }
                                     ?.getOrNull()
                             if (fileName != null && media != null) {
@@ -228,7 +246,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
         }
 
         log.info { "export of $roomId finished" }
-        return ExportRoomResult.Success(missingMedia.toList(), decryptionFailed.toList())
+        return ExportRoomResult.Success(missingMedia.toList(), decryptionFailed.toList(), mediaTooLarge.toList())
     }
 }
 

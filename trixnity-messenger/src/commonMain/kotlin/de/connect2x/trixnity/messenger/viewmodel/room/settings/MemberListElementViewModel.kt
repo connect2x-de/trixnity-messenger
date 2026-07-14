@@ -142,7 +142,7 @@ class MemberListElementViewModelImpl(
             .map { it?.presence ?: Presence.OFFLINE }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     init {
         coroutineScope.launch {

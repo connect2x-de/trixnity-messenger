@@ -79,7 +79,7 @@ class SearchImpl(
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.SearchImpl")
     }
 
-    private val maxThumbnailSize = matrixMessengerConfiguration.loadLimits.thumbnail
+    private val maxThumbnailSize = matrixMessengerConfiguration.downloadLimits.thumbnail
 
     override suspend fun searchUsers(
         coroutineScope: CoroutineScope,

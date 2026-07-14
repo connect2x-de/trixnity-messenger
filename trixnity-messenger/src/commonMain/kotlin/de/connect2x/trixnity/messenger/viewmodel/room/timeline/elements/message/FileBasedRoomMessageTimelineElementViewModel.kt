@@ -17,11 +17,9 @@ import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import org.koin.core.component.get
@@ -61,15 +59,14 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val activeLoadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
-    private val maxSize = get<MatrixMessengerConfiguration>().loadLimits.maximum
+    override val maxAutoDownloadSize: Long = get<MatrixMessengerConfiguration>().downloadLimits.default
+    protected val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.coroutineContext.job.invokeOnCompletion { activeLoadMedia.value?.cancel() }
     }
 
-    override fun loadMedia() = loadMedia(maxSize)
-
-    override fun loadMedia(maxSize: Long) {
+    override fun loadMedia(maxDownloadSize: Long?) {
         activeLoadMedia.value?.cancel("new load media started")
 
         _loadMediaResultPlatformMedia.value = null
@@ -86,7 +83,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         content,
                         name,
                         _loadMediaProgress,
-                        maxSize,
+                        maxDownloadSize,
                     )
                 activeLoadMedia.value = resultAsync
                 resultAsync
@@ -94,7 +91,11 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                     .onSuccess {
                         _loadMediaResultPlatformMedia.value = it
                         _loadMediaResultBytes.value =
-                            it.toByteArray(coroutineScope, expectedSize = content.info?.size, maxSize = maxSize)
+                            it.toByteArray(
+                                coroutineScope,
+                                expectedSize = content.info?.size,
+                                maxSize = maxMediaSizeInMemory,
+                            )
                     }
                     .onFailure { _loadMediaError.value = i18n.mediaCouldNotBeRead() }
             }
@@ -112,11 +113,6 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val _downloadMediaError = MutableStateFlow<String?>(null)
     override val downloadMediaError = _downloadMediaError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
-
-    protected val mediaUpdated: Flow<Boolean> =
-        combine(_loadMediaResultPlatformMedia, _downloadMedia) { loadedMedia, downloadedMedia ->
-            loadedMedia != null || downloadedMedia != null
-        }
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
         coroutineScope.launch {

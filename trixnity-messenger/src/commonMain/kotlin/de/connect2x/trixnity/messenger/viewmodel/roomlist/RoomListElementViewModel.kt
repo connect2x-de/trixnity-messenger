@@ -157,7 +157,7 @@ open class RoomListElementViewModelImpl(
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->

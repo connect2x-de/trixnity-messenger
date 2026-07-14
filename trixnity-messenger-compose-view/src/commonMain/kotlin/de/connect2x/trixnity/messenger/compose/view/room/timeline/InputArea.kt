@@ -299,7 +299,7 @@ fun RowScope.InputAreaTextField(
     val hasFocus = interactionSource.collectIsFocusedAsState().value
     val showUploadError = remember { mutableStateOf<Throwable?>(null) }
 
-    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().loadLimits.media
+    val maxAttachmentSize = DI.get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     val endPadding = style.contentPadding.calculateEndPadding(LocalLayoutDirection.current)
 

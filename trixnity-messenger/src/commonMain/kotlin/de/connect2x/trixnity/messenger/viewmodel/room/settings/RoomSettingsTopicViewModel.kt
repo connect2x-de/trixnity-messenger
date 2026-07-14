@@ -75,7 +75,7 @@ class RoomSettingsTopicViewModelImpl(
             selectedRoomId,
             get<Initials>(),
             get<RoomName>(),
-            get<MatrixMessengerConfiguration>().loadLimits.thumbnail,
+            get<MatrixMessengerConfiguration>().downloadLimits.thumbnail,
         )
 
     override val canChangeRoomTopic: StateFlow<Boolean> =

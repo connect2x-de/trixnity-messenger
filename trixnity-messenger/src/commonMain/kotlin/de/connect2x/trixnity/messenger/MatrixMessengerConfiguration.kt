@@ -2,7 +2,7 @@ package de.connect2x.trixnity.messenger
 
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
-import de.connect2x.trixnity.messenger.util.kb
+import de.connect2x.trixnity.messenger.util.gb
 import de.connect2x.trixnity.messenger.util.mb
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -73,18 +73,18 @@ data class MatrixMessengerConfiguration(
     var showBigGapBeforeThreshold: Duration = 1.hours,
 
     /** The maximum size of files that can be loaded into memory in *Bytes* */
-    @Deprecated("Use loadLimits instead") var maxMediaSizeInMemory: Long = 50.mb(),
+    var maxMediaSizeInMemory: Long = 50.mb(),
 
     /** Downloading and loading into memory limits defined for different media types */
-    val loadLimits: MediaLoadLimits =
-        MediaLoadLimits(
-            maximum = 50.mb(),
-            media = 50.mb(),
+    val downloadLimits: MediaDownloadLimits =
+        MediaDownloadLimits(
+            default = 50.mb(),
             image = 5.mb(),
-            thumbnail = 500.kb(),
+            thumbnail = 2.mb(),
             video = 50.mb(),
             audio = 5.mb(),
             pdf = 20.mb(),
+            export = 1.gb(),
         ),
 
     /**
@@ -165,13 +165,13 @@ data class MatrixMessengerConfiguration(
     }
 
     /** A list of load and download limits for various media types */
-    data class MediaLoadLimits(
-        val maximum: Long,
-        var media: Long,
+    data class MediaDownloadLimits(
+        var default: Long,
         var image: Long,
         var thumbnail: Long,
         var video: Long,
         var audio: Long,
         var pdf: Long,
+        val export: Long,
     )
 }

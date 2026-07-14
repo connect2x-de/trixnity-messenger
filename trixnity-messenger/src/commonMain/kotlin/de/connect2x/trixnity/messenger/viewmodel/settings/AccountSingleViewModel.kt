@@ -97,7 +97,7 @@ class AccountSingleViewModelImpl(
         matrixClient.serverData
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val avatar =
         matrixClient.profile

@@ -59,15 +59,14 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
-    private val maxSize = get<MatrixMessengerConfiguration>().loadLimits.maximum
-
     private val _thumbnailLoading = MutableStateFlow(false)
 
     override val thumbnailLoading: StateFlow<Boolean> = _thumbnailLoading.asStateFlow()
 
     override val thumbnailWidth = content.info?.thumbnailInfo?.width
     override val thumbnailHeight = content.info?.thumbnailInfo?.height
+
+    override val maxAutoDownloadSize: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
 
     override val thumbnail: StateFlow<ByteArray?> =
         combine(loadMediaResultBytes, downloadMediaResult) {
@@ -78,8 +77,8 @@ class ImageRoomMessageTimelineElementViewModelImpl(
                         matrixClient,
                         content,
                         thumbnailProgressFlow,
-                        maxSize,
-                        maxThumbnailSize,
+                        maxMediaSizeInMemory,
+                        maxAutoDownloadSize,
                     )
                     .also { _thumbnailLoading.value = false }
             }

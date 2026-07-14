@@ -59,7 +59,7 @@ class ChangeAvatarViewModelImpl(
             .canSendEvent<AvatarEventContent>(selectedRoomId)
             .stateIn(coroutineScope, Eagerly, false) // Needs to be Eagerly for some use cases.
 
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
     override val avatar =
         matrixClient.room
             .getById(selectedRoomId)

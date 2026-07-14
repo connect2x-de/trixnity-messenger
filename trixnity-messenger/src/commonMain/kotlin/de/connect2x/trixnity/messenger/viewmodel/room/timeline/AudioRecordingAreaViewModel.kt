@@ -68,7 +68,6 @@ class AudioRecordingAreaViewModelImpl(
 
     private val downloadManager = viewModelContext.get<DownloadManager>()
     private val enableMessageDrafts = get<MatrixMessengerConfiguration>().features.enableMessageDrafts
-    private val maxAudioSize = get<MatrixMessengerConfiguration>().loadLimits.audio
 
     override val recorder: AudioRecorderViewModel? = run {
         val recorderHolder = getOrNull<AudioRecorderHolder>()
@@ -216,7 +215,7 @@ class AudioRecordingAreaViewModelImpl(
                         content,
                         content.fileName ?: content.body,
                         MutableStateFlow(null),
-                        maxAudioSize,
+                        null,
                     )
 
                 data

@@ -711,7 +711,7 @@ open class InputAreaViewModelImpl(
         }
     }
 
-    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().loadLimits.thumbnail
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     private suspend fun listOfUsers(search: String): List<InputAreaViewModel.SuggestedMention.User> {
         val allUsers = matrixClient.user.getAll(roomId).first() // wait for all users to load

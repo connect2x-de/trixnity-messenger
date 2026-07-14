@@ -78,10 +78,9 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val loadMediaResultBytes: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
+        val maxAutoDownloadSize: Long
 
-        @Deprecated("User loadMedia(maxSize) instead", ReplaceWith("loadMedia(maxSize)")) fun loadMedia()
-
-        fun loadMedia(maxSize: Long)
+        fun loadMedia(maxDownloadSize: Long? = maxAutoDownloadSize)
 
         fun cancelLoadMedia()
 
@@ -152,7 +151,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
             roomId,
             get<Initials>(),
             get<RoomName>(),
-            get<MatrixMessengerConfiguration>().loadLimits.thumbnail,
+            get<MatrixMessengerConfiguration>().downloadLimits.thumbnail,
         )
 
     val body: String = content.bodyWithoutFallback

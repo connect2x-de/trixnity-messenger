@@ -84,15 +84,15 @@ open class AvatarCutterViewModelImpl(
 
     private val backCallback = BackCallback { cancel() }
 
-    private val maxImageSize = get<MatrixMessengerConfiguration>().loadLimits.image
-    override val maxAvatarSize: Long = maxImageSize
+    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    override val maxAvatarSize: Long = maxMediaSizeInMemory
 
     override val mimeType = MutableStateFlow<ContentType?>(file.mimeType)
     override val imageData = MutableStateFlow<ByteArrayFlow?>(file.content)
     override val avatarImage: StateFlow<ByteArray?> =
         imageData
             .map {
-                it?.toByteArray(maxSize = maxImageSize)?.let {
+                it?.toByteArray(maxSize = maxMediaSizeInMemory)?.let {
                     error.value = null
                     get<ProcessImageUpload>()
                         .invoke(

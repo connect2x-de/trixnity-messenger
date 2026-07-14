@@ -62,7 +62,7 @@ class ThumbnailsTest {
                 fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
-                maxMediaSizeInMemory = MatrixMessengerConfiguration().loadLimits.thumbnail,
+                maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe "encryptedThumbnail".encodeToByteArray()
@@ -91,7 +91,7 @@ class ThumbnailsTest {
                 fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
-                maxMediaSizeInMemory = MatrixMessengerConfiguration().loadLimits.thumbnail,
+                maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe "encryptedOriginal".encodeToByteArray()
@@ -120,7 +120,7 @@ class ThumbnailsTest {
                 fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
-                maxMediaSizeInMemory = MatrixMessengerConfiguration().loadLimits.thumbnail,
+                maxMediaSizeInMemory = MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
 
         result shouldBe null
@@ -147,9 +147,9 @@ class ThumbnailsTest {
                     file = originalFile,
                     fileUrl = null,
                     fileInfo = null,
-                    sizeInBytes = MatrixMessengerConfiguration().loadLimits.thumbnail + 1, // too large!
+                    sizeInBytes = MatrixMessengerConfiguration().downloadLimits.thumbnail + 1, // too large!
                     thumbnailProgressFlow = MutableStateFlow(null),
-                    MatrixMessengerConfiguration().loadLimits.thumbnail,
+                    MatrixMessengerConfiguration().downloadLimits.thumbnail,
                 )
 
             result shouldBe null
@@ -178,7 +178,7 @@ class ThumbnailsTest {
                 fileInfo = null,
                 sizeInBytes = 1_000,
                 thumbnailProgressFlow = MutableStateFlow(null),
-                MatrixMessengerConfiguration().loadLimits.thumbnail,
+                MatrixMessengerConfiguration().downloadLimits.thumbnail,
             )
         }
         delay(250)
