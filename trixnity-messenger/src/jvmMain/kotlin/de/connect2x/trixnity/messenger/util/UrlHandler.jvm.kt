@@ -162,17 +162,19 @@ class UriHandlerImpl(
         val inputStream = socket.getInputStream()
 
         val reply = inputStream.readAllBytes().decodeToString().split("\n")
-        val url = reply[0]
-        val senderRootPath = reply[1]
+        val url = reply.getOrNull(0)
+        val senderAppVersion = reply.getOrNull(1)
+
         log.debug { "received url arg $url" }
 
         log.debug { "sending back OK message $okResponse" }
 
-        val outputStream = socket.getOutputStream()
-        outputStream.write((okResponse).toByteArray(Charsets.UTF_8))
-        outputStream.close()
+        socket.getOutputStream().use {
+            it.write((okResponse).toByteArray(Charsets.UTF_8))
+        }
+        inputStream.close()
 
-        if (senderRootPath == rootPath.toString()) {
+        if (senderAppVersion == rootPath.toString()) {
             return url
         } else {
             return null
@@ -223,14 +225,16 @@ class UriHandlerImpl(
 
         val inputStream = socket.getInputStream()
 
-        try {
-            val okResponse = inputStream.readAllBytes().decodeToString()
+        return socket.getInputStream().use {
+            try {
+                val okResponse = inputStream.readAllBytes().decodeToString()
 
-            log.debug { "received ok response $okResponse" }
-            return Result.success(okResponse)
-        } catch (e: SocketTimeoutException) {
-            log.error { "receiver didn't reply in time!" }
-            return Result.failure(e)
+                log.debug { "received ok response $okResponse" }
+                Result.success(okResponse)
+            } catch (e: SocketTimeoutException) {
+                log.error { "receiver didn't reply in time!" }
+                Result.failure(e)
+            }
         }
     }
 }
