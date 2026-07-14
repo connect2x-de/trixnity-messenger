@@ -2938,10 +2938,19 @@ public final class de/connect2x/trixnity/messenger/util/BackHandlerImpl$Companio
 
 public final class de/connect2x/trixnity/messenger/util/BasicFileDescriptor : de/connect2x/trixnity/messenger/util/FileDescriptor {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Long;Lio/ktor/http/ContentType;Lkotlinx/coroutines/flow/Flow;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/Long;
+	public final fun component3 ()Lio/ktor/http/ContentType;
+	public final fun component4 ()Lkotlinx/coroutines/flow/Flow;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Long;Lio/ktor/http/ContentType;Lkotlinx/coroutines/flow/Flow;)Lde/connect2x/trixnity/messenger/util/BasicFileDescriptor;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/util/BasicFileDescriptor;Ljava/lang/String;Ljava/lang/Long;Lio/ktor/http/ContentType;Lkotlinx/coroutines/flow/Flow;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/util/BasicFileDescriptor;
+	public fun equals (Ljava/lang/Object;)Z
 	public fun getContent ()Lkotlinx/coroutines/flow/Flow;
 	public fun getFileName ()Ljava/lang/String;
 	public fun getFileSize ()Ljava/lang/Long;
 	public fun getMimeType ()Lio/ktor/http/ContentType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class de/connect2x/trixnity/messenger/util/ByteArrayBase64Serializer : kotlinx/serialization/KSerializer {

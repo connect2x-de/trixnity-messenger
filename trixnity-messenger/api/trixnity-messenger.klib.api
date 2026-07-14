@@ -6931,6 +6931,15 @@ final class de.connect2x.trixnity.messenger.util/BasicFileDescriptor : de.connec
         final fun <get-fileSize>(): kotlin/Long? // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.fileSize.<get-fileSize>|<get-fileSize>(){}[0]
     final val mimeType // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.mimeType|{}mimeType[0]
         final fun <get-mimeType>(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.mimeType.<get-mimeType>|<get-mimeType>(){}[0]
+
+    final fun component1(): kotlin/String // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.component1|component1(){}[0]
+    final fun component2(): kotlin/Long? // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.component2|component2(){}[0]
+    final fun component3(): io.ktor.http/ContentType? // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.component3|component3(){}[0]
+    final fun component4(): kotlinx.coroutines.flow/Flow<kotlin/ByteArray> // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.component4|component4(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/Long? = ..., io.ktor.http/ContentType? = ..., kotlinx.coroutines.flow/Flow<kotlin/ByteArray> = ...): de.connect2x.trixnity.messenger.util/BasicFileDescriptor // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.copy|copy(kotlin.String;kotlin.Long?;io.ktor.http.ContentType?;kotlinx.coroutines.flow.Flow<kotlin.ByteArray>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // de.connect2x.trixnity.messenger.util/BasicFileDescriptor.toString|toString(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.util/ByteArrayBase64Serializer : kotlinx.serialization/KSerializer<kotlin/ByteArray> { // de.connect2x.trixnity.messenger.util/ByteArrayBase64Serializer|null[0]
