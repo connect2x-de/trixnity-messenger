@@ -1,6 +1,6 @@
 package de.connect2x.trixnity.messenger.compose.view.search.user
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +19,8 @@ fun SearchErrors(userSearchViewModel: UserSearchViewModel) {
     val errors by userSearchViewModel.errors.collectAsState()
 
     Banner(MaterialTheme.components.errorBanner, visible = errors.isNotEmpty()) {
-        Box(Modifier.fillMaxWidth().padding(10.dp)) { errors.forEach { error -> Text("${error.key}: ${error.value}") } }
+        Column(Modifier.fillMaxWidth().padding(10.dp)) {
+            errors.forEach { error -> Text("${error.key}: ${error.value}") }
+        }
     }
 }

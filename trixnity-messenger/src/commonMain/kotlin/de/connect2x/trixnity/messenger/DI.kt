@@ -16,10 +16,10 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderImpl
 import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.multi.platformDeleteProfileDataModule
 import de.connect2x.trixnity.messenger.notification.notificationModule
-import de.connect2x.trixnity.messenger.search.provider.SearchProvider
+import de.connect2x.trixnity.messenger.search.provider.SearchProviderFactory
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderSorter
 import de.connect2x.trixnity.messenger.search.provider.SearchProviderSorterImpl
-import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverSearchProvider
+import de.connect2x.trixnity.messenger.search.user.homeserver.HomeserverSearchProviderFactory
 import de.connect2x.trixnity.messenger.secrets.secretsModule
 import de.connect2x.trixnity.messenger.util.BackHandler
 import de.connect2x.trixnity.messenger.util.BackHandlerImpl
@@ -365,12 +365,12 @@ private fun roomListViewModels() = module {
     single<RoomListViewModelFactory> { RoomListViewModelFactory }
 }
 
-inline fun <reified F : SearchProvider<*, *>> Module.searchProvider(
-    noinline definition: Scope.(ParametersHolder) -> SearchProvider<*, *>
-) = single<SearchProvider<*, *>>(named<F>(), definition = definition)
+inline fun <reified F : SearchProviderFactory<*, *>> Module.searchProviderFactory(
+    noinline definition: Scope.(ParametersHolder) -> F
+) = single<SearchProviderFactory<*, *>>(named<F>(), definition = definition)
 
 private fun newSearchViewModels() = module {
-    searchProvider<HomeserverSearchProvider> { HomeserverSearchProvider(get(), get(), get(), get()) }
+    searchProviderFactory { HomeserverSearchProviderFactory(get(), get(), get(), get()) }
     single<SearchProviderSorter> { SearchProviderSorterImpl() }
     single<SearchViewModelFactory> { SearchViewModelFactory }
     single<UserSearchViewModelFactory> { UserSearchViewModelFactory }

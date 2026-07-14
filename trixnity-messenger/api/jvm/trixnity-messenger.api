@@ -2331,6 +2331,11 @@ public abstract interface class de/connect2x/trixnity/messenger/search/provider/
 public abstract interface class de/connect2x/trixnity/messenger/search/provider/SearchProvider$Key {
 }
 
+public abstract interface class de/connect2x/trixnity/messenger/search/provider/SearchProviderFactory {
+	public abstract fun create-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;
+	public abstract fun getSupports ()Lkotlin/reflect/KClass;
+}
+
 public abstract interface class de/connect2x/trixnity/messenger/search/provider/SearchProviderResult {
 }
 
@@ -2406,6 +2411,12 @@ public class de/connect2x/trixnity/messenger/search/user/homeserver/HomeserverSe
 }
 
 public final class de/connect2x/trixnity/messenger/search/user/homeserver/HomeserverSearchProvider$Key : de/connect2x/trixnity/messenger/search/provider/SearchProvider$Key {
+}
+
+public final class de/connect2x/trixnity/messenger/search/user/homeserver/HomeserverSearchProviderFactory : de/connect2x/trixnity/messenger/search/provider/SearchProviderFactory {
+	public fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/util/Initials;Lde/connect2x/trixnity/messenger/i18n/I18n;Lde/connect2x/trixnity/messenger/MatrixClients;Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;)V
+	public fun create-dxpKhU0 (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/search/provider/SearchProvider;
+	public fun getSupports ()Lkotlin/reflect/KClass;
 }
 
 public final class de/connect2x/trixnity/messenger/search/user/homeserver/HomeserverUserSearchResult : de/connect2x/trixnity/messenger/search/user/UserSearchResult {
@@ -11425,20 +11436,20 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory$Companion;
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/search/provider/SearchContext;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory$Companion : de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory {
-	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
+	public fun create (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/search/provider/SearchContext;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory$DefaultImpls {
-	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
+	public static fun create (Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelFactory;Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/search/provider/SearchContext;)Lde/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModelImpl : de/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext, de/connect2x/trixnity/messenger/viewmodel/search/SearchViewModel {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lkotlin/jvm/functions/Function0;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/search/provider/SearchContext;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;Lde/connect2x/trixnity/messenger/search/provider/SearchContext;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
 	public synthetic fun childContext (Ljava/lang/String;)Lde/connect2x/trixnity/messenger/viewmodel/ViewModelContext;
 	public fun childContext (Ljava/lang/String;Lcom/arkivanov/decompose/ComponentContext;)Lde/connect2x/trixnity/messenger/viewmodel/MatrixClientViewModelContext;
