@@ -5,13 +5,14 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.MatrixMessenger
 import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
-import io.ktor.http.*
+import io.ktor.http.URLParserException
 import java.awt.Desktop
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.net.SocketTimeoutException
 import kotlin.concurrent.thread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +36,8 @@ class UriHandlerImpl(
     private val started = MutableStateFlow(false)
     private val rootPath = rootPath.path
     private val lockFileName = "port.lock"
+
+    private val okResponse = "OK\n${config.appUri + config.appVersion.toString()}"
 
     /** This need to be called with application start arguments. */
     suspend fun start(args: Array<String>) =
@@ -79,7 +82,7 @@ class UriHandlerImpl(
     }
 
     private fun writePortToLockFile(port: Int) {
-        log.debug { "write port $port to lock file" }
+        log.debug { "write port $port to lock file" } // FIXME this will be 2425
         val lockFile = rootPath.resolve(lockFileName)
         fileSystem.write(lockFile) { writeUtf8(port.toString()) }
         val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
@@ -129,13 +132,12 @@ class UriHandlerImpl(
                                 val socket = server.accept()
                                 launch {
                                     try {
-                                        log.debug { "try read url arg" }
-                                        val inputStream = socket.getInputStream()
-                                        val bytes = inputStream.readAllBytes()
-                                        inputStream.close()
-                                        val url = bytes.decodeToString()
-                                        log.debug { "received url arg $url" }
-                                        emitUrl(url)
+                                        val url = receiveUrlFromSocket(socket)
+                                        if (url != null) {
+                                            emitUrl(url)
+                                        } else {
+                                            log.warn { "url args from different app received" }
+                                        }
                                     } catch (exception: IOException) {
                                         log.error(exception) { "error reading url args" }
                                     } finally {
@@ -155,6 +157,28 @@ class UriHandlerImpl(
         }
     }
 
+    private fun receiveUrlFromSocket(socket: Socket): String? {
+        log.debug { "try read url arg" }
+        val inputStream = socket.getInputStream()
+
+        val reply = inputStream.readAllBytes().decodeToString().split("\n")
+        val url = reply[0]
+        val senderRootPath = reply[1]
+        log.debug { "received url arg $url" }
+
+        log.debug { "sending back OK message $okResponse" }
+
+        val outputStream = socket.getOutputStream()
+        outputStream.write((okResponse).toByteArray(Charsets.UTF_8))
+        outputStream.close()
+
+        if (senderRootPath == rootPath.toString()) {
+            return url
+        } else {
+            return null
+        }
+    }
+
     private suspend fun sendUrlArg(urlArg: String, port: Int) {
         withContext(Dispatchers.IO) {
             val address = InetAddress.getLoopbackAddress()
@@ -167,19 +191,46 @@ class UriHandlerImpl(
                 }
             if (socket != null) {
                 log.debug { "try send url arg $urlArg using port $port" }
+                var reply: Result<String>? = null
                 try {
-                    val outputStream = socket.getOutputStream()
-                    outputStream.write(urlArg.encodeToByteArray())
-                    outputStream.close()
+                    reply = sendUrlToSocket(socket, urlArg)
                 } catch (exception: Exception) {
                     log.error(exception) { "error sending url arg $urlArg" }
                 } finally {
                     socket.close()
                 }
-                closeApp?.invoke()
+                if (reply != null && reply.getOrNull() != okResponse) {
+                    log.debug { "no or faulty reply received. Opening app instead" }
+                    listenForArgs(urlArg) // fallback
+                } else {
+                    log.debug { "Invoking close of app" }
+                    closeApp?.invoke()
+                }
             } else {
-                listenForArgs(null) // fallback
+                listenForArgs(urlArg) // fallback
             }
+        }
+    }
+
+    fun sendUrlToSocket(socket: Socket, url: String): Result<String> {
+        socket.soTimeout = 2000
+
+        val outputStream = socket.getOutputStream()
+        outputStream.write((url + "\n" + rootPath.toString()).encodeToByteArray())
+        socket.shutdownOutput()
+
+        log.debug { "waiting for url received message" }
+
+        val inputStream = socket.getInputStream()
+
+        try {
+            val okResponse = inputStream.readAllBytes().decodeToString()
+
+            log.debug { "received ok response $okResponse" }
+            return Result.success(okResponse)
+        } catch (e: SocketTimeoutException) {
+            log.error { "receiver didn't reply in time!" }
+            return Result.failure(e)
         }
     }
 }
