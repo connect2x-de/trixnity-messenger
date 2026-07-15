@@ -59,7 +59,7 @@ class AudioRecordingAreaViewModelTest {
     val roomServiceMock = mock<RoomService>()
 
     val mediaServiceMock = mock<MediaService>()
-    val recorder = mock<AudioRecorderViewModel>()
+    val recorder = mock<AudioRecorder>()
     val mediaPlayerFactory = mock<MediaPlayerViewModelFactory>()
     val audioRecorderHolder = AudioRecorderHolder(recorder)
     val player = mock<MediaPlayerViewModel>()
@@ -167,6 +167,9 @@ class AudioRecordingAreaViewModelTest {
         everySuspend { recorder.closeSuspending() } calls {
             recorderState.value = AudioRecorder.State.Ready
         }
+        every { recorder.close() } calls {
+            recorderState.value = AudioRecorder.State.Ready
+        }
 
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)
 
@@ -188,6 +191,9 @@ class AudioRecordingAreaViewModelTest {
         ))
         every { recorder.state } returns recorderState
         everySuspend { recorder.closeSuspending() } calls {
+            recorderState.value = AudioRecorder.State.Ready
+        }
+        every { recorder.close() } calls {
             recorderState.value = AudioRecorder.State.Ready
         }
 
@@ -343,7 +349,7 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `load - should load draft into recorder if duration not null`() = runTest {
         var wasLoaded = false
-        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        everySuspend { recorder.load(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
@@ -369,7 +375,7 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `load - should not load draft into recorder if duration is null`() = runTest {
         var wasLoaded = false
-        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        everySuspend { recorder.load(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
@@ -395,7 +401,7 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `load - should not load draft into recorder if media retrieval failed`() = runTest {
         var wasLoaded = false
-        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        everySuspend { recorder.load(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
@@ -436,7 +442,7 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `load - should not load draft into recorder if content type missing`() = runTest {
         var wasLoaded = false
-        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        everySuspend { recorder.load(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
@@ -461,7 +467,7 @@ class AudioRecordingAreaViewModelTest {
     @Test
     fun `load - should not load draft into recorder if file extension missing`() = runTest {
         var wasLoaded = false
-        everySuspend { recorder.loadSuspending(any()) } calls { wasLoaded = true }
+        everySuspend { recorder.load(any()) } calls { wasLoaded = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val body = "cool audio"
@@ -489,6 +495,7 @@ class AudioRecordingAreaViewModelTest {
         var wasClosed = false
 
         every { recorder.close() } calls { wasClosed = true }
+        everySuspend { recorder.closeSuspending() } calls { wasClosed = true }
         every { recorder.state } returns MutableStateFlow(AudioRecorder.State.Ready)
 
         val cut = audioRecordingAreaViewModel(backgroundScope.coroutineContext)

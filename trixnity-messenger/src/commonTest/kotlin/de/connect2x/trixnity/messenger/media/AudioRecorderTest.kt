@@ -77,7 +77,7 @@ class AudioRecorderTest {
                 )
             val nextTime = startTime + 5.seconds
             every { clock.now() } returns nextTime
-            backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
             delay(1.seconds)
 
             cut.state.value shouldBe AudioRecorder.State.Recording(5.seconds, 5f)
@@ -110,13 +110,13 @@ class AudioRecorderTest {
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
             every { clock.now() } returns (startTime + 5.seconds)
 
-            backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
             delay(1.seconds)
             platformRecorderClosed shouldBe true
             (cut.state.value is AudioRecorder.State.Recording) shouldBe true
 
             platformRecorderClosed = false
-            backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+            backgroundScope.launch { cut.start(intoMediaStoreMock) }
             delay(1.seconds)
             captureDeleted shouldBe true
             platformRecorderClosed shouldBe true
@@ -126,7 +126,7 @@ class AudioRecorderTest {
             captureDeleted = false
             backgroundScope.launch {
                 cut.complete()
-                cut.startSuspending(intoMediaStoreMock)
+                cut.start(intoMediaStoreMock)
             }
             delay(1.seconds)
             captureDeleted shouldBe true
@@ -160,7 +160,7 @@ class AudioRecorderTest {
             return nextTime
         }
         every { clock.now() } calls { increasingTime() }
-        backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+        backgroundScope.launch { cut.start(intoMediaStoreMock) }
         delay(5.seconds)
 
         when (val state = cut.state.value) {
@@ -197,7 +197,7 @@ class AudioRecorderTest {
             )
 
         every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+        backgroundScope.launch { cut.start(intoMediaStoreMock) }
         delay(5.seconds)
 
         when (val state = cut.state.value) {
@@ -227,7 +227,7 @@ class AudioRecorderTest {
                 },
             )
         every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+        backgroundScope.launch { cut.start(intoMediaStoreMock) }
         delay(1.seconds)
 
         cut.state.value shouldBe AudioRecorder.State.Recording(5.seconds, 0f)
@@ -253,7 +253,7 @@ class AudioRecorderTest {
                 },
             )
         every { clock.now() } returns (startTime + 5.seconds)
-        backgroundScope.launch { cut.startSuspending(intoMediaStoreMock) }
+        backgroundScope.launch { cut.start(intoMediaStoreMock) }
         delay(1.seconds)
 
         cut.state.value shouldBe AudioRecorder.State.Recording(5.seconds, 0f)
@@ -294,7 +294,7 @@ class AudioRecorderTest {
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
 
             backgroundScope.launch {
-                cut.startSuspending(intoMediaStoreMock)
+                cut.start(intoMediaStoreMock)
                 platformRecorderClosed = false
             }
             delay(1.seconds)
@@ -326,7 +326,7 @@ class AudioRecorderTest {
                 )
             every { clock.now() } returns (startTime + 5.seconds)
             backgroundScope.launch {
-                cut.startSuspending(intoMediaStoreMock)
+                cut.start(intoMediaStoreMock)
                 cut.complete()
             }
             delay(1.seconds)
@@ -344,7 +344,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(startTime, { 5F }, { _ -> throw IllegalStateException() })
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
-            cut.startSuspending(intoMediaStoreMock)
+            cut.start(intoMediaStoreMock)
             cut.complete()
         }
         delay(1.seconds)
@@ -375,7 +375,7 @@ class AudioRecorderTest {
         var stateEmits = 0
         cut.state.filterIsInstance<AudioRecorder.State.Completed>().onEach { stateEmits++ }.launchIn(backgroundScope)
         backgroundScope.launch {
-            cut.startSuspending(intoMediaStoreMock)
+            cut.start(intoMediaStoreMock)
             cut.complete()
         }
         delay(1.seconds)
@@ -410,7 +410,7 @@ class AudioRecorderTest {
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
             every { clock.now() } returns (startTime + 5.seconds)
             backgroundScope.launch {
-                cut.startSuspending(intoMediaStoreMock)
+                cut.start(intoMediaStoreMock)
                 cut.complete()
                 cut.close()
             }
@@ -449,7 +449,7 @@ class AudioRecorderTest {
             every { clock.now() } returns (startTime + 5.seconds)
 
             backgroundScope.launch {
-                cut.startSuspending(intoMediaStoreMock)
+                cut.start(intoMediaStoreMock)
                 platformRecorderClosed = false
                 cut.close()
             }
@@ -488,7 +488,7 @@ class AudioRecorderTest {
             )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
-            cut.startSuspending(intoMediaStoreMock)
+            cut.start(intoMediaStoreMock)
             cut.complete()
             cut.close()
         }

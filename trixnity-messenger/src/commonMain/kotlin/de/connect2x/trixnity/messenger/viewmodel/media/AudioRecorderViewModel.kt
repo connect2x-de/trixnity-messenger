@@ -8,24 +8,36 @@ import de.connect2x.trixnity.client.room
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
 import de.connect2x.trixnity.messenger.media.AudioRecorder
+import de.connect2x.trixnity.messenger.media.AudioRecorder.State
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @TrixnityMessengerPrivateApi
-interface AudioRecorderViewModel : AudioRecorder {
+interface AudioRecorderViewModel {
+    val state: StateFlow<State>
+
     fun start()
-    fun completeNonSuspending()
+    fun complete()
+    suspend fun load(state: State.Completed)
+    suspend fun close()
 }
 
 class AudioRecorderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
-    recorder: AudioRecorder,
+    private val recorder: AudioRecorder,
     private val roomId: RoomId
 ) :
-    MatrixClientViewModelContext by viewModelContext, AudioRecorder by recorder, AudioRecorderViewModel {
+    MatrixClientViewModelContext by viewModelContext, AudioRecorderViewModel {
+    override val state: StateFlow<State> = recorder.state
+
     init {
-        doOnDestroy { close() }
+        doOnDestroy {
+            coroutineScope.launch {
+                close()
+            }
+        }
         doOnStop {
             coroutineScope.launch {
                 complete()
@@ -40,14 +52,14 @@ class AudioRecorderViewModelImpl(
 
     override fun start() {
         coroutineScope.launch {
-            startSuspending { data ->
+            recorder.start { data ->
                 val isEncryptedRoom = matrixClient.room.getById(roomId).first()?.encrypted == true
                 if (isEncryptedRoom) {
-                    AudioRecorder.State.Completed.MediaReference.Encrypted(
+                    State.Completed.MediaReference.Encrypted(
                         matrixClient.media.prepareUploadEncryptedMedia(data)
                     )
                 } else {
-                    AudioRecorder.State.Completed.MediaReference.Unencrypted(
+                    State.Completed.MediaReference.Unencrypted(
                         matrixClient.media.prepareUploadMedia(data, null)
                     )
                 }
@@ -55,9 +67,17 @@ class AudioRecorderViewModelImpl(
         }
     }
 
-    override fun completeNonSuspending() {
+    override fun complete() {
         coroutineScope.launch {
-            complete()
+            recorder.complete()
         }
+    }
+
+    override suspend fun load(state: State.Completed) {
+        recorder.load(state)
+    }
+
+    override suspend fun close() {
+        recorder.closeSuspending()
     }
 }

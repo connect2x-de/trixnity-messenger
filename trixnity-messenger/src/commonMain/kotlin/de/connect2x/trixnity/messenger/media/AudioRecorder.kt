@@ -34,12 +34,9 @@ import kotlinx.coroutines.withContext
 interface AudioRecorder : AutoCloseable {
     val state: StateFlow<State>
 
-    suspend fun startSuspending(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference)
-
+    suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference)
     suspend fun complete()
-
-    suspend fun loadSuspending(state: State.Completed)
-
+    suspend fun load(state: State.Completed)
     suspend fun closeSuspending()
 
     sealed interface State {
@@ -77,7 +74,7 @@ class AudioRecorderImpl(
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    override suspend fun startSuspending(
+    override suspend fun start(
         intoMediaStore: suspend (ByteArrayFlow) -> MediaReference
     ) {
         closeSuspending()
@@ -88,7 +85,7 @@ class AudioRecorderImpl(
         }
     }
 
-    override suspend fun loadSuspending(state: AudioRecorder.State.Completed) {
+    override suspend fun load(state: AudioRecorder.State.Completed) {
         closeSuspending()
 
         platformAudioRecorder.load(state)?.let { stateImpl.value = it }

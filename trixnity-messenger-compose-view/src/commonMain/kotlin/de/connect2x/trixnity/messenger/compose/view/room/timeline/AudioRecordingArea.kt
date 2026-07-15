@@ -130,7 +130,7 @@ class AudioRecordingAreaViewImpl : AudioRecordingAreaView {
             Tooltip({ Text(i18n.audioRecordingStop()) }) {
                 ThemedIconButton(
                     style = MaterialTheme.components.primaryIconButton,
-                    onClick = { audioRecordingAreaViewModel.recorder?.completeNonSuspending() },
+                    onClick = { audioRecordingAreaViewModel.recorder?.complete() },
                 ) {
                     Icon(Icons.Default.Stop, i18n.audioRecordingStop())
                 }

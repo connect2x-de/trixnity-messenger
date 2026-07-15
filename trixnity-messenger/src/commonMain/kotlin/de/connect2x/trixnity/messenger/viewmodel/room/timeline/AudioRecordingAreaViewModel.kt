@@ -134,7 +134,7 @@ class AudioRecordingAreaViewModelImpl(
 
     private fun audioDraftOnCompleted() {
         coroutineScope.launch {
-            recorder?.closeSuspending()
+            recorder?.close()
             if (enableMessageDrafts) {
                 recorder?.state?.collect { state ->
                     when (state) {
@@ -241,7 +241,9 @@ class AudioRecordingAreaViewModelImpl(
         if (enableMessageDrafts) {
             coroutineScope.launch { matrixClient.room.deleteDraftMessage(roomId) }
         }
-        recorder?.close()
+        coroutineScope.launch {
+            recorder?.close()
+        }
     }
 
     override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) {
@@ -282,7 +284,7 @@ class AudioRecordingAreaViewModelImpl(
                     deleteDraft()
                     return@launch
                 }
-            recorder?.loadSuspending(
+            recorder?.load(
                 AudioRecorder.State.Completed(
                     media = mediaReference,
                     duration = duration.milliseconds,
