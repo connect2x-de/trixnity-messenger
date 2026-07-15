@@ -23,15 +23,15 @@ private class JvmAudioMetadataFactory : AudioMetadataFactory {
     private val parser = AutoDetectParser()
 
     override suspend fun invoke(file: FileDescriptor): AudioMetadata? {
-        if (file !is PathFileDescriptor) throw UnsupportedFileDescriptor()
+        if (file !is FileBackedFileDescriptor) throw UnsupportedFileDescriptor()
         return getTikaDuration(file) ?: getJavaSoundDuration(file)
     }
 
-    private fun getTikaDuration(file: PathFileDescriptor): AudioMetadata? =
+    private fun getTikaDuration(file: FileBackedFileDescriptor): AudioMetadata? =
         runCatching {
                 val metadata = Metadata()
                 metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.fileName)
-                val stream = TikaInputStream.get(file.path.toNioPath(), metadata)
+                val stream = TikaInputStream.get(file.filePath.path.toNioPath(), metadata)
                 stream.use { input -> parser.parse(input, DefaultHandler(), metadata, ParseContext()) }
                 AudioMetadataImpl(duration = metadata.get(XMPDM.DURATION)?.toPositiveSecondsDuration())
             }
@@ -40,10 +40,11 @@ private class JvmAudioMetadataFactory : AudioMetadataFactory {
                 null
             }
 
-    private fun getJavaSoundDuration(file: PathFileDescriptor): AudioMetadata? =
+    private fun getJavaSoundDuration(file: FileBackedFileDescriptor): AudioMetadata? =
         runCatching {
-                val audioFileFormat = AudioSystem.getAudioFileFormat(file.path.toNioPath().toFile())
-                val durationMicros = audioFileFormat.properties()["duration"] as? Long
+                val audioFileFormat = AudioSystem.getAudioFileFormat(file.filePath.path.toNioPath().toFile())
+                // detekt can't figure out that java.lang.Long as Object can be cast to Long
+                @Suppress("UnsafeCast") val durationMicros = audioFileFormat.properties()["duration"] as? Long
                 if (durationMicros != null) {
                     return@runCatching AudioMetadataImpl(
                         duration = (durationMicros / 1_000_000.0).toPositiveSecondsDuration()

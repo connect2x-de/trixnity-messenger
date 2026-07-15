@@ -1,7 +1,7 @@
 package de.connect2x.trixnity.messenger.util
 
 import de.connect2x.trixnity.utils.ByteArrayFlow
-import io.ktor.http.*
+import io.ktor.http.ContentType
 
 interface FileDescriptor {
     val fileName: String
@@ -16,3 +16,9 @@ data class BasicFileDescriptor(
     override val mimeType: ContentType?,
     override val content: ByteArrayFlow,
 ) : FileDescriptor
+
+interface FileBackedFileDescriptor : FileDescriptor {
+    val filePath: FilePath
+}
+
+expect class FilePath

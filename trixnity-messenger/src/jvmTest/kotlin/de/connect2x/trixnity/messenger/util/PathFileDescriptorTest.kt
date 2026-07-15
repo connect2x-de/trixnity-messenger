@@ -4,8 +4,8 @@ import de.connect2x.trixnity.utils.toByteArray
 import io.kotest.assertions.assertSoftly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import io.ktor.utils.io.core.*
+import io.ktor.http.ContentType
+import io.ktor.utils.io.core.toByteArray
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
 import okio.Path.Companion.toPath

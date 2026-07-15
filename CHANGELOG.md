@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SDK: Added filePath field to file-backed file-descriptors
 - Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
 - SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
 - SDK,UI: new search: errors of search providers are collected and displayed above search bar

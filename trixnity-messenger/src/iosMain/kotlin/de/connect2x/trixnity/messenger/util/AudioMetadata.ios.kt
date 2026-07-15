@@ -19,13 +19,15 @@ private class IosAudioMetadataFactory : AudioMetadataFactory {
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun invoke(file: FileDescriptor): AudioMetadata? {
         return try {
-            if (file !is FileKitFileDescriptor) throw UnsupportedFileDescriptor()
+            if (file !is FileBackedFileDescriptor) throw UnsupportedFileDescriptor()
             val options =
                 file.mimeType?.toString()?.let { mimeType ->
                     mapOf<Any?, Any>(AVURLAssetOverrideMIMETypeKey to mimeType)
                 } ?: emptyMap()
             val durationSeconds =
-                AVURLAsset.URLAssetWithURL(URL = file.file.nsUrl, options = options).duration.let(::CMTimeGetSeconds)
+                AVURLAsset.URLAssetWithURL(URL = file.filePath.nsUri, options = options)
+                    .duration
+                    .let(::CMTimeGetSeconds)
             return if (durationSeconds.isFinite() && durationSeconds > 0.0) {
                 AudioMetadataImpl(duration = (durationSeconds * 1000).roundToLong().milliseconds)
             } else {
