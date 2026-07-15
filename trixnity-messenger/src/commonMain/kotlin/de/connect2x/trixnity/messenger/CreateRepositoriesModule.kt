@@ -10,6 +10,13 @@ interface CreateRepositoriesModule {
     suspend fun create(userId: UserId, databaseKey: ByteArray?): RepositoriesModule
 
     suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule
+
+    /**
+     * This could check for platform- or db-specific exceptions and throw an appropriate subclass of
+     * [MatrixClientInitializationException]. If nothing can be handled, do nothing and let generic exception handlers
+     * do the work.
+     */
+    fun handleExceptions(exc: Exception)
 }
 
 internal expect fun platformCreateRepositoriesModuleModule(): Module

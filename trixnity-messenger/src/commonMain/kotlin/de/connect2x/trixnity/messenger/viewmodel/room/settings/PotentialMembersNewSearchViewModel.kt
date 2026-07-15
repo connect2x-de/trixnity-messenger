@@ -26,9 +26,8 @@ class PotentialMembersNewSearchViewModelImpl(
         get<UserSearchViewModelFactory>()
             .create(
                 viewModelContext,
-                get<SearchViewModelFactory>().create(viewModelContext) {
-                    UserSearchContext(activeAccount = matrixClient.userId)
-                },
+                get<SearchViewModelFactory>()
+                    .create(viewModelContext, UserSearchContext(activeAccount = matrixClient.userId)),
             )
     override val selectedUsersNewSearch: StateFlow<List<UserSearchResult>> = userSearchViewModel.searchResultList
 }

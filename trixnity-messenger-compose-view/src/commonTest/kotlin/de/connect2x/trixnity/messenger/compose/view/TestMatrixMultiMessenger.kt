@@ -74,6 +74,8 @@ val messengerTestConfiguration: MatrixMultiMessengerConfiguration.() -> Unit = {
                                         ?: throw IllegalStateException(
                                             "Repositories module for $userId not instantiated"
                                         )
+
+                                override fun handleExceptions(exc: Exception) {}
                             }
                         }
                         single<CreateMediaStoreModule> {

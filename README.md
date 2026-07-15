@@ -567,8 +567,19 @@ data class MySearchFilter(val value: String): SearchFilter {
     override val displayValue = value
 }
 
-class MySearchProvider(
+class MySearchProviderFactory(
     // args that can be provided by the DI
+): SearchProviderFactory<MyUserSearchResult, UserSearchContext> {
+    override fun create(account: UserId): MySearchProvider {
+        // check whether the account is special and does or does not need the search provider 
+        return MySearchProvider(
+            // args
+        )
+    }
+}
+
+class MySearchProvider(
+    // args
 ): SearchProvider<MyUserSearchResult, UserSearchContext> {
     // ...
     override val supportedFilters: List<SearchFilter.Key<*>> = listOf(MySearchFilter) 
@@ -588,11 +599,11 @@ class MySearchProvider(
 To register the custom `SearchProvider` (inside the DI):
 ```kotlin
 module {
-    searchUserProvider { MySearchProvider(get()) }
+    searchUserProviderFactory { MySearchProviderFactory(get()) }
 }
 ```
 
-For more details, consult the KDoc of `SearchViewModel`, `SearchProvider` and other interfaces linked to those.
+For more details, consult the KDoc of `SearchViewModel`, `SearchProvider`, `SearchProviderFactory` and other interfaces linked to those.
 
 ### UI
 

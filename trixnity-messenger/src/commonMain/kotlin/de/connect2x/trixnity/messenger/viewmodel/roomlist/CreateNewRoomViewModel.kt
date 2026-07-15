@@ -3,7 +3,6 @@ package de.connect2x.trixnity.messenger.viewmodel.roomlist
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.search.user.UserSearchContext
-import de.connect2x.trixnity.messenger.search.user.UserSearchResult
 import de.connect2x.trixnity.messenger.util.DefaultUserSearchHandler
 import de.connect2x.trixnity.messenger.util.PreviewUserSearchHandler
 import de.connect2x.trixnity.messenger.util.Search
@@ -46,9 +45,7 @@ open class CreateNewRoomViewModelImpl(
         get<UserSearchViewModelFactory>()
             .create(
                 viewModelContext,
-                get<SearchViewModelFactory>().create<UserSearchResult, UserSearchContext>(viewModelContext) {
-                    UserSearchContext(matrixClient.userId)
-                },
+                get<SearchViewModelFactory>().create(viewModelContext, UserSearchContext(matrixClient.userId)),
             )
     override val existingDirectRooms: MutableStateFlow<Map<UserId, Set<RoomId>?>> = MutableStateFlow(emptyMap())
     override val error: MutableStateFlow<String?> = MutableStateFlow(null)

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduce `icon` configuration field in `MatrixMessengerBaseConfiguration`
 - SDK,UI: Add new search API to include search providers (e.g., an LDAP search) to look for when searching users (see README.md for more details); there is a _feature flag_ `enableNewSearch` which can be set to `false` to use the old search logic and UI
 - SDK,UI: new search: errors of search providers are collected and displayed above search bar
+- SDK: search providers are registered with a factory, so that they can be disabled for certain accounts
+- SDK: Added check for downloadsDisabled before downloading file
 
 ### Changed
 
@@ -38,11 +40,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- UI: Made UI consistent for downloadsDisabled config active
 - UI: Minor UI fix for editing messages
 - SDK: callback for notifications when `showDetails` is disabled
 - INTERNAL: Fixed c2x-conventions update requiring GitLab token
 
 ### Security
+
+- SDK: during the logout process, all local secrets belonging to the account are also deleted
+- SDK,UI: when the database cannot be decrypted, it is automatically deleted and the user is informed about potential tampering
+- SDK,UI: when the secrets for the database are being tampered with, the whole profile is deleted and the user is informed about potential tampering
+- SDK: (**breaking change**) `SecretByteArrays` get/set now only accept `SecretId` instead of raw `String` to support secrets that belong to specific accounts
 
 ## 4.8.1
 

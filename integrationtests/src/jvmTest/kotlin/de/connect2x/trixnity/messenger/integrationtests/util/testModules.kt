@@ -34,6 +34,8 @@ fun createTrixnityMessengerTestModule() = module {
 
             override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
                 modules[userId] ?: throw IllegalStateException("Repositories module for $userId not instantiated")
+
+            override fun handleExceptions(exc: Exception) {}
         }
     }
     single<FileSystem> { FakeFileSystem() }
