@@ -134,7 +134,6 @@ class AudioRecordingAreaViewModelImpl(
 
     private fun audioDraftOnCompleted() {
         coroutineScope.launch {
-            recorder?.close()
             if (enableMessageDrafts) {
                 recorder?.state?.collect { state ->
                     when (state) {
