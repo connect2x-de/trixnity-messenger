@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- SDK: (**breaking change**) Renamed useAccountSetupWizard to defaultAccountSetupFinished in MatrixMessengerConfiguration
 - SDK: Return error in search when inviting user ID with invalid homeserver
 - DEPENDENCY: update Kotlin to 2.3.21
 - DEPENDENCY: update Lognity to 2.2.0

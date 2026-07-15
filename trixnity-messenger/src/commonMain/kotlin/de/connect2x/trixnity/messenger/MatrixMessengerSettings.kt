@@ -113,7 +113,7 @@ data class MatrixMessengerAccountSettingsBase(
                 presenceIsPublic = config.defaultPresenceIsPublic,
                 readMarkerIsPublic = config.defaultReadMarkerIsPublic,
                 typingIsPublic = config.defaultTypingIsPublic,
-                accountSetupFinished = config.useAccountSetupWizard.not(),
+                accountSetupFinished = config.defaultAccountSetupFinished.not(),
                 redactionWarningIsEnabled = config.defaultRedactionWarningIsEnabled,
             )
     }

@@ -3,8 +3,9 @@ package de.connect2x.trixnity.messenger
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.ModuleFactory
 import de.connect2x.trixnity.messenger.util.mb
-import io.ktor.client.*
-import io.ktor.client.engine.*
+import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.engine.HttpClientEngine
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 
@@ -31,6 +32,17 @@ data class MatrixMessengerConfiguration(
     var defaultReadMarkerIsPublic: Boolean = true,
     var defaultTypingIsPublic: Boolean = true,
     var defaultRedactionWarningIsEnabled: Boolean = true,
+    var defaultHomeServer: String? = null,
+    /**
+     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new
+     * accounts.
+     *
+     * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel] and others
+     * can be used to manually guide the user through the setup process.
+     *
+     * Default is `true`.
+     */
+    var defaultAccountSetupFinished: Boolean = true,
     var databaseEncryptionEnabled: Boolean = true,
     val features: Features =
         Features(
@@ -61,18 +73,6 @@ data class MatrixMessengerConfiguration(
 
     /** The maximum size of files that can be loaded into memory in *Bytes* */
     var maxMediaSizeInMemory: Long = 50.mb(),
-    var defaultHomeServer: String? = null,
-
-    /**
-     * Whether the [de.connect2x.trixnity.messenger.compose.view.settings.AccountSetupWizard] is used to setup new
-     * accounts.
-     *
-     * Alternatively, the [de.connect2x.trixnity.messenger.viewmodel.verification.SelfVerificationViewModel] and others
-     * can be used to manually guide the user through the setup process.
-     *
-     * Default is `true`.
-     */
-    var useAccountSetupWizard: Boolean = true,
     override var sendLogsEmailAddress: String? = null,
 
     /** The privacy info of the application in a Markdown format */
