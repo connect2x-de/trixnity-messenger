@@ -103,7 +103,7 @@ class WebAudioRecorder(
     private fun recordIntoMediaStore(
         recorder: MediaRecorder,
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
-    ): Pair<Deferred<AudioRecorder.State.Completed.MediaReference>, Double> {
+    ): Pair<Deferred<AudioRecorder.State.Completed.MediaReference>, () -> Double> {
         var recordingSizeBytes = 0.0
         val chunks = callbackFlow {
             val handlerRemovers = listOf(
@@ -138,7 +138,7 @@ class WebAudioRecorder(
             .map { it.byteArray() }
 
         val media = coroutineScope.async { intoMediaStore(chunks) }
-        return Pair(media, recordingSizeBytes)
+        return media to { recordingSizeBytes }
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
@@ -146,7 +146,7 @@ class WebAudioRecorder(
         recorder: MediaRecorder,
         microphone: MediaStream,
         mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
-        mediaSize: Double,
+        mediaSize: () -> Double,
     ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
@@ -180,7 +180,7 @@ class WebAudioRecorder(
                     AudioRecorderImpl.State.Completed(
                         media,
                         clock.now() - recordingState.start,
-                        mediaSize.toLong(),
+                        mediaSize().toLong(),
                         opusContentType,
                         opusFileExtension,
                     ) {
