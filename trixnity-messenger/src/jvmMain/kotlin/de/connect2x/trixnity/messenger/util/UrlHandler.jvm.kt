@@ -26,6 +26,54 @@ import org.koin.dsl.module
 
 private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UrlHandlerKt")
 
+/**
+ * Handles application startup arguments and system URI protocol activations.
+ *
+ * This implementation prevents multiple application instances from running concurrently on Windows & Linux, by sending
+ * URL arguments to the already opened instance.
+ *
+ * ### URL-Exchange Socket Protocol
+ *
+ * The exchange between [sendUrlToSocket] (Client / Secondary instance) and [receiveUrlFromSocket] (Server / Primary
+ * instance) follows this sequence:
+ * ```
+ *    Secondary Instance ([sendUrlArg])                Primary Instance ([listenForArgs])
+ *         [sendUrlToSocket]                                [receiveUrlFromSocket]
+ *                 │                                                 │
+ *                 │  (1. Connect TCP)                               │
+ *                 ├────────────────────────────────────────────────►│ (ServerSocket.accept)
+ *                 │                                                 │
+ *                 │  2. Write Payload                               │
+ *                 │     "url\n$appVersionString"                    │
+ *                 ├────────────────────────────────────────────────►│ (Read bytes)
+ *                 │                                                 │
+ *                 │  3. shutdownOutput()                            │
+ *                 ├────────────────────────────────────────────────►│
+ *                 │                                                 │
+ *                 │  4. Write Response                              │
+ *                 │     "OK\n$appVersionString"                     │
+ *                 │◄────────────────────────────────────────────────┤
+ *                 │                                                 │
+ *          [Read response]                                          │ [Parse & Validate url-payload]
+ *        (Timeout limit: 2s)                                        │ Does appVersionString
+ *                 │                                                 │ match local one?
+ *                 │                                                 │       │
+ *                 │                                                 ▼       ▼
+ *                 ▼                                                (Yes)    (No)
+ *           [Close Socket]                                          │       │
+ *                 │                                                 ▼       ▼
+ *                 ▼                                             [emitUrl] [Reject]
+ *       Did we get back the exact                                   │       │
+ *        "OK\n$appVersionString"                                    ▼       ▼
+ *          and no Timeout?                                       [Close Socket]
+ *         /             \                                              │
+ *      (Yes)            (No / Timeout)                               (Done)
+ *       /                 \
+ *      ▼                   ▼
+ * [Close App]       [Fallback: Become]
+ *                   [ Primary Instance ]
+ * ```
+ */
 class UriHandlerImpl(
     config: MatrixMessengerBaseConfiguration,
     private val fileSystem: FileSystem,
@@ -37,7 +85,8 @@ class UriHandlerImpl(
     private val rootPath = rootPath.path
     private val lockFileName = "port.lock"
 
-    private val okResponse = "OK\n${config.appUri + config.appVersion.toString()}"
+    private val appVersionString = config.appUri + config.appVersion.toString()
+    private val okResponse = "OK\n$appVersionString"
 
     /** This need to be called with application start arguments. */
     suspend fun start(args: Array<String>) =
@@ -174,7 +223,7 @@ class UriHandlerImpl(
         }
         inputStream.close()
 
-        if (senderAppVersion == rootPath.toString()) {
+        if (senderAppVersion == appVersionString) {
             return url
         } else {
             return null
@@ -218,7 +267,7 @@ class UriHandlerImpl(
         socket.soTimeout = 2000
 
         val outputStream = socket.getOutputStream()
-        outputStream.write((url + "\n" + rootPath.toString()).encodeToByteArray())
+        outputStream.write((url + "\n" + appVersionString).encodeToByteArray())
         socket.shutdownOutput()
 
         log.debug { "waiting for url received message" }
