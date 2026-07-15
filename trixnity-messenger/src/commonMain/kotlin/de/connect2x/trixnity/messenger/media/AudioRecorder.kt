@@ -15,6 +15,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @TrixnityMessengerPrivateApi
 interface AudioRecorder : AutoCloseable {
@@ -97,8 +99,10 @@ class AudioRecorderImpl(
     }
 
     override suspend fun closeSuspending() {
-        stateImpl.value = close(stateImpl.value)
-        platformAudioRecorder.close()
+        withContext(NonCancellable) {
+            stateImpl.value = close(stateImpl.value)
+            platformAudioRecorder.close()
+        }
     }
 
     override fun close() {
