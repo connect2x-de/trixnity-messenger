@@ -70,8 +70,8 @@ class WebAudioRecorder(
                 log.info { "Microphone permission request timed out." }
                 null
             }
-        } catch (e: Exception) {
-            log.error(e) { "Could not start recording" }
+        } catch (e: Throwable) {
+            log.error(e) { "Unexpected error. Could not start recording" }
             null
         }
     }
