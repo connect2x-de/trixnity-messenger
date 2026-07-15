@@ -133,15 +133,8 @@ class AudioRecordingAreaViewModelImpl(
     }
 
     private fun audioDraftOnCompleted() {
-        suspend fun closeRecorder() {
-            val recorderClosed = coroutineScope.async {
-                recorder?.closeSuspending()
-            }
-            recorderClosed.await()
-        }
-
         coroutineScope.launch {
-            closeRecorder()
+            recorder?.closeSuspending()
             if (enableMessageDrafts) {
                 recorder?.state?.collect { state ->
                     when (state) {
