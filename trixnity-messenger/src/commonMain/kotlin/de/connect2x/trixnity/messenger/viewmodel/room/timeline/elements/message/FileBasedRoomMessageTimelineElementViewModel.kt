@@ -59,14 +59,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val activeLoadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
-    override val maxAutoDownloadSize: Long = get<MatrixMessengerConfiguration>().downloadLimits.default
     protected val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.coroutineContext.job.invokeOnCompletion { activeLoadMedia.value?.cancel() }
     }
 
-    override fun loadMedia(maxDownloadSize: Long?) {
+    override fun loadMedia() {
         activeLoadMedia.value?.cancel("new load media started")
 
         _loadMediaResultPlatformMedia.value = null
@@ -83,7 +82,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
                         content,
                         name,
                         _loadMediaProgress,
-                        maxDownloadSize,
+                        null,
                     )
                 activeLoadMedia.value = resultAsync
                 resultAsync

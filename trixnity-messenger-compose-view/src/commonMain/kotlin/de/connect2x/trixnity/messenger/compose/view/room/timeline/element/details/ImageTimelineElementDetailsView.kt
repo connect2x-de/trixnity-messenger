@@ -81,7 +81,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
             offset.value += offsetChange
         }
 
-        LaunchedEffect(Unit) { element.loadMedia(null) }
+        LaunchedEffect(Unit) { element.loadMedia() }
 
         FileBasedDetailsDialog(element, onSave, onClose, additionalButtons = { ZoomButtons(zoom) }) {
             // we need focus in the box to capture key events

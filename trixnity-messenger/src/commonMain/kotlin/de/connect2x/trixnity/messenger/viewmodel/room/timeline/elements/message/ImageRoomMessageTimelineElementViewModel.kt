@@ -66,7 +66,7 @@ class ImageRoomMessageTimelineElementViewModelImpl(
     override val thumbnailWidth = content.info?.thumbnailInfo?.width
     override val thumbnailHeight = content.info?.thumbnailInfo?.height
 
-    override val maxAutoDownloadSize: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
+    override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
 
     override val thumbnail: StateFlow<ByteArray?> =
         combine(loadMediaResultBytes, downloadMediaResult) {
@@ -78,7 +78,7 @@ class ImageRoomMessageTimelineElementViewModelImpl(
                         content,
                         thumbnailProgressFlow,
                         maxMediaSizeInMemory,
-                        maxAutoDownloadSize,
+                        thumbnailAutoDownloadLimit,
                     )
                     .also { _thumbnailLoading.value = false }
             }

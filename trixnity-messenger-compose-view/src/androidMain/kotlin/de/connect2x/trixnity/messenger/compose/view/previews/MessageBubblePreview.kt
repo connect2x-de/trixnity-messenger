@@ -83,6 +83,7 @@ fun ImageMessageBubblePreview() {
             override val height: Int = 40
             override val thumbnailWidth: Int = 40
             override val thumbnailHeight: Int = 40
+            override val thumbnailAutoDownloadLimit: Long = 5 * 1024 * 1024
             override val blurhash: String? = null
             override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 
@@ -101,9 +102,8 @@ fun ImageMessageBubblePreview() {
             override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
             override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
             override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
-            override val maxAutoDownloadSize: Long = 5 * 1024 * 1024
 
-            override fun loadMedia(maxDownloadSize: Long?) {}
+            override fun loadMedia() {}
 
             override fun cancelLoadMedia() {}
 
@@ -155,9 +155,8 @@ fun FileMessageBubblePreview() {
             override val loadMediaResult: StateFlow<ByteArray?> = loadMediaResultBytes
             override val loadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
             override val loadMediaError: StateFlow<String?> = MutableStateFlow(null)
-            override val maxAutoDownloadSize: Long = 5 * 1024 * 1024
 
-            override fun loadMedia(maxDownloadSize: Long?) {}
+            override fun loadMedia() {}
 
             override fun cancelLoadMedia() {}
 

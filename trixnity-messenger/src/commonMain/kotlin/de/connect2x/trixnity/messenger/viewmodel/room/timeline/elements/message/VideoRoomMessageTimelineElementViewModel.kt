@@ -60,7 +60,7 @@ class VideoRoomMessageTimelineElementViewModelImpl(
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
 
-    override val maxAutoDownloadSize: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
+    override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
 
     override val thumbnail: StateFlow<ByteArray?> =
         combine(loadMediaResultBytes, downloadMediaResult) {
@@ -70,7 +70,7 @@ class VideoRoomMessageTimelineElementViewModelImpl(
                     content,
                     thumbnailProgressFlow,
                     maxMediaSizeInMemory,
-                    maxAutoDownloadSize,
+                    thumbnailAutoDownloadLimit,
                 )
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)

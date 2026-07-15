@@ -6,6 +6,7 @@ import de.connect2x.trixnity.clientserverapi.model.room.GetPublicRoomsWithFilter
 import de.connect2x.trixnity.core.model.RoomId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.core.model.events.m.room.JoinRulesEventContent.JoinRule
+import de.connect2x.trixnity.messenger.MatrixMessengerConfiguration
 import de.connect2x.trixnity.messenger.util.BackCallback
 import de.connect2x.trixnity.messenger.util.EnterRoom
 import de.connect2x.trixnity.messenger.viewmodel.MatrixClientViewModelContext
@@ -90,6 +91,7 @@ class SearchGroupViewModelImpl(
 
     private val initials = get<Initials>()
     private val enterRoom = get<EnterRoom>()
+    private val maxSizeThumbnail = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val searchTerm = TextFieldViewModelImpl(maxLength = 1_000)
     override val groupSearchInProgress: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -133,7 +135,12 @@ class SearchGroupViewModelImpl(
                                         image =
                                             publicRoomsChunk.avatarUrl?.let { url ->
                                                 matrixClient.media
-                                                    .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
+                                                    .getThumbnail(
+                                                        url,
+                                                        avatarSize().toLong(),
+                                                        avatarSize().toLong(),
+                                                        maxSizeThumbnail,
+                                                    )
                                                     .getOrNull()
                                                     ?.stateIn(this)
                                             } ?: MutableStateFlow(null),

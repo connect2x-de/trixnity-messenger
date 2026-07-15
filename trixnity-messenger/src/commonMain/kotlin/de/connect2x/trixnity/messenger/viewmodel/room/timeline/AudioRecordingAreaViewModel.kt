@@ -215,7 +215,7 @@ class AudioRecordingAreaViewModelImpl(
                         content,
                         content.fileName ?: content.body,
                         MutableStateFlow(null),
-                        null,
+                        null, // unlimited download size because the user explicitly triggered it
                     )
 
                 data

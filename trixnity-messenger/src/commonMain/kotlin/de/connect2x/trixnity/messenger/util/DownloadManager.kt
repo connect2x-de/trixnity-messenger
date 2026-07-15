@@ -33,7 +33,7 @@ interface DownloadManager {
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
-    ): Deferred<Result<PlatformMedia>>
+    ): Deferred<Result<PlatformMedia>> = startDownloadAsync(matrixClient, content, fileName, progress, null)
 
     fun startDownloadAsync(
         matrixClient: MatrixClient,
@@ -58,13 +58,6 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
         )
     private val _downloads = MutableStateFlow(listOf<Download>())
     private val downloadMutex: KeyedMutex<String> = KeyedMutex()
-
-    override fun startDownloadAsync(
-        matrixClient: MatrixClient,
-        content: RoomMessageEventContent.FileBased,
-        fileName: String,
-        progress: MutableStateFlow<FileTransferProgressElement?>,
-    ): Deferred<Result<PlatformMedia>> = startDownloadAsync(matrixClient, content, fileName, progress, null)
 
     // override val downloads: StateFlow<List<Download>> = _downloads.asStateFlow() // TODO for possible
     // DownloadManagerViewModel

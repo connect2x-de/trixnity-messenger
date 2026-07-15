@@ -78,9 +78,8 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val loadMediaResultBytes: StateFlow<ByteArray?>
         val loadMediaProgress: StateFlow<FileTransferProgressElement?>
         val loadMediaError: StateFlow<String?>
-        val maxAutoDownloadSize: Long
 
-        fun loadMedia(maxDownloadSize: Long? = maxAutoDownloadSize)
+        fun loadMedia()
 
         fun cancelLoadMedia()
 
@@ -101,6 +100,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val height: Int?
             val thumbnailWidth: Int?
             val thumbnailHeight: Int?
+            val thumbnailAutoDownloadLimit: Long
 
             @MSC2448 val blurhash: String?
         }
@@ -115,6 +115,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val thumbnail: StateFlow<ByteArray?>
             val width: Int?
             val height: Int?
+            val thumbnailAutoDownloadLimit: Long
         }
     }
 
