@@ -5,26 +5,21 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import js.array.asList
 import js.buffer.ArrayBuffer
-import js.errors.JsError
-import js.errors.JsErrorLike
 import js.errors.JsErrorName
 import js.errors.name
 import js.errors.toJsError
 import js.errors.toJsErrorLike
 import js.numbers.JsNumbers.toKotlinFloat
 import js.objects.unsafeJso
-import js.promise.catch
 import js.reflect.unsafeCast
 import js.typedarrays.Float32Array
 import kotlin.coroutines.resume
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsException
-import kotlin.js.thrownValue
 import kotlin.js.toList
-import kotlin.js.unsafeCast
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -41,7 +36,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
-import web.errors.DOMException
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -157,44 +151,47 @@ class WebAudioRecorder(
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
         return { recordingState: AudioRecorderImpl.State.Recording ->
-            recorder.stop()
-            val recordingSuccessful =
-                withTimeoutOrNull(30.seconds) {
-                    suspendCancellableCoroutine { cont ->
-                        handleFirst(
-                            eventTarget = recorder,
-                            handlers =
-                                mapOf(
-                                    Event.STOP to
-                                        {
-                                            closeInputs(microphone)
-                                            cont.resume(
-                                                Unit
-                                            )
-                                        },
-                                    Event.ERROR to
-                                        {
-                                            closeInputs(microphone)
-                                            log.error { "Unexpected error while recording audio" }
-                                            cont.resume(null)
-                                        },
-                                ),
-                        )
+            try {
+                recorder.stop()
+                val recordingSuccessful =
+                    withTimeoutOrNull(30.seconds) {
+                        suspendCancellableCoroutine { cont ->
+                            handleFirst(
+                                eventTarget = recorder,
+                                handlers =
+                                    mapOf(
+                                        Event.STOP to
+                                            {
+                                                cont.resume(
+                                                    Unit
+                                                )
+                                            },
+                                        Event.ERROR to
+                                            {
+                                                log.error { "Unexpected error while recording audio" }
+                                                cont.resume(null)
+                                            },
+                                    ),
+                            )
+                        }
                     }
-                }
-            if (recordingSuccessful != null) {
-                val media = mediaDeferred.await()
-                AudioRecorderImpl.State.Completed(
-                    media,
-                    clock.now() - recordingState.start,
-                    mediaSize.toLong(),
-                    opusContentType,
-                    opusFileExtension,
-                ) {
+                if (recordingSuccessful != null) {
+                    val media = mediaDeferred.await()
+                    AudioRecorderImpl.State.Completed(
+                        media,
+                        clock.now() - recordingState.start,
+                        mediaSize.toLong(),
+                        opusContentType,
+                        opusFileExtension,
+                    ) {
                         // Automatically deleted by media store
                     }
-            } else {
-                null
+                } else {
+                    null
+                }
+            } finally {
+                mediaDeferred.cancel()
+                closeInputs(microphone)
             }
         }
     }
