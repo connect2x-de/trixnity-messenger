@@ -46,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- SDK: during the logout process, all local secrets belonging to the account are also deleted
+- SDK,UI: when the database cannot be decrypted, it is automatically deleted and the user is informed about potential tampering
+- SDK,UI: when the secrets for the database are being tampered with, the whole profile is deleted and the user is informed about potential tampering
+- SDK: (**breaking change**) `SecretByteArrays` get/set now only accept `SecretId` instead of raw `String` to support secrets that belong to specific accounts
+
 ## 4.8.1
 
 ### Changed

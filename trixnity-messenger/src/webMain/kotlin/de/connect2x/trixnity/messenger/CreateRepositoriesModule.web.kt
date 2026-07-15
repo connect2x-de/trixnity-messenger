@@ -19,6 +19,10 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
             override suspend fun load(userId: UserId, databaseKey: ByteArray?): RepositoriesModule =
                 createInternal(userId)
 
+            override fun handleExceptions(exc: Exception) {
+                // empty
+            }
+
             private fun createInternal(userId: UserId): RepositoriesModule =
                 RepositoriesModule.indexedDB(rootPath.forAccountDatabase(userId).toString())
         }
