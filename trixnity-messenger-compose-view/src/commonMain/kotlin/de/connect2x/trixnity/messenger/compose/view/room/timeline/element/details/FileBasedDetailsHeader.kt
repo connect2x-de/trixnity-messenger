@@ -97,27 +97,24 @@ fun FileBasedDetailsHeader(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.messengerDpConstants.verySmall)) {
                 additionalButtons(this)
-                if (downloadProgress == null) {
-                    FileBasedDetailsHeaderButton(
-                        Icons.Outlined.Download,
-                        i18n.downloadMessage(),
-                        !configuration.downloadsDisabled,
-                        onSave,
-                    )
-                } else {
-                    Box {
-                        downloadProgress.percent?.let {
-                            ThemedProgressIndicator(
-                                progress = { it },
-                                style = MaterialTheme.components.circularProgressIndicator,
-                            )
-                        } ?: ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
-                        ThemedIconButton(
-                            onClick = element::cancelDownloadMedia,
-                            modifier = Modifier.buttonPointerModifier(),
-                            style = MaterialTheme.components.commonIconButton,
-                        ) {
-                            Icon(Icons.Default.Cancel, i18n.commonCancel())
+                if (!configuration.downloadsDisabled) {
+                    if (downloadProgress == null) {
+                        FileBasedDetailsHeaderButton(Icons.Outlined.Download, i18n.downloadMessage(), true, onSave)
+                    } else {
+                        Box {
+                            downloadProgress.percent?.let {
+                                ThemedProgressIndicator(
+                                    progress = { it },
+                                    style = MaterialTheme.components.circularProgressIndicator,
+                                )
+                            } ?: ThemedProgressIndicator(style = MaterialTheme.components.circularProgressIndicator)
+                            ThemedIconButton(
+                                onClick = element::cancelDownloadMedia,
+                                modifier = Modifier.buttonPointerModifier(),
+                                style = MaterialTheme.components.commonIconButton,
+                            ) {
+                                Icon(Icons.Default.Cancel, i18n.commonCancel())
+                            }
                         }
                     }
                 }

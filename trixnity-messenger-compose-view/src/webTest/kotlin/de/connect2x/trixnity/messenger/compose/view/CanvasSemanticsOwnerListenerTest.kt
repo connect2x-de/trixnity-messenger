@@ -44,7 +44,7 @@ import androidx.compose.ui.semantics.testTag
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.InternalTestApi
-import androidx.compose.ui.test.SkikoComposeUiTest
+import androidx.compose.ui.test.v2.runInternalSkikoComposeUiTest
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -59,8 +59,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.TestResult
 import web.dom.Element
 import web.dom.ElementId
 import web.dom.document
@@ -612,13 +613,21 @@ private val ProgressAttrAsserter: AttrAsserter = { attrs, actualAttrs ->
 }
 
 @OptIn(ExperimentalTestApi::class, InternalComposeUiApi::class, InternalTestApi::class)
-private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit) = run {
+private fun a11yTest(content: @Composable () -> Unit, assertions: suspend (Element) -> Unit): TestResult {
     val a11yRoot = document.createElement(HtmlTagName.div)
     document.body.appendChild(a11yRoot)
-    SkikoComposeUiTest(semanticsOwnerListener = CanvasSemanticsOwnerListener(a11yRoot)).runTest {
+    return runInternalSkikoComposeUiTest(semanticsOwnerListener = CanvasSemanticsOwnerListener(a11yRoot)) {
         setContent(content)
 
-        delay(10.seconds) // This is virtual time
+        // Run 5 seconds of frames assuming 60fps
+        // awaitIdle seems to be broken on Web
+        repeat(60 * 5) {
+            delay(16.milliseconds)
+            runOnUiThread {
+                mainClock.scheduler.advanceTimeBy(16.milliseconds)
+                mainClock.scheduler.runCurrent()
+            }
+        }
 
         println(a11yRoot.innerHTML)
         assertions(a11yRoot)

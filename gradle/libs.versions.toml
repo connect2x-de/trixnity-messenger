@@ -6,8 +6,8 @@ minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.7.0-SNAPSHOT.CI-20260623.160101" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.7.0" # https://gitlab.com/connect2x/sysnotify/-/packages
+trixnity = "5.7.0-SNAPSHOT.CI-20260709.114740" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.7.0-SNAPSHOT.CI-20260709.132536" # https://gitlab.com/connect2x/sysnotify/-/packages
 sqlitenity = "0.0.7-SNAPSHOT.CI-20260623.161442" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
@@ -26,7 +26,6 @@ highlights = "1.1.0" # https://github.com/SnipMeDev/Highlights/releases
 copyWebpackPlugin = "13.0.1" # https://github.com/webpack-contrib/copy-webpack-plugin/releases
 pako = "2.1.0" # https://github.com/nodeca/pako # dependency for Kim on wasmJs & js
 filekit = "0.12.0" # https://github.com/vinceglb/FileKit/releases # TODO: 0.13.0 cannot be used, since it is compiled with Java 21...
-androidxMedia3 = "1.10.1" # https://github.com/androidx/media/releases
 detekt = "2.0.0-alpha.3" # https://detekt.dev/docs/introduction/compatibility/
 
 [libraries]
@@ -61,9 +60,6 @@ tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika" }
 tika-parser-audiovideo-module = { module = "org.apache.tika:tika-parser-audiovideo-module", version.ref = "tika" }
 ksoup-html = { module = "com.fleeksoft.ksoup:ksoup", version.ref = "ksoup" }
 highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "androidxMedia3" }
-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "androidxMedia3" }
-media3-ui = { group = "androidx.media3", name = "media3-ui", version.ref = "androidxMedia3" }
 
 [bundles]
 

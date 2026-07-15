@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import de.connect2x.trixnity.client.media.PlatformMedia
 import de.connect2x.trixnity.core.MSC2448
-import de.connect2x.trixnity.core.model.EventId
 import de.connect2x.trixnity.core.model.UserId
 import de.connect2x.trixnity.messenger.compose.view.previews.util.InitMessengerPreview
 import de.connect2x.trixnity.messenger.compose.view.room.timeline.element.message.FileRoomMessageTimelineElementViewImpl
@@ -17,6 +16,7 @@ import de.connect2x.trixnity.messenger.util.FileTransferProgressElement
 import de.connect2x.trixnity.messenger.util.html.HtmlNode
 import de.connect2x.trixnity.messenger.util.html.HtmlVisitor
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.PreviewTimelineElementViewModel1
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.TimelineElementMention
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.message.RoomMessageTimelineElementViewModel
@@ -42,7 +42,14 @@ fun TextMessageBubblePreview() {
     holder.showBigGapBefore.value = true
     holder.reactions.value =
         EventReactions(
-            setOf(EventReaction(value = "x", eventId = EventId("1"), sender = userInfoElement, isByMe = false))
+            setOf(
+                EventReaction(
+                    value = "x",
+                    eventOrTransactionId = EventIdOrTransactionId("1"),
+                    sender = userInfoElement,
+                    isByMe = false,
+                )
+            )
         )
 
     val element =

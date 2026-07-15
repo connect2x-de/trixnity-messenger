@@ -49,6 +49,7 @@ fun SearchUsers(
             state = listState,
         ) {
             item(key = "aboveSearch") { aboveSearch() }
+            stickyHeader("searchErrors") { SearchErrors(userSearchViewModel) }
             stickyHeader("searchTerm") {
                 val containerColor = LocalSurfaceStyle.current?.color
                 Column((if (containerColor != null) Modifier.background(containerColor) else Modifier)) {

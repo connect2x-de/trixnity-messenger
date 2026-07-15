@@ -83,11 +83,10 @@ kotlin {
                 api(sharedLibs.decompose)
                 api(sharedLibs.decompose.extensions)
                 api(sharedLibs.aboutLibraries.compose.m3)
-                api(sharedLibs.androidx.lifecycle.runtime.compose)
+                api(sharedLibs.androidx.lifecycleRuntimeCompose)
                 implementation(sharedLibs.kotlinx.datetime)
                 implementation(sharedLibs.androidx.annotation)
                 implementation(libs.okio)
-                implementation(sharedLibs.compose.uiUtil)
                 implementation(libs.highlights)
                 implementation(libs.markdown)
 
@@ -104,12 +103,10 @@ kotlin {
         }
         androidMain {
             dependencies {
-                implementation(sharedLibs.compose.uiTooling)
-                implementation(sharedLibs.androidx.appcompat)
-                implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.activity.compose)
+                implementation(sharedLibs.androidx.workRuntime)
+                implementation(sharedLibs.androidx.activityCompose)
                 implementation(sharedLibs.compose.uiToolingPreview)
-                implementation(sharedLibs.androidx.security.crypto)
+                implementation(sharedLibs.androidx.securityCrypto)
                 implementation(sharedLibs.ktor.client.okhttp)
             }
         }
@@ -119,9 +116,6 @@ kotlin {
                 implementation(project.dependencies.platform(sharedLibs.kotlin.wrappers.bom))
                 implementation(sharedLibs.kotlin.browser)
                 implementation(projects.wrappersPdfjs)
-
-                implementation(sharedLibs.compose.ui)
-                implementation(sharedLibs.compose.uiUtil)
             }
         }
         commonTest {
@@ -146,8 +140,8 @@ kotlin {
 }
 
 dependencies {
-    androidTestImplementation(sharedLibs.compose.ui.test.junit4.android)
-    debugImplementation(sharedLibs.compose.ui.test.android.manifest)
+    androidTestImplementation(sharedLibs.compose.uiTestJunit4)
+    debugImplementation(sharedLibs.compose.uiTestManifest)
 }
 
 android {

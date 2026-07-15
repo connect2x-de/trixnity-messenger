@@ -47,13 +47,14 @@ import de.connect2x.trixnity.messenger.compose.view.theme.md_theme_light_tertiar
 import de.connect2x.trixnity.messenger.compose.view.theme.md_theme_light_tertiaryContainer
 import de.connect2x.trixnity.messenger.util.PlatformGraphemeIterableProvider
 import de.connect2x.trixnity.messenger.viewmodel.UserInfoElement
+import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdOrTransactionId.Companion.EventIdOrTransactionId
 import de.connect2x.trixnity.messenger.viewmodel.util.EventReactions.ByReactionInfo
 import de.connect2x.trixnity.messenger.viewmodel.util.Initials
 import de.connect2x.trixnity.messenger.viewmodel.util.InitialsImpl
 
 private fun previewReactionEvent(sender: String, initials: Initials, isMe: Boolean = false) =
     ByReactionInfo(
-        eventId = EventId(""),
+        eventOrTransactionId = EventIdOrTransactionId(EventId("")),
         sender =
             UserInfoElement(
                 name = sender,
@@ -123,7 +124,7 @@ fun MessageReactionPreview() {
                     reactionEvents =
                         setOf(
                             ByReactionInfo(
-                                eventId = EventId(""),
+                                eventOrTransactionId = EventIdOrTransactionId(EventId("")),
                                 sender =
                                     UserInfoElement(name = "Martin", userId = UserId("@martin:local"), initials = "M"),
                                 isMe = false,
@@ -139,7 +140,7 @@ fun MessageReactionPreview() {
                     reactionEvents =
                         setOf(
                             ByReactionInfo(
-                                eventId = EventId(""),
+                                eventOrTransactionId = EventIdOrTransactionId(EventId("")),
                                 sender = UserInfoElement(name = "Jan", userId = UserId("@jan:local"), initials = "M"),
                                 isMe = false,
                             ),

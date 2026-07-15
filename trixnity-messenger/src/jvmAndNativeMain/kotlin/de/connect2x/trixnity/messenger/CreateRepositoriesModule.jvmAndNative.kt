@@ -4,6 +4,7 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteDriver
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.sqlitenity.api.SQLitenityException
 import de.connect2x.sqlitenity.bundled.SQLitenityBundledDriver
 import de.connect2x.sqlitenity.compat.SQLitenityCompatDriver
 import de.connect2x.trixnity.client.RepositoriesModule
@@ -39,11 +40,31 @@ actual fun platformCreateRepositoriesModuleModule(): Module = module {
                 return RepositoriesModule.room(db(userId, databaseKey))
             }
 
+            override fun handleExceptions(exc: Exception) {
+                handleSqliteExceptions(exc, databaseEncryptionEnabled)
+            }
+
             private fun db(userId: UserId, databaseKey: ByteArray?): RoomDatabase.Builder<TrixnityRoomDatabase> =
                 roomDatabaseBuilder<TrixnityRoomDatabase>(
                         rootPath.forAccountDatabase(userId).resolve("database").toString()
                     )
                     .setDriver(EncryptedSQLiteDriver(databaseKey))
+        }
+    }
+}
+
+internal fun handleSqliteExceptions(exc: Exception, databaseEncryptionEnabled: Boolean) {
+    when (exc) {
+        is SQLitenityException -> {
+            // SQLite error code 26: file is encrypted or is not a database
+            // 26 is the error code for SQLITE_NOTADB
+            if (databaseEncryptionEnabled && exc.cause?.message?.contains("Error code: 26") == true) {
+                throw MatrixClientInitializationException.DatabaseCannotBeDecryptedException(exc.cause?.message)
+            }
+            // otherwise: let later handlers do the work
+        }
+        else -> {
+            // do not handle and let later handlers do the work
         }
     }
 }

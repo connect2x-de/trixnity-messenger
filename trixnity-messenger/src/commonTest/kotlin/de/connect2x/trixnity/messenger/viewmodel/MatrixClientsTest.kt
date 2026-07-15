@@ -22,6 +22,7 @@ import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
 import de.connect2x.trixnity.messenger.i18n.GetSystemLang
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
+import de.connect2x.trixnity.messenger.secrets.SecretId
 import de.connect2x.trixnity.messenger.util.DeleteAccountData
 import dev.mokkery.answering.SuspendAnsweringScope
 import dev.mokkery.answering.calls
@@ -140,8 +141,9 @@ class MatrixClientsTest {
                 logoutCalled = true
                 Result.success(Unit)
             }
-        everySuspend { secretByteArrays.set(any(), any()) } returns Unit
-        everySuspend { secretByteArrays.get(any()) } returns null
+        everySuspend { secretByteArrays.set(any<SecretId>(), any()) } returns Unit
+        everySuspend { secretByteArrays.get(any<SecretId>()) } returns null
+        everySuspend { secretByteArrays.removeSecretsForUser(any()) } returns Unit
         everySuspend {
             authenticationApiClient.login(
                 identifier = any(),
@@ -328,7 +330,7 @@ class MatrixClientsTest {
         settings.value.base.accounts.keys shouldBe setOf()
         verifySuspend {
             matrixClientMock1.closeSuspending()
-            secretByteArrays.set(any(), null)
+            secretByteArrays.removeSecretsForUser(userId1)
             deleteAccountData.invoke(userId1)
         }
     }
@@ -347,7 +349,7 @@ class MatrixClientsTest {
         settings.value.base.accounts.keys shouldBe setOf(userId2)
         verifySuspend {
             matrixClientMock1.closeSuspending()
-            secretByteArrays.set(any(), null)
+            secretByteArrays.removeSecretsForUser(userId1)
             deleteAccountData.invoke(userId1)
         }
     }

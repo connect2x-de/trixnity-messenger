@@ -127,6 +127,7 @@ kotlin {
                 implementation(libs.sqlitenity.bundled)
                 implementation(libs.sqlitenity.compat)
                 api(libs.trixnity.client.media.okio)
+                implementation(sharedLibs.androidx.roomRuntime)
             }
         }
         named("jvmAndAndroidMain") { dependencies { api(sharedLibs.lognity.slf4j) } }
@@ -142,14 +143,13 @@ kotlin {
         }
         androidMain {
             dependencies {
-                api(sharedLibs.androidx.activity.ktx)
-                implementation(sharedLibs.androidx.security.crypto)
+                api(sharedLibs.androidx.activity)
+                implementation(sharedLibs.androidx.securityCrypto)
                 implementation(sharedLibs.androidx.browser)
-                implementation(sharedLibs.androidx.work.runtime.ktx)
-                implementation(sharedLibs.androidx.lifecycle.livedata.ktx)
-                implementation(libs.media3.exoplayer)
-                implementation(libs.media3.session)
-                implementation(libs.media3.ui)
+                implementation(sharedLibs.androidx.workRuntime)
+                implementation(sharedLibs.androidx.media3Exoplayer)
+                implementation(sharedLibs.androidx.media3Session)
+                implementation(sharedLibs.androidx.media3Ui)
             }
         }
         iosMain {

@@ -1,6 +1,7 @@
 package de.connect2x.trixnity.messenger
 
 import de.connect2x.lognity.api.logger.Logger
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.client.MatrixClient
 import de.connect2x.trixnity.client.MatrixClientConfiguration
 import de.connect2x.trixnity.client.RepositoriesModule
@@ -15,6 +16,7 @@ import de.connect2x.trixnity.core.model.events.m.room.RoomMessageEventContent
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappings
 import de.connect2x.trixnity.core.serialization.events.EventContentSerializerMappingsBuilder
 import de.connect2x.trixnity.core.serialization.events.default
+import de.connect2x.trixnity.messenger.secrets.SecretByteArrayIntegrityCheckException
 import de.connect2x.trixnity.messenger.secrets.SecretByteArrays
 import de.connect2x.trixnity.messenger.secrets.getDatabaseKey
 import de.connect2x.trixnity.messenger.secrets.setDatabaseKey
@@ -51,16 +53,21 @@ class MatrixClientFactoryImpl(
         configuration: MatrixClientConfiguration.() -> Unit,
     ): Result<MatrixClient> =
         MatrixClient.create(
-            repositoriesModule = createRepositoriesModuleOrThrow(userId),
-            mediaStoreModule = createMediaStoreModule(userId),
-            cryptoDriverModule = createCryptoDriverModule(),
-            authProviderData = authProviderData,
-            coroutineContext = appCoroutineContext,
-        ) {
-            configureDefault()
-            configuration()
-            messengerConfiguration.client.invoke(this)
-        }
+                repositoriesModule = createRepositoriesModuleOrThrow(userId),
+                mediaStoreModule = createMediaStoreModule(userId),
+                cryptoDriverModule = createCryptoDriverModule(),
+                authProviderData = authProviderData,
+                coroutineContext = appCoroutineContext,
+            ) {
+                configureDefault()
+                configuration()
+                messengerConfiguration.client.invoke(this)
+            }
+            .recoverCatching { throwable ->
+                // some database exceptions only occur when the database is initialized
+                if (throwable is Exception) createRepositoriesModule.handleExceptions(throwable)
+                throw throwable
+            }
 
     override suspend fun load(
         userId: UserId,
@@ -68,23 +75,32 @@ class MatrixClientFactoryImpl(
         configuration: MatrixClientConfiguration.() -> Unit,
     ): Result<MatrixClient> =
         MatrixClient.create(
-            repositoriesModule = loadRepositoriesModuleOrThrow(userId),
-            mediaStoreModule = createMediaStoreModule(userId),
-            cryptoDriverModule = createCryptoDriverModule(),
-            authProviderData = authProviderData,
-            coroutineContext = appCoroutineContext,
-        ) {
-            configureDefault()
-            configuration()
-            messengerConfiguration.client.invoke(this)
-        }
+                repositoriesModule = loadRepositoriesModuleOrThrow(userId),
+                mediaStoreModule = createMediaStoreModule(userId),
+                cryptoDriverModule = createCryptoDriverModule(),
+                authProviderData = authProviderData,
+                coroutineContext = appCoroutineContext,
+            ) {
+                configureDefault()
+                configuration()
+                messengerConfiguration.client.invoke(this)
+            }
+            .recoverCatching { throwable ->
+                // some database exceptions only occur when the database is initialized
+                if (throwable is Exception) createRepositoriesModule.handleExceptions(throwable)
+                throw throwable
+            }
 
     private suspend fun createRepositoriesModuleOrThrow(userId: UserId): RepositoriesModule {
         log.debug { "create repositories module" }
         val repositoriesModule =
             try {
                 createRepositoriesModule.create(userId, getDatabaseKey(userId, true))
+            } catch (exc: SecretByteArrayIntegrityCheckException) {
+                log.error(exc) { "The settings.json file seems to be manipulated." }
+                throw MatrixClientInitializationException.DatabaseKeysManipulatedException(exc.message)
             } catch (exc: Exception) {
+                createRepositoriesModule.handleExceptions(exc)
                 if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
                 else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
             }
@@ -96,7 +112,11 @@ class MatrixClientFactoryImpl(
         val repositoriesModule =
             try {
                 createRepositoriesModule.load(userId, getDatabaseKey(userId, false))
+            } catch (exc: SecretByteArrayIntegrityCheckException) {
+                log.error(exc) { "The settings.json file seems to be manipulated." }
+                throw MatrixClientInitializationException.DatabaseKeysManipulatedException(exc.message)
             } catch (exc: Exception) {
+                createRepositoriesModule.handleExceptions(exc)
                 if (isLocked(exc)) throw MatrixClientInitializationException.DatabaseLockedException()
                 else throw MatrixClientInitializationException.DatabaseAccessException(exc.message)
             }

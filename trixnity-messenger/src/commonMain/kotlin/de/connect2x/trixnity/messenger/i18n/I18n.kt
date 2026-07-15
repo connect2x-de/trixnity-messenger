@@ -1375,6 +1375,11 @@ open class I18n(
         DE - "$appName läuft bereits in einem anderen Tab oder Fenster. Bitte schließen Sie es zuerst."
     }
 
+    open fun searchUserIdHomeserverNotValid(domain: String) = translate {
+        EN - "$domain is not a valid Matrix homeserver"
+        DE - "$domain ist kein valider Matrix Homeserver"
+    }
+
     open fun searchGroupFailedSearch() = translate {
         EN - "Searching rooms failed"
         DE - "Raumsuche ist fehlgeschlagen"

@@ -38,6 +38,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     override val mimeType: String? = content.info?.mimeType
     override val hasCaption: Boolean = content.fileName != null && content.body != content.fileName
 
+    private val config = get<MatrixMessengerConfiguration>()
+
     private val downloadManager = viewModelContext.get<DownloadManager>()
 
     private val _loadMediaResultPlatformMedia: MutableStateFlow<PlatformMedia?> = MutableStateFlow(null)
@@ -107,6 +109,11 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
         coroutineScope.launch {
+            if (config.downloadsDisabled) {
+                log.warn { "Downloading media was disabled in configs" }
+                onDownloadCancelled()
+                return@launch
+            }
             val result = downloadMediaInternal()
             if (result.isFailure) {
                 onDownloadCancelled()
