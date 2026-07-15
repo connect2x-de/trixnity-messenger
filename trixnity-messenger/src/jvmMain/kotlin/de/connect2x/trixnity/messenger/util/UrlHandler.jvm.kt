@@ -86,7 +86,7 @@ class UriHandlerImpl(
     private val lockFileName = "port.lock"
 
     private val appVersionString = config.appUri + config.appVersion.toString()
-    private val okResponse = "OK\n$appVersionString"
+    private val okResponseString = "OK\n$appVersionString"
 
     /** This need to be called with application start arguments. */
     suspend fun start(args: Array<String>) =
@@ -131,7 +131,7 @@ class UriHandlerImpl(
     }
 
     private fun writePortToLockFile(port: Int) {
-        log.debug { "write port $port to lock file" } // FIXME this will be 2425
+        log.debug { "write port $port to lock file" }
         val lockFile = rootPath.resolve(lockFileName)
         fileSystem.write(lockFile) { writeUtf8(port.toString()) }
         val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
@@ -156,7 +156,7 @@ class UriHandlerImpl(
             )
     }
 
-    private fun listenForArgs(urlArg: String?) {
+    internal fun listenForArgs(urlArg: String?) {
         thread {
             try {
                 runBlocking(Dispatchers.IO) {
@@ -177,24 +177,25 @@ class UriHandlerImpl(
                         writePortToLockFile(port)
                         log.debug { "start listening for url args on port $port" }
                         while (server.isClosed.not()) {
-                            try {
-                                val socket = server.accept()
-                                launch {
-                                    try {
-                                        val url = receiveUrlFromSocket(socket)
-                                        if (url != null) {
-                                            emitUrl(url)
+
+                            val socket = server.accept()
+
+                            launch {
+                                val urlResponse = socket.use {
+                                    receiveUrlFromSocket(socket)
+                                }
+                                urlResponse.fold(
+                                    {
+                                        if (it != null) {
+                                            emitUrl(it)
                                         } else {
                                             log.warn { "url args from different app received" }
                                         }
-                                    } catch (exception: IOException) {
-                                        log.error(exception) { "error reading url args" }
-                                    } finally {
-                                        socket.close()
-                                    }
-                                }
-                            } catch (exception: Exception) {
-                                log.error(exception) { "error reading url args" }
+                                    },
+                                    {
+                                        log.error(it) { "error reading url args" }
+                                    },
+                                )
                             }
                         }
                     } else log.error { "could not start server socket to listen for url args" }
@@ -206,31 +207,28 @@ class UriHandlerImpl(
         }
     }
 
-    private fun receiveUrlFromSocket(socket: Socket): String? {
-        log.debug { "try read url arg" }
-        val inputStream = socket.getInputStream()
+    private fun receiveUrlFromSocket(socket: Socket): Result<String?> {
+        return runCatching {
+            log.debug { "try read url arg" }
 
-        val reply = inputStream.readAllBytes().decodeToString().split("\n")
-        val url = reply.getOrNull(0)
-        val senderAppVersion = reply.getOrNull(1)
+            val inputStream = socket.getInputStream()
+            val reply = inputStream.readNBytes(8192).decodeToString().split("\n")
 
-        log.debug { "received url arg $url" }
+            val url = reply.getOrNull(0)
+            val senderAppVersion = reply.getOrNull(1)
 
-        log.debug { "sending back OK message $okResponse" }
+            log.debug { "received url arg $url" }
 
-        socket.getOutputStream().use {
-            it.write((okResponse).toByteArray(Charsets.UTF_8))
-        }
-        inputStream.close()
+            log.debug { "sending back OK message $okResponseString" }
 
-        if (senderAppVersion == appVersionString) {
-            return url
-        } else {
-            return null
+            val outputStream = socket.getOutputStream()
+            outputStream.write((okResponseString).toByteArray(Charsets.UTF_8))
+
+            if (senderAppVersion == appVersionString) url else null
         }
     }
 
-    private suspend fun sendUrlArg(urlArg: String, port: Int) {
+    internal suspend fun sendUrlArg(urlArg: String, port: Int) {
         withContext(Dispatchers.IO) {
             val address = InetAddress.getLoopbackAddress()
             val socket =
@@ -242,21 +240,31 @@ class UriHandlerImpl(
                 }
             if (socket != null) {
                 log.debug { "try send url arg $urlArg using port $port" }
-                var reply: Result<String>? = null
-                try {
-                    reply = sendUrlToSocket(socket, urlArg)
-                } catch (exception: Exception) {
-                    log.error(exception) { "error sending url arg $urlArg" }
-                } finally {
-                    socket.close()
+
+                val okResponse = socket.use {
+                    sendUrlToSocket(socket, urlArg)
                 }
-                if (reply != null && reply.getOrNull() != okResponse) {
-                    log.debug { "no or faulty reply received. Opening app instead" }
-                    listenForArgs(urlArg) // fallback
-                } else {
-                    log.debug { "Invoking close of app" }
-                    closeApp?.invoke()
-                }
+
+                okResponse.fold(
+                    {
+                        if (it != okResponseString) {
+                            log.debug { "faulty reply received. Opening app instead" }
+                            listenForArgs(urlArg) // fallback
+                        } else {
+                            log.debug { " url successfully send. Invoking close of app" }
+                            closeApp?.invoke()
+                        }
+                    },
+                    {
+                        if (it is SocketTimeoutException) {
+                            log.debug { "no reply received. Opening app instead" }
+                            listenForArgs(urlArg) // fallback
+                        } else {
+                            log.error(it) { "error sending url arg $urlArg. Invoking close of app" }
+                            closeApp?.invoke()
+                        }
+                    },
+                )
             } else {
                 listenForArgs(urlArg) // fallback
             }
@@ -264,26 +272,20 @@ class UriHandlerImpl(
     }
 
     fun sendUrlToSocket(socket: Socket, url: String): Result<String> {
-        socket.soTimeout = 2000
 
-        val outputStream = socket.getOutputStream()
-        outputStream.write((url + "\n" + appVersionString).encodeToByteArray())
-        socket.shutdownOutput()
+        return runCatching {
+            val outputStream = socket.getOutputStream()
+            outputStream.write((url + "\n" + appVersionString).encodeToByteArray())
+            socket.shutdownOutput()
 
-        log.debug { "waiting for url received message" }
+            log.debug { "waiting for url received message" }
 
-        val inputStream = socket.getInputStream()
+            socket.soTimeout = 2000
+            val inputStream = socket.getInputStream()
+            val okResponse = inputStream.readNBytes(8192).decodeToString()
 
-        return socket.getInputStream().use {
-            try {
-                val okResponse = inputStream.readAllBytes().decodeToString()
-
-                log.debug { "received ok response $okResponse" }
-                Result.success(okResponse)
-            } catch (e: SocketTimeoutException) {
-                log.error { "receiver didn't reply in time!" }
-                Result.failure(e)
-            }
+            log.debug { "received ok response $okResponse" }
+            okResponse
         }
     }
 }
