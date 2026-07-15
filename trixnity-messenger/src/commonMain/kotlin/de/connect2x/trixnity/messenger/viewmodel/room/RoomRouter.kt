@@ -113,7 +113,7 @@ class RoomRouterImpl(
         val matrixClient = viewModelContext.getMatrixClient(userId)
         val memberState = matrixClient.room.getById(roomId).firstOrNull()?.membership
         when {
-            memberState == Membership.JOIN -> {
+            memberState == Membership.JOIN || memberState == Membership.LEAVE || memberState == Membership.BAN -> {
                 log.debug { "show room: $roomId" }
                 roomNavigation.bringToFrontSuspending(Config.View(userId, roomId.full))
             }
