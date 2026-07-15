@@ -5,15 +5,26 @@ import de.connect2x.lognity.api.logger.error
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
+import io.ktor.utils.io.CancellationException
 import js.array.asList
 import js.buffer.ArrayBuffer
+import js.errors.JsError
+import js.errors.JsErrorLike
+import js.errors.JsErrorName
+import js.errors.name
+import js.errors.toJsError
+import js.errors.toJsErrorLike
 import js.numbers.JsNumbers.toKotlinFloat
 import js.objects.unsafeJso
+import js.promise.catch
 import js.reflect.unsafeCast
 import js.typedarrays.Float32Array
 import kotlin.coroutines.resume
 import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.JsException
+import kotlin.js.thrownValue
 import kotlin.js.toList
+import kotlin.js.unsafeCast
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -30,6 +41,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
+import web.errors.DOMException
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -53,11 +65,17 @@ class WebAudioRecorder(
         intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
     ): AudioRecorderImpl.State.Recording? {
         return try {
-            val microphone =
+            val microphone = try {
                 // timeout if user neither denies nor allows microphone permission
                 withTimeoutOrNull(15.seconds) {
                     navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
                 }
+            } catch (e: JsException) {
+                if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
+                    log.info { "Microphone permission denied" }
+                }
+                return null
+            }
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
