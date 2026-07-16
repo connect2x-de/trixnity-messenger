@@ -81,10 +81,10 @@ open class AccountViewModelImpl(
     private val initials = get<Initials>()
     private val messengerSettings = get<MatrixMessengerSettingsHolder>()
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
     override val accounts: StateFlow<List<AccountInfo>> =
         matrixClients
-            .toAccountInfo(coroutineScope, messengerSettings, initials, maxMediaSizeInMemory)
+            .toAccountInfo(coroutineScope, messengerSettings, initials, maxThumbnailSize)
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), listOf())
 
     override val activeAccount: StateFlow<UserId?> =

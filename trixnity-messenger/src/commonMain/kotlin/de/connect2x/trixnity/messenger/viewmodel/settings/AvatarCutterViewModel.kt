@@ -15,9 +15,7 @@ import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.toByteArray
 import de.connect2x.trixnity.utils.toByteArrayFlow
 import io.ktor.http.*
-import io.ktor.http.ContentType
 import io.ktor.http.ContentType.*
-import io.ktor.http.ContentType.Image
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

@@ -24,11 +24,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 interface DownloadManager {
+    @Deprecated(
+        "Use startDownloadAsync with required maxSize instead",
+        ReplaceWith("startDownloadAsync(matrixClient, content, fileName, progress, maxSize)"),
+    )
     fun startDownloadAsync(
         matrixClient: MatrixClient,
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
+    ): Deferred<Result<PlatformMedia>> = startDownloadAsync(matrixClient, content, fileName, progress, null)
+
+    fun startDownloadAsync(
+        matrixClient: MatrixClient,
+        content: RoomMessageEventContent.FileBased,
+        fileName: String,
+        progress: MutableStateFlow<FileTransferProgressElement?>,
+        maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>>
 }
 
@@ -55,6 +67,7 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
         content: RoomMessageEventContent.FileBased,
         fileName: String,
         progress: MutableStateFlow<FileTransferProgressElement?>,
+        maxDownloadSize: Long?,
     ): Deferred<Result<PlatformMedia>> {
         log.debug { "add $fileName to current downloads" }
         val download = Download(fileName, content.info?.size, progress)
@@ -85,8 +98,12 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                     downloadMutex.withLock(key) {
                         when {
                                 encryptedFile != null ->
-                                    matrixClient.media.getEncryptedMedia(encryptedFile, trixnityProgress)
-                                url != null -> matrixClient.media.getMedia(url, trixnityProgress)
+                                    matrixClient.media.getEncryptedMedia(
+                                        encryptedFile,
+                                        maxDownloadSize,
+                                        trixnityProgress,
+                                    )
+                                url != null -> matrixClient.media.getMedia(url, maxDownloadSize, trixnityProgress)
                                 else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
                             }
                             .onSuccess { log.debug { "successfully downloaded $fileName" } }

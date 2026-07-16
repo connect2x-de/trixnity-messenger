@@ -13,7 +13,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.util.whi
 import kotlin.reflect.KClass
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import org.koin.core.component.get
 
@@ -59,17 +59,18 @@ class VideoRoomMessageTimelineElementViewModelImpl(
     private val thumbnails = get<Thumbnails>()
 
     private val thumbnailProgressFlow = MutableStateFlow<FileTransferProgress?>(null)
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+
+    override val thumbnailAutoDownloadLimit: Long = get<MatrixMessengerConfiguration>().downloadLimits.image
+
     override val thumbnail: StateFlow<ByteArray?> =
-        flow {
-                emit(
-                    thumbnails.loadThumbnail(
-                        coroutineScope,
-                        matrixClient,
-                        content,
-                        thumbnailProgressFlow,
-                        maxMediaSizeInMemory,
-                    )
+        combine(loadMediaResultBytes, downloadMediaResult) {
+                thumbnails.loadThumbnail(
+                    coroutineScope,
+                    matrixClient,
+                    content,
+                    thumbnailProgressFlow,
+                    maxMediaSizeInMemory,
+                    thumbnailAutoDownloadLimit,
                 )
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)

@@ -54,6 +54,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
                 any<RoomMessageEventContent.FileBased.Image>(),
                 any(),
                 any(),
+                any(),
             )
         } returns "thumbnail".encodeToByteArray()
 
@@ -71,6 +72,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
                 any(),
                 matrixClientMock,
                 any<RoomMessageEventContent.FileBased.Image>(),
+                any(),
                 any(),
                 any(),
             )
@@ -99,6 +101,7 @@ class ImageRoomMessageTimelineElementViewModelTest {
                 any(),
                 matrixClientMock,
                 any<RoomMessageEventContent.FileBased.Image>(),
+                any(),
                 any(),
                 any(),
             )

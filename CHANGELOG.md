@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: new search: errors of search providers are collected and displayed above search bar
 - SDK: search providers are registered with a factory, so that they can be disabled for certain accounts
 - SDK: Added check for downloadsDisabled before downloading file
+- SDK: granular download limits for syncing media files in `MatrixMessengerConfiguration`
 
 ### Changed
 
@@ -30,10 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI, SDK: Display and redact reactions still in the outbox
 - SDK: (**breaking change**) Changed `GetEventReactions.EventReaction` to use `EventIdOrTransactionId` instead of `EventId` in order to support reactions in outbox
 - DEPENDENCY: update compose to 1.11.1
+- SDK: files aren't automatically downloaded when they exceed the configurable limit
 
 ### Deprecated
 
 - `MatrixMessengerBaseConfiguration.appIcon` in favor of `MatrixMessengerBaseConfiguration.icon`
+- `DownloadManger.startDownloadAsync` in favor of new overload requiring a maxSize parameter
+- `Thumbnails.loadThumbnail` in favor of new overload requiring a maxSize parameter
 
 ### Removed
 
@@ -53,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK,UI: when the database cannot be decrypted, it is automatically deleted and the user is informed about potential tampering
 - SDK,UI: when the secrets for the database are being tampered with, the whole profile is deleted and the user is informed about potential tampering
 - SDK: (**breaking change**) `SecretByteArrays` get/set now only accept `SecretId` instead of raw `String` to support secrets that belong to specific accounts
+- SDK: prevent resource exhaustion by limiting the automatic download size during sync
 
 ## 4.8.1
 

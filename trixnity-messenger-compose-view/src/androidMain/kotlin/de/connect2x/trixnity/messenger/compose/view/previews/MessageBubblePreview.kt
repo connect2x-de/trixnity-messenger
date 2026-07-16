@@ -83,6 +83,7 @@ fun ImageMessageBubblePreview() {
             override val height: Int = 40
             override val thumbnailWidth: Int = 40
             override val thumbnailHeight: Int = 40
+            override val thumbnailAutoDownloadLimit: Long = 5 * 1024 * 1024
             override val blurhash: String? = null
             override val thumbnailLoading: StateFlow<Boolean> = MutableStateFlow(false)
 

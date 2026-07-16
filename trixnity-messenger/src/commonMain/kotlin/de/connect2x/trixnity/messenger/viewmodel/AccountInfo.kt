@@ -70,7 +70,12 @@ fun MatrixClients.toAccountInfo(
                         ?.takeIf { it.isNotBlank() }
                         ?.let { avatarUrl ->
                             matrixClient.media
-                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                                .getThumbnail(
+                                    avatarUrl,
+                                    avatarSize().toLong(),
+                                    avatarSize().toLong(),
+                                    maxMediaSizeInMemory,
+                                )
                                 .fold(
                                     onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
                                     onFailure = {

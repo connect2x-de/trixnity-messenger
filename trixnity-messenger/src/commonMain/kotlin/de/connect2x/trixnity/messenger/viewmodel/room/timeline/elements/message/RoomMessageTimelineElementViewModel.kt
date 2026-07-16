@@ -100,6 +100,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val height: Int?
             val thumbnailWidth: Int?
             val thumbnailHeight: Int?
+            val thumbnailAutoDownloadLimit: Long
 
             @MSC2448 val blurhash: String?
         }
@@ -114,6 +115,7 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
             val thumbnail: StateFlow<ByteArray?>
             val width: Int?
             val height: Int?
+            val thumbnailAutoDownloadLimit: Long
         }
     }
 
@@ -150,7 +152,7 @@ abstract class RoomMessageTimelineElementViewModelImpl<C : RoomMessageEventConte
             roomId,
             get<Initials>(),
             get<RoomName>(),
-            get<MatrixMessengerConfiguration>().maxMediaSizeInMemory,
+            get<MatrixMessengerConfiguration>().downloadLimits.thumbnail,
         )
 
     val body: String = content.bodyWithoutFallback

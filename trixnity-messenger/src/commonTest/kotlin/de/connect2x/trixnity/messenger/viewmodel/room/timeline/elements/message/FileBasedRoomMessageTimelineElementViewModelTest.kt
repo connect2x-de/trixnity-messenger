@@ -55,7 +55,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and process result`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
             async { Result.success(InMemoryPlatformMedia(file)) }
 
         val cut = fileBasedMessageViewModel()
@@ -71,7 +71,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and set Result to 'failure' if not successful`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
             async { Result.failure(RuntimeException("Oh no!")) }
 
         val cut = fileBasedMessageViewModel()
@@ -87,7 +87,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `downloading » download a file and reset everything if the download is cancelled`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
             async {
                 delay(5.seconds)
                 Result.failure(RuntimeException("Oh no!"))
@@ -133,7 +133,7 @@ class FileBasedRoomMessageTimelineElementViewModelTest {
 
     @Test
     fun `loading » load a file into memory`() = runTest {
-        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any()) } returns
+        every { downloadManagerMock.startDownloadAsync(matrixClientMock, any(), any(), any(), any()) } returns
             async { Result.success(InMemoryPlatformMedia(file)) }
         val cut = fileBasedMessageViewModel()
 

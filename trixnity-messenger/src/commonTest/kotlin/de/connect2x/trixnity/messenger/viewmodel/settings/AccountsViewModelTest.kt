@@ -81,6 +81,8 @@ class AccountsViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar2".encodeToByteArray().toByteArrayFlow()))
         every { matrixClientMock2.serverData } returns
@@ -110,6 +112,8 @@ class AccountsViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -147,6 +151,8 @@ class AccountsViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -174,6 +180,8 @@ class AccountsViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),

@@ -18,7 +18,7 @@ import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.AudioRecorderViewModelImpl
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModel
 import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFactory
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.Flow
@@ -215,6 +215,7 @@ class AudioRecordingAreaViewModelImpl(
                         content,
                         content.fileName ?: content.body,
                         MutableStateFlow(null),
+                        null, // unlimited download size because the user explicitly triggered it
                     )
 
                 data

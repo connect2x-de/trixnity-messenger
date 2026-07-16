@@ -32,7 +32,7 @@ import dev.mokkery.mock
 import dev.mokkery.verify
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -271,7 +271,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
             audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 69)
@@ -297,7 +297,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
             audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = null)
@@ -323,7 +323,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.failure(Exception())
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.failure(Exception())
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
             audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 420)
@@ -348,7 +348,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = null
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
             audio(body = body, audio = platformMedia, type = contentType, duration = 69)
@@ -374,7 +374,7 @@ class AudioRecordingAreaViewModelTest {
         val contentType = ContentType("audio", "mp4")
         val platformMedia = PlatformMediaMock
 
-        everySuspend { mediaServiceMock.getMedia(any(), any()) } returns Result.success(platformMedia)
+        everySuspend { mediaServiceMock.getMedia(any(), any(), any(), any()) } returns Result.success(platformMedia)
 
         val builder: (suspend MessageBuilder.() -> Unit) = {
             audio(body = body, audio = platformMedia, fileName = fileName, type = contentType, duration = 69)

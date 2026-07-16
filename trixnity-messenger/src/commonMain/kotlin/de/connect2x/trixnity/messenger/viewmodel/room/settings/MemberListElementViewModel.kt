@@ -142,7 +142,7 @@ class MemberListElementViewModelImpl(
             .map { it?.presence ?: Presence.OFFLINE }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), Presence.OFFLINE)
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     init {
         coroutineScope.launch {
@@ -177,11 +177,8 @@ class MemberListElementViewModelImpl(
     private suspend fun getImage(matrixClient: MatrixClient, user: RoomUser): ByteArray? {
         return user.avatarUrl?.let { url ->
             matrixClient.media
-                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong())
-                .fold(
-                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
-                    onFailure = { null },
-                )
+                .getThumbnail(url, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
+                .fold(onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) }, onFailure = { null })
         }
     }
 

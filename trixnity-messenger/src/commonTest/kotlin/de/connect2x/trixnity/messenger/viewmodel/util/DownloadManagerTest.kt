@@ -36,6 +36,8 @@ class DownloadManagerTest {
 
     val mediaServiceMock: MediaService = mock()
 
+    val maxMediaSize = Long.MAX_VALUE
+
     init {
         resetMocks(mediaServiceMock)
         every { matrixClientMock.di } returns koinApplication { modules(module { single { mediaServiceMock } }) }.koin
@@ -49,7 +51,7 @@ class DownloadManagerTest {
     @Test
     fun `return 'success' when download is finished successfully`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any()) } returns
+        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any(), any()) } returns
             Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -59,6 +61,7 @@ class DownloadManagerTest {
                     RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                     "file.pdf",
                     progress,
+                    maxMediaSize,
                 )
                 .await()
                 .getOrThrow()
@@ -76,7 +79,7 @@ class DownloadManagerTest {
                 initialisationVector = "vector",
                 hashes = mapOf(),
             )
-        everySuspend { mediaServiceMock.getEncryptedMedia(encryptedFile, any(), any()) } returns
+        everySuspend { mediaServiceMock.getEncryptedMedia(encryptedFile, any(), any(), any()) } returns
             Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
         val progress = MutableStateFlow<FileTransferProgressElement?>(null)
 
@@ -86,6 +89,7 @@ class DownloadManagerTest {
                     RoomMessageEventContent.FileBased.File("", file = encryptedFile),
                     "file.pdf",
                     progress,
+                    maxMediaSize,
                 )
                 .await()
                 .getOrThrow()
@@ -97,10 +101,10 @@ class DownloadManagerTest {
     fun `track progress of download`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any()) } calls
+        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -112,6 +116,7 @@ class DownloadManagerTest {
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
+                maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 
@@ -132,10 +137,10 @@ class DownloadManagerTest {
     fun `stop tracking progress of download when download is cancelled`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any()) } calls
+        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -147,6 +152,7 @@ class DownloadManagerTest {
                 RoomMessageEventContent.FileBased.File("", url = "mxc://localhost/ABCDEFGH"),
                 "file.pdf",
                 progress,
+                maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 
@@ -165,10 +171,10 @@ class DownloadManagerTest {
     fun `fallback on event size when no total download size is given`() = runTest {
         val cut = DownloadManagerImpl(backgroundScope.coroutineContext)
         val internalProgressState: MutableStateFlow<MutableStateFlow<FileTransferProgress?>?> = MutableStateFlow(null)
-        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any(), any()) } calls
+        everySuspend { mediaServiceMock.getMedia("mxc://localhost/ABCDEFGH", any<Long>(), any()) } calls
             {
                 @Suppress("UNCHECKED_CAST")
-                internalProgressState.value = it.args[1] as MutableStateFlow<FileTransferProgress?>
+                internalProgressState.value = it.args[2] as MutableStateFlow<FileTransferProgress?>
                 delay(1.minutes)
                 Result.success(InMemoryPlatformMedia("test".encodeToByteArray().toByteArrayFlow()))
             }
@@ -184,6 +190,7 @@ class DownloadManagerTest {
                 ),
                 "file.pdf",
                 progress,
+                maxMediaSize,
             )
         val internalProgress = internalProgressState.filterNotNull().first()
 

@@ -221,7 +221,7 @@ class OutboxElementHolderViewModelImpl(
         matrixClient.user
             .getById(roomId, userId)
             .map { user ->
-                user.toUserInfoElement(coroutineScope, matrixClient, initials, userId, config.maxMediaSizeInMemory)
+                user.toUserInfoElement(coroutineScope, matrixClient, initials, userId, config.downloadLimits.thumbnail)
             }
             .stateIn(coroutineScope, whileSubscribedWithTimeout, null)
 

@@ -248,7 +248,7 @@ fun MentionSelector(inputAreaViewModel: InputAreaViewModel, focusRequester: Focu
                         }
                     }
                 }
-                VerticalScrollbar(Modifier.align(Alignment.CenterEnd), scrollState)
+                VerticalScrollbar(Modifier.align(CenterEnd), scrollState)
             }
         }
     }

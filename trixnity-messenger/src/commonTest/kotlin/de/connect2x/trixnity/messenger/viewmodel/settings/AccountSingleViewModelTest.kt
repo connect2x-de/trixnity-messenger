@@ -100,6 +100,8 @@ class AccountSingleViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -132,6 +134,8 @@ class AccountSingleViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(InMemoryPlatformMedia("avatar".encodeToByteArray().toByteArrayFlow()))
 
@@ -161,6 +165,8 @@ class AccountSingleViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -200,6 +206,8 @@ class AccountSingleViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -232,6 +240,8 @@ class AccountSingleViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -269,6 +279,8 @@ class AccountSingleViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),
@@ -328,6 +340,8 @@ class AccountSingleViewModelTest {
                 any(),
                 any(),
                 any(),
+                any(),
+                any(),
             )
         } returns Result.success(initialAvatar)
 
@@ -378,6 +392,8 @@ class AccountSingleViewModelTest {
                     any(),
                     any(),
                     any(),
+                    any(),
+                    any(),
                 )
             } returns Result.success(initialAvatar)
 
@@ -421,6 +437,8 @@ class AccountSingleViewModelTest {
                 "mxc://localhost/123456",
                 avatarSize().toLong(),
                 avatarSize().toLong(),
+                any(),
+                any(),
                 any(),
                 any(),
                 any(),

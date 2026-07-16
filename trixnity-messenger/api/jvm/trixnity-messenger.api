@@ -517,8 +517,8 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerBaseConfigurat
 }
 
 public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration : de/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun clientConfiguration (Lkotlin/jvm/functions/Function1;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Lkotlin/jvm/functions/Function2;
@@ -538,26 +538,28 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun component23 ()Z
 	public final fun component24-UwyO8pc ()J
 	public final fun component25 ()J
-	public final fun component26 ()Ljava/lang/String;
-	public final fun component27 ()Ljava/lang/String;
+	public final fun component26 ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;
+	public final fun component27 ()Z
 	public final fun component28 ()Ljava/lang/String;
 	public final fun component29 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun component30 ()Z
-	public final fun component31 ()Z
-	public final fun component32 ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;
-	public final fun component33 ()Lkotlin/jvm/functions/Function1;
-	public final fun component34 ()Lio/ktor/client/engine/HttpClientEngine;
+	public final fun component30 ()Ljava/lang/String;
+	public final fun component31 ()Ljava/lang/String;
+	public final fun component32 ()Z
+	public final fun component33 ()Z
+	public final fun component34 ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;
 	public final fun component35 ()Lkotlin/jvm/functions/Function1;
-	public final fun component36 ()Ljava/util/List;
+	public final fun component36 ()Lio/ktor/client/engine/HttpClientEngine;
+	public final fun component37 ()Lkotlin/jvm/functions/Function1;
+	public final fun component38 ()Ljava/util/List;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Lde/connect2x/trixnity/messenger/AppIcon;
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/lang/String;
-	public final fun copy-iSOOF34 (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
-	public static synthetic fun copy-iSOOF34$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
+	public final fun copy-iYxNwVc (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
+	public static synthetic fun copy-iYxNwVc$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lde/connect2x/trixnity/messenger/AppIcon;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ZZZZLjava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;IIIIZJJLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZZLde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$CryptoDriver;Lkotlin/jvm/functions/Function1;Lio/ktor/client/engine/HttpClientEngine;Lkotlin/jvm/functions/Function1;Ljava/util/List;IILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration;
 	public fun copyTo (Lde/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getAppIcon ()Ljava/lang/String;
@@ -576,6 +578,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun getDefaultReadMarkerIsPublic ()Z
 	public final fun getDefaultRedactionWarningIsEnabled ()Z
 	public final fun getDefaultTypingIsPublic ()Z
+	public final fun getDownloadLimits ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;
 	public final fun getDownloadsDisabled ()Z
 	public final fun getFeatures ()Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$Features;
 	public final fun getGenerateInitialAccountColor ()Lkotlin/jvm/functions/Function2;
@@ -595,6 +598,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun getTimelineInitialSize ()I
 	public final fun getTimelineMaxSize ()I
 	public final fun getTimelineViewStateSupported ()Z
+	public final fun getUseAccountSetupWizard ()Z
 	public final fun getUseRefreshTokens ()Z
 	public fun hashCode ()I
 	public fun setAppIcon (Ljava/lang/String;)V
@@ -631,6 +635,7 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration 
 	public final fun setTimelineInitialSize (I)V
 	public final fun setTimelineMaxSize (I)V
 	public final fun setTimelineViewStateSupported (Z)V
+	public final fun setUseAccountSetupWizard (Z)V
 	public final fun setUseRefreshTokens (Z)V
 	public fun toString ()Ljava/lang/String;
 }
@@ -669,6 +674,35 @@ public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$
 	public final fun setEnableNewSearch (Z)V
 	public final fun setEnablePdfReader (Z)V
 	public final fun setEnablePowerlevelEventConfigurationInRoomSettings (Z)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits {
+	public fun <init> (JJJJJJJ)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()J
+	public final fun component4 ()J
+	public final fun component5 ()J
+	public final fun component6 ()J
+	public final fun component7 ()J
+	public final fun copy (JJJJJJJ)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;JJJJJJJILjava/lang/Object;)Lde/connect2x/trixnity/messenger/MatrixMessengerConfiguration$MediaDownloadLimits;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAudio ()J
+	public final fun getDefault ()J
+	public final fun getExport ()J
+	public final fun getImage ()J
+	public final fun getPdf ()J
+	public final fun getThumbnail ()J
+	public final fun getVideo ()J
+	public fun hashCode ()I
+	public final fun setAudio (J)V
+	public final fun setDefault (J)V
+	public final fun setImage (J)V
+	public final fun setPdf (J)V
+	public final fun setThumbnail (J)V
+	public final fun setVideo (J)V
 	public fun toString ()Ljava/lang/String;
 }
 
@@ -948,18 +982,18 @@ public final class de/connect2x/trixnity/messenger/export/ExportModuleKt {
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/export/ExportRoom {
-	public abstract fun invoke-t_puXu8 (Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun invoke-t_puXu8$default (Lde/connect2x/trixnity/messenger/export/ExportRoom;Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public abstract fun invoke-Y0nKdX0 (Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun invoke-Y0nKdX0$default (Lde/connect2x/trixnity/messenger/export/ExportRoom;Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/export/ExportRoom$DefaultImpls {
-	public static synthetic fun invoke-t_puXu8$default (Lde/connect2x/trixnity/messenger/export/ExportRoom;Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun invoke-Y0nKdX0$default (Lde/connect2x/trixnity/messenger/export/ExportRoom;Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/export/ExportRoomImpl : de/connect2x/trixnity/messenger/export/ExportRoom {
 	public static final field Companion Lde/connect2x/trixnity/messenger/export/ExportRoomImpl$Companion;
 	public fun <init> (Ljava/util/List;)V
-	public fun invoke-t_puXu8 (Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun invoke-Y0nKdX0 (Ljava/lang/String;Lde/connect2x/trixnity/messenger/export/ExportRoomSinkProperties;Lde/connect2x/trixnity/client/MatrixClient;ZLde/connect2x/trixnity/messenger/export/ExportRoomRangeStartCondition;Lde/connect2x/trixnity/messenger/export/ExportRoomRangeEndCondition;Lkotlinx/coroutines/flow/MutableStateFlow;JILkotlinx/datetime/TimeZone;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/export/ExportRoomImpl$Companion {
@@ -1036,14 +1070,16 @@ public final class de/connect2x/trixnity/messenger/export/ExportRoomResult$SinkE
 
 public final class de/connect2x/trixnity/messenger/export/ExportRoomResult$Success : de/connect2x/trixnity/messenger/export/ExportRoomResult {
 	public fun <init> ()V
-	public fun <init> (Ljava/util/List;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/List;
 	public final fun component2 ()Ljava/util/List;
-	public final fun copy (Ljava/util/List;Ljava/util/List;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDecryptionFailed ()Ljava/util/List;
+	public final fun getMediaTooLarge ()Ljava/util/List;
 	public final fun getMissingMedia ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1057,6 +1093,21 @@ public final class de/connect2x/trixnity/messenger/export/ExportRoomResult$Succe
 	public static synthetic fun copy-aizJpxc$default (Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success$DecryptionFailed;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success$DecryptionFailed;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEventId-33FGWrg ()Ljava/lang/String;
+	public final fun getReason ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class de/connect2x/trixnity/messenger/export/ExportRoomResult$Success$MediaTooLarge {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1-33FGWrg ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy-wqimQMU (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success$MediaTooLarge;
+	public static synthetic fun copy-wqimQMU$default (Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success$MediaTooLarge;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/export/ExportRoomResult$Success$MediaTooLarge;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEventId-33FGWrg ()Ljava/lang/String;
+	public final fun getFileName ()Ljava/lang/String;
 	public final fun getReason ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -3049,7 +3100,12 @@ public final class de/connect2x/trixnity/messenger/util/Download {
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/util/DownloadManager {
-	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
+	public abstract fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
+}
+
+public final class de/connect2x/trixnity/messenger/util/DownloadManager$DefaultImpls {
+	public static fun startDownloadAsync (Lde/connect2x/trixnity/messenger/util/DownloadManager;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de/connect2x/trixnity/messenger/util/DownloadManager {
@@ -3058,6 +3114,7 @@ public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl : de
 	public fun <init> (Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/Deferred;
+	public fun startDownloadAsync (Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased;Ljava/lang/String;Lkotlinx/coroutines/flow/MutableStateFlow;Ljava/lang/Long;)Lkotlinx/coroutines/Deferred;
 }
 
 public final class de/connect2x/trixnity/messenger/util/DownloadManagerImpl$Companion {
@@ -6031,15 +6088,17 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/s
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error : de/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State {
-	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/util/List;
 	public final fun component3 ()Ljava/util/List;
-	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;
-	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;Ljava/lang/String;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;
+	public static synthetic fun copy$default (Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;ILjava/lang/Object;)Lde/connect2x/trixnity/messenger/viewmodel/room/settings/ExportRoomViewModel$State$Error;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDecryptionFailed ()Ljava/util/List;
+	public final fun getMediaTooLarge ()Ljava/util/List;
 	public final fun getMessage ()Ljava/lang/String;
 	public final fun getMissingMedia ()Ljava/util/List;
 	public fun hashCode ()I
@@ -9321,6 +9380,7 @@ public abstract class de/connect2x/trixnity/messenger/viewmodel/room/timeline/el
 	public fun getLoadMediaResult ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLoadMediaResultBytes ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getLoadMediaResultPlatformMedia ()Lkotlinx/coroutines/flow/StateFlow;
+	protected final fun getMaxMediaSizeInMemory ()J
 	public fun getMimeType ()Ljava/lang/String;
 	public fun getName ()Ljava/lang/String;
 	public fun getSize ()Ljava/lang/String;
@@ -9372,6 +9432,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getBlurhash ()Ljava/lang/String;
 	public fun getHeight ()Ljava/lang/Integer;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getThumbnailHeight ()Ljava/lang/Integer;
 	public fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getThumbnailWidth ()Ljava/lang/Integer;
@@ -9469,6 +9530,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getBlurhash ()Ljava/lang/String;
 	public abstract fun getHeight ()Ljava/lang/Integer;
 	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
 	public abstract fun getThumbnailHeight ()Ljava/lang/Integer;
 	public abstract fun getThumbnailLoading ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun getThumbnailWidth ()Ljava/lang/Integer;
@@ -9479,6 +9541,7 @@ public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/t
 	public abstract fun getDuration ()Ljava/lang/Long;
 	public abstract fun getHeight ()Ljava/lang/Integer;
 	public abstract fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun getThumbnailAutoDownloadLimit ()J
 	public abstract fun getWidth ()Ljava/lang/Integer;
 }
 
@@ -9736,6 +9799,7 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 	public fun getDuration ()Ljava/lang/Long;
 	public fun getHeight ()Ljava/lang/Integer;
 	public fun getThumbnail ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getThumbnailAutoDownloadLimit ()J
 	public fun getWidth ()Ljava/lang/Integer;
 }
 
@@ -10212,25 +10276,37 @@ public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/eleme
 }
 
 public abstract interface class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails {
-	public abstract fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun mapProgressToProgressElement (Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails$DefaultImpls {
+	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun loadThumbnail (Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails;Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/ThumbnailsImpl : de/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/Thumbnails {
 	public static final field Companion Lde/connect2x/trixnity/messenger/viewmodel/room/timeline/elements/util/ThumbnailsImpl$Companion;
 	public fun <init> ()V
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/ThumbnailInfo;Lde/connect2x/trixnity/core/model/events/m/room/EncryptedFile;Ljava/lang/String;Lde/connect2x/trixnity/core/model/events/m/room/FileBasedInfo;JLkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$File;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Image;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun loadThumbnail (Lkotlinx/coroutines/CoroutineScope;Lde/connect2x/trixnity/client/MatrixClient;Lde/connect2x/trixnity/core/model/events/m/room/RoomMessageEventContent$FileBased$Video;Lkotlinx/coroutines/flow/MutableStateFlow;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun mapProgressToProgressElement (Lkotlinx/coroutines/flow/MutableStateFlow;)Lkotlinx/coroutines/flow/Flow;
 }

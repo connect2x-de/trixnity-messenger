@@ -294,9 +294,14 @@ class NotificationSyncService(
                 ?.let {
                     withTimeoutOrNull(300.milliseconds) {
                         matrixClient.media
-                            .getThumbnail(it, avatarSize().toLong(), avatarSize().toLong())
+                            .getThumbnail(
+                                it,
+                                avatarSize().toLong(),
+                                avatarSize().toLong(),
+                                config.downloadLimits.thumbnail,
+                            )
                             .getOrNull()
-                            ?.toByteArray(config.maxMediaSizeInMemory)
+                            ?.toByteArray(config.downloadLimits.thumbnail)
                     }
                 }
                 ?.let { getNotificationIcon?.fromBytes(it, avatarSize(), avatarSize()) }

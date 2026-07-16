@@ -157,7 +157,7 @@ open class RoomListElementViewModelImpl(
     override val isLeave: StateFlow<Boolean?> =
         roomFlow.map { it.membership == Membership.LEAVE }.stateIn(coroutineScope, WhileSubscribed(), null)
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val inviterUserInfo: StateFlow<UserInfoElement?> =
         combine(isInvite.filterNotNull(), roomFlow) { isInvite, room ->
@@ -176,7 +176,7 @@ open class RoomListElementViewModelImpl(
                                 matrixClient,
                                 initials,
                                 inviterUserId,
-                                maxMediaSizeInMemory,
+                                maxThumbnailSize,
                             )
                         }
                     } ?: flowOf(null)
@@ -216,9 +216,9 @@ open class RoomListElementViewModelImpl(
             .map { room ->
                 room.avatarUrl?.let { avatarUrl ->
                     matrixClient.media
-                        .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                        .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
                         .fold(
-                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                            onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                             onFailure = {
                                 log.error(it) { "Cannot load user avatar." }
                                 null

@@ -31,7 +31,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.equals.shouldBeEqual
 import io.kotest.matchers.shouldBe
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -451,7 +451,7 @@ class SearchTest {
 
     private fun setupGetThumbnail(data: Pair<String, ByteArray>?) {
         data?.also { (url, bytes) ->
-            everySuspend { mediaServiceMock.getThumbnail(url, any(), any()) } returns
+            everySuspend { mediaServiceMock.getThumbnail(url, any(), any(), any<Long>()) } returns
                 Result.success(InMemoryPlatformMedia(flow { bytes.forEach { emit(byteArrayOf(it)) } }))
         }
     }

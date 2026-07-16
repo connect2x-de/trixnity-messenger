@@ -97,7 +97,7 @@ class AccountSingleViewModelImpl(
         matrixClient.serverData
             .map { it?.capabilities?.capabilities?.profileFields?.enabled ?: true }
             .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), true)
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    private val maxThumbnailSize = get<MatrixMessengerConfiguration>().downloadLimits.thumbnail
 
     override val avatar =
         matrixClient.profile
@@ -107,9 +107,9 @@ class AccountSingleViewModelImpl(
                         ?.takeIf { it.isNotBlank() }
                         ?.let { avatarUrl ->
                             matrixClient.media
-                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong())
+                                .getThumbnail(avatarUrl, avatarSize().toLong(), avatarSize().toLong(), maxThumbnailSize)
                                 .fold(
-                                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxMediaSizeInMemory) },
+                                    onSuccess = { it.toByteArray(coroutineScope, maxSize = maxThumbnailSize) },
                                     onFailure = {
                                         log.error(it) { "Cannot load user avatar." }
                                         error.value = i18n.profileLoadError()

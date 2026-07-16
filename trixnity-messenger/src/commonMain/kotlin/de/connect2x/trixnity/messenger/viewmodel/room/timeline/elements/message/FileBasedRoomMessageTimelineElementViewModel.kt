@@ -14,7 +14,7 @@ import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.EventIdO
 import de.connect2x.trixnity.messenger.viewmodel.room.timeline.elements.OpenMentionCallback
 import de.connect2x.trixnity.messenger.viewmodel.util.formatProgress
 import de.connect2x.trixnity.messenger.viewmodel.util.formatSize
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +59,7 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     private val activeLoadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
 
-    private val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
+    protected val maxMediaSizeInMemory = get<MatrixMessengerConfiguration>().maxMediaSizeInMemory
 
     init {
         coroutineScope.coroutineContext.job.invokeOnCompletion { activeLoadMedia.value?.cancel() }
@@ -77,7 +77,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
         coroutineScope
             .launch {
                 val resultAsync =
-                    downloadManager.startDownloadAsync(viewModelContext.matrixClient, content, name, _loadMediaProgress)
+                    downloadManager.startDownloadAsync(
+                        viewModelContext.matrixClient,
+                        content,
+                        name,
+                        _loadMediaProgress,
+                        null,
+                    )
                 activeLoadMedia.value = resultAsync
                 resultAsync
                     .await()
@@ -137,7 +143,13 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
         try {
             val resultAsync =
-                downloadManager.startDownloadAsync(viewModelContext.matrixClient, content, name, _downloadMediaProgress)
+                downloadManager.startDownloadAsync(
+                    viewModelContext.matrixClient,
+                    content,
+                    name,
+                    _downloadMediaProgress,
+                    null,
+                )
 
             activeDownloadMedia.value = resultAsync
             try {
