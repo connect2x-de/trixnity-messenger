@@ -75,7 +75,7 @@ data class MatrixMessengerConfiguration(
     /** The maximum size of files that can be loaded into memory in *Bytes* */
     var maxMediaSizeInMemory: Long = 50.mb(),
 
-    /** Downloading and loading into memory limits defined for different media types */
+    /** Download limits used during automatic syncing for different media types */
     val downloadLimits: MediaDownloadLimits =
         MediaDownloadLimits(
             default = 50.mb(),
@@ -164,7 +164,7 @@ data class MatrixMessengerConfiguration(
         VODOZEMAC,
     }
 
-    /** A list of load and download limits for various media types */
+    /** A list of download limits for various media types */
     data class MediaDownloadLimits(
         var default: Long,
         var image: Long,

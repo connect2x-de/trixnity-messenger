@@ -216,6 +216,14 @@ When `MatrixMultiMessengerConfiguration` is already used, some of the configurat
 See `MatrixMessengerBaseConfiguration` to find out, which options are copied.
 Use `clientConfiguration` to configure the `MatrixClientConfiguration`.
 
+## Automatic download limits
+
+Use `MatrixMessengerConfiguration.downloadLimits` to restrict automatic download sizes and prevent resource exhaustion.
+
+You can set limits for specific media types (`image`, `thumbnail`, `video`, `audio`, `pdf`) alongside the following general properties:
+* `default`: default/fallback value for any media type not explicitly configured or unknown
+* `export`: limit for each file during export of a room
+
 ### MatrixClientConfiguration
 
 This configuration allows configuring the `MatrixClient` itself.
