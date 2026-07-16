@@ -7,12 +7,15 @@ import de.connect2x.trixnity.messenger.MatrixMessengerBaseConfiguration
 import de.connect2x.trixnity.messenger.multi.MatrixMultiMessenger
 import io.ktor.http.URLParserException
 import java.awt.Desktop
+import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketTimeoutException
+import java.nio.channels.FileChannel
+import java.nio.channels.FileLock
 import kotlin.concurrent.thread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okio.FileSystem
+import org.koin.core.Koin
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -79,6 +83,7 @@ class UriHandlerImpl(
     private val fileSystem: FileSystem,
     rootPath: RootPath,
     private val closeApp: CloseApp?,
+    private val di: Koin,
 ) : UriHandlerBase(config) {
 
     private val started = MutableStateFlow(false)
@@ -134,52 +139,52 @@ class UriHandlerImpl(
         log.debug { "write port $port to lock file" }
         val lockFile = rootPath.resolve(lockFileName)
         fileSystem.write(lockFile) { writeUtf8(port.toString()) }
-        val randomAccessFile = RandomAccessFile(lockFile.toFile(), "rw")
-        val channel = randomAccessFile.getChannel()
-        val lock = channel.tryLock(0, Long.MAX_VALUE, true)
+        val fileLocker = di.get<FileLocker>()
         fun releaseFile() {
-            randomAccessFile.close()
+            fileLocker.release()
             fileSystem.delete(lockFile)
         }
-        if (lock == null) {
-            channel.close()
+        if (!fileLocker.lockFile(lockFile.toFile())) {
             releaseFile()
             throw IllegalStateException("could not lock $lockFileName")
         }
         Runtime.getRuntime()
             .addShutdownHook(
                 thread(start = false) {
-                    lock.release()
-                    channel.close()
                     releaseFile()
                 }
             )
     }
 
-    internal fun listenForArgs(urlArg: String?) {
+    private fun openServer(): Pair<ServerSocket?, Int> {
+        val address = InetAddress.getLoopbackAddress()
+        var port = 2424
+        var server: ServerSocket? = null
+        while (true) {
+            try {
+                if (port < 3000) server = ServerSocket(port, 0, address)
+                break
+            } catch (_: IOException) {
+                port++
+            }
+        }
+        return Pair(server, port)
+    }
+
+    internal fun listenForArgs(urlArg: String?): AutoCloseable? {
+        val (server, port) = openServer()
+
         thread {
             try {
                 runBlocking(Dispatchers.IO) {
                     urlArg?.also { emitUrl(it) }
 
-                    val address = InetAddress.getLoopbackAddress()
-                    var port = 2424
-                    var server: ServerSocket? = null
-                    while (true) {
-                        try {
-                            if (port < 3000) server = ServerSocket(port, 0, address)
-                            break
-                        } catch (exception: IOException) {
-                            port++
-                        }
-                    }
                     if (server != null) {
                         writePortToLockFile(port)
                         log.debug { "start listening for url args on port $port" }
                         while (server.isClosed.not()) {
 
                             val socket = server.accept()
-
                             launch {
                                 val urlResponse = socket.use {
                                     receiveUrlFromSocket(socket)
@@ -205,6 +210,8 @@ class UriHandlerImpl(
                 throw exception
             }
         }
+
+        return server
     }
 
     private fun receiveUrlFromSocket(socket: Socket): Result<String?> {
@@ -271,7 +278,7 @@ class UriHandlerImpl(
         }
     }
 
-    fun sendUrlToSocket(socket: Socket, url: String): Result<String> {
+    private fun sendUrlToSocket(socket: Socket, url: String): Result<String> {
 
         return runCatching {
             val outputStream = socket.getOutputStream()
@@ -290,8 +297,34 @@ class UriHandlerImpl(
     }
 }
 
+internal interface FileLocker {
+    fun lockFile(file: File): Boolean
+
+    fun release()
+}
+
+private class RandomAccessFileFileLocker : FileLocker {
+    var randomAccessFile: RandomAccessFile? = null
+    var channel: FileChannel? = null
+    var lock: FileLock? = null
+
+    override fun lockFile(file: File): Boolean {
+        randomAccessFile = RandomAccessFile(file, "rw")
+        channel = randomAccessFile?.channel
+        lock = channel?.tryLock(0, Long.MAX_VALUE, true)
+        return (lock != null)
+    }
+
+    override fun release() {
+        lock?.release()
+        channel?.close()
+        randomAccessFile?.close()
+    }
+}
+
 actual fun platformUriHandlerModule(): Module = module {
-    single<UriHandler> { UriHandlerImpl(get(), get(), get(), getOrNull()) }
+    single<FileLocker> { RandomAccessFileFileLocker() }
+    single<UriHandler> { UriHandlerImpl(get(), get(), get(), getOrNull(), getKoin()) }
 }
 
 val MatrixMessenger.defaultUriHandler: UriHandlerImpl
