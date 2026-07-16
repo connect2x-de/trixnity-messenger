@@ -44,18 +44,18 @@ private val log: Logger = Logger("de.connect2x.trixnity.messenger.util.UrlHandle
  *                 ├────────────────────────────────────────────────►│ (ServerSocket.accept)
  *                 │                                                 │
  *                 │  2. Write Payload                               │
- *                 │     "url\n$appVersionString"                    │
+ *                 │     "url\n$appValidationString"                 │
  *                 ├────────────────────────────────────────────────►│ (Read bytes)
  *                 │                                                 │
  *                 │  3. shutdownOutput()                            │
  *                 ├────────────────────────────────────────────────►│
  *                 │                                                 │
  *                 │  4. Write Response                              │
- *                 │     "OK\n$appVersionString"                     │
+ *                 │     "OK\n$appValidationString"                  │
  *                 │◄────────────────────────────────────────────────┤
  *                 │                                                 │
  *          [Read response]                                          │ [Parse & Validate url-payload]
- *        (Timeout limit: 2s)                                        │ Does appVersionString
+ *        (Timeout limit: 2s)                                        │ Does appValidationString
  *                 │                                                 │ match local one?
  *                 │                                                 │       │
  *                 │                                                 ▼       ▼
@@ -85,8 +85,8 @@ class UriHandlerImpl(
     private val rootPath = rootPath.path
     private val lockFileName = "port.lock"
 
-    private val appVersionString = config.appUri + config.appVersion.toString()
-    private val okResponseString = "OK\n$appVersionString"
+    private val appValidationString = config.appName
+    private val okResponseString = "OK\n$appValidationString"
 
     /** This need to be called with application start arguments. */
     suspend fun start(args: Array<String>) =
@@ -224,7 +224,7 @@ class UriHandlerImpl(
             val outputStream = socket.getOutputStream()
             outputStream.write((okResponseString).toByteArray(Charsets.UTF_8))
 
-            if (senderAppVersion == appVersionString) url else null
+            if (senderAppVersion == appValidationString) url else null
         }
     }
 
@@ -275,7 +275,7 @@ class UriHandlerImpl(
 
         return runCatching {
             val outputStream = socket.getOutputStream()
-            outputStream.write((url + "\n" + appVersionString).encodeToByteArray())
+            outputStream.write((url + "\n" + appValidationString).encodeToByteArray())
             socket.shutdownOutput()
 
             log.debug { "waiting for url received message" }
