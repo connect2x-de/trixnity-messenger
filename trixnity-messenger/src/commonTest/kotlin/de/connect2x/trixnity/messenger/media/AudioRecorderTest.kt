@@ -8,6 +8,7 @@ import dev.mokkery.answering.calls
 import dev.mokkery.answering.returns
 import dev.mokkery.every
 import dev.mokkery.everySuspend
+import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
@@ -61,7 +62,7 @@ class AudioRecorderTest {
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5f },
@@ -90,7 +91,7 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             var captureDeleted = false
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -139,7 +140,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { 5f },
@@ -181,7 +182,7 @@ class AudioRecorderTest {
             nextLoudness += 1F
             return nextLoudness
         }
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { increasingLoudness() },
@@ -212,7 +213,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { throw IllegalStateException() },
@@ -238,7 +239,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { null },
@@ -266,7 +267,7 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             var captureDeleted = false
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -310,7 +311,7 @@ class AudioRecorderTest {
             val cut = commonAudioRecorder(coroutineScope)
 
             val startTime = Clock.System.now()
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -340,7 +341,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(startTime, { 5F }, { _ -> throw IllegalStateException() })
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
@@ -357,7 +358,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { 5F },
@@ -390,7 +391,7 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             var captureDeleted = false
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -428,7 +429,7 @@ class AudioRecorderTest {
 
             val startTime = Clock.System.now()
             var captureDeleted = false
-            everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+            everySuspend { platformAudioRecorder.start(any()) } returns
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
@@ -470,7 +471,7 @@ class AudioRecorderTest {
         val cut = commonAudioRecorder(coroutineScope)
 
         val startTime = Clock.System.now()
-        everySuspend { platformAudioRecorder.start(intoMediaStoreMock) } returns
+        everySuspend { platformAudioRecorder.start(any()) } returns
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { 5F },
