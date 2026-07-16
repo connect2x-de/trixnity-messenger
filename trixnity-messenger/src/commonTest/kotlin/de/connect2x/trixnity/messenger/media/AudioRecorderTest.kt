@@ -12,7 +12,7 @@ import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
@@ -333,7 +333,13 @@ class AudioRecorderTest {
             delay(1.seconds)
 
             cut.state.value shouldBe
-                AudioRecorder.State.Completed(AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"), 1.seconds, 1000L, ContentType("audio", "ogg"), "ogg")
+                AudioRecorder.State.Completed(
+                    AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
+                    1.seconds,
+                    1000L,
+                    ContentType("audio", "ogg"),
+                    "ogg",
+                )
         }
 
     @Test

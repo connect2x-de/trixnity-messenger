@@ -363,11 +363,7 @@ class AudioRecordingAreaViewModelTest {
                     format = this.format,
                     formattedBody = this.formattedBody,
                     fileName = fileName,
-                    info = AudioInfo(
-                        duration = 420,
-                        mimeType = ContentType.Audio.OGG.toString(),
-                        size = 5,
-                    ),
+                    info = AudioInfo(duration = 420, mimeType = ContentType.Audio.OGG.toString(), size = 5),
                     url = null,
                     file = null,
                     relatesTo = relatesTo,

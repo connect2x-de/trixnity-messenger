@@ -33,7 +33,7 @@ internal class AndroidAudioRecorder(
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override suspend fun start(
-        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
     ): AudioRecorderImpl.State.Recording? {
         fun requestPermission() {
             registeredRequestPermission?.unregister()

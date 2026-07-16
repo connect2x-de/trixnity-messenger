@@ -50,12 +50,10 @@ import web.mediasession.stop
 import web.navigator.navigator
 import web.url.URL
 
-class WebMediaPlayer(
-    private val audioContext: AudioContext,
-    private val coroutineScope: CoroutineScope
-) : MediaPlayer {
+class WebMediaPlayer(private val audioContext: AudioContext, private val coroutineScope: CoroutineScope) : MediaPlayer {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebMediaPlayer")
-    private val removeAudioContextErrorHandler: () -> Unit = audioContext.addEventHandler(
+    private val removeAudioContextErrorHandler: () -> Unit =
+        audioContext.addEventHandler(
             type = Event.ERROR,
             handler = EventHandler { log.error { "Unexpected media player error" } },
         )
@@ -211,22 +209,20 @@ class WebMediaPlayer(
     }
 
     private fun removeMediaSessionActionHandlers() {
-        val allMediaSessionActions = listOf(
-            MediaSessionAction.nexttrack,
-            MediaSessionAction.pause,
-            MediaSessionAction.play,
-            MediaSessionAction.previoustrack,
-            MediaSessionAction.seekbackward,
-            MediaSessionAction.seekforward,
-            MediaSessionAction.seekto,
-            MediaSessionAction.skipad,
-            MediaSessionAction.stop,
-        )
-        allMediaSessionActions.forEach { mediaSessionAction ->
-            navigator.mediaSession.setActionHandler(
-                action = mediaSessionAction,
-                handler = null,
+        val allMediaSessionActions =
+            listOf(
+                MediaSessionAction.nexttrack,
+                MediaSessionAction.pause,
+                MediaSessionAction.play,
+                MediaSessionAction.previoustrack,
+                MediaSessionAction.seekbackward,
+                MediaSessionAction.seekforward,
+                MediaSessionAction.seekto,
+                MediaSessionAction.skipad,
+                MediaSessionAction.stop,
             )
+        allMediaSessionActions.forEach { mediaSessionAction ->
+            navigator.mediaSession.setActionHandler(action = mediaSessionAction, handler = null)
         }
     }
 }

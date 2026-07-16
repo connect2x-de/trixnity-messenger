@@ -56,20 +56,21 @@ class WebAudioRecorder(
 
     @OptIn(ExperimentalWasmJsInterop::class)
     override suspend fun start(
-        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
     ): AudioRecorderImpl.State.Recording? {
         return try {
-            val microphone = try {
-                // timeout if user neither denies nor allows microphone permission
-                withTimeoutOrNull(15.seconds) {
-                    navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
+            val microphone =
+                try {
+                    // timeout if user neither denies nor allows microphone permission
+                    withTimeoutOrNull(15.seconds) {
+                        navigator.mediaDevices.getUserMedia(unsafeJso { audio = unsafeCast(true) })
+                    }
+                } catch (e: JsException) {
+                    if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
+                        log.info { "Microphone permission denied" }
+                    }
+                    return null
                 }
-            } catch (e: JsException) {
-                if (e.toJsErrorLike().toJsError().name == JsErrorName("NotAllowedError")) {
-                    log.info { "Microphone permission denied" }
-                }
-                return null
-            }
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
@@ -91,51 +92,39 @@ class WebAudioRecorder(
     private fun startRecorder(microphone: MediaStream): MediaRecorder {
         val recorder = MediaRecorder(microphone)
         recorder.start()
-        recorder.addEventHandler(
-            type = Event.ERROR,
-            handler = {
-                log.error { "Error while recording audio" }
-            },
-        )
+        recorder.addEventHandler(type = Event.ERROR, handler = { log.error { "Error while recording audio" } })
         return recorder
     }
 
     private fun recordIntoMediaStore(
         recorder: MediaRecorder,
-        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference,
     ): Pair<Deferred<AudioRecorder.State.Completed.MediaReference>, () -> Double> {
         var recordingSizeBytes = 0.0
-        val chunks = callbackFlow {
-            val handlerRemovers = listOf(
-                recorder.addEventHandler(
-                    type = BlobEvent.DATA_AVAILABLE,
-                    handler =
-                        { event ->
-                            recordingSizeBytes += event.data.size
-                            trySend(event.data)
-                        },
-                ),
-                recorder.addEventHandler(
-                    type = Event.ERROR,
-                    handler =
-                        { event ->
-                            log.error { "Unexpected error while recording audio" }
-                            close(IllegalStateException("Unexpected error while recording audio"))
-                        },
-                ),
-                recorder.addEventHandler(
-                    type = Event.STOP,
-                    handler =
-                        { event ->
-                            close()
-                        },
-                ),
-            )
-            awaitClose {
-                handlerRemovers.forEach { it() }
-            }
-        }.buffer(UNLIMITED)
-            .map { it.byteArray() }
+        val chunks =
+            callbackFlow {
+                    val handlerRemovers =
+                        listOf(
+                            recorder.addEventHandler(
+                                type = BlobEvent.DATA_AVAILABLE,
+                                handler = { event ->
+                                    recordingSizeBytes += event.data.size
+                                    trySend(event.data)
+                                },
+                            ),
+                            recorder.addEventHandler(
+                                type = Event.ERROR,
+                                handler = { event ->
+                                    log.error { "Unexpected error while recording audio" }
+                                    close(IllegalStateException("Unexpected error while recording audio"))
+                                },
+                            ),
+                            recorder.addEventHandler(type = Event.STOP, handler = { event -> close() }),
+                        )
+                    awaitClose { handlerRemovers.forEach { it() } }
+                }
+                .buffer(UNLIMITED)
+                .map { it.byteArray() }
 
         val media = coroutineScope.async { intoMediaStore(chunks) }
         return media to { recordingSizeBytes }
@@ -160,12 +149,7 @@ class WebAudioRecorder(
                                 eventTarget = recorder,
                                 handlers =
                                     mapOf(
-                                        Event.STOP to
-                                            {
-                                                cont.resume(
-                                                    Unit
-                                                )
-                                            },
+                                        Event.STOP to { cont.resume(Unit) },
                                         Event.ERROR to
                                             {
                                                 log.error { "Unexpected error while recording audio" }
@@ -198,24 +182,18 @@ class WebAudioRecorder(
 
     private fun loudness(microphone: MediaStream): () -> Float? {
         val analyser = analyserOf(microphone)
-        return {
-            loudnessSamples(analyser).average().toFloat()
-        }
+        return { loudnessSamples(analyser).average().toFloat() }
     }
 
     private fun loudnessSamples(analyser: AnalyserNode): List<Float> {
         return pcmSamples(analyser).map { it.absoluteValue }
     }
 
-    /**
-     * PCM can be negative because it models a full audio wave
-     */
+    /** PCM can be negative because it models a full audio wave */
     private fun pcmSamples(analyser: AnalyserNode): List<Float> {
         val samples = Float32Array<ArrayBuffer>(analyser.frequencyBinCount)
         analyser.getFloatTimeDomainData(samples)
-        return samples
-            .asList()
-            .map { it.toKotlinFloat() }
+        return samples.asList().map { it.toKotlinFloat() }
     }
 
     private fun analyserOf(mediaStream: MediaStream): AnalyserNode {
@@ -231,7 +209,7 @@ class WebAudioRecorder(
             duration = state.duration,
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
-            fileExtension = state.fileExtension
+            fileExtension = state.fileExtension,
         ) {}
     }
 
@@ -241,6 +219,6 @@ class WebAudioRecorder(
 
     @OptIn(ExperimentalWasmJsInterop::class)
     private fun closeInputs(mediaStream: MediaStream) {
-        mediaStream.getTracks().toList().forEach { track -> track.stop()}
+        mediaStream.getTracks().toList().forEach { track -> track.stop() }
     }
 }

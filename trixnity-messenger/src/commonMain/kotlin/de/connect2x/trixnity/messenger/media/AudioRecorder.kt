@@ -35,8 +35,11 @@ interface AudioRecorder : AutoCloseable {
     val state: StateFlow<State>
 
     suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference)
+
     suspend fun complete()
+
     suspend fun load(state: State.Completed)
+
     suspend fun closeSuspending()
 
     sealed interface State {
@@ -52,8 +55,9 @@ interface AudioRecorder : AutoCloseable {
             val fileExtension: String,
         ) : State {
             sealed interface MediaReference {
-                data class Unencrypted(val uri: String): MediaReference
-                data class Encrypted(val uriWithMetadata: EncryptedFile): MediaReference
+                data class Unencrypted(val uri: String) : MediaReference
+
+                data class Encrypted(val uriWithMetadata: EncryptedFile) : MediaReference
             }
         }
     }
@@ -74,9 +78,7 @@ class AudioRecorderImpl(
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    override suspend fun start(
-        intoMediaStore: suspend (ByteArrayFlow) -> MediaReference
-    ) {
+    override suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference) {
         closeSuspending()
 
         val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
@@ -103,17 +105,18 @@ class AudioRecorderImpl(
     }
 
     override fun close() {
-        parentScope.launch {
-            closeSuspending()
-        }
+        parentScope.launch { closeSuspending() }
     }
 
     /** Abstract effectful platform-specific actions by storing them here as function values */
     sealed interface State {
         object Ready : State
 
-        data class Recording(val start: Instant, val loudness: () -> Float?, val complete: suspend (Recording) -> Completed?) :
-            State
+        data class Recording(
+            val start: Instant,
+            val loudness: () -> Float?,
+            val complete: suspend (Recording) -> Completed?,
+        ) : State
 
         data class Completed(
             val capture: MediaReference,

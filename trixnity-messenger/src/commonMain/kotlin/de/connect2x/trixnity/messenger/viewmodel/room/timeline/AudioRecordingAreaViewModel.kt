@@ -22,7 +22,6 @@ import de.connect2x.trixnity.messenger.viewmodel.media.MediaPlayerViewModelFacto
 import io.ktor.http.ContentType
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -111,9 +110,7 @@ class AudioRecordingAreaViewModelImpl(
                         }
                         is AudioRecorder.State.Completed -> {
                             val newPlayer = create(state)
-                            lifecycle.doOnDestroy {
-                                newPlayer?.close()
-                            }
+                            lifecycle.doOnDestroy { newPlayer?.close() }
                             newPlayer
                         }
                     }
@@ -156,11 +153,12 @@ class AudioRecordingAreaViewModelImpl(
 
                 is AudioRecorder.State.Completed -> {
                     {
-                        val info = AudioInfo(
-                            duration = audioRecorderStateValue.duration.inWholeMilliseconds,
-                            mimeType = audioRecorderStateValue.contentType.toString(),
-                            size = audioRecorderStateValue.sizeBytes,
-                        )
+                        val info =
+                            AudioInfo(
+                                duration = audioRecorderStateValue.duration.inWholeMilliseconds,
+                                mimeType = audioRecorderStateValue.contentType.toString(),
+                                size = audioRecorderStateValue.sizeBytes,
+                            )
                         val fileNamePrefix = "voice_message"
                         when (val media = audioRecorderStateValue.media) {
                             is AudioRecorder.State.Completed.MediaReference.Encrypted ->
@@ -240,9 +238,7 @@ class AudioRecordingAreaViewModelImpl(
         if (enableMessageDrafts) {
             coroutineScope.launch { matrixClient.room.deleteDraftMessage(roomId) }
         }
-        coroutineScope.launch {
-            recorder?.close()
-        }
+        coroutineScope.launch { recorder?.close() }
     }
 
     override fun loadAudioMessage(content: RoomMessageEventContent.FileBased.Audio) {
@@ -251,38 +247,41 @@ class AudioRecordingAreaViewModelImpl(
         }
 
         coroutineScope.launch {
-            val duration = content.info?.duration ?: run {
-                log.warn { "Failed loading audio message draft, because the duration was null" }
-                deleteDraft()
-                return@launch
-            }
+            val duration =
+                content.info?.duration
+                    ?: run {
+                        log.warn { "Failed loading audio message draft, because the duration was null" }
+                        deleteDraft()
+                        return@launch
+                    }
             val contentType =
-                content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) } ?: run {
-                    log.warn { "Failed to retrieve content type for audio message draft" }
-                    deleteDraft()
-                    return@launch
-                }
+                content.info?.mimeType?.let { mimeType -> ContentType.parse(mimeType) }
+                    ?: run {
+                        log.warn { "Failed to retrieve content type for audio message draft" }
+                        deleteDraft()
+                        return@launch
+                    }
             val isEncryptedRoom = matrixClient.room.getById(roomId).first()?.encrypted == true
             val mediaReference =
                 if (isEncryptedRoom) {
-                    content.file?.let { file ->
-                        AudioRecorder.State.Completed.MediaReference.Encrypted(file)
-                    }
+                    content.file?.let { file -> AudioRecorder.State.Completed.MediaReference.Encrypted(file) }
                 } else {
-                    content.url?.let { url ->
-                        AudioRecorder.State.Completed.MediaReference.Unencrypted(url)
+                    content.url?.let { url -> AudioRecorder.State.Completed.MediaReference.Unencrypted(url) }
+                }
+                    ?: run {
+                        log.warn {
+                            "Failed loading audio message draft because the drafted media could not be retrieved"
+                        }
+                        deleteDraft()
+                        return@launch
                     }
-                } ?: run {
-                    log.warn { "Failed loading audio message draft because the drafted media could not be retrieved" }
-                    deleteDraft()
-                    return@launch
-                }
             val fileExtension =
-                content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "") ?: run {
-                    log.warn { "Failed to retrieve file extension for audio message draft" }
-                    deleteDraft()
-                    return@launch
-                }
+                content.fileName?.takeIf { "." in it }?.substringAfterLast(".", "")
+                    ?: run {
+                        log.warn { "Failed to retrieve file extension for audio message draft" }
+                        deleteDraft()
+                        return@launch
+                    }
             recorder?.load(
                 AudioRecorder.State.Completed(
                     media = mediaReference,

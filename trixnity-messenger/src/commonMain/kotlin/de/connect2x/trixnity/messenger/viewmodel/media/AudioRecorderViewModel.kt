@@ -19,35 +19,25 @@ interface AudioRecorderViewModel {
     val state: StateFlow<State>
 
     fun start()
+
     fun complete()
+
     suspend fun load(state: State.Completed)
+
     suspend fun close()
 }
 
 class AudioRecorderViewModelImpl(
     viewModelContext: MatrixClientViewModelContext,
     private val recorder: AudioRecorder,
-    private val roomId: RoomId
-) :
-    MatrixClientViewModelContext by viewModelContext, AudioRecorderViewModel {
+    private val roomId: RoomId,
+) : MatrixClientViewModelContext by viewModelContext, AudioRecorderViewModel {
     override val state: StateFlow<State> = recorder.state
 
     init {
-        doOnDestroy {
-            coroutineScope.launch {
-                close()
-            }
-        }
-        doOnStop {
-            coroutineScope.launch {
-                complete()
-            }
-        }
-        doOnPause {
-            coroutineScope.launch {
-                complete()
-            }
-        }
+        doOnDestroy { coroutineScope.launch { close() } }
+        doOnStop { coroutineScope.launch { complete() } }
+        doOnPause { coroutineScope.launch { complete() } }
     }
 
     override fun start() {
@@ -55,22 +45,16 @@ class AudioRecorderViewModelImpl(
             recorder.start { data ->
                 val isEncryptedRoom = matrixClient.room.getById(roomId).first()?.encrypted == true
                 if (isEncryptedRoom) {
-                    State.Completed.MediaReference.Encrypted(
-                        matrixClient.media.prepareUploadEncryptedMedia(data)
-                    )
+                    State.Completed.MediaReference.Encrypted(matrixClient.media.prepareUploadEncryptedMedia(data))
                 } else {
-                    State.Completed.MediaReference.Unencrypted(
-                        matrixClient.media.prepareUploadMedia(data, null)
-                    )
+                    State.Completed.MediaReference.Unencrypted(matrixClient.media.prepareUploadMedia(data, null))
                 }
             }
         }
     }
 
     override fun complete() {
-        coroutineScope.launch {
-            recorder.complete()
-        }
+        coroutineScope.launch { recorder.complete() }
     }
 
     override suspend fun load(state: State.Completed) {
