@@ -643,7 +643,7 @@ private fun roomSettingsViewModels() = module {
 
 private fun mediaViewModels() = module {
     single<MediaPlayerViewModelFactory> { MediaPlayerViewModelFactory }
-    single<AudioRecorderHolder> {
+    factory<AudioRecorderHolder> {
         val config = get<MatrixMessengerConfiguration>()
         val platformAudioRecorder = getOrNull<PlatformAudioRecorder>()
         val audioRecorder =

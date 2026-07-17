@@ -3,8 +3,10 @@ package de.connect2x.trixnity.messenger.media
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.debug
 import de.connect2x.lognity.api.logger.warn
-import de.connect2x.trixnity.client.media.PlatformMedia
+import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed.MediaReference
+import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -13,6 +15,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -24,16 +27,20 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @TrixnityMessengerPrivateApi
 interface AudioRecorder : AutoCloseable {
     val state: StateFlow<State>
 
-    suspend fun startSuspending()
+    suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference)
 
-    fun complete()
+    suspend fun complete()
 
-    suspend fun loadSuspending(state: State.Completed)
+    suspend fun load(state: State.Completed)
+
+    suspend fun closeSuspending()
 
     sealed interface State {
         object Ready : State
@@ -41,12 +48,18 @@ interface AudioRecorder : AutoCloseable {
         data class Recording(val duration: Duration, val loudness: Float) : State
 
         data class Completed(
-            val data: PlatformMedia,
+            val media: MediaReference,
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
             val fileExtension: String,
-        ) : State
+        ) : State {
+            sealed interface MediaReference {
+                data class Unencrypted(val uri: String) : MediaReference
+
+                data class Encrypted(val uriWithMetadata: EncryptedFile) : MediaReference
+            }
+        }
     }
 }
 
@@ -55,7 +68,7 @@ class AudioRecorderHolder(val getOrNull: AudioRecorder?)
 class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
-    parentScope: CoroutineScope,
+    private val parentScope: CoroutineScope,
 ) : AudioRecorder {
     private val stateImpl: MutableStateFlow<State> = MutableStateFlow(State.Ready)
 
@@ -65,39 +78,48 @@ class AudioRecorderImpl(
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
-    override suspend fun startSuspending() {
-        close()
+    override suspend fun start(intoMediaStore: suspend (ByteArrayFlow) -> MediaReference) {
+        closeSuspending()
 
-        val initialRecordingState = platformAudioRecorder.start()
+        val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
         if (initialRecordingState != null) {
             stateImpl.value = withCatchCallbacks(initialRecordingState)
         }
     }
 
-    override suspend fun loadSuspending(state: AudioRecorder.State.Completed) {
-        close()
+    override suspend fun load(state: AudioRecorder.State.Completed) {
+        closeSuspending()
 
         platformAudioRecorder.load(state)?.let { stateImpl.value = it }
     }
 
-    override fun complete() {
+    override suspend fun complete() {
         stateImpl.value = complete(stateImpl.value)
     }
 
+    override suspend fun closeSuspending() {
+        withContext(NonCancellable) {
+            stateImpl.value = close(stateImpl.value)
+            platformAudioRecorder.close()
+        }
+    }
+
     override fun close() {
-        platformAudioRecorder.close()
-        stateImpl.value = close(stateImpl.value)
+        parentScope.launch { closeSuspending() }
     }
 
     /** Abstract effectful platform-specific actions by storing them here as function values */
     sealed interface State {
         object Ready : State
 
-        data class Recording(val start: Instant, val loudness: () -> Float?, val complete: (Recording) -> Completed?) :
-            State
+        data class Recording(
+            val start: Instant,
+            val loudness: () -> Float?,
+            val complete: suspend (Recording) -> Completed?,
+        ) : State
 
         data class Completed(
-            val capture: PlatformMedia,
+            val capture: MediaReference,
             val duration: Duration,
             val sizeBytes: Long?,
             val contentType: ContentType,
@@ -123,9 +145,9 @@ class AudioRecorderImpl(
     }
 
     companion object {
-        private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.CommonAudioRecorder")
+        private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AudioRecorder")
 
-        private fun complete(stateImpl: State): State {
+        private suspend fun complete(stateImpl: State): State {
             return when (stateImpl) {
                 State.Ready -> {
                     log.debug { "Audio recorder not started" }
@@ -157,7 +179,7 @@ class AudioRecorderImpl(
             }
         }
 
-        private fun close(stateImpl: State): State {
+        private suspend fun close(stateImpl: State): State {
             log.debug { "Cleaning audio recorder" }
             when (val completed = complete(stateImpl)) {
                 is State.Completed ->
@@ -218,7 +240,7 @@ class AudioRecorderImpl(
             return emitRepeatedlyWhileRecording(this).map { toPublicState(it) }
         }
 
-        private fun onMaxDuration(state: AudioRecorder.State, callback: () -> Unit) {
+        private suspend fun onMaxDuration(state: AudioRecorder.State, callback: suspend () -> Unit) {
             when (state) {
                 is AudioRecorder.State.Recording -> {
                     if (state.duration >= 5.hours) {

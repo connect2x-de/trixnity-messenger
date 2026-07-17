@@ -11,6 +11,8 @@ import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
 import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
+import de.connect2x.trixnity.utils.ByteArrayFlow
+import de.connect2x.trixnity.utils.readByteArrayFlow
 import io.ktor.http.ContentType
 import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
@@ -30,7 +32,9 @@ internal class AndroidAudioRecorder(
     var registeredRequestPermission: ActivityResultLauncher<String>? = null
 
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
-    override suspend fun start(): AudioRecorderImpl.State.Recording? {
+    override suspend fun start(
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
+    ): AudioRecorderImpl.State.Recording? {
         fun requestPermission() {
             registeredRequestPermission?.unregister()
             registeredRequestPermission =
@@ -42,7 +46,7 @@ internal class AndroidAudioRecorder(
         }
 
         return when (getContext().checkSelfPermission(Manifest.permission.RECORD_AUDIO)) {
-            PackageManager.PERMISSION_GRANTED -> startRecorder()
+            PackageManager.PERMISSION_GRANTED -> startRecorder(intoMediaStore)
             PackageManager.PERMISSION_DENIED -> {
                 requestPermission()
                 null
@@ -54,7 +58,7 @@ internal class AndroidAudioRecorder(
 
     override suspend fun load(state: AudioRecorder.State.Completed): AudioRecorderImpl.State.Completed? {
         return AudioRecorderImpl.State.Completed(
-            capture = state.data,
+            capture = state.media,
             duration = state.duration,
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
@@ -66,7 +70,9 @@ internal class AndroidAudioRecorder(
         registeredRequestPermission?.unregister()
     }
 
-    private suspend fun startRecorder(): AudioRecorderImpl.State.Recording {
+    private suspend fun startRecorder(
+        intoMediaStore: suspend (ByteArrayFlow) -> AudioRecorder.State.Completed.MediaReference
+    ): AudioRecorderImpl.State.Recording {
         registeredRequestPermission?.unregister()
         return withContext(Dispatchers.IO) {
             val recorder =
@@ -101,15 +107,20 @@ internal class AndroidAudioRecorder(
                 complete = { recordingState ->
                     try {
                         recorder.stop()
-                        val capture = ReadOnlyFileOkioPlatformMedia(tempFilePath, fileSystem)
-                        AudioRecorderImpl.State.Completed(
-                            capture,
-                            duration = clock.now() - recordingState.start,
-                            sizeBytes = fileSystem.metadata(tempFilePath).size,
-                            contentType = format.contentType,
-                            fileExtension = audioFileExtension,
-                        ) {
-                            fileSystem.delete(tempFilePath)
+                        val fileData = fileSystem.readByteArrayFlow(tempFilePath)
+                        if (fileData != null) {
+                            val media = intoMediaStore(fileData)
+                            AudioRecorderImpl.State.Completed(
+                                media,
+                                duration = clock.now() - recordingState.start,
+                                sizeBytes = fileSystem.metadata(tempFilePath).size,
+                                contentType = format.contentType,
+                                fileExtension = audioFileExtension,
+                            ) {
+                                fileSystem.delete(tempFilePath)
+                            }
+                        } else {
+                            null
                         }
                     } finally {
                         recorder.release()

@@ -47,6 +47,7 @@ import dev.mokkery.everySuspend
 import dev.mokkery.matcher.any
 import dev.mokkery.mock
 import dev.mokkery.verify
+import dev.mokkery.verifySuspend
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.shouldBe
 import io.ktor.utils.io.core.*
@@ -228,7 +229,7 @@ class InputAreaViewModelTest {
         every { audioRecordingAreaViewModelFactory.create(any(), any(), any(), any(), any()) } returns
             audioRecordingArea
         every { audioRecordingArea.recorder } returns audioRecorder
-        every { audioRecorder.complete() } returns Unit
+        everySuspend { audioRecorder.complete() } returns Unit
 
         everySuspend { roomServiceMock.sendMessage(any(), any(), any()) } calls
             {
@@ -1019,7 +1020,7 @@ class InputAreaViewModelTest {
 
         delay(300.milliseconds)
 
-        verify { audioRecorder.complete() }
+        verifySuspend { audioRecorder.complete() }
     }
 
     @Test
