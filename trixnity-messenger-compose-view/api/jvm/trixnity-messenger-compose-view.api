@@ -1029,6 +1029,12 @@ public final class de/connect2x/trixnity/messenger/compose/view/files/NotPasteab
 	public fun <init> ()V
 }
 
+public final class de/connect2x/trixnity/messenger/compose/view/form/ComposableSingletons$AutofillButtonKt {
+	public static final field INSTANCE Lde/connect2x/trixnity/messenger/compose/view/form/ComposableSingletons$AutofillButtonKt;
+	public fun <init> ()V
+	public final fun getLambda$-1186479548$trixnity_messenger_compose_view ()Lkotlin/jvm/functions/Function3;
+}
+
 public final class de/connect2x/trixnity/messenger/compose/view/i18n/I18nExtensionsKt {
 	public static final fun getExplanation (Lde/connect2x/trixnity/core/model/events/m/room/HistoryVisibilityEventContent$HistoryVisibility;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;
 	public static final fun getExplanation (Lde/connect2x/trixnity/core/model/events/m/room/JoinRulesEventContent$JoinRule;Lde/connect2x/trixnity/messenger/compose/view/i18n/I18nView;)Ljava/lang/String;

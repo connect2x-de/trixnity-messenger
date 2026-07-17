@@ -6066,6 +6066,21 @@ final class de.connect2x.trixnity.messenger.compose.view/CanvasSemanticsOwnerLis
 final val de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop // de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop[0]
 
 // Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop[0]
+
+// Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop[0]
+
+// Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop[0]
+
+// Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop[0]
+
+// Targets: [js, wasmJs]
+final val de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop[0]
+
+// Targets: [js, wasmJs]
 final val de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop|#static{}de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop[0]
 
 // Targets: [js, wasmJs]
@@ -6073,6 +6088,21 @@ final val de.connect2x.trixnity.messenger.compose.view/de_connect2x_trixnity_mes
 
 // Targets: [js, wasmJs]
 final fun de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.files/de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_files_PdfReaderWeb$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Cancel$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverEnter$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_HoverExit$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Press$stableprop_getter(){}[0]
+
+// Targets: [js, wasmJs]
+final fun de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.form/de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_form_AutofillPointerEvent_Release$stableprop_getter(){}[0]
 
 // Targets: [js, wasmJs]
 final fun de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop_getter(): kotlin/Int // de.connect2x.trixnity.messenger.compose.view.room.timeline.element.details/de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop_getter|de_connect2x_trixnity_messenger_compose_view_room_timeline_element_details_PDFPlatformReader$stableprop_getter(){}[0]
