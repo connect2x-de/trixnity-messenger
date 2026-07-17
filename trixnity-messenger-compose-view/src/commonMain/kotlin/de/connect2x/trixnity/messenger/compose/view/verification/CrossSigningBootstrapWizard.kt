@@ -48,6 +48,7 @@ import de.connect2x.trixnity.messenger.compose.view.common.WizardImage
 import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.copyToClipboard
+import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -133,6 +134,14 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                         val recoveryKeyPart2 = crossSigningBootstrapViewModel.recoveryKeyPart2.collectAsState().value
                         val copiedToClipBoard = remember { mutableStateOf(false) }
                         val recoveryKeyCopied = crossSigningBootstrapViewModel.recoveryKeyCopied.collectAsState().value
+                        val hiddenRegistrationForm = rememberHiddenRegistrationForm()
+                        fun confirmRecoveryKeyCopied() {
+                            hiddenRegistrationForm.submit(
+                                username = "${crossSigningBootstrapViewModel.userId.localpart} (Recovery Key)",
+                                password = recoveryKey ?: "",
+                            )
+                            crossSigningBootstrapViewModel.confirmRecoveryKeyCopied()
+                        }
                         Paragraphs {
                             Text(text = i18n.bootstrapRecoveryKeyHandling())
                             Text(i18n.bootstrapRecoveryKeyWarning())
@@ -207,15 +216,10 @@ fun CrossSigningBootstrapWizard(crossSigningBootstrapViewModel: CrossSigningBoot
                             }
                             Spacer(Modifier.size(40.dp))
                             Row(
-                                Modifier.fillMaxWidth().clickable {
-                                    crossSigningBootstrapViewModel.confirmRecoveryKeyCopied()
-                                },
+                                Modifier.fillMaxWidth().clickable { confirmRecoveryKeyCopied() },
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Checkbox(
-                                    checked = recoveryKeyCopied,
-                                    { crossSigningBootstrapViewModel.confirmRecoveryKeyCopied() },
-                                )
+                                Checkbox(checked = recoveryKeyCopied, { confirmRecoveryKeyCopied() })
                                 Spacer(Modifier.size(10.dp))
                                 Text(i18n.bootstrapRecoveryKeySafe())
                             }

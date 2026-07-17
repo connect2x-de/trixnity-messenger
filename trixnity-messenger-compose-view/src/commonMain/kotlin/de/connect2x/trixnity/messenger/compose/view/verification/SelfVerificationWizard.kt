@@ -26,6 +26,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import de.connect2x.trixnity.client.verification.SelfVerificationMethod
 import de.connect2x.trixnity.messenger.compose.view.DI
+import de.connect2x.trixnity.messenger.compose.view.Platform
 import de.connect2x.trixnity.messenger.compose.view.buttonPointerModifier
 import de.connect2x.trixnity.messenger.compose.view.common.ErrorView
 import de.connect2x.trixnity.messenger.compose.view.common.ExpandableSection
@@ -61,8 +63,12 @@ import de.connect2x.trixnity.messenger.compose.view.common.Wizard
 import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton.Custom
 import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
 import de.connect2x.trixnity.messenger.compose.view.common.modifier.focusHighlighting
+import de.connect2x.trixnity.messenger.compose.view.form.AutofillButton
+import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
+import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
+import de.connect2x.trixnity.messenger.compose.view.isWeb
 import de.connect2x.trixnity.messenger.compose.view.theme.components
 import de.connect2x.trixnity.messenger.compose.view.theme.components.OutlinedTextFieldWithToolbar
 import de.connect2x.trixnity.messenger.compose.view.theme.components.ThemedButton
@@ -127,6 +133,7 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
     private fun selfVerificationWizard(selfVerificationViewModel: SelfVerificationViewModel) {
         val i18n = DI.get<I18nView>()
 
+        val hiddenRegistrationForm = rememberHiddenRegistrationForm()
         val wizardSteps =
             remember(selfVerificationViewModel, i18n) {
                 stepList.mapNotNull {
@@ -178,7 +185,9 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                 }
             }
 
-        Wizard(wizardSteps = wizardSteps, wizardId = "SelfVerificationWizard")
+        CompositionLocalProvider(LocalHiddenRegistrationForm provides hiddenRegistrationForm) {
+            Wizard(wizardSteps = wizardSteps, wizardId = "SelfVerificationWizard")
+        }
     }
 
     private fun selfVerificationWizardHelpStep(
@@ -494,6 +503,19 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
                             )
                         }
                     }
+                    if (Platform.current.isWeb) {
+                        Spacer(Modifier.height(20.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            AutofillButton(
+                                onUsernameChange = {},
+                                onPasswordChange = { recoveryKey.value = TextFieldValue(it) },
+                            )
+                        }
+                    }
 
                     error.value?.let {
                         Spacer(Modifier.size(20.dp))
@@ -503,9 +525,16 @@ class SelfVerificationWizardViewImpl : SelfVerificationWizardView {
             },
             nextButton = {
                 Custom {
+                    val hiddenRegistrationForm = LocalHiddenRegistrationForm.current
                     ThemedButton(
                         style = MaterialTheme.components.primaryButton,
-                        onClick = { selfVerificationViewModel.verifyWithRecoveryKey(recoveryKey.value.text) },
+                        onClick = {
+                            hiddenRegistrationForm.submit(
+                                username = "${selfVerificationViewModel.userId.localpart} (Recovery Key)",
+                                password = recoveryKey.value.text,
+                            )
+                            selfVerificationViewModel.verifyWithRecoveryKey(recoveryKey.value.text)
+                        },
                     ) {
                         Text(i18n.commonNext())
                     }
