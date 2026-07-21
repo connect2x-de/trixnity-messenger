@@ -4,6 +4,7 @@ package de.connect2x.trixnity.messenger.export
 
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import js.objects.unsafeJso
+import js.promise.await
 import js.typedarrays.toInt8Array
 import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsAny
@@ -95,14 +96,14 @@ class WebZipFileBasedExportRoomSinkWriter(private val fileName: String) : FileBa
 
         mediaStream.close()
 
-        zipWriter.add("media/${filename}", BlobReader(mediaFile.getFile()))
+        zipWriter.add("media/${filename}", BlobReader(mediaFile.getFile())).await()
     }
 
     override suspend fun finish() {
         textStream.close()
 
-        zipWriter.add(fileName, BlobReader(textFile.getFile()))
-        zipWriter.close()
+        zipWriter.add(fileName, BlobReader(textFile.getFile())).await()
+        zipWriter.close().await()
 
         val blobUrl = URL.createObjectURL(zipFile.getFile())
 

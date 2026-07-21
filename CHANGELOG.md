@@ -53,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: callback for notifications when `showDetails` is disabled
 - SDK,UI: when the user has left room or has been banned, show room instead of join room screen
 - INTERNAL: Fixed c2x-conventions update requiring GitLab token
+- SDK,WEB: room exports are no longer empty on the first download
 
 ### Security
 
