@@ -148,12 +148,7 @@ class UriHandlerImpl(
             releaseFile()
             throw IllegalStateException("could not lock $lockFileName")
         }
-        Runtime.getRuntime()
-            .addShutdownHook(
-                thread(start = false) {
-                    releaseFile()
-                }
-            )
+        Runtime.getRuntime().addShutdownHook(thread(start = false) { releaseFile() })
     }
 
     private fun openServer(): Pair<ServerSocket?, Int> {
@@ -186,9 +181,7 @@ class UriHandlerImpl(
 
                             val socket = server.accept()
                             launch {
-                                val urlResponse = socket.use {
-                                    receiveUrlFromSocket(socket)
-                                }
+                                val urlResponse = socket.use { receiveUrlFromSocket(socket) }
                                 urlResponse.fold(
                                     {
                                         if (it != null) {
@@ -197,9 +190,7 @@ class UriHandlerImpl(
                                             log.warn { "url args from different app received" }
                                         }
                                     },
-                                    {
-                                        log.error(it) { "error reading url args" }
-                                    },
+                                    { log.error(it) { "error reading url args" } },
                                 )
                             }
                         }
@@ -248,9 +239,7 @@ class UriHandlerImpl(
             if (socket != null) {
                 log.debug { "try send url arg $urlArg using port $port" }
 
-                val okResponse = socket.use {
-                    sendUrlToSocket(socket, urlArg)
-                }
+                val okResponse = socket.use { sendUrlToSocket(socket, urlArg) }
 
                 okResponse.fold(
                     {

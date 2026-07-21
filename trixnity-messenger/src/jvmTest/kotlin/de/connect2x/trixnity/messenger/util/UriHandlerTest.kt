@@ -31,20 +31,21 @@ class UriHandlerTest {
 
     private var server: AutoCloseable? = null
 
-    private val di = koinApplication {
-        modules(
-            module {
-                single<FileLocker> {
-                    object : FileLocker {
-                        override fun lockFile(file: File): Boolean = true
+    private val di =
+        koinApplication {
+                modules(
+                    module {
+                        single<FileLocker> {
+                            object : FileLocker {
+                                override fun lockFile(file: File): Boolean = true
 
-                        override fun release() {}
+                                override fun release() {}
+                            }
+                        }
                     }
-                }
+                )
             }
-        )
-    }
-        .koin
+            .koin
 
     init {
         fakeFileSystem.createDirectories(rootPath.path)
@@ -88,9 +89,7 @@ class UriHandlerTest {
 
         handler2.sendUrlArg(config1.appUri + "abc", 2424)
 
-        eventually(2.seconds) {
-            receivedUri shouldBe config1.appUri + "abc"
-        }
+        eventually(2.seconds) { receivedUri shouldBe config1.appUri + "abc" }
     }
 
     @Test
@@ -98,20 +97,14 @@ class UriHandlerTest {
         runTest {
             val handler1 = cut(config1)
             var receivedUri = ""
-            backgroundScope.launch {
-                handler1.collect {
-                    receivedUri = it
-                }
-            }
+            backgroundScope.launch { handler1.collect { receivedUri = it } }
             server = handler1.listenForArgs(null)
 
             val handler2 = cut(config2)
 
             handler2.sendUrlArg(config1.appUri + "abc", 2424)
 
-            eventually(2.seconds) {
-                receivedUri shouldBe ""
-            }
+            eventually(2.seconds) { receivedUri shouldBe "" }
 
             eventually(2.seconds) {
                 runCatching { fakeFileSystem.read(rootPath.path.resolve("port.lock")) { readUtf8() } }
@@ -134,13 +127,9 @@ class UriHandlerTest {
         delay(1.seconds)
 
         val socket = Socket(InetAddress.getLoopbackAddress(), 2424)
-        socket.use {
-            it.getOutputStream().write((config1.appUri + "abc").encodeToByteArray())
-        }
+        socket.use { it.getOutputStream().write((config1.appUri + "abc").encodeToByteArray()) }
 
-        eventually(2.seconds) {
-            receivedUri shouldBe ""
-        }
+        eventually(2.seconds) { receivedUri shouldBe "" }
     }
 
     @Test
@@ -152,9 +141,7 @@ class UriHandlerTest {
 
         backgroundScope.launch {
             val socket = serverSocket.accept()
-            socket.use {
-                it.getInputStream().readAllBytes()
-            }
+            socket.use { it.getInputStream().readAllBytes() }
         }
 
         val handler2 = cut(config2)
@@ -168,12 +155,6 @@ class UriHandlerTest {
     }
 
     private fun cut(config: MatrixMessengerConfiguration = config1): UriHandlerImpl {
-        return UriHandlerImpl(
-            config,
-            fakeFileSystem,
-            rootPath,
-            closeApp,
-            di,
-        )
+        return UriHandlerImpl(config, fakeFileSystem, rootPath, closeApp, di)
     }
 }
