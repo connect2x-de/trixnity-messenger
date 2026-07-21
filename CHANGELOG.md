@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- SDK: App not opening because port.lock not being cleaned up properly on jvm
 - UI: Made UI consistent for downloadsDisabled config active
 - UI: Minor UI fix for editing messages
 - SDK: callback for notifications when `showDetails` is disabled

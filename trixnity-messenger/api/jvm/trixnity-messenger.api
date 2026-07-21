@@ -3625,7 +3625,7 @@ public class de/connect2x/trixnity/messenger/util/UriHandlerBase : de/connect2x/
 }
 
 public final class de/connect2x/trixnity/messenger/util/UriHandlerImpl : de/connect2x/trixnity/messenger/util/UriHandlerBase {
-	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration;Lokio/FileSystem;Lokio/Path;Lde/connect2x/trixnity/messenger/util/CloseApp;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lde/connect2x/trixnity/messenger/MatrixMessengerBaseConfiguration;Lokio/FileSystem;Lokio/Path;Lde/connect2x/trixnity/messenger/util/CloseApp;Lorg/koin/core/Koin;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun start ([Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
