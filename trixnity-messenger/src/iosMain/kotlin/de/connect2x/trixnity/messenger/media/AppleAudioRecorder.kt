@@ -128,8 +128,9 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
         val record = audioRecorder.record()
         if (record.not()) return null
 
+        val start = clock.now()
         return AudioRecorderImpl.State.Recording(
-            start = clock.now(),
+            start = start,
             loudness = {
                 audioRecorder.updateMeters()
                 val dbFS = audioRecorder.averagePowerForChannel(0u) // do not use peak -> updates are weird
@@ -142,7 +143,7 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
                     }
                 amplitude
             },
-            complete = { recordingState ->
+            complete = {
                 try {
                     audioRecorder.stop()
                     val fileData = fileSystem.readByteArrayFlow(file)
@@ -150,7 +151,7 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
                         val media = intoMediaStore(fileData)
                         AudioRecorderImpl.State.Completed(
                             media,
-                            duration = clock.now() - recordingState.start,
+                            duration = clock.now() - start,
                             sizeBytes = fileSystem.metadata(file).size,
                             contentType = ContentType.Audio.MP4,
                             fileExtension = audioFileExtension,

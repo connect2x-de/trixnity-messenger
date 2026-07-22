@@ -121,7 +121,7 @@ class AudioRecorderImpl(
              * recording. The media store automatically deletes files if they are not used so this does not have to be
              * handled.
              */
-            val complete: suspend (Recording) -> Completed?,
+            val complete: suspend () -> Completed?,
         ) : State
 
         data class Completed(
@@ -164,7 +164,7 @@ class AudioRecorderImpl(
 
                     val completedState =
                         try {
-                            stateImpl.complete(stateImpl)
+                            stateImpl.complete()
                         } catch (t: Throwable) {
                             log.warn(t) { "Completing audio recording failed." }
                             null
@@ -259,7 +259,7 @@ class AudioRecorderImpl(
                 },
                 complete = {
                     try {
-                        recordingState.complete(it)
+                        recordingState.complete()
                     } catch (e: Throwable) {
                         log.warn(e) { "Completing audio recording failed." }
                         null

@@ -101,10 +101,11 @@ internal class AndroidAudioRecorder(
             recorder.prepare()
             recorder.start()
 
+            val start = clock.now()
             AudioRecorderImpl.State.Recording(
-                start = clock.now(),
+                start = start,
                 loudness = { recorder.maxAmplitude.toFloat() },
-                complete = { recordingState ->
+                complete = {
                     try {
                         recorder.stop()
                         val fileData = fileSystem.readByteArrayFlow(tempFilePath)
@@ -112,7 +113,7 @@ internal class AndroidAudioRecorder(
                             val media = intoMediaStore(fileData)
                             AudioRecorderImpl.State.Completed(
                                 media,
-                                duration = clock.now() - recordingState.start,
+                                duration = clock.now() - start,
                                 sizeBytes = fileSystem.metadata(tempFilePath).size,
                                 contentType = format.contentType,
                                 fileExtension = audioFileExtension,

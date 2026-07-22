@@ -23,6 +23,7 @@ import kotlin.js.toList
 import kotlin.math.absoluteValue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -74,10 +75,11 @@ class WebAudioRecorder(
             if (microphone != null) {
                 val recorder = startRecorder(microphone)
                 val (media, mediaSize) = recordIntoMediaStore(recorder, intoMediaStore)
+                val start = clock.now()
                 AudioRecorderImpl.State.Recording(
-                    start = clock.now(),
+                    start = start,
                     loudness = loudness(microphone),
-                    complete = complete(recorder, microphone, media, mediaSize),
+                    complete = complete(recorder, microphone, media, mediaSize, start),
                 )
             } else {
                 log.info { "Microphone permission request timed out." }
@@ -136,10 +138,11 @@ class WebAudioRecorder(
         microphone: MediaStream,
         mediaDeferred: Deferred<AudioRecorder.State.Completed.MediaReference>,
         mediaSize: () -> Double,
-    ): suspend (AudioRecorderImpl.State.Recording) -> AudioRecorderImpl.State.Completed? {
+        start: Instant,
+    ): suspend () -> AudioRecorderImpl.State.Completed? {
         val opusContentType = ContentType.Audio.OGG.withParameter("codecs", "opus")
         val opusFileExtension = "ogg"
-        return { recordingState: AudioRecorderImpl.State.Recording ->
+        return {
             try {
                 recorder.stop()
                 val recordingSuccessful =
@@ -163,7 +166,7 @@ class WebAudioRecorder(
                     val media = mediaDeferred.await()
                     AudioRecorderImpl.State.Completed(
                         media,
-                        clock.now() - recordingState.start,
+                        clock.now() - start,
                         mediaSize().toLong(),
                         opusContentType,
                         opusFileExtension,

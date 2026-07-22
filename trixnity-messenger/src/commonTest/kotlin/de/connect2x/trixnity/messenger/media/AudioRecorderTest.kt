@@ -66,7 +66,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5f },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
@@ -94,7 +94,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
@@ -138,7 +138,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { 5f },
-                { _ ->
+                {
                     AudioRecorderImpl.State.Completed(
                         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                         1.seconds,
@@ -180,7 +180,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { increasingLoudness() },
-                { _ ->
+                {
                     AudioRecorderImpl.State.Completed(
                         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                         1.seconds,
@@ -211,7 +211,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { throw IllegalStateException() },
-                { _ ->
+                {
                     AudioRecorderImpl.State.Completed(
                         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                         1.seconds,
@@ -237,7 +237,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { null },
-                { _ ->
+                {
                     AudioRecorderImpl.State.Completed(
                         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                         1.seconds,
@@ -264,7 +264,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
@@ -305,7 +305,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
@@ -338,7 +338,7 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(startTime, { 5F }, { _ -> throw IllegalStateException() })
+            AudioRecorderImpl.State.Recording(startTime, { 5F }, { throw IllegalStateException() })
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
             cut.start(intoMediaStoreMock)
@@ -358,7 +358,7 @@ class AudioRecorderTest {
             AudioRecorderImpl.State.Recording(
                 startTime,
                 { 5F },
-                { _ ->
+                {
                     AudioRecorderImpl.State.Completed(
                         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                         1.seconds,
@@ -390,7 +390,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
@@ -424,7 +424,7 @@ class AudioRecorderTest {
                 AudioRecorderImpl.State.Recording(
                     startTime,
                     { 5F },
-                    { _ ->
+                    {
                         AudioRecorderImpl.State.Completed(
                             AudioRecorder.State.Completed.MediaReference.Unencrypted("unused"),
                             1.seconds,
