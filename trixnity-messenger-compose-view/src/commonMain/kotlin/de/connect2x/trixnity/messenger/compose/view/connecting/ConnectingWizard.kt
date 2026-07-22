@@ -3,6 +3,7 @@ package de.connect2x.trixnity.messenger.compose.view.connecting
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.capitalize
@@ -11,6 +12,8 @@ import de.connect2x.trixnity.messenger.compose.view.DI
 import de.connect2x.trixnity.messenger.compose.view.common.Wizard
 import de.connect2x.trixnity.messenger.compose.view.common.WizardNavigationButton
 import de.connect2x.trixnity.messenger.compose.view.common.WizardStep
+import de.connect2x.trixnity.messenger.compose.view.form.LocalHiddenRegistrationForm
+import de.connect2x.trixnity.messenger.compose.view.form.rememberHiddenRegistrationForm
 import de.connect2x.trixnity.messenger.compose.view.get
 import de.connect2x.trixnity.messenger.compose.view.i18n.I18nView
 import de.connect2x.trixnity.messenger.compose.view.theme.components
@@ -42,6 +45,7 @@ class AdditionalConnectingWizardStepImpl : AdditionalConnectingWizardStep {
 fun <T : Any> ConnectingWizard(viewModel: T) {
     val i18n = DI.get<I18nView>()
     val additionalConnectingWizardStep = DI.get<AdditionalConnectingWizardStep>()
+    val hiddenRegistrationForm = rememberHiddenRegistrationForm()
     val wizardSteps =
         remember(viewModel, i18n, additionalConnectingWizardStep) {
             listOf(
@@ -63,7 +67,9 @@ fun <T : Any> ConnectingWizard(viewModel: T) {
             )
         }
 
-    Wizard(wizardSteps = wizardSteps, wizardId = "ConnectingWizard")
+    CompositionLocalProvider(LocalHiddenRegistrationForm provides hiddenRegistrationForm) {
+        Wizard(wizardSteps = wizardSteps, wizardId = "ConnectingWizard")
+    }
 }
 
 fun AddMatrixAccountStep(viewModel: AddMatrixAccountViewModel, i18n: I18nView): WizardStep {
@@ -108,10 +114,17 @@ fun LoginWithPasswordStep(viewModel: PasswordLoginViewModel, i18n: I18nView): Wi
             WizardNavigationButton.Custom {
                 val state = viewModel.addMatrixAccountState.collectAsState().value
                 val canLogin = viewModel.canLogin.collectAsState().value
+                val hiddenRegistrationForm = LocalHiddenRegistrationForm.current
                 ThemedButton(
                     style = MaterialTheme.components.primaryButton,
                     enabled = canLogin && state !is AddMatrixAccountState.Connecting,
-                    onClick = { viewModel.tryLogin() },
+                    onClick = {
+                        hiddenRegistrationForm.submit(
+                            username = viewModel.username.value.text,
+                            password = viewModel.password.value.text,
+                        )
+                        viewModel.tryLogin()
+                    },
                 ) {
                     Text(i18n.login())
                 }
