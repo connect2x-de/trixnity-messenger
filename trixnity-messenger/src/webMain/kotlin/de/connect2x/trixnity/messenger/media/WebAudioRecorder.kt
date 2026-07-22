@@ -167,9 +167,7 @@ class WebAudioRecorder(
                         mediaSize().toLong(),
                         opusContentType,
                         opusFileExtension,
-                    ) {
-                        // Automatically deleted by media store
-                    }
+                    )
                 } else {
                     null
                 }
@@ -210,7 +208,7 @@ class WebAudioRecorder(
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
             fileExtension = state.fileExtension,
-        ) {}
+        )
     }
 
     override fun close() {

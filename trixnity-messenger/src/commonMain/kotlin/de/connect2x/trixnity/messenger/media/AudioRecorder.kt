@@ -130,7 +130,6 @@ class AudioRecorderImpl(
             val sizeBytes: Long?,
             val contentType: ContentType,
             val fileExtension: String,
-            val deleteCapture: () -> Unit,
         ) : State
     }
 
@@ -187,18 +186,7 @@ class AudioRecorderImpl(
 
         private suspend fun close(stateImpl: State): State {
             log.debug { "Cleaning audio recorder" }
-            when (val completed = complete(stateImpl)) {
-                is State.Completed ->
-                    try {
-                        completed.deleteCapture()
-                    } catch (t: Throwable) {
-                        log.warn(t) { "Failed to close audio recorder" }
-                    }
-
-                State.Ready -> Unit
-                is State.Recording -> Unit
-            }
-
+            complete(stateImpl)
             return State.Ready
         }
 

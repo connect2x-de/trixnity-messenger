@@ -63,7 +63,7 @@ internal class AndroidAudioRecorder(
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
             fileExtension = state.fileExtension,
-        ) {}
+        )
     }
 
     override fun close() {
@@ -116,9 +116,7 @@ internal class AndroidAudioRecorder(
                                 sizeBytes = fileSystem.metadata(tempFilePath).size,
                                 contentType = format.contentType,
                                 fileExtension = audioFileExtension,
-                            ) {
-                                fileSystem.delete(tempFilePath)
-                            }
+                            )
                         } else {
                             null
                         }

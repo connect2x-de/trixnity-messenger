@@ -63,7 +63,7 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
             sizeBytes = state.sizeBytes,
             contentType = state.contentType,
             fileExtension = state.fileExtension,
-        ) {}
+        )
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -154,9 +154,7 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
                             sizeBytes = fileSystem.metadata(file).size,
                             contentType = ContentType.Audio.MP4,
                             fileExtension = audioFileExtension,
-                        ) {
-                            fileSystem.delete(file)
-                        }
+                        )
                     } else {
                         null
                     }
