@@ -115,6 +115,12 @@ class AudioRecorderImpl(
         data class Recording(
             val start: Instant,
             val loudness: () -> Float?,
+
+            /**
+             * Must write the recording into the media store and must guarantee clean up of all resources of the current
+             * recording. The media store automatically deletes files if they are not used so this does not have to be
+             * handled.
+             */
             val complete: suspend (Recording) -> Completed?,
         ) : State
 
