@@ -13,7 +13,7 @@ import de.connect2x.trixnity.messenger.util.ContextGetter
 import de.connect2x.trixnity.messenger.util.requestRecordPermissionActivityResult
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import de.connect2x.trixnity.utils.readByteArrayFlow
-import io.ktor.http.ContentType
+import io.ktor.http.*
 import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -123,6 +123,7 @@ internal class AndroidAudioRecorder(
                             null
                         }
                     } finally {
+                        fileSystem.delete(tempFilePath)
                         recorder.release()
                     }
                 },
