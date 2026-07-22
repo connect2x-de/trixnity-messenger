@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: files aren't automatically downloaded when they exceed the configurable limit
 - SDK: Changed naming and removed functions of the `AudioRecorder` API including its view model  
 - SDK: The `AudioRecorder` API now only returns a reference to an item inside the media store instead of returning a `PlatformMedia` directly 
+- INTERNAL: update yarn.lock
 
 ### Deprecated
 
