@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SDK: search providers are registered with a factory, so that they can be disabled for certain accounts
 - SDK: Added check for downloadsDisabled before downloading file
 - SDK: granular download limits for syncing media files in `MatrixMessengerConfiguration`
-- SDK,UI,WEB: Experimental voice messages
+- SDK,UI,WEB,IOS: voice messages
 - UI: support password managers on Web
 
 ### Changed
