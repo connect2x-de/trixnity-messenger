@@ -155,30 +155,30 @@ class AudioRecorderImpl(
         private suspend fun complete(stateImpl: State): State {
             return when (stateImpl) {
                 State.Ready -> {
-                    log.debug { "Audio recorder not started" }
+                    log.debug { "Tried to complete recording but it is not yet started" }
                     State.Ready
                 }
 
                 is State.Recording -> {
-                    log.debug { "Stopping audio recorder" }
+                    log.debug { "Completing recording" }
 
                     val completedState =
                         try {
                             stateImpl.complete()
                         } catch (t: Throwable) {
-                            log.warn(t) { "Completing audio recording failed." }
+                            log.warn(t) { "Completing recording failed." }
                             null
                         }
                     if (completedState != null) {
                         completedState
                     } else {
-                        log.warn { "Stopping audio recorder failed" }
+                        log.warn { "Completing recording failed." }
                         State.Ready
                     }
                 }
 
                 is State.Completed -> {
-                    log.debug { "Audio recorder already stopped" }
+                    log.debug { "Tried to complete a recording that is already completed" }
                     stateImpl
                 }
             }
