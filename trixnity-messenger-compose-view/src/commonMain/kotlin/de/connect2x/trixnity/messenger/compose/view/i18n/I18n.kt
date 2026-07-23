@@ -1311,6 +1311,11 @@ open class I18nView(
         DE - "Raum Id"
     }
 
+    open fun roomSettingsResetEncryption() = translate {
+        EN - "Reset outbound encryption"
+        DE - "Ausgehende Verschlüsselung zurücksetzen"
+    }
+
     open fun userSearchSearchPeople() = translate {
         EN - "search people"
         DE - "suche Personen"

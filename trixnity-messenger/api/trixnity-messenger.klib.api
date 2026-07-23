@@ -1835,8 +1835,11 @@ abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/Power
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel { // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel|null[0]
     abstract val roomId // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.roomId|{}roomId[0]
         abstract fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.roomId.<get-roomId>|<get-roomId>(){}[0]
+    abstract val showResetEncryptionButton // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.showResetEncryptionButton|{}showResetEncryptionButton[0]
+        abstract fun <get-showResetEncryptionButton>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.showResetEncryptionButton.<get-showResetEncryptionButton>|<get-showResetEncryptionButton>(){}[0]
 
     abstract fun back() // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.back|back(){}[0]
+    abstract fun resetEncryption() // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModel.resetEncryption|resetEncryption(){}[0]
 }
 
 abstract interface de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelFactory { // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelFactory|null[0]
@@ -8273,6 +8276,8 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoV
         final fun <get-matrixClient>(): de.connect2x.trixnity.client/MatrixClient // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.matrixClient.<get-matrixClient>|<get-matrixClient>(){}[0]
     final val roomId // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.roomId|{}roomId[0]
         final fun <get-roomId>(): de.connect2x.trixnity.core.model/RoomId // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.roomId.<get-roomId>|<get-roomId>(){}[0]
+    final val showResetEncryptionButton // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.showResetEncryptionButton|{}showResetEncryptionButton[0]
+        final fun <get-showResetEncryptionButton>(): kotlinx.coroutines.flow/StateFlow<kotlin/Boolean> // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.showResetEncryptionButton.<get-showResetEncryptionButton>|<get-showResetEncryptionButton>(){}[0]
     final val stateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.stateKeeper|{}stateKeeper[0]
         final fun <get-stateKeeper>(): com.arkivanov.essenty.statekeeper/StateKeeper // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.stateKeeper.<get-stateKeeper>|<get-stateKeeper>(){}[0]
     final val trixnityMessengerBackHandler // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.trixnityMessengerBackHandler|{}trixnityMessengerBackHandler[0]
@@ -8289,6 +8294,7 @@ final class de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoV
     final fun childContextWithOwnLifecycle(kotlin/String, com.arkivanov.essenty.lifecycle/Lifecycle, de.connect2x.trixnity.core.model/UserId): de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.childContextWithOwnLifecycle|childContextWithOwnLifecycle(kotlin.String;com.arkivanov.essenty.lifecycle.Lifecycle;de.connect2x.trixnity.core.model.UserId){}[0]
     final fun getKoin(): org.koin.core/Koin // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.getKoin|getKoin(){}[0]
     final fun registerBackCallback(de.connect2x.trixnity.messenger.util/BackCallback) // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.registerBackCallback|registerBackCallback(de.connect2x.trixnity.messenger.util.BackCallback){}[0]
+    final fun resetEncryption() // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomDevInfoViewModelImpl.resetEncryption|resetEncryption(){}[0]
 }
 
 final class de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsAliasViewModelImpl : de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsAliasViewModel, de.connect2x.trixnity.messenger.viewmodel/MatrixClientViewModelContext { // de.connect2x.trixnity.messenger.viewmodel.room.settings/RoomSettingsAliasViewModelImpl|null[0]
