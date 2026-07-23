@@ -74,7 +74,8 @@ class AudioRecorderImpl(
 
     override val state: StateFlow<AudioRecorder.State> =
         stateImpl
-            .sampleToPublicState(clock)
+            .emitRepeatedlyWhileRecording()
+            .map { it.toPublicState(clock) }
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
 
@@ -190,48 +191,46 @@ class AudioRecorderImpl(
             return State.Ready
         }
 
-        /** Sampling so that the public API ([AudioRecorder.State]) can be immutable */
-        private fun Flow<State>.sampleToPublicState(clock: Clock): Flow<AudioRecorder.State> {
-            @OptIn(ExperimentalCoroutinesApi::class)
-            fun emitRepeatedlyWhileRecording(stateImpl: Flow<State>): Flow<State> {
-                return stateImpl.transformLatest { state ->
-                    when (state) {
-                        is State.Recording ->
-                            while (currentCoroutineContext().isActive) {
-                                emit(state)
-                                delay(50.milliseconds)
-                            }
-
-                        is State.Completed,
-                        State.Ready -> {
+        /**
+         * To achieve an immutable public API ([AudioRecorder.State]) we have to emit the original state
+         * ([AudioRecorderImpl.State]) repeatedly and map it every time with updated data
+         *
+         * @see toPublicState
+         */
+        @OptIn(ExperimentalCoroutinesApi::class)
+        private fun Flow<State>.emitRepeatedlyWhileRecording(): Flow<State> {
+            return this.transformLatest { state ->
+                when (state) {
+                    is State.Recording ->
+                        while (currentCoroutineContext().isActive) {
                             emit(state)
+                            delay(50.milliseconds)
                         }
+
+                    is State.Completed,
+                    State.Ready -> {
+                        emit(state)
                     }
                 }
             }
+        }
 
-            fun toPublicState(stateImpl: State): AudioRecorder.State {
-                return when (stateImpl) {
-                    is State.Recording -> {
-                        AudioRecorder.State.Recording(
-                            duration = clock.now() - stateImpl.start,
-                            loudness = stateImpl.loudness() ?: 0f,
-                        )
-                    }
-
-                    State.Ready -> AudioRecorder.State.Ready
-                    is State.Completed ->
-                        AudioRecorder.State.Completed(
-                            stateImpl.capture,
-                            stateImpl.duration,
-                            stateImpl.sizeBytes,
-                            stateImpl.contentType,
-                            stateImpl.fileExtension,
-                        )
+        private fun State.toPublicState(clock: Clock): AudioRecorder.State {
+            return when (this) {
+                is State.Recording -> {
+                    AudioRecorder.State.Recording(duration = clock.now() - this.start, loudness = this.loudness() ?: 0f)
                 }
-            }
 
-            return emitRepeatedlyWhileRecording(this).map { toPublicState(it) }
+                State.Ready -> AudioRecorder.State.Ready
+                is State.Completed ->
+                    AudioRecorder.State.Completed(
+                        this.capture,
+                        this.duration,
+                        this.sizeBytes,
+                        this.contentType,
+                        this.fileExtension,
+                    )
+            }
         }
 
         private suspend fun onMaxDuration(state: AudioRecorder.State, callback: suspend () -> Unit) {
