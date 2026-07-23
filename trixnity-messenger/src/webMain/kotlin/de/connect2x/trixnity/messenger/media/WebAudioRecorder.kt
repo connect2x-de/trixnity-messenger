@@ -146,7 +146,7 @@ class WebAudioRecorder(
             try {
                 recorder.stop()
                 val recordingSuccessful =
-                    withTimeoutOrNull(30.seconds) {
+                    withTimeoutOrNull(5.seconds) {
                         suspendCancellableCoroutine { cont ->
                             handleFirst(
                                 eventTarget = recorder,
