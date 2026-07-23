@@ -164,6 +164,10 @@ internal class AppleAudioRecorder(private val clock: Clock, private val fileSyst
                     AVAudioSession.sharedInstance().setActive(false, error = null)
                 }
             },
+            failure = {
+                // we could not identify a way how the recorder can fail while recording
+                null
+            },
         )
     }
 

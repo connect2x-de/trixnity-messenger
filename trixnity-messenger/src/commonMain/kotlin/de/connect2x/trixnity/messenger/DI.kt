@@ -648,7 +648,7 @@ private fun mediaViewModels() = module {
         val platformAudioRecorder = getOrNull<PlatformAudioRecorder>()
         val audioRecorder =
             if (config.features.enableAudioRecorder && platformAudioRecorder != null) {
-                AudioRecorderImpl(platformAudioRecorder, get(), get())
+                AudioRecorderImpl(platformAudioRecorder, get(), get(), get())
             } else {
                 null
             }

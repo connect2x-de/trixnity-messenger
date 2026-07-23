@@ -2,10 +2,10 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.error
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.util.handleFirst
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import js.array.asList
 import js.buffer.ArrayBuffer
 import js.errors.JsErrorName
@@ -37,6 +37,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import web.audio.AnalyserNode
 import web.audio.AudioContext
 import web.blob.byteArray
+import web.errors.ERROR
 import web.events.ERROR
 import web.events.Event
 import web.events.STOP
@@ -52,6 +53,7 @@ class WebAudioRecorder(
     private val audioContext: AudioContext,
     private val clock: Clock,
     private val coroutineScope: CoroutineScope,
+    private val i18n: I18n,
 ) : PlatformAudioRecorder {
     private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.WebAudioRecorder")
 
@@ -80,6 +82,7 @@ class WebAudioRecorder(
                     start = start,
                     loudness = loudness(microphone),
                     complete = complete(recorder, microphone, media, mediaSize, start),
+                    failure = genericFailureOnError(recorder),
                 )
             } else {
                 log.info { "Microphone permission request timed out." }
@@ -91,10 +94,21 @@ class WebAudioRecorder(
         }
     }
 
+    private fun genericFailureOnError(recorder: MediaRecorder): () -> AudioRecorderImpl.State.Failed? =
+        AudioRecorderImpl.genericFailureOnError(i18n) { setFailure ->
+            recorder.addEventHandler(
+                type = Event.ERROR,
+                options = unsafeJso { once = true },
+                handler = {
+                    log.error { "Unexpected error while recording audio" }
+                    setFailure()
+                },
+            )
+        }
+
     private fun startRecorder(microphone: MediaStream): MediaRecorder {
         val recorder = MediaRecorder(microphone)
         recorder.start()
-        recorder.addEventHandler(type = Event.ERROR, handler = { log.error { "Error while recording audio" } })
         return recorder
     }
 
@@ -117,7 +131,6 @@ class WebAudioRecorder(
                             recorder.addEventHandler(
                                 type = Event.ERROR,
                                 handler = { event ->
-                                    log.error { "Unexpected error while recording audio" }
                                     close(IllegalStateException("Unexpected error while recording audio"))
                                 },
                             ),
@@ -151,14 +164,7 @@ class WebAudioRecorder(
                             handleFirst(
                                 eventTarget = recorder,
                                 handlers =
-                                    mapOf(
-                                        Event.STOP to { cont.resume(Unit) },
-                                        Event.ERROR to
-                                            {
-                                                log.error { "Unexpected error while recording audio" }
-                                                cont.resume(null)
-                                            },
-                                    ),
+                                    mapOf(Event.STOP to { cont.resume(Unit) }, Event.ERROR to { cont.resume(null) }),
                             )
                         }
                     }

@@ -1,6 +1,10 @@
 package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.trixnity.messenger.configureTestLogging
+import de.connect2x.trixnity.messenger.createTestMatrixMessengerSettingsHolder
+import de.connect2x.trixnity.messenger.i18n.DefaultLanguages
+import de.connect2x.trixnity.messenger.i18n.GetSystemLang
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.resetMocks
 import de.connect2x.trixnity.messenger.runTestWithCoroutineScope
 import de.connect2x.trixnity.utils.ByteArrayFlow
@@ -27,10 +31,19 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.datetime.TimeZone
 
 class AudioRecorderTest {
     private val platformAudioRecorder = mock<PlatformAudioRecorder>()
     private val clock = mock<Clock>()
+    private val i18n =
+        object :
+            I18n(
+                DefaultLanguages,
+                createTestMatrixMessengerSettingsHolder(),
+                GetSystemLang { "en" },
+                TimeZone.of("CET"),
+            ) {}
 
     private val intoMediaStoreMock = { _: ByteArrayFlow ->
         AudioRecorder.State.Completed.MediaReference.Unencrypted("unused")
@@ -75,6 +88,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
             val nextTime = startTime + 5.seconds
             every { clock.now() } returns nextTime
@@ -103,6 +117,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -147,6 +162,7 @@ class AudioRecorderTest {
                         "ogg",
                     )
                 },
+                failure = { null },
             )
 
         var nextTime = startTime
@@ -190,6 +206,7 @@ class AudioRecorderTest {
                         "ogg",
                     )
                 },
+                failure = { null },
             )
 
         every { clock.now() } returns (startTime + 5.seconds)
@@ -222,6 +239,7 @@ class AudioRecorderTest {
                         "ogg",
                     )
                 },
+                failure = { null },
             )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.start(intoMediaStoreMock) }
@@ -248,6 +266,7 @@ class AudioRecorderTest {
                         "ogg",
                     )
                 },
+                failure = { null },
             )
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch { cut.start(intoMediaStoreMock) }
@@ -275,6 +294,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
 
             var nextTime = startTime
@@ -316,6 +336,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
             every { clock.now() } returns (startTime + 5.seconds)
             backgroundScope.launch {
@@ -340,7 +361,7 @@ class AudioRecorderTest {
 
         val startTime = Clock.System.now()
         everySuspend { platformAudioRecorder.start(any()) } returns
-            AudioRecorderImpl.State.Recording(startTime, { 5F }, { throw IllegalStateException() })
+            AudioRecorderImpl.State.Recording(startTime, { 5F }, { throw IllegalStateException() }, failure = { null })
         every { clock.now() } returns (startTime + 5.seconds)
         backgroundScope.launch {
             cut.start(intoMediaStoreMock)
@@ -369,6 +390,7 @@ class AudioRecorderTest {
                         "ogg",
                     )
                 },
+                failure = { null },
             )
         every { clock.now() } returns (startTime + 5.seconds)
         var stateEmits = 0
@@ -401,6 +423,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -435,6 +458,7 @@ class AudioRecorderTest {
                             "ogg",
                         )
                     },
+                    failure = { null },
                 )
             var platformRecorderClosed = false
             every { platformAudioRecorder.close() } calls { platformRecorderClosed = true }
@@ -457,7 +481,7 @@ class AudioRecorderTest {
         }
 
     fun TestScope.commonAudioRecorder(coroutineScope: CoroutineScope): AudioRecorderImpl {
-        val cut = AudioRecorderImpl(platformAudioRecorder, clock, coroutineScope)
+        val cut = AudioRecorderImpl(platformAudioRecorder, clock, coroutineScope, i18n)
         backgroundScope.launch { cut.state.collect() }
         return cut
     }

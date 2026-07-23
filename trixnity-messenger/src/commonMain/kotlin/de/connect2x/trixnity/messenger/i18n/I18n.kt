@@ -1750,6 +1750,11 @@ open class I18n(
         DE - "Gehe zu Berechtigungen und erlaube Mikrofon"
     }
 
+    open fun genericRecordingError() = translate {
+        EN - "An error occurred while recording"
+        DE - "Während der Aufnahme ist ein Fehler aufgetreten"
+    }
+
     open fun joinRoomConfirmJoinOffline() = translate {
         EN - "You can't join the room without an internet connection, please try again later."
         DE - "Sie können keinem Raum beitreten, während Sie offline sind, bitte versuchen Sie es später erneut."

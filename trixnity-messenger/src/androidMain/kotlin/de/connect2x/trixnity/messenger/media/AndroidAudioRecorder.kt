@@ -6,6 +6,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresPermission
+import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorderImpl.Format.BitRate
 import de.connect2x.trixnity.messenger.util.ActivityGetter
@@ -26,6 +27,8 @@ internal class AndroidAudioRecorder(
     private val getActivity: ActivityGetter,
     private val i18n: I18n,
 ) : PlatformAudioRecorder {
+    private val log = Logger("de.connect2x.trixnity.messenger.media.AndroidAudioRecorder")
+
     private val tempFilePath = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "voice_messages"
     private val audioFileExtension = "m4a"
 
@@ -101,6 +104,21 @@ internal class AndroidAudioRecorder(
             recorder.prepare()
             recorder.start()
 
+            val failure =
+                AudioRecorderImpl.genericFailureOnError(i18n) { setFailure ->
+                    recorder.setOnErrorListener { _, errorCode, _ ->
+                        val logMessage =
+                            when (errorCode) {
+                                MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN ->
+                                    "Unknown error from Android API recorder while recording"
+                                MediaRecorder.MEDIA_ERROR_SERVER_DIED -> "Media server died while recording"
+                                else -> "Unexpected error while recording"
+                            }
+                        log.error { logMessage }
+                        setFailure()
+                    }
+                }
+
             val start = clock.now()
             AudioRecorderImpl.State.Recording(
                 start = start,
@@ -126,6 +144,7 @@ internal class AndroidAudioRecorder(
                         recorder.release()
                     }
                 },
+                failure = failure,
             )
         }
     }

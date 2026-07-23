@@ -2,9 +2,11 @@ package de.connect2x.trixnity.messenger.media
 
 import de.connect2x.lognity.api.logger.Logger
 import de.connect2x.lognity.api.logger.debug
+import de.connect2x.lognity.api.logger.error
 import de.connect2x.lognity.api.logger.warn
 import de.connect2x.trixnity.core.model.events.m.room.EncryptedFile
 import de.connect2x.trixnity.messenger.abi.TrixnityMessengerPrivateApi
+import de.connect2x.trixnity.messenger.i18n.I18n
 import de.connect2x.trixnity.messenger.media.AudioRecorder.State.Completed.MediaReference
 import de.connect2x.trixnity.utils.ByteArrayFlow
 import io.ktor.http.*
@@ -71,12 +73,14 @@ class AudioRecorderImpl(
     private val platformAudioRecorder: PlatformAudioRecorder,
     clock: Clock,
     private val parentScope: CoroutineScope,
+    private val i18n: I18n,
 ) : AudioRecorder {
     private val stateImpl: MutableStateFlow<State> = MutableStateFlow(State.Ready)
 
     override val state: StateFlow<AudioRecorder.State> =
         stateImpl
             .emitRepeatedlyWhileRecording()
+            .onEach { s -> s.onRecordingFailure { failure -> fail(failure) } }
             .map { it.toPublicState(clock) }
             .onEach { onMaxDuration(it) { complete() } }
             .stateIn(parentScope, SharingStarted.WhileSubscribed(), AudioRecorder.State.Ready)
@@ -86,7 +90,7 @@ class AudioRecorderImpl(
 
         val initialRecordingState = platformAudioRecorder.start(intoMediaStore)
         if (initialRecordingState != null) {
-            stateImpl.value = withCatchCallbacks(initialRecordingState)
+            stateImpl.value = withCatchCallbacks(initialRecordingState, i18n)
         }
     }
 
@@ -111,6 +115,11 @@ class AudioRecorderImpl(
         parentScope.launch { closeSuspending() }
     }
 
+    private suspend fun fail(failure: State.Failed) {
+        close(stateImpl.value)
+        stateImpl.value = failure
+    }
+
     /** Abstract effectful platform-specific actions by storing them here as function values */
     sealed interface State {
         object Ready : State
@@ -125,6 +134,14 @@ class AudioRecorderImpl(
              * handled.
              */
             val complete: suspend () -> Completed?,
+
+            /**
+             * Signal a failure from platform code to common code. Common code then sets the failure state. Platform
+             * code is not concerned with setting the state directly.
+             *
+             * This is called repeatedly so should not have any side effects.
+             */
+            val failure: () -> Failed?,
         ) : State
 
         data class Completed(
@@ -156,6 +173,12 @@ class AudioRecorderImpl(
 
     companion object {
         private val log: Logger = Logger("de.connect2x.trixnity.messenger.media.AudioRecorder")
+
+        fun genericFailureOnError(i18n: I18n, registerOnErrorHandler: (() -> Unit) -> Unit): () -> State.Failed? {
+            var failure: State.Failed? = null
+            registerOnErrorHandler { failure = State.Failed(i18n.genericRecordingError()) }
+            return { failure }
+        }
 
         private suspend fun complete(stateImpl: State): State {
             return when (stateImpl) {
@@ -258,7 +281,22 @@ class AudioRecorderImpl(
             }
         }
 
-        private fun withCatchCallbacks(recordingState: State.Recording): State.Recording {
+        private suspend fun State.onRecordingFailure(callback: suspend (State.Failed) -> Unit) {
+            when (this) {
+                is State.Recording -> {
+                    val failure = this.failure()
+                    if (failure != null) {
+                        callback(failure)
+                    }
+                }
+
+                is State.Completed,
+                is State.Failed,
+                State.Ready -> Unit
+            }
+        }
+
+        private fun withCatchCallbacks(recordingState: State.Recording, i18n: I18n): State.Recording {
             return recordingState.copy(
                 loudness = {
                     try {
@@ -274,6 +312,14 @@ class AudioRecorderImpl(
                     } catch (e: Throwable) {
                         log.warn(e) { "Completing audio recording failed." }
                         null
+                    }
+                },
+                failure = {
+                    try {
+                        recordingState.failure()
+                    } catch (e: Throwable) {
+                        log.error(e) { "Could not retrieve failure state" }
+                        State.Failed(i18n.genericRecordingError())
                     }
                 },
             )
