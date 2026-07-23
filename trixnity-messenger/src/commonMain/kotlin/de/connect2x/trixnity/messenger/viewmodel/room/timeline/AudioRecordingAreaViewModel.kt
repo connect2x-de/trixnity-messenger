@@ -99,7 +99,7 @@ class AudioRecordingAreaViewModelImpl(
                 )
         }
 
-        fun replaceOnCapture(recorderState: Flow<AudioRecorder.State>): StateFlow<MediaPlayerViewModel?> {
+        fun replaceOnCompletion(recorderState: Flow<AudioRecorder.State>): StateFlow<MediaPlayerViewModel?> {
             return recorderState
                 .map { state ->
                     when (state) {
@@ -119,7 +119,7 @@ class AudioRecordingAreaViewModelImpl(
         }
 
         if (recorder != null) {
-            replaceOnCapture(recorder.state)
+            replaceOnCompletion(recorder.state)
         } else {
             MutableStateFlow(null)
         }
