@@ -1,7 +1,9 @@
 package de.connect2x.trixnity.messenger
 
+import de.connect2x.trixnity.messenger.media.AppleAudioRecorder
 import de.connect2x.trixnity.messenger.media.AppleMediaPlayer
 import de.connect2x.trixnity.messenger.media.MediaPlayer
+import de.connect2x.trixnity.messenger.media.PlatformAudioRecorder
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegate
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProtocol
 import de.connect2x.trixnity.messenger.uikit.ApplicationDelegateProxy
@@ -24,6 +26,7 @@ actual fun platformModule(): Module = module {
         )
     }
     single<MediaPlayer> { AppleMediaPlayer(get()) }.apply { bind<AutoCloseable>() }
+    single<PlatformAudioRecorder> { AppleAudioRecorder(get(), get()) }.apply { bind<AutoCloseable>() }
 }
 
 fun delegateModule(): Module = module {
