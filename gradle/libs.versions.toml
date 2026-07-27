@@ -1,14 +1,14 @@
 [versions]
 
-trixnityMessenger = "4.8.2"
+trixnityMessenger = "4.9.0"
 
 minSdkVersion = "28"
 
 seskar = "4.53.0" # https://github.com/turansky/seskar
 
-trixnity = "5.7.0-SNAPSHOT.CI-20260710.132509" # https://gitlab.com/trixnity/trixnity/-/releases
-sysnotify = "2.7.0-SNAPSHOT.CI-20260709.132536" # https://gitlab.com/connect2x/sysnotify/-/packages
-sqlitenity = "0.0.7-SNAPSHOT.CI-20260623.161442" # https://gitlab.com/connect2x/sqlitenity/-/releases
+trixnity = "5.7.0" # https://gitlab.com/trixnity/trixnity/-/releases
+sysnotify = "2.7.1" # https://gitlab.com/connect2x/sysnotify/-/packages
+sqlitenity = "0.0.7" # https://gitlab.com/connect2x/sqlitenity/-/releases
 
 unifiedPush = "3.3.3" # https://codeberg.org/UnifiedPush/android-connector/releases
 okio = "3.17.0" # https://square.github.io/okio/changelog
