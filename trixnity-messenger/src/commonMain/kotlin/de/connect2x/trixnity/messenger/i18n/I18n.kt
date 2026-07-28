@@ -1261,7 +1261,17 @@ open class I18n(
 
     open fun mediaCouldNotBeRead() = translate {
         EN - "File could not be read"
-        DE - "Datei konnte nicht gelesen werden"
+        DE - "Datei konnte nicht geladen werden"
+    }
+
+    open fun mediaExceedsDownloadLimit() = translate {
+        EN - "File could not be read because it exceeds the download limit"
+        DE - "Datei konnte nicht geladen werden, da sie das Download Limit überschreitet"
+    }
+
+    open fun mediaInsufficientSpace() = translate {
+        EN - "File could not be read because of insufficient space"
+        DE - "Datei konnte nicht geladen werden. Nicht genügend Speicher."
     }
 
     open fun mediaCanNotBePreviewed() = translate {
@@ -1368,6 +1378,11 @@ open class I18n(
     open fun downloadFailed(error: String?) = translate {
         EN - "Download failed: ${error ?: commonUnknown()}"
         DE - "Herunterladen fehlgeschlagen: ${error ?: commonUnknown()}"
+    }
+
+    open fun downloadFailedInsufficientSpace() = translate {
+        EN - "File could not be downloaded because of insufficient space"
+        DE - "Datei konnte nicht heruntergeladen werden. Nicht genügend Speicher."
     }
 
     open fun alreadyRunningError(appName: String) = translate {

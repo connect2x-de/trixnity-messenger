@@ -93,6 +93,7 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
             }
             val encryptedFile = content.file
             val url = content.url
+            val fileSize = content.info?.size
             val result =
                 (encryptedFile?.url ?: url)?.let { key ->
                     downloadMutex.withLock(key) {
@@ -101,9 +102,11 @@ class DownloadManagerImpl(coroutineContext: CoroutineContext = Dispatchers.IOOrD
                                     matrixClient.media.getEncryptedMedia(
                                         encryptedFile,
                                         maxDownloadSize,
+                                        fileSize,
                                         trixnityProgress,
                                     )
-                                url != null -> matrixClient.media.getMedia(url, maxDownloadSize, trixnityProgress)
+                                url != null ->
+                                    matrixClient.media.getMedia(url, maxDownloadSize, fileSize, trixnityProgress)
                                 else -> Result.failure(IllegalArgumentException("there was no url or file in content"))
                             }
                             .onSuccess { log.debug { "successfully downloaded $fileName" } }

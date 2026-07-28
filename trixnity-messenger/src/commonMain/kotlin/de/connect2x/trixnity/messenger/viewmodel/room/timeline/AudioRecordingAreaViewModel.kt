@@ -91,9 +91,9 @@ class AudioRecordingAreaViewModelImpl(
                     acquireFile = {
                         when (val media = capture.media) {
                             is AudioRecorder.State.Completed.MediaReference.Encrypted ->
-                                matrixClient.media.getEncryptedMedia(media.uriWithMetadata)
+                                matrixClient.media.getEncryptedMedia(media.uriWithMetadata, maxSize = null)
                             is AudioRecorder.State.Completed.MediaReference.Unencrypted ->
-                                matrixClient.media.getMedia(media.uri)
+                                matrixClient.media.getMedia(media.uri, maxSize = null)
                         }
                     },
                 )

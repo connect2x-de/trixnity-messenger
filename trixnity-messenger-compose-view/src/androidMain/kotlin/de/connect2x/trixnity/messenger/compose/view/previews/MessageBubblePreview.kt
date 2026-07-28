@@ -111,10 +111,15 @@ fun ImageMessageBubblePreview() {
                 MutableStateFlow(InMemoryPlatformMedia(flowOf(previewImageByteArray())))
             override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> = MutableStateFlow(null)
             override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
+            override val saveDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
 
             override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {}
 
             override fun cancelDownloadMedia() {}
+
+            override fun showSaveDialog() {}
+
+            override fun hideSaveDialog(errorShown: Boolean) {}
 
             override val body: String = "Ein Kiwi :D"
             override val formattedBody: String? = null
@@ -165,10 +170,15 @@ fun FileMessageBubblePreview() {
             override val downloadMediaProgress: StateFlow<FileTransferProgressElement?> =
                 MutableStateFlow(FileTransferProgressElement(0.33f, "280kb/465"))
             override val downloadMediaError: StateFlow<String?> = MutableStateFlow(null)
+            override val saveDialogOpen: StateFlow<Boolean> = MutableStateFlow(false)
 
             override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {}
 
             override fun cancelDownloadMedia() {}
+
+            override fun showSaveDialog() {}
+
+            override fun hideSaveDialog(errorShown: Boolean) {}
 
             override val body: String = "Ein Kiwi :D"
             override val formattedBody: String? = null

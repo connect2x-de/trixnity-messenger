@@ -160,6 +160,7 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
                         if (content is RoomMessageEventContent.FileBased) {
                             val mediaUrl = content.url
                             val mediaFile = content.file
+                            val expectedSize = content.info?.size
                             val fileName =
                                 (mediaFile?.url ?: mediaUrl)
                                     ?.encodeToByteArray()
@@ -187,12 +188,18 @@ class ExportRoomImpl(private val sinkFactories: List<ExportRoomSinkFactory>) : E
                             val media =
                                 when {
                                         mediaUrl != null && includeMedia ->
-                                            matrixClient.media.getMedia(mediaUrl, maxMediaSize, saveToCache = false)
+                                            matrixClient.media.getMedia(
+                                                mediaUrl,
+                                                maxMediaSize,
+                                                expectedSize = expectedSize,
+                                                saveToCache = false,
+                                            )
 
                                         mediaFile != null && includeMedia ->
                                             matrixClient.media.getEncryptedMedia(
                                                 mediaFile,
                                                 maxMediaSize,
+                                                expectedSize = expectedSize,
                                                 saveToCache = false,
                                             )
 

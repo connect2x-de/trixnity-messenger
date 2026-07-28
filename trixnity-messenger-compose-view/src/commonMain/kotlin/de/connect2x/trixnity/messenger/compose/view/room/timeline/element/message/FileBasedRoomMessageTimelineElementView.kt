@@ -90,9 +90,7 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         FileBasedRoomMessageTimelineElementMessageBubble(
             holder,
             element,
-            {
-                element.showSaveDialog()
-            },
+            { element.showSaveDialog() },
             isPreview,
             displayProgressOverElement,
             index,

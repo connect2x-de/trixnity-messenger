@@ -16,8 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- error message dialog on failed download
 
 ### Security
+- add check for available space on device before download
 
 ## 4.9.0
 
