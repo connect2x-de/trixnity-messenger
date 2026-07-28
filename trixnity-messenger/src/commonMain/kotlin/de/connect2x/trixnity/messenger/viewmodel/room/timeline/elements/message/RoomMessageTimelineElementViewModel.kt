@@ -86,10 +86,15 @@ sealed interface RoomMessageTimelineElementViewModel<C : RoomMessageEventContent
         val downloadMediaResult: StateFlow<PlatformMedia?>
         val downloadMediaProgress: StateFlow<FileTransferProgressElement?>
         val downloadMediaError: StateFlow<String?>
+        val saveDialogOpen: StateFlow<Boolean>
 
         fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit = {}, onDownloadCancelled: () -> Unit = {})
 
         fun cancelDownloadMedia()
+
+        fun showSaveDialog()
+
+        fun hideSaveDialog(errorShown: Boolean)
 
         interface File : FileBased<RoomMessageEventContent.FileBased.File>
 

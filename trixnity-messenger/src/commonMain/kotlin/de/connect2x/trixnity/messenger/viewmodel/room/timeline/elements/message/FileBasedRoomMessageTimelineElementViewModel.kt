@@ -112,6 +112,8 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
     private val _downloadMediaError = MutableStateFlow<String?>(null)
     override val downloadMediaError = _downloadMediaError.asStateFlow()
     private val activeDownloadMedia = MutableStateFlow<Deferred<Result<PlatformMedia>>?>(null)
+    private val _saveDialogOpen: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    override val saveDialogOpen: StateFlow<Boolean> = _saveDialogOpen.asStateFlow()
 
     override fun downloadMedia(processFile: suspend (PlatformMedia) -> Unit, onDownloadCancelled: () -> Unit) {
         coroutineScope.launch {
@@ -132,6 +134,19 @@ abstract class FileBasedRoomMessageTimelineElementViewModel<C : RoomMessageEvent
 
     override fun cancelDownloadMedia() {
         activeDownloadMedia.value?.cancel("Cancelled by user.")
+    }
+
+    override fun showSaveDialog() {
+        _saveDialogOpen.value = true
+        _downloadMediaError.value = null
+    }
+
+    override fun hideSaveDialog(errorShown: Boolean) {
+        when {
+            _downloadMediaError.value == null -> _saveDialogOpen.value = false
+            errorShown -> _saveDialogOpen.value = false
+            else -> {}
+        }
     }
 
     protected suspend fun downloadMediaInternal(): Result<PlatformMedia> {

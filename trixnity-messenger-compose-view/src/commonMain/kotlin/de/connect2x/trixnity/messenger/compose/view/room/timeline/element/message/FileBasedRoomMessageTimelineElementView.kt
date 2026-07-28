@@ -80,13 +80,19 @@ class FileBasedRoomMessageTimelineElementViewImpl : FileBasedRoomMessageTimeline
         content: @Composable ColumnScope.(showActionMenu: () -> Unit, onSave: () -> Unit) -> Unit,
     ) {
         val error = element.downloadMediaError.collectAsState().value
-        var saveDialogOpen by remember { mutableStateOf(false) }
-        if (saveDialogOpen)
-            SaveFileDialog(element.name, element.mimeType, error, element::downloadMedia) { saveDialogOpen = false }
+        val saveDialogOpen = element.saveDialogOpen.collectAsState().value
+        if (saveDialogOpen) {
+            SaveFileDialog(element.name, element.mimeType, error, element::downloadMedia) {
+                element.hideSaveDialog(error != null)
+            }
+        }
+
         FileBasedRoomMessageTimelineElementMessageBubble(
             holder,
             element,
-            { saveDialogOpen = true },
+            {
+                element.showSaveDialog()
+            },
             isPreview,
             displayProgressOverElement,
             index,
