@@ -27,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
@@ -105,7 +104,7 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
                             }
                             .zoomModifier(focusRequester, canZoom, zoom)
                             // performance when image is rendered with no alpha channel
-                            .background(color = Color.Black)
+                            .background(color = MaterialTheme.colorScheme.background)
                             .transformable(state = state),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -119,9 +118,9 @@ class ImageTimelineElementDetailsViewImpl : ImageTimelineElementDetailsView {
                                     MaterialTheme.messengerIcons.typeFile,
                                     i18n.commonFile(),
                                     Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                    tint = MaterialTheme.colorScheme.error,
+                                    tint = MaterialTheme.colorScheme.onBackground,
                                 )
-                                Text(i18n.imageCouldNotBeLoaded(), color = Color.White)
+                                Text(i18n.imageCouldNotBeLoaded(), color = MaterialTheme.colorScheme.onBackground)
                             }
                         }
                         if (bitmap != null) {

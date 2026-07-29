@@ -260,7 +260,7 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
             },
         ) {
             BoxWithConstraints(
-                Modifier.background(color = Color.Black)
+                Modifier.background(color = MaterialTheme.colorScheme.background)
                     .fillMaxSize()
                     .focusRequester(focusRequester)
                     .focusable()
@@ -295,9 +295,9 @@ class PdfTimelineElementDetailsViewImpl : PdfTimelineElementDetailsView {
                                 MaterialTheme.messengerIcons.typeFile,
                                 i18n.commonFile(),
                                 Modifier.size(96.dp).align(Alignment.CenterHorizontally),
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = MaterialTheme.colorScheme.onBackground,
                             )
-                            Text(error, color = Color.White)
+                            Text(error, color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
 
